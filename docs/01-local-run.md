@@ -1,0 +1,64 @@
+# Local Development with Docker
+
+Before deploying to Azure Container Apps, it's best to verify your Python application runs correctly in a containerized environment locally. This ensures your Dockerfile is correctly configured and all dependencies are present.
+
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine
+- [Docker Compose](https://docs.docker.com/compose/)
+- Python 3.11 or later (optional for local testing outside Docker)
+
+## Running with Docker Compose
+
+The easiest way to start the application along with any required local services (like Redis or a local database) is using Docker Compose.
+
+1. **Build and start the containers:**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+2. **Access the application:**
+
+   Open your browser and navigate to `http://localhost:8000`.
+
+3. **Check logs:**
+
+   View real-time logs from your Python application container:
+
+   ```bash
+   docker-compose logs -f app
+   ```
+
+## Manual Docker Build
+
+If you want to test the production Dockerfile directly:
+
+1. **Build the image:**
+
+   ```bash
+   docker build -t aca-python-app .
+   ```
+
+2. **Run the container:**
+
+   ```bash
+   docker run -p 8000:8000 --env-file .env aca-python-app
+   ```
+
+## Development Workflow
+
+When working locally, you can mount your source code as a volume to see changes reflected immediately without rebuilding the image:
+
+```yaml
+# docker-compose.yml snippet
+services:
+  app:
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+      - LOG_LEVEL=DEBUG
+```
+
+This local setup mimics the Azure Container Apps environment where your app runs inside a managed Kubernetes cluster, helping you catch configuration issues early.
