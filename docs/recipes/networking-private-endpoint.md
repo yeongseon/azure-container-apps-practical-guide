@@ -4,112 +4,247 @@ Connect Container Apps to Azure services using Private Endpoints.
 
 ## Overview
 
+```mermaid
+flowchart LR
+    subgraph VNet
+        CA[Container App]
+        PE1[Private Endpoint<br/>Key Vault]
+        PE2[Private Endpoint<br/>Storage]
+    end
+    
+    subgraph Azure Services
+        KV[Key Vault<br/>10.0.2.4]
+        ST[Storage Account<br/>10.0.2.5]
+    end
+    
+    CA --> PE1 --> KV
+    CA --> PE2 --> ST
+```
+
+!!! info "What are Private Endpoints?"
+    Private Endpoints provide private IP addresses for Azure PaaS services, ensuring traffic never leaves the Microsoft backbone network.
+
 Private Endpoints provide:
+
 - Private IP addresses for Azure services
 - Traffic stays on Microsoft backbone
 - No public internet exposure
 
+## Quick Start: Deploy Test Environment
+
+We provide a complete private endpoint test environment with Key Vault and Storage Account.
+
+```bash
+cd infra
+./deploy-private.sh
+```
+
+This deploys:
+
+| Resource | Purpose |
+|----------|---------|
+| VNet with 2 subnets | Network isolation |
+| Key Vault + Private Endpoint | Secret management |
+| Storage Account + Private Endpoint | Blob storage |
+| Private DNS Zones | Name resolution |
+| Managed Identity | Passwordless authentication |
+
 ## Supported Services
 
-- Azure SQL Database
-- Azure Storage (Blob, Queue, Table, File)
-- Azure Key Vault
-- Azure Cosmos DB
-- Azure Service Bus
-- Azure Redis Cache
+| Service | Private DNS Zone | Group ID |
+|---------|------------------|----------|
+| Azure SQL | `privatelink.database.windows.net` | `sqlServer` |
+| Blob Storage | `privatelink.blob.core.windows.net` | `blob` |
+| Key Vault | `privatelink.vaultcore.azure.net` | `vault` |
+| Cosmos DB | `privatelink.documents.azure.com` | `Sql` |
+| Service Bus | `privatelink.servicebus.windows.net` | `namespace` |
+| Redis Cache | `privatelink.redis.cache.windows.net` | `redisCache` |
 
 ## Architecture
 
-```
-Container App (VNet) --> Private Endpoint --> Azure SQL (Private IP)
-                    \-> Private Endpoint --> Key Vault (Private IP)
-```
-
-## Create Private Endpoint for Azure SQL
-
-### Bicep:
-```bicep
-resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
-  name: 'sql-${baseName}'
-  location: location
-  properties: {
-    administratorLogin: sqlAdminLogin
-    administratorLoginPassword: sqlAdminPassword
-    publicNetworkAccess: 'Disabled'  // Disable public access
-  }
-}
-
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
-  name: 'pe-sql-${baseName}'
-  location: location
-  properties: {
-    subnet: {
-      id: vnet.properties.subnets[0].id
-    }
-    privateLinkServiceConnections: [
-      {
-        name: 'sql-connection'
-        properties: {
-          privateLinkServiceId: sqlServer.id
-          groupIds: ['sqlServer']
-        }
-      }
-    ]
-  }
-}
-
-resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  name: 'privatelink.database.windows.net'
-  location: 'global'
-}
-
-resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
-  parent: privateDnsZone
-  name: 'vnet-link'
-  location: 'global'
-  properties: {
-    virtualNetwork: {
-      id: vnet.id
-    }
-    registrationEnabled: false
-  }
-}
+```mermaid
+flowchart TB
+    subgraph VNet["Virtual Network (10.0.0.0/16)"]
+        subgraph CASubnet["Container Apps Subnet (10.0.0.0/23)"]
+            CAE[Container Apps Environment]
+            CA[Container App]
+        end
+        
+        subgraph PESubnet["Private Endpoints Subnet (10.0.2.0/24)"]
+            PE_KV[PE: Key Vault<br/>10.0.2.4]
+            PE_ST[PE: Storage<br/>10.0.2.5]
+        end
+    end
+    
+    subgraph DNS["Private DNS Zones"]
+        DNS_KV[privatelink.vaultcore.azure.net]
+        DNS_ST[privatelink.blob.core.windows.net]
+    end
+    
+    subgraph Services["Azure PaaS (Public Disabled)"]
+        KV[Key Vault]
+        ST[Storage Account]
+    end
+    
+    CA --> PE_KV --> KV
+    CA --> PE_ST --> ST
+    DNS_KV -.-> PE_KV
+    DNS_ST -.-> PE_ST
 ```
 
-## Configure DNS Resolution
+## Infrastructure Components
 
-Private DNS zones are required for name resolution:
+### 1. Network Module
 
-| Service | Private DNS Zone |
-|---------|------------------|
-| Azure SQL | privatelink.database.windows.net |
-| Blob Storage | privatelink.blob.core.windows.net |
-| Key Vault | privatelink.vaultcore.azure.net |
-| Cosmos DB | privatelink.documents.azure.com |
+The network module creates a VNet with two subnets:
 
-## Use in Container App
+```bash
+infra/modules/network.bicep
+```
+
+| Subnet | CIDR | Purpose |
+|--------|------|---------|
+| `snet-container-apps` | 10.0.0.0/23 | Container Apps Environment |
+| `snet-private-endpoints` | 10.0.2.0/24 | Private Endpoints |
+
+!!! warning "Subnet Size"
+    Container Apps requires a minimum /23 subnet (512 IPs). Smaller subnets will cause deployment failures.
+
+### 2. Key Vault with Private Endpoint
+
+```bash
+infra/modules/keyvault-private.bicep
+```
+
+Features:
+
+- Public network access disabled
+- RBAC authorization enabled
+- Sample secrets for testing
+- Automatic DNS registration
+
+### 3. Storage Account with Private Endpoint
+
+```bash
+infra/modules/storage-private.bicep
+```
+
+Features:
+
+- Blob endpoint with private endpoint
+- Public access disabled
+- Test container created
+- Managed Identity access configured
+
+## Using Private Endpoints in Code
+
+### Key Vault Access
 
 ```python
 import os
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
-# Key Vault URL uses standard DNS (resolves to private IP via Private DNS Zone)
-vault_url = os.environ['KEY_VAULT_URL']  # https://kv-myapp.vault.azure.net
+vault_url = os.environ['KEY_VAULT_URL']
 credential = DefaultAzureCredential()
 client = SecretClient(vault_url=vault_url, credential=credential)
 
-secret = client.get_secret("my-secret")
+secret = client.get_secret("database-password")
+print(f"Secret value: {secret.value}")
 ```
+
+### Storage Account Access
+
+```python
+import os
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
+
+account_url = os.environ['STORAGE_BLOB_ENDPOINT']
+credential = DefaultAzureCredential()
+client = BlobServiceClient(account_url=account_url, credential=credential)
+
+container = client.get_container_client("test-container")
+for blob in container.list_blobs():
+    print(f"Blob: {blob.name}")
+```
+
+!!! tip "Managed Identity"
+    The deployment automatically configures the Managed Identity with appropriate RBAC roles:
+    
+    - **Key Vault**: `Key Vault Secrets User`
+    - **Storage**: `Storage Blob Data Contributor`
 
 ## Verify Connectivity
 
-From container logs or console:
-```bash
-# Check DNS resolution
-nslookup myserver.database.windows.net
-# Should return private IP (10.x.x.x)
+### From Container Console
 
-# Test connectivity
-nc -zv myserver.database.windows.net 1433
+```bash
+az containerapp exec -n <app-name> -g <resource-group> --command /bin/bash
 ```
+
+### Check DNS Resolution
+
+```bash
+nslookup <keyvault-name>.vault.azure.net
+```
+
+Expected output (private IP):
+```
+Server:    168.63.129.16
+Address:   168.63.129.16#53
+
+Non-authoritative answer:
+<keyvault-name>.vault.azure.net  canonical name = <keyvault-name>.privatelink.vaultcore.azure.net.
+Name:   <keyvault-name>.privatelink.vaultcore.azure.net
+Address: 10.0.2.4
+```
+
+!!! warning "Public IP Response"
+    If you see a public IP address, the Private DNS Zone is not correctly linked to your VNet.
+
+### Test Connectivity
+
+```bash
+nc -zv <keyvault-name>.vault.azure.net 443
+```
+
+## Troubleshooting
+
+### DNS Resolution Returns Public IP
+
+1. Verify Private DNS Zone exists
+2. Check VNet link is configured
+3. Ensure Private Endpoint is in `Succeeded` state
+
+```bash
+az network private-endpoint show \
+  --name pe-kv-<basename> \
+  --resource-group <resource-group> \
+  --query 'provisioningState'
+```
+
+### Connection Timeout
+
+1. Check NSG rules on the private endpoint subnet
+2. Verify the service's firewall allows the private endpoint
+3. Ensure the Container App is in the same VNet
+
+### Authentication Errors
+
+1. Verify Managed Identity is assigned to Container App
+2. Check RBAC roles are correctly assigned
+3. Ensure `AZURE_CLIENT_ID` environment variable is set
+
+```bash
+az containerapp show -n <app-name> -g <rg> --query 'identity'
+```
+
+## Clean Up
+
+```bash
+az group delete --name rg-container-apps-private --yes --no-wait
+```
+
+!!! note "Soft Delete"
+    Key Vault uses soft delete by default. Deleted vaults are retained for 7 days before permanent deletion.

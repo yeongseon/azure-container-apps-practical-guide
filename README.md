@@ -19,12 +19,22 @@ cd app
 docker build -t aca-python-reference .
 docker run -p 8000:8000 aca-python-reference
 
-# Deploy to Azure
+# Deploy to Azure (basic)
 cd infra
 cp .env.example .env
-# Edit .env with your values
 ./deploy.sh
+
+# Deploy with Private Endpoints (VNet + Key Vault + Storage)
+cd infra
+./deploy-private.sh
 ```
+
+## Deployment Options
+
+| Script | Description | Resources |
+|--------|-------------|-----------|
+| `deploy.sh` | Basic deployment | ACR, Container App, Log Analytics |
+| `deploy-private.sh` | Private Endpoint test environment | + VNet, Key Vault, Storage with Private Endpoints |
 
 ## Documentation
 
