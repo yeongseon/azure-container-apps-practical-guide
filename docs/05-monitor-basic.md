@@ -2,7 +2,28 @@
 
 Azure Container Apps (ACA) provides integrated monitoring through Log Analytics and Application Insights.
 
+## Overview
+
+```mermaid
+flowchart LR
+    subgraph Container App
+        APP[Python App]
+        STDOUT[stdout/stderr]
+    end
+    
+    APP --> STDOUT
+    STDOUT --> LA[Log Analytics]
+    APP --> AI[Application Insights]
+    
+    LA --> KQL[KQL Queries]
+    AI --> TRACE[Distributed Traces]
+    AI --> METRIC[Metrics]
+```
+
 ## Demo Endpoints for Testing Logs
+
+!!! tip "Generate Test Data"
+    Call these endpoints several times to generate logs for testing your monitoring setup.
 
 ### Log Levels Demo
 ![Log Levels](screenshots/03-log-levels.png)
@@ -42,6 +63,9 @@ az containerapp logs show \
   --follow
 ```
 
+!!! warning "Log Latency"
+    Logs may take 1-2 minutes to appear in Log Analytics. Use `--follow` for near real-time streaming.
+
 ### Querying Logs (Log Analytics)
 
 ACA stores logs in the `ContainerAppConsoleLogs_CL` (legacy) or `ContainerAppConsoleLogs` table in your Log Analytics workspace.
@@ -54,6 +78,11 @@ ContainerAppConsoleLogs
 | project TimeGenerated, ContainerAppName, RevisionName, Log
 | order by TimeGenerated desc
 ```
+
+!!! info "Log Table Names"
+    - `ContainerAppConsoleLogs`: Application stdout/stderr (new schema)
+    - `ContainerAppConsoleLogs_CL`: Legacy table name
+    - `ContainerAppSystemLogs`: System-level events
 
 ## Application Insights Integration
 
@@ -74,6 +103,9 @@ For deeper visibility into Python application performance, traces, and dependenc
    )
    ```
 
+!!! tip "Auto-Instrumentation"
+    The Azure Monitor OpenTelemetry package automatically traces HTTP requests, database calls, and external dependencies.
+
 ### Metrics and Distributed Tracing
 
 Once integrated, Application Insights provides:
@@ -90,3 +122,6 @@ Azure Monitor provides several standard metrics for Container Apps:
 - Requests (if ingress is enabled)
 
 These metrics can be viewed in the **Metrics** section of your Container App in the Azure portal.
+
+!!! note "Custom Metrics"
+    For application-specific metrics (e.g., orders processed, cache hit rate), use OpenTelemetry custom metrics. See [Advanced Observability](07-observability-advanced.md).

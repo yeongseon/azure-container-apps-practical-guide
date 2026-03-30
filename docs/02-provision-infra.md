@@ -2,7 +2,35 @@
 
 Azure Container Apps (ACA) requires an environment and supporting resources like Log Analytics and Container Registry. This guide covers provisioning these resources using Bicep.
 
+## Overview
+
+```mermaid
+flowchart TB
+    subgraph RG[Resource Group]
+        ENV[Container Apps Environment]
+        LA[Log Analytics Workspace]
+        ACR[Azure Container Registry]
+        MI[Managed Identity]
+    end
+    
+    LA --> ENV
+    ACR --> APP[Container App]
+    MI --> ACR
+    MI --> APP
+    ENV --> APP
+```
+
 ## Core Infrastructure Components
+
+| Component | Purpose |
+|-----------|---------|
+| Container Apps Environment | Shared network boundary for apps |
+| Log Analytics Workspace | Centralized logging |
+| Azure Container Registry | Private image storage |
+| Managed Identity | Secure authentication |
+
+!!! info "Environment Sharing"
+    Multiple Container Apps can share the same environment. This enables service-to-service communication and shared logging.
 
 - **Container Apps Environment:** The logical boundary and shared network for your container apps.
 - **Log Analytics Workspace:** Used by the environment for aggregating system and application logs.
@@ -27,8 +55,11 @@ Azure Container Apps (ACA) requires an environment and supporting resources like
      --template-file infra/main.bicep \
      --parameters \
        appName=aca-python-reference \
-       acrName=myuniqueacrname
+        acrName=myuniqueacrname
    ```
+
+!!! warning "Unique ACR Name"
+    The `acrName` must be globally unique across all of Azure. Use a combination like `yourinitials` + `aca` + random number.
 
 ## Infrastructure Configuration
 
@@ -55,3 +86,6 @@ resource environment 'Microsoft.App/managedEnvironments@2022-03-01' = {
 ```
 
 By default, this reference app uses a public IP for the environment. For production workloads, consider deploying within a Virtual Network (VNet) for enhanced security.
+
+!!! tip "Production Recommendation"
+    For production deployments, use the VNet-integrated environment. See [VNet Integration](recipes/networking-vnet.md) for details.

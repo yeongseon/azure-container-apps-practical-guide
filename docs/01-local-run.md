@@ -2,7 +2,24 @@
 
 Before deploying to Azure Container Apps, it's best to verify your Python application runs correctly in a containerized environment locally. This ensures your Dockerfile is correctly configured and all dependencies are present.
 
+## Overview
+
+```mermaid
+flowchart LR
+    A[Source Code] --> B[Dockerfile]
+    B --> C[docker build]
+    C --> D[Local Image]
+    D --> E[docker-compose up]
+    E --> F[localhost:8000]
+    F --> G{Test Endpoints}
+    G --> H[/health]
+    G --> I[/info]
+```
+
 ## Prerequisites
+
+!!! info "Docker Required"
+    Container Apps run your code in containers. Testing locally with Docker ensures your containerized app works before deployment.
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine
 - [Docker Compose](https://docs.docker.com/compose/)
@@ -30,6 +47,9 @@ The easiest way to start the application along with any required local services 
    docker-compose logs -f app
    ```
 
+!!! tip "Hot Reload"
+    Use volume mounts to enable hot reloading during development. Changes to your Python files will be reflected without rebuilding the image.
+
 ## Manual Docker Build
 
 If you want to test the production Dockerfile directly:
@@ -45,6 +65,9 @@ If you want to test the production Dockerfile directly:
    ```bash
    docker run -p 8000:8000 --env-file .env aca-python-app
    ```
+
+!!! warning "Environment File"
+    Ensure your `.env` file exists and contains required variables. The container will fail to start if critical environment variables are missing.
 
 ## Development Workflow
 
@@ -62,3 +85,6 @@ services:
 ```
 
 This local setup mimics the Azure Container Apps environment where your app runs inside a managed Kubernetes cluster, helping you catch configuration issues early.
+
+!!! note "Next Steps"
+    Once your app runs locally, proceed to [Provision Infrastructure](02-provision-infra.md) to set up Azure resources.
