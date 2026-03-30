@@ -1,6 +1,5 @@
-flask==3.0.0
-gunicorn==21.2.0
-requests==2.31.0
-azure-monitor-opentelemetry==1.2.0
-opentelemetry-instrumentation-flask==0.43b0
-python-dotenv==1.0.0
+flask>=3.0.0
+gunicorn>=21.0.0
+requests>=2.31.0
+azure-monitor-opentelemetry>=1.6.0
+python-dotenv>=1.0.0

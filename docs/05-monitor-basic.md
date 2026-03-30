@@ -2,6 +2,31 @@
 
 Azure Container Apps (ACA) provides integrated monitoring through Log Analytics and Application Insights.
 
+## Demo Endpoints for Testing Logs
+
+### Log Levels Demo
+![Log Levels](screenshots/03-log-levels.png)
+
+```bash
+curl https://your-app.azurecontainerapps.io/api/requests/log-levels
+```
+
+This endpoint generates logs at different levels (DEBUG, INFO, WARNING, ERROR) to test your logging configuration.
+
+### External Dependency Call
+![External Dependency](screenshots/04-external-dependency.png)
+
+```bash
+curl https://your-app.azurecontainerapps.io/api/dependencies/external
+```
+
+### Exception Handling
+![Exception Endpoint](screenshots/05-exception-endpoint.png)
+
+```bash
+curl https://your-app.azurecontainerapps.io/api/exceptions/test-error
+```
+
 ## Container App Logs
 
 ACA captures all standard output (`stdout`) and standard error (`stderr`) from your containers.

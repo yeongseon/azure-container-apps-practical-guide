@@ -55,3 +55,23 @@ az containerapp show \
 ```
 
 Your Python application is now running on Azure Container Apps, accessible via the URL returned in step 2.
+
+## Test Endpoints
+
+Once deployed, verify your application is working:
+
+### Health Check
+![Health Endpoint](screenshots/01-health-endpoint.png)
+
+```bash
+curl https://your-app.azurecontainerapps.io/health
+# {"status": "healthy", "timestamp": "..."}
+```
+
+### Application Info
+![Info Endpoint](screenshots/02-info-endpoint.png)
+
+```bash
+curl https://your-app.azurecontainerapps.io/info
+# {"name": "azure-container-apps-reference", "version": "1.0.0", ...}
+```
