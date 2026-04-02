@@ -1,0 +1,116 @@
+# Cost Optimization Operations
+
+This guide describes production cost operations for Azure Container Apps, including profile selection, scale-to-zero strategy, and spend governance.
+
+## Prerequisites
+
+- Access to subscription cost and usage data
+- Known workload patterns (steady, bursty, event-driven)
+
+```bash
+export RG="rg-aca-prod"
+export APP_NAME="app-python-api-prod"
+export ENVIRONMENT_NAME="aca-env-prod"
+```
+
+## Choose the Right Runtime Profile
+
+- **Consumption profile**: best for variable traffic and scale-to-zero scenarios.
+- **Workload profiles**: best for predictable baseline load and dedicated capacity planning.
+
+Inspect environment profile configuration:
+
+```bash
+az containerapp env show \
+  --name "$ENVIRONMENT_NAME" \
+  --resource-group "$RG" \
+  --query "properties.workloadProfiles" \
+  --output json
+```
+
+Review current app resource allocation:
+
+```bash
+az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "properties.template.containers[].resources" \
+  --output json
+```
+
+## Scale-to-Zero for Intermittent Workloads
+
+```bash
+az containerapp update \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --min-replicas 0 \
+  --max-replicas 5
+```
+
+Set conservative max replicas for non-critical services to cap runaway spend.
+
+## Cost Monitoring and Guardrails
+
+List subscription costs by service for visibility:
+
+```bash
+az consumption usage list \
+  --top 20 \
+  --output table
+```
+
+Track request and replica trends with metrics to identify over-provisioning:
+
+```bash
+az monitor metrics list \
+  --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
+  --metric "Replicas" \
+  --interval "PT1H" \
+  --output table
+```
+
+## Verification Steps
+
+```bash
+az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "{minReplicas:properties.template.scale.minReplicas,maxReplicas:properties.template.scale.maxReplicas,resources:properties.template.containers[].resources}" \
+  --output json
+```
+
+Example output (PII masked):
+
+```json
+{
+  "minReplicas": 0,
+  "maxReplicas": 5,
+  "resources": [
+    {
+      "cpu": 0.5,
+      "memory": "1Gi"
+    }
+  ]
+}
+```
+
+## Troubleshooting
+
+### Costs increased unexpectedly
+
+- Check if `minReplicas` was changed from `0` to `1+`.
+- Verify new scaler thresholds did not trigger excessive scale-out.
+- Review revision rollouts that increased CPU/memory limits.
+
+## Advanced Topics
+
+- Use budget alerts and cost anomaly detection for proactive control.
+- Separate critical and non-critical services into different cost centers.
+- Combine workload profiles for baseline services and consumption for burst paths.
+
+## See Also
+
+- [Scaling](./scaling.md)
+- [Observability](./observability.md)
+- [Container Apps workload profiles](https://learn.microsoft.com/azure/container-apps/workload-profiles-overview)
