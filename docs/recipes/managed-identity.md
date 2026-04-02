@@ -56,3 +56,10 @@ blob_service_client = BlobServiceClient(
 - **Zero Secret Management:** No need to rotate passwords or API keys.
 - **Improved Security:** Access is granted based on the identity of the application itself.
 - **Simplified Configuration:** No more connection strings in environment variables or secrets.
+
+## See Also
+
+- [Cosmos DB](./cosmosdb.md)
+- [Azure SQL](./azure-sql.md)
+- [Key Vault](./key-vault.md)
+- [Blob Storage and File Mounts](./storage.md)

@@ -145,3 +145,10 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
 1. Verify `internal: false` in environment config
 2. Check ingress is enabled on container app
 3. Verify FQDN is correctly configured
+
+## See Also
+
+- [Private Endpoints](./networking-private-endpoint.md)
+- [Egress Control](./networking-egress.md)
+- [Service-to-Service Communication](./networking-service-to-service.md)
+- [Azure SQL](./azure-sql.md)

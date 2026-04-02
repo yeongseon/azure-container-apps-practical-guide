@@ -53,3 +53,9 @@ def home():
 - **Simplicity:** No need to implement OAuth/OpenID Connect flows in your Python code.
 - **Security:** Managed by Azure, ensuring it's always up to date with the latest security standards.
 - **Flexibility:** Supports multiple identity providers, including Google, Facebook, and GitHub.
+
+## See Also
+
+- [Managed Identity](./managed-identity.md)
+- [Operations: Security](../operations/security.md)
+- [Container Apps authentication and authorization](https://learn.microsoft.com/azure/container-apps/authentication)
