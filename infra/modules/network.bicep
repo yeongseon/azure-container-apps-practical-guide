@@ -83,7 +83,14 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {
           networkSecurityGroup: {
             id: nsgContainerApps.id
           }
-          delegations: []  // Container Apps Environment manages its own delegation
+          delegations: [
+            {
+              name: 'Microsoft-App-environments'
+              properties: {
+                serviceName: 'Microsoft.App/environments'
+              }
+            }
+          ]
         }
       }
       {

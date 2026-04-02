@@ -95,6 +95,7 @@ nav:
     - Private Endpoints: recipes/networking-private-endpoint.md
     - Egress Control: recipes/networking-egress.md
     - Service-to-Service: recipes/networking-service-to-service.md
+    - Container Registry: recipes/container-registry.md
   - Reference:
     - reference/index.md
     - CLI Cheatsheet: reference/cli-cheatsheet.md

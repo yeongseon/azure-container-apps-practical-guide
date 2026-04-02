@@ -10,15 +10,20 @@ flowchart LR
         CA[Container App]
         PE1[Private Endpoint<br/>Key Vault]
         PE2[Private Endpoint<br/>Storage]
+        PE3[Private Endpoint<br/>ACR login]
+        PE4[Private Endpoint<br/>ACR data]
     end
     
     subgraph Azure Services
         KV[Key Vault<br/>10.0.2.4]
         ST[Storage Account<br/>10.0.2.5]
+        ACR[Container Registry<br/>10.0.2.10 / 10.0.2.11]
     end
     
     CA --> PE1 --> KV
     CA --> PE2 --> ST
+    CA --> PE3 --> ACR
+    CA --> PE4 --> ACR
 ```
 
 !!! info "What are Private Endpoints?"
@@ -46,6 +51,7 @@ This deploys:
 | VNet with 2 subnets | Network isolation |
 | Key Vault + Private Endpoint | Secret management |
 | Storage Account + Private Endpoint | Blob storage |
+| ACR + Private Endpoints (registry + data) | Private container image pull |
 | Private DNS Zones | Name resolution |
 | Managed Identity | Passwordless authentication |
 
@@ -59,6 +65,10 @@ This deploys:
 | Cosmos DB | `privatelink.documents.azure.com` | `Sql` |
 | Service Bus | `privatelink.servicebus.windows.net` | `namespace` |
 | Redis Cache | `privatelink.redis.cache.windows.net` | `redisCache` |
+| Container Registry | `privatelink.azurecr.io` | `registry` + `registry_data_<region>` |
+
+!!! note "ACR requires two private endpoints"
+    Container Registry is unique — you need a private endpoint for the **login server** (`registry`) and a second one for the **data endpoint** (`registry_data_<region>`). Both must resolve to private IPs for image pulls to work. See [Private Container Registry](./container-registry.md) for the full setup.
 
 ## Architecture
 
@@ -73,23 +83,31 @@ flowchart TB
         subgraph PESubnet["Private Endpoints Subnet (10.0.2.0/24)"]
             PE_KV[PE: Key Vault<br/>10.0.2.4]
             PE_ST[PE: Storage<br/>10.0.2.5]
+            PE_ACR[PE: ACR login<br/>10.0.2.10]
+            PE_ACRDATA[PE: ACR data<br/>10.0.2.11]
         end
     end
     
     subgraph DNS["Private DNS Zones"]
         DNS_KV[privatelink.vaultcore.azure.net]
         DNS_ST[privatelink.blob.core.windows.net]
+        DNS_ACR[privatelink.azurecr.io]
     end
     
     subgraph Services["Azure PaaS (Public Disabled)"]
         KV[Key Vault]
         ST[Storage Account]
+        ACR[Container Registry]
     end
     
     CA --> PE_KV --> KV
     CA --> PE_ST --> ST
+    CA --> PE_ACR --> ACR
+    CA --> PE_ACRDATA --> ACR
     DNS_KV -.-> PE_KV
     DNS_ST -.-> PE_ST
+    DNS_ACR -.-> PE_ACR
+    DNS_ACR -.-> PE_ACRDATA
 ```
 
 ## Infrastructure Components
@@ -255,3 +273,5 @@ az group delete --name rg-container-apps-private --yes --no-wait
 - [Egress Control](./networking-egress.md)
 - [Key Vault](./key-vault.md)
 - [Blob Storage and File Mounts](./storage.md)
+- [Private Container Registry](./container-registry.md)
+- [Internal ingress with VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)

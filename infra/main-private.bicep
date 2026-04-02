@@ -7,9 +7,6 @@ param baseName string
 @description('Location for all resources')
 param location string = resourceGroup().location
 
-@description('Container image tag')
-param imageTag string = 'latest'
-
 @description('Log Analytics retention in days')
 param logAnalyticsRetentionDays int = 30
 
@@ -25,12 +22,14 @@ param cpu string = '0.5'
 @description('Memory size')
 param memory string = '1Gi'
 
+@description('Initial container image. Defaults to a public placeholder — update after pushing to ACR.')
+param initialImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+
 @description('Enable internal-only ingress (no public access)')
 param internalOnly bool = false
 
 // Generate unique suffix
 var uniqueSuffix = uniqueString(resourceGroup().id)
-var containerRegistryName = replace('cr${baseName}${uniqueSuffix}', '-', '')
 var containerAppEnvName = 'cae-${baseName}-${uniqueSuffix}'
 var containerAppName = 'ca-${baseName}-${uniqueSuffix}'
 var logAnalyticsName = 'log-${baseName}-${uniqueSuffix}'
@@ -114,17 +113,17 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 // ============================================================================
-// Container Registry
+// Container Registry with Private Endpoint (Premium SKU)
 // ============================================================================
 
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
-  name: containerRegistryName
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-  properties: {
-    adminUserEnabled: true
+module acr 'modules/acr-private.bicep' = {
+  name: 'acr-deployment'
+  params: {
+    baseName: baseName
+    location: location
+    privateEndpointSubnetId: network.outputs.privateEndpointsSubnetId
+    vnetId: network.outputs.vnetId
+    pullIdentityPrincipalId: managedIdentity.properties.principalId
   }
 }
 
@@ -175,16 +174,11 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
       registries: [
         {
-          server: containerRegistry.properties.loginServer
-          username: containerRegistry.listCredentials().username
-          passwordSecretRef: 'registry-password'
+          server: acr.outputs.loginServer
+          identity: managedIdentity.id   // UAMI — no admin credentials
         }
       ]
       secrets: [
-        {
-          name: 'registry-password'
-          value: containerRegistry.listCredentials().passwords[0].value
-        }
         {
           name: 'appinsights-connection-string'
           value: appInsights.properties.ConnectionString
@@ -195,7 +189,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'app'
-          image: '${containerRegistry.properties.loginServer}/${baseName}:${imageTag}'
+          image: initialImage  // Use placeholder on first deploy; update via deploy script after pushing to ACR
           resources: {
             cpu: json(cpu)
             memory: memory
@@ -270,8 +264,8 @@ output containerAppsSubnetId string = network.outputs.containerAppsSubnetId
 output privateEndpointsSubnetId string = network.outputs.privateEndpointsSubnetId
 
 // Container Registry
-output containerRegistryName string = containerRegistry.name
-output containerRegistryLoginServer string = containerRegistry.properties.loginServer
+output containerRegistryName string = acr.outputs.acrName
+output containerRegistryLoginServer string = acr.outputs.loginServer
 
 // Container Apps
 output containerAppEnvName string = containerAppEnv.name

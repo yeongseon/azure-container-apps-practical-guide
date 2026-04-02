@@ -119,6 +119,9 @@ Practical integration guides.
 | [Dapr Integration](./docs/recipes/dapr-integration.md) | Service invocation, pub/sub, state |
 | [VNet Integration](./docs/recipes/networking-vnet.md) | Network isolation |
 | [Private Endpoints](./docs/recipes/networking-private-endpoint.md) | Private connectivity |
+| [Egress Control](./docs/recipes/networking-egress.md) | Egress traffic control |
+| [Service-to-Service](./docs/recipes/networking-service-to-service.md) | Service communication |
+| [Container Registry](./docs/recipes/container-registry.md) | Private ACR with Container Apps |
 
 ### 📖 Reference
 
