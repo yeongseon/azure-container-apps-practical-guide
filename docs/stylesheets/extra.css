@@ -1,0 +1,17 @@
+.md-typeset img {
+    max-width: 100%;
+    height: auto;
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+    font-size: 0.9rem;
+}
+
+.md-typeset code {
+    font-size: 0.85em;
+}
+
+.md-typeset pre > code {
+    font-size: 0.8em;
+}

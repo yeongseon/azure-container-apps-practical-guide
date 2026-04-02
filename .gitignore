@@ -30,3 +30,6 @@ htmlcov/
 .pytest_cache/
 scripts/node_modules/
 scripts/package-lock.json
+
+# MkDocs
+site/

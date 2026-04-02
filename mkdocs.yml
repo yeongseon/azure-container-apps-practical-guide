@@ -1,0 +1,105 @@
+site_name: Azure Container Apps Python Guide
+site_description: Comprehensive guide to running Python/Flask applications on Azure Container Apps
+site_url: https://yeongseon.github.io/azure-container-apps-python-guide/
+repo_url: https://github.com/yeongseon/azure-container-apps-python-guide
+repo_name: yeongseon/azure-container-apps-python-guide
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - attr_list
+  - md_in_html
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Tutorial:
+    - tutorial/index.md
+    - 1. Local Development: tutorial/01-local-run.md
+    - 2. First Deploy: tutorial/02-first-deploy.md
+    - 3. Configuration: tutorial/03-configuration.md
+    - 4. Logging & Monitoring: tutorial/04-logging-monitoring.md
+    - 5. Infrastructure as Code: tutorial/05-infrastructure-as-code.md
+    - 6. CI/CD: tutorial/06-ci-cd.md
+    - 7. Revisions & Traffic: tutorial/07-revisions-traffic.md
+  - Concepts:
+    - concepts/index.md
+    - How Container Apps Works: concepts/how-container-apps-works.md
+    - Container Apps vs Others: concepts/container-apps-vs-others.md
+    - Environments & Apps: concepts/environments-and-apps.md
+    - Scaling with KEDA: concepts/scaling-keda.md
+    - Networking: concepts/networking.md
+  - Operations:
+    - operations/index.md
+    - Scaling: operations/scaling.md
+    - Revisions: operations/revisions.md
+    - Health & Recovery: operations/health-recovery.md
+    - Networking: operations/networking.md
+    - Security: operations/security.md
+    - Cost Optimization: operations/cost-optimization.md
+    - Observability: operations/observability.md
+  - Recipes:
+    - recipes/index.md
+    - Cosmos DB: recipes/cosmosdb.md
+    - Azure SQL: recipes/azure-sql.md
+    - Redis Cache: recipes/redis.md
+    - Key Vault: recipes/key-vault.md
+    - Blob Storage: recipes/storage.md
+    - Managed Identity: recipes/managed-identity.md
+    - Easy Auth: recipes/easy-auth.md
+    - Dapr Integration: recipes/dapr-integration.md
+    - VNet Integration: recipes/networking-vnet.md
+    - Private Endpoints: recipes/networking-private-endpoint.md
+    - Egress Control: recipes/networking-egress.md
+    - Service-to-Service: recipes/networking-service-to-service.md
+  - Reference:
+    - reference/index.md
+    - CLI Cheatsheet: reference/cli-cheatsheet.md
+    - KQL Queries: reference/kql-queries.md
+    - Troubleshooting: reference/troubleshooting.md
+    - Environment Variables: reference/environment-variables.md
+    - Platform Limits: reference/platform-limits.md
+    - Python Runtime: reference/python-runtime.md
