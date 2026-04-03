@@ -27,13 +27,11 @@ flowchart LR
 ```
 
 !!! info "What are Private Endpoints?"
-    Private Endpoints provide private IP addresses for Azure PaaS services, ensuring traffic never leaves the Microsoft backbone network.
+    Private Endpoints provide private IP addresses for Azure PaaS services, ensuring traffic never leaves the Microsoft backbone network. Benefits include:
 
-Private Endpoints provide:
-
-- Private IP addresses for Azure services
-- Traffic stays on Microsoft backbone
-- No public internet exposure
+    - Private IP addresses for Azure services
+    - Traffic stays on Microsoft backbone
+    - No public internet exposure
 
 ## Quick Start: Deploy Test Environment
 

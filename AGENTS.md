@@ -143,6 +143,96 @@ CMD ["gunicorn", "--bind", "0.0.0.0:8000", "src.app:app"]
 3. **Networking**: Ingress must be enabled for external access
 4. **Secrets**: Use managed identity, not connection strings
 
+## Documentation Format Quality Gate
+
+Before committing any documentation changes, verify these format rules:
+
+### 1. Admonition Body Indentation (CRITICAL)
+
+All content inside `!!!` or `???` admonition blocks **must be indented with 4 spaces**. Content without indentation renders as plain text outside the admonition box.
+
+```markdown
+# ✅ CORRECT — body indented 4 spaces
+!!! warning "Title"
+    This content is inside the admonition box.
+
+    - List item also inside
+    - Another item inside
+
+# ❌ WRONG — body not indented
+!!! warning "Title"
+This content renders OUTSIDE the box.
+- This list is also outside
+```
+
+### 2. Code Fence Balance
+
+Every opening ` ``` ` must have a matching closing ` ``` `. An odd number of fences breaks all subsequent rendering.
+
+```bash
+# Quick check — output should be 0 or even numbers only
+grep -c '^\s*```' docs/**/*.md
+```
+
+### 3. Automated Scan Script
+
+Run this before committing to catch admonition indentation issues:
+
+```python
+import os, sys
+
+def scan_docs(repo_path):
+    docs_dir = os.path.join(repo_path, 'docs')
+    issues = {}
+    for root, _, files in os.walk(docs_dir):
+        for fname in sorted(files):
+            if not fname.endswith('.md'):
+                continue
+            fpath = os.path.join(root, fname)
+            file_issues = []
+            in_admonition = False
+            in_code = False
+            with open(fpath, encoding='utf-8', errors='ignore') as f:
+                for i, line in enumerate(f, 1):
+                    s = line.rstrip('\n')
+                    if s.startswith('```'):
+                        in_code = not in_code
+                    if in_code:
+                        continue
+                    if s.startswith('!!!') or s.startswith('???'):
+                        in_admonition = True
+                        continue
+                    if in_admonition:
+                        if s == '':
+                            pass
+                        elif s.startswith('    '):
+                            in_admonition = False
+                        else:
+                            if s.startswith(('-', '*')) or (s and s[0].isalnum()):
+                                file_issues.append(f"  L{i}: {s[:80]}")
+                            in_admonition = False
+            if file_issues:
+                issues[os.path.relpath(fpath, repo_path)] = file_issues
+    return issues
+
+results = scan_docs('.')
+if results:
+    for f, errs in results.items():
+        print(f"❌ {f}")
+        for e in errs:
+            print(e)
+    sys.exit(1)
+else:
+    print("✅ All admonition indentation OK")
+```
+
+### 4. Final Validation
+
+```bash
+# Must pass with zero warnings/errors
+mkdocs build --strict
+```
+
 ## Build & Validate
 
 ```bash
