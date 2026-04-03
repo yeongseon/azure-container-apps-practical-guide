@@ -2,6 +2,20 @@
 
 Use this recipe to connect a Python Container App to Azure Cosmos DB (NoSQL) without account keys or connection strings.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Container App]
+    APP --> COSMOS[Azure Cosmos DB]
+    APP -.-> MI[Managed Identity]
+    MI -.-> ENTRA[Microsoft Entra ID]
+    MI -.-> COSMOS
+```
+
+Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+
 ## Prerequisites
 
 - Existing Container App: `$APP_NAME` in resource group `$RG`

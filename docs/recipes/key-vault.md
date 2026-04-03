@@ -2,6 +2,21 @@
 
 Use this recipe to access Key Vault secrets from a Python Container App without embedding secrets in code or images.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    P[Container Apps platform] --> S[Secret reference resolution]
+    S --> KV[Azure Key Vault]
+    KV --> SECRET[Resolved secret value]
+    SECRET --> APP[Container App]
+    P -.-> MI[Managed Identity]
+    MI -.-> ENTRA[Microsoft Entra ID]
+    MI -.-> KV
+```
+
+Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+
 ## Prerequisites
 
 - Existing Container App: `$APP_NAME` in `$RG`

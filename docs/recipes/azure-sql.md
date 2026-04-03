@@ -2,6 +2,20 @@
 
 Use this recipe to connect Azure Container Apps to Azure SQL Database with Microsoft Entra authentication and no SQL passwords.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Container App]
+    APP --> SQL[Azure SQL Database]
+    APP -.-> MI[Managed Identity]
+    MI -.-> ENTRA[Microsoft Entra ID]
+    MI -.-> SQL
+```
+
+Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+
 ## Prerequisites
 
 - Existing Container App: `$APP_NAME` in `$RG`

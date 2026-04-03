@@ -2,6 +2,17 @@
 
 Connect your Container App to Azure Storage — either by mounting an Azure Files share directly into the container filesystem, or by accessing Blob Storage programmatically via the SDK with Managed Identity.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    MNT[Environment storage mount<br/>appfiles] --> FILES[Azure Files share]
+    APP[Container App] --> RW[Read/write on /mnt/appfiles]
+    RW --> MNT
+```
+
+Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+
 !!! note "Blob mounts are not supported in Container Apps"
     Unlike App Service, Azure Container Apps **cannot mount Blob Storage as a filesystem path**. Use the Azure Storage Blob SDK with Managed Identity for blob access. For shared filesystem access, use **Azure Files volume mounts**.
 

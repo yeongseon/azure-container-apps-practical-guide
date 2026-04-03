@@ -2,6 +2,40 @@
 
 This tutorial step shows how to inspect console logs, query Log Analytics, and add OpenTelemetry-based observability for production operations.
 
+## How Observability Works in Container Apps
+
+```mermaid
+flowchart LR
+    APP[App container stdout/stderr] --> CONSOLE[Console logs]
+    DAPR[Dapr sidecar stdout/stderr] --> CONSOLE
+    PLATFORM[Platform/revision/auth events] --> SYSTEM[System logs]
+    CONSOLE --> LAW[Log Analytics workspace]
+    SYSTEM --> LAW
+    OTEL[App instrumentation<br/>OpenTelemetry SDK] --> AI[Application Insights]
+    AZMON[Azure Monitor] --> METRICS[Metrics: requests, CPU, memory, replicas]
+```
+
+## Distributed Tracing with Dapr
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Ingress
+    participant AppA as App A
+    participant DaprA as Dapr sidecar A
+    participant DaprB as Dapr sidecar B
+    participant AppB as App B
+    participant AppInsights as Application Insights
+
+    Client->>Ingress: HTTPS request
+    Ingress->>AppA: Route request
+    AppA->>DaprA: Invoke service method
+    DaprA->>DaprB: Service-to-service call
+    DaprB->>AppB: Deliver invocation
+    AppA->>AppInsights: Telemetry via OpenTelemetry
+    AppB->>AppInsights: Telemetry via OpenTelemetry
+```
+
 ## Prerequisites
 
 - Completed [03 - Configuration, Secrets, and Dapr](03-configuration.md)

@@ -2,6 +2,28 @@
 
 Azure Container Apps (ACA) supports managed identities, allowing your Python application to securely access other Azure services without managing credentials like connection strings or API keys.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Container App]
+    APP --> COSMOS[Azure Cosmos DB]
+    APP --> SQL[Azure SQL Database]
+    APP --> REDIS[Azure Cache for Redis]
+    APP --> KV[Azure Key Vault]
+    APP --> STG[Azure Storage]
+    APP -.-> MI[Managed Identity]
+    MI -.-> ENTRA[Microsoft Entra ID]
+    MI -.-> COSMOS
+    MI -.-> SQL
+    MI -.-> REDIS
+    MI -.-> KV
+    MI -.-> STG
+```
+
+Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+
 ## Types of Managed Identity
 
 - **System-assigned:** Tied to the lifecycle of the Container App.

@@ -2,6 +2,20 @@
 
 Pull container images from Azure Container Registry over a private network path — no public registry exposure, no admin credentials.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Container App]
+    ACR[Azure Container Registry] --> APP
+    APP -.-> MI[Managed Identity]
+    MI -.-> ENTRA[Microsoft Entra ID]
+    MI -.-> ACR
+```
+
+Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+
 !!! note "Private Endpoint requires ACR Premium SKU"
     Private Endpoints for ACR are only available on the **Premium** tier. Basic and Standard ACR cannot use Private Endpoints.
 

@@ -2,6 +2,19 @@
 
 This guide covers production observability operations for Container Apps using Log Analytics, Application Insights, and distributed tracing.
 
+## Signals and Alerting Architecture
+
+```mermaid
+flowchart TD
+    METRICS[Metrics: Requests, ResponseTime, CPU, Memory, Replicas] --> METRIC_ALERTS[Metric alert rules]
+    LOGS[Log Analytics queries:<br/>ContainerAppConsoleLogs_CL<br/>ContainerAppSystemLogs_CL] --> LOG_ALERTS[Log search alert rules]
+    METRIC_ALERTS --> AG[Action Group]
+    LOG_ALERTS --> AG
+    AG --> EMAIL[Email]
+    AG --> TEAMS[Teams]
+    AG --> WEBHOOK[Webhook]
+```
+
 ## Prerequisites
 
 - Log Analytics workspace connected to the Container Apps environment

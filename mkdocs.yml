@@ -77,6 +77,7 @@ nav:
     - Environments & Apps: concepts/environments-and-apps.md
     - Scaling with KEDA: concepts/scaling-keda.md
     - Networking: concepts/networking.md
+    - Resource Relationships: concepts/resource-relationships.md
   - Operations:
     - operations/index.md
     - Scaling: operations/scaling.md
@@ -101,6 +102,7 @@ nav:
     - Egress Control: recipes/networking-egress.md
     - Service-to-Service: recipes/networking-service-to-service.md
     - Container Registry: recipes/container-registry.md
+    - Custom Domains & Certificates: recipes/custom-domain-certificates.md
   - Reference:
     - reference/index.md
     - CLI Cheatsheet: reference/cli-cheatsheet.md
