@@ -71,41 +71,62 @@ This deploys:
 ## Architecture
 
 ```mermaid
-flowchart TB
-    subgraph VNet["Virtual Network (10.0.0.0/16)"]
-        subgraph CASubnet["Container Apps Subnet (10.0.0.0/23)"]
-            CAE[Container Apps Environment]
-            CA[Container App]
-        end
-        
-        subgraph PESubnet["Private Endpoints Subnet (10.0.2.0/24)"]
-            PE_KV[PE: Key Vault<br/>10.0.2.4]
-            PE_ST[PE: Storage<br/>10.0.2.5]
-            PE_ACR[PE: ACR login<br/>10.0.2.10]
-            PE_ACRDATA[PE: ACR data<br/>10.0.2.11]
-        end
+flowchart TD
+    subgraph ClientSubnet [Client Subnet]
+        APP[Container App]
+    end
+
+    subgraph DNS [DNS Resolution]
+        RESL[DNS Resolver / 168.63.129.16]
+        ZONE[Private DNS Zone:<br/>privatelink.vaultcore.azure.net]
+    end
+
+    subgraph PESubnet [Private Endpoint Subnet]
+        PE[Private Endpoint<br/>10.x.x.x]
+    end
+
+    subgraph Backbone [Microsoft Backbone]
+        SVC[Azure Key Vault]
+    end
+
+    APP -- 1. DNS Query --> RESL
+    RESL -- 2. Recursive Query --> ZONE
+    ZONE -- 3. CNAME + A Record (10.x.x.x) --> RESL
+    RESL -- 4. Return Private IP --> APP
+    APP -- 5. Connect to Private IP --> PE
+    PE -- 6. Private Link --> SVC
+```
+
+### ACR Private Endpoint Flow
+
+ACR is unique and requires two private DNS zones for full functionality within a VNet:
+
+1.  `privatelink.azurecr.io`: For the login server (authentication and metadata)
+2.  `privatelink.<region>.data.microsoft.com`: For the data endpoint (layer downloads)
+
+```mermaid
+flowchart LR
+    subgraph VNet
+        CA[Container App]
+        PE1[PE: Login Server<br/>10.0.2.10]
+        PE2[PE: Data Endpoint<br/>10.0.2.11]
     end
     
-    subgraph DNS["Private DNS Zones"]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
-        DNS_ACR[privatelink.azurecr.io]
+    subgraph DNS [Private DNS Zones]
+        DZ1[privatelink.azurecr.io]
+        DZ2[privatelink.region.data.microsoft.com]
     end
     
-    subgraph Services["Azure PaaS (Public Disabled)"]
-        KV[Key Vault]
-        ST[Storage Account]
-        ACR[Container Registry]
+    subgraph Services [Azure Container Registry]
+        ACR[Registry Storage]
     end
     
-    CA --> PE_KV --> KV
-    CA --> PE_ST --> ST
-    CA --> PE_ACR --> ACR
-    CA --> PE_ACRDATA --> ACR
-    DNS_KV -.-> PE_KV
-    DNS_ST -.-> PE_ST
-    DNS_ACR -.-> PE_ACR
-    DNS_ACR -.-> PE_ACRDATA
+    CA -- 1. Auth/Login --> PE1
+    CA -- 2. Pull Layers --> PE2
+    PE1 --> ACR
+    PE2 --> ACR
+    DZ1 -.-> PE1
+    DZ2 -.-> PE2
 ```
 
 ## Infrastructure Components

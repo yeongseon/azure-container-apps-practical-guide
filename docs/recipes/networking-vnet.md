@@ -11,7 +11,31 @@ Container Apps can be deployed into a custom VNet to:
 
 ## Architecture
 
-[Diagram description: Container Apps Environment inside VNet subnet, connected to private endpoints]
+```mermaid
+flowchart TD
+    subgraph VNet ["Virtual Network (10.0.0.0/16)"]
+        subgraph CASubnet ["Container Apps Subnet (10.0.0.0/23)"]
+            subgraph Environment ["Container Apps Environment"]
+                CA1[App 1]
+                CA2[App 2]
+                INV[Ingress: Envoy]
+            end
+        end
+
+        subgraph PESubnet ["Private Endpoint Subnet (10.0.2.0/24)"]
+            PE[Private Endpoint]
+        end
+    end
+
+    subgraph Internet [Public Internet]
+        U[User]
+    end
+
+    U -- External Ingress --> INV
+    INV -- Routing --> CA1
+    CA1 -- VNet-Local Call --> CA2
+    CA1 -- Private Link --> PE
+```
 
 ## Prerequisites
 

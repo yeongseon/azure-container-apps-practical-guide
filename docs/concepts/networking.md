@@ -28,9 +28,61 @@ Envoy acts as the managed ingress layer, handling routing into app revisions and
 | Internal ingress | Environment-internal access | Private microservice endpoints |
 | No ingress | Not directly addressable by HTTP clients | Queue-driven/background workers |
 
+### Traffic Flow: External vs Internal Ingress
+
+```mermaid
+flowchart TD
+    subgraph Public [Public Internet]
+        U[Public User]
+    end
+
+    subgraph VNet [Virtual Network]
+        subgraph CASubnet [Container Apps Subnet]
+            subgraph Env [Environment]
+                EXT[App: External Ingress]
+                INT[App: Internal Ingress]
+                ING[Managed Ingress: Envoy]
+            end
+        end
+
+        subgraph PeeredVNet [Peered VNet / VPN / ER]
+            C[Internal Client]
+        end
+    end
+
+    U -- Public IP / DNS --> ING
+    C -- Private IP / VNet DNS --> ING
+    ING -- Public Hostname --> EXT
+    ING -- Internal Hostname --> INT
+```
+
 ## VNet Integration and Isolation
 
 Container Apps environments can integrate with virtual networks to control east-west and north-south traffic patterns.
+
+### VNet Integration Architecture
+
+```mermaid
+flowchart LR
+    subgraph VNet ["Virtual Network (10.0.0.0/16)"]
+        subgraph Subnet ["CAE Subnet (10.0.0.0/23)"]
+            APP[Container App]
+        end
+
+        subgraph PE_Subnet ["PE Subnet (10.0.2.0/24)"]
+            PE[Private Endpoint]
+        end
+    end
+
+    subgraph Backbone [Microsoft Backbone]
+        DB[Azure SQL / Storage]
+    end
+
+    APP -- 1. DNS Query --> VNET_DNS[VNet DNS Resolver]
+    VNET_DNS -- 2. Returns Private IP --> APP
+    APP -- 3. Connection --> PE
+    PE -- 4. Private Link --> DB
+```
 
 Use VNet integration when you need:
 

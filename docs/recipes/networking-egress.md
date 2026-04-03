@@ -13,6 +13,31 @@ By default, Container Apps can access:
 
 Route outbound traffic through Azure Firewall or NVA:
 
+```mermaid
+flowchart LR
+    subgraph VNet [Virtual Network]
+        subgraph Subnet [CAE Subnet]
+            APP[Container App]
+        end
+        
+        subgraph FWSubnet [AzureFirewallSubnet]
+            FW[Azure Firewall]
+        end
+
+        subgraph RT [Route Table]
+            R[0.0.0.0/0 -> Firewall IP]
+        end
+    end
+
+    subgraph Internet [Public Internet]
+        EXT[Public API]
+    end
+
+    APP -- 1. Outbound Request --> RT
+    RT -- 2. Next Hop --> FW
+    FW -- 3. Policy Check --> EXT
+```
+
 ```bicep
 resource routeTable 'Microsoft.Network/routeTables@2023-05-01' = {
   name: 'rt-containerapp'
@@ -28,6 +53,40 @@ resource routeTable 'Microsoft.Network/routeTables@2023-05-01' = {
         }
       }
     ]
+  }
+}
+```
+
+## Azure Firewall Rules
+
+Allow required outbound traffic:
+
+### NAT Gateway Architecture
+
+```mermaid
+flowchart TD
+    subgraph VNet [Virtual Network]
+        subgraph Subnet [CAE Subnet]
+            APP[Container App]
+        end
+        
+        NGW[NAT Gateway]
+        PIP[Public IP Address]
+    end
+
+    subgraph Internet [Public Internet]
+        EXT[Public Dependency]
+    end
+
+    APP -- 1. Outbound Traffic --> NGW
+    NGW -- 2. Source NAT (PIP) --> EXT
+```
+
+```bicep
+resource firewallPolicy 'Microsoft.Network/firewallPolicies@2023-05-01' = {
+  name: 'fw-policy'
+  properties: {
+    sku: { tier: 'Standard' }
   }
 }
 ```

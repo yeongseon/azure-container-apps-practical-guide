@@ -21,6 +21,29 @@ Or simply use the app name within the same environment:
 http://<app-name>
 ```
 
+### Internal Resolution Flow
+
+```mermaid
+flowchart LR
+    subgraph Env [Managed Environment]
+        subgraph Calling [Calling App]
+            APP1[Frontend]
+        end
+        
+        subgraph Target [Target App]
+            APP2[Backend]
+        end
+
+        DNS[Internal DNS Resolver]
+        INV[Envoy Ingress]
+    end
+
+    APP1 -- 1. Resolve 'ca-backend' --> DNS
+    DNS -- 2. Returns Private IP --> APP1
+    APP1 -- 3. Request (Port 80/443) --> INV
+    INV -- 4. Route to Revision --> APP2
+```
+
 ## Example: Frontend + Backend
 
 ### Backend API (internal only):

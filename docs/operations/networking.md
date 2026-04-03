@@ -25,6 +25,25 @@ az containerapp ingress enable \
   --target-port 8000
 ```
 
+### Ingress Flow
+
+```mermaid
+flowchart TD
+    subgraph ControlPlane [Azure Control Plane]
+        CLI[Azure CLI: az containerapp ingress enable]
+        ARM[Azure Resource Manager]
+    end
+
+    subgraph DataPlane [Container Apps Data Plane]
+        ENV[Envoy Managed Ingress]
+        POD[App Revision]
+    end
+
+    CLI -- Update Request --> ARM
+    ARM -- Configure --> ENV
+    ENV -- Route Traffic --> POD
+```
+
 Switch to internal ingress for private-only access:
 
 ```bash
@@ -83,6 +102,21 @@ Expected result: `200`
     Internal ingress FQDNs resolve only from within the same VNet. Run the data-plane check from a VM or pod inside the environment's VNet.
 
 ## VNet and Environment Checks
+
+### VNet Setup Flow
+
+```mermaid
+flowchart LR
+    subgraph Infrastructure [Azure Infrastructure]
+        VNET[Virtual Network / Subnet]
+        DEL[Subnet Delegation]
+        CAE[Managed Environment]
+    end
+
+    VNET -- 1. Create Subnet (/23) --> DEL
+    DEL -- 2. Delegate to Microsoft.App/environments --> CAE
+    CAE -- 3. Assign infrastructureSubnetId --> VNET
+```
 
 Inspect managed environment network profile:
 
