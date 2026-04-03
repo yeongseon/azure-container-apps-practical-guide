@@ -15,3 +15,38 @@
 .md-typeset pre > code {
     font-size: 0.8em;
 }
+
+.mermaid {
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.mermaid svg {
+    max-width: 100%;
+    height: auto;
+    cursor: zoom-in;
+}
+
+.mermaid-zoom-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    cursor: zoom-out;
+}
+
+.mermaid-zoom-wrapper {
+    background: var(--md-default-bg-color, #fff);
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    cursor: default;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
