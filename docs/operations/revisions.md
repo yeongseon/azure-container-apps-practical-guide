@@ -51,7 +51,7 @@ Shift a small percentage to the candidate revision first.
 az containerapp ingress traffic set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --traffic-weight "${APP_NAME}--stable=90" "${APP_NAME}--candidate=10"
+  --revision-weight "${APP_NAME}--stable=90" "${APP_NAME}--candidate=10"
 ```
 
 Gradually increase traffic only when SLOs remain healthy.
@@ -64,7 +64,7 @@ Return 100% traffic to last known good revision:
 az containerapp ingress traffic set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --traffic-weight "${APP_NAME}--stable=100"
+  --revision-weight "${APP_NAME}--stable=100"
 ```
 
 Deactivate failed revision:

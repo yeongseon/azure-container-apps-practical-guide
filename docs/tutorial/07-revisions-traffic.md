@@ -2,6 +2,14 @@
 
 Azure Container Apps revisions provide immutable deployment snapshots. Use them for safe releases, canary traffic, and quick rollback.
 
+## Revision Traffic Splitting
+
+```mermaid
+graph LR
+    INGRESS[Ingress] -->|90%| V1[Revision v1]
+    INGRESS -->|10%| V2[Revision v2]
+```
+
 ## Prerequisites
 
 - Completed [06 - CI/CD with GitHub Actions](06-ci-cd.md)
@@ -9,13 +17,36 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
 
 ## Step-by-step
 
-1. **Set standard variables**
+1. **Set standard variables (reuse Bicep outputs from Step 02)**
 
    ```bash
    RG="rg-aca-python-demo"
-   APP_NAME="app-aca-python-demo"
-   ENVIRONMENT_NAME="aca-env-python-demo"
-   ACR_NAME="acrpythondemo12345"
+   BASE_NAME="pycontainer"
+   DEPLOYMENT_NAME="main"
+
+   APP_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerAppName.value" \
+     --output tsv)
+
+   ENVIRONMENT_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerAppEnvName.value" \
+     --output tsv)
+
+   ACR_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerRegistryName.value" \
+     --output tsv)
+
+   ACR_LOGIN_SERVER=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerRegistryLoginServer.value" \
+     --output tsv)
    ```
 
 2. **Switch to multiple revision mode**
@@ -27,16 +58,31 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
      --mode multiple
    ```
 
+   ???+ example "Expected output"
+       ```
+       "Multiple"
+       ```
+
 3. **Deploy a new version to create a new revision**
 
    ```bash
-   az acr build --registry "$ACR_NAME" --image "$APP_NAME:v3" .
+   az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v3" ./app
 
    az containerapp update \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --image "$ACR_NAME.azurecr.io/$APP_NAME:v3"
+     --image "$ACR_LOGIN_SERVER/$BASE_NAME:v3"
    ```
+
+   ???+ example "Expected output"
+       `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
+       ```json
+       {
+         "latestRevision": "ca-pycontainer-<unique-suffix>--<revision-suffix>",
+         "name": "ca-pycontainer-<unique-suffix>",
+         "provisioningState": "Succeeded"
+       }
+       ```
 
 4. **List revisions and choose targets**
 
@@ -47,14 +93,36 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
      --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}"
    ```
 
+   ???+ example "Expected output"
+       ```
+       Name                                     Active    CreatedTime
+       ---------------------------------------  --------  -------------------------
+       ca-pycontainer-<unique-suffix>--rev1     True      2024-01-15T10:00:00+00:00
+       ca-pycontainer-<unique-suffix>--rev2     True      2024-01-15T10:15:00+00:00
+       ```
+
 5. **Apply canary traffic split (90/10)**
 
    ```bash
    az containerapp ingress traffic set \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --traffic-weight "<stable-revision>=90" "<canary-revision>=10"
+     --revision-weight "<stable-revision>=90" "<canary-revision>=10"
    ```
+
+   ???+ example "Expected output"
+       ```json
+       [
+         {
+           "revisionName": "ca-pycontainer-<unique-suffix>--rev1",
+           "weight": 90
+         },
+         {
+           "revisionName": "ca-pycontainer-<unique-suffix>--rev2",
+           "weight": 10
+         }
+       ]
+       ```
 
 6. **Rollback instantly if errors increase**
 
@@ -62,8 +130,18 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
    az containerapp ingress traffic set \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --traffic-weight "<stable-revision>=100"
+     --revision-weight "<stable-revision>=100"
    ```
+
+   ???+ example "Expected output"
+       ```json
+       [
+         {
+           "revisionName": "ca-pycontainer-<unique-suffix>--rev1",
+           "weight": 100
+         }
+       ]
+       ```
 
 7. **Deactivate bad revision after confirmation**
 
@@ -73,6 +151,12 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
      --resource-group "$RG" \
      --revision "<canary-revision>"
    ```
+
+   ???+ example "Expected output"
+       ```
+       "Deactivate succeeded"
+       ```
+
 
 ## Operational guidance
 

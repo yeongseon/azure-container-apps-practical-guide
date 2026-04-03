@@ -2,6 +2,16 @@
 
 Automate build and deployment so every commit can produce a new Container App revision. This tutorial uses GitHub Actions, ACR, and Azure Container Apps deploy actions.
 
+## CI/CD Pipeline Flow
+
+```mermaid
+graph LR
+    PUSH[Push to main] --> GHA[GitHub Actions]
+    GHA --> ACR[ACR Build]
+    ACR --> DEPLOY[Deploy Revision]
+    DEPLOY --> HEALTH[Health Check]
+```
+
 ## Prerequisites
 
 - Completed [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)

@@ -177,8 +177,8 @@ Quick lookup documentation.
 - ✅ **Structured Logging** — JSON format for Log Analytics
 - ✅ **OpenTelemetry** — Distributed tracing support
 - ✅ **Health Endpoint** — `/health` for monitoring
-- ✅ **KEDA Scaling** — Event-driven autoscaling
-- ✅ **Dapr Ready** — Service invocation, state, pub/sub
+- ✅ **KEDA Scaling** — Event-driven autoscaling (platform-managed, no app dependency)
+- ✅ **Dapr Compatible** — Ready for service invocation, state, pub/sub (add `dapr` package when enabling)
 
 ## Sample Endpoints
 

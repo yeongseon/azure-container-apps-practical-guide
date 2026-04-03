@@ -4,7 +4,7 @@ Azure Container Apps (ACA) provides built-in authentication and authorization, o
 
 ## How it Works
 
-When you enable authentication, a sidecar container intercepts incoming requests and validates the user's identity before forwarding the request to your application container.
+When you enable authentication, the platform's built-in authentication middleware intercepts incoming requests and validates the user's identity before forwarding the request to your application container.
 
 ## Enabling Authentication
 
@@ -22,7 +22,7 @@ az containerapp auth microsoft update \
 
 ## Accessing User Information
 
-Once a user is authenticated, the sidecar container adds headers to the request that your Python application can use:
+Once a user is authenticated, the platform middleware adds headers to the request that your Python application can use:
 
 - `X-MS-CLIENT-PRINCIPAL-NAME`: The user's username or email.
 - `X-MS-CLIENT-PRINCIPAL-ID`: The user's unique identifier.
@@ -57,6 +57,7 @@ def home():
 ## See Also
 - [Managed Identity](./managed-identity.md)
 - [Operations: Security](../operations/security.md)
+- [Configuration Tutorial](../tutorial/03-configuration.md)
 
 ## References
 - [Container Apps authentication and authorization](https://learn.microsoft.com/azure/container-apps/authentication)

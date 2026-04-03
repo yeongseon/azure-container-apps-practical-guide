@@ -2,6 +2,16 @@
 
 Before deploying to Azure Container Apps, validate your Python app in a container locally. This catches image, dependency, and port issues early.
 
+## Local Development Workflow
+
+```mermaid
+graph LR
+    CODE[Source Code] --> BUILD[Docker Build]
+    BUILD --> CONT[Container]
+    CONT --> LOCAL[localhost:8000]
+    LOCAL --> HEALTH[Health Check]
+```
+
 ## Prerequisites
 
 - Docker Engine or Docker Desktop
@@ -19,6 +29,9 @@ Before deploying to Azure Container Apps, validate your Python app in a containe
 2. **Run the container locally**
 
    ```bash
+   # Copy and customize the environment file
+   cp .env.example .env
+
    docker run --publish 8000:8000 --env-file .env aca-python-guide
    ```
 

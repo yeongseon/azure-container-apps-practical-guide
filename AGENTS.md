@@ -14,7 +14,7 @@
 │   │   ├── app.py          # Flask app entry point
 │   │   ├── routes/         # API endpoints
 │   │   └── middleware/     # Logging, correlation
-│   ├── Dockerfile          # Multi-stage build
+│   ├── Dockerfile          # Single-stage build
 │   └── requirements.txt
 │
 ├── docs/                   # MkDocs documentation
@@ -118,7 +118,7 @@ graph LR
 
 ### Required Application Patterns
 
-1. **PORT binding**: Use `CONTAINER_APP_PORT` or default to 80/8080
+1. **PORT binding**: Use `CONTAINER_APP_PORT` or default to 8000
 2. **Health probes**: Configure liveness and readiness probes
 3. **Graceful shutdown**: Handle SIGTERM for container termination
 4. **Structured logging**: JSON format for Log Analytics
@@ -133,7 +133,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "src.app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--chdir", "src", "app:app"]
 ```
 
 ### Common Issues
@@ -245,6 +245,36 @@ mkdocs build --strict
 # Local preview
 mkdocs serve
 ```
+
+## Documentation Verification Policy (MANDATORY)
+
+All documentation in this repository follows a **step-by-step learning** approach. Every command, code snippet, and CLI output MUST be verified against real Azure resources before publishing.
+
+### Verification Process
+
+1. **CLI Commands**: Execute every `az` command in the documentation against a live Azure subscription. Confirm the command succeeds and the output matches the documented format.
+2. **Code Snippets**: Run all Python/Bicep/YAML code to confirm correctness. Application code must build and pass health checks.
+3. **CLI Output Examples**: All example output blocks in documentation MUST come from real execution results with PII removed (see PII Removal rules below).
+4. **Cross-Document Consistency**: When a parameter, variable name, port number, or resource name is used across multiple documents, verify they are consistent. If intentionally different (e.g., demo vs production context), add an explicit note explaining the difference.
+5. **Infrastructure Templates**: Bicep parameter names, default values, and outputs MUST match the commands in tutorial and operations documents exactly. Run `az deployment group validate` to confirm.
+
+### What Counts as Verified
+
+| Artifact | Verification Method |
+|----------|-------------------|
+| `az` CLI command | Executed successfully against live Azure subscription |
+| Bicep template | `az deployment group validate` + `az deployment group what-if` pass |
+| Python code | `python -c "import ..."` or app health check returns HTTP 200 |
+| KQL query | Executed in Log Analytics workspace and returns expected schema |
+| Docker commands | `docker build` + `docker run` + health endpoint check |
+| Example output | Captured from real execution, PII stripped, pasted into docs |
+
+### When to Re-Verify
+
+- Any change to `infra/main.bicep` parameters or outputs → re-verify all tutorials referencing Bicep
+- Any change to `app/Dockerfile` or `app/requirements.txt` → re-verify tutorial/01 and reference/python-runtime
+- Any change to route definitions in `app/src/routes/` → re-verify endpoint references in all docs
+- Azure CLI breaking changes or API version updates → re-verify affected commands
 
 ## Git Commit Conventions
 

@@ -5,7 +5,7 @@ Use shell variables in examples:
 ```bash
 RG="rg-myapp"
 APP_NAME="my-python-app"
-ENV_NAME="my-aca-env"
+ENVIRONMENT_NAME="my-aca-env"
 ACR_NAME="myacrname"
 IMAGE_TAG="v1"
 ```
@@ -33,7 +33,7 @@ az acr build \
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENV_NAME" \
+  --environment "$ENVIRONMENT_NAME" \
   --image "${ACR_NAME}.azurecr.io/aca-python-app:${IMAGE_TAG}" \
   --target-port 8000 \
   --ingress external \
@@ -124,13 +124,13 @@ az containerapp revision set-mode \
 az containerapp ingress traffic set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --traffic-weight "${APP_NAME}--rev1=80" "${APP_NAME}--rev2=20"
+  --revision-weight "${APP_NAME}--rev1=80" "${APP_NAME}--rev2=20"
 
 # Roll back
 az containerapp ingress traffic set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --traffic-weight "${APP_NAME}--rev1=100"
+  --revision-weight "${APP_NAME}--rev1=100"
 ```
 
 ## Cleanup

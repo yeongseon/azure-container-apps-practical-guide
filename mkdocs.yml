@@ -80,6 +80,7 @@ nav:
     - Scaling with KEDA: concepts/scaling-keda.md
     - Networking: concepts/networking.md
     - Resource Relationships: concepts/resource-relationships.md
+    - Revision Lifecycle: concepts/revision-lifecycle.md
   - Operations:
     - operations/index.md
     - Scaling: operations/scaling.md

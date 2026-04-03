@@ -207,14 +207,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'LOG_LEVEL'
               value: 'INFO'
             }
-            {
-              name: 'CONTAINER_APP_NAME'
-              value: containerAppName
-            }
-            {
-              name: 'CONTAINER_APP_REVISION'
-              value: 'initial'
-            }
             // Private Endpoint test environment variables
             {
               name: 'KEY_VAULT_URL'

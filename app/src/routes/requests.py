@@ -23,7 +23,7 @@ def log_levels():
             },
             "note": "Check Container Apps logs via Azure Portal or CLI",
             "query": {
-                "portalLogs": 'ContainerAppConsoleLogs | where ContainerAppName == "<app-name>" | order by TimeGenerated desc',
+                "portalLogs": 'ContainerAppConsoleLogs_CL | where ContainerAppName_s == "<app-name>" | order by TimeGenerated desc',
                 "cliCommand": "az containerapp logs show --name <app-name> --resource-group <rg-name>",
             },
         }

@@ -147,6 +147,7 @@ az containerapp logs show \
 ## See Also
 - [Cost Optimization](./cost-optimization.md)
 - [Observability](./observability.md)
+- [Scaling with KEDA (Concepts)](../concepts/scaling-keda.md)
 
 ## References
 - [Azure Container Apps scaling](https://learn.microsoft.com/azure/container-apps/scale-app)

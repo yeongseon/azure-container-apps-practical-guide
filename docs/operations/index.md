@@ -2,6 +2,9 @@
 
 This section covers day-2 operations for running Python workloads on Azure Container Apps in production, including scaling, revisions, networking, security, observability, and cost control.
 
+!!! note "Variable naming in this section"
+    Operations guides use production-style variable names (e.g., `RG="rg-aca-prod"`) to reflect real operational contexts. Tutorial guides use demo-style names (e.g., `RG="rg-aca-python-demo"`). Substitute your own resource names as appropriate.
+
 ## Prerequisites
 
 - An existing Container Apps environment and app

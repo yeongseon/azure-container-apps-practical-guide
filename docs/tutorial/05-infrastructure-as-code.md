@@ -2,9 +2,19 @@
 
 Use Bicep to define your Azure Container Apps platform consistently across environments. This step focuses on repeatable provisioning and safe updates.
 
+## Infrastructure Lifecycle
+
+```mermaid
+graph LR
+    WRITE[Write Bicep] --> VAL[Validate]
+    VAL --> WHAT[What-If]
+    WHAT --> DEPLOY[Deploy]
+    DEPLOY --> VERIFY[Verify Outputs]
+```
+
 ## Prerequisites
 
-- Completed [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
+- Completed [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - Bicep files under `infra/`
 
 ## Step-by-step
@@ -13,57 +23,58 @@ Use Bicep to define your Azure Container Apps platform consistently across envir
 
    ```bash
    RG="rg-aca-python-demo"
-   APP_NAME="app-aca-python-demo"
-   ENVIRONMENT_NAME="aca-env-python-demo"
-   ACR_NAME="acrpythondemo12345"
-   LOCATION="eastus"
+   BASE_NAME="pycontainer"
+   LOCATION="koreacentral"
+   DEPLOYMENT_NAME="main"
    ```
 
 2. **Validate the Bicep template**
 
    ```bash
    az deployment group validate \
-     --resource-group "$RG" \
-     --template-file infra/main.bicep \
-     --parameters appName="$APP_NAME" environmentName="$ENVIRONMENT_NAME" acrName="$ACR_NAME"
+      --resource-group "$RG" \
+      --template-file infra/main.bicep \
+      --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
 
 3. **Preview changes with what-if**
 
    ```bash
    az deployment group what-if \
-     --resource-group "$RG" \
-     --template-file infra/main.bicep \
-     --parameters appName="$APP_NAME" environmentName="$ENVIRONMENT_NAME" acrName="$ACR_NAME"
+      --resource-group "$RG" \
+      --template-file infra/main.bicep \
+      --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
 
 4. **Deploy infrastructure**
 
    ```bash
    az deployment group create \
-     --resource-group "$RG" \
-     --template-file infra/main.bicep \
-     --parameters appName="$APP_NAME" environmentName="$ENVIRONMENT_NAME" acrName="$ACR_NAME"
+      --name "$DEPLOYMENT_NAME" \
+      --resource-group "$RG" \
+      --template-file infra/main.bicep \
+      --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
 
 5. **Verify outputs and key resources**
 
    ```bash
    az deployment group show \
-     --resource-group "$RG" \
-     --name main \
-     --query properties.outputs
+      --resource-group "$RG" \
+      --name "$DEPLOYMENT_NAME" \
+      --query properties.outputs
    ```
 
 ## Example Bicep snippet (environment + logs)
 
 ```bicep
-param location string = resourceGroup().location
-param environmentName string
+param baseName string
+var uniqueSuffix = uniqueString(resourceGroup().id)
+var containerAppEnvName = 'cae-${baseName}-${uniqueSuffix}'
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
-  name: 'log-${environmentName}'
-  location: location
+  name: 'log-${baseName}-${uniqueSuffix}'
+  location: resourceGroup().location
   properties: {
     sku: {
       name: 'PerGB2018'
@@ -72,8 +83,8 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
 }
 
 resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
-  name: environmentName
-  location: location
+  name: containerAppEnvName
+  location: resourceGroup().location
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'

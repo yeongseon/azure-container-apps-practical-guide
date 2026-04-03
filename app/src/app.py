@@ -1,5 +1,7 @@
+# pyright: reportMissingImports=false
 import os
 import logging
+import json
 from datetime import datetime, timezone
 from flask import Flask, jsonify
 
@@ -17,10 +19,24 @@ app = Flask(__name__)
 
 # Configure logging
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    level=getattr(logging, log_level),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "timestamp": self.formatTime(record, self.datefmt),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info and record.exc_info[0]:
+            log_record["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_record)
+
+
+handler = logging.StreamHandler()
+handler.setFormatter(JSONFormatter())
+logging.basicConfig(level=getattr(logging, log_level), handlers=[handler])
 logger = logging.getLogger(__name__)
 
 # Register blueprints

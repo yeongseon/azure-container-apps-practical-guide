@@ -126,6 +126,8 @@ Example output (PII masked):
 ## See Also
 - [Networking](./networking.md)
 - [Observability](./observability.md)
+- [Managed Identity Recipe](../recipes/managed-identity.md)
+- [Easy Auth Recipe](../recipes/easy-auth.md)
 
 ## References
 - [Container Apps security](https://learn.microsoft.com/azure/container-apps/manage-secrets)
