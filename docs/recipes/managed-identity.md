@@ -80,10 +80,11 @@ blob_service_client = BlobServiceClient(
 - **Simplified Configuration:** No more connection strings in environment variables or secrets.
 
 ## See Also
-
 - [Cosmos DB](./cosmosdb.md)
 - [Azure SQL](./azure-sql.md)
 - [Key Vault](./key-vault.md)
 - [Blob Storage and File Mounts](./storage.md)
+
+## References
 - [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
 - [What are managed identities for Azure resources? (Microsoft Learn)](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview)

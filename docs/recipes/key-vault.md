@@ -133,9 +133,10 @@ az keyvault secret show \
 ```
 
 ## See Also
-
 - [Managed Identity](./managed-identity.md)
 - [Private Endpoints](./networking-private-endpoint.md)
 - [Operations Security](../operations/security.md)
+
+## References
 - [Key Vault secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
 - [Use Key Vault references in App Service and Azure Functions (Microsoft Learn)](https://learn.microsoft.com/azure/app-service/app-service-key-vault-references)

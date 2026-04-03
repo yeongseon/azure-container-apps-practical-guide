@@ -110,8 +110,9 @@ Example output (PII masked):
 - Combine workload profiles for baseline services and consumption for burst paths.
 
 ## See Also
-
 - [Scaling](./scaling.md)
 - [Observability](./observability.md)
+
+## References
 - [Container Apps workload profiles](https://learn.microsoft.com/azure/container-apps/workload-profiles-overview)
 - [Azure Container Apps billing (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/billing)

@@ -219,6 +219,102 @@ Expected result: The FQDN resolves to the environment's internal IP (e.g., `10.0
 !!! warning "Cross-environment calls"
     Internal FQDNs are scoped to the environment. Apps in different environments cannot reach each other via these FQDNs — use VNet peering or public endpoints for cross-environment communication.
 
+## Network Debugging Checklist
+
+When connectivity issues arise with privately networked resources, follow this systematic approach. Each step targets a specific OSI layer to isolate the problem.
+
+### Diagnostic Flow
+
+```mermaid
+flowchart TD
+    Start["Connectivity Issue"] --> DNS["1. nslookup hostname"]
+    DNS -->|"Resolves to public IP\nor NXDOMAIN"| DNSFix["❌ Check Private DNS Zone\nand VNet link"]
+    DNS -->|"Resolves to private IP\n(10.x.x.x)"| Ping["2. ping private-ip"]
+    Ping -->|"Timeout / unreachable"| PingFix["❌ Check NSG rules,\nroute tables, VNet peering"]
+    Ping -->|"Reachable"| Port["3. nc private-ip:port"]
+    Port -->|"Connection refused\nor timeout"| PortFix["❌ Check target service\nfirewall, port config"]
+    Port -->|"Port open"| App["4. curl https://endpoint"]
+    App -->|"HTTP error\n(401/403/5xx)"| AppFix["❌ Check auth config,\ncertificates, app health"]
+    App -->|"200 OK"| Done["✅ Connection working"]
+```
+
+### Step 1: DNS Resolution (Layer 7 — Application/DNS)
+
+Run diagnostics from inside a running Container App revision.
+
+```bash
+az containerapp exec \
+  --resource-group "$RG" \
+  --name "$APP_NAME" \
+  --command "/bin/sh"
+
+# In the container shell
+nslookup your-private-resource.database.windows.net
+```
+
+Expected: private hostname resolves to a private IP.
+
+If DNS fails (`NXDOMAIN`) or returns a public IP, fix private DNS configuration and VNet linkage.
+
+### Step 2: Network Reachability (Layer 3 — Network)
+
+Check basic IP-level reachability from the same container network context.
+
+```bash
+# In the container shell
+ping -c 4 10.0.2.4
+```
+
+If ping is unavailable in your image, install tooling in a debug session (for example, `apt-get update && apt-get install -y iputils-ping dnsutils netcat-openbsd curl`).
+
+### Step 3: Port Connectivity (Layer 4 — Transport)
+
+Because `tcpping` is not typically available in Container Apps, use `nc` or `curl --connect-timeout`.
+
+```bash
+# TCP port probe
+nc -zv 10.0.2.4 443
+
+# HTTPS connect timeout probe
+curl --connect-timeout 5 --verbose https://your-private-api.contoso.local/health
+```
+
+If port probe fails, investigate service-side firewall rules, listener ports, and NSG/UDR controls.
+
+### Step 4: Application Response (Layer 7 — Application)
+
+Validate application response after network and transport checks succeed.
+
+```bash
+curl --silent --show-error --include https://your-private-api.contoso.local/health
+```
+
+Expected: `HTTP/1.1 200 OK` (or service-specific success response).
+
+### Service-Specific Commands (Container Apps)
+
+```bash
+az containerapp exec \
+  --resource-group "$RG" \
+  --name "$APP_NAME" \
+  --command "/bin/sh"
+```
+
+Inside the container, use:
+- `nslookup <hostname>`
+- `ping -c 4 <private-ip>`
+- `nc -zv <host> <port>`
+- `curl --connect-timeout 5 https://<endpoint>`
+
+### Common Failures by Layer
+
+| Symptom | OSI Layer | Likely Cause | Fix |
+|---------|-----------|-------------|-----|
+| `NXDOMAIN` or public IP | L7 (DNS) | Private DNS Zone missing or not linked | Create/link Private DNS Zone to VNet |
+| Private IP but unreachable | L3 (Network) | NSG blocking, missing route, peering issue | Check NSG rules and route tables |
+| IP reachable, port closed | L4 (Transport) | Service firewall, wrong port, service stopped | Check target service network rules |
+| Port open, HTTP error | L7 (Application) | Auth failure, bad cert, app crash | Check credentials, TLS config, app logs |
+
 ## Troubleshooting
 
 ### Requests time out
@@ -242,8 +338,9 @@ az network watcher test-connectivity \
 - Standardize DNS and naming for service-to-service resilience.
 
 ## See Also
-
 - [Security](./security.md)
 - [Health and Recovery](./health-recovery.md)
+
+## References
 - [Container Apps networking](https://learn.microsoft.com/azure/container-apps/networking)
 - [VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)

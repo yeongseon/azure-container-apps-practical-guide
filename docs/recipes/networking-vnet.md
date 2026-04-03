@@ -171,10 +171,11 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
 3. Verify FQDN is correctly configured
 
 ## See Also
-
 - [Private Endpoints](./networking-private-endpoint.md)
 - [Egress Control](./networking-egress.md)
 - [Service-to-Service Communication](./networking-service-to-service.md)
 - [Azure SQL](./azure-sql.md)
+
+## References
 - [Custom virtual networks in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom)
 - [Networking architecture in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)

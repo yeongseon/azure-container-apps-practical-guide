@@ -119,8 +119,9 @@ az containerapp show \
 - Keep at least one warm standby revision for instant failback.
 
 ## See Also
-
 - [Health and Recovery](./health-recovery.md)
 - [Observability](./observability.md)
+
+## References
 - [Azure Container Apps revisions](https://learn.microsoft.com/azure/container-apps/revisions)
 - [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)

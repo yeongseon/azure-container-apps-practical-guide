@@ -6,6 +6,8 @@ repo_name: yeongseon/azure-container-apps-python-guide
 
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
   palette:
     - scheme: default
       primary: deep purple
@@ -40,7 +42,7 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+          format: pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight:

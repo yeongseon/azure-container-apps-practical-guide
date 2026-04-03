@@ -141,8 +141,9 @@ az containerapp logs show \
 ```
 
 ## See Also
-
 - [Managed Identity](./managed-identity.md)
 - [Private Endpoints](./networking-private-endpoint.md)
+
+## References
 - [Azure Cache for Redis + Microsoft Entra auth](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 - [Python quickstart for Azure Cache for Redis (Microsoft Learn)](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-python-get-started)

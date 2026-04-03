@@ -95,8 +95,9 @@ Example output (PII masked):
 - Trigger automated recovery playbooks from alert rules.
 
 ## See Also
-
 - [Revisions](./revisions.md)
 - [Observability](./observability.md)
+
+## References
 - [Azure Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)
 - [Azure Container Apps revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)

@@ -287,11 +287,12 @@ az group delete --name rg-container-apps-private --yes --no-wait
     Key Vault uses soft delete by default. Deleted vaults are retained for 7 days before permanent deletion.
 
 ## See Also
-
 - [VNet Integration](./networking-vnet.md)
 - [Egress Control](./networking-egress.md)
 - [Key Vault](./key-vault.md)
 - [Blob Storage and File Mounts](./storage.md)
 - [Private Container Registry](./container-registry.md)
+
+## References
 - [Internal ingress with VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)
 - [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/private-endpoint-overview)

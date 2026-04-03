@@ -93,9 +93,10 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 - Provision Dapr components declaratively with managed identities.
 
 ## See Also
-
-- [Azure Resource Manager API spec (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec)
-- [Bicep resource definition: Microsoft.App/containerApps (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/containerapps)
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Managed Identity Recipe](../recipes/managed-identity.md)
+
+## References
+- [Azure Resource Manager API spec (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec)
+- [Bicep resource definition: Microsoft.App/containerApps (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/containerapps)

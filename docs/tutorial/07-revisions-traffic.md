@@ -87,9 +87,10 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
 - Automate canary promotion in CI/CD using policy checks.
 
 ## See Also
-
-- [Revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
 - [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Revisions Operations](../operations/revisions.md)
+
+## References
+- [Revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)

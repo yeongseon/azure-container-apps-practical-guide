@@ -77,10 +77,11 @@ quadrantChart
 - Governance models when combining AKS and Container Apps in one organization.
 
 ## See Also
-
 - [How Container Apps Works](./how-container-apps-works.md)
 - [Environments and Apps](./environments-and-apps.md)
 - [Scaling with KEDA](./scaling-keda.md)
 - [Networking](./networking.md)
+
+## References
 - [Azure Container Apps vs Other Azure Compute Options (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/compare-options)
 - [Choose an Azure container service (Microsoft Learn)](https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service)

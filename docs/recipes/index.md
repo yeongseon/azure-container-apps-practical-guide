@@ -46,7 +46,6 @@ az containerapp show \
 ```
 
 ## See Also
-
 - [Tutorial](../tutorial/index.md)
 - [Operations Guide](../operations/index.md)
 - [Managed Identity Recipe](./managed-identity.md)

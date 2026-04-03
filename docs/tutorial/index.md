@@ -31,7 +31,6 @@ az login
 - Standardize environment provisioning with reusable Bicep modules.
 
 ## See Also
-
 - [How Container Apps Works](../concepts/how-container-apps-works.md)
 - [Environment Variables Reference](../reference/environment-variables.md)
 - [Managed Identity Recipe](../recipes/managed-identity.md)

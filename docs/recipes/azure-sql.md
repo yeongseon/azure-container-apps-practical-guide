@@ -127,9 +127,10 @@ az containerapp logs show \
 3. Confirm SQL sign-ins in Azure SQL auditing/logs.
 
 ## See Also
-
 - [Managed Identity](./managed-identity.md)
 - [VNet Integration](./networking-vnet.md)
 - [Private Endpoints](./networking-private-endpoint.md)
+
+## References
 - [Azure SQL + Microsoft Entra authentication](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview)
 - [Connect to Azure SQL with Python (Microsoft Learn)](https://learn.microsoft.com/azure/azure-sql/database/connect-query-python)

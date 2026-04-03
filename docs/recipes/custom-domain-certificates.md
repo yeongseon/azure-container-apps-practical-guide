@@ -160,7 +160,8 @@ curl --verbose https://www.contoso.com/
 - Pair custom domains with WAF/CDN when you need global edge security and acceleration.
 
 ## See Also
+- [Networking](./networking-vnet.md)
 
+## References
 - [Container Apps custom domains and managed certificates (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
 - [Container Apps environment custom DNS (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment-custom-dns)
-- [Networking](./networking-vnet.md)

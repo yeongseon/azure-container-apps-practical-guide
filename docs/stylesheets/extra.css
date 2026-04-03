@@ -1,3 +1,17 @@
+[data-md-color-scheme="default"] {
+    --md-primary-fg-color: #0078D4;
+    --md-primary-fg-color--light: #4DA3E8;
+    --md-primary-fg-color--dark: #005A9E;
+    --md-accent-fg-color: #0078D4;
+}
+
+[data-md-color-scheme="slate"] {
+    --md-primary-fg-color: #4DA3E8;
+    --md-primary-fg-color--light: #7DBFEE;
+    --md-primary-fg-color--dark: #0078D4;
+    --md-accent-fg-color: #4DA3E8;
+}
+
 .md-typeset img {
     max-width: 100%;
     height: auto;
@@ -19,12 +33,34 @@
 .mermaid {
     text-align: center;
     margin: 1rem 0;
+    position: relative;
 }
 
 .mermaid svg {
     max-width: 100%;
     height: auto;
     cursor: zoom-in;
+}
+
+/* Zoom affordance indicator */
+.mermaid::after {
+    content: "🔍";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+    padding: 2px 6px;
+    line-height: 1;
+}
+
+.mermaid:hover::after {
+    opacity: 0.8;
 }
 
 .mermaid-zoom-overlay {

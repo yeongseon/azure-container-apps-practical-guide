@@ -73,9 +73,10 @@ az containerapp logs show \
 - Define SLO-driven alerts that map directly to customer-facing impact.
 
 ## See Also
-
 - [Scaling](./scaling.md)
 - [Revisions](./revisions.md)
 - [Health and Recovery](./health-recovery.md)
 - [Observability](./observability.md)
+
+## References
 - [Azure Container Apps documentation](https://learn.microsoft.com/azure/container-apps/)

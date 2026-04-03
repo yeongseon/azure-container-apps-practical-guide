@@ -122,9 +122,10 @@ def get_data():
 | mTLS | Configure yourself | Automatic |
 
 ## See Also
-
 - [Dapr Integration](./dapr-integration.md)
 - [VNet Integration](./networking-vnet.md)
 - [Egress Control](./networking-egress.md)
+
+## References
 - [Connect apps in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/connect-apps)
 - [Ingress overview in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/ingress-overview)

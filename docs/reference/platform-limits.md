@@ -54,7 +54,6 @@ az containerapp show \
 
 For architecture-level implications, see [How Container Apps Works](../concepts/how-container-apps-works.md).
 
-## See Also
-
+## References
 - [Azure Container Apps quotas and limits (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quotas)
 - [Container Apps scale rules and replicas (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)

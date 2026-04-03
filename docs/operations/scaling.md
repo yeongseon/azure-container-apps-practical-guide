@@ -145,8 +145,9 @@ az containerapp logs show \
 - Define pre-warming strategies for predictable peak windows.
 
 ## See Also
-
 - [Cost Optimization](./cost-optimization.md)
 - [Observability](./observability.md)
+
+## References
 - [Azure Container Apps scaling](https://learn.microsoft.com/azure/container-apps/scale-app)
 - [KEDA scalers reference (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#scale-triggers)

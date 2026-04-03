@@ -139,7 +139,6 @@ az containerapp ingress traffic set \
 az group delete --name "$RG" --yes --no-wait
 ```
 
-## See Also
-
+## References
 - [Azure CLI containerapp reference (Microsoft Learn)](https://learn.microsoft.com/cli/azure/containerapp)
 - [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)

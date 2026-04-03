@@ -54,7 +54,6 @@ graph TD
 - Progressive delivery using revisions and weighted traffic.
 
 ## See Also
-
 - [How Container Apps Works](./how-container-apps-works.md)
 - [Environments and Apps](./environments-and-apps.md)
 - [Scaling with KEDA](./scaling-keda.md)

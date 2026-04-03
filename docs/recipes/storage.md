@@ -507,10 +507,11 @@ See [Key Vault Secrets Management](./key-vault.md) for the full setup.
 ---
 
 ## See Also
-
 - [Managed Identity](./managed-identity.md)
 - [Key Vault Secrets Management](./key-vault.md)
 - [Private Endpoints](./networking-private-endpoint.md)
+
+## References
 - [Azure Files in Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/storage-mounts)
 - [Azure Storage Blob SDK for Python](https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme)
 - [Container Apps volume mount types (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types)

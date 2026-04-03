@@ -62,9 +62,10 @@ Configure Dapr components (like state stores or pub/sub brokers) as separate res
 - **Enhanced Observability:** Dapr automatically collects telemetry for all cross-service communication.
 
 ## See Also
-
 - [Service-to-Service Communication](./networking-service-to-service.md)
 - [Managed Identity](./managed-identity.md)
 - [Operations: Observability](../operations/observability.md)
+
+## References
 - [Dapr overview for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-overview)
 - [Dapr component schema in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-component-schema)

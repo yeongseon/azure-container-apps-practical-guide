@@ -165,9 +165,10 @@ def my_ip():
 ```
 
 ## See Also
-
 - [VNet Integration](./networking-vnet.md)
 - [Private Endpoints](./networking-private-endpoint.md)
 - [Service-to-Service Communication](./networking-service-to-service.md)
+
+## References
 - [Outbound FQDN requirements in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements)
 - [User-defined routes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/user-defined-routes)

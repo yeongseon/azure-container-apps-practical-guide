@@ -94,9 +94,10 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
 - Add Dapr pub/sub and state store components for event-driven workflows.
 
 ## See Also
-
-- [Containers (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
-- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
 - [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
 - [Dapr Integration Recipe](../recipes/dapr-integration.md)
+
+## References
+- [Containers (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
+- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)

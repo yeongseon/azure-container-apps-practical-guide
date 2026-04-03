@@ -122,8 +122,9 @@ Example output (PII masked):
 - Use sampling strategies to balance fidelity and telemetry cost.
 
 ## See Also
-
 - [Health and Recovery](./health-recovery.md)
 - [Cost Optimization](./cost-optimization.md)
+
+## References
 - [Azure Monitor for Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
 - [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)

@@ -50,9 +50,10 @@ Before deploying to Azure Container Apps, validate your Python app in a containe
 - Add a Dapr sidecar for local service invocation testing.
 
 ## See Also
-
-- [Quickstart: Code to Cloud (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
-- [Dockerfile requirements for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers#configuration)
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
 - [Dapr Integration Recipe](../recipes/dapr-integration.md)
+
+## References
+- [Quickstart: Code to Cloud (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
+- [Dockerfile requirements for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers#configuration)

@@ -112,9 +112,10 @@ sequenceDiagram
 - Use Dapr tracing to follow service-to-service calls across apps.
 
 ## See Also
-
-- [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [Observability in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/observability)
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Dapr Integration Recipe](../recipes/dapr-integration.md)
+
+## References
+- [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Observability in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/observability)

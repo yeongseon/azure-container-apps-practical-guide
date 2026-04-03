@@ -45,8 +45,9 @@ Solid arrows show runtime data flow. Dashed arrows show identity and authenticat
 - Standardize service-to-service communication and trace context propagation with Dapr.
 
 ## See Also
-
 - [How Container Apps Works](./how-container-apps-works.md)
 - [Networking](./networking.md)
+
+## References
 - [Azure Container Apps architecture (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/architecture)
 - [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)

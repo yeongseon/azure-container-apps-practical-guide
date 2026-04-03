@@ -516,10 +516,11 @@ Each requires a separate Private Endpoint and DNS A record in `privatelink.azure
 ---
 
 ## See Also
-
 - [VNet Integration](./networking-vnet.md)
 - [Private Endpoints](./networking-private-endpoint.md)
 - [Managed Identity](./managed-identity.md)
+
+## References
 - [ACR Private Link (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-link)
 - [Managed identity for Container Apps registry auth (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
 - [ACR authentication as ARM (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity)
