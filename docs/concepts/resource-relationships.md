@@ -10,8 +10,10 @@ flowchart LR
 
     subgraph ENV[Container Apps Environment]
         APP[Container App]
-        DAPR[Dapr sidecar]
-        APP --> DAPR
+        REV[Active Revision]
+        APP --> REV
+        DAPR["Dapr sidecar (optional)"]
+        APP -.-> DAPR
     end
 
     I --> APP
@@ -26,7 +28,7 @@ flowchart LR
     APP -.-> MI[Managed Identity]
     MI -.-> ENTRA[Microsoft Entra ID]
 
-    DAPR --> APP2[Container App (peer service)]
+    DAPR -.-> APP2[Container App (peer service)]
 
     MI -.-> COSMOS
     MI -.-> SQL

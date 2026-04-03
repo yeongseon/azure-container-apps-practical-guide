@@ -96,23 +96,18 @@ az containerapp hostname add \
 
 ## Create Managed Certificate
 
-Create a managed certificate and bind it to the hostname.
+Bind the hostname with a managed certificate. The certificate is automatically provisioned and validated using DNS.
 
 ```bash
-az containerapp env certificate create \
-  --name "$ENVIRONMENT_NAME" \
-  --resource-group "$RG" \
-  --hostname "www.contoso.com" \
-  --certificate-name "cert-www-contoso"
-
 az containerapp hostname bind \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --hostname "www.contoso.com" \
-  --certificate "cert-www-contoso"
+  --environment "$ENVIRONMENT_NAME" \
+  --validation-method CNAME
 ```
 
-If you bring your own certificate instead of managed issuance, upload it to the environment and bind it with `az containerapp hostname bind`.
+If you bring your own certificate instead of managed issuance, upload it to the environment with `az containerapp env certificate upload` and then bind it with `az containerapp hostname bind --certificate <cert-name>`.
 
 ## Enforce HTTPS
 

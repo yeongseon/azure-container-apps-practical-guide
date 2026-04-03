@@ -92,7 +92,9 @@ Azure Container Apps is a fully managed serverless container service that enable
 | Learning curve | Low | Low | High |
 | Cost model | Consumption | Always-on | Cluster + nodes |
 
-## References
-- [Official Documentation](https://learn.microsoft.com/azure/container-apps/)
+## See Also
 - [Container Apps Pricing](https://azure.microsoft.com/pricing/details/container-apps/)
 - [Dapr Documentation](https://docs.dapr.io/)
+
+## References
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)

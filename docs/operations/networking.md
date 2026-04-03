@@ -207,10 +207,10 @@ Expected output (internal app):
 }
 ```
 
-**Data-plane check** — confirm DNS resolution from another app in the same environment using a Kudu console or exec session:
+**Data-plane check** — confirm DNS resolution from another app in the same environment using an exec session:
 
 ```bash
-# Run from inside the calling container (exec into container or use Kudu)
+# Run from inside the calling container (exec into container)
 nslookup app-python-api-prod.internal.<region>.azurecontainerapps.io
 ```
 
