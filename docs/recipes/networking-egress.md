@@ -110,3 +110,4 @@ def my_ip():
 - [VNet Integration](./networking-vnet.md)
 - [Private Endpoints](./networking-private-endpoint.md)
 - [Service-to-Service Communication](./networking-service-to-service.md)
+- [Outbound FQDN requirements in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements)

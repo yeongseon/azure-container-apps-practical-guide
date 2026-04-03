@@ -113,3 +113,4 @@ Example output (PII masked):
 - [Health and Recovery](./health-recovery.md)
 - [Cost Optimization](./cost-optimization.md)
 - [Azure Monitor for Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)

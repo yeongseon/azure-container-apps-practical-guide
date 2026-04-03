@@ -79,6 +79,7 @@ This tutorial step shows how to inspect console logs, query Log Analytics, and a
 
 ## See Also
 
+- [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Dapr Integration Recipe](../recipes/dapr-integration.md)

@@ -113,3 +113,9 @@ exceptions
 | `ContainerAppSystemLogs` | Newer schema in some workspaces |
 
 If `_CL` tables are empty, check non-`_CL` tables in your workspace.
+
+## See Also
+
+- [Log monitoring in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [ContainerAppConsoleLogs table reference (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
+- [ContainerAppSystemLogs table reference (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)

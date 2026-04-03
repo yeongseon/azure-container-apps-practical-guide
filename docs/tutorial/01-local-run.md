@@ -5,35 +5,36 @@ Before deploying to Azure Container Apps, validate your Python app in a containe
 ## Prerequisites
 
 - Docker Engine or Docker Desktop
-- Docker Compose
 - Source code with a Dockerfile
 
 ## Step-by-step
 
-1. **Build and run with Docker Compose**
+1. **Build the container image**
 
    ```bash
-   docker compose up --build
+   cd app
+   docker build --tag aca-python-guide .
    ```
 
-2. **Verify health endpoint**
+2. **Run the container locally**
+
+   ```bash
+   docker run --publish 8000:8000 --env-file .env aca-python-guide
+   ```
+
+3. **Verify health endpoint**
 
    ```bash
    curl http://localhost:8000/health
    ```
 
-3. **Inspect application logs**
+4. **Inspect application logs**
 
    ```bash
-   docker compose logs --follow app
+   docker logs <container-id>
    ```
 
-4. **Test production image path (optional)**
-
-   ```bash
-   docker build --tag aca-python-app:local .
-   docker run --publish 8000:8000 --env-file .env aca-python-app:local
-   ```
+   To find the container ID: `docker ps`
 
 ## Local parity checklist
 
@@ -44,12 +45,13 @@ Before deploying to Azure Container Apps, validate your Python app in a containe
 
 ## Advanced Topics
 
-- Add local Redis or PostgreSQL in `docker-compose.yml` to mimic service dependencies.
+- Add local Redis or PostgreSQL via `docker network` and separate containers to mimic service dependencies.
 - Use OpenTelemetry locally to validate logs and traces before cloud deployment.
 - Add a Dapr sidecar for local service invocation testing.
 
 ## See Also
 
+- [Quickstart: Code to Cloud (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
 - [Dapr Integration Recipe](../recipes/dapr-integration.md)

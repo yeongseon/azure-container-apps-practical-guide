@@ -90,4 +90,6 @@ This revision model enables low-risk rollouts and fast rollback without rebuildi
 - [Scaling with KEDA](./scaling-keda.md)
 - [Networking](./networking.md)
 - [Container Apps vs Others](./container-apps-vs-others.md)
+- [How Azure Container Apps Works (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
+- [Azure Container Apps architecture (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/architecture)
 - [Revision Management and Traffic Splitting](../tutorial/07-revisions-traffic.md)

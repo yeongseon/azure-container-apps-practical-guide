@@ -53,3 +53,8 @@ az containerapp show \
 | High burst traffic | Pre-warm with `minReplicas >= 1` + tuned scale rules |
 
 For architecture-level implications, see [How Container Apps Works](../concepts/how-container-apps-works.md).
+
+## See Also
+
+- [Azure Container Apps quotas and limits (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quotas)
+- [Container Apps scale rules and replicas (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)

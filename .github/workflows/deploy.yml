@@ -9,7 +9,7 @@ env:
   AZURE_CONTAINER_REGISTRY: ${{ vars.AZURE_CONTAINER_REGISTRY }}
   CONTAINER_APP_NAME: ${{ vars.CONTAINER_APP_NAME }}
   RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
-  IMAGE_NAME: aca-python-reference
+  IMAGE_NAME: aca-python-guide
 
 jobs:
   build-and-deploy:

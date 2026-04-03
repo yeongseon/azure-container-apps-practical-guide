@@ -91,6 +91,7 @@ In this step, you provision the core Azure resources, build your image in Azure 
 
 ## See Also
 
+- [Get started (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/get-started)
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
 - [Networking VNet Recipe](../recipes/networking-vnet.md)

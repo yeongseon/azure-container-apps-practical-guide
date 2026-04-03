@@ -128,3 +128,4 @@ Example output (PII masked):
 - [Networking](./networking.md)
 - [Observability](./observability.md)
 - [Container Apps security](https://learn.microsoft.com/azure/container-apps/manage-secrets)
+- [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)

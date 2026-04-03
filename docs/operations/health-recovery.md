@@ -99,3 +99,4 @@ Example output (PII masked):
 - [Revisions](./revisions.md)
 - [Observability](./observability.md)
 - [Azure Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)
+- [Azure Container Apps revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)

@@ -9,7 +9,7 @@ info_bp = Blueprint("info", __name__)
 def info():
     return jsonify(
         {
-            "name": "azure-container-apps-reference",
+            "name": "azure-container-apps-python-guide",
             "version": "1.0.0",
             "python": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
             "environment": os.environ.get("FLASK_ENV", "development"),

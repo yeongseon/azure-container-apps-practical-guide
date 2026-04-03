@@ -73,3 +73,8 @@ ps aux
 | Intermittent worker timeouts | Long request handlers | Optimize handler or raise Gunicorn timeout |
 | High memory usage, restarts | Too many workers for memory size | Reduce workers or increase memory |
 | Missing traces in App Insights | `TELEMETRY_MODE` or connection string not set | Set `TELEMETRY_MODE=advanced` and `APPLICATIONINSIGHTS_CONNECTION_STRING` |
+
+## See Also
+
+- [Azure Container Apps containers reference (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
+- [Connect to services in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/connect-apps)

@@ -86,5 +86,7 @@ This pattern reduces attack surface while keeping the public API straightforward
 - [Environments and Apps](./environments-and-apps.md)
 - [Scaling with KEDA](./scaling-keda.md)
 - [Container Apps vs Others](./container-apps-vs-others.md)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
+- [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/ingress-overview)
 - [VNet Integration Recipe](../recipes/networking-vnet.md)
 - [Private Endpoint Recipe](../recipes/networking-private-endpoint.md)

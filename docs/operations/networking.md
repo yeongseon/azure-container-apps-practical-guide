@@ -212,3 +212,4 @@ az network watcher test-connectivity \
 - [Security](./security.md)
 - [Health and Recovery](./health-recovery.md)
 - [Container Apps networking](https://learn.microsoft.com/azure/container-apps/networking)
+- [VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)

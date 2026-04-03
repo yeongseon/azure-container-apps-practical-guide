@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "============================================"
-echo "Azure Container Apps Python Reference - Deploy"
+echo "Azure Container Apps Python Guide - Deploy"
 echo "============================================"
 echo ""
 

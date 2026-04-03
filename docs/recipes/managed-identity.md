@@ -63,3 +63,4 @@ blob_service_client = BlobServiceClient(
 - [Azure SQL](./azure-sql.md)
 - [Key Vault](./key-vault.md)
 - [Blob Storage and File Mounts](./storage.md)
+- [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)

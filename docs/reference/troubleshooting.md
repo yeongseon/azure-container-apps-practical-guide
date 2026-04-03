@@ -94,3 +94,8 @@ env | sort
 | Health = Healthy, still errors | Console logs -> app exception analysis |
 | Works locally, fails in ACA | Compare env vars/secrets/port/start command |
 | Intermittent latency | Check scale settings and request/error trend |
+
+## See Also
+
+- [Azure Container Apps troubleshooting (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Diagnose and solve problems in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/diagnose-solve-problems)

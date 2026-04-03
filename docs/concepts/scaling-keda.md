@@ -72,4 +72,6 @@ Good scaling design balances **user experience**, **system stability**, and **co
 - [How Container Apps Works](./how-container-apps-works.md)
 - [Environments and Apps](./environments-and-apps.md)
 - [Networking](./networking.md)
+- [Scaling with KEDA (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [KEDA open-source scalers documentation](https://keda.sh/docs/latest/scalers/)
 - [Revision Management and Traffic Splitting](../tutorial/07-revisions-traffic.md)

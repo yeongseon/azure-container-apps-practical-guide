@@ -79,4 +79,6 @@ This allows one app to run canary traffic while other apps in the same environme
 - [How Container Apps Works](./how-container-apps-works.md)
 - [Networking](./networking.md)
 - [Scaling with KEDA](./scaling-keda.md)
+- [Azure Container Apps Environments and Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment)
+- [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/workload-profiles-overview)
 - [Revision Management and Traffic Splitting](../tutorial/07-revisions-traffic.md)

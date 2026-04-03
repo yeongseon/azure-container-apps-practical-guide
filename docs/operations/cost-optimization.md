@@ -114,3 +114,4 @@ Example output (PII masked):
 - [Scaling](./scaling.md)
 - [Observability](./observability.md)
 - [Container Apps workload profiles](https://learn.microsoft.com/azure/container-apps/workload-profiles-overview)
+- [Azure Container Apps billing (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/billing)

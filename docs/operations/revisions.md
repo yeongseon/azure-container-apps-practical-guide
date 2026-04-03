@@ -123,3 +123,4 @@ az containerapp show \
 - [Health and Recovery](./health-recovery.md)
 - [Observability](./observability.md)
 - [Azure Container Apps revisions](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)

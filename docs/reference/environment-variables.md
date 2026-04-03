@@ -62,3 +62,8 @@ env | sort
 | Use `secretref:` for sensitive values | Plain text passwords in `--set-env-vars` |
 | Keep optional defaults in code (`os.environ.get`) | Hardcoded environment-specific constants |
 | Redact connection strings in docs | PII, subscription IDs, keys/tokens |
+
+## See Also
+
+- [Environment variables in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment-variables)
+- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)

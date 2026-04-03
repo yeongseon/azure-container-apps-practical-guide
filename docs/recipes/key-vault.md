@@ -122,3 +122,4 @@ az keyvault secret show \
 - [Managed Identity](./managed-identity.md)
 - [Private Endpoints](./networking-private-endpoint.md)
 - [Operations Security](../operations/security.md)
+- [Key Vault secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)

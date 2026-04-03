@@ -103,3 +103,4 @@ def get_data():
 - [Dapr Integration](./dapr-integration.md)
 - [VNet Integration](./networking-vnet.md)
 - [Egress Control](./networking-egress.md)
+- [Connect apps in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/connect-apps)

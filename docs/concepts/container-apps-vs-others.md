@@ -82,3 +82,5 @@ quadrantChart
 - [Environments and Apps](./environments-and-apps.md)
 - [Scaling with KEDA](./scaling-keda.md)
 - [Networking](./networking.md)
+- [Azure Container Apps vs Other Azure Compute Options (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/compare-options)
+- [Choose an Azure container service (Microsoft Learn)](https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service)

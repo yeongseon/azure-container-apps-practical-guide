@@ -37,7 +37,7 @@ def index():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Azure Container Apps Reference</title>
+        <title>Azure Container Apps Python Guide</title>
         <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
             h1 { color: #0078d4; }
@@ -47,8 +47,8 @@ def index():
         </style>
     </head>
     <body>
-        <h1>🐳 Azure Container Apps Reference App</h1>
-        <p>Reference implementation for Flask on Azure Container Apps.</p>
+        <h1>🐳 Azure Container Apps Python Guide</h1>
+        <p>Guide implementation for Flask on Azure Container Apps.</p>
         
         <h2>Endpoints</h2>
         <div class="endpoint"><span class="method">GET</span> <code>/health</code> - Health check</div>
