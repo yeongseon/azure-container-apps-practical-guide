@@ -40,13 +40,34 @@
 }
 
 .mermaid-zoom-wrapper {
+    position: relative;
     background: var(--md-default-bg-color, #fff);
     border-radius: 8px;
     padding: 24px;
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
     cursor: default;
-    overflow: auto;
+    width: 90vw;
+    height: 85vh;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.mermaid-zoom-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--md-default-fg-color, #333);
+    padding: 4px 8px;
+    z-index: 1;
+}
+
+.mermaid-zoom-close:hover {
+    opacity: 0.6;
 }
