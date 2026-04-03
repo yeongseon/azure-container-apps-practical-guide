@@ -59,3 +59,4 @@ def home():
 - [Managed Identity](./managed-identity.md)
 - [Operations: Security](../operations/security.md)
 - [Container Apps authentication and authorization](https://learn.microsoft.com/azure/container-apps/authentication)
+- [Enable authentication with a custom OpenID Connect provider (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/authentication-oidc)

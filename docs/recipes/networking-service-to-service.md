@@ -104,3 +104,4 @@ def get_data():
 - [VNet Integration](./networking-vnet.md)
 - [Egress Control](./networking-egress.md)
 - [Connect apps in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/connect-apps)
+- [Ingress overview in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/ingress-overview)

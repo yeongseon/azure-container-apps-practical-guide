@@ -93,6 +93,7 @@ Automate build and deployment so every commit can produce a new Container App re
 ## See Also
 
 - [GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
+- [Connect GitHub Actions to Azure (Microsoft Learn)](https://learn.microsoft.com/azure/developer/github/connect-from-azure)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
 - [Managed Identity Recipe](../recipes/managed-identity.md)

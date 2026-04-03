@@ -273,3 +273,4 @@ az group delete --name rg-container-apps-private --yes --no-wait
 - [Blob Storage and File Mounts](./storage.md)
 - [Private Container Registry](./container-registry.md)
 - [Internal ingress with VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)
+- [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/private-endpoint-overview)
