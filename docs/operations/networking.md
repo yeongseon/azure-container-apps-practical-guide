@@ -41,6 +41,47 @@ az containerapp ingress enable \
   --target-port 8000
 ```
 
+### Verify Ingress Configuration
+
+**Control-plane check** — confirm ingress type and target port:
+
+```bash
+az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "properties.configuration.ingress" \
+  --output json
+```
+
+Expected output (PII masked):
+
+```json
+{
+  "external": false,
+  "targetPort": 8000,
+  "transport": "auto",
+  "fqdn": "app-python-api-prod.internal.<region>.azurecontainerapps.io"
+}
+```
+
+**Data-plane check** — confirm the app responds on the FQDN:
+
+```bash
+# For external ingress
+FQDN=$(az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "properties.configuration.ingress.fqdn" \
+  --output tsv)
+
+curl --silent --output /dev/null --write-out "%{http_code}" "https://$FQDN/health"
+```
+
+Expected result: `200`
+
+!!! note "Internal ingress"
+    Internal ingress FQDNs resolve only from within the same VNet. Run the data-plane check from a VM or pod inside the environment's VNet.
+
 ## VNet and Environment Checks
 
 Inspect managed environment network profile:
@@ -62,6 +103,43 @@ az network vnet subnet show \
   --output table
 ```
 
+### Verify VNet Integration
+
+**Control-plane check** — confirm the environment is attached to a VNet:
+
+```bash
+az containerapp env show \
+  --name "$ENVIRONMENT_NAME" \
+  --resource-group "$RG" \
+  --query "{vnetConfig: properties.vnetConfiguration, staticIp: properties.staticIp}" \
+  --output json
+```
+
+Expected output (PII masked):
+
+```json
+{
+  "vnetConfig": {
+    "infrastructureSubnetId": "/subscriptions/<subscription-id>/resourceGroups/rg-aca-prod/providers/Microsoft.Network/virtualNetworks/vnet-aca-prod/subnets/snet-containerapps",
+    "internal": true
+  },
+  "staticIp": "10.0.0.4"
+}
+```
+
+**Data-plane check** — confirm subnet delegation is correct:
+
+```bash
+az network vnet subnet show \
+  --resource-group "$RG" \
+  --vnet-name "vnet-aca-prod" \
+  --name "snet-containerapps" \
+  --query "delegations[].serviceName" \
+  --output tsv
+```
+
+Expected result: `Microsoft.App/environments`
+
 ## Service Discovery Operations
 
 For app-to-app calls in the same environment, use internal FQDN from ingress settings.
@@ -74,26 +152,38 @@ az containerapp show \
   --output tsv
 ```
 
-## Verification Steps
+### Verify Service Discovery
+
+**Control-plane check** — retrieve the internal FQDN of the target app:
 
 ```bash
 az containerapp show \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --query "properties.configuration.ingress" \
+  --query "properties.configuration.ingress.{fqdn: fqdn, external: external}" \
   --output json
 ```
 
-Example output (PII masked):
+Expected output (internal app):
 
 ```json
 {
-  "external": false,
-  "targetPort": 8000,
-  "transport": "auto",
-  "fqdn": "app-python-api-prod.internal.<region>.azurecontainerapps.io"
+  "fqdn": "app-python-api-prod.internal.<region>.azurecontainerapps.io",
+  "external": false
 }
 ```
+
+**Data-plane check** — confirm DNS resolution from another app in the same environment using a Kudu console or exec session:
+
+```bash
+# Run from inside the calling container (exec into container or use Kudu)
+nslookup app-python-api-prod.internal.<region>.azurecontainerapps.io
+```
+
+Expected result: The FQDN resolves to the environment's internal IP (e.g., `10.0.x.x`).
+
+!!! warning "Cross-environment calls"
+    Internal FQDNs are scoped to the environment. Apps in different environments cannot reach each other via these FQDNs — use VNet peering or public endpoints for cross-environment communication.
 
 ## Troubleshooting
 
