@@ -1,8 +1,6 @@
-# Operations: Running Container Apps in Production
+# Operations
 
-This section covers **day-2 operations** for running workloads on Azure Container Apps in production, including deployment, management, monitoring, and recovery.
-
-While the [Platform](../platform/index.md) section covers how to *design* your architecture, the Operations hub focuses on how to *run* it effectively.
+This section covers production operations and day-2 practices for Azure Container Apps. It is language-agnostic and focuses on platform behavior, reliability, and cost control in running systems.
 
 !!! note "Variable naming in this section"
     Operations guides use production-style variable names (e.g., `RG="rg-aca-prod"`) to reflect real operational contexts. Tutorial guides use demo-style names (e.g., `RG="rg-aca-python-demo"`). Substitute your own resource names as appropriate.
@@ -22,18 +20,32 @@ az extension add --name containerapp --upgrade
 az account show --output table
 ```
 
-## Operations Areas
+## Main Content
 
--   **[Deployment](deployment/networking.md)**: Standardized patterns for CI/CD and production rollouts.
--   **[Revision Management](revision-management/index.md)**: Lifecycle of immutable revisions and traffic splitting.
--   **[Monitoring](monitoring/index.md)**: Logs, metrics, distributed tracing, and Log Analytics integration.
--   **[Scaling](scaling/index.md)**: Managing KEDA scale rules, manual scaling, and concurrency limits.
--   **[Alerts](monitoring/index.md)**: Setting up SLO-driven alerts for availability, latency, and resource usage.
--   **[Image Pull & Registry](deployment/networking.md)**: Authenticating to private registries using managed identity.
--   **[Secret Rotation](../platform/identity-and-secrets/security-operations.md)**: Securely updating credentials without downtime.
--   **[Recovery](../platform/reliability/health-recovery.md)**: Handling failed revisions, pod restarts, and regional outages.
+### Operations Documents
 
-## Verification Steps
+| Document | Description |
+|---|---|
+| [Deployment](deployment/index.md) | CI/CD patterns, image build, registry authentication, production rollouts |
+| [Networking](deployment/networking.md) | VNet deployment, private endpoints, egress controls |
+| [Revision Management](revision-management/index.md) | Revision lifecycle, traffic splitting, rollback procedures |
+| [Monitoring](monitoring/index.md) | Log Analytics, metrics, distributed tracing, alerting |
+| [Scaling](scaling/index.md) | KEDA scale rules, manual scaling, concurrency limits |
+| [Alerts](alerts/index.md) | SLO-driven alerts for availability, latency, and resource usage |
+| [Image Pull and Registry](image-pull-and-registry/index.md) | Private registry authentication, managed identity pull |
+| [Secret Rotation](secret-rotation/index.md) | Credential rotation without downtime |
+| [Recovery](recovery/index.md) | Failed revision handling, replica restarts, regional failover |
+
+### Quick Operational Commands
+
+```bash
+az containerapp show --resource-group $RG --name $APP_NAME --output json
+az containerapp restart --resource-group $RG --name $APP_NAME
+az containerapp revision list --resource-group $RG --name $APP_NAME --output table
+az containerapp logs show --resource-group $RG --name $APP_NAME --type system --follow
+```
+
+### Verification Steps
 
 Validate that the operations baseline is healthy before changing configuration.
 
@@ -58,12 +70,21 @@ Example output (PII masked):
 
 ## Advanced Topics
 
-- Build a production runbook with change windows, rollback criteria, and ownership.
-- Automate common operations with GitHub Actions or Azure DevOps.
-- Define SLO-driven alerts that map directly to customer-facing impact.
+- Build an SLO-based operating model mapping each control to measurable service outcomes.
+- Keep runbooks and IaC synchronized so recovery steps are deterministic during incidents.
+- Validate production controls regularly through game days and restore exercises.
+
+## Language-Specific Details
+
+For language-specific operational guidance, see:
+- [Python Guide](../language-guides/python/index.md)
 
 ## See Also
 
-- [Platform - Architecture](../platform/index.md)
-- [Troubleshooting Hub](../troubleshooting/index.md)
-- [Language Guides](../language-guides/index.md)
+- [Platform](../platform/index.md)
+- [Best Practices](../best-practices/index.md)
+- [Reference](../reference/index.md)
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)

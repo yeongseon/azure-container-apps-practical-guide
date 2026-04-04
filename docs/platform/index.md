@@ -1,71 +1,59 @@
-# Platform: Understanding Azure Container Apps
+# Concepts
 
-This section explains **how Azure Container Apps works** so you can make better design decisions before writing deployment scripts.
+This section explains Azure Container Apps platform behavior in a language-agnostic way. Use these documents to understand architecture, scaling, and networking before diving into implementation.
 
-Use these concept guides to understand platform behavior (revisions, scaling, ingress, environments) and choose the right architecture for production workloads.
+## Main Content
 
-## Concept Map
+### Documents
+
+| Document | Description |
+|---|---|
+| [Architecture: Resource Relationships](architecture/resource-relationships.md) | Control plane vs data plane, environment and app resource hierarchy |
+| [Environments](environments/index.md) | Regional boundary for apps, consumption vs workload profiles |
+| [Revisions](revisions/index.md) | Immutable snapshots, single vs multi-revision mode, traffic splitting |
+| [Scaling](scaling/index.md) | KEDA autoscaling, HTTP/event/custom scale rules, replica management |
+| [Networking](networking/index.md) | Ingress, VNet integration, private endpoints, service discovery |
+| [Jobs](jobs/index.md) | Scheduled, event-driven, and manual job execution |
+| [Identity and Secrets](identity-and-secrets/managed-identity.md) | Managed identity, Key Vault integration, secret references |
+| [Reliability](reliability/health-recovery.md) | Health probes, graceful shutdown, zone redundancy, recovery |
 
 ```mermaid
-graph TD
-    A[Azure Container Apps Fundamentals] --> B[How Container Apps Works]
-    A --> C[Environments and Apps]
-    A --> D[Scaling with KEDA]
-    A --> E[Networking]
-    A --> F[Container Apps Jobs]
-    A --> G[Identity and Secrets]
-    A --> H[Reliability]
-
-    B --> B1[Control plane vs data plane]
-    B --> B2[Revisions and traffic splitting]
-    B --> B3[Dapr and managed runtime]
-
-    C --> C1[Consumption vs Workload profiles]
-    C --> C2[Environment boundaries]
-
-    D --> D1[Event-driven autoscaling]
-    D --> D2[Scale rules and limits]
-
-    E --> E1[Ingress and Envoy]
-    E --> E2[Service discovery]
-    E --> E3[VNet integration]
-
-    F --> F1[On-demand vs Scheduled jobs]
-    F --> F2[Event-driven jobs]
-
-    G --> G1[Managed identity]
-    G --> G2[Key Vault integration]
-
-    H --> H1[Health probes]
-    H --> H2[Graceful shutdown]
+graph LR
+    A[Architecture] --> B[Environments]
+    B --> C[Revisions]
+    C --> D[Scaling]
+    D --> E[Networking]
+    E --> F[Identity and Secrets]
+    F --> G[Reliability]
+    C --> H[Jobs]
 ```
 
-## Section Highlights
+### Recommended reading order
 
--   **[Architecture](architecture/resource-relationships.md)**: Explore how the platform separates the control plane from the data plane.
--   **[Environments](environments/index.md)**: Understand the regional boundary where apps share networking and observability.
--   **[Revisions](../operations/revision-management/index.md)**: Learn how to use immutable snapshots for low-risk rollouts and fast rollbacks.
--   **[Scaling](../operations/scaling/index.md)**: Deep dive into KEDA-based autoscaling for HTTP, queues, and custom metrics.
--   **[Networking](networking/index.md)**: Design VNet integration, ingress, and service discovery patterns.
--   **[Jobs](../start-here/overview.md)**: Run event-driven or scheduled tasks without long-running containers.
--   **[Identity & Secrets](identity-and-secrets/managed-identity.md)**: Secure your app with managed identities and integrated secret management.
--   **[Reliability](reliability/health-recovery.md)**: Configure health probes and handle graceful shutdowns.
+1. Start with architecture and resource relationships
+2. Understand environment boundaries and profile choices
+3. Learn revision lifecycle and traffic splitting
+4. Design scaling envelope with KEDA rules
+5. Finalize networking controls and ingress
+6. Validate identity, secrets, and reliability patterns
 
-## Who Should Read This
+## Advanced Topics
 
--   Teams moving from App Service or AKS to Container Apps.
--   Developers planning revision-based rollouts.
--   Platform engineers designing network boundaries and autoscaling behavior.
+- Build architecture decision records (ADRs) per environment
+- Standardize profile and scaling baselines by workload class
+- Define SLO-driven scaling and networking review checkpoints
 
-## How to Use This Section
+## Language-Specific Details
 
-1. Start with [How Container Apps Works](../start-here/overview.md) in the Start Here section.
-2. Read [Environments and Apps](environments/index.md) before provisioning any resources.
-3. Review [Scaling](../operations/scaling/index.md) and [Networking](networking/index.md) to define your production architecture.
-4. Use the [Troubleshooting](../troubleshooting/index.md) hub if your design doesn't behave as expected.
+For language-specific implementation details, see:
+- [Python Guide](../language-guides/python/index.md)
 
 ## See Also
 
-- [Start Here - Overview](../start-here/overview.md)
-- [Operations Guide](../operations/index.md)
-- [Language Guides](../language-guides/index.md)
+- [Operations](../operations/index.md)
+- [Best Practices](../best-practices/index.md)
+- [Reference](../reference/index.md)
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
