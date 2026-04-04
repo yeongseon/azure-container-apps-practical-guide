@@ -206,7 +206,7 @@ graph LR
         {
           "allowInsecure": false,
           "external": true,
-          "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+          "fqdn": "<your-app-name>.<hash>.<region>.azurecontainerapps.io",
           "targetPort": 8000,
           "transport": "Auto",
           "traffic": [
@@ -229,9 +229,9 @@ graph LR
     ???+ example "Expected output"
         ```json
         {
-          "name": "ca-myapp",
+          "name": "<your-app-name>",
           "provisioningState": "Succeeded",
-          "latestRevisionName": "ca-myapp--0000002"
+          "latestRevisionName": "<your-app-name>--<revision-suffix>"
         }
         ```
 
@@ -248,7 +248,7 @@ graph LR
         ```json
         [
           {
-            "name": "ca-myapp--0000001",
+            "name": "<your-app-name>--0000001",
             "active": false,
             "trafficWeight": 0,
             "replicas": 0,
@@ -256,7 +256,7 @@ graph LR
             "runningState": "Running"
           },
           {
-            "name": "ca-myapp--0000002",
+            "name": "<your-app-name>--0000002",
             "active": true,
             "trafficWeight": 100,
             "replicas": 1,

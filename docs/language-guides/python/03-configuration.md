@@ -55,8 +55,8 @@ graph TD
        ```
 
        ```text
-       APP_NAME=ca-myapp
-       ENVIRONMENT_NAME=cae-myapp
+       APP_NAME=<your-app-name>
+       ENVIRONMENT_NAME=<your-env-name>
        ACR_NAME=<acr-name>
        ```
 
@@ -158,7 +158,7 @@ graph TD
    ???+ example "Expected output"
        ```json
        {
-         "name": "ca-myapp",
+         "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }
        ```

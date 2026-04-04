@@ -69,7 +69,7 @@ graph LR
         The deployment will update the following scope:
         Scope: /subscriptions/<subscription-id>/resourceGroups/rg-nodejs-guide
 
-          ~ Microsoft.App/containerApps/ca-nodejs-guide [2024-03-01]
+          ~ Microsoft.App/containerApps/<your-app-name> [2024-03-01]
             ~ properties.template.containers[0].image: "<acr-name>.azurecr.io/nodejs-guide:v1"
         ```
 

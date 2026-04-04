@@ -66,7 +66,7 @@ graph LR
        The deployment will update the following scope:
        Scope: /subscriptions/<subscription-id>/resourceGroups/rg-aca-python-demo
 
-         ~ Microsoft.App/containerApps/ca-myapp [2024-03-01]
+         ~ Microsoft.App/containerApps/<your-app-name> [2024-03-01]
            ~ properties.template.containers[0].image: "<acr-name>.azurecr.io/myapp:v1.0.0"
        ```
 
@@ -88,8 +88,8 @@ graph LR
          "properties": {
            "provisioningState": "Succeeded",
            "outputs": {
-             "containerAppName": { "type": "String", "value": "ca-myapp" },
-             "containerAppEnvName": { "type": "String", "value": "cae-myapp" },
+             "containerAppName": { "type": "String", "value": "<your-app-name>" },
+             "containerAppEnvName": { "type": "String", "value": "<your-env-name>" },
              "containerRegistryName": { "type": "String", "value": "<acr-name>" },
              "location": { "type": "String", "value": "koreacentral" }
            }
@@ -111,7 +111,7 @@ graph LR
        {
          "containerAppName": {
            "type": "String",
-           "value": "ca-myapp"
+           "value": "<your-app-name>"
          },
          "containerAppEnvName": {
            "type": "String",

@@ -89,7 +89,7 @@ az containerapp create \
 
 ???+ example "Expected output"
     ```text
-    "ca-java-guide.purplesand-eb76756a.koreacentral.azurecontainerapps.io"
+    "<your-app-name>.<environment-hash>.<region>.azurecontainerapps.io"
     ```
 
 ## Step 5: Verification

@@ -108,7 +108,7 @@ graph LR
         ```json
         [
           {
-            "name": "ca-myapp--0000001",
+            "name": "<your-app-name>--<revision-suffix>",
             "active": true,
             "trafficWeight": 100,
             "replicas": 1,
@@ -129,7 +129,7 @@ graph LR
         {
           "allowInsecure": false,
           "external": true,
-          "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+          "fqdn": "<your-app-name>.<hash>.<region>.azurecontainerapps.io",
           "targetPort": 8000,
           "transport": "Auto",
           "traffic": [

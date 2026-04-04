@@ -101,20 +101,20 @@ graph LR
         ```text
         Name                                     Active    CreatedTime
         ---------------------------------------  --------  -------------------------
-        ca-myapp-<unique-suffix>--rev1           True      2024-01-15T10:00:00+00:00
-        ca-myapp-<unique-suffix>--rev2           True      2024-01-15T10:15:00+00:00
+        <your-app-name>--0000001                 True      2024-01-15T10:00:00+00:00
+        <your-app-name>--0000002                 True      2024-01-15T10:15:00+00:00
         ```
 
         JSON equivalent (`--output json`):
         ```json
         [
           {
-            "name": "ca-myapp--0000001",
+            "name": "<your-app-name>--0000001",
             "active": true,
             "createdTime": "2024-01-15T10:00:00+00:00"
           },
           {
-            "name": "ca-myapp--0000002",
+            "name": "<your-app-name>--0000002",
             "active": true,
             "createdTime": "2024-01-15T10:15:00+00:00"
           }
@@ -134,11 +134,11 @@ graph LR
         ```json
         [
           {
-            "revisionName": "ca-myapp-<unique-suffix>--rev1",
+            "revisionName": "<your-app-name>--<revision-suffix>",
            "weight": 90
          },
          {
-           "revisionName": "ca-myapp-<unique-suffix>--rev2",
+           "revisionName": "<your-app-name>--<revision-suffix>",
            "weight": 10
           }
         ]
@@ -157,16 +157,16 @@ graph LR
         {
           "allowInsecure": false,
           "external": true,
-          "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+          "fqdn": "<your-app-name>.<hash>.<region>.azurecontainerapps.io",
           "targetPort": 8000,
           "transport": "Auto",
           "traffic": [
             {
-              "revisionName": "ca-myapp--0000001",
+              "revisionName": "<your-app-name>--0000001",
               "weight": 90
             },
             {
-              "revisionName": "ca-myapp--0000002",
+              "revisionName": "<your-app-name>--0000002",
               "weight": 10
             }
           ]

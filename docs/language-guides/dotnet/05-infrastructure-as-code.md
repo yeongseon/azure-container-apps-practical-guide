@@ -70,8 +70,8 @@ graph LR
        The deployment will update the following scope:
        Scope: /subscriptions/<subscription-id>/resourceGroups/rg-dotnet-guide
 
-         ~ Microsoft.App/containerApps/ca-dotnet-guide [2024-03-01]
-           ~ properties.template.containers[0].image: "crpycontainerzxyaw4an5c742.azurecr.io/dotnet-guide:latest"
+         ~ Microsoft.App/containerApps/<your-app-name> [2024-03-01]
+           ~ properties.template.containers[0].image: "<acr-name>.azurecr.io/dotnet-guide:latest"
        ```
 
 4. **Deploy infrastructure**
