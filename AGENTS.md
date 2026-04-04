@@ -1,41 +1,59 @@
 # AGENTS.md
 
-> Knowledge base for AI agents working on this repository.
+Guidance for AI agents working in this repository.
 
 ## Project Overview
 
-**Azure Container Apps Practical Guide** — A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages.
+**Azure Container Apps Practical Guide** — a unified documentation hub, reference applications, and hands-on troubleshooting labs for deploying and operating containerized applications on Azure Container Apps.
 
-### Repository Structure
+- **Live site**: <https://yeongseon.github.io/azure-container-apps-practical-guide/>
+- **Repository**: <https://github.com/yeongseon/azure-container-apps-practical-guide>
 
-```
-├── docs/                   # Unified documentation hub
-│   ├── start-here/         # Overview, learning-paths, when-to-use, repository-map
-│   ├── platform/           # Architecture, environments, revisions, scaling, networking, jobs, identity, reliability
-│   ├── best-practices/     # Container design, revision strategy, scaling, networking, identity, reliability, cost, jobs, anti-patterns
-│   ├── language-guides/    # Index + python/ (01-07 tutorials, python-runtime, recipes/)
-│   ├── operations/         # Deployment, monitoring, alerts, image-pull-and-registry, secret-rotation, recovery
-│   ├── troubleshooting/    # First-10-minutes, playbooks, methodology, kql, lab-guides
-│   └── reference/          # CLI reference, environment variables, platform limits
-│
-├── apps/                   # Reference applications
-│   └── python/             # Flask reference app
-│
-├── jobs/                   # Reference jobs
-│   └── python/             # Python reference job
-│
-├── labs/                   # Hands-on troubleshooting labs
+## Repository Structure
+
+```text
+.
+├── .github/
+│   └── workflows/              # GitHub Pages deployment
+├── apps/
+│   ├── dotnet-aspnetcore/      # .NET reference application
+│   ├── java-springboot/        # Java reference application
+│   ├── nodejs/                 # Node.js reference application
+│   └── python/                 # Python reference application
+├── docs/
+│   ├── assets/                 # Images, icons
+│   ├── best-practices/         # Production patterns and anti-patterns
+│   ├── javascripts/            # Mermaid zoom JS
+│   ├── language-guides/
+│   │   ├── python/             # Python (Flask) — 7 tutorials + recipes
+│   │   ├── nodejs/             # Node.js (Express) — 7 tutorials + recipes
+│   │   ├── java/               # Java (Spring Boot) — 7 tutorials + recipes
+│   │   └── dotnet/             # .NET (ASP.NET Core) — 7 tutorials + recipes
+│   ├── operations/             # Day-2 operational execution
+│   ├── platform/               # Architecture and design decisions
+│   ├── reference/              # CLI reference, environment variables, limits
+│   ├── start-here/             # Overview, learning paths, repository map
+│   ├── stylesheets/            # Custom CSS (mermaid zoom, etc.)
+│   └── troubleshooting/        # Full troubleshooting hub
+│       ├── architecture-overview.md
+│       ├── decision-tree.md
+│       ├── evidence-map.md
+│       ├── first-10-minutes/   # Checklists by symptom category
+│       ├── kql/                # KQL query packs
+│       ├── lab-guides/         # Hands-on labs with Expected Evidence
+│       ├── methodology/        # Troubleshooting method, detector map
+│       └── playbooks/          # Playbooks with real Azure evidence
+├── jobs/
+│   └── python/                 # Python reference job
+├── infra/                      # Shared Bicep modules
+├── labs/                       # Lab infrastructure + app source
 │   ├── acr-pull-failure/
+│   ├── managed-identity-key-vault-failure/
+│   ├── probe-and-port-mismatch/
 │   ├── revision-failover/
+│   ├── revision-provisioning-failure/
 │   └── scale-rule-mismatch/
-│
-├── infra/                  # Bicep infrastructure
-│   ├── main.bicep          # Main template
-│   ├── modules/            # Modular Bicep files
-│   ├── deploy.sh           # Basic deployment
-│   └── deploy-private.sh   # VNet deployment
-│
-└── mkdocs.yml              # Documentation configuration
+└── mkdocs.yml                  # MkDocs Material configuration (7-tab nav)
 ```
 
 ## Content Categories
@@ -61,27 +79,155 @@ The documentation is organized by intent and lifecycle stage:
 - Tutorial: `XX-topic-name.md` (numbered for sequence)
 - All others: `topic-name.md` (kebab-case)
 
-### Document Structure (ALL documents follow this pattern)
+### Admonition Indentation Rule
+
+For MkDocs admonitions (`!!!` / `???`), every line in the body must be indented by **4 spaces**.
 
 ```markdown
+!!! warning "Important"
+    This line is correctly indented.
+
+    - List item also inside
+```
+
+### Nested List Indentation
+
+All nested list items MUST use **4-space indent** (Python-Markdown standard).
+
+```markdown
+# CORRECT (4-space)
+1. **Item**
+    - Sub item
+    - Another sub item
+        - Third level
+
+# WRONG (2 or 3 spaces)
+1. **Item**
+  - Sub item          ← 2 spaces ❌
+   - Sub item         ← 3 spaces ❌
+```
+
+### Tail Section Naming
+
+Every document ends with these tail sections (in this order):
+
+| Section | Purpose | Content |
+|---|---|---|
+| `## See Also` | Internal cross-links within this repository | Links to other pages in this guide |
+| `## Sources` | External authoritative references | Links to Microsoft Learn (primary) |
+
+- `## See Also` is required on every page.
+- `## Sources` is required when external references are cited. Omit if none exist.
+- Order is always `## See Also` → `## Sources` (never reversed).
+- All content must be based on Microsoft Learn with cited sources.
+
+### Canonical Document Templates
+
+Every document follows one of 7 templates based on its section. Do not invent new structures.
+
+#### Platform docs
+
+```text
 # Title
-
 Brief introduction (1-2 sentences)
-
-## Prerequisites (if applicable)
-
+## Prerequisites (optional — only if hands-on/CLI content)
 ## Main Content
-
-### Subsections with code examples
-
-## Advanced Topics
-
-Further reading for deeper understanding.
-
+### Subsections (H3 under Main Content)
+#### Sub-subsections (H4 as needed)
+## Advanced Topics (optional)
+## Language-Specific Details (optional)
 ## See Also
+## Sources (optional)
+```
 
-- [Related Doc 1](../category/related-doc.md)
-- [Related Doc 2](../category/another-doc.md)
+#### Best Practices docs
+
+```text
+# Title
+Brief introduction
+## Prerequisites (optional)
+## Why This Matters
+## Recommended Practices
+## Common Mistakes / Anti-Patterns
+## Validation Checklist
+## Advanced Topics (optional)
+## See Also
+## Sources (optional)
+```
+
+#### Operations docs
+
+```text
+# Title
+Brief introduction
+## Prerequisites
+## When to Use
+## Procedure
+## Verification
+## Rollback / Troubleshooting
+## Advanced Topics (optional)
+## See Also
+## Sources (optional)
+```
+
+#### Tutorial docs (Language Guides)
+
+```text
+# Title
+Brief introduction
+## Prerequisites
+## What You'll Build
+## Steps
+## Verification
+## Next Steps / Clean Up (optional)
+## See Also
+## Sources (optional)
+```
+
+#### Playbooks
+
+```text
+# Title (no intro paragraph — Summary covers it)
+## 1. Summary
+## 2. Common Misreadings
+## 3. Competing Hypotheses
+## 4. What to Check First
+## 5. Evidence to Collect
+## 6. Validation and Disproof by Hypothesis
+## 7. Likely Root Cause Patterns
+## 8. Immediate Mitigations
+## 9. Prevention (optional)
+## See Also
+## Sources (optional)
+```
+
+#### Lab Guides
+
+```text
+# Title
+Brief introduction
+## Lab Metadata (table: difficulty, duration, tier, etc.)
+## 1) Background
+## 2) Hypothesis
+## 3) Runbook
+## 4) Experiment Log
+## Expected Evidence
+## Clean Up
+## Related Playbook
+## See Also
+## Sources
+```
+
+#### Reference docs
+
+```text
+# Title
+Brief introduction
+## Prerequisites (optional)
+## Topic/Command Groups
+## Usage Notes (optional)
+## See Also
+## Sources (optional)
 ```
 
 ### CLI Command Style

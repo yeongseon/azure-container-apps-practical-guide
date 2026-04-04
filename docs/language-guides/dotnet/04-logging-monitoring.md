@@ -1,0 +1,133 @@
+# 04 - Logging, Monitoring, and Observability
+
+This tutorial step shows how to inspect console logs, query Log Analytics, and add OpenTelemetry-based observability for production .NET applications on Azure Container Apps.
+
+## How Observability Works in Container Apps
+
+```mermaid
+flowchart LR
+    APP[App container stdout/stderr] --> CONSOLE[Console logs]
+    DAPR[Dapr sidecar stdout/stderr] --> CONSOLE
+    PLATFORM[Platform/revision/auth events] --> SYSTEM[System logs]
+    CONSOLE --> LAW[Log Analytics workspace]
+    SYSTEM --> LAW
+    OTEL[App instrumentation<br/>OpenTelemetry SDK] --> AI[Application Insights]
+    AZMON[Azure Monitor] --> METRICS[Metrics: requests, CPU, memory, replicas]
+```
+
+## Prerequisites
+
+- Completed [03 - Configuration, Secrets, and Dapr](03-configuration.md)
+- Log Analytics connected to your Container Apps environment
+- (Optional) Application Insights resource for distributed tracing
+
+## Step-by-step
+
+1. **Set standard variables**
+
+   ```bash
+   RG="rg-dotnet-guide"
+   APP_NAME="ca-dotnet-guide"
+   ```
+
+2. **Stream console logs**
+
+   ASP.NET Core logs to `stdout` by default. You can stream these directly to your terminal.
+
+   ```bash
+   az containerapp logs show \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --follow
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       {"TimeStamp":"2026-04-04T16:15:01","Log":"Connecting to the container 'app'..."}
+       {"TimeStamp":"2026-04-04T16:15:01","Log":"Successfully Connected to container: 'app'"}
+       {"TimeStamp":"2026-04-04T16:15:02Z","Log":"info: Microsoft.Hosting.Lifetime[14]\n      Now listening on: http://0.0.0.0:8000"}
+       {"TimeStamp":"2026-04-04T16:15:02Z","Log":"info: Microsoft.Hosting.Lifetime[0]\n      Application started. Press Ctrl+C to shut down."}
+       ```
+
+3. **Check system logs for platform events**
+
+   System logs capture events like container crashes, scaling activities, and health probe failures.
+
+   ```bash
+   az containerapp logs show \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --type system
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       {"TimeStamp":"2026-04-04T16:15:00Z","Type":"Normal","Msg":"Successfully connected to events server","Reason":"ConnectedToEventsServer"}
+       ```
+
+4. **Run a Log Analytics query for .NET Exceptions**
+
+   In the Azure Portal, navigate to your Log Analytics workspace and run this KQL query:
+
+   ```kusto
+   ContainerAppConsoleLogs_CL
+   | where Log_s has "Exception" or Log_s has "Error"
+   | project TimeGenerated, ContainerAppName_s, RevisionName_s, Log_s
+   | order by TimeGenerated desc
+   ```
+
+   ???+ example "Expected output"
+       | TimeGenerated | ContainerAppName_s | Log_s |
+       |---|---|---|
+       | 2026-04-04T16:20:00Z | ca-dotnet-guide | fail: Microsoft.AspNetCore.Server.Kestrel[13] Connection id "0HN2..." ... |
+
+5. **Enable OpenTelemetry with Azure Monitor**
+
+   The reference app uses the `Azure.Monitor.OpenTelemetry.AspNetCore` NuGet package.
+
+   ```csharp
+   // In Program.cs
+   if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")))
+   {
+       builder.Services.AddOpenTelemetry().UseAzureMonitor();
+   }
+   ```
+
+   To enable this in your Container App:
+
+   ```bash
+   AI_CONNECTION_STRING="InstrumentationKey=...;IngestionEndpoint=..."
+   
+   az containerapp update \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=$AI_CONNECTION_STRING"
+   ```
+
+6. **View Metrics in Azure Monitor**
+
+   Navigate to the **Metrics** tab of your Container App to visualize:
+   - **Requests**: Total number of HTTP requests.
+   - **CPU/Memory Usage**: Resource consumption per replica.
+   - **Replica Count**: Current number of running instances (scaled by KEDA).
+
+## Observability Best Practices for .NET
+
+- **Structured Logging**: Use `ILogger` to emit logs. Container Apps captures the output and indexes it in Log Analytics.
+- **Correlation IDs**: ASP.NET Core automatically propagates `TraceId` in HTTP headers, which OpenTelemetry uses to correlate traces across services.
+- **Health Checks**: Use the ASP.NET Core Health Checks middleware (`/health`) to provide the platform with accurate liveness/readiness signals.
+
+## Advanced Topics
+
+- **Custom Metrics**: Use `System.Diagnostics.Metrics` to emit custom business metrics like `orders-processed`.
+- **Live Metrics**: Use Application Insights Live Metrics Stream for real-time monitoring of your .NET app.
+- **Log Scopes**: Use `logger.BeginScope` to add contextual metadata (like `UserId`) to every log entry.
+
+## See Also
+- [03 - Configuration, Secrets, and Dapr](03-configuration.md)
+- [.NET Runtime Reference](dotnet-runtime.md)
+- [Troubleshooting Methodology](../../troubleshooting/methodology/index.md)
+
+## Sources
+- [Monitoring Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/monitor)
+- [OpenTelemetry with ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing)

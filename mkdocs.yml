@@ -154,6 +154,42 @@ nav:
         - Key Vault Reference: language-guides/python/recipes/key-vault-reference.md
         - Managed Identity: language-guides/python/recipes/managed-identity.md
         - Native Dependencies: language-guides/python/recipes/native-dependencies.md
+    - Node.js:
+      - language-guides/nodejs/index.md
+      - 1. Local Development: language-guides/nodejs/01-local-development.md
+      - 2. First Deploy: language-guides/nodejs/02-first-deploy.md
+      - 3. Configuration: language-guides/nodejs/03-configuration.md
+      - 4. Logging and Monitoring: language-guides/nodejs/04-logging-monitoring.md
+      - 5. Infrastructure as Code: language-guides/nodejs/05-infrastructure-as-code.md
+      - 6. CI/CD: language-guides/nodejs/06-ci-cd.md
+      - 7. Revisions and Traffic: language-guides/nodejs/07-revisions-traffic.md
+      - Node.js Runtime: language-guides/nodejs/nodejs-runtime.md
+      - Recipes:
+        - language-guides/nodejs/recipes/index.md
+    - Java:
+      - language-guides/java/index.md
+      - 1. Local Development: language-guides/java/01-local-development.md
+      - 2. First Deploy: language-guides/java/02-first-deploy.md
+      - 3. Configuration: language-guides/java/03-configuration.md
+      - 4. Logging and Monitoring: language-guides/java/04-logging-monitoring.md
+      - 5. Infrastructure as Code: language-guides/java/05-infrastructure-as-code.md
+      - 6. CI/CD: language-guides/java/06-ci-cd.md
+      - 7. Revisions and Traffic: language-guides/java/07-revisions-traffic.md
+      - Java Runtime: language-guides/java/java-runtime.md
+      - Recipes:
+        - language-guides/java/recipes/index.md
+    - .NET:
+      - language-guides/dotnet/index.md
+      - 1. Local Development: language-guides/dotnet/01-local-development.md
+      - 2. First Deploy: language-guides/dotnet/02-first-deploy.md
+      - 3. Configuration: language-guides/dotnet/03-configuration.md
+      - 4. Logging and Monitoring: language-guides/dotnet/04-logging-monitoring.md
+      - 5. Infrastructure as Code: language-guides/dotnet/05-infrastructure-as-code.md
+      - 6. CI/CD: language-guides/dotnet/06-ci-cd.md
+      - 7. Revisions and Traffic: language-guides/dotnet/07-revisions-traffic.md
+      - .NET Runtime: language-guides/dotnet/dotnet-runtime.md
+      - Recipes:
+        - language-guides/dotnet/recipes/index.md
   - Operations:
     - operations/index.md
     - Deployment:
@@ -168,6 +204,9 @@ nav:
     - Recovery: operations/recovery/index.md
   - Troubleshooting:
     - troubleshooting/index.md
+    - Architecture Overview: troubleshooting/architecture-overview.md
+    - Decision Tree: troubleshooting/decision-tree.md
+    - Evidence Map: troubleshooting/evidence-map.md
     - First 10 Minutes:
       - troubleshooting/first-10-minutes/index.md
       - CLI Cheatsheet: troubleshooting/first-10-minutes/cli-reference.md

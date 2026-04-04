@@ -151,9 +151,9 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
     Before deploying updates, use `az deployment group what-if` to see exactly what resources will be created, modified, or deleted without actually making the changes.
 
 ## See Also
+
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Bicep Documentation (Microsoft Learn)](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
-- [Shared Bicep modules in this repo](../../infra/README.md)
 
 ## Sources
 - [Bicep template for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/get-started-xml-bicep?tabs=azure-cli)

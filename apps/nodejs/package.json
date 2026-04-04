@@ -1,0 +1,21 @@
+{
+  "name": "azure-container-apps-nodejs-guide",
+  "version": "1.0.0",
+  "description": "Node.js reference application for Azure Container Apps",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "applicationinsights": "^3.0.0",
+    "dotenv": "^16.4.0"
+  },
+  "keywords": ["azure", "container-apps", "express"],
+  "author": "",
+  "license": "MIT"
+}

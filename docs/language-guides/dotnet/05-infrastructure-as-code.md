@@ -1,0 +1,188 @@
+# 05 - Infrastructure as Code with Bicep
+
+Use Bicep to define your .NET application infrastructure consistently across environments. This step focuses on repeatable provisioning and safe updates of Azure Container Apps resources.
+
+## Infrastructure Lifecycle
+
+```mermaid
+graph LR
+    WRITE[Write Bicep] --> VAL[Validate]
+    VAL --> WHAT[What-If]
+    WHAT --> DEPLOY[Deploy]
+    DEPLOY --> VERIFY[Verify Outputs]
+```
+
+## Prerequisites
+
+- Completed [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
+- Bicep files under `infra/` (e.g., `main.bicep`)
+- Azure CLI with Bicep installed
+
+!!! tip "Run validate and what-if before every apply"
+    Treat `az deployment group validate` and `az deployment group what-if` as required safety checks to prevent accidental production-impacting infrastructure changes.
+
+## Step-by-step
+
+1. **Set standard variables**
+
+   ```bash
+   RG="rg-dotnet-guide"
+   BASE_NAME="dotnet-guide"
+   LOCATION="koreacentral"
+   DEPLOYMENT_NAME="main"
+   ```
+
+2. **Validate the Bicep template**
+
+   ```bash
+   az deployment group validate \
+      --resource-group "$RG" \
+      --template-file infra/main.bicep \
+      --parameters baseName="$BASE_NAME" location="$LOCATION"
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       {
+         "status": "Succeeded",
+         "error": null
+       }
+       ```
+
+3. **Preview changes with what-if**
+
+   ```bash
+   az deployment group what-if \
+      --resource-group "$RG" \
+      --template-file infra/main.bicep \
+      --parameters baseName="$BASE_NAME" location="$LOCATION"
+   ```
+
+   ???+ example "Expected output"
+       ```text
+       Resource and property changes are indicated with these symbols:
+         + Create
+         ~ Modify
+
+       The deployment will update the following scope:
+       Scope: /subscriptions/<subscription-id>/resourceGroups/rg-dotnet-guide
+
+         ~ Microsoft.App/containerApps/ca-dotnet-guide [2024-03-01]
+           ~ properties.template.containers[0].image: "crpycontainerzxyaw4an5c742.azurecr.io/dotnet-guide:latest"
+       ```
+
+4. **Deploy infrastructure**
+
+   ```bash
+   az deployment group create \
+      --name "$DEPLOYMENT_NAME" \
+      --resource-group "$RG" \
+      --template-file infra/main.bicep \
+      --parameters baseName="$BASE_NAME" location="$LOCATION"
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       {
+         "id": "/subscriptions/<subscription-id>/resourceGroups/rg-dotnet-guide/providers/Microsoft.Resources/deployments/main",
+         "name": "main",
+         "properties": {
+           "provisioningState": "Succeeded",
+           "outputs": {
+             "containerAppName": { "type": "String", "value": "ca-dotnet-guide" },
+             "containerAppUrl": { "type": "String", "value": "https://ca-dotnet-guide.purplesand-eb76756a.koreacentral.azurecontainerapps.io" }
+           }
+         }
+       }
+       ```
+
+5. **Verify outputs and key resources**
+
+   ```bash
+   az deployment group show \
+      --resource-group "$RG" \
+      --name "$DEPLOYMENT_NAME" \
+      --query properties.outputs
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       {
+         "containerAppName": {
+           "type": "String",
+           "value": "ca-dotnet-guide"
+         },
+         "containerAppEnvName": {
+           "type": "String",
+           "value": "cae-dotnet-guide"
+         },
+         "containerRegistryName": {
+           "type": "String",
+           "value": "crpycontainerzxyaw4an5c742"
+         }
+       }
+       ```
+
+## Example Bicep snippet (.NET App with Health Probes)
+
+```bicep
+resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+  name: 'ca-${baseName}'
+  location: location
+  properties: {
+    managedEnvironmentId: environment.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 8000
+      }
+    }
+    template: {
+      containers: [
+        {
+          name: 'app'
+          image: '${acr.properties.loginServer}/${imageName}'
+          probes: [
+            {
+              type: 'Liveness'
+              httpGet: {
+                path: '/health'
+                port: 8000
+              }
+              initialDelaySeconds: 5
+              periodSeconds: 10
+            }
+            {
+              type: 'Readiness'
+              httpGet: {
+                path: '/health'
+                port: 8000
+              }
+              initialDelaySeconds: 5
+              periodSeconds: 10
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+## Advanced Topics
+
+- **Modular Bicep**: Split your templates into reusable modules for networking, storage, and identity.
+- **Deployment Scripts**: Use `Microsoft.Resources/deploymentScripts` to perform post-deployment tasks like database migrations.
+- **Resource Locking**: Apply `Microsoft.Authorization/locks` to prevent accidental deletion of critical infrastructure.
+
+!!! warning "Avoid out-of-band portal edits"
+    Manual portal changes can create drift from your Bicep templates. Prefer template updates and redeployment so environments remain reproducible and auditable.
+
+## See Also
+- [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
+- [06 - CI/CD with GitHub Actions](06-ci-cd.md)
+- [Bicep Documentation (Microsoft Learn)](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
+
+## Sources
+- [Bicep resource definition: Microsoft.App/containerApps (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/containerapps)
+- [Bicep and Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/bicep-infrastructure)

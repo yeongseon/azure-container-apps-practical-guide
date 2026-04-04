@@ -1,107 +1,78 @@
 # Azure Container Apps Practical Guide
 
-A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages, revision models, and deployment patterns.
+Comprehensive guide for running containerized applications on Azure Container Apps — from first deployment to production troubleshooting.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyeongseon%2Fazure-container-apps-practical-guide%2Fmain%2Finfra%2Fazuredeploy.json)
+## What's Inside
 
-## Repository Structure
+| Section | Description |
+|---------|-------------|
+| [Start Here](https://yeongseon.github.io/azure-container-apps-practical-guide/) | Overview, learning paths, and repository map |
+| [Platform](https://yeongseon.github.io/azure-container-apps-practical-guide/platform/) | Architecture, environments, revisions, scaling, networking, jobs, identity |
+| [Best Practices](https://yeongseon.github.io/azure-container-apps-practical-guide/best-practices/) | Container design, revision strategy, scaling, networking, identity, reliability, cost |
+| [Language Guides](https://yeongseon.github.io/azure-container-apps-practical-guide/language-guides/) | Step-by-step tutorials for Python, Node.js, Java, and .NET |
+| [Operations](https://yeongseon.github.io/azure-container-apps-practical-guide/operations/) | Deployment, monitoring, scaling, alerts, secret rotation, recovery |
+| [Troubleshooting](https://yeongseon.github.io/azure-container-apps-practical-guide/troubleshooting/) | Playbooks, hands-on labs, KQL query packs, decision tree, evidence map |
+| [Reference](https://yeongseon.github.io/azure-container-apps-practical-guide/reference/) | CLI reference, environment variables, platform limits |
 
-```
-├── docs/                   # MkDocs documentation
-│   ├── start-here/         # Getting started, overview, learning paths
-│   ├── platform/           # Architecture, environments, revisions, scaling, networking, jobs, identity, reliability
-│   ├── best-practices/     # Container design, revision strategy, scaling, networking, identity, reliability, cost, jobs, anti-patterns
-│   ├── language-guides/    # Per-language tutorials and recipes (currently: Python)
-│   │   └── python/         # Flask tutorial steps + recipes
-│   ├── operations/         # Deployment, monitoring, scaling, alerts, recovery
-│   ├── troubleshooting/    # First 10 minutes, playbooks, methodology, KQL, lab guides
-│   │   ├── playbooks/      # Startup, networking, scaling, identity, platform-feature failures
-│   │   ├── kql/            # Query packs by category + correlation queries
-│   │   └── lab-guides/     # Scenario-based troubleshooting walkthroughs
-│   └── reference/          # CLI reference, environment variables, platform limits
-├── apps/                   # Reference applications
-│   └── python/             # Flask reference app (health, logging, telemetry)
-├── jobs/                   # Reference jobs
-│   └── python/             # Python reference job (scheduled, identity, storage)
-├── labs/                   # Hands-on troubleshooting labs
-│   ├── acr-pull-failure/
-│   ├── revision-failover/
-│   └── scale-rule-mismatch/
-├── infra/                  # Bicep infrastructure templates
-└── mkdocs.yml              # Documentation configuration
-```
+## Language Guides
+
+- **Python** (Flask + Gunicorn)
+- **Node.js** (Express)
+- **Java** (Spring Boot)
+- **.NET** (ASP.NET Core)
+
+Each guide covers: local development, first deploy, configuration, logging, infrastructure as code, CI/CD, and revisions & traffic splitting.
 
 ## Quick Start
 
-### Option 1: Deploy in 5 minutes
-
 ```bash
-# Clone and deploy
+# Clone the repository
 git clone https://github.com/yeongseon/azure-container-apps-practical-guide.git
-cd azure-container-apps-practical-guide/infra
 
-# Configure
-cp .env.example .env
-# Edit BASE_NAME to a unique value (e.g., your initials + date)
+# Install MkDocs dependencies
+pip install mkdocs-material mkdocs-minify-plugin
 
-# Deploy
-az login
-./deploy.sh
+# Start local documentation server
+mkdocs serve
 ```
 
-### Option 2: Run locally first
+Visit `http://127.0.0.1:8000` to browse the documentation locally.
 
-```bash
-cd apps/python
-docker build --tag aca-python-guide .
-docker run --publish 8000:8000 aca-python-guide
-# Visit http://localhost:8000
-```
+## Reference Applications
 
-## Documentation Tabs
+Minimal reference applications demonstrating Azure Container Apps patterns:
 
-- **Start Here**: Foundational overview, architectural comparisons, and suggested learning paths for different roles.
-- **Platform**: Deep dives into core Azure Container Apps components like environments, revisions, scaling, and networking.
-- **Best Practices**: Practical patterns for production — container design, revision strategy, scaling, networking, identity, reliability, cost, jobs, and common anti-patterns.
-- **Language Guides**: Practical, step-by-step tutorials and integration recipes for specific runtimes (starting with Python).
-- **Operations**: Day-2 execution for production deployment, monitoring, alerting, and cost optimization.
-- **Troubleshooting**: A systematic methodology for debugging issues, featuring KQL playbooks and hands-on labs.
-- **Reference**: Quick lookup content for CLI commands, environment variables, and platform limits.
+- `apps/python/` — Flask + Gunicorn
+- `apps/nodejs/` — Express
+- `apps/java-springboot/` — Spring Boot
+- `apps/dotnet-aspnetcore/` — ASP.NET Core
 
-## Reference Assets
+## Reference Jobs
 
-- **apps/**: Production-ready reference applications demonstrating structured logging, health probes, and graceful shutdown.
-- **jobs/**: Reference implementations for Azure Container Apps Jobs, covering scheduled tasks and event-driven execution.
-- **labs/**: Guided troubleshooting exercises to help you master platform-specific failure modes and resolution patterns.
+- `jobs/python/` — Python scheduled job with managed identity
 
-## What You'll Deploy
+## Troubleshooting Labs
 
-| Resource | SKU | Monthly Cost |
-|----------|-----|--------------|
-| Container Apps Environment | Consumption | $0 (base) |
-| Container App | Pay-per-use | ~$0-20 |
-| Azure Container Registry | Basic | ~$5 |
-| Log Analytics | Pay-as-you-go | ~$0-10 |
+6 hands-on labs in `labs/` with Bicep templates that reproduce real-world Container Apps issues. Each lab includes:
 
-**Total: ~$5-35/month** for demo workloads. Scale-to-zero means you only pay when running.
-
-## Key Features of the Reference App
-
-- ✅ **Container Apps Ready** — Health probes, graceful shutdown
-- ✅ **Structured Logging** — JSON format for Log Analytics
-- ✅ **OpenTelemetry** — Distributed tracing support
-- ✅ **Health Endpoint** — `/health` for monitoring
-- ✅ **KEDA Scaling** — Event-driven autoscaling (platform-managed, no app dependency)
-- ✅ **Dapr Compatible** — Ready for service invocation, state, pub/sub (add `dapr` package when enabling)
+- Falsifiable hypothesis and step-by-step runbook
+- Real Azure deployment data (KQL logs, CLI output)
+- Expected Evidence sections with falsification logic
+- Cross-links to corresponding playbooks
 
 ## Contributing
 
-Contributions welcome! Please read our contributing guidelines and open a PR.
+Contributions welcome. Please ensure:
+
+- All CLI examples use long flags (`--resource-group`, not `-g`)
+- All documents include mermaid diagrams
+- All content references Microsoft Learn with source URLs
+- No PII in CLI output examples
+
+## Disclaimer
+
+This is an independent community project. Not affiliated with or endorsed by Microsoft. Azure and Container Apps are trademarks of Microsoft Corporation.
 
 ## License
 
-MIT License — see [LICENSE](./LICENSE)
-
----
-
-**Questions?** [Open an issue](https://github.com/yeongseon/azure-container-apps-practical-guide/issues)
+[MIT](LICENSE)

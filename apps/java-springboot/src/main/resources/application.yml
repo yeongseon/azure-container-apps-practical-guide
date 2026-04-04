@@ -1,0 +1,23 @@
+server:
+  port: ${PORT:8000}
+  shutdown: graceful
+
+spring:
+  application:
+    name: azure-container-apps-java-guide
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+    com.example: ${LOG_LEVEL:INFO}
