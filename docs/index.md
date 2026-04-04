@@ -1,68 +1,37 @@
-# Azure Container Apps Guide
+# Azure Container Apps Practical Guide
 
-A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages, revision models, and deployment patterns.
+Comprehensive, practical documentation for designing, deploying, operating, and troubleshooting containerized applications on Azure Container Apps.
 
-<div class="grid cards" markdown>
+This site is organized as a learning and operations guide so you can move from fundamentals to production troubleshooting with clear, repeatable workflows.
 
--   :material-rocket-launch:{ .lg .middle } **Start Here**
+## Navigate the guide
 
-    ---
+| Section | Purpose |
+|---|---|
+| [Start Here](start-here/overview.md) | Orientation, learning paths, and repository map. |
+| [Platform](platform/index.md) | Understand core Container Apps architecture, scaling, networking, and jobs. |
+| [Best Practices](best-practices/index.md) | Apply production patterns for container design, scaling, networking, identity, and reliability. |
+| [Language Guides](language-guides/index.md) | Follow end-to-end implementation tracks for Python (more languages planned). |
+| [Operations](operations/index.md) | Run production workloads with deployment, monitoring, alerting, and recovery practices. |
+| [Troubleshooting](troubleshooting/index.md) | Diagnose startup, networking, scaling, and identity issues quickly. |
+| [Reference](reference/index.md) | Use quick lookups for CLI, environment variables, and platform limits. |
 
-    New to Container Apps? Start with the overview, learning paths, and repository map.
+For orientation and study order, start with [Start Here](start-here/overview.md).
 
-    [:octicons-arrow-right-24: Get Started](start-here/overview.md)
+## Learning flow
 
--   :material-layers:{ .lg .middle } **Platform**
+```mermaid
+flowchart LR
+    A[Start Here] --> B[Platform]
+    B --> C[Best Practices]
+    C --> D[Language Guides]
+    D --> E[Operations]
+    E --> F[Troubleshooting]
+    F --> G[Reference]
+```
 
-    ---
+## Scope and disclaimer
 
-    Understand the core architecture, scaling, networking, and security concepts.
+This is an independent community project. Not affiliated with or endorsed by Microsoft.
 
-    [:octicons-arrow-right-24: Explore Platform](platform/index.md)
-
--   :material-code-tags:{ .lg .middle } **Language Guides**
-
-    ---
-
-    Step-by-step tutorials and implementation recipes for Python, Node.js, and more.
-
-    [:octicons-arrow-right-24: View Guides](language-guides/index.md)
-
--   :material-cog:{ .lg .middle } **Operations**
-
-    ---
-
-    Guide for running in production: deployment, monitoring, and secret rotation.
-
-    [:octicons-arrow-right-24: Operations Guide](operations/index.md)
-
--   :material-lifebuoy:{ .lg .middle } **Troubleshooting**
-
-    ---
-
-    Quick triage, playbooks, and methodology for when things go wrong.
-
-    [:octicons-arrow-right-24: Fix Issues](troubleshooting/index.md)
-
-</div>
-
-## What Makes Container Apps Different?
-
-Azure Container Apps is a fully managed serverless container service. It enables you to run microservices and containerized applications without managing complex infrastructure.
-
-| Feature | Container Apps | App Service | AKS |
-|---------|---------------|-------------|-----|
-| Infrastructure management | None | None | Full cluster ops |
-| Scaling | KEDA (event-driven) | Manual/Autoscale | HPA/KEDA |
-| Scale to zero | ✅ Yes | ❌ No | ✅ With KEDA |
-| Microservices | ✅ Native | ⚠️ Limited | ✅ Full |
-| Dapr | ✅ Built-in | ❌ No | ⚠️ Add-on |
-| Learning curve | Low | Low | High |
-| Cost model | Consumption | Always-on | Cluster + nodes |
-
-## See Also
-
-- [Azure Container Apps Documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Dapr Documentation](https://docs.dapr.io/)
-- [KEDA Documentation](https://keda.sh/)
-- [Bicep Documentation](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
+Primary product reference: [Azure Container Apps overview](https://learn.microsoft.com/azure/container-apps/overview)

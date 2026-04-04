@@ -1,109 +1,80 @@
-[data-md-color-scheme="default"] {
-    --md-primary-fg-color: #0078D4;
-    --md-primary-fg-color--light: #4DA3E8;
-    --md-primary-fg-color--dark: #005A9E;
-    --md-accent-fg-color: #0078D4;
+#mermaid-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
 }
 
-[data-md-color-scheme="slate"] {
-    --md-primary-fg-color: #4DA3E8;
-    --md-primary-fg-color--light: #7DBFEE;
-    --md-primary-fg-color--dark: #0078D4;
-    --md-accent-fg-color: #4DA3E8;
+#mermaid-zoom-overlay.mermaid-zoom-visible {
+  opacity: 1;
 }
 
-.md-typeset img {
-    max-width: 100%;
-    height: auto;
-}
-
-.md-typeset .admonition,
-.md-typeset details {
-    font-size: 0.9rem;
-}
-
-.md-typeset code {
-    font-size: 0.85em;
-}
-
-.md-typeset pre > code {
-    font-size: 0.8em;
-}
-
-.mermaid {
-    text-align: center;
-    margin: 1rem 0;
-    position: relative;
-}
-
-.mermaid svg {
-    max-width: 100%;
-    height: auto;
-    cursor: zoom-in;
-}
-
-/* Zoom affordance indicator */
-.mermaid::after {
-    content: "🔍";
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 1.2rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
-    z-index: 10;
-    background: rgba(255, 255, 255, 0.85);
-    border-radius: 4px;
-    padding: 2px 6px;
-    line-height: 1;
-}
-
-.mermaid:hover::after {
-    opacity: 0.8;
-}
-
-.mermaid-zoom-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    cursor: zoom-out;
-}
-
-.mermaid-zoom-wrapper {
-    position: relative;
-    background: var(--md-default-bg-color, #fff);
-    border-radius: 8px;
-    padding: 24px;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-    cursor: default;
-    width: 90vw;
-    height: 85vh;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+#mermaid-zoom-overlay.mermaid-zoom-fade-out {
+  opacity: 0;
 }
 
 .mermaid-zoom-close {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    background: none;
-    border: none;
-    font-size: 1.8rem;
-    line-height: 1;
-    cursor: pointer;
-    color: var(--md-default-fg-color, #333);
-    padding: 4px 8px;
-    z-index: 1;
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  z-index: 10000;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  opacity: 0.7;
+  transition: opacity 0.15s;
 }
 
 .mermaid-zoom-close:hover {
-    opacity: 0.6;
+  opacity: 1;
+}
+
+.mermaid-zoom-hint {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+.mermaid-zoom-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+.mermaid-zoom-container svg {
+  max-width: none;
+  max-height: none;
+}
+
+.mermaid {
+  cursor: pointer;
+  position: relative;
+}
+
+.mermaid:hover::after {
+  content: "\1F50D";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 1.2rem;
+  opacity: 0.5;
+  pointer-events: none;
 }

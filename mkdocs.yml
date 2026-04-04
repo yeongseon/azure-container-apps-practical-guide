@@ -1,11 +1,14 @@
 site_name: Azure Container Apps Practical Guide
-site_description: Comprehensive guide to designing, operating, and troubleshooting Azure Container Apps
 site_url: https://yeongseon.github.io/azure-container-apps-practical-guide/
-repo_url: https://github.com/yeongseon/azure-container-apps-practical-guide
+site_description: Comprehensive guide for designing, operating, and troubleshooting Azure Container Apps
+site_author: yeongseon
+
 repo_name: yeongseon/azure-container-apps-practical-guide
+repo_url: https://github.com/yeongseon/azure-container-apps-practical-guide
 
 theme:
   name: material
+  language: en
   logo: assets/logo.svg
   favicon: assets/favicon.svg
   palette:
@@ -25,11 +28,14 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.indexes
-    - navigation.expand
     - navigation.top
+    - search.suggest
     - search.highlight
     - content.code.copy
     - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+  custom_dir: docs
 
 plugins:
   - search
@@ -50,17 +56,24 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - tables
+  - pymdownx.mark
   - attr_list
   - md_in_html
+  - tables
+  - toc:
+      permalink: true
 
 extra_css:
   - stylesheets/extra.css
 
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
-  - https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js
   - javascripts/mermaid-zoom.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yeongseon/azure-container-apps-practical-guide
 
 validation:
   nav:
@@ -70,6 +83,7 @@ validation:
   links:
     not_found: warn
     absolute_links: warn
+    anchors: warn
     unrecognized_links: warn
 
 nav:
