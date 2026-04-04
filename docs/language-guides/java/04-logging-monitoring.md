@@ -71,7 +71,7 @@ The easiest way to enable Application Insights for Spring Boot is using the [Jav
 
 ```bash
 # Add Application Insights Connection String
-INSTRUMENTATION_KEY=$(az monitor app-insights component show --app $APP_NAME --resource-group $RG --query "connectionString" -o tsv)
+INSTRUMENTATION_KEY=$(az monitor app-insights component show --app $APP_NAME --resource-group $RG --query "connectionString" --output tsv)
 
 az containerapp update \
   --resource-group $RG \
@@ -95,17 +95,53 @@ management:
       show-details: always
 ```
 
-## Querying Logs with KQL
+## Querying Logs with KQL via CLI
 
-Use the Azure Portal's Log Analytics query editor to search and analyze your logs.
+Use the Azure CLI to query logs directly from the command line. This is essential for automated monitoring and CI/CD pipelines.
 
-```kusto
-// Find all error logs in the last hour
-ContainerAppConsoleLogs_CL
-| where ContainerAppName_s == "ca-java-guide"
-| where Log_s contains "ERROR"
-| project TimeGenerated, Log_s, RevisionName_s
-| order by TimeGenerated desc
+### Get Log Analytics Workspace ID
+
+```bash
+WORKSPACE_ID=$(az monitor log-analytics workspace list \
+  --resource-group $RG \
+  --query "[0].customerId" \
+  --output tsv)
+```
+
+### Query Console Logs
+
+```bash
+az monitor log-analytics query \
+  --workspace $WORKSPACE_ID \
+  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-java-guide' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
+  --output table
+```
+
+???+ example "Expected output"
+    ```text
+    ContainerAppName_s    Log_s                                      TimeGenerated
+    --------------------  -----------------------------------------  ----------------------------
+    ca-java-guide         .   ____          _            __ _ _      2026-04-04T16:03:47.659Z
+    ca-java-guide         /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \    2026-04-04T16:03:47.659Z
+    ca-java-guide         Started DemoApplication in 8.67 seconds    2026-04-04T16:04:00.123Z
+    ```
+
+### Query Error Logs
+
+```bash
+az monitor log-analytics query \
+  --workspace $WORKSPACE_ID \
+  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-java-guide' | where Log_s contains 'ERROR' | project TimeGenerated, Log_s | take 10" \
+  --output table
+```
+
+### Query System Logs (Startup Events)
+
+```bash
+az monitor log-analytics query \
+  --workspace $WORKSPACE_ID \
+  --analytics-query "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-java-guide' | where Reason_s in ('Started', 'Pulling', 'Pulled') | project TimeGenerated, Reason_s, Message_s | take 10" \
+  --output table
 ```
 
 ## Monitoring Checklist

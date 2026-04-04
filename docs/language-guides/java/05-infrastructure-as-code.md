@@ -23,9 +23,18 @@ graph LR
 The environment provides the networking and logging boundary for your container apps.
 
 ```bicep
-// example snippet from infra/modules/environment.bicep
+// Container Apps Environment with Log Analytics
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: 'law-${baseName}'
+  location: location
+  properties: {
+    sku: { name: 'PerGB2018' }
+    retentionInDays: 30
+  }
+}
+
 resource environment 'Microsoft.App/managedEnvironments@2023-05-01' = {
-  name: environmentName
+  name: 'cae-${baseName}'
   location: location
   properties: {
     appLogsConfiguration: {
@@ -44,15 +53,15 @@ resource environment 'Microsoft.App/managedEnvironments@2023-05-01' = {
 Configure the container app with appropriate CPU, memory, and port settings for a Java application.
 
 ```bicep
-// example snippet from infra/modules/app.bicep
+// Container App for Spring Boot
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
-  name: appName
+  name: 'ca-${baseName}'
   location: location
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
-    managedEnvironmentId: environmentId
+    managedEnvironmentId: environment.id
     configuration: {
       ingress: {
         external: true
@@ -109,9 +118,9 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
 
 ## Deploying with the Azure CLI
 
-1. **Create the Bicep template**
+1. **Create a Bicep template file**
 
-    Create a `main.bicep` file or use the provided templates in the `infra/` directory.
+    Create a `main.bicep` file with the environment and container app resources defined above, or use the shared `infra/main.bicep` template in this repository as a reference.
 
 2. **Validate the deployment**
 

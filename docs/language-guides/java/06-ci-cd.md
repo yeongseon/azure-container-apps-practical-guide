@@ -108,7 +108,7 @@ jobs:
     az containerapp revision list \
       --resource-group $RG \
       --name $APP_NAME \
-      --query "[0].name" -o tsv
+      --query "[0].name" --output tsv
     ```
 
     ???+ example "Expected output"

@@ -65,23 +65,48 @@ flowchart LR
        {"TimeStamp":"2026-04-04T16:15:00Z","Type":"Normal","Msg":"Successfully connected to events server","Reason":"ConnectedToEventsServer"}
        ```
 
-4. **Run a Log Analytics query for .NET Exceptions**
+4. **Query logs via CLI (recommended for automation)**
 
-   In the Azure Portal, navigate to your Log Analytics workspace and run this KQL query:
+   Get your Log Analytics workspace ID and run KQL queries directly from the command line:
 
-   ```kusto
-   ContainerAppConsoleLogs_CL
-   | where Log_s has "Exception" or Log_s has "Error"
-   | project TimeGenerated, ContainerAppName_s, RevisionName_s, Log_s
-   | order by TimeGenerated desc
+   ```bash
+   # Get the workspace ID
+   WORKSPACE_ID=$(az monitor log-analytics workspace list \
+     --resource-group "$RG" \
+     --query "[0].customerId" \
+     --output tsv)
+
+   # Query console logs
+   az monitor log-analytics query \
+     --workspace $WORKSPACE_ID \
+     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-dotnet-guide' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
+     --output table
    ```
 
    ???+ example "Expected output"
-       | TimeGenerated | ContainerAppName_s | Log_s |
-       |---|---|---|
-       | 2026-04-04T16:20:00Z | ca-dotnet-guide | fail: Microsoft.AspNetCore.Server.Kestrel[13] Connection id "0HN2..." ... |
+       ```text
+       ContainerAppName_s    Log_s                                                                                           TimeGenerated
+       --------------------  ----------------------------------------------------------------------------------------------  ----------------------------
+       ca-dotnet-guide       {"LogLevel":"Information","Message":"Now listening on: http://0.0.0.0:8000"...}                  2026-04-04T16:13:17.631Z
+       ca-dotnet-guide       {"LogLevel":"Information","Message":"Application started. Press Ctrl+C to shut down."...}        2026-04-04T16:13:17.632Z
+       ca-dotnet-guide       {"LogLevel":"Information","Message":"Application is shutting down..."...}                         2026-04-04T16:12:33.373Z
+       ```
 
-5. **Enable OpenTelemetry with Azure Monitor**
+5. **Query for .NET Exceptions via CLI**
+
+   ```bash
+   az monitor log-analytics query \
+     --workspace $WORKSPACE_ID \
+     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-dotnet-guide' | where Log_s has 'Exception' or Log_s has 'Error' | project TimeGenerated, Log_s | take 10" \
+     --output table
+   ```
+
+   ???+ example "Expected output"
+       | TimeGenerated | Log_s |
+       |---|---|
+       | 2026-04-04T16:20:00Z | fail: Microsoft.AspNetCore.Server.Kestrel[13] Connection id "0HN2..." ... |
+
+6. **Enable OpenTelemetry with Azure Monitor**
 
    The reference app uses the `Azure.Monitor.OpenTelemetry.AspNetCore` NuGet package.
 

@@ -101,7 +101,7 @@ az containerapp create \
 2. **Verify health endpoint**
 
     ```bash
-    FQDN=$(az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.ingress.fqdn" -o tsv)
+    FQDN=$(az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.ingress.fqdn" --output tsv)
     curl https://$FQDN/health
     ```
 

@@ -93,7 +93,7 @@ az containerapp identity assign \
   --system-assigned
 
 # Grant Key Vault Secret User permissions
-PRINCIPAL_ID=$(az containerapp identity show --resource-group $RG --name $APP_NAME --query "principalId" -o tsv)
+PRINCIPAL_ID=$(az containerapp identity show --resource-group $RG --name $APP_NAME --query "principalId" --output tsv)
 az role assignment create \
   --role "Key Vault Secrets User" \
   --assignee $PRINCIPAL_ID \
