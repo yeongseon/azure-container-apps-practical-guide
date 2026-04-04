@@ -7,7 +7,7 @@ repo_name: yeongseon/azure-container-apps-practical-guide
 theme:
   name: material
   logo: assets/logo.svg
-  favicon: assets/logo.svg
+  favicon: assets/favicon.svg
   palette:
     - scheme: default
       primary: deep purple
