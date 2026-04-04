@@ -81,8 +81,8 @@ graph LR
        `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
        ```json
        {
-"latestRevision": "ca-myapp-<unique-suffix>--<revision-suffix>",
-          "name": "ca-myapp-<unique-suffix>",
+         "latestRevision": "<your-app-name>--<revision-suffix>",
+         "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }
        ```
@@ -134,12 +134,12 @@ graph LR
         ```json
         [
           {
-            "revisionName": "<your-app-name>--<revision-suffix>",
-           "weight": 90
-         },
-         {
-           "revisionName": "<your-app-name>--<revision-suffix>",
-           "weight": 10
+            "revisionName": "<your-app-name>--0000001",
+            "weight": 90
+          },
+          {
+            "revisionName": "<your-app-name>--0000002",
+            "weight": 10
           }
         ]
         ```
@@ -186,8 +186,8 @@ graph LR
        ```json
        [
          {
-"revisionName": "ca-myapp-<unique-suffix>--rev1",
-            "weight": 100
+           "revisionName": "<your-app-name>--0000001",
+           "weight": 100
          }
        ]
        ```

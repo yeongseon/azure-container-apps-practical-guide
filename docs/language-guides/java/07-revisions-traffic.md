@@ -62,14 +62,14 @@ When multiple revisions are active, you can split traffic between them by percen
 az containerapp ingress traffic set \
   --resource-group $RG \
   --name $APP_NAME \
-  --traffic-weight "$APP_NAME--<old-revision>=50" "$APP_NAME--<new-revision>=50"
+  --traffic-weight "$APP_NAME--0000001=50" "$APP_NAME--0000002=50"
 ```
 
 ???+ example "Expected output"
     ```text
     Traffic weight updated.
-    Revision 4: 50%
-    Revision 5: 50%
+    Revision 1: 50%
+    Revision 2: 50%
     ```
 
 ### 2. Full Rollout (100% to Latest)
@@ -87,7 +87,7 @@ az containerapp ingress traffic set \
 az containerapp ingress traffic set \
   --resource-group $RG \
   --name $APP_NAME \
-  --traffic-weight "$APP_NAME--<old-revision>=90" "$APP_NAME--<new-revision>=10"
+  --traffic-weight "$APP_NAME--0000001=90" "$APP_NAME--0000002=10"
 ```
 
 ## Cleaning Up Old Revisions
@@ -98,7 +98,7 @@ Deactivate old revisions to save resources and keep your environment clean.
 az containerapp revision deactivate \
   --resource-group $RG \
   --name $APP_NAME \
-  --revision $APP_NAME--<old-revision>
+  --revision $APP_NAME--0000001
 ```
 
 ## Revision Checklist

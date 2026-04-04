@@ -77,7 +77,7 @@ graph LR
    ???+ example "Expected output"
        ```json
        {
-         "latestRevision": "<your-app-name>--rev3",
+         "latestRevision": "<your-app-name>--<revision-suffix>",
          "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }
@@ -97,8 +97,8 @@ graph LR
         ```text
         Name                               Active    CreatedTime
         ---------------------------------  --------  -------------------------
-        <your-app-name>--rev1              True      2026-04-04T16:00:00+00:00
-        <your-app-name>--rev3              True      2026-04-04T16:30:00+00:00
+        <your-app-name>--0000001           True      2026-04-04T16:00:00+00:00
+        <your-app-name>--0000002           True      2026-04-04T16:30:00+00:00
         ```
 
 5. **Apply canary traffic split (90/10)**
@@ -107,8 +107,8 @@ graph LR
 
    ```bash
    # Replace with your actual revision names from Step 4
-   OLD_REV="${APP_NAME}--rev1"
-   NEW_REV="${APP_NAME}--rev3"
+   OLD_REV="${APP_NAME}--0000001"
+   NEW_REV="${APP_NAME}--0000002"
 
    az containerapp ingress traffic set \
      --name "$APP_NAME" \
@@ -120,11 +120,11 @@ graph LR
         ```json
         [
           {
-            "revisionName": "<your-app-name>--rev1",
+            "revisionName": "<your-app-name>--0000001",
             "weight": 90
           },
           {
-            "revisionName": "<your-app-name>--rev3",
+            "revisionName": "<your-app-name>--0000002",
             "weight": 10
           }
         ]
@@ -143,15 +143,15 @@ graph LR
         {
           "fqdn": "<your-app-name>.<env-suffix>.koreacentral.azurecontainerapps.io",
           "traffic": [
-            { "revisionName": "<your-app-name>--rev1", "weight": 90 },
-            { "revisionName": "<your-app-name>--rev3", "weight": 10 }
+            { "revisionName": "<your-app-name>--0000001", "weight": 90 },
+            { "revisionName": "<your-app-name>--0000002", "weight": 10 }
           ]
         }
         ```
 
 7. **Rollback instantly if .NET exceptions increase**
 
-   If the canary revision (`rev3`) shows high error rates in Log Analytics, move all traffic back to the stable revision (`rev1`).
+   If the canary revision shows high error rates in Log Analytics, move all traffic back to the stable revision.
 
    ```bash
    az containerapp ingress traffic set \
