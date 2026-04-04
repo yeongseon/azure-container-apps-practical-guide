@@ -1,5 +1,5 @@
-site_name: Azure Container Apps Python Guide
-site_description: Comprehensive guide to running Python/Flask applications on Azure Container Apps
+site_name: Azure Container Apps Guide
+site_description: Comprehensive guide to designing, operating, and troubleshooting Azure Container Apps
 site_url: https://yeongseon.github.io/azure-container-apps-python-guide/
 repo_url: https://github.com/yeongseon/azure-container-apps-python-guide
 repo_name: yeongseon/azure-container-apps-python-guide
@@ -63,54 +63,74 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - Tutorial:
-    - tutorial/index.md
-    - 1. Local Development: tutorial/01-local-run.md
-    - 2. First Deploy: tutorial/02-first-deploy.md
-    - 3. Configuration: tutorial/03-configuration.md
-    - 4. Logging & Monitoring: tutorial/04-logging-monitoring.md
-    - 5. Infrastructure as Code: tutorial/05-infrastructure-as-code.md
-    - 6. CI/CD: tutorial/06-ci-cd.md
-    - 7. Revisions & Traffic: tutorial/07-revisions-traffic.md
-  - Concepts:
-    - concepts/index.md
-    - How Container Apps Works: concepts/how-container-apps-works.md
-    - Container Apps vs Others: concepts/container-apps-vs-others.md
-    - Environments & Apps: concepts/environments-and-apps.md
-    - Scaling with KEDA: concepts/scaling-keda.md
-    - Networking: concepts/networking.md
-    - Resource Relationships: concepts/resource-relationships.md
-    - Revision Lifecycle: concepts/revision-lifecycle.md
+  - Start Here:
+    - start-here/overview.md
+    - Learning Paths: start-here/learning-paths.md
+    - When to Use Container Apps: start-here/when-to-use-container-apps.md
+    - Repository Map: start-here/repository-map.md
+  - Platform:
+    - platform/index.md
+    - Architecture:
+      - Resource Relationships: platform/architecture/resource-relationships.md
+    - Environments: platform/environments/index.md
+    - Revisions: platform/revisions/index.md
+    - Scaling: platform/scaling/index.md
+    - Networking:
+      - platform/networking/index.md
+      - VNet Integration: platform/networking/vnet-integration.md
+      - Private Endpoints: platform/networking/private-endpoints.md
+      - Egress Control: platform/networking/egress-control.md
+      - Service-to-Service: platform/networking/service-to-service.md
+    - Jobs: platform/jobs/index.md
+    - Identity and Secrets:
+      - Managed Identity: platform/identity-and-secrets/managed-identity.md
+      - Key Vault: platform/identity-and-secrets/key-vault.md
+      - Easy Auth: platform/identity-and-secrets/easy-auth.md
+      - Security Operations: platform/identity-and-secrets/security-operations.md
+    - Reliability:
+      - Cost Optimization: platform/reliability/cost-optimization.md
+      - Health and Recovery: platform/reliability/health-recovery.md
+  - Language Guides:
+    - language-guides/index.md
+    - Python:
+      - language-guides/python/index.md
+      - 1. Local Development: language-guides/python/01-local-development.md
+      - 2. First Deploy: language-guides/python/02-first-deploy.md
+      - 3. Configuration: language-guides/python/03-configuration.md
+      - 4. Logging and Monitoring: language-guides/python/04-logging-monitoring.md
+      - 5. Infrastructure as Code: language-guides/python/05-infrastructure-as-code.md
+      - 6. CI/CD: language-guides/python/06-ci-cd.md
+      - 7. Revisions and Traffic: language-guides/python/07-revisions-traffic.md
+      - Python Runtime: language-guides/python/python-runtime.md
+      - Recipes:
+        - language-guides/python/recipes/index.md
+        - Cosmos DB: language-guides/python/recipes/cosmosdb.md
+        - Azure SQL: language-guides/python/recipes/azure-sql.md
+        - Redis Cache: language-guides/python/recipes/redis.md
+        - Blob Storage: language-guides/python/recipes/storage.md
+        - Dapr Integration: language-guides/python/recipes/dapr-integration.md
+        - Custom Domains: language-guides/python/recipes/custom-domains.md
+        - Container Registry: language-guides/python/recipes/container-registry.md
   - Operations:
     - operations/index.md
-    - Scaling: operations/scaling.md
-    - Revisions: operations/revisions.md
-    - Health & Recovery: operations/health-recovery.md
-    - Networking: operations/networking.md
-    - Security: operations/security.md
-    - Cost Optimization: operations/cost-optimization.md
-    - Observability: operations/observability.md
-  - Recipes:
-    - recipes/index.md
-    - Cosmos DB: recipes/cosmosdb.md
-    - Azure SQL: recipes/azure-sql.md
-    - Redis Cache: recipes/redis.md
-    - Key Vault: recipes/key-vault.md
-    - Blob Storage: recipes/storage.md
-    - Managed Identity: recipes/managed-identity.md
-    - Easy Auth: recipes/easy-auth.md
-    - Dapr Integration: recipes/dapr-integration.md
-    - VNet Integration: recipes/networking-vnet.md
-    - Private Endpoints: recipes/networking-private-endpoint.md
-    - Egress Control: recipes/networking-egress.md
-    - Service-to-Service: recipes/networking-service-to-service.md
-    - Container Registry: recipes/container-registry.md
-    - Custom Domains & Certificates: recipes/custom-domain-certificates.md
-  - Reference:
-    - reference/index.md
-    - CLI Cheatsheet: reference/cli-cheatsheet.md
-    - KQL Queries: reference/kql-queries.md
-    - Troubleshooting: reference/troubleshooting.md
-    - Environment Variables: reference/environment-variables.md
-    - Platform Limits: reference/platform-limits.md
-    - Python Runtime: reference/python-runtime.md
+    - Deployment:
+      - operations/deployment/index.md
+      - Networking: operations/deployment/networking.md
+    - Revision Management: operations/revision-management/index.md
+    - Monitoring: operations/monitoring/index.md
+    - Scaling: operations/scaling/index.md
+    - Alerts: operations/alerts/index.md
+    - Image Pull and Registry: operations/image-pull-and-registry/index.md
+    - Secret Rotation: operations/secret-rotation/index.md
+    - Recovery: operations/recovery/index.md
+  - Troubleshooting:
+    - troubleshooting/index.md
+    - First 10 Minutes:
+      - troubleshooting/first-10-minutes/index.md
+      - CLI Reference: troubleshooting/first-10-minutes/cli-reference.md
+      - Environment Variables: troubleshooting/first-10-minutes/environment-variables.md
+      - Platform Limits: troubleshooting/first-10-minutes/platform-limits.md
+    - Playbooks: troubleshooting/playbooks/index.md
+    - Methodology: troubleshooting/methodology/index.md
+    - KQL Queries: troubleshooting/kql/index.md
+    - Lab Guides: troubleshooting/lab-guides/index.md
