@@ -1,12 +1,12 @@
-# Recipes: Integration Patterns for Azure Container Apps
+# Recipes: Integration Patterns for Azure Container Apps (Python)
 
-Use these recipes to add common production integrations to Python apps running on Azure Container Apps.
+Use these practical recipes to implement common production patterns for Python apps running on Azure Container Apps.
 
 ## Prerequisites
 
-- Azure CLI 2.57+ with Container Apps extension
-- An existing Azure Container Apps environment and app
-- A system-assigned or user-assigned managed identity for your app
+- Azure CLI 2.57+ with the Container Apps extension
+- Existing Azure Container Apps environment (`$ENVIRONMENT_NAME`) and app (`$APP_NAME`)
+- Resource group (`$RG`) and region (`$LOCATION`) variables set
 
 ```bash
 az extension add --name containerapp --upgrade
@@ -15,27 +15,38 @@ az login
 
 ## Recipe Catalog
 
-### Data and Secrets
+### Container & Runtime
 
-- [Cosmos DB](cosmosdb.md): Use Azure Cosmos DB (NoSQL) with managed identity and RBAC.
-- [Azure SQL](azure-sql.md): Connect to Azure SQL Database using Microsoft Entra tokens (passwordless).
-- [Redis Cache](redis.md): Access Azure Cache for Redis with managed identity and Entra authentication.
-- [Key Vault](../../../platform/identity-and-secrets/key-vault.md): Load secrets securely from Key Vault using managed identity.
-- [Blob Storage and File Mounts](storage.md): Read/write blobs with managed identity and mount Azure Files volumes.
+- [Custom Container](custom-container.md): Build optimized Python images with non-root runtime and probe-ready configuration.
+- [Native Dependencies](native-dependencies.md): Package and run Python dependencies that require system libraries or compilation.
 
-### Platform and Networking
+### Deployment & Revisions
 
-- [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md): Assign identities and RBAC roles.
-- [Easy Auth](../../../platform/identity-and-secrets/easy-auth.md): Add built-in authentication without application-side OAuth flow.
-- [Dapr Integration](dapr-integration.md): Use Dapr sidecars for pub/sub, state, and service invocation.
-- [VNet Integration](../../../platform/networking/vnet-integration.md): Run apps in private networks.
-- [Private Endpoints](../../../platform/networking/private-endpoints.md): Reach PaaS services privately.
-- [Egress Control](../../../platform/networking/egress-control.md): Route outbound traffic with firewall and NAT patterns.
-- [Service-to-Service Communication](../../../platform/networking/service-to-service.md): Internal DNS and Dapr invocation between apps.
+- [Container Registry](container-registry.md): Pull private images from Azure Container Registry with managed identity.
+- [Revision Validation](revision-validation.md): Validate new revisions at 0% traffic and promote safely with canary routing.
+
+### Data & Storage
+
+- [Cosmos DB](cosmosdb.md): Connect to Azure Cosmos DB with managed identity and RBAC.
+- [Azure SQL](azure-sql.md): Access Azure SQL using Microsoft Entra authentication.
+- [Redis](redis.md): Integrate Azure Cache for Redis from Python apps.
+- [Storage](storage.md): Use Blob SDK patterns and Azure Files mounts.
+- [Bring Your Own Storage](bring-your-own-storage.md): Mount Azure Files shares as persistent volumes.
+
+### Security & Identity
+
+- [Managed Identity](managed-identity.md): Use `DefaultAzureCredential` and RBAC to access Azure services.
+- [Key Vault Reference](key-vault-reference.md): Reference Key Vault secrets in Container Apps configuration.
+- [Easy Auth](easy-auth.md): Enable built-in authentication and consume identity claims in Flask.
+
+### Integration
+
+- [Dapr Integration](dapr-integration.md): Add pub/sub, service invocation, and state API patterns.
+- [Custom Domains](custom-domains.md): Configure custom domains and certificates for ingress.
 
 ## Verification Steps
 
-Confirm your app is healthy before applying a recipe:
+Confirm your app is healthy before applying any recipe:
 
 ```bash
 az containerapp show \
@@ -46,6 +57,7 @@ az containerapp show \
 ```
 
 ## See Also
-- [Python Guide](../../../start-here/learning-paths.md)
-- [Operations Guide](../../../operations/index.md)
-- [Managed Identity Recipe](../../../platform/identity-and-secrets/managed-identity.md)
+
+- [Python Tutorials](../index.md)
+- [Operations](../../../operations/index.md)
+- [Platform Architecture](../../../platform/architecture/resource-relationships.md)
