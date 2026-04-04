@@ -112,40 +112,59 @@ sequenceDiagram
        {"TimeStamp":"2024-01-15T10:30:00Z","Type":"Normal","ContainerAppName":"<your-app-name>","RevisionName":"<your-app-name>--xxxxxxx","ReplicaName":null,"Msg":"Successfully connected to events server","Reason":"ConnectedToEventsServer","EventSource":"ContainerAppController","Count":1}
        ```
 
-4. **Run a Log Analytics query for errors**
+4. **Query Log Analytics via CLI**
 
-   ```kusto
-    ContainerAppConsoleLogs_CL
-    | where Log_s has_any ("error", "exception", "traceback")
-    | project TimeGenerated, ContainerAppName_s, RevisionName_s, Log_s
-    | order by TimeGenerated desc
-    ```
+   First, get the Log Analytics workspace ID:
 
-    !!! note "KQL Table Names"
-        Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schema), while newer workspaces may use `ContainerAppConsoleLogs`. If queries return no results, try the alternate table name. See [KQL Queries Reference](../../troubleshooting/kql/index.md#schema-note) for details.
+   ```bash
+   WORKSPACE_ID=$(az containerapp env show \
+     --name "$ENVIRONMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.appLogsConfiguration.logAnalyticsConfiguration.customerId" \
+     --output tsv)
+   ```
+
+   Run a KQL query to fetch recent console logs:
+
+   ```bash
+   az monitor log-analytics query \
+     --workspace "$WORKSPACE_ID" \
+     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
+     --output table
+   ```
 
    ???+ example "Expected output"
-         The query results in the Azure Portal will display a table with the following columns:
+       ```text
+       TableName      TimeGenerated                    ContainerAppName_s           Log_s
+       -------------  -------------------------------  ---------------------------  ------------------------------------------------
+       PrimaryResult  2026-04-04T17:15:00.000Z         <your-app-name>              [2026-04-04 17:15:00 +0000] [1] [INFO] Starting gunicorn
+       PrimaryResult  2026-04-04T17:15:01.000Z         <your-app-name>              [2026-04-04 17:15:01 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000
+       ```
 
-        | Column | Description |
-        |--------|-------------|
-        | `TimeGenerated` | UTC timestamp when the log entry was created |
-        | `ContainerAppName_s` | Name of your Container App (e.g., `ca-myapp`) |
-        | `RevisionName_s` | The specific revision that generated the log |
-        | `Log_s` | The actual log message content containing the error or exception |
+5. **Query for errors via CLI**
 
-        Sample error output:
+   ```bash
+   az monitor log-analytics query \
+     --workspace "$WORKSPACE_ID" \
+     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s has_any ('error', 'exception', 'traceback') | project TimeGenerated, Log_s | take 10" \
+     --output table
+   ```
 
-        ```text
-        TimeGenerated                    ContainerAppName_s  RevisionName_s                   Log_s
-        2026-04-04T11:35:12.000Z         <your-app-name>     <your-app-name>--xxxxxxx      [ERROR] Connection refused: redis://localhost:6379
-        2026-04-04T11:34:58.000Z         <your-app-name>     <your-app-name>--xxxxxxx      Traceback (most recent call last): ...
-        ```
+   ???+ example "Expected output"
+       ```text
+       TableName      TimeGenerated                    Log_s
+       -------------  -------------------------------  ------------------------------------------------
+       PrimaryResult  2026-04-04T11:35:12.000Z         [ERROR] Connection refused: redis://localhost:6379
+       PrimaryResult  2026-04-04T11:34:58.000Z         Traceback (most recent call last): ...
+       ```
 
-        !!! tip
-            If no errors exist, the query returns an empty result set — which is the healthy baseline.
+       !!! tip
+           If no errors exist, the query returns an empty result set — which is the healthy baseline.
 
-5. **Add OpenTelemetry for traces and metrics**
+   !!! note "KQL Table Names"
+       Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schema), while newer workspaces may use `ContainerAppConsoleLogs`. If queries return no results, try the alternate table name. See [KQL Queries Reference](../../troubleshooting/kql/index.md#schema-note) for details.
+
+6. **Add OpenTelemetry for traces and metrics**
 
    ```bash
    pip install azure-monitor-opentelemetry
@@ -159,7 +178,7 @@ sequenceDiagram
    )
    ```
 
-6. **Correlate scaling behavior with telemetry**
+7. **Correlate scaling behavior with telemetry**
 
    - Watch request bursts and KEDA scale-out events.
    - Verify reduced replica count during idle periods.
