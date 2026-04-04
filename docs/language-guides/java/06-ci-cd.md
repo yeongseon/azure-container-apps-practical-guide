@@ -113,7 +113,7 @@ jobs:
 
     ???+ example "Expected output"
         ```text
-        ca-java-guide--0000004
+        <your-app-name>--<revision-suffix>
         ```
 
 3. **Verify the application health**

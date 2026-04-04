@@ -48,7 +48,7 @@ az containerapp update \
 
 ???+ example "Expected output"
     ```text
-    (New revision created: ca-java-guide--0000005)
+    (New revision created: <your-app-name>--<revision-suffix>)
     (New revision is now ACTIVE)
     ```
 
@@ -62,7 +62,7 @@ When multiple revisions are active, you can split traffic between them by percen
 az containerapp ingress traffic set \
   --resource-group $RG \
   --name $APP_NAME \
-  --traffic-weight "ca-java-guide--0000004=50" "ca-java-guide--0000005=50"
+  --traffic-weight "$APP_NAME--<old-revision>=50" "$APP_NAME--<new-revision>=50"
 ```
 
 ???+ example "Expected output"
@@ -87,7 +87,7 @@ az containerapp ingress traffic set \
 az containerapp ingress traffic set \
   --resource-group $RG \
   --name $APP_NAME \
-  --traffic-weight "ca-java-guide--0000004=90" "ca-java-guide--0000005=10"
+  --traffic-weight "$APP_NAME--<old-revision>=90" "$APP_NAME--<new-revision>=10"
 ```
 
 ## Cleaning Up Old Revisions
@@ -98,7 +98,7 @@ Deactivate old revisions to save resources and keep your environment clean.
 az containerapp revision deactivate \
   --resource-group $RG \
   --name $APP_NAME \
-  --revision ca-java-guide--0000004
+  --revision $APP_NAME--<old-revision>
 ```
 
 ## Revision Checklist
@@ -110,7 +110,7 @@ az containerapp revision deactivate \
 - [x] Old revisions are deactivated after a successful rollout
 
 !!! tip "Use unique labels for testing"
-    Assign a label to a specific revision to test it independently of production traffic. Use `az containerapp ingress traffic set --label testing=ca-java-guide--0000005` and visit `https://testing---ca-java-guide.<random-suffix>.<region>.azurecontainerapps.io`.
+    Assign a label to a specific revision to test it independently of production traffic. Use `az containerapp ingress traffic set --label testing=$APP_NAME--<revision-suffix>` and visit `https://testing---$APP_NAME.<random-suffix>.<region>.azurecontainerapps.io`.
 
 ## See Also
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
