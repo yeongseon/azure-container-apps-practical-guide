@@ -1,0 +1,129 @@
+# 04 - Logging and Monitoring
+
+Azure Container Apps provides native support for observability through Azure Monitor, Log Analytics, and Application Insights. This guide covers how to configure structured logging and monitor your Spring Boot application in production.
+
+## Monitoring Workflow
+
+```mermaid
+graph LR
+    APP[Spring Boot App] --> STDOUT[Console Output]
+    APP --> OTLP[OpenTelemetry]
+    STDOUT --> LOGS[Log Analytics]
+    OTLP --> APPI[Application Insights]
+    LOGS --> DASH[Azure Monitor Dashboards]
+    APPI --> DASH
+```
+
+## Prerequisites
+
+- Existing Azure Container App (created in [02 - First Deploy](02-first-deploy.md))
+- Azure CLI 2.57+
+- Azure Monitor Workspace (created automatically with ACA environment)
+
+## Structured Logging
+
+For production, Spring Boot should output logs to `stdout` in a format that's easy for log collectors to parse. JSON format is recommended.
+
+### 1. Logback Configuration
+
+The reference application includes a `src/main/resources/logback-spring.xml` file configured for structured logging.
+
+```xml
+<!-- Example logback-spring.xml snippet -->
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Custom fields for Azure integration -->
+            <field name="containerApp">${CONTAINER_APP_NAME}</field>
+            <field name="revision">${CONTAINER_APP_REVISION}</field>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
+```
+
+### 2. View Logs via CLI
+
+Stream logs directly from your container app for real-time debugging:
+
+```bash
+az containerapp logs show \
+  --resource-group $RG \
+  --name $APP_NAME \
+  --follow \
+  --tail 100
+```
+
+???+ example "Expected output"
+    ```text
+    {"timestamp":"2026-04-05T10:00:00.000Z","level":"INFO","logger":"com.example.demo.DemoApplication","message":"Started DemoApplication in 8.67 seconds","containerApp":"ca-java-guide","revision":"ca-java-guide--0000001"}
+    ```
+
+## Application Insights Integration
+
+Azure Monitor's Application Insights provides distributed tracing, performance monitoring, and live metrics.
+
+### 1. Enable Application Insights
+
+The easiest way to enable Application Insights for Spring Boot is using the [Java In-Process Agent](https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent).
+
+```bash
+# Add Application Insights Connection String
+INSTRUMENTATION_KEY=$(az monitor app-insights component show --app $APP_NAME --resource-group $RG --query "connectionString" -o tsv)
+
+az containerapp update \
+  --resource-group $RG \
+  --name $APP_NAME \
+  --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=$INSTRUMENTATION_KEY"
+```
+
+### 2. Spring Boot Actuator
+
+Ensure Spring Boot Actuator endpoints are exposed to provide health and metrics data to Azure Monitor.
+
+```yaml
+# application.yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+```
+
+## Querying Logs with KQL
+
+Use the Azure Portal's Log Analytics query editor to search and analyze your logs.
+
+```kusto
+// Find all error logs in the last hour
+ContainerAppConsoleLogs_CL
+| where ContainerAppName_s == "ca-java-guide"
+| where Log_s contains "ERROR"
+| project TimeGenerated, Log_s, RevisionName_s
+| order by TimeGenerated desc
+```
+
+## Monitoring Checklist
+
+- [x] Application logs are written to `stdout` (not to a local file)
+- [x] Log level is configurable via environment variable (`LOGGING_LEVEL_ROOT`)
+- [x] Application Insights is receiving data (Traces, Exceptions, Requests)
+- [x] Spring Boot Actuator endpoints are accessible and returning metrics
+
+!!! warning "Avoid excessive logging"
+    In a high-throughput production environment, avoid logging large request/response bodies or sensitive information (PII). Use `INFO` level for normal operations and `DEBUG` only when troubleshooting.
+
+## See Also
+- [07 - Revisions and Traffic](07-revisions-traffic.md)
+- [Troubleshooting Playbooks](../../troubleshooting/playbooks/index.md)
+- [KQL Query Pack](../../troubleshooting/kql/index.md)
+
+## Sources
+- [Azure Monitor Application Insights for Java (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent)
+- [Spring Boot Logging (Documentation)](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.logging)
+- [Monitor Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/monitor)
