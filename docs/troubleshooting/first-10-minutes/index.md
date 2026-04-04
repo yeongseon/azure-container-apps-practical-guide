@@ -15,7 +15,7 @@ Use this ordered checklist when a Container App is down, unhealthy, or unreachab
 ## 1) Revision Status
 
 ```bash
-az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisioningState --output tsv
+az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.provisioningState" --output tsv
 ```
 
 Expected baseline from a healthy deployment:
@@ -61,8 +61,10 @@ ca-myapp--0000001-646779b4c5-bhc2v     Running         2026-04-04T11:30:52+00:00
 ## 3) Container Logs
 
 ```bash
-az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow
+az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --tail 50
 ```
+
+For continuous streaming, add `--follow` and press Ctrl+C to exit.
 
 Observed healthy startup console sequence (Gunicorn):
 
@@ -188,3 +190,13 @@ If the checklist does not isolate root cause, continue with [Troubleshooting Met
 - exact error text from system/console logs
 - ingress mode and target port
 - dependency endpoint(s) that failed
+
+## See Also
+
+- [Troubleshooting Methodology](../methodology/index.md)
+- [Troubleshooting Playbooks](../playbooks/index.md)
+- [KQL Query Library](../kql/index.md)
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)

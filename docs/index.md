@@ -34,4 +34,6 @@ flowchart LR
 
 This is an independent community project. Not affiliated with or endorsed by Microsoft.
 
-Primary product reference: [Azure Container Apps overview](https://learn.microsoft.com/azure/container-apps/overview)
+## Sources
+
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)

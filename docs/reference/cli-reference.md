@@ -20,10 +20,11 @@ az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --environment "$ENVIRONMENT_NAME" \
-  --image "$ACR_NAME.azurecr.io/$APP_NAME:latest" \
+  --image "$ACR_NAME.azurecr.io/$APP_NAME:v1.0.0" \
   --target-port 8000 \
   --ingress external \
   --registry-server "$ACR_NAME.azurecr.io" \
+  --registry-identity system \
   --min-replicas 1 \
   --max-replicas 5
 ```
@@ -316,7 +317,9 @@ az containerapp job create \
   --environment "$ENVIRONMENT_NAME" \
   --trigger-type Schedule \
   --cron-expression "*/15 * * * *" \
-  --image "$ACR_NAME.azurecr.io/$JOB_NAME:latest"
+  --image "$ACR_NAME.azurecr.io/$JOB_NAME:v1.0.0" \
+  --registry-server "$ACR_NAME.azurecr.io" \
+  --registry-identity system
 
 az containerapp job start \
   --name "$JOB_NAME" \
@@ -339,7 +342,7 @@ Example output for `az containerapp job show` (PII scrubbed):
 {
   "name": "job-myapp",
   "provisioningState": "Succeeded",
-  "triggerType": "Manual",
+  "triggerType": "Schedule",
   "replicaTimeout": 1800,
   "replicaRetryLimit": 2,
   "identity": {

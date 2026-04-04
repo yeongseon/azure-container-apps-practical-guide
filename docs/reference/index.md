@@ -21,13 +21,18 @@ Quick lookup documentation for Azure Container Apps operations and diagnostics.
 
 ## Common Variables
 
-| Variable | Description |
-|----------|-------------|
-| `$RG` | Resource group name |
-| `$APP_NAME` | Container App name |
-| `$ENVIRONMENT_NAME` | Container Apps Environment name |
-| `$ACR_NAME` | Azure Container Registry name |
-| `$LOCATION` | Azure region (e.g., `koreacentral`) |
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `$RG` | Resource group name | `rg-myapp` |
+| `$APP_NAME` | Container App name | `ca-myapp` |
+| `$ENVIRONMENT_NAME` | Container Apps Environment name | `cae-myapp` |
+| `$ENVIRONMENT_DEFAULT_DOMAIN` | Environment's default domain suffix | `<hash>.<region>.azurecontainerapps.io` |
+| `$ACR_NAME` | Azure Container Registry name | `acrmyapp` |
+| `$LOCATION` | Azure region | `koreacentral` |
+
+```bash
+az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.defaultDomain" --output tsv
+```
 
 ## Language-Specific Details
 

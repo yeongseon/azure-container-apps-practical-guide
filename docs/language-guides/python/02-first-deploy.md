@@ -46,7 +46,7 @@ graph LR
        }
        ```
 
-3. **Deploy infrastructure (environment, Log Analytics, ACR)**
+3. **Deploy infrastructure (environment, Log Analytics, ACR, Container App)**
 
    ```bash
    az deployment group create \
@@ -70,8 +70,11 @@ graph LR
               "containerAppUrl": { "type": "String", "value": "https://ca-myapp-<unique-suffix>.<hash>.<region>.azurecontainerapps.io" }
            }
          }
-       }
-       ```
+        }
+        ```
+
+   !!! note "Initial revision health can appear unhealthy"
+       The Bicep template creates the Container App before your custom image is built and pushed. Until you complete Step 5 and update the app image, the initial revision may show as unhealthy. This is expected.
 
 4. **Capture generated resource names from Bicep outputs**
 
@@ -134,7 +137,7 @@ graph LR
    az acr build \
       --registry "$ACR_NAME" \
       --image "$BASE_NAME:v1" \
-      ./app
+      ./apps/python
    ```
 
    ???+ example "Expected output (az acr build)"
@@ -215,7 +218,7 @@ graph LR
 7. **Deploy an update (creates a new revision)**
 
    ```bash
-   az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v2" ./app
+   az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v2" ./apps/python
 
    az containerapp update \
       --name "$APP_NAME" \
@@ -232,7 +235,7 @@ graph LR
         }
         ```
 
-   Confirm revision status — you should now see **two revisions** (the original v1 and the new v2):
+   Confirm revision status — you should now see **two revisions** (the original v1 and the new v2). In single-revision mode, the old revision is retained but inactive:
 
    ```bash
    az containerapp revision list \
@@ -246,7 +249,7 @@ graph LR
         [
           {
             "name": "ca-myapp--0000001",
-            "active": true,
+            "active": false,
             "trafficWeight": 0,
             "replicas": 0,
             "healthState": "Healthy",

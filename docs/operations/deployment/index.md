@@ -92,3 +92,8 @@ Prefer immutable tags for release traceability, and maintain a stable alias tag 
 - [Language Guides](../../language-guides/index.md)
 - [Revision Management](../revision-management/index.md)
 - [Recovery and Incident Readiness](../recovery/index.md)
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli)

@@ -154,6 +154,43 @@ flowchart TD
     LP -->|Fail x threshold| RS
 ```
 
+Use a YAML template for probes (the probe-specific CLI flags are not supported in current `az containerapp create`).
+
+```yaml
+# probes.yaml
+properties:
+  template:
+    containers:
+      - name: myapp
+        image: myacr.azurecr.io/myapp:v1
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        probes:
+          - type: startup
+            httpGet:
+              path: /health/startup
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 24
+            timeoutSeconds: 3
+          - type: readiness
+            httpGet:
+              path: /health/ready
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 6
+            timeoutSeconds: 3
+          - type: liveness
+            httpGet:
+              path: /health/live
+              port: 8000
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+```
+
 ```bash
 az containerapp create \
   --name "$APP_NAME" \
@@ -163,20 +200,14 @@ az containerapp create \
   --target-port 8000 \
   --ingress external \
   --registry-server "$ACR_NAME.azurecr.io" \
+  --registry-identity system \
   --min-replicas 1 \
-  --max-replicas 5 \
-  --startup-probe-path "/health/startup" \
-  --startup-probe-interval 5 \
-  --startup-probe-timeout 3 \
-  --startup-probe-failure-threshold 24 \
-  --readiness-probe-path "/health/ready" \
-  --readiness-probe-interval 5 \
-  --readiness-probe-timeout 3 \
-  --readiness-probe-failure-threshold 6 \
-  --liveness-probe-path "/health/live" \
-  --liveness-probe-interval 10 \
-  --liveness-probe-timeout 3 \
-  --liveness-probe-failure-threshold 3
+  --max-replicas 5
+
+az containerapp update \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --yaml "probes.yaml"
 ```
 
 Probe tuning guidance:
@@ -205,6 +236,9 @@ if __name__ == "__main__":
     port = int(os.environ.get("CONTAINER_APP_PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
 ```
+
+!!! note "PORT vs CONTAINER_APP_PORT"
+    The reference application in this repository uses `PORT` as its environment variable for Gunicorn binding. `CONTAINER_APP_PORT` is the platform-injected variable. Both approaches work; what matters is that your application listens on the same port configured as the ingress target port. This guide recommends `CONTAINER_APP_PORT` for new applications to align with platform conventions.
 
 Validation commands:
 
@@ -415,4 +449,7 @@ Treat log schema as a versioned contract. Breaking schema changes should go thro
 - [Operations: Deployment](../operations/deployment/index.md)
 - [Operations: Monitoring](../operations/monitoring/index.md)
 - [Python Recipe: Custom Container](../language-guides/python/recipes/custom-container.md)
+
+## Sources
+
 - [Microsoft Learn: Manage containers in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/containers)

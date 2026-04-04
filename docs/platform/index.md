@@ -14,7 +14,7 @@ This section explains Azure Container Apps platform behavior in a language-agnos
 | [Scaling](scaling/index.md) | KEDA autoscaling, HTTP/event/custom scale rules, replica management |
 | [Networking](networking/index.md) | Ingress, VNet integration, private endpoints, service discovery |
 | [Jobs](jobs/index.md) | Scheduled, event-driven, and manual job execution |
-| [Identity and Secrets](identity-and-secrets/managed-identity.md) | Managed identity, Key Vault integration, secret references |
+| [Identity and Secrets](identity-and-secrets/managed-identity.md) | Managed identity setup and RBAC patterns (see also Key Vault, Easy Auth, Security Operations pages) |
 | [Reliability](reliability/health-recovery.md) | Health probes, graceful shutdown, zone redundancy, recovery |
 
 ```mermaid

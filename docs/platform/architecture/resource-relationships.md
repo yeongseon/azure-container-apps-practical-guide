@@ -16,14 +16,14 @@ flowchart LR
         APP -.-> DAPR
     end
 
-    I --> APP
+    I --> REV
 
     APP --> COSMOS[Azure Cosmos DB]
     APP --> SQL[Azure SQL Database]
     APP --> REDIS[Azure Cache for Redis]
     APP --> KV[Azure Key Vault]
     APP --> STG[Azure Storage]
-    APP --> ACR[Azure Container Registry]
+    APP -.->|image pull at startup| ACR[Azure Container Registry]
 
     APP -.-> MI[Managed Identity]
     MI -.-> ENTRA[Microsoft Entra ID]
@@ -38,7 +38,7 @@ flowchart LR
     MI -.-> ACR
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Solid arrows show runtime data flow. Dashed arrows show identity, authentication, and deployment-time dependencies.
 
 ## Advanced Topics
 
