@@ -1,86 +1,54 @@
-# Azure Container Apps Python Guide
+# Azure Container Apps Guide
 
-Comprehensive guide to running Python/Flask applications on Azure Container Apps — from first deploy to production operations.
-
-> **Not just another sample app.** This guide explains *why* things work the way they do, so you can debug issues and make informed decisions.
-
-## What is Azure Container Apps?
-
-Azure Container Apps is a fully managed serverless container service that enables you to run microservices and containerized applications without managing infrastructure. Key features:
-
-- **Serverless containers** — No cluster management, automatic scaling
-- **KEDA-based autoscaling** — Scale on HTTP traffic, queues, or custom metrics
-- **Revisions & Traffic Splitting** — Built-in blue-green deployments
-- **Dapr integration** — Service-to-service invocation, state management, pub/sub
-- **Pay-per-use** — Scale to zero, consumption-based pricing
-
-## Learning Paths
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         QUICK START (30 min)                        │
-│  ┌──────────────┐    ┌──────────────┐                              │
-│  │ 1. Local Dev │───▶│ 2. Deploy   │                              │
-│  └──────────────┘    └──────────────┘                              │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         CORE PATH (2-3 hrs)                         │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐         │
-│  │ 3. Config    │───▶│ 4. Logging  │───▶│ 5. IaC       │         │
-│  └──────────────┘    └──────────────┘    └──────────────┘         │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      PRODUCTION PATH (2-3 hrs)                      │
-│  ┌──────────────┐    ┌──────────────┐                              │
-│  │ 6. CI/CD     │───▶│ 7. Revisions│                              │
-│  │ (Actions)    │    │ (Traffic)   │                              │
-│  └──────────────┘    └──────────────┘                              │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-## Quick Navigation
+A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages, revision models, and deployment patterns.
 
 <div class="grid cards" markdown>
 
--   :material-school:{ .lg .middle } **Tutorial**
+-   :material-rocket-launch:{ .lg .middle } **Start Here**
 
     ---
 
-    Step-by-step from local development to production
+    New to Container Apps? Start with the overview, learning paths, and repository map.
 
-    [:octicons-arrow-right-24: Start Learning](tutorial/index.md)
+    [:octicons-arrow-right-24: Get Started](start-here/overview.md)
 
--   :material-head-cog:{ .lg .middle } **Concepts**
+-   :material-layers:{ .lg .middle } **Platform**
 
     ---
 
-    Understand how Container Apps works under the hood
+    Understand the core architecture, scaling, networking, and security concepts.
 
-    [:octicons-arrow-right-24: Deep Dive](concepts/index.md)
+    [:octicons-arrow-right-24: Explore Platform](platform/index.md)
+
+-   :material-code-tags:{ .lg .middle } **Language Guides**
+
+    ---
+
+    Step-by-step tutorials and implementation recipes for Python, Node.js, and more.
+
+    [:octicons-arrow-right-24: View Guides](language-guides/index.md)
 
 -   :material-cog:{ .lg .middle } **Operations**
 
     ---
 
-    Production operations and day-2 activities
+    Guide for running in production: deployment, monitoring, and secret rotation.
 
     [:octicons-arrow-right-24: Operations Guide](operations/index.md)
 
--   :material-chef-hat:{ .lg .middle } **Recipes**
+-   :material-lifebuoy:{ .lg .middle } **Troubleshooting**
 
     ---
 
-    Integration guides for databases and Azure services
+    Quick triage, playbooks, and methodology for when things go wrong.
 
-    [:octicons-arrow-right-24: Browse Recipes](recipes/index.md)
+    [:octicons-arrow-right-24: Fix Issues](troubleshooting/index.md)
 
 </div>
 
 ## What Makes Container Apps Different?
+
+Azure Container Apps is a fully managed serverless container service. It enables you to run microservices and containerized applications without managing complex infrastructure.
 
 | Feature | Container Apps | App Service | AKS |
 |---------|---------------|-------------|-----|
@@ -93,8 +61,8 @@ Azure Container Apps is a fully managed serverless container service that enable
 | Cost model | Consumption | Always-on | Cluster + nodes |
 
 ## See Also
-- [Container Apps Pricing](https://azure.microsoft.com/pricing/details/container-apps/)
-- [Dapr Documentation](https://docs.dapr.io/)
 
-## References
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Azure Container Apps Documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Dapr Documentation](https://docs.dapr.io/)
+- [KEDA Documentation](https://keda.sh/)
+- [Bicep Documentation](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)

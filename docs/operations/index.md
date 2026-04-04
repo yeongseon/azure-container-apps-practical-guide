@@ -1,6 +1,8 @@
-# Operations Guide for Azure Container Apps
+# Operations: Running Container Apps in Production
 
-This section covers day-2 operations for running Python workloads on Azure Container Apps in production, including scaling, revisions, networking, security, observability, and cost control.
+This section covers **day-2 operations** for running workloads on Azure Container Apps in production, including deployment, management, monitoring, and recovery.
+
+While the [Platform](../platform/index.md) section covers how to *design* your architecture, the Operations hub focuses on how to *run* it effectively.
 
 !!! note "Variable naming in this section"
     Operations guides use production-style variable names (e.g., `RG="rg-aca-prod"`) to reflect real operational contexts. Tutorial guides use demo-style names (e.g., `RG="rg-aca-python-demo"`). Substitute your own resource names as appropriate.
@@ -22,13 +24,14 @@ az account show --output table
 
 ## Operations Areas
 
-- [Scaling](./scaling.md): manual scaling, KEDA rules, and scale-to-zero behavior
-- [Revisions](./revisions.md): revision lifecycle, traffic splitting, and rollback
-- [Health and Recovery](./health-recovery.md): probes, restarts, and recovery workflows
-- [Networking](./networking.md): ingress, VNet operations, and service discovery
-- [Security](./security.md): managed identity, secret handling, and Easy Auth
-- [Cost Optimization](./cost-optimization.md): profile selection and spend controls
-- [Observability](./observability.md): logs, metrics, traces, and alerting
+-   **[Deployment](deployment/networking.md)**: Standardized patterns for CI/CD and production rollouts.
+-   **[Revision Management](revision-management/index.md)**: Lifecycle of immutable revisions and traffic splitting.
+-   **[Monitoring](monitoring/index.md)**: Logs, metrics, distributed tracing, and Log Analytics integration.
+-   **[Scaling](scaling/index.md)**: Managing KEDA scale rules, manual scaling, and concurrency limits.
+-   **[Alerts](monitoring/index.md)**: Setting up SLO-driven alerts for availability, latency, and resource usage.
+-   **[Image Pull & Registry](deployment/networking.md)**: Authenticating to private registries using managed identity.
+-   **[Secret Rotation](../platform/identity-and-secrets/security-operations.md)**: Securely updating credentials without downtime.
+-   **[Recovery](../platform/reliability/health-recovery.md)**: Handling failed revisions, pod restarts, and regional outages.
 
 ## Verification Steps
 
@@ -53,22 +56,6 @@ Example output (PII masked):
 }
 ```
 
-## Troubleshooting
-
-If the app is not running:
-
-1. Check latest system logs.
-2. Confirm environment-level health and quotas.
-3. Review latest revision status before applying new changes.
-
-```bash
-az containerapp logs show \
-  --name "$APP_NAME" \
-  --resource-group "$RG" \
-  --type system \
-  --follow false
-```
-
 ## Advanced Topics
 
 - Build a production runbook with change windows, rollback criteria, and ownership.
@@ -76,10 +63,7 @@ az containerapp logs show \
 - Define SLO-driven alerts that map directly to customer-facing impact.
 
 ## See Also
-- [Scaling](./scaling.md)
-- [Revisions](./revisions.md)
-- [Health and Recovery](./health-recovery.md)
-- [Observability](./observability.md)
 
-## References
-- [Azure Container Apps documentation](https://learn.microsoft.com/azure/container-apps/)
+- [Platform - Architecture](../platform/index.md)
+- [Troubleshooting Hub](../troubleshooting/index.md)
+- [Language Guides](../language-guides/index.md)
