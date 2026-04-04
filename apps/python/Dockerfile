@@ -8,9 +8,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application
 COPY src/ ./src/
+COPY gunicorn.conf.py .
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 # Expose port
 EXPOSE 8000
 
-# Run with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--chdir", "src", "app:app"]
+# Use entrypoint for graceful shutdown handling
+ENTRYPOINT ["./entrypoint.sh"]
