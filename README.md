@@ -1,37 +1,29 @@
-# Azure Container Apps Python Guide
+# Azure Container Apps Guide
+
+A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages, revision models, and deployment patterns.
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyeongseon%2Fazure-container-apps-python-guide%2Fmain%2Finfra%2Fazuredeploy.json)
 
-Comprehensive guide to running Python/Flask applications on Azure Container Apps — from first deploy to production operations.
-
-> **Not just another sample app.** This guide explains *why* things work the way they do, so you can debug issues and make informed decisions.
-
-## Learning Paths
+## Repository Structure
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         QUICK START (30 min)                        │
-│  ┌──────────────┐    ┌──────────────┐                              │
-│  │ 1. Local Dev │───▶│ 2. Deploy   │                              │
-│  └──────────────┘    └──────────────┘                              │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         CORE PATH (2-3 hrs)                         │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐         │
-│  │ 3. Config    │───▶│ 4. Logging  │───▶│ 5. IaC       │         │
-│  └──────────────┘    └──────────────┘    └──────────────┘         │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      PRODUCTION PATH (2-3 hrs)                      │
-│  ┌──────────────┐    ┌──────────────┐                              │
-│  │ 6. CI/CD     │───▶│ 7. Revisions│                              │
-│  │ (Actions)    │    │ (Traffic)   │                              │
-│  └──────────────┘    └──────────────┘                              │
-└─────────────────────────────────────────────────────────────────────┘
+├── docs/                   # MkDocs documentation
+│   ├── start-here/         # Getting started, overview, learning paths
+│   ├── platform/           # Architecture, environments, revisions, scaling, networking, jobs, identity, reliability
+│   ├── language-guides/    # Per-language tutorials and recipes (currently: Python)
+│   │   └── python/         # Flask tutorial steps + recipes
+│   ├── operations/         # Deployment, monitoring, scaling, alerts, recovery
+│   └── troubleshooting/    # First 10 minutes, playbooks, methodology, KQL, lab guides
+├── apps/                   # Reference applications
+│   └── python/             # Flask reference app (health, logging, telemetry)
+├── jobs/                   # Reference jobs
+│   └── python/             # Python reference job (scheduled, identity, storage)
+├── labs/                   # Hands-on troubleshooting labs
+│   ├── acr-pull-failure/
+│   ├── revision-failover/
+│   └── scale-rule-mismatch/
+├── infra/                  # Bicep infrastructure templates
+└── mkdocs.yml              # Documentation configuration
 ```
 
 ## Quick Start
@@ -55,110 +47,25 @@ az login
 ### Option 2: Run locally first
 
 ```bash
-cd app
-docker build -t aca-python-guide .
-docker run -p 8000:8000 aca-python-guide
+cd apps/python
+docker build --tag aca-python-guide .
+docker run --publish 8000:8000 aca-python-guide
 # Visit http://localhost:8000
 ```
 
-## Documentation
+## Documentation Tabs
 
-### 📚 Tutorial (Start Here)
+- **Start Here**: Foundational overview, architectural comparisons, and suggested learning paths for different roles.
+- **Platform**: Deep dives into core Azure Container Apps components like environments, revisions, scaling, and networking.
+- **Language Guides**: Practical, step-by-step tutorials and integration recipes for specific runtimes (starting with Python).
+- **Operations**: Best practices for production deployment, monitoring, alerting, and cost optimization.
+- **Troubleshooting**: A systematic methodology for debugging issues, featuring KQL playbooks and hands-on labs.
 
-Step-by-step guide from zero to production.
+## Reference Assets
 
-| # | Document | Time | Description |
-|---|----------|------|-------------|
-| 1 | [Local Development](./docs/tutorial/01-local-run.md) | 10 min | Run with Docker locally |
-| 2 | [First Deploy](./docs/tutorial/02-first-deploy.md) | 15 min | Deploy to Azure |
-| 3 | [Configuration](./docs/tutorial/03-configuration.md) | 20 min | Secrets, env vars, Dapr |
-| 4 | [Logging & Monitoring](./docs/tutorial/04-logging-monitoring.md) | 30 min | Logs, Application Insights |
-| 5 | [Infrastructure as Code](./docs/tutorial/05-infrastructure-as-code.md) | 30 min | Bicep templates |
-| 6 | [CI/CD](./docs/tutorial/06-ci-cd.md) | 45 min | GitHub Actions |
-| 7 | [Revisions & Traffic](./docs/tutorial/07-revisions-traffic.md) | 30 min | Blue-green, canary deploys |
-
-### 🧠 Concepts
-
-Understand *how* Container Apps works under the hood.
-
-| Document | Description |
-|----------|-------------|
-| [How Container Apps Works](./docs/concepts/how-container-apps-works.md) | Platform architecture, environments, containers |
-| [Container Apps vs Others](./docs/concepts/container-apps-vs-others.md) | Comparison with AKS, App Service, ACI |
-| [Environments & Apps](./docs/concepts/environments-and-apps.md) | Environment types, app relationships |
-| [Scaling with KEDA](./docs/concepts/scaling-keda.md) | KEDA autoscaling, scale rules |
-| [Networking](./docs/concepts/networking.md) | VNet, ingress, service discovery |
-
-### ⚙️ Operations
-
-Production operations and day-2 activities.
-
-| Document | Description |
-|----------|-------------|
-| [Scaling](./docs/operations/scaling.md) | Manual scaling, KEDA rules, scale-to-zero |
-| [Revisions](./docs/operations/revisions.md) | Revision management, traffic splitting |
-| [Health & Recovery](./docs/operations/health-recovery.md) | Health probes, restart policies |
-| [Networking](./docs/operations/networking.md) | VNet ops, ingress config |
-| [Security](./docs/operations/security.md) | Managed identity, secrets, Easy Auth |
-| [Cost Optimization](./docs/operations/cost-optimization.md) | Consumption vs Workload profiles |
-| [Observability](./docs/operations/observability.md) | Log Analytics, distributed tracing |
-
-### 🍳 Recipes
-
-Practical integration guides.
-
-| Recipe | Description |
-|--------|-------------|
-| [Cosmos DB](./docs/recipes/cosmosdb.md) | NoSQL database with Managed Identity |
-| [Azure SQL](./docs/recipes/azure-sql.md) | SQL database with Managed Identity |
-| [Redis Cache](./docs/recipes/redis.md) | Caching and sessions |
-| [Key Vault](./docs/recipes/key-vault.md) | Secrets management |
-| [Blob Storage](./docs/recipes/storage.md) | File storage and mounts |
-| [Managed Identity](./docs/recipes/managed-identity.md) | Passwordless authentication |
-| [Easy Auth](./docs/recipes/easy-auth.md) | Built-in authentication |
-| [Dapr Integration](./docs/recipes/dapr-integration.md) | Service invocation, pub/sub, state |
-| [VNet Integration](./docs/recipes/networking-vnet.md) | Network isolation |
-| [Private Endpoints](./docs/recipes/networking-private-endpoint.md) | Private connectivity |
-| [Egress Control](./docs/recipes/networking-egress.md) | Egress traffic control |
-| [Service-to-Service](./docs/recipes/networking-service-to-service.md) | Service communication |
-| [Container Registry](./docs/recipes/container-registry.md) | Private ACR with Container Apps |
-
-### 📖 Reference
-
-Quick lookup documentation.
-
-| Document | Description |
-|----------|-------------|
-| [CLI Cheatsheet](./docs/reference/cli-cheatsheet.md) | Common az containerapp commands |
-| [KQL Queries](./docs/reference/kql-queries.md) | Log Analytics queries |
-| [Troubleshooting](./docs/reference/troubleshooting.md) | Debugging, common issues |
-| [Environment Variables](./docs/reference/environment-variables.md) | System and app env vars |
-| [Python Runtime](./docs/reference/python-runtime.md) | Gunicorn, workers, settings |
-| [Platform Limits](./docs/reference/platform-limits.md) | Timeouts, quotas |
-
-## Repository Structure
-
-```
-├── app/                    # Flask reference application
-│   ├── src/
-│   │   ├── app.py          # Flask entry point
-│   │   ├── routes/         # API endpoints
-│   │   └── middleware/     # Logging, correlation
-│   ├── Dockerfile
-│   └── requirements.txt
-│
-├── docs/                   # Documentation
-│   ├── tutorial/           # Step-by-step guides
-│   ├── concepts/           # How things work
-│   ├── operations/         # Production operations
-│   ├── recipes/            # Integration guides
-│   └── reference/          # Quick lookup
-│
-└── infra/                  # Infrastructure as Code
-    ├── main.bicep          # Azure resources
-    ├── deploy.sh           # Basic deployment
-    └── deploy-private.sh   # VNet deployment
-```
+- **apps/**: Production-ready reference applications demonstrating structured logging, health probes, and graceful shutdown.
+- **jobs/**: Reference implementations for Azure Container Apps Jobs, covering scheduled tasks and event-driven execution.
+- **labs/**: Guided troubleshooting exercises to help you master platform-specific failure modes and resolution patterns.
 
 ## What You'll Deploy
 
@@ -179,19 +86,6 @@ Quick lookup documentation.
 - ✅ **Health Endpoint** — `/health` for monitoring
 - ✅ **KEDA Scaling** — Event-driven autoscaling (platform-managed, no app dependency)
 - ✅ **Dapr Compatible** — Ready for service invocation, state, pub/sub (add `dapr` package when enabling)
-
-## Sample Endpoints
-
-```bash
-# Health check
-curl https://your-app.azurecontainerapps.io/health
-
-# Generate test logs
-curl https://your-app.azurecontainerapps.io/api/requests/log-levels
-
-# Test external dependency
-curl https://your-app.azurecontainerapps.io/api/dependencies/external
-```
 
 ## Contributing
 

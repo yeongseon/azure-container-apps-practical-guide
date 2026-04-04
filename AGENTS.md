@@ -4,25 +4,28 @@
 
 ## Project Overview
 
-**Azure Container Apps Python Guide** — A comprehensive documentation and reference application for running Python/Flask applications on Azure Container Apps.
+**Azure Container Apps Guide** — A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages.
 
 ### Repository Structure
 
 ```
-├── app/                    # Flask reference application
-│   ├── src/                # Application source code
-│   │   ├── app.py          # Flask app entry point
-│   │   ├── routes/         # API endpoints
-│   │   └── middleware/     # Logging, correlation
-│   ├── Dockerfile          # Single-stage build
-│   └── requirements.txt
+├── docs/                   # Unified documentation hub
+│   ├── start-here/         # Overview, learning-paths, when-to-use, repository-map
+│   ├── platform/           # Architecture, environments, revisions, scaling, networking, jobs, identity, reliability
+│   ├── language-guides/    # Index + python/ (01-07 tutorials, python-runtime, recipes/)
+│   ├── operations/         # Deployment, monitoring, alerts, image-pull-and-registry, secret-rotation, recovery
+│   └── troubleshooting/    # First-10-minutes, playbooks, methodology, kql, lab-guides
 │
-├── docs/                   # MkDocs documentation
-│   ├── tutorial/           # Step-by-step guides
-│   ├── concepts/           # Architectural guides
-│   ├── operations/         # Production operation guides
-│   ├── recipes/            # Integration guides
-│   └── reference/          # Quick-reference docs
+├── apps/                   # Reference applications
+│   └── python/             # Flask reference app
+│
+├── jobs/                   # Reference jobs
+│   └── python/             # Python reference job
+│
+├── labs/                   # Hands-on troubleshooting labs
+│   ├── acr-pull-failure/
+│   ├── revision-failover/
+│   └── scale-rule-mismatch/
 │
 ├── infra/                  # Bicep infrastructure
 │   ├── main.bicep          # Main template
@@ -32,6 +35,20 @@
 │
 └── mkdocs.yml              # Documentation configuration
 ```
+
+## Content Categories
+
+The documentation is organized by intent and lifecycle stage:
+
+- **start-here**: Entry points, high-level overview, learning paths, and guide mapping.
+- **platform**: Design decisions and architecture — **HOW to architect** (environments, revisions, scaling, networking, jobs, identity, reliability).
+- **language-guides**: Per-language step-by-step tutorials and integration recipes.
+- **operations**: Day-2 execution — **HOW to run in production** (deployment, monitoring, alerts, recovery).
+- **troubleshooting**: Diagnosis and resolution (first-10-minutes, playbooks, methodology, KQL, labs).
+
+!!! info "Platform vs Operations"
+    - **Platform** = Design judgment and architectural patterns.
+    - **Operations** = Operational execution and maintenance.
 
 ## Documentation Conventions
 
@@ -142,6 +159,12 @@ CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--chdir", "src", "
 2. **Scale issues**: Verify KEDA scale rules
 3. **Networking**: Ingress must be enabled for external access
 4. **Secrets**: Use managed identity, not connection strings
+
+## Reference Assets
+
+- **apps/**: Reference applications per language (e.g., `apps/python` for Flask).
+- **jobs/**: Reference jobs per language (e.g., `jobs/python`).
+- **labs/**: Hands-on troubleshooting labs for simulating and resolving common platform issues.
 
 ## Documentation Format Quality Gate
 
