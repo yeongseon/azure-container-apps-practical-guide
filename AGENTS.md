@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-**Azure Container Apps Guide** — A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages.
+**Azure Container Apps Practical Guide** — A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages.
 
 ### Repository Structure
 
@@ -12,9 +12,11 @@
 ├── docs/                   # Unified documentation hub
 │   ├── start-here/         # Overview, learning-paths, when-to-use, repository-map
 │   ├── platform/           # Architecture, environments, revisions, scaling, networking, jobs, identity, reliability
+│   ├── best-practices/     # Container design, revision strategy, scaling, networking, identity, reliability, cost, jobs, anti-patterns
 │   ├── language-guides/    # Index + python/ (01-07 tutorials, python-runtime, recipes/)
 │   ├── operations/         # Deployment, monitoring, alerts, image-pull-and-registry, secret-rotation, recovery
-│   └── troubleshooting/    # First-10-minutes, playbooks, methodology, kql, lab-guides
+│   ├── troubleshooting/    # First-10-minutes, playbooks, methodology, kql, lab-guides
+│   └── reference/          # CLI reference, environment variables, platform limits
 │
 ├── apps/                   # Reference applications
 │   └── python/             # Flask reference app
@@ -41,14 +43,17 @@
 The documentation is organized by intent and lifecycle stage:
 
 - **start-here**: Entry points, high-level overview, learning paths, and guide mapping.
-- **platform**: Design decisions and architecture — **HOW to architect** (environments, revisions, scaling, networking, jobs, identity, reliability).
+- **platform**: Design decisions and architecture — **WHAT is it and how does it work** (environments, revisions, scaling, networking, jobs, identity, reliability).
+- **best-practices**: Practical patterns for production — **HOW should I use the platform** (container design, revision strategy, scaling, networking, identity, reliability, cost, jobs, anti-patterns).
 - **language-guides**: Per-language step-by-step tutorials and integration recipes.
 - **operations**: Day-2 execution — **HOW to run in production** (deployment, monitoring, alerts, recovery).
 - **troubleshooting**: Diagnosis and resolution (first-10-minutes, playbooks, methodology, KQL, labs).
+- **reference**: Quick lookup — CLI commands, environment variables, platform limits.
 
-!!! info "Platform vs Operations"
-    - **Platform** = Design judgment and architectural patterns.
-    - **Operations** = Operational execution and maintenance.
+!!! info "Platform vs Best Practices vs Operations"
+    - **Platform** = Understand the concepts and architecture.
+    - **Best Practices** = Apply practical patterns and avoid common mistakes.
+    - **Operations** = Execute day-2 tasks in production.
 
 ## Documentation Conventions
 

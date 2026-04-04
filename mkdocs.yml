@@ -1,8 +1,8 @@
-site_name: Azure Container Apps Guide
+site_name: Azure Container Apps Practical Guide
 site_description: Comprehensive guide to designing, operating, and troubleshooting Azure Container Apps
-site_url: https://yeongseon.github.io/azure-container-apps/
-repo_url: https://github.com/yeongseon/azure-container-apps
-repo_name: yeongseon/azure-container-apps
+site_url: https://yeongseon.github.io/azure-container-apps-practical-guide/
+repo_url: https://github.com/yeongseon/azure-container-apps-practical-guide
+repo_name: yeongseon/azure-container-apps-practical-guide
 
 theme:
   name: material
@@ -101,6 +101,17 @@ nav:
     - Reliability:
       - Cost Optimization: platform/reliability/cost-optimization.md
       - Health and Recovery: platform/reliability/health-recovery.md
+  - Best Practices:
+    - best-practices/index.md
+    - Container Design: best-practices/container-design.md
+    - Revision Strategy: best-practices/revision-strategy.md
+    - Scaling: best-practices/scaling.md
+    - Networking: best-practices/networking.md
+    - Identity and Secrets: best-practices/identity-and-secrets.md
+    - Reliability: best-practices/reliability.md
+    - Cost Optimization: best-practices/cost.md
+    - Jobs: best-practices/jobs.md
+    - Common Anti-Patterns: best-practices/anti-patterns.md
   - Language Guides:
     - language-guides/index.md
     - Python:

@@ -1,8 +1,8 @@
-# Azure Container Apps Guide
+# Azure Container Apps Practical Guide
 
 A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages, revision models, and deployment patterns.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyeongseon%2Fazure-container-apps%2Fmain%2Finfra%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyeongseon%2Fazure-container-apps-practical-guide%2Fmain%2Finfra%2Fazuredeploy.json)
 
 ## Repository Structure
 
@@ -10,6 +10,7 @@ A practical hub for learning, designing, operating, and troubleshooting Azure Co
 ├── docs/                   # MkDocs documentation
 │   ├── start-here/         # Getting started, overview, learning paths
 │   ├── platform/           # Architecture, environments, revisions, scaling, networking, jobs, identity, reliability
+│   ├── best-practices/     # Container design, revision strategy, scaling, networking, identity, reliability, cost, jobs, anti-patterns
 │   ├── language-guides/    # Per-language tutorials and recipes (currently: Python)
 │   │   └── python/         # Flask tutorial steps + recipes
 │   ├── operations/         # Deployment, monitoring, scaling, alerts, recovery
@@ -36,8 +37,8 @@ A practical hub for learning, designing, operating, and troubleshooting Azure Co
 
 ```bash
 # Clone and deploy
-git clone https://github.com/yeongseon/azure-container-apps.git
-cd azure-container-apps/infra
+git clone https://github.com/yeongseon/azure-container-apps-practical-guide.git
+cd azure-container-apps-practical-guide/infra
 
 # Configure
 cp .env.example .env
@@ -61,8 +62,9 @@ docker run --publish 8000:8000 aca-python-guide
 
 - **Start Here**: Foundational overview, architectural comparisons, and suggested learning paths for different roles.
 - **Platform**: Deep dives into core Azure Container Apps components like environments, revisions, scaling, and networking.
+- **Best Practices**: Practical patterns for production — container design, revision strategy, scaling, networking, identity, reliability, cost, jobs, and common anti-patterns.
 - **Language Guides**: Practical, step-by-step tutorials and integration recipes for specific runtimes (starting with Python).
-- **Operations**: Best practices for production deployment, monitoring, alerting, and cost optimization.
+- **Operations**: Day-2 execution for production deployment, monitoring, alerting, and cost optimization.
 - **Troubleshooting**: A systematic methodology for debugging issues, featuring KQL playbooks and hands-on labs.
 - **Reference**: Quick lookup content for CLI commands, environment variables, and platform limits.
 
@@ -102,4 +104,4 @@ MIT License — see [LICENSE](./LICENSE)
 
 ---
 
-**Questions?** [Open an issue](https://github.com/yeongseon/azure-container-apps/issues)
+**Questions?** [Open an issue](https://github.com/yeongseon/azure-container-apps-practical-guide/issues)
