@@ -69,7 +69,14 @@ app.Lifetime.ApplicationStopping.Register(() =>
 
 ```bash
 RG="rg-dotnet-guide"
-APP_NAME="ca-dotnet-guide"
+DEPLOYMENT_NAME="main"
+
+# Get app name from Bicep deployment
+APP_NAME=$(az deployment group show \
+  --name "$DEPLOYMENT_NAME" \
+  --resource-group "$RG" \
+  --query "properties.outputs.containerAppName.value" \
+  --output tsv)
 
 # Stream logs
 az containerapp logs show \

@@ -57,7 +57,17 @@ CMD ["node", "--max-old-space-size=1536", "src/app.js"]
 
 ```bash
 RG="rg-nodejs-guide"
-APP_NAME="ca-nodejs-guide"
+
+# For CLI-deployed apps, set directly:
+# APP_NAME="ca-nodejs-guide"
+
+# For Bicep-deployed apps, capture from outputs:
+DEPLOYMENT_NAME="main"
+APP_NAME=$(az deployment group show \
+  --name "$DEPLOYMENT_NAME" \
+  --resource-group "$RG" \
+  --query "properties.outputs.containerAppName.value" \
+  --output tsv)
 
 az containerapp logs show \
   --name "$APP_NAME" \

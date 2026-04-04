@@ -16,7 +16,7 @@ graph TD
 ## Prerequisites
 
 - Completed [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
-- A running Container App (`ca-dotnet-guide`)
+- A running Container App (deployed in [02 - First Deploy](02-first-deploy.md))
 
 ## Step-by-step
 
@@ -53,7 +53,7 @@ graph TD
    ???+ example "Expected output"
        ```json
        {
-         "name": "ca-dotnet-guide",
+         "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }
        ```
@@ -104,7 +104,7 @@ graph TD
    ???+ example "Expected output"
        ```json
        {
-         "name": "ca-dotnet-guide",
+         "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }
        ```

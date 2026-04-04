@@ -25,10 +25,26 @@ graph LR
 
    ```bash
    RG="rg-dotnet-guide"
-   APP_NAME="ca-dotnet-guide"
+   DEPLOYMENT_NAME="main"
    BASE_NAME="dotnet-guide"
-   ACR_NAME="crpycontainerzxyaw4an5c742"
-   ACR_LOGIN_SERVER="crpycontainerzxyaw4an5c742.azurecr.io"
+
+   APP_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerAppName.value" \
+     --output tsv)
+
+   ACR_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerRegistryName.value" \
+     --output tsv)
+
+   ACR_LOGIN_SERVER=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerRegistryLoginServer.value" \
+     --output tsv)
    ```
 
 2. **Switch to multiple revision mode**
@@ -61,8 +77,8 @@ graph LR
    ???+ example "Expected output"
        ```json
        {
-         "latestRevision": "ca-dotnet-guide--rev3",
-         "name": "ca-dotnet-guide",
+         "latestRevision": "<your-app-name>--rev3",
+         "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }
        ```
@@ -79,30 +95,36 @@ graph LR
 
    ???+ example "Expected output"
         ```text
-        Name                        Active    CreatedTime
-        --------------------------  --------  -------------------------
-        ca-dotnet-guide--rev1       True      2026-04-04T16:00:00+00:00
-        ca-dotnet-guide--rev3       True      2026-04-04T16:30:00+00:00
+        Name                               Active    CreatedTime
+        ---------------------------------  --------  -------------------------
+        <your-app-name>--rev1              True      2026-04-04T16:00:00+00:00
+        <your-app-name>--rev3              True      2026-04-04T16:30:00+00:00
         ```
 
 5. **Apply canary traffic split (90/10)**
 
+   Capture the revision names from the list above, then apply traffic weights:
+
    ```bash
+   # Replace with your actual revision names from Step 4
+   OLD_REV="${APP_NAME}--rev1"
+   NEW_REV="${APP_NAME}--rev3"
+
    az containerapp ingress traffic set \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --revision-weight "ca-dotnet-guide--rev1=90" "ca-dotnet-guide--rev3=10"
+     --revision-weight "$OLD_REV=90" "$NEW_REV=10"
    ```
 
    ???+ example "Expected output"
         ```json
         [
           {
-            "revisionName": "ca-dotnet-guide--rev1",
+            "revisionName": "<your-app-name>--rev1",
             "weight": 90
           },
           {
-            "revisionName": "ca-dotnet-guide--rev3",
+            "revisionName": "<your-app-name>--rev3",
             "weight": 10
           }
         ]
@@ -119,10 +141,10 @@ graph LR
    ???+ example "Expected output"
         ```json
         {
-          "fqdn": "ca-dotnet-guide.purplesand-eb76756a.koreacentral.azurecontainerapps.io",
+          "fqdn": "<your-app-name>.<env-suffix>.koreacentral.azurecontainerapps.io",
           "traffic": [
-            { "revisionName": "ca-dotnet-guide--rev1", "weight": 90 },
-            { "revisionName": "ca-dotnet-guide--rev3", "weight": 10 }
+            { "revisionName": "<your-app-name>--rev1", "weight": 90 },
+            { "revisionName": "<your-app-name>--rev3", "weight": 10 }
           ]
         }
         ```
@@ -135,7 +157,7 @@ graph LR
    az containerapp ingress traffic set \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --revision-weight "ca-dotnet-guide--rev1=100"
+     --revision-weight "$OLD_REV=100"
    ```
 
 8. **Deactivate the bad revision**
@@ -144,7 +166,7 @@ graph LR
    az containerapp revision deactivate \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --revision "ca-dotnet-guide--rev3"
+     --revision "$NEW_REV"
    ```
 
 ## Operational Guidance for .NET

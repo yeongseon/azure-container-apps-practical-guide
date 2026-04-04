@@ -17,6 +17,9 @@ graph LR
 - Completed [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - Bicep files under `infra/`
 
+!!! info "Naming Convention"
+    The shared `infra/main.bicep` template generates unique resource names using `uniqueString(resourceGroup().id)` (e.g., `ca-nodejs-guide-abc123def`). Earlier tutorials in this guide use simplified names like `ca-nodejs-guide` for readability. When deploying via Bicep, always capture actual names from deployment outputs using `az deployment group show`.
+
 !!! tip "Run validate and what-if before every apply"
     Treat `az deployment group validate` and `az deployment group what-if` as required safety checks to prevent accidental production-impacting infrastructure changes.
 

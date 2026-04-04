@@ -18,6 +18,9 @@ graph LR
 - Bicep files under `infra/` (e.g., `main.bicep`)
 - Azure CLI with Bicep installed
 
+!!! info "Naming Convention"
+    The shared `infra/main.bicep` template generates unique resource names using `uniqueString(resourceGroup().id)` (e.g., `ca-dotnet-guide-abc123def`). Earlier tutorials in this guide use simplified names like `ca-dotnet-guide` for readability. When deploying via Bicep, always capture actual names from deployment outputs using `az deployment group show`.
+
 !!! tip "Run validate and what-if before every apply"
     Treat `az deployment group validate` and `az deployment group what-if` as required safety checks to prevent accidental production-impacting infrastructure changes.
 

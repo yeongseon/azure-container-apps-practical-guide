@@ -207,9 +207,9 @@ graph LR
     ???+ example "Expected output"
         ```json
         {
-          "name": "ca-nodejs-guide",
+          "name": "<your-app-name>",
           "provisioningState": "Succeeded",
-          "latestRevisionName": "ca-nodejs-guide--0000002"
+          "latestRevisionName": "<your-app-name>--0000002"
         }
         ```
 
