@@ -102,13 +102,13 @@ graph LR
         ```json
         [
           {
-            "name": "ca-nodejs-guide--0000001",
+            "name": "<your-app-name>--0000001",
             "active": false,
             "trafficWeight": 0,
             "healthState": "Healthy"
           },
           {
-            "name": "ca-nodejs-guide--0000002",
+            "name": "<your-app-name>--0000002",
             "active": true,
             "trafficWeight": 100,
             "healthState": "Healthy"
