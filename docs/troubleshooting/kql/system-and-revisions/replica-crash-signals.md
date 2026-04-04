@@ -1,0 +1,43 @@
+# Replica Crash Signals
+
+Use this query to identify restart-heavy replicas and crash-loop patterns by revision.
+
+## Data Source
+
+| Table | Schema Note |
+|---|---|
+| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+
+## Query Pipeline
+
+```mermaid
+flowchart LR
+    A[Filter by app] --> B[Filter crash and restart terms] --> C[Summarize by replica and revision] --> D[Sort by event count]
+```
+
+## Query
+
+```kusto
+let AppName = "my-container-app";
+ContainerAppSystemLogs_CL
+| where ContainerAppName_s == AppName
+| where Log_s has_any ("CrashLoopBackOff", "terminated", "exited", "restart", "OOM")
+| summarize events=count(), firstSeen=min(TimeGenerated), lastSeen=max(TimeGenerated) by RevisionName_s, ReplicaName_s
+| order by events desc
+```
+
+## Interpretation Notes
+
+- High `events` on few replicas indicates unstable runtime behavior.
+- OOM-related terms suggest memory pressure rather than logic-only defects.
+- Normal pattern: low restart count outside deployments.
+
+## Limitations
+
+- Event detail quality varies by platform event source.
+- Requires correlation with console logs for stack traces.
+
+## See Also
+
+- [Latest Errors and Exceptions](../console-and-runtime/latest-errors-and-exceptions.md)
+- [CrashLoop OOM and Resource Pressure Playbook](../../playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md)

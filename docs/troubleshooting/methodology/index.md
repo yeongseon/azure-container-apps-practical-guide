@@ -168,3 +168,4 @@ ContainerAppConsoleLogs_CL
 - [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)
 - [Playbooks](../playbooks/index.md)
 - [KQL Queries](../kql/index.md)
+- [Detector Map: Symptom to Playbook](detector-map.md)

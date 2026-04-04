@@ -20,7 +20,7 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query 
 
 - Look for the latest revision with `health=Healthy` and `running=Running`.
 - Failure patterns: `Provisioning failed`, `Failed`, `Degraded`, inactive latest revision.
-- If failed → go to [Revision Provisioning Failure](../playbooks/index.md#revision-provisioning-failure).
+- If failed → go to [Revision Provisioning Failure](../playbooks/startup-and-provisioning/revision-provisioning-failure.md).
 
 ## 2) Replica Status
 
@@ -30,7 +30,7 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "
 
 - Look for replicas that remain in `Running` state.
 - Failure patterns: repeated short-lived replicas, no replicas created, restart loops.
-- If failed → go to [Container Start Failure](../playbooks/index.md#container-start-failure).
+- If failed → go to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
 
 ## 3) Container Logs
 
@@ -40,7 +40,7 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 
 - Look for Python traceback, startup command failures, bind errors, missing configuration.
 - Failure patterns: `ModuleNotFoundError`, `Address already in use`, `connection refused`, crash loops.
-- If failed → go to [Container Start Failure](../playbooks/index.md#container-start-failure).
+- If failed → go to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
 
 ## 4) Image Pull
 
@@ -51,7 +51,7 @@ az acr repository show-tags --name "$ACR_NAME" --repository "$APP_NAME" --output
 
 - Confirm image tag exists and system logs do not show pull/auth errors.
 - Failure patterns: `ImagePullBackOff`, `manifest unknown`, `unauthorized`, `denied`.
-- If failed → go to [Image Pull Failure](../playbooks/index.md#image-pull-failure).
+- If failed → go to [Image Pull Failure](../playbooks/startup-and-provisioning/image-pull-failure.md).
 
 ## 5) Ingress Configuration
 
@@ -61,7 +61,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 - Confirm `external` setting matches your access model and `targetPort` matches app listening port.
 - Failure patterns: ingress disabled, wrong `targetPort`, internal app tested from public internet.
-- If failed → go to [Ingress Not Reachable](../playbooks/index.md#ingress-not-reachable).
+- If failed → go to [Ingress Not Reachable](../playbooks/ingress-and-networking/ingress-not-reachable.md).
 
 ## 6) Health Probes
 
@@ -71,7 +71,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 - Confirm liveness/readiness probe paths and ports are valid; startup probe timeout fits app boot time.
 - Failure patterns: probe path returns 404/500, startup timeout too short, wrong probe port.
-- If failed → go to [Container Start Failure](../playbooks/index.md#container-start-failure).
+- If failed → go to [Probe Failure and Slow Start](../playbooks/startup-and-provisioning/probe-failure-and-slow-start.md).
 
 !!! warning "Probe defaults can still fail"
     Apps with migrations, cold dependency checks, or large model loads often need a longer startup probe window.
@@ -85,7 +85,7 @@ az role assignment list --scope "$(az acr show --name "$ACR_NAME" --query id --o
 
 - Confirm managed identity exists and has `AcrPull` role on the registry scope.
 - Failure patterns: no principal ID, missing `AcrPull`, ACR firewall blocks environment egress.
-- If failed → go to [Managed Identity Auth Failure](../playbooks/index.md#managed-identity-auth-failure) and [Image Pull Failure](../playbooks/index.md#image-pull-failure).
+- If failed → go to [Managed Identity Auth Failure](../playbooks/identity-and-configuration/managed-identity-auth-failure.md) and [Image Pull Failure](../playbooks/startup-and-provisioning/image-pull-failure.md).
 
 ## 8) Secrets and Config
 
@@ -96,7 +96,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 - Confirm secret references exist and expected environment variables are present.
 - Failure patterns: `secretRef` points to missing secret, null env var values, stale revision after secret update.
-- If failed → go to [Revision Provisioning Failure](../playbooks/index.md#revision-provisioning-failure) and [Container Start Failure](../playbooks/index.md#container-start-failure).
+- If failed → go to [Secret and Key Vault Reference Failure](../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) and [Revision Provisioning Failure](../playbooks/startup-and-provisioning/revision-provisioning-failure.md).
 
 ## 9) Environment and Network
 
@@ -107,7 +107,7 @@ az network private-endpoint list --resource-group "$RG" --output table
 
 - Confirm environment is healthy and network dependencies (private DNS/private endpoints) are correctly configured.
 - Failure patterns: DNS resolution failures, blocked NSG outbound rules, missing private DNS link.
-- If failed → go to [Internal DNS Failure](../playbooks/index.md#internal-dns-failure).
+- If failed → go to [Internal DNS and Private Endpoint Failure](../playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md).
 
 ## 10) Dependencies
 
@@ -117,7 +117,7 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 
 - Confirm the app can resolve and reach critical services (database, storage, API endpoints).
 - Failure patterns: DNS timeout, TLS handshake errors, outbound firewall denials.
-- If failed → go to [Managed Identity Auth Failure](../playbooks/index.md#managed-identity-auth-failure) or [Internal DNS Failure](../playbooks/index.md#internal-dns-failure).
+- If failed → go to [Service-to-Service Connectivity Failure](../playbooks/ingress-and-networking/service-to-service-connectivity-failure.md), [Managed Identity Auth Failure](../playbooks/identity-and-configuration/managed-identity-auth-failure.md), or [Internal DNS and Private Endpoint Failure](../playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md).
 
 ## Escalate with Context
 

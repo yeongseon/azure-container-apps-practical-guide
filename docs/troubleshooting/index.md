@@ -7,11 +7,20 @@ This section provides a **systematic approach** to identifying and fixing common
 
 ## Troubleshooting Areas
 
--   **[First 10 Minutes](first-10-minutes/index.md)**: A rapid checklist for immediate triage. 
--   **[Playbooks](playbooks/index.md)**: Detailed step-by-step guides for specific error types (e.g., `Revision provisioning failed`, `503 Service Unavailable`, `Log streaming issues`).
--   **[Methodology](methodology/index.md)**: A systematic mental model for troubleshooting Container Apps — separating control-plane issues from data-plane errors.
--   **[KQL Queries](kql/index.md)**: Powerful Log Analytics queries to search system and application logs across your environment.
--   **[Lab Guides](lab-guides/index.md)**: Practice troubleshooting in a controlled environment with pre-built "broken" scenarios.
+-   **[First 10 Minutes](first-10-minutes/index.md)**: A rapid ordered checklist for immediate triage.
+-   **[Playbooks](playbooks/index.md)**: Fifteen hypothesis-driven incident playbooks grouped by startup, networking, scaling, identity, and platform features.
+-   **[Methodology](methodology/index.md)**: A systematic root-cause workflow for revision, replica, identity, and network analysis.
+-   **[Detector Map](methodology/detector-map.md)**: Symptom-to-playbook routing tree and error-string mapping table.
+-   **[KQL Queries](kql/index.md)**: Fifteen focused query pages for revision, runtime, networking, scaling, identity, Dapr/jobs, and App Insights correlation.
+-   **[Lab Guides](lab-guides/index.md)**: Practice troubleshooting in a controlled environment with pre-built broken scenarios.
+
+## Playbook Categories at a Glance
+
+- **Startup and Provisioning**: image pull, revision provisioning, startup, probe timing
+- **Ingress and Networking**: ingress reachability, DNS/private endpoint, service connectivity
+- **Scaling and Runtime**: HTTP scaling, event scaler mismatch, crash loops and OOM
+- **Identity and Configuration**: managed identity and secret/Key Vault references
+- **Platform Features**: Dapr sidecar/components, jobs, rollout rollback
 
 ## Scope
 
@@ -34,4 +43,6 @@ When something goes wrong, ask these questions in order:
 
 - [Operations Guide](../operations/index.md)
 - [Platform - Architecture](../platform/index.md)
-- [KQL Cheatsheet](kql/index.md)
+- [KQL Queries](kql/index.md)
+- [Troubleshooting Playbooks](playbooks/index.md)
+- [Detector Map](methodology/detector-map.md)

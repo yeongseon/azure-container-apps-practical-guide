@@ -1,0 +1,43 @@
+# Top Noisy Messages
+
+Use this query to identify repetitive log lines that may indicate error storms or low-signal noise.
+
+## Data Source
+
+| Table | Schema Note |
+|---|---|
+| `ContainerAppConsoleLogs_CL` | Legacy schema. If empty, try `ContainerAppConsoleLogs` (non-`_CL`). |
+
+## Query Pipeline
+
+```mermaid
+flowchart LR
+    A[Filter by app and time window] --> B[Normalize message text] --> C[Count by message] --> D[Top noisy entries]
+```
+
+## Query
+
+```kusto
+let AppName = "my-container-app";
+let Window = 6h;
+ContainerAppConsoleLogs_CL
+| where ContainerAppName_s == AppName and TimeGenerated >= ago(Window)
+| summarize occurrences=count() by Log_s
+| top 20 by occurrences desc
+```
+
+## Interpretation Notes
+
+- High-frequency identical errors are good candidates for first remediation.
+- Noise reduction improves on-call signal quality.
+- Normal pattern: healthy mix of informational logs with low repetitive errors.
+
+## Limitations
+
+- Does not group semantically similar but text-different messages.
+- Large dynamic fields can fragment counts.
+
+## See Also
+
+- [Latest Errors and Exceptions](latest-errors-and-exceptions.md)
+- [Container Start Failure Playbook](../../playbooks/startup-and-provisioning/container-start-failure.md)
