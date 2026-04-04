@@ -33,7 +33,7 @@ jobs:
         run: az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
 
       - name: Build and Push Image
-        working-directory: app
+        working-directory: apps/python
         run: |
           IMAGE_TAG="${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           docker build -t $IMAGE_TAG .

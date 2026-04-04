@@ -89,7 +89,7 @@ echo ""
 echo "Step 4/5: Building and pushing container image..."
 az acr login --name "$ACR_NAME"
 
-pushd ../app > /dev/null
+pushd ../apps/python > /dev/null
 docker build -t "$ACR_LOGIN_SERVER/$BASE_NAME:$IMAGE_TAG" .
 docker push "$ACR_LOGIN_SERVER/$BASE_NAME:$IMAGE_TAG"
 popd > /dev/null
