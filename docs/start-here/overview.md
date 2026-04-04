@@ -101,7 +101,7 @@ Now that you understand how Container Apps works, choose your path:
 - [Networking](../platform/index.md)
 - [Revision Management and Traffic Splitting](../operations/index.md)
 
-## References
+## Sources
 
 - [How Azure Container Apps Works (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
 - [Azure Container Apps architecture (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/architecture)

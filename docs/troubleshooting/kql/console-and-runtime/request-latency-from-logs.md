@@ -27,6 +27,14 @@ ContainerAppConsoleLogs_CL
 | order by TimeGenerated desc
 ```
 
+## Example Output
+
+| TimeGenerated | RevisionName_s | p50 | p95 | p99 | max |
+|---|---|---:|---:|---:|---:|
+| 2026-04-04T11:40:00.000Z | ca-myapp--0000001 | 34 | 112 | 189 | 241 |
+| 2026-04-04T11:35:00.000Z | ca-myapp--0000001 | 29 | 96 | 141 | 166 |
+| 2026-04-04T11:30:00.000Z | ca-myapp--0000001 | 27 | 88 | 133 | 158 |
+
 ## Interpretation Notes
 
 - Rising `p95` with flat replica count suggests scaling constraints.

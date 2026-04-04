@@ -2,6 +2,8 @@
 
 Hands-on troubleshooting labs for Azure Container Apps with deployable infrastructure and scripted failure/recovery flows.
 
+All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp`, and `job-myapp` naming.
+
 ## Available Labs
 
 | Lab | Description | Difficulty | Duration | Guide | Lab Files |

@@ -26,6 +26,13 @@ ContainerAppSystemLogs_CL
 | order by events desc
 ```
 
+## Example Output
+
+| RevisionName_s | ReplicaName_s | events | firstSeen | lastSeen |
+|---|---|---:|---|---|
+| ca-myapp--0000002 | ca-myapp--0000002-5f8b7fbbd8-7j4nm | 9 | 2026-04-04T11:31:22.092Z | 2026-04-04T11:48:05.223Z |
+| ca-myapp--0000001 | ca-myapp--0000001-6cc5f7cc66-vk4pp | 2 | 2026-04-04T12:54:25.409Z | 2026-04-04T12:54:25.409Z |
+
 ## Interpretation Notes
 
 - High `events` on few replicas indicates unstable runtime behavior.

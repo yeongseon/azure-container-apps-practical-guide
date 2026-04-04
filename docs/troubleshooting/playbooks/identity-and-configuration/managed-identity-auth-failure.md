@@ -31,7 +31,7 @@ Use this playbook when your app can run but fails to authenticate or authorize t
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("ManagedIdentityCredential", "401", "403", "token", "Forbidden")
@@ -52,6 +52,14 @@ az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'from azure.identity import ManagedIdentityCredential; token = ManagedIdentityCredential().get_token("https://vault.azure.net/.default"); print(token.expires_on)'"
 az role assignment list --scope "/subscriptions/<subscription-id>/resourceGroups/$RG" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
+```
+
+Observed runtime baseline while investigating auth failures:
+
+```text
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
 ## Decision Flow

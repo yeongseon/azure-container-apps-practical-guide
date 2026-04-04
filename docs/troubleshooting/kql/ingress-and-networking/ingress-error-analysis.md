@@ -26,6 +26,14 @@ ContainerAppSystemLogs_CL
 | order by TimeGenerated desc
 ```
 
+## Example Output
+
+| TimeGenerated | RevisionName_s | Reason_s | Log_s |
+|---|---|---|---|
+| 2026-04-04T11:44:02.611Z | ca-myapp--0000002 | ProbeFailed | upstream request timeout while waiting for backend response (504) |
+| 2026-04-04T11:43:57.204Z | ca-myapp--0000002 | ProbeFailed | ingress gateway received 502 from backend pod |
+| 2026-04-04T11:42:11.933Z | ca-myapp--0000002 | RevisionUpdate | ingress endpoint switched to latest revision |
+
 ## Interpretation Notes
 
 - Repeated 502/504 with unhealthy revisions points to backend readiness issues.

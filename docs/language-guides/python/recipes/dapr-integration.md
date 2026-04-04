@@ -66,6 +66,6 @@ Configure Dapr components (like state stores or pub/sub brokers) as separate res
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)
 - [Operations: Observability](../../../operations/monitoring/index.md)
 
-## References
+## Sources
 - [Dapr overview for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-overview)
 - [Dapr component schema in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-component-schema)

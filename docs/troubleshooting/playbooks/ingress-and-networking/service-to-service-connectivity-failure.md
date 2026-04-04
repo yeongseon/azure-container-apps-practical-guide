@@ -31,7 +31,7 @@ Use this playbook when one Container App cannot call another service (Container 
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("connection refused", "timeout", "TLS", "503", "upstream")
@@ -52,6 +52,14 @@ az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --que
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.gethostbyname("target-service.internal"))'"
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen("https://target-service/health", timeout=5).status)'"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
+```
+
+Observed healthy revision baseline:
+
+```text
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
 ## Decision Flow

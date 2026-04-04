@@ -26,6 +26,14 @@ ContainerAppSystemLogs_CL
 | order by TimeGenerated desc
 ```
 
+## Example Output
+
+| TimeGenerated | RevisionName_s | ReplicaName_s | Reason_s | Log_s |
+|---|---|---|---|---|
+| 2026-04-04T11:36:44.201Z | ca-myapp--0000002 | ca-myapp--0000002-5f8b7fbbd8-7j4nm | ProbeFailed | Readiness probe failed: timeout after 5s |
+| 2026-04-04T11:35:10.110Z | ca-myapp--0000002 | ca-myapp--0000002-5f8b7fbbd8-7j4nm | RevisionUpdate | New revision provisioning started |
+| 2026-04-04T11:34:55.774Z | ca-myapp--0000002 |  | ContainerAppUpdate | Configuration update detected for revision rollout |
+
 ## Interpretation Notes
 
 - Focus on earliest failure event for each revision.

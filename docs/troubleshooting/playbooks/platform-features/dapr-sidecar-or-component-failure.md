@@ -31,7 +31,7 @@ Use this playbook when Dapr-enabled applications fail service invocation, pub/su
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("dapr", "component", "pubsub", "state", "sidecar")
@@ -52,6 +52,14 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:3500/v1.0/healthz", timeout=5).status)'"
+```
+
+Observed app baseline before isolating Dapr failures:
+
+```text
+ContainerStarted    → Started container 'ca-myapp'
+RevisionReady       → Revision ready
+ContainerAppReady   → Running state reached
 ```
 
 ## Decision Flow

@@ -20,8 +20,8 @@ graph LR
 1. **Set standard variables (reuse Bicep outputs from Step 02)**
 
    ```bash
-   RG="rg-aca-python-demo"
-   BASE_NAME="pycontainer"
+   RG="rg-myapp"
+   BASE_NAME="myapp"
    DEPLOYMENT_NAME="main"
 
    APP_NAME=$(az deployment group show \
@@ -78,8 +78,8 @@ graph LR
        `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
        ```json
        {
-         "latestRevision": "ca-pycontainer-<unique-suffix>--<revision-suffix>",
-         "name": "ca-pycontainer-<unique-suffix>",
+"latestRevision": "ca-myapp-<unique-suffix>--<revision-suffix>",
+          "name": "ca-myapp-<unique-suffix>",
          "provisioningState": "Succeeded"
        }
        ```
@@ -90,16 +90,33 @@ graph LR
    az containerapp revision list \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}"
+     --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}" \
+     --output table
    ```
 
    ???+ example "Expected output"
-       ```
-       Name                                     Active    CreatedTime
-       ---------------------------------------  --------  -------------------------
-       ca-pycontainer-<unique-suffix>--rev1     True      2024-01-15T10:00:00+00:00
-       ca-pycontainer-<unique-suffix>--rev2     True      2024-01-15T10:15:00+00:00
-       ```
+        ```text
+        Name                                     Active    CreatedTime
+        ---------------------------------------  --------  -------------------------
+        ca-myapp-<unique-suffix>--rev1           True      2024-01-15T10:00:00+00:00
+        ca-myapp-<unique-suffix>--rev2           True      2024-01-15T10:15:00+00:00
+        ```
+
+        JSON equivalent (`--output json`):
+        ```json
+        [
+          {
+            "name": "ca-myapp--0000001",
+            "active": true,
+            "createdTime": "2024-01-15T10:00:00+00:00"
+          },
+          {
+            "name": "ca-myapp--0000002",
+            "active": true,
+            "createdTime": "2024-01-15T10:15:00+00:00"
+          }
+        ]
+        ```
 
 5. **Apply canary traffic split (90/10)**
 
@@ -111,18 +128,47 @@ graph LR
    ```
 
    ???+ example "Expected output"
-       ```json
-       [
-         {
-           "revisionName": "ca-pycontainer-<unique-suffix>--rev1",
+        ```json
+        [
+          {
+            "revisionName": "ca-myapp-<unique-suffix>--rev1",
            "weight": 90
          },
          {
-           "revisionName": "ca-pycontainer-<unique-suffix>--rev2",
+           "revisionName": "ca-myapp-<unique-suffix>--rev2",
            "weight": 10
-         }
-       ]
-       ```
+          }
+        ]
+        ```
+
+   Verify applied traffic routing:
+
+   ```bash
+   az containerapp ingress show \
+     --name "$APP_NAME" \
+     --resource-group "$RG"
+   ```
+
+   ???+ example "Expected output"
+        ```json
+        {
+          "allowInsecure": false,
+          "external": true,
+          "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+          "targetPort": 8000,
+          "transport": "Auto",
+          "traffic": [
+            {
+              "revisionName": "ca-myapp--0000001",
+              "weight": 90
+            },
+            {
+              "revisionName": "ca-myapp--0000002",
+              "weight": 10
+            }
+          ]
+        }
+        ```
 
 6. **Rollback instantly if errors increase**
 
@@ -137,8 +183,8 @@ graph LR
        ```json
        [
          {
-           "revisionName": "ca-pycontainer-<unique-suffix>--rev1",
-           "weight": 100
+"revisionName": "ca-myapp-<unique-suffix>--rev1",
+            "weight": 100
          }
        ]
        ```
@@ -175,6 +221,6 @@ graph LR
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Revisions Operations](../../operations/revision-management/index.md)
 
-## References
+## Sources
 - [Revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
 - [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)

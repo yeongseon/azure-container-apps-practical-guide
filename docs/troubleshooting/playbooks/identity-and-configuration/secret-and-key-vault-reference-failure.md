@@ -31,7 +31,7 @@ Use this playbook when revisions fail or apps crash because secrets are missing,
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("secret", "KeyVault", "vault", "reference", "denied")
@@ -53,6 +53,13 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 az keyvault secret show --vault-name "my-kv" --name "my-secret" --query "attributes.enabled" --output tsv
 az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+```
+
+Observed provisioning baseline:
+
+```text
+$ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisioningState
+"Succeeded"
 ```
 
 ## Decision Flow

@@ -520,7 +520,7 @@ Each requires a separate Private Endpoint and DNS A record in `privatelink.azure
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)
 
-## References
+## Sources
 - [ACR Private Link (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-link)
 - [Managed identity for Container Apps registry auth (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
 - [ACR authentication as ARM (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity)

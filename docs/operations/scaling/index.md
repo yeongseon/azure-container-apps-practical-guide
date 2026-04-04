@@ -149,6 +149,6 @@ az containerapp logs show \
 - [Observability](../monitoring/index.md)
 - [Scaling with KEDA (Concepts)](../../platform/scaling/index.md)
 
-## References
+## Sources
 - [Azure Container Apps scaling](https://learn.microsoft.com/azure/container-apps/scale-app)
 - [KEDA scalers reference (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#scale-triggers)

@@ -21,9 +21,9 @@ flowchart TD
 - Application Insights configured for application telemetry
 
 ```bash
-export RG="rg-aca-prod"
-export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export RG="rg-myapp"
+export APP_NAME="ca-myapp"
+export ENVIRONMENT_NAME="cae-myapp"
 ```
 
 ## Log Analytics Operations
@@ -38,6 +38,17 @@ az containerapp env show \
   --output json
 ```
 
+Example output (PII scrubbed):
+
+```json
+{
+  "destination": "log-analytics",
+  "logAnalyticsConfiguration": {
+    "customerId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  }
+}
+```
+
 Run a KQL query for recent errors:
 
 ```bash
@@ -45,6 +56,12 @@ az monitor log-analytics query \
   --workspace "<log-analytics-workspace-id>" \
   --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s contains 'ERROR' | limit 50" \
   --output table
+```
+
+Example output:
+
+```text
+No results found.
 ```
 
 ## Application Insights Operations
@@ -67,6 +84,61 @@ az containerapp logs show \
   --resource-group "$RG" \
   --type console \
   --follow false
+```
+
+Example output from the running revision:
+
+```json
+{"status":"healthy","timestamp":"2026-04-04T11:32:37.322216+00:00"}
+```
+
+Track replica and revision health as platform signals:
+
+```bash
+az containerapp revision list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output json
+
+az containerapp replica list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --revision "ca-myapp--0000001" \
+  --output json
+```
+
+Example output (PII scrubbed):
+
+```json
+[
+  {
+    "name": "ca-myapp--0000001",
+    "active": true,
+    "trafficWeight": 100,
+    "replicas": 1,
+    "healthState": "Healthy",
+    "runningState": "Running"
+  }
+]
+```
+
+```json
+[
+  {
+    "name": "ca-myapp--0000001-646779b4c5-bhc2v",
+    "properties": {
+      "containers": [
+        {
+          "name": "ca-myapp",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running"
+        }
+      ],
+      "runningState": "Running"
+    }
+  }
+]
 ```
 
 ## Distributed Tracing Operations
@@ -96,8 +168,8 @@ Example output (PII masked):
 
 ```json
 {
-  "id": "/subscriptions/<subscription-id>/resourceGroups/rg-aca-prod/providers/microsoft.insights/components/appi-aca-prod",
-  "name": "appi-aca-prod",
+  "id": "/subscriptions/<subscription-id>/resourceGroups/rg-myapp/providers/microsoft.insights/components/<app-insights-name>",
+  "name": "<app-insights-name>",
   "provisioningState": "Succeeded"
 }
 ```
@@ -125,6 +197,6 @@ Example output (PII masked):
 - [Health and Recovery](../../platform/reliability/health-recovery.md)
 - [Cost Optimization](../../platform/reliability/cost-optimization.md)
 
-## References
+## Sources
 - [Azure Monitor for Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
 - [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)

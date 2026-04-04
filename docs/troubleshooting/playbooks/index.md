@@ -4,12 +4,24 @@
 
 ```bash
 RG="rg-myapp"
-APP_NAME="my-python-app"
+APP_NAME="ca-myapp"
 
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query properties.provisioningState
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow
+```
+
+Use `APP_NAME="ca-myapp"` for the examples below. Real observed healthy outputs:
+
+```text
+$ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query properties.provisioningState
+"Succeeded"
+
+$ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
 ## Common Errors

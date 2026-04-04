@@ -26,6 +26,13 @@ ContainerAppConsoleLogs_CL
 | order by errors desc
 ```
 
+## Example Output
+
+| RevisionName_s | errors | firstSeen | lastSeen |
+|---|---:|---|---|
+| ca-myapp--0000002 | 18 | 2026-04-04T11:40:58.104Z | 2026-04-04T11:46:13.922Z |
+| ca-myapp--0000001 | 2 | 2026-04-04T11:31:14.005Z | 2026-04-04T11:32:02.480Z |
+
 ## Interpretation Notes
 
 - Sharp error concentration on latest revision is a rollback signal.

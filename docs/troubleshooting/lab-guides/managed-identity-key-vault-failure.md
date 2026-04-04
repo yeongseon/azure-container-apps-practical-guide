@@ -37,6 +37,16 @@ cd labs/managed-identity-key-vault-failure
 ./cleanup.sh
 ```
 
+## Expected Diagnostic Output Pattern
+
+```text
+Managed identity failures commonly present as 401/403 in app logs while revision stays Running:
+
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
+```
+
 ## Key Takeaways
 
 - System-assigned identity alone is not enough; RBAC role assignment is mandatory.

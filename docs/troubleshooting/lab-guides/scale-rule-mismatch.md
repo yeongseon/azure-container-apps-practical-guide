@@ -36,6 +36,20 @@ cd labs/scale-rule-mismatch
 ./cleanup.sh
 ```
 
+## Expected Diagnostic Output Pattern
+
+```text
+Reason_s             Type_s
+-------------------  --------
+KEDAScalersStarted   Normal
+```
+
+Replica baseline used during verification:
+
+```text
+ca-myapp--0000001-646779b4c5-bhc2v  Running
+```
+
 ## Key Takeaways
 
 - Replica behavior depends heavily on matching threshold values to real traffic patterns.

@@ -140,6 +140,6 @@ This pattern reduces attack surface while keeping the public API straightforward
 - [VNet Integration Recipe](vnet-integration.md)
 - [Private Endpoint Recipe](private-endpoints.md)
 
-## References
+## Sources
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
 - [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/ingress-overview)

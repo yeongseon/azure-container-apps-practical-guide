@@ -31,7 +31,7 @@ Use this playbook when request load increases but replica count remains flat or 
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("scale", "http", "replica")
@@ -52,6 +52,14 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output 
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
+```
+
+Observed healthy scale-system signal:
+
+```text
+Reason_s             Type_s    Typical count    Meaning
+-------------------  --------  ---------------  -----------------------------------------
+KEDAScalersStarted   Normal    6                KEDA scaling rules activated for revision
 ```
 
 ## Decision Flow

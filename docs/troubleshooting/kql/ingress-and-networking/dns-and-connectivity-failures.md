@@ -22,9 +22,17 @@ let AppName = "my-container-app";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("name resolution", "NXDOMAIN", "timeout", "connection refused", "TLS", "handshake")
-| project TimeGenerated, RevisionName_s, ReplicaName_s, Log_s
+| project TimeGenerated, RevisionName_s, Log_s
 | order by TimeGenerated desc
 ```
+
+## Example Output
+
+| TimeGenerated | RevisionName_s | Log_s |
+|---|---|---|
+| 2026-04-04T11:45:13.328Z | ca-myapp--0000002 | DNS name resolution failed for redis.internal: NXDOMAIN |
+| 2026-04-04T11:45:12.014Z | ca-myapp--0000002 | TLS handshake timeout connecting to api.partner.example |
+| 2026-04-04T11:45:10.650Z | ca-myapp--0000002 | connection refused host=10.0.3.12 port=443 |
 
 ## Interpretation Notes
 

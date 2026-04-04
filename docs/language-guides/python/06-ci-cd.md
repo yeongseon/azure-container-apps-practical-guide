@@ -90,9 +90,50 @@ graph LR
 
 4. **Validate rollout behavior**
 
-   - Trigger workflow from a commit to `main`.
-   - Confirm a new revision was created.
-   - Confirm traffic moved to healthy revision.
+    - Trigger workflow from a commit to `main`.
+    - Confirm a new revision was created.
+    - Confirm traffic moved to healthy revision.
+
+    ```bash
+    az containerapp revision list \
+      --name "$APP_NAME" \
+      --resource-group "$RG" \
+      --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,replicas:properties.replicas,healthState:properties.healthState,runningState:properties.runningState}"
+    ```
+
+    ???+ example "Expected output"
+        ```json
+        [
+          {
+            "name": "ca-myapp--0000001",
+            "active": true,
+            "trafficWeight": 100,
+            "replicas": 1,
+            "healthState": "Healthy",
+            "runningState": "Running"
+          }
+        ]
+        ```
+
+    ```bash
+    az containerapp ingress show \
+      --name "$APP_NAME" \
+      --resource-group "$RG"
+    ```
+
+    ???+ example "Expected output"
+        ```json
+        {
+          "allowInsecure": false,
+          "external": true,
+          "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+          "targetPort": 8000,
+          "transport": "Auto",
+          "traffic": [
+            { "latestRevision": true, "weight": 100 }
+          ]
+        }
+        ```
 
 ## Advanced Topics
 
@@ -105,6 +146,6 @@ graph LR
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
 - [Managed Identity Recipe](../../platform/identity-and-secrets/managed-identity.md)
 
-## References
+## Sources
 - [GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
 - [Connect GitHub Actions to Azure (Microsoft Learn)](https://learn.microsoft.com/azure/developer/github/connect-from-azure)

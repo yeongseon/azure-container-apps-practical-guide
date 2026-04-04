@@ -80,6 +80,6 @@ This allows one app to run canary traffic while other apps in the same environme
 - [Scaling with KEDA](../scaling/index.md)
 - [Revision Management and Traffic Splitting](../../language-guides/python/07-revisions-traffic.md)
 
-## References
+## Sources
 - [Azure Container Apps Environments and Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment)
 - [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/workload-profiles-overview)

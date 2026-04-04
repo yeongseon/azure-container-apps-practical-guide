@@ -36,6 +36,23 @@ cd labs/revision-failover
 ./cleanup.sh
 ```
 
+## Expected Diagnostic Output Pattern
+
+```text
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
+```
+
+During rollback drills, compare against revision lifecycle events:
+
+```text
+RevisionUpdate     → New revision updated
+RevisionDeactivating → Prior bad revision deactivated
+RevisionReady      → Stable revision ready
+ContainerAppReady  → Running state reached
+```
+
 ## Key Takeaways
 
 - Keep multiple revisions available when testing risky updates.

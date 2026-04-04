@@ -137,6 +137,6 @@ az keyvault secret show \
 - [Private Endpoints](../networking/private-endpoints.md)
 - [Operations Security](security-operations.md)
 
-## References
+## Sources
 - [Key Vault secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
 - [Use Key Vault references in App Service and Azure Functions (Microsoft Learn)](https://learn.microsoft.com/azure/app-service/app-service-key-vault-references)

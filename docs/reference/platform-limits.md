@@ -16,6 +16,16 @@ Use this quick reference for common design-time and runtime limits in Azure Cont
 | Containers per app template | Platform-defined maximum | Includes main container and sidecars |
 | Ephemeral filesystem | Limited, non-persistent | Use Azure Files or external storage for persistence |
 
+Observed deployment baseline (verified, PII scrubbed):
+
+| Item | Observed Value |
+|---|---|
+| App CPU | `0.5` |
+| App memory | `1Gi` |
+| Min replicas | `1` |
+| Max replicas | `3` |
+| Ingress target port | `8000` |
+
 ## Scale limits
 
 | Limit | Value | Notes |
@@ -50,6 +60,19 @@ Use this quick reference for common design-time and runtime limits in Azure Cont
 | Revisions retained | Configurable with retention policy | Keep enough history for rollback without excessive sprawl |
 | Log/metrics retention | Workspace policy dependent | Controlled in Log Analytics/Application Insights |
 
+Environment snapshot from `az containerapp env show`:
+
+```json
+{
+  "name": "cae-myapp",
+  "location": "Korea Central",
+  "provisioningState": "Succeeded",
+  "defaultDomain": "<hash>.<region>.azurecontainerapps.io",
+  "staticIp": "20.249.x.x",
+  "zoneRedundant": false
+}
+```
+
 ## Job limits
 
 | Limit | Value | Notes |
@@ -57,6 +80,21 @@ Use this quick reference for common design-time and runtime limits in Azure Cont
 | Trigger types | Manual, Schedule, Event | Choose based on workload initiation pattern |
 | Parallelism | Configurable per job | Increase cautiously with downstream rate limits |
 | Replica timeout | Configurable | Ensure timeout fits batch duration profile |
+
+Job snapshot from `az containerapp job show`:
+
+```json
+{
+  "name": "job-myapp",
+  "provisioningState": "Succeeded",
+  "triggerType": "Manual",
+  "replicaTimeout": 1800,
+  "replicaRetryLimit": 2,
+  "identity": {
+    "type": "UserAssigned"
+  }
+}
+```
 
 ## Request limits
 

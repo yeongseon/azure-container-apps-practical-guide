@@ -67,7 +67,7 @@ In **Single mode**, the platform automatically deactivates the old revision when
 - [Managing Revisions and Traffic](../../operations/revision-management/index.md)
 - [Scaling with KEDA](../scaling/index.md)
 
-## References
+## Sources
 
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
 - [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)

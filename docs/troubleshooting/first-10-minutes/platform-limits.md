@@ -34,6 +34,18 @@ az containerapp show \
   --query "properties.template.scale"
 ```
 
+Observed baseline before limit testing:
+
+```text
+$ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisioningState --output tsv
+Succeeded
+
+$ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
+```
+
 ## Symptoms That Often Indicate Limits
 
 | Symptom | Likely limit area | First action |
@@ -54,6 +66,6 @@ az containerapp show \
 
 For architecture-level implications, see [How Container Apps Works](../../start-here/overview.md).
 
-## References
+## Sources
 - [Azure Container Apps quotas and limits (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quotas)
 - [Container Apps scale rules and replicas (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)

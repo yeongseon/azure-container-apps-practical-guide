@@ -46,8 +46,8 @@ sequenceDiagram
 1. **Set standard variables (reuse Bicep outputs from Step 02)**
 
    ```bash
-   RG="rg-aca-python-demo"
-   BASE_NAME="pycontainer"
+    RG="rg-myapp"
+    BASE_NAME="myapp"
    DEPLOYMENT_NAME="main"
 
    APP_NAME=$(az deployment group show \
@@ -69,6 +69,13 @@ sequenceDiagram
      --output tsv)
    ```
 
+   ???+ example "Expected output"
+       ```text
+       APP_NAME=ca-myapp
+       ENVIRONMENT_NAME=cae-myapp
+       ACR_NAME=<acr-name>
+       ```
+
 2. **Stream console logs**
 
    ```bash
@@ -81,7 +88,7 @@ sequenceDiagram
    ???+ example "Expected output"
        ```json
        {"TimeStamp":"2024-01-15T10:30:01","Log":"Connecting to the container 'app'..."}
-       {"TimeStamp":"2024-01-15T10:30:01","Log":"Successfully Connected to container: 'app' [Revision: 'ca-pycontainer-<unique-suffix>--<revision>', Replica: 'ca-pycontainer-<unique-suffix>--<revision>-<replica-id>']"}
+       {"TimeStamp":"2024-01-15T10:30:01","Log":"Successfully Connected to container: 'app' [Revision: 'ca-myapp--<revision>', Replica: 'ca-myapp--<revision>-<replica-id>']"}
        {"TimeStamp":"2024-01-15T10:30:00+00:00","Log":"[2024-01-15 10:30:00 +0000] [1] [INFO] Starting gunicorn 21.2.0"}
        {"TimeStamp":"2024-01-15T10:30:00+00:00","Log":"[2024-01-15 10:30:00 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)"}
        {"TimeStamp":"2024-01-15T10:30:00+00:00","Log":"[2024-01-15 10:30:00 +0000] [7] [INFO] Booting worker with pid: 7"}
@@ -102,7 +109,7 @@ sequenceDiagram
 
    ???+ example "Expected output"
        ```json
-       {"TimeStamp":"2024-01-15T10:30:00Z","Type":"Normal","ContainerAppName":"ca-pycontainer-<unique-suffix>","RevisionName":"ca-pycontainer-<unique-suffix>--<revision>","ReplicaName":null,"Msg":"Successfully connected to events server","Reason":"ConnectedToEventsServer","EventSource":"ContainerAppController","Count":1}
+       {"TimeStamp":"2024-01-15T10:30:00Z","Type":"Normal","ContainerAppName":"ca-myapp","RevisionName":"ca-myapp--<revision>","ReplicaName":null,"Msg":"Successfully connected to events server","Reason":"ConnectedToEventsServer","EventSource":"ContainerAppController","Count":1}
        ```
 
 4. **Run a Log Analytics query for errors**
@@ -118,14 +125,25 @@ sequenceDiagram
         Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schema), while newer workspaces may use `ContainerAppConsoleLogs`. If queries return no results, try the alternate table name. See [KQL Queries Reference](../../troubleshooting/kql/index.md#schema-note) for details.
 
    ???+ example "Expected output"
-       The query results in the Azure Portal will display a table with the following columns:
+         The query results in the Azure Portal will display a table with the following columns:
 
-       | Column | Description |
-       |--------|-------------|
-       | `TimeGenerated` | UTC timestamp when the log entry was created |
-       | `ContainerAppName_s` | Name of your Container App (e.g., `ca-pycontainer-<unique-suffix>`) |
-       | `RevisionName_s` | The specific revision that generated the log |
-       | `Log_s` | The actual log message content containing the error or exception |
+        | Column | Description |
+        |--------|-------------|
+        | `TimeGenerated` | UTC timestamp when the log entry was created |
+        | `ContainerAppName_s` | Name of your Container App (e.g., `ca-myapp`) |
+        | `RevisionName_s` | The specific revision that generated the log |
+        | `Log_s` | The actual log message content containing the error or exception |
+
+        Sample error output:
+
+        ```text
+        TimeGenerated                    ContainerAppName_s  RevisionName_s         Log_s
+        2026-04-04T11:35:12.000Z         ca-myapp            ca-myapp--0000001      [ERROR] Connection refused: redis://localhost:6379
+        2026-04-04T11:34:58.000Z         ca-myapp            ca-myapp--0000001      Traceback (most recent call last): ...
+        ```
+
+        !!! tip
+            If no errors exist, the query returns an empty result set — which is the healthy baseline.
 
 5. **Add OpenTelemetry for traces and metrics**
 
@@ -164,6 +182,6 @@ sequenceDiagram
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Dapr Integration Recipe](recipes/dapr-integration.md)
 
-## References
+## Sources
 - [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
 - [Observability in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/observability)

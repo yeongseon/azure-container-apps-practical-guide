@@ -22,9 +22,17 @@ let AppName = "my-container-app";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("dapr", "sidecar", "component", "pubsub", "state", "invoke")
-| project TimeGenerated, RevisionName_s, ReplicaName_s, Log_s
+| project TimeGenerated, RevisionName_s, Log_s
 | order by TimeGenerated desc
 ```
+
+## Example Output
+
+| TimeGenerated | RevisionName_s | Log_s |
+|---|---|---|
+| 2026-04-04T11:39:03.024Z | ca-myapp--0000001 | dapr sidecar started. app id=ca-myapp |
+| 2026-04-04T11:39:03.410Z | ca-myapp--0000001 | component loaded: statestore (redis) |
+| 2026-04-04T11:39:14.102Z | ca-myapp--0000001 | invoke error: target app not found |
 
 ## Interpretation Notes
 

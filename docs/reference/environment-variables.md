@@ -13,15 +13,43 @@ These variables are provided by the platform at runtime.
 
 | Variable | Description | Default | Example |
 |---|---|---|---|
-| `CONTAINER_APP_NAME` | Container App resource name | None | `ca-orders-api` |
-| `CONTAINER_APP_REVISION` | Active revision name | None | `ca-orders-api--rev-abc123` |
-| `CONTAINER_APP_REPLICA_NAME` | Replica identifier | None | `ca-orders-api--rev-abc123-6f8d7c` |
+| `CONTAINER_APP_NAME` | Container App resource name | None | `ca-myapp` |
+| `CONTAINER_APP_REVISION` | Active revision name | None | `ca-myapp--0000001` |
+| `CONTAINER_APP_REPLICA_NAME` | Replica identifier | None | `ca-myapp--0000001-646779b4c5-bhc2v` |
 | `CONTAINER_APP_PORT` | Expected listening port for app container | `8000` (if configured that way) | `8000` |
 | `CONTAINER_APP_HOSTNAME` | Internal hostname for app service discovery | None | `ca-orders-api.internal` |
-| `CONTAINER_APP_ENV_DNS_SUFFIX` | Environment-level internal DNS suffix | None | `koreacentral.azurecontainerapps.io` |
+| `CONTAINER_APP_ENV_DNS_SUFFIX` | Environment-level internal DNS suffix | None | `<hash>.<region>.azurecontainerapps.io` |
 | `CONTAINER_APP_JOB_NAME` | Job name (jobs only) | None | `job-data-sync` |
 | `CONTAINER_APP_JOB_EXECUTION_NAME` | Job execution id (jobs only) | None | `job-data-sync-xxxxxxxx` |
 | `CONTAINER_APP_JOB_TRIGGER_TYPE` | Trigger type for job execution | None | `Schedule` |
+
+## Verified runtime values from real deployment
+
+The following values were observed from a real Azure Container Apps deployment and container runtime (PII scrubbed):
+
+```text
+CONTAINER_APP_NAME=ca-myapp
+CONTAINER_APP_REVISION=ca-myapp--0000001
+CONTAINER_APP_REPLICA_NAME=ca-myapp--0000001-646779b4c5-bhc2v
+CONTAINER_APP_ENV_DNS_SUFFIX=<hash>.<region>.azurecontainerapps.io
+CONTAINER_APP_PORT=8000
+```
+
+Health and info endpoint outputs from the same revision:
+
+```json
+{"status":"healthy","timestamp":"2026-04-04T11:32:37.322216+00:00"}
+```
+
+```json
+{
+  "containerApp": "ca-myapp",
+  "environment": "development",
+  "python": "3.11.15",
+  "revision": "ca-myapp--0000001",
+  "version": "1.0.0"
+}
+```
 
 ## Common app configuration variables
 
@@ -86,4 +114,7 @@ def runtime_info():
 
 - [CLI Reference](cli-reference.md)
 - [Managed Identity Recipe](../language-guides/python/recipes/managed-identity.md)
+
+## Sources
+
 - [Microsoft Learn: Environment variables in Container Apps](https://learn.microsoft.com/azure/container-apps/environment-variables)

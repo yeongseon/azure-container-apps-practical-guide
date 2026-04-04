@@ -15,9 +15,9 @@
 
 | Variable | Description | Example |
 | --- | --- | --- |
-| `CONTAINER_APP_NAME` | Container App name | `my-python-app` |
-| `CONTAINER_APP_REVISION` | Active revision | `my-python-app--abc123` |
-| `CONTAINER_APP_REPLICA_NAME` | Replica identifier | `my-python-app--abc123-xyz789` |
+| `CONTAINER_APP_NAME` | Container App name | `ca-myapp` |
+| `CONTAINER_APP_REVISION` | Active revision | `ca-myapp--0000001` |
+| `CONTAINER_APP_REPLICA_NAME` | Replica identifier | `ca-myapp--0000001-646779b4c5-bhc2v` |
 | `CONTAINER_APP_ENV_DNS_SUFFIX` | Environment DNS suffix | `eastus.azurecontainerapps.io` |
 
 ## Runtime Variables
@@ -39,7 +39,7 @@
 
 ```bash
 RG="rg-myapp"
-APP_NAME="my-python-app"
+APP_NAME="ca-myapp"
 
 az containerapp show \
   --name "$APP_NAME" \
@@ -55,6 +55,16 @@ az containerapp exec \
 env | sort
 ```
 
+Observed output pattern from a healthy replica:
+
+```text
+CONTAINER_APP_ENV_DNS_SUFFIX=<region>.azurecontainerapps.io
+CONTAINER_APP_NAME=ca-myapp
+CONTAINER_APP_REPLICA_NAME=ca-myapp--0000001-646779b4c5-bhc2v
+CONTAINER_APP_REVISION=ca-myapp--0000001
+PORT=8000
+```
+
 ## Minimal Best Practices
 
 | Do | Avoid |
@@ -63,6 +73,6 @@ env | sort
 | Keep optional defaults in code (`os.environ.get`) | Hardcoded environment-specific constants |
 | Redact connection strings in docs | PII, subscription IDs, keys/tokens |
 
-## References
+## Sources
 - [Environment variables in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment-variables)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)

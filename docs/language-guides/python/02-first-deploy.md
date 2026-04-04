@@ -22,8 +22,8 @@ graph LR
 1. **Set standard variables**
 
    ```bash
-   RG="rg-aca-python-demo"
-   BASE_NAME="pycontainer"
+   RG="rg-myapp"
+   BASE_NAME="myapp"
    LOCATION="koreacentral"
    DEPLOYMENT_NAME="main"
    ```
@@ -35,11 +35,11 @@ graph LR
    ```
 
    ???+ example "Expected output"
-       ```json
-       {
-         "id": "/subscriptions/<subscription-id>/resourceGroups/rg-aca-python-demo",
-         "location": "koreacentral",
-         "name": "rg-aca-python-demo",
+        ```json
+        {
+          "id": "/subscriptions/<subscription-id>/resourceGroups/rg-myapp",
+          "location": "koreacentral",
+          "name": "rg-myapp",
          "properties": {
            "provisioningState": "Succeeded"
          }
@@ -59,15 +59,15 @@ graph LR
    ???+ example "Expected output"
        This command takes 2-3 minutes to complete. When successful, it returns a JSON object containing the deployment details.
 
-       ```json
-       {
-         "id": "/subscriptions/<subscription-id>/resourceGroups/rg-aca-python-demo/providers/Microsoft.Resources/deployments/main",
-         "name": "main",
-         "properties": {
-           "provisioningState": "Succeeded",
-           "outputs": {
-             "containerAppName": { "type": "String", "value": "ca-pycontainer-<unique-suffix>" },
-             "containerAppUrl": { "type": "String", "value": "https://ca-pycontainer-<unique-suffix>.<hash>.<region>.azurecontainerapps.io" }
+        ```json
+        {
+          "id": "/subscriptions/<subscription-id>/resourceGroups/rg-myapp/providers/Microsoft.Resources/deployments/main",
+          "name": "main",
+          "properties": {
+            "provisioningState": "Succeeded",
+            "outputs": {
+              "containerAppName": { "type": "String", "value": "ca-myapp-<unique-suffix>" },
+              "containerAppUrl": { "type": "String", "value": "https://ca-myapp-<unique-suffix>.<hash>.<region>.azurecontainerapps.io" }
            }
          }
        }
@@ -119,13 +119,13 @@ graph LR
        ```
 
        Output:
-       ```text
-       APP_NAME=ca-pycontainer-<unique-suffix>
-       ENVIRONMENT_NAME=cae-pycontainer-<unique-suffix>
-       ACR_NAME=crpycontainer<unique-suffix>
-       ACR_LOGIN_SERVER=crpycontainer<unique-suffix>.azurecr.io
-       APP_URL=https://ca-pycontainer-<unique-suffix>.<hash>.<region>.azurecontainerapps.io
-       ```
+        ```text
+        APP_NAME=ca-myapp-<unique-suffix>
+        ENVIRONMENT_NAME=cae-myapp-<unique-suffix>
+        ACR_NAME=<acr-name>
+        ACR_LOGIN_SERVER=<acr-name>.azurecr.io
+        APP_URL=https://ca-myapp-<unique-suffix>.<hash>.<region>.azurecontainerapps.io
+        ```
 
 
 5. **Build and push container image with ACR Tasks**
@@ -145,7 +145,7 @@ graph LR
         ---> Running in abc123
         ---> def456
        Successfully built def456
-       Successfully tagged pycontainer:v1
+       Successfully tagged myapp:v1
        ```
 
    ```bash
@@ -158,8 +158,8 @@ graph LR
    ???+ example "Expected output (az containerapp update)"
        ```json
        {
-         "latestRevision": "ca-pycontainer-<unique-suffix>--<revision-suffix>",
-         "name": "ca-pycontainer-<unique-suffix>",
+          "latestRevision": "ca-myapp-<unique-suffix>--<revision-suffix>",
+          "name": "ca-myapp-<unique-suffix>",
          "provisioningState": "Succeeded"
        }
        ```
@@ -177,7 +177,7 @@ graph LR
        ```json
        {
          "state": "Succeeded",
-         "url": "ca-pycontainer-<unique-suffix>.<hash>.<region>.azurecontainerapps.io"
+         "url": "ca-myapp-<unique-suffix>.<hash>.<region>.azurecontainerapps.io"
        }
        ```
 
@@ -186,10 +186,31 @@ graph LR
    curl "$APP_URL/health"
    ```
 
-   ???+ example "Expected output (health check)"
-       ```json
-       {"status":"healthy","timestamp":"2024-01-15T10:30:00.000000+00:00"}
-       ```
+    ???+ example "Expected output (health check)"
+        ```json
+        {"status":"healthy","timestamp":"2024-01-15T10:30:00.000000+00:00"}
+        ```
+
+    Verify ingress configuration details:
+    ```bash
+    az containerapp ingress show \
+      --name "$APP_NAME" \
+      --resource-group "$RG"
+    ```
+
+    ???+ example "Expected output (ingress configuration)"
+        ```json
+        {
+          "allowInsecure": false,
+          "external": true,
+          "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+          "targetPort": 8000,
+          "transport": "Auto",
+          "traffic": [
+            { "latestRevision": true, "weight": 100 }
+          ]
+        }
+        ```
 
 7. **Deploy an update (creates a new revision)**
 
@@ -201,6 +222,46 @@ graph LR
       --resource-group "$RG" \
       --image "$ACR_LOGIN_SERVER/$BASE_NAME:v2"
    ```
+
+    ???+ example "Expected output"
+        ```json
+        {
+          "name": "ca-myapp",
+          "provisioningState": "Succeeded",
+          "latestRevisionName": "ca-myapp--0000002"
+        }
+        ```
+
+   Confirm revision status — you should now see **two revisions** (the original v1 and the new v2):
+
+   ```bash
+   az containerapp revision list \
+      --name "$APP_NAME" \
+      --resource-group "$RG" \
+      --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,replicas:properties.replicas,healthState:properties.healthState,runningState:properties.runningState}"
+   ```
+
+   ???+ example "Expected output (revision list)"
+        ```json
+        [
+          {
+            "name": "ca-myapp--0000001",
+            "active": true,
+            "trafficWeight": 0,
+            "replicas": 0,
+            "healthState": "Healthy",
+            "runningState": "Running"
+          },
+          {
+            "name": "ca-myapp--0000002",
+            "active": true,
+            "trafficWeight": 100,
+            "replicas": 1,
+            "healthState": "Healthy",
+            "runningState": "Running"
+          }
+        ]
+        ```
 
 ## What to validate
 
@@ -219,6 +280,6 @@ graph LR
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
 - [Networking VNet Recipe](../../platform/networking/vnet-integration.md)
 
-## References
+## Sources
 - [Get started (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/get-started)
 - [az containerapp up reference (Microsoft Learn)](https://learn.microsoft.com/cli/azure/containerapp#az-containerapp-up)

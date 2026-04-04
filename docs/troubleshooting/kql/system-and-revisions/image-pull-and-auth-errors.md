@@ -26,6 +26,14 @@ ContainerAppSystemLogs_CL
 | order by TimeGenerated desc
 ```
 
+## Example Output
+
+| TimeGenerated | RevisionName_s | Reason_s | Log_s |
+|---|---|---|---|
+| 2026-04-04T12:54:11.477Z | ca-myapp--0000001 | PulledImage | Successfully pulled image in 2.42s (58720256 bytes) |
+| 2026-04-04T12:54:11.477Z | ca-myapp--0000001 | PullingImage | Pulling image '<acr-name>.azurecr.io/myapp-job:v1.0.0' |
+| 2026-04-04T11:12:03.208Z | ca-myapp--0000002 | RevisionUpdate | Failed to pull image: unauthorized: authentication required |
+
 ## Interpretation Notes
 
 - `manifest unknown` usually means bad repository or tag.

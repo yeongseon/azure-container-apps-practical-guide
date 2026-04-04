@@ -45,6 +45,21 @@ graph TD
      --output tsv)
    ```
 
+   ???+ example "Expected output"
+       The commands above set shell variables silently. Verify them with:
+
+       ```bash
+       echo "APP_NAME=$APP_NAME"
+       echo "ENVIRONMENT_NAME=$ENVIRONMENT_NAME"
+       echo "ACR_NAME=$ACR_NAME"
+       ```
+
+       ```text
+       APP_NAME=ca-myapp
+       ENVIRONMENT_NAME=cae-myapp
+       ACR_NAME=<acr-name>
+       ```
+
 2. **Set environment variables**
 
    ```bash
@@ -140,6 +155,27 @@ graph TD
      --scale-rule-auth "connection=servicebus-connection"
    ```
 
+   ???+ example "Expected output"
+       ```json
+       {
+         "name": "ca-myapp",
+         "provisioningState": "Succeeded"
+       }
+       ```
+
+   Verify pushed repositories in ACR:
+
+   ```bash
+   az acr repository list \
+     --name "$ACR_NAME" \
+     --output json
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       ["myapp", "myapp-job"]
+       ```
+
 6. **Enable Dapr sidecar**
 
    ```bash
@@ -185,6 +221,6 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
 - [Dapr Integration Recipe](recipes/dapr-integration.md)
 
-## References
+## Sources
 - [Containers (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)

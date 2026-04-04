@@ -36,6 +36,15 @@ cd labs/acr-pull-failure
 ./cleanup.sh
 ```
 
+## Expected Diagnostic Output Pattern
+
+```text
+Reason_s      Log_s
+------------  -----------------------------------------------------------------
+PullingImage  Pulling image '<acr-name>.azurecr.io/myapp:v1.0.0'
+PulledImage   Successfully pulled image in 2.42s. Image size: 58720256 bytes.
+```
+
 ## Key Takeaways
 
 - Image tag validation is the fastest first check for pull failures.

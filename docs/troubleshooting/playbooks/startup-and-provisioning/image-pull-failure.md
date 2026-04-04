@@ -31,7 +31,7 @@ This playbook isolates failures where a revision never starts because the platfo
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("pull", "manifest", "unauthorized", "denied")
@@ -54,6 +54,15 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query 
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
 az role assignment list --scope "$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
+```
+
+Observed system-log success pattern (baseline to compare against failures):
+
+```text
+TimeGenerated              Reason_s      Log_s
+-------------------------  ------------  -----------------------------------------------------------------
+2026-04-04T12:54:11.477Z   PullingImage  Pulling image '<acr-name>.azurecr.io/myapp:v1.0.0'
+2026-04-04T12:54:11.477Z   PulledImage   Successfully pulled image in 2.42s. Image size: 58720256 bytes.
 ```
 
 ## Decision Flow

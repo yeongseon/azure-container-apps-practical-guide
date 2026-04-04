@@ -85,6 +85,6 @@ blob_service_client = BlobServiceClient(
 - [Key Vault](key-vault.md)
 - [Blob Storage and File Mounts](../../language-guides/python/recipes/storage.md)
 
-## References
+## Sources
 - [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
 - [What are managed identities for Azure resources? (Microsoft Learn)](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview)

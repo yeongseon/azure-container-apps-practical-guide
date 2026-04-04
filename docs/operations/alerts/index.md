@@ -2,6 +2,14 @@
 
 Alerting translates platform telemetry into actionable incident signals. This page provides a baseline alert set for production Container Apps.
 
+## Prerequisites
+
+```bash
+export RG="rg-myapp"
+export APP_NAME="ca-myapp"
+export JOB_NAME="job-myapp"
+```
+
 ## Key Metrics to Alert On
 
 Prioritize metrics that indicate user impact or workload instability:
@@ -36,6 +44,44 @@ az monitor metrics alert create \
   --action "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/microsoft.insights/actionGroups/ag-oncall"
 ```
 
+Pre-alert baseline checks from real deployment (PII scrubbed):
+
+```bash
+az containerapp revision list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output json
+
+az containerapp job execution list \
+  --name "$JOB_NAME" \
+  --resource-group "$RG" \
+  --output json
+```
+
+```json
+[
+  {
+    "name": "ca-myapp--0000001",
+    "active": true,
+    "trafficWeight": 100,
+    "replicas": 1,
+    "healthState": "Healthy",
+    "runningState": "Running"
+  }
+]
+```
+
+```json
+[
+  {
+    "name": "job-myapp-w6gm0ew",
+    "status": "Succeeded",
+    "startTime": "2026-04-04T12:53:54+00:00",
+    "endTime": "2026-04-04T12:54:29+00:00"
+  }
+]
+```
+
 ## Log-Based Alerts with KQL
 
 Use log alerts for pattern detection, retries, and error semantics from application logs.
@@ -49,6 +95,15 @@ ContainerAppConsoleLogs_CL
 | where Log_s has "\"status\":500" or Log_s has "\"status\":503"
 | summarize ErrorCount = count() by bin(TimeGenerated, 1m)
 | where ErrorCount > 20
+```
+
+Example query result format:
+
+```text
+TimeGenerated               ErrorCount
+-------------------------  ----------
+2026-04-04T12:50:00Z       0
+2026-04-04T12:51:00Z       0
 ```
 
 Sample KQL (job failures):

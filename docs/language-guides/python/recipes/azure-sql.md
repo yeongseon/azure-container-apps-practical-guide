@@ -131,6 +131,6 @@ az containerapp logs show \
 - [VNet Integration](../../../platform/networking/vnet-integration.md)
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 
-## References
+## Sources
 - [Azure SQL + Microsoft Entra authentication](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview)
 - [Connect to Azure SQL with Python (Microsoft Learn)](https://learn.microsoft.com/azure/azure-sql/database/connect-query-python)

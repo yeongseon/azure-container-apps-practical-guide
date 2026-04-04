@@ -6,12 +6,32 @@ Use this section as a query catalog. Each page includes scenario context, data-s
 
 | Workspace table | Common columns |
 | --- | --- |
-| `ContainerAppConsoleLogs_CL` | `ContainerAppName_s`, `RevisionName_s`, `ReplicaName_s`, `Log_s` |
-| `ContainerAppSystemLogs_CL` | `ContainerAppName_s`, `RevisionName_s`, `ReplicaName_s`, `Log_s`, `Reason_s` |
+| `ContainerAppConsoleLogs_CL` | `ContainerAppName_s`, `ContainerJobName_s`, `RevisionName_s`, `ContainerName_s`, `Log_s`, `Stream_s`, `ContainerImage_s`, `EnvironmentName_s`, `ContainerGroupName_s` |
+| `ContainerAppSystemLogs_CL` | `ContainerAppName_s`, `RevisionName_s`, `Reason_s`, `Type_s`, `Log_s`, `Level`, `EventSource_s`, `ReplicaName_s`, `JobName_s`, `ExecutionName_s`, `EnvironmentName_s` |
 | `ContainerAppConsoleLogs` | Newer schema in some workspaces |
 | `ContainerAppSystemLogs` | Newer schema in some workspaces |
 
 If `_CL` tables are empty, check non-`_CL` tables in your workspace.
+
+## Sample Result
+
+Real lifecycle summary from a deployed Container Apps environment:
+
+| Reason_s | Type_s | count_ |
+|---|---|---:|
+| ProbeFailed | Warning | 74 |
+| RevisionUpdate | Normal | 14 |
+| ContainerAppUpdate | Normal | 9 |
+| RevisionReady | Normal | 7 |
+| ContainerAppReady | Normal | 6 |
+| KEDAScalersStarted | Normal | 6 |
+| RevisionDeactivating | Normal | 5 |
+| ContainerStarted | Normal | 3 |
+| PulledImage | Normal | 3 |
+| ContainerCreated | Normal | 3 |
+| AssigningReplica | Normal | 3 |
+| PullingImage | Normal | 2 |
+| ContainerTerminated | Warning | 2 |
 
 ## Query Categories
 
@@ -53,7 +73,7 @@ If `_CL` tables are empty, check non-`_CL` tables in your workspace.
 - [Failed Requests App Insights](correlation/failed-requests-app-insights.md)
 - [Link Exceptions to Operations](correlation/link-exceptions-to-operations.md)
 
-## References
+## Sources
 - [Log monitoring in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
 - [ContainerAppConsoleLogs table reference (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [ContainerAppSystemLogs table reference (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)

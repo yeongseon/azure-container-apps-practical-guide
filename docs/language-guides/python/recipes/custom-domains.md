@@ -157,6 +157,6 @@ curl --verbose https://www.contoso.com/
 ## See Also
 - [Networking](../../../platform/networking/vnet-integration.md)
 
-## References
+## Sources
 - [Container Apps custom domains and managed certificates (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
 - [Container Apps environment custom DNS (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment-custom-dns)

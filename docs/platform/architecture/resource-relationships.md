@@ -50,6 +50,6 @@ Solid arrows show runtime data flow. Dashed arrows show identity and authenticat
 - [How Container Apps Works](../../start-here/overview.md)
 - [Networking](../networking/index.md)
 
-## References
+## Sources
 - [Azure Container Apps architecture (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/architecture)
 - [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)

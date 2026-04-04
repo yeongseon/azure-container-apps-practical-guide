@@ -8,9 +8,9 @@ This guide covers day-2 networking operations for Container Apps: ingress update
 - Ingress requirements documented (internal vs external)
 
 ```bash
-export RG="rg-aca-prod"
-export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export RG="rg-myapp"
+export APP_NAME="ca-myapp"
+export ENVIRONMENT_NAME="cae-myapp"
 ```
 
 ## Ingress Configuration Operations
@@ -70,16 +70,28 @@ az containerapp show \
   --resource-group "$RG" \
   --query "properties.configuration.ingress" \
   --output json
+
+az containerapp ingress show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output json
 ```
 
 Expected output (PII masked):
 
 ```json
 {
-  "external": false,
+  "allowInsecure": false,
+  "external": true,
+  "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
   "targetPort": 8000,
-  "transport": "auto",
-  "fqdn": "app-python-api-prod.internal.<region>.azurecontainerapps.io"
+  "transport": "Auto",
+  "traffic": [
+    {
+      "latestRevision": true,
+      "weight": 100
+    }
+  ]
 }
 ```
 
@@ -97,6 +109,12 @@ curl --silent --output /dev/null --write-out "%{http_code}" "https://$FQDN/healt
 ```
 
 Expected result: `200`
+
+Example health payload:
+
+```json
+{"status":"healthy","timestamp":"2026-04-04T11:32:37.322216+00:00"}
+```
 
 !!! note "Internal ingress"
     Internal ingress FQDNs resolve only from within the same VNet. Run the data-plane check from a VM or pod inside the environment's VNet.
@@ -153,11 +171,8 @@ Expected output (PII masked):
 
 ```json
 {
-  "vnetConfig": {
-    "infrastructureSubnetId": "/subscriptions/<subscription-id>/resourceGroups/rg-aca-prod/providers/Microsoft.Network/virtualNetworks/vnet-aca-prod/subnets/snet-containerapps",
-    "internal": true
-  },
-  "staticIp": "10.0.0.4"
+  "vnetConfig": null,
+  "staticIp": "20.249.x.x"
 }
 ```
 
@@ -202,7 +217,7 @@ Expected output (internal app):
 
 ```json
 {
-  "fqdn": "app-python-api-prod.internal.<region>.azurecontainerapps.io",
+  "fqdn": "ca-myapp.internal.<region>.azurecontainerapps.io",
   "external": false
 }
 ```
@@ -211,7 +226,7 @@ Expected output (internal app):
 
 ```bash
 # Run from inside the calling container (exec into container)
-nslookup app-python-api-prod.internal.<region>.azurecontainerapps.io
+nslookup ca-myapp.internal.<region>.azurecontainerapps.io
 ```
 
 Expected result: The FQDN resolves to the environment's internal IP (e.g., `10.0.x.x`).
@@ -341,6 +356,6 @@ az network watcher test-connectivity \
 - [Security](../../platform/identity-and-secrets/security-operations.md)
 - [Health and Recovery](../../platform/reliability/health-recovery.md)
 
-## References
+## Sources
 - [Container Apps networking](https://learn.microsoft.com/azure/container-apps/networking)
 - [VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)

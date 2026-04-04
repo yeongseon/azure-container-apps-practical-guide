@@ -7,7 +7,7 @@ Use this ordered checklist when a Container App is down, unhealthy, or unreachab
 
     ```bash
     RG="rg-myapp"
-    APP_NAME="ca-myapp-api"
+    APP_NAME="ca-myapp"
     ENVIRONMENT_NAME="cae-myapp"
     ACR_NAME="acrmyapp"
     ```
@@ -15,7 +15,25 @@ Use this ordered checklist when a Container App is down, unhealthy, or unreachab
 ## 1) Revision Status
 
 ```bash
+az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisioningState --output tsv
+```
+
+Expected baseline from a healthy deployment:
+
+```text
+Succeeded
+```
+
+```bash
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,health:properties.healthState,running:properties.runningState,created:properties.createdTime}" --output table
+```
+
+Observed output pattern:
+
+```text
+Name               Active    Health    Running    Created
+-----------------  --------  --------  ---------  -------------------------
+ca-myapp--0000001  True      Healthy   Running    2026-04-04T11:30:41+00:00
 ```
 
 - Look for the latest revision with `health=Healthy` and `running=Running`.
@@ -28,6 +46,14 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query 
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "[].{replica:name,runningState:properties.runningState,created:properties.createdTime}" --output table
 ```
 
+Observed output pattern:
+
+```text
+Replica                                RunningState    Created
+-------------------------------------  --------------  -------------------------
+ca-myapp--0000001-646779b4c5-bhc2v     Running         2026-04-04T11:30:52+00:00
+```
+
 - Look for replicas that remain in `Running` state.
 - Failure patterns: repeated short-lived replicas, no replicas created, restart loops.
 - If failed → go to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
@@ -36,6 +62,18 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "
 
 ```bash
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow
+```
+
+Observed healthy startup console sequence (Gunicorn):
+
+```text
+Starting application...
+PORT=8000
+Workers=auto
+[2026-04-04 11:30:53 +0000] [7] [INFO] Starting gunicorn 25.3.0
+[2026-04-04 11:30:53 +0000] [7] [INFO] Listening at: http://0.0.0.0:8000 (7)
+[2026-04-04 11:30:53 +0000] [7] [INFO] Using worker: sync
+[2026-04-04 11:30:54 +0000] [8] [INFO] Booting worker with pid: 8
 ```
 
 - Look for Python traceback, startup command failures, bind errors, missing configuration.
@@ -47,6 +85,15 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 ```bash
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 az acr repository show-tags --name "$ACR_NAME" --repository "$APP_NAME" --output table
+```
+
+Observed pull success pattern:
+
+```text
+TimeGenerated              Reason_s      Log_s
+-------------------------  ------------  ---------------------------------------------------------------
+2026-04-04T12:54:11.477Z   PullingImage  Pulling image '<acr-name>.azurecr.io/myapp:v1.0.0'
+2026-04-04T12:54:11.477Z   PulledImage   Successfully pulled image in 2.42s. Image size: 58720256 bytes.
 ```
 
 - Confirm image tag exists and system logs do not show pull/auth errors.
@@ -120,6 +167,20 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 - If failed → go to [Service-to-Service Connectivity Failure](../playbooks/ingress-and-networking/service-to-service-connectivity-failure.md), [Managed Identity Auth Failure](../playbooks/identity-and-configuration/managed-identity-auth-failure.md), or [Internal DNS and Private Endpoint Failure](../playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md).
 
 ## Escalate with Context
+
+Observed healthy system lifecycle sequence for reference:
+
+```text
+ContainerAppUpdate    → Updating containerApp: ca-myapp
+RevisionCreation      → Creating new revision
+PullingImage          → Pulling image '<acr-name>.azurecr.io/myapp:v1.0.0'
+PulledImage           → Successfully pulled image in 2.42s (58720256 bytes)
+ContainerCreated      → Created container 'ca-myapp'
+ContainerStarted      → Started container 'ca-myapp'
+ProbeFailed (Warning) → Probe of StartUp failed (multiple times during startup)
+RevisionReady         → Revision ready
+ContainerAppReady     → Running state reached
+```
 
 If the checklist does not isolate root cause, continue with [Troubleshooting Methodology](../methodology/index.md) and include:
 

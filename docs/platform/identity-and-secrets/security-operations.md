@@ -8,9 +8,9 @@ This guide covers daily and periodic security operations: managed identity lifec
 - Secret owners and rotation intervals documented
 
 ```bash
-export RG="rg-aca-prod"
-export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export RG="rg-myapp"
+export APP_NAME="ca-myapp"
+export ENVIRONMENT_NAME="cae-myapp"
 ```
 
 ## Managed Identity Operations
@@ -31,6 +31,16 @@ az containerapp identity show \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --output json
+```
+
+Example output (PII masked):
+
+```json
+{
+  "type": "SystemAssigned",
+  "principalId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "tenantId": "<tenant-id>"
+}
 ```
 
 Grant least-privilege role assignment:
@@ -129,6 +139,6 @@ Example output (PII masked):
 - [Managed Identity Recipe](managed-identity.md)
 - [Easy Auth Recipe](easy-auth.md)
 
-## References
+## Sources
 - [Container Apps security](https://learn.microsoft.com/azure/container-apps/manage-secrets)
 - [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)

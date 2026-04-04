@@ -98,6 +98,6 @@ Example output (PII masked):
 - [Revisions](../../operations/revision-management/index.md)
 - [Observability](../../operations/monitoring/index.md)
 
-## References
+## Sources
 - [Azure Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)
 - [Azure Container Apps revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)

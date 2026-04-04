@@ -36,6 +36,20 @@ cd labs/probe-and-port-mismatch
 ./cleanup.sh
 ```
 
+## Expected Diagnostic Output Pattern
+
+```json
+{
+  "TimeGenerated": "2026-04-04T11:31:10.444Z",
+  "ContainerAppName_s": "ca-myapp",
+  "Type_s": "Warning",
+  "Reason_s": "ProbeFailed",
+  "Log_s": "Probe of StartUp failed with status code: 1"
+}
+```
+
+Probe failures are expected until port/probe alignment is fixed and revision reaches `RevisionReady`.
+
 ## Key Takeaways
 
 - Target port and process bind port must match.

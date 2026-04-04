@@ -35,6 +35,16 @@ cd labs/revision-provisioning-failure
 ./cleanup.sh
 ```
 
+## Expected Diagnostic Output Pattern
+
+```text
+ContainerAppUpdate  → Updating containerApp: ca-myapp
+RevisionCreation    → Creating new revision
+ProbeFailed         → Probe of StartUp failed with status code: 1
+RevisionReady       → Revision ready
+ContainerAppReady   → Running state reached
+```
+
 ## Key Takeaways
 
 - Missing secret references can block revision provisioning even when image/runtime are valid.

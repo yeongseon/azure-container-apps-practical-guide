@@ -31,7 +31,7 @@ Use this playbook when a new revision is created but never progresses to healthy
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("Failed", "provision", "secret", "probe", "invalid")
@@ -54,6 +54,17 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].resources" --output json
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json
+```
+
+Observed healthy revision lifecycle (use as comparison timeline):
+
+```text
+ContainerAppUpdate  → Updating containerApp: ca-myapp
+RevisionCreation    → Creating new revision
+ContainerCreated    → Created container 'ca-myapp'
+ContainerStarted    → Started container 'ca-myapp'
+RevisionReady       → Revision ready
+ContainerAppReady   → Running state reached
 ```
 
 ## Decision Flow

@@ -31,7 +31,7 @@ Use this playbook when Container Apps Jobs do not execute, fail quickly, or keep
 ### Logs
 
 ```kusto
-let AppName = "my-container-job";
+let AppName = "job-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("job", "execution", "timeout", "retry", "failed")
@@ -52,6 +52,20 @@ az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --job-execution-name "<execution-name>" --output json
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
+```
+
+Observed successful job lifecycle sequence (baseline):
+
+```text
+SuccessfulCreate    → Successfully created pod for Job Execution
+AssigningReplica    → Replica scheduled to run on a node
+PullingImage        → Pulling image '<acr-name>.azurecr.io/myapp-job:v1.0.0'
+PulledImage         → Successfully pulled image in 2.42s (58720256 bytes)
+ContainerCreated    → Created container 'job-container'
+ContainerStarted    → Started container 'job-container'
+ContainerTerminated → Container terminated with exit code '0'
+Completed           → Execution has successfully completed
+PodDeletion         → Pod exited with status Succeeded
 ```
 
 ## Decision Flow

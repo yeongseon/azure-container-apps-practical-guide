@@ -14,10 +14,10 @@ This guide explains how to run Azure Container Apps with passwordless access, le
 Set standard variables:
 
 ```bash
-export RG="rg-aca-prod"
-export APP_NAME="ca-api-prod"
-export ENVIRONMENT_NAME="cae-prod"
-export ACR_NAME="acrprodshared"
+export RG="rg-myapp"
+export APP_NAME="ca-myapp"
+export ENVIRONMENT_NAME="cae-myapp"
+export ACR_NAME="<acr-name>"
 export LOCATION="koreacentral"
 ```
 
@@ -137,6 +137,21 @@ az containerapp registry set \
   --identity "system"
 ```
 
+Validate repositories in the registry (PII scrubbed):
+
+```bash
+az acr repository list \
+  --name "$ACR_NAME" \
+  --output json
+```
+
+```json
+[
+  "myapp",
+  "myapp-job"
+]
+```
+
 !!! note "Why this matters operationally"
     Password-based registry auth usually leaks into scripts and pipelines. Identity-based pull removes secret rotation burden and reduces incident response scope.
 
@@ -162,7 +177,7 @@ Set secret from Key Vault reference:
 az containerapp secret set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --secrets "db-password=keyvaultref:https://kv-aca-prod.vault.azure.net/secrets/sql-admin-password,identityref:system"
+  --secrets "db-password=keyvaultref:https://<key-vault-name>.vault.azure.net/secrets/sql-admin-password,identityref:system"
 ```
 
 Map secret to environment variable:
@@ -200,7 +215,7 @@ az containerapp update \
   --set-env-vars \
   "APP_MODE=production" \
   "REQUEST_TIMEOUT_SECONDS=10" \
-  "STORAGE_ACCOUNT_URL=https://stprod.blob.core.windows.net" \
+  "STORAGE_ACCOUNT_URL=https://<storage-account>.blob.core.windows.net" \
   "STORAGE_TOKEN=secretref:storage-token"
 ```
 
@@ -257,7 +272,7 @@ Set new secret reference and create revision:
 az containerapp secret set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --secrets "sql-password=keyvaultref:https://kv-aca-prod.vault.azure.net/secrets/sql-password,identityref:system"
+  --secrets "sql-password=keyvaultref:https://<key-vault-name>.vault.azure.net/secrets/sql-password,identityref:system"
 
 az containerapp update \
   --name "$APP_NAME" \
@@ -298,7 +313,7 @@ az role assignment create \
   --assignee-object-id "$PRINCIPAL_ID" \
   --assignee-principal-type "ServicePrincipal" \
   --role "Key Vault Secrets User" \
-  --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/kv-aca-prod"
+  --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/<key-vault-name>"
 ```
 
 ### Cross-resource authentication patterns (SQL, Storage, Key Vault)

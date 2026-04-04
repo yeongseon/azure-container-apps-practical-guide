@@ -26,6 +26,14 @@ ContainerAppSystemLogs_CL
 | order by TimeGenerated desc
 ```
 
+## Example Output
+
+| TimeGenerated | RevisionName_s | ReplicaName_s | Reason_s | Log_s |
+|---|---|---|---|---|
+| 2026-04-04T11:37:08.918Z | ca-myapp--0000001 |  | KEDAScalersStarted | KEDA scaler started for revision |
+| 2026-04-04T11:37:15.102Z | ca-myapp--0000001 | ca-myapp--0000001-6cc5f7cc66-vk4pp | AssigningReplica | Assigning replica for scale-out |
+| 2026-04-04T11:37:23.741Z | ca-myapp--0000001 | ca-myapp--0000001-6cc5f7cc66-vk4pp | ContainerStarted | Started container after scale event |
+
 ## Interpretation Notes
 
 - Pair this with load metrics to evaluate scaling lag.

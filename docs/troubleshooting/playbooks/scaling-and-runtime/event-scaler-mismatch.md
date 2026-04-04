@@ -31,7 +31,7 @@ This playbook addresses cases where queue or event-driven workloads do not scale
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("keda", "trigger", "queue", "eventhub", "servicebus", "scale")
@@ -52,6 +52,14 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output 
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
+```
+
+Observed scaler lifecycle signal when rule initialization succeeds:
+
+```text
+Reason_s             Type_s    Typical count
+-------------------  --------  -------------
+KEDAScalersStarted   Normal    6
 ```
 
 ## Decision Flow

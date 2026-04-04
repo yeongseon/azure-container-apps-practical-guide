@@ -31,7 +31,7 @@ Use this playbook when replicas are created but repeatedly restart, exit, or nev
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("traceback", "error", "Address already in use", "connection refused")
@@ -54,6 +54,18 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].args" --output json
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import os; print(os.environ.get("CONTAINER_APP_PORT", "8000"))'"
+```
+
+Observed healthy console startup pattern:
+
+```text
+Starting application...
+PORT=8000
+Workers=auto
+[2026-04-04 11:30:53 +0000] [7] [INFO] Starting gunicorn 25.3.0
+[2026-04-04 11:30:53 +0000] [7] [INFO] Listening at: http://0.0.0.0:8000 (7)
+[2026-04-04 11:30:53 +0000] [7] [INFO] Using worker: sync
+[2026-04-04 11:30:54 +0000] [8] [INFO] Booting worker with pid: 8
 ```
 
 ## Decision Flow

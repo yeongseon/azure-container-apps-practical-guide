@@ -28,6 +28,18 @@ az containerapp create \
   --max-replicas 5
 ```
 
+Example output (PII scrubbed):
+
+```json
+{
+  "name": "ca-myapp",
+  "location": "Korea Central",
+  "provisioningState": "Succeeded",
+  "runningStatus": "Running",
+  "latestRevisionName": "ca-myapp--0000001"
+}
+```
+
 ### Update
 
 ```bash
@@ -40,6 +52,31 @@ az containerapp update \
   --set-env-vars "ENV=prod" "LOG_LEVEL=info"
 ```
 
+Example output (PII scrubbed):
+
+```json
+{
+  "name": "ca-myapp",
+  "provisioningState": "Succeeded",
+  "template": {
+    "containers": [
+      {
+        "name": "ca-myapp",
+        "image": "<acr-name>.azurecr.io/myapp:v1.0.0",
+        "resources": {
+          "cpu": 0.5,
+          "memory": "1Gi"
+        }
+      }
+    ],
+    "scale": {
+      "minReplicas": 1,
+      "maxReplicas": 3
+    }
+  }
+}
+```
+
 ### Show
 
 ```bash
@@ -47,6 +84,27 @@ az containerapp show \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --output json
+```
+
+Example output (PII scrubbed):
+
+```json
+{
+  "name": "ca-myapp",
+  "location": "Korea Central",
+  "provisioningState": "Succeeded",
+  "runningStatus": "Running",
+  "latestRevisionName": "ca-myapp--0000001",
+  "ingress": {
+    "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+    "external": true,
+    "targetPort": 8000,
+    "transport": "Auto"
+  },
+  "identity": {
+    "type": "SystemAssigned"
+  }
+}
 ```
 
 ### List
@@ -57,6 +115,14 @@ az containerapp list \
   --output table
 ```
 
+Example output (PII scrubbed):
+
+```text
+Name      ResourceGroup  Location      Environment  LatestRevision      ProvisioningState  RunningStatus
+--------  -------------  ------------  -----------  ------------------  -----------------  -------------
+ca-myapp  rg-myapp       koreacentral  cae-myapp    ca-myapp--0000001  Succeeded          Running
+```
+
 ### Delete
 
 ```bash
@@ -64,6 +130,12 @@ az containerapp delete \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --yes
+```
+
+Example output:
+
+```text
+Command group 'containerapp' is in preview and under development.
 ```
 
 ## `az containerapp revision` commands
@@ -91,6 +163,41 @@ az containerapp revision restart \
   --revision "$REVISION_NAME"
 ```
 
+Example output for `az containerapp revision list` (PII scrubbed):
+
+```json
+[
+  {
+    "name": "ca-myapp--0000001",
+    "active": true,
+    "trafficWeight": 100,
+    "replicas": 1,
+    "healthState": "Healthy",
+    "runningState": "Running"
+  }
+]
+```
+
+Example output for `az containerapp revision show`:
+
+```json
+{
+  "name": "ca-myapp--0000001",
+  "active": true,
+  "healthState": "Healthy",
+  "runningState": "Running"
+}
+```
+
+Example output for `deactivate` / `restart`:
+
+```text
+{
+  "name": "ca-myapp--0000001",
+  "provisioningState": "Succeeded"
+}
+```
+
 ## `az containerapp replica` commands
 
 ```bash
@@ -108,6 +215,38 @@ az containerapp replica show \
   --output json
 ```
 
+Example output for `az containerapp replica list` (PII scrubbed):
+
+```json
+[
+  {
+    "name": "ca-myapp--0000001-646779b4c5-bhc2v",
+    "properties": {
+      "containers": [
+        {
+          "name": "ca-myapp",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running"
+        }
+      ],
+      "runningState": "Running"
+    }
+  }
+]
+```
+
+Example output for `az containerapp replica show`:
+
+```json
+{
+  "name": "ca-myapp--0000001-646779b4c5-bhc2v",
+  "properties": {
+    "runningState": "Running"
+  }
+}
+```
+
 ## `az containerapp logs` commands
 
 ```bash
@@ -121,6 +260,12 @@ az containerapp logs show \
   --resource-group "$RG" \
   --revision "$REVISION_NAME" \
   --tail 200
+```
+
+Example output:
+
+```text
+{"status":"healthy","timestamp":"2026-04-04T11:32:37.322216+00:00"}
 ```
 
 ## `az containerapp env` commands
@@ -141,6 +286,27 @@ az containerapp env list \
   --output table
 ```
 
+Example output for `az containerapp env show` (PII scrubbed):
+
+```json
+{
+  "name": "cae-myapp",
+  "location": "Korea Central",
+  "provisioningState": "Succeeded",
+  "defaultDomain": "<hash>.<region>.azurecontainerapps.io",
+  "staticIp": "<static-ip>",
+  "zoneRedundant": false
+}
+```
+
+Example output for `az containerapp env list`:
+
+```text
+Name       ResourceGroup  Location      ProvisioningState
+---------  -------------  ------------  -----------------
+cae-myapp  rg-myapp       koreacentral  Succeeded
+```
+
 ## `az containerapp job` commands
 
 ```bash
@@ -156,10 +322,43 @@ az containerapp job start \
   --name "$JOB_NAME" \
   --resource-group "$RG"
 
+az containerapp job show \
+  --name "$JOB_NAME" \
+  --resource-group "$RG" \
+  --output json
+
 az containerapp job execution list \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
   --output table
+```
+
+Example output for `az containerapp job show` (PII scrubbed):
+
+```json
+{
+  "name": "job-myapp",
+  "provisioningState": "Succeeded",
+  "triggerType": "Manual",
+  "replicaTimeout": 1800,
+  "replicaRetryLimit": 2,
+  "identity": {
+    "type": "UserAssigned"
+  }
+}
+```
+
+Example output for `az containerapp job execution list`:
+
+```json
+[
+  {
+    "name": "job-myapp-w6gm0ew",
+    "status": "Succeeded",
+    "startTime": "2026-04-04T12:53:54+00:00",
+    "endTime": "2026-04-04T12:54:29+00:00"
+  }
+]
 ```
 
 ## `az containerapp ingress` commands
@@ -182,6 +381,24 @@ az containerapp ingress show \
   --output json
 ```
 
+Example output for `az containerapp ingress show` (PII scrubbed):
+
+```json
+{
+  "allowInsecure": false,
+  "external": true,
+  "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
+  "targetPort": 8000,
+  "transport": "Auto",
+  "traffic": [
+    {
+      "latestRevision": true,
+      "weight": 100
+    }
+  ]
+}
+```
+
 ## `az containerapp secret` commands
 
 ```bash
@@ -199,6 +416,15 @@ az containerapp secret remove \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --secret-names "api-key"
+```
+
+Example output for `az containerapp secret list`:
+
+```text
+Name            Value
+--------------  -----
+redis-password  null
+api-key         null
 ```
 
 ## `az containerapp identity` commands
@@ -220,6 +446,16 @@ az containerapp identity show \
   --output json
 ```
 
+Example output (PII scrubbed):
+
+```json
+{
+  "type": "SystemAssigned",
+  "principalId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "tenantId": "<tenant-id>"
+}
+```
+
 ## Common flag combinations
 
 | Scenario | Useful flags |
@@ -239,4 +475,7 @@ az containerapp identity show \
 
 - [Environment Variables Reference](environment-variables.md)
 - [Platform Limits](platform-limits.md)
+
+## Sources
+
 - [Microsoft Learn: Azure Container Apps CLI](https://learn.microsoft.com/cli/azure/containerapp)

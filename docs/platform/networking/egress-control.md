@@ -169,6 +169,6 @@ def my_ip():
 - [Private Endpoints](private-endpoints.md)
 - [Service-to-Service Communication](service-to-service.md)
 
-## References
+## Sources
 - [Outbound FQDN requirements in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements)
 - [User-defined routes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/user-defined-routes)

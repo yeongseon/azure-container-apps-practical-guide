@@ -138,6 +138,6 @@ az containerapp logs show \
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 
-## References
+## Sources
 - [Azure Cosmos DB for NoSQL RBAC](https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control)
 - [Azure Cosmos DB for NoSQL Python quickstart (Microsoft Learn)](https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-python)

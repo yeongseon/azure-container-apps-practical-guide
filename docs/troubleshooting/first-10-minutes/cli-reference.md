@@ -4,21 +4,36 @@ Use shell variables in examples:
 
 ```bash
 RG="rg-myapp"
-APP_NAME="my-python-app"
-ENVIRONMENT_NAME="my-aca-env"
-ACR_NAME="myacrname"
+APP_NAME="ca-myapp"
+ENVIRONMENT_NAME="cae-myapp"
+ACR_NAME="acrmyapp"
 IMAGE_TAG="v1"
 ```
+
+Use `APP_NAME="ca-myapp"` for troubleshooting examples in this guide.
 
 ## Inspect
 
 | Task | Command |
 | --- | --- |
 | Show app config | `az containerapp show --name "$APP_NAME" --resource-group "$RG"` |
+| Show provisioning state | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisioningState --output tsv` |
 | Get FQDN | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query properties.configuration.ingress.fqdn --output tsv` |
 | List revisions | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG"` |
 | Show latest revision state | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[0].{name:name,active:properties.active,health:properties.healthState}"` |
 | List replicas | `az containerapp replica list --name "$APP_NAME" --resource-group "$RG"` |
+
+Observed output patterns:
+
+```text
+$ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisioningState --output tsv
+Succeeded
+
+$ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
+```
 
 ## Deploy / Update
 
@@ -111,6 +126,23 @@ az containerapp exec \
   --command "/bin/bash"
 ```
 
+Observed runtime/system snippets:
+
+```text
+Starting application...
+PORT=8000
+Workers=auto
+[2026-04-04 11:30:53 +0000] [7] [INFO] Starting gunicorn 25.3.0
+[2026-04-04 11:30:53 +0000] [7] [INFO] Listening at: http://0.0.0.0:8000 (7)
+
+Reason_s      Log_s
+------------  -----------------------------------------------------------------
+PullingImage  Pulling image '<acr-name>.azurecr.io/myapp:v1.0.0'
+PulledImage   Successfully pulled image in 2.42s. Image size: 58720256 bytes.
+ProbeFailed   Probe of StartUp failed with status code: 1
+RevisionReady Revision ready
+```
+
 ## Revisions / Traffic
 
 ```bash
@@ -139,6 +171,6 @@ az containerapp ingress traffic set \
 az group delete --name "$RG" --yes --no-wait
 ```
 
-## References
+## Sources
 - [Azure CLI containerapp reference (Microsoft Learn)](https://learn.microsoft.com/cli/azure/containerapp)
 - [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)

@@ -59,6 +59,6 @@ def home():
 - [Operations: Security](security-operations.md)
 - [Python Guide Configuration](../../language-guides/python/03-configuration.md)
 
-## References
+## Sources
 - [Container Apps authentication and authorization](https://learn.microsoft.com/azure/container-apps/authentication)
 - [Enable authentication with a custom OpenID Connect provider (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/authentication-oidc)

@@ -31,7 +31,7 @@ Use this playbook when your app appears deployed but the external or internal en
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("ingress", "502", "504", "connection refused", "timeout")
@@ -52,6 +52,15 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query 
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
+```
+
+Healthy baseline output to compare when ingress errors occur:
+
+```text
+$ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
 ## Decision Flow

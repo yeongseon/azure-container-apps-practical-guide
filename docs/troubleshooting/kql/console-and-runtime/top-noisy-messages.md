@@ -26,6 +26,16 @@ ContainerAppConsoleLogs_CL
 | top 20 by occurrences desc
 ```
 
+## Example Output
+
+| Log_s | occurrences |
+|---|---:|
+| [INFO] health probe OK path=/health status=200 | 128 |
+| [WARN] retrying downstream call attempt=1 | 46 |
+| [INFO] Starting gunicorn 25.3.0 | 12 |
+| PORT=8000 | 12 |
+| Workers=auto | 12 |
+
 ## Interpretation Notes
 
 - High-frequency identical errors are good candidates for first remediation.

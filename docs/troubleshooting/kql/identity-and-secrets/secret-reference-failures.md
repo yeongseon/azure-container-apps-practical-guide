@@ -26,6 +26,14 @@ ContainerAppSystemLogs_CL
 | order by TimeGenerated desc
 ```
 
+## Example Output
+
+| TimeGenerated | RevisionName_s | Reason_s | Log_s |
+|---|---|---|---|
+| 2026-04-04T11:50:06.302Z | ca-myapp--0000003 | RevisionUpdate | secretRef 'storage-conn' not found in revision template |
+| 2026-04-04T11:50:06.301Z | ca-myapp--0000003 | RevisionUpdate | KeyVault reference resolution failed: access denied |
+| 2026-04-04T11:49:58.820Z | ca-myapp--0000003 | ContainerAppUpdate | validating secret references before revision activation |
+
 ## Interpretation Notes
 
 - Secret reference errors during provisioning often block revision activation.

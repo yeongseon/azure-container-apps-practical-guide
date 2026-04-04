@@ -37,6 +37,14 @@ graph LR
       --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
 
+   ???+ example "Expected output"
+       ```json
+       {
+         "status": "Succeeded",
+         "error": null
+       }
+       ```
+
 3. **Preview changes with what-if**
 
    ```bash
@@ -45,6 +53,19 @@ graph LR
       --template-file infra/main.bicep \
       --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
+
+   ???+ example "Expected output"
+       ```text
+       Resource and property changes are indicated with these symbols:
+         + Create
+         ~ Modify
+
+       The deployment will update the following scope:
+       Scope: /subscriptions/<subscription-id>/resourceGroups/rg-aca-python-demo
+
+         ~ Microsoft.App/containerApps/ca-myapp [2024-03-01]
+           ~ properties.template.containers[0].image: "<acr-name>.azurecr.io/myapp:v1.0.0"
+       ```
 
 4. **Deploy infrastructure**
 
@@ -56,6 +77,23 @@ graph LR
       --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
 
+   ???+ example "Expected output"
+       ```json
+       {
+         "id": "/subscriptions/<subscription-id>/resourceGroups/rg-aca-python-demo/providers/Microsoft.Resources/deployments/main",
+         "name": "main",
+         "properties": {
+           "provisioningState": "Succeeded",
+           "outputs": {
+             "containerAppName": { "type": "String", "value": "ca-myapp" },
+             "containerAppEnvName": { "type": "String", "value": "cae-myapp" },
+             "containerRegistryName": { "type": "String", "value": "<acr-name>" },
+             "location": { "type": "String", "value": "koreacentral" }
+           }
+         }
+       }
+       ```
+
 5. **Verify outputs and key resources**
 
    ```bash
@@ -64,6 +102,28 @@ graph LR
       --name "$DEPLOYMENT_NAME" \
       --query properties.outputs
    ```
+
+   ???+ example "Expected output"
+       ```json
+       {
+         "containerAppName": {
+           "type": "String",
+           "value": "ca-myapp"
+         },
+         "containerAppEnvName": {
+           "type": "String",
+           "value": "cae-myapp"
+         },
+         "containerRegistryName": {
+           "type": "String",
+           "value": "<acr-name>"
+         },
+         "containerRegistryLoginServer": {
+           "type": "String",
+           "value": "<acr-name>.azurecr.io"
+         }
+       }
+       ```
 
 ## Example Bicep snippet (environment + logs)
 
@@ -108,6 +168,6 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [Managed Identity Recipe](../../platform/identity-and-secrets/managed-identity.md)
 
-## References
+## Sources
 - [Azure Resource Manager API spec (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec)
 - [Bicep resource definition: Microsoft.App/containerApps (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/containerapps)

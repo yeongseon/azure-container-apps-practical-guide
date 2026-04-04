@@ -31,7 +31,7 @@ This playbook covers cases where the app eventually works, but health probes mar
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("probe", "readiness", "liveness", "timeout")
@@ -53,6 +53,20 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].resources" --output json
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
+
+Observed probe event pattern from real startup:
+
+```json
+{
+  "TimeGenerated": "2026-04-04T11:31:10.444Z",
+  "ContainerAppName_s": "ca-myapp",
+  "Type_s": "Warning",
+  "Reason_s": "ProbeFailed",
+  "Log_s": "Probe of StartUp failed with status code: 1"
+}
+```
+
+Multiple `ProbeFailed` events during cold start can be normal if the revision later reaches `RevisionReady` and `ContainerAppReady`.
 
 ## Decision Flow
 

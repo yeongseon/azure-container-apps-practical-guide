@@ -144,6 +144,6 @@ az containerapp logs show \
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 
-## References
+## Sources
 - [Azure Cache for Redis + Microsoft Entra auth](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 - [Python quickstart for Azure Cache for Redis (Microsoft Learn)](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-python-get-started)

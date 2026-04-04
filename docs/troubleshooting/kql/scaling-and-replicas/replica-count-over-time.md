@@ -27,6 +27,15 @@ ContainerAppSystemLogs_CL
 | order by TimeGenerated asc
 ```
 
+## Example Output
+
+| TimeGenerated | RevisionName_s | replicas |
+|---|---|---:|
+| 2026-04-04T11:30:00.000Z | ca-myapp--0000001 | 1 |
+| 2026-04-04T11:35:00.000Z | ca-myapp--0000001 | 2 |
+| 2026-04-04T11:40:00.000Z | ca-myapp--0000001 | 3 |
+| 2026-04-04T11:45:00.000Z | ca-myapp--0000001 | 2 |
+
 ## Interpretation Notes
 
 - Flat low `replicas` under high load suggests scaling bottleneck.

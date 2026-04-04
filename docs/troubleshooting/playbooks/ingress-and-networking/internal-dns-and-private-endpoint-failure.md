@@ -31,7 +31,7 @@ This playbook handles cases where apps cannot resolve or reach private endpoints
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("name resolution", "NXDOMAIN", "timeout", "Temporary failure")
@@ -52,6 +52,20 @@ az network private-dns link vnet list --resource-group "$RG" --zone-name "privat
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo("myregistry.azurecr.io", 443))'"
 az network private-endpoint list --resource-group "$RG" --output table
 az network private-dns zone list --resource-group "$RG" --output table
+```
+
+Observed healthy app-side baseline before isolating DNS path:
+
+```json
+[
+  {
+    "name": "ca-myapp--0000001-646779b4c5-bhc2v",
+    "properties": {
+      "containers": [{ "name": "ca-myapp", "ready": true, "restartCount": 0, "runningState": "Running" }],
+      "runningState": "Running"
+    }
+  }
+]
 ```
 
 ## Decision Flow

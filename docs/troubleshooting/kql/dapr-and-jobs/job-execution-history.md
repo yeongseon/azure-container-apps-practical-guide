@@ -18,13 +18,23 @@ flowchart LR
 ## Query
 
 ```kusto
-let AppName = "my-container-job";
+let JobName = "job-myapp";
 ContainerAppSystemLogs_CL
-| where ContainerAppName_s == AppName
+| where JobName_s == JobName
 | where Log_s has_any ("job", "execution", "retry", "timeout", "failed", "completed")
-| project TimeGenerated, RevisionName_s, Reason_s, Log_s
+| project TimeGenerated, JobName_s, ExecutionName_s, Reason_s, Type_s, Log_s
 | order by TimeGenerated desc
 ```
+
+## Example Output
+
+| TimeGenerated | JobName_s | ExecutionName_s | Reason_s | Type_s | Log_s |
+|---|---|---|---|---|---|
+| 2026-04-04T12:54:30.462Z | job-myapp | job-myapp-6gx2m | Completed | Normal | Execution has successfully completed |
+| 2026-04-04T12:54:25.409Z | job-myapp | job-myapp-6gx2m | ContainerTerminated | Warning | Container terminated with exit code '0' |
+| 2026-04-04T12:54:23.569Z | job-myapp | job-myapp-6gx2m | ContainerStarted | Normal | Started container 'job-container' |
+| 2026-04-04T12:54:11.477Z | job-myapp | job-myapp-6gx2m | PulledImage | Normal | Successfully pulled image in 2.42s (58720256 bytes) |
+| 2026-04-04T12:53:55.549Z | job-myapp | job-myapp-6gx2m | SuccessfulCreate | Normal | Successfully created pod for Job Execution |
 
 ## Interpretation Notes
 

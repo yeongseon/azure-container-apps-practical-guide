@@ -2,6 +2,24 @@
 
 Use this detector map to move from first symptom to the most likely troubleshooting playbook with minimal guesswork.
 
+## Observed Baseline Lifecycle Signals (Real Deployment)
+
+| Reason_s | Type_s | Typical count | Interpretation during triage |
+|---|---|---:|---|
+| ProbeFailed | Warning | 74 | Often expected during cold start if revision later becomes ready |
+| RevisionUpdate | Normal | 14 | Revision template/config updated |
+| ContainerAppUpdate | Normal | 9 | App-level config update accepted |
+| RevisionReady | Normal | 7 | Revision reached healthy ready state |
+| ContainerAppReady | Normal | 6 | App reached running state |
+| KEDAScalersStarted | Normal | 6 | Scalers activated for revision |
+| RevisionDeactivating | Normal | 5 | Prior revision being drained/deactivated |
+| ContainerStarted | Normal | 3 | Container process started |
+| PulledImage | Normal | 3 | Image pull completed successfully |
+| ContainerCreated | Normal | 3 | Container object created |
+| AssigningReplica | Normal | 3 | Replica scheduled to node |
+| PullingImage | Normal | 2 | Image pull started |
+| ContainerTerminated | Warning | 2 | Container exited; check exit code/context |
+
 ## Symptom Routing Flow
 
 ```mermaid

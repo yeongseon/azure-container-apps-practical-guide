@@ -25,6 +25,14 @@ exceptions
 | order by timestamp desc
 ```
 
+## Example Output
+
+| timestamp | type | outerMessage | operation_Id |
+|---|---|---|---|
+| 2026-04-04T11:45:14.219Z | RuntimeError | upstream dependency timeout | 9f7a7d9d0bb84f0b |
+| 2026-04-04T11:45:12.917Z | PermissionError | token acquired but storage access denied (403) | f0e5946f613c4a49 |
+| 2026-04-04T11:45:10.600Z | ConnectionError | connection refused by backend service | 4dbfc25be8c74999 |
+
 ## Interpretation Notes
 
 - Match `operation_Id` with failed requests to find root exception per user call.

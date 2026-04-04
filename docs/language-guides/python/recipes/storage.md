@@ -511,7 +511,7 @@ See [Key Vault Secrets Management](../../../platform/identity-and-secrets/key-va
 - [Key Vault Secrets Management](../../../platform/identity-and-secrets/key-vault.md)
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 
-## References
+## Sources
 - [Azure Files in Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/storage-mounts)
 - [Azure Storage Blob SDK for Python](https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme)
 - [Container Apps volume mount types (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types)

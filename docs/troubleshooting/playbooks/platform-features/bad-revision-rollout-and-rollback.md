@@ -31,7 +31,7 @@ Use this playbook when a new revision causes user-impacting regressions and you 
 ### Logs
 
 ```kusto
-let AppName = "my-container-app";
+let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
 | where Log_s has_any ("error", "exception", "timeout", "failed")
@@ -52,6 +52,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "<stable-revision>=100"
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
+```
+
+Observed revision status output used during rollback decisions:
+
+```text
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
 ## Decision Flow

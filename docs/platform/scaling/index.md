@@ -74,5 +74,5 @@ Good scaling design balances **user experience**, **system stability**, and **co
 - [Revision Management and Traffic Splitting](../../language-guides/python/07-revisions-traffic.md)
 - [KEDA open-source scalers documentation](https://keda.sh/docs/latest/scalers/)
 
-## References
+## Sources
 - [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
