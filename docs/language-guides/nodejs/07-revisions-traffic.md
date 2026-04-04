@@ -63,8 +63,8 @@ graph LR
         `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
         ```json
         {
-          "latestRevision": "ca-nodejs-guide-<unique-suffix>--<revision-suffix>",
-          "name": "ca-nodejs-guide-<unique-suffix>",
+          "latestRevision": "<your-app-name>--<revision-suffix>",
+          "name": "<your-app-name>",
           "provisioningState": "Succeeded"
         }
         ```
@@ -83,16 +83,16 @@ graph LR
         ```text
         Name                                     Active    CreatedTime
         ---------------------------------------  --------  -------------------------
-        ca-nodejs-guide--0000001                 True      2026-04-05T10:00:00+00:00
-        ca-nodejs-guide--0000002                 True      2026-04-05T10:15:00+00:00
+        <your-app-name>--0000001                 True      2026-04-05T10:00:00+00:00
+        <your-app-name>--0000002                 True      2026-04-05T10:15:00+00:00
         ```
 
 5. **Apply canary traffic split (90/10)**
 
     ```bash
-    # Identify your revision names from the list above
-    STABLE_REV="ca-nodejs-guide--0000001"
-    CANARY_REV="ca-nodejs-guide--0000002"
+    # Capture revision names from the list above
+    STABLE_REV="${APP_NAME}--0000001"
+    CANARY_REV="${APP_NAME}--0000002"
 
     az containerapp ingress traffic set \
       --name "$APP_NAME" \
@@ -104,11 +104,11 @@ graph LR
         ```json
         [
           {
-            "revisionName": "ca-nodejs-guide--0000001",
+            "revisionName": "<your-app-name>--0000001",
             "weight": 90
           },
           {
-            "revisionName": "ca-nodejs-guide--0000002",
+            "revisionName": "<your-app-name>--0000002",
             "weight": 10
           }
         ]
@@ -127,7 +127,7 @@ graph LR
         ```json
         [
           {
-            "revisionName": "ca-nodejs-guide--0000001",
+            "revisionName": "<your-app-name>--0000001",
             "weight": 100
           }
         ]

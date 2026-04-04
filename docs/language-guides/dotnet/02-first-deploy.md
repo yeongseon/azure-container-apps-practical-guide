@@ -165,8 +165,8 @@ graph LR
    ???+ example "Expected output (az containerapp update)"
        ```json
        {
-          "latestRevision": "ca-dotnet-guide--<revision-suffix>",
-          "name": "ca-dotnet-guide",
+          "latestRevision": "<your-app-name>--<revision-suffix>",
+          "name": "<your-app-name>",
           "provisioningState": "Succeeded"
        }
        ```
@@ -212,9 +212,9 @@ graph LR
     ???+ example "Expected output"
         ```json
         {
-          "name": "ca-dotnet-guide",
+          "name": "<your-app-name>",
           "provisioningState": "Succeeded",
-          "latestRevisionName": "ca-dotnet-guide--0000002"
+          "latestRevisionName": "<your-app-name>--0000002"
         }
         ```
 
@@ -231,14 +231,14 @@ graph LR
         ```json
         [
           {
-            "name": "ca-dotnet-guide--0000001",
+            "name": "<your-app-name>--0000001",
             "active": false,
             "trafficWeight": 0,
             "healthState": "Healthy",
             "runningState": "Running"
           },
           {
-            "name": "ca-dotnet-guide--0000002",
+            "name": "<your-app-name>--0000002",
             "active": true,
             "trafficWeight": 100,
             "healthState": "Healthy",

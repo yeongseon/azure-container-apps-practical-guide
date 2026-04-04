@@ -115,7 +115,7 @@ graph LR
          ```json
          [
            {
-             "name": "ca-dotnet-guide--<sha>",
+             "name": "<your-app-name>--<sha>",
              "active": true,
              "trafficWeight": 100,
              "healthState": "Healthy"
