@@ -97,12 +97,20 @@ flowchart LR
     ```
 
     ???+ example "Expected output"
-        If no errors exist, the query returns an empty result set. If an error occurs, you might see:
+        If no errors exist, the query returns an empty result set:
+
+        ```text
+        TableName
+        -------------
+        PrimaryResult
+        ```
+
+        If errors exist, they appear with timestamps:
 
         ```text
         TimeGenerated                 Log_s
         ----------------------------  -------------------------------------------------------
-        2026-04-05T11:05:00.000Z      {"level":"ERROR","message":"Failed to connect to database"}
+        2026-04-05T11:05:00.000Z      {"level":"ERROR","message":"Database connection failed"}
         ```
 
 6. **Enable Application Insights (OpenTelemetry)**

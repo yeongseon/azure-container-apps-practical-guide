@@ -140,9 +140,18 @@ az monitor log-analytics query \
 ```bash
 az monitor log-analytics query \
   --workspace $WORKSPACE_ID \
-  --analytics-query "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-java-guide' | where Reason_s in ('Started', 'Pulling', 'Pulled') | project TimeGenerated, Reason_s, Message_s | take 10" \
+  --analytics-query "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-java-guide' | project TimeGenerated, Reason_s, Log_s | take 5" \
   --output table
 ```
+
+???+ example "Expected output"
+    ```text
+    Log_s                                                                         Reason_s            TimeGenerated
+    ----------------------------------------------------------------------------  ------------------  ----------------------------
+    Updating containerApp: ca-java-guide                                          ContainerAppUpdate  2026-04-04T16:03:06.835Z
+    Replica 'ca-java-guide--9kvcb6d-...' has been scheduled to run on a node.     AssigningReplica    2026-04-04T16:03:06.835Z
+    KEDA is starting a watch for revision 'ca-java-guide--9kvcb6d'...             KEDAScalersStarted  2026-04-04T16:03:06.835Z
+    ```
 
 ## Monitoring Checklist
 
