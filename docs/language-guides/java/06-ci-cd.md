@@ -113,7 +113,7 @@ jobs:
 
     ???+ example "Expected output"
         ```text
-        <your-app-name>--<revision-suffix>
+        <your-app-name>--xxxxxxx
         ```
 
 3. **Verify the application health**

@@ -108,7 +108,7 @@ graph LR
         ```json
         [
           {
-            "name": "<your-app-name>--<revision-suffix>",
+            "name": "<your-app-name>--xxxxxxx",
             "active": true,
             "trafficWeight": 100,
             "replicas": 1,

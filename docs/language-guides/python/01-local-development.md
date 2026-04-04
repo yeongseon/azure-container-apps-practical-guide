@@ -75,7 +75,7 @@ graph LR
 
    ???+ example "Expected output"
        ```json
-       {"containerApp":"<your-app-name>","environment":"development","name":"azure-container-apps-python-guide","python":"3.11.15","revision":"<your-app-name>--<revision-suffix>","telemetryMode":"basic","version":"1.0.0"}
+       {"containerApp":"<your-app-name>","environment":"development","name":"azure-container-apps-python-guide","python":"3.11.15","revision":"<your-app-name>--xxxxxxx","telemetryMode":"basic","version":"1.0.0"}
        ```
 
 4. **Inspect application logs**

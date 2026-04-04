@@ -48,7 +48,7 @@ az containerapp update \
 
 ???+ example "Expected output"
     ```text
-    (New revision created: <your-app-name>--<revision-suffix>)
+    (New revision created: <your-app-name>--xxxxxxx)
     (New revision is now ACTIVE)
     ```
 
@@ -110,7 +110,7 @@ az containerapp revision deactivate \
 - [x] Old revisions are deactivated after a successful rollout
 
 !!! tip "Use unique labels for testing"
-    Assign a label to a specific revision to test it independently of production traffic. Use `az containerapp ingress traffic set --label testing=$APP_NAME--<revision-suffix>` and visit `https://testing---$APP_NAME.<random-suffix>.<region>.azurecontainerapps.io`.
+    Assign a label to a specific revision to test it independently of production traffic. Use `az containerapp ingress traffic set --label testing=$APP_NAME--xxxxxxx` and visit `https://testing---$APP_NAME.<random-suffix>.<region>.azurecontainerapps.io`.
 
 ## See Also
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)

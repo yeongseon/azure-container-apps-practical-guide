@@ -77,7 +77,7 @@ graph LR
    ???+ example "Expected output"
        ```json
        {
-         "latestRevision": "<your-app-name>--<revision-suffix>",
+         "latestRevision": "<your-app-name>--xxxxxxx",
          "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }

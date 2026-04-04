@@ -161,7 +161,7 @@ graph LR
    ???+ example "Expected output (az containerapp update)"
        ```json
        {
-          "latestRevision": "ca-myapp-<unique-suffix>--<revision-suffix>",
+          "latestRevision": "<your-app-name>--xxxxxxx",
           "name": "ca-myapp-<unique-suffix>",
          "provisioningState": "Succeeded"
        }
@@ -231,7 +231,7 @@ graph LR
         {
           "name": "<your-app-name>",
           "provisioningState": "Succeeded",
-          "latestRevisionName": "<your-app-name>--<revision-suffix>"
+          "latestRevisionName": "<your-app-name>--xxxxxxx"
         }
         ```
 

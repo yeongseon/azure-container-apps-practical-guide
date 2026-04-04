@@ -81,7 +81,7 @@ graph LR
        `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
        ```json
        {
-         "latestRevision": "<your-app-name>--<revision-suffix>",
+         "latestRevision": "<your-app-name>--xxxxxxx",
          "name": "<your-app-name>",
          "provisioningState": "Succeeded"
        }

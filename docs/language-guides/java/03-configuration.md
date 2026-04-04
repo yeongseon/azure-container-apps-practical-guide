@@ -43,7 +43,7 @@ az containerapp update \
 ???+ example "Expected output"
     ```text
     Updating container app...
-    (New revision created: <your-app-name>--<revision-suffix>)
+    (New revision created: <your-app-name>--xxxxxxx)
     ```
 
 ## Secrets Management

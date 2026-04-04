@@ -88,7 +88,7 @@ sequenceDiagram
    ???+ example "Expected output"
        ```json
        {"TimeStamp":"2024-01-15T10:30:01","Log":"Connecting to the container 'app'..."}
-       {"TimeStamp":"2024-01-15T10:30:01","Log":"Successfully Connected to container: 'app' [Revision: '<your-app-name>--<revision>', Replica: '<your-app-name>--<revision>-<replica-id>']"}
+       {"TimeStamp":"2024-01-15T10:30:01","Log":"Successfully Connected to container: 'app' [Revision: '<your-app-name>--xxxxxxx', Replica: '<your-app-name>--xxxxxxx-<replica-id>']"}
        {"TimeStamp":"2024-01-15T10:30:00+00:00","Log":"[2024-01-15 10:30:00 +0000] [1] [INFO] Starting gunicorn 21.2.0"}
        {"TimeStamp":"2024-01-15T10:30:00+00:00","Log":"[2024-01-15 10:30:00 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)"}
        {"TimeStamp":"2024-01-15T10:30:00+00:00","Log":"[2024-01-15 10:30:00 +0000] [7] [INFO] Booting worker with pid: 7"}
@@ -109,7 +109,7 @@ sequenceDiagram
 
    ???+ example "Expected output"
        ```json
-       {"TimeStamp":"2024-01-15T10:30:00Z","Type":"Normal","ContainerAppName":"<your-app-name>","RevisionName":"<your-app-name>--<revision>","ReplicaName":null,"Msg":"Successfully connected to events server","Reason":"ConnectedToEventsServer","EventSource":"ContainerAppController","Count":1}
+       {"TimeStamp":"2024-01-15T10:30:00Z","Type":"Normal","ContainerAppName":"<your-app-name>","RevisionName":"<your-app-name>--xxxxxxx","ReplicaName":null,"Msg":"Successfully connected to events server","Reason":"ConnectedToEventsServer","EventSource":"ContainerAppController","Count":1}
        ```
 
 4. **Run a Log Analytics query for errors**
@@ -138,8 +138,8 @@ sequenceDiagram
 
         ```text
         TimeGenerated                    ContainerAppName_s  RevisionName_s                   Log_s
-        2026-04-04T11:35:12.000Z         <your-app-name>     <your-app-name>--<revision>      [ERROR] Connection refused: redis://localhost:6379
-        2026-04-04T11:34:58.000Z         <your-app-name>     <your-app-name>--<revision>      Traceback (most recent call last): ...
+        2026-04-04T11:35:12.000Z         <your-app-name>     <your-app-name>--xxxxxxx      [ERROR] Connection refused: redis://localhost:6379
+        2026-04-04T11:34:58.000Z         <your-app-name>     <your-app-name>--xxxxxxx      Traceback (most recent call last): ...
         ```
 
         !!! tip

@@ -160,7 +160,7 @@ graph LR
     ???+ example "Expected output (az containerapp update)"
         ```json
         {
-          "latestRevision": "ca-nodejs-guide-<unique-suffix>--<revision-suffix>",
+          "latestRevision": "<your-app-name>--xxxxxxx",
           "name": "ca-nodejs-guide-<unique-suffix>",
           "provisioningState": "Succeeded"
         }
