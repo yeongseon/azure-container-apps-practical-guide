@@ -390,7 +390,7 @@ Expected:
 ```
 Name                             Active    Traffic    Replicas    HealthState
 -------------------------------  --------  ---------  ----------  -----------
-ca-myapp--abc1234                True      100        1           Healthy
+<your-app-name>--<revision>      True      100        1           Healthy
 ```
 
 ### Check app logs
