@@ -111,9 +111,10 @@ WORKSPACE_ID=$(az monitor log-analytics workspace list \
 ### Query Console Logs
 
 ```bash
+# Use the APP_NAME variable set in 02-first-deploy.md
 az monitor log-analytics query \
   --workspace $WORKSPACE_ID \
-  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-java-guide' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
+  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
   --output table
 ```
 
@@ -121,9 +122,9 @@ az monitor log-analytics query \
     ```text
     ContainerAppName_s    Log_s                                      TimeGenerated
     --------------------  -----------------------------------------  ----------------------------
-    ca-java-guide         .   ____          _            __ _ _      2026-04-04T16:03:47.659Z
-    ca-java-guide         /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \    2026-04-04T16:03:47.659Z
-    ca-java-guide         Started DemoApplication in 8.67 seconds    2026-04-04T16:04:00.123Z
+    <your-app-name>       .   ____          _            __ _ _      2026-04-04T16:03:47.659Z
+    <your-app-name>       /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \    2026-04-04T16:03:47.659Z
+    <your-app-name>       Started DemoApplication in 8.67 seconds    2026-04-04T16:04:00.123Z
     ```
 
 ### Query Error Logs
@@ -131,7 +132,7 @@ az monitor log-analytics query \
 ```bash
 az monitor log-analytics query \
   --workspace $WORKSPACE_ID \
-  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-java-guide' | where Log_s contains 'ERROR' | project TimeGenerated, Log_s | take 10" \
+  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s contains 'ERROR' | project TimeGenerated, Log_s | take 10" \
   --output table
 ```
 
@@ -140,7 +141,7 @@ az monitor log-analytics query \
 ```bash
 az monitor log-analytics query \
   --workspace $WORKSPACE_ID \
-  --analytics-query "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-java-guide' | project TimeGenerated, Reason_s, Log_s | take 5" \
+  --analytics-query "ContainerAppSystemLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, Reason_s, Log_s | take 5" \
   --output table
 ```
 
@@ -148,9 +149,9 @@ az monitor log-analytics query \
     ```text
     Log_s                                                                         Reason_s            TimeGenerated
     ----------------------------------------------------------------------------  ------------------  ----------------------------
-    Updating containerApp: ca-java-guide                                          ContainerAppUpdate  2026-04-04T16:03:06.835Z
-    Replica 'ca-java-guide--9kvcb6d-...' has been scheduled to run on a node.     AssigningReplica    2026-04-04T16:03:06.835Z
-    KEDA is starting a watch for revision 'ca-java-guide--9kvcb6d'...             KEDAScalersStarted  2026-04-04T16:03:06.835Z
+    Updating containerApp: <your-app-name>                                        ContainerAppUpdate  2026-04-04T16:03:06.835Z
+    Replica '<your-app-name>--9kvcb6d-...' has been scheduled to run on a node.   AssigningReplica    2026-04-04T16:03:06.835Z
+    KEDA is starting a watch for revision '<your-app-name>--9kvcb6d'...           KEDAScalersStarted  2026-04-04T16:03:06.835Z
     ```
 
 ## Monitoring Checklist

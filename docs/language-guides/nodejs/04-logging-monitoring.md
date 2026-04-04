@@ -58,7 +58,7 @@ flowchart LR
 
     ???+ example "Expected output"
         ```json
-        {"TimeStamp":"2026-04-05T11:00:00Z","Type":"Normal","ContainerAppName":"ca-nodejs-guide","Reason":"ConnectedToEventsServer","Msg":"Successfully connected to events server"}
+        {"TimeStamp":"2026-04-05T11:00:00Z","Type":"Normal","ContainerAppName":"<your-app-name>","Reason":"ConnectedToEventsServer","Msg":"Successfully connected to events server"}
         ```
 
 4. **Query logs via CLI (recommended for automation)**
@@ -72,10 +72,10 @@ flowchart LR
       --query "[0].customerId" \
       --output tsv)
 
-    # Query console logs
+    # Query console logs (use your actual app name from $APP_NAME)
     az monitor log-analytics query \
       --workspace $WORKSPACE_ID \
-      --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-nodejs-guide' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
+      --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
       --output table
     ```
 
@@ -83,8 +83,8 @@ flowchart LR
         ```text
         ContainerAppName_s    Log_s                                                                                          TimeGenerated
         --------------------  ---------------------------------------------------------------------------------------------  ----------------------------
-        ca-nodejs-guide       {"timestamp":"2026-04-04T16:10:50.376Z","level":"INFO","message":"Server started on port 8000"}  2026-04-04T16:10:51.723Z
-        ca-nodejs-guide       {"timestamp":"2026-04-04T16:11:58.005Z","level":"INFO","method":"GET","path":"/health",...}      2026-04-04T16:11:58.474Z
+        <your-app-name>       {"timestamp":"2026-04-04T16:10:50.376Z","level":"INFO","message":"Server started on port 8000"}  2026-04-04T16:10:51.723Z
+        <your-app-name>       {"timestamp":"2026-04-04T16:11:58.005Z","level":"INFO","method":"GET","path":"/health",...}      2026-04-04T16:11:58.474Z
         ```
 
 5. **Query for errors via CLI**
@@ -92,7 +92,7 @@ flowchart LR
     ```bash
     az monitor log-analytics query \
       --workspace $WORKSPACE_ID \
-      --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-nodejs-guide' | where Log_s has_any ('error', 'exception', 'failed') | project TimeGenerated, Log_s | take 10" \
+      --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s has_any ('error', 'exception', 'failed') | project TimeGenerated, Log_s | take 10" \
       --output table
     ```
 

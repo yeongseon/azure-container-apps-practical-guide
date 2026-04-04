@@ -82,10 +82,10 @@ flowchart LR
      --query "[0].customerId" \
      --output tsv)
 
-   # Query console logs
+   # Query console logs (use your actual app name from $APP_NAME)
    az monitor log-analytics query \
      --workspace $WORKSPACE_ID \
-     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-dotnet-guide' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
+     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" \
      --output table
    ```
 
@@ -93,9 +93,9 @@ flowchart LR
        ```text
        ContainerAppName_s    Log_s                                                                                           TimeGenerated
        --------------------  ----------------------------------------------------------------------------------------------  ----------------------------
-       ca-dotnet-guide       {"LogLevel":"Information","Message":"Now listening on: http://0.0.0.0:8000"...}                  2026-04-04T16:13:17.631Z
-       ca-dotnet-guide       {"LogLevel":"Information","Message":"Application started. Press Ctrl+C to shut down."...}        2026-04-04T16:13:17.632Z
-       ca-dotnet-guide       {"LogLevel":"Information","Message":"Application is shutting down..."...}                         2026-04-04T16:12:33.373Z
+       <your-app-name>       {"LogLevel":"Information","Message":"Now listening on: http://0.0.0.0:8000"...}                  2026-04-04T16:13:17.631Z
+       <your-app-name>       {"LogLevel":"Information","Message":"Application started. Press Ctrl+C to shut down."...}        2026-04-04T16:13:17.632Z
+       <your-app-name>       {"LogLevel":"Information","Message":"Application is shutting down..."...}                         2026-04-04T16:12:33.373Z
        ```
 
 5. **Query for .NET Exceptions via CLI**
@@ -103,7 +103,7 @@ flowchart LR
    ```bash
    az monitor log-analytics query \
      --workspace $WORKSPACE_ID \
-     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-dotnet-guide' | where Log_s has 'Exception' or Log_s has 'Error' | project TimeGenerated, Log_s | take 10" \
+     --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s has 'Exception' or Log_s has 'Error' | project TimeGenerated, Log_s | take 10" \
      --output table
    ```
 
