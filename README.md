@@ -2,7 +2,7 @@
 
 A practical hub for learning, designing, operating, and troubleshooting Azure Container Apps and Jobs across languages, revision models, and deployment patterns.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyeongseon%2Fazure-container-apps-python-guide%2Fmain%2Finfra%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyeongseon%2Fazure-container-apps%2Fmain%2Finfra%2Fazuredeploy.json)
 
 ## Repository Structure
 
@@ -13,7 +13,11 @@ A practical hub for learning, designing, operating, and troubleshooting Azure Co
 │   ├── language-guides/    # Per-language tutorials and recipes (currently: Python)
 │   │   └── python/         # Flask tutorial steps + recipes
 │   ├── operations/         # Deployment, monitoring, scaling, alerts, recovery
-│   └── troubleshooting/    # First 10 minutes, playbooks, methodology, KQL, lab guides
+│   ├── troubleshooting/    # First 10 minutes, playbooks, methodology, KQL, lab guides
+│   │   ├── playbooks/      # Startup, networking, scaling, identity, platform-feature failures
+│   │   ├── kql/            # Query packs by category + correlation queries
+│   │   └── lab-guides/     # Scenario-based troubleshooting walkthroughs
+│   └── reference/          # CLI reference, environment variables, platform limits
 ├── apps/                   # Reference applications
 │   └── python/             # Flask reference app (health, logging, telemetry)
 ├── jobs/                   # Reference jobs
@@ -32,8 +36,8 @@ A practical hub for learning, designing, operating, and troubleshooting Azure Co
 
 ```bash
 # Clone and deploy
-git clone https://github.com/yeongseon/azure-container-apps-python-guide.git
-cd azure-container-apps-python-guide/infra
+git clone https://github.com/yeongseon/azure-container-apps.git
+cd azure-container-apps/infra
 
 # Configure
 cp .env.example .env
@@ -60,6 +64,7 @@ docker run --publish 8000:8000 aca-python-guide
 - **Language Guides**: Practical, step-by-step tutorials and integration recipes for specific runtimes (starting with Python).
 - **Operations**: Best practices for production deployment, monitoring, alerting, and cost optimization.
 - **Troubleshooting**: A systematic methodology for debugging issues, featuring KQL playbooks and hands-on labs.
+- **Reference**: Quick lookup content for CLI commands, environment variables, and platform limits.
 
 ## Reference Assets
 
@@ -97,4 +102,4 @@ MIT License — see [LICENSE](./LICENSE)
 
 ---
 
-**Questions?** [Open an issue](https://github.com/yeongseon/azure-container-apps-python-guide/issues)
+**Questions?** [Open an issue](https://github.com/yeongseon/azure-container-apps/issues)

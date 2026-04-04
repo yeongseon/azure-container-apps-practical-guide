@@ -4,32 +4,79 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
 venv/
 .venv/
-env/
-.env
 *.egg-info/
+*.egg
 dist/
 build/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+.env
+.env.local
+!.env.example
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+target/
+
+# .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
+.project
+.classpath
+.settings/
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Project
-infra/.env
-*.log
-.coverage
-htmlcov/
-.pytest_cache/
-scripts/node_modules/
-scripts/package-lock.json
+ehthumbs.db
+Desktop.ini
 
 # MkDocs
 site/
+
+# Terraform / Bicep
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Azure
+.azure/
+
+# Docker
+docker-compose.override.yml
+
+# Sisyphus (AI agent working files)
+.sisyphus/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
