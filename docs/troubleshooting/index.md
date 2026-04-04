@@ -162,3 +162,18 @@ Deploy reproduction environments and observe real symptoms:
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+
+## Incident Escalation and Routing Matrix
+
+| Signal | Severity Hint | First Escalation Target | Immediate Containment |
+|---|---|---|---|
+| All requests fail with 5xx after rollout | High | App owner + platform on-call | Route traffic to last healthy revision |
+| Region-wide ingress anomalies | Critical | Platform/SRE + cloud operations | Shift traffic or activate fallback path |
+| Single endpoint fails with identity errors | Medium | App owner + security/identity | Validate role assignment and token scope |
+| Scale-out not triggering under rising traffic | High | App owner + capacity/SRE | Temporarily raise min replicas and tune rules |
+
+!!! note "Escalate by blast radius, not by stack layer"
+    Start with user impact and affected scope first. Then route to the owning team while continuing evidence collection.
+
+!!! tip "Preserve a timeline while troubleshooting"
+    Capture timestamps for deployment, first failure, mitigation action, and recovery confirmation. A precise timeline accelerates post-incident reviews.

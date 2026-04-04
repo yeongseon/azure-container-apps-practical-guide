@@ -11,6 +11,32 @@ This reference summarizes commonly used Azure Container Apps CLI command groups 
 az extension add --name containerapp --upgrade
 ```
 
+!!! warning "Destructive commands require explicit target verification"
+    Commands such as `az containerapp delete` and revision deactivation can immediately impact availability. Validate `$RG`, `$APP_NAME`, and `$REVISION_NAME` before execution, and confirm intended scope with `az containerapp show` first.
+
+!!! tip "Use a predictable lifecycle workflow"
+    For day-to-day operations, use a consistent order: create or update, configure ingress/identity/secrets, then validate revisions and logs. This reduces missed steps during incident response.
+
+## CLI workflow map
+
+```mermaid
+flowchart LR
+    A[Create App or Job] --> B[Configure Runtime and Access]
+    B --> C[Deploy Revision / Update Image]
+    C --> D[Validate Revision and Replica State]
+    D --> E[Observe Logs and Health]
+    E --> F[Adjust Traffic or Scale]
+
+    A1[az containerapp create\naz containerapp job create]:::cmd --> A
+    B1[az containerapp ingress enable\naz containerapp identity assign\naz containerapp secret set]:::cmd --> B
+    C1[az containerapp update\naz containerapp ingress traffic set]:::cmd --> C
+    D1[az containerapp revision list\naz containerapp replica list]:::cmd --> D
+    E1[az containerapp logs show\naz containerapp show]:::cmd --> E
+    F1[az containerapp update\naz containerapp ingress traffic set]:::cmd --> F
+
+    classDef cmd fill:#eef6ff,stroke:#2b6cb0,color:#1a365d;
+```
+
 ## `az containerapp` commands
 
 ### Create
@@ -467,6 +493,9 @@ Example output (PII scrubbed):
 | Non-interactive execution | `--yes`, `--only-show-errors` |
 | Targeting revisions | `--revision <name>`, `--revision-weight` |
 | Environment/app targeting | `--resource-group`, `--name`, `--environment` |
+
+!!! note "Prefer deterministic automation output"
+    In CI/CD and runbooks, combine `--output json` with `--query` so scripts parse stable machine-readable results instead of table/text formatting.
 
 ## Advanced Topics
 

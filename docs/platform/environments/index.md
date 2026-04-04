@@ -23,6 +23,10 @@ graph TD
 
 Apps in the same environment can communicate more directly using internal service discovery patterns. Separate environments create stronger isolation at the platform boundary.
 
+!!! note "Environment is the core isolation boundary"
+    Networking, logging integration, and several operational concerns are shared at environment scope.
+    Decide this boundary early in platform design.
+
 ## Environment Types
 
 Container Apps supports different resource execution models in the environment:
@@ -44,6 +48,10 @@ Keep apps in one environment when you need:
 
 - Low-friction service-to-service communication.
 - Shared operational visibility and common lifecycle.
+
+!!! warning "Over-consolidation increases blast radius"
+    Putting too many unrelated workloads in one environment can complicate incident isolation,
+    change coordination, and governance controls.
 
 ## Revisions Inside an App
 

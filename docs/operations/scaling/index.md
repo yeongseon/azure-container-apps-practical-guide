@@ -122,6 +122,32 @@ Example output (PII masked):
 }
 ```
 
+## Scaling Decision Framework
+
+```mermaid
+flowchart LR
+    A[Traffic or Queue Increase] --> B{Workload Type}
+    B -->|HTTP interactive| C[HTTP concurrency rule]
+    B -->|Queue driven| D[Event scaler rule]
+    B -->|Scheduled batch| E[Container Apps Job]
+    C --> F[Set min/max replicas]
+    D --> F
+    E --> G[Set parallelism and retry]
+```
+
+| Symptom | Primary Knob | First Adjustment | Validation Signal |
+|---|---|---|---|
+| p95 latency rises while CPU moderate | HTTP concurrency threshold | Lower `concurrentRequests` target | Latency drops without excessive replicas |
+| Queue delay grows steadily | Queue message threshold | Decrease `messageCount` trigger | Queue depth recovers within SLO |
+| Cost spike overnight | Min replicas and max guardrail | Reduce `min-replicas` and cap `max-replicas` | Cost trend normalizes with acceptable latency |
+| Frequent cold starts | Minimum replicas | Raise `min-replicas` from 0 to 1-2 | Startup-related errors decrease |
+
+!!! tip "Tune one variable at a time"
+    Change only one scaler parameter per evaluation cycle so you can attribute impact correctly.
+
+!!! warning "Scaling cannot fix application bottlenecks alone"
+    If database limits or downstream API quotas are saturated, adding replicas may increase failure rate. Validate dependency capacity before aggressive scale-out.
+
 ## Troubleshooting
 
 ### Autoscaling does not trigger

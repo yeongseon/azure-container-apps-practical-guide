@@ -85,3 +85,84 @@ quadrantChart
 ## Sources
 - [Azure Container Apps vs Other Azure Compute Options (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/compare-options)
 - [Choose an Azure container service (Microsoft Learn)](https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service)
+
+## Decision Tree: Which Service Should You Choose?
+
+```mermaid
+flowchart TD
+    A[Workload Type] --> B{Function-first event handlers only?}
+    B -->|Yes| F[Azure Functions]
+    B -->|No| C{Need full Kubernetes control?}
+    C -->|Yes| K[Azure Kubernetes Service]
+    C -->|No| D{Need app-level ingress + revisions + scale-to-zero?}
+    D -->|Yes| CA[Azure Container Apps]
+    D -->|No| E{Simple web app with managed hosting preference?}
+    E -->|Yes| AS[Azure App Service]
+    E -->|No| ACI[Azure Container Instances]
+```
+
+!!! tip "Start from operational ownership"
+    The most reliable decision point is not feature count; it is who will own day-2 operations and how much control they can realistically support.
+
+!!! warning "Do not choose AKS by default"
+    AKS is powerful, but if you do not need cluster-level control, Container Apps usually reduces delivery and operations complexity significantly.
+
+## Capability Comparison Matrix
+
+| Capability | Container Apps | AKS | App Service | ACI | Functions |
+|---|---|---|---|---|---|
+| Deploy arbitrary container images | ✅ | ✅ | ✅ (Web-focused ergonomics) | ✅ | ⚠️ (custom container options vary by plan) |
+| Revision-based rollout and traffic splitting | ✅ | ⚠️ (manual patterns via Kubernetes primitives) | ⚠️ (slot model, different semantics) | ❌ | ⚠️ (function deployment model) |
+| Native scale-to-zero for app containers | ✅ | ⚠️ (possible with add-ons and tuning) | ❌ | ❌ | ✅ |
+| Cluster-level Kubernetes API control | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Event-driven scaling for workers | ✅ (KEDA) | ✅ (KEDA + cluster ops) | ⚠️ (depends on app pattern) | ❌ | ✅ |
+| Lowest day-2 operational burden | ✅ | ❌ | ✅ | ✅ | ✅ |
+
+## Workload Signal Checklist
+
+Use these signals to confirm Container Apps is a strong fit:
+
+| Signal | Interpretation | Recommendation |
+|---|---|---|
+| You need HTTP APIs and background workers in the same platform | Shared operations model preferred | Favor Container Apps |
+| You need safe rollout/rollback with minimal platform engineering | Revision model is beneficial | Favor Container Apps |
+| You need custom schedulers, CRDs, or advanced Kubernetes policy | Requires full Kubernetes surface | Favor AKS |
+| You have only lightweight function handlers | App container model may be unnecessary | Favor Functions |
+| You need quick one-off container execution | Long-running app features not required | Favor ACI |
+
+## Migration Guidance by Source Platform
+
+| Current Platform | Common Reason to Move to Container Apps | First Migration Step |
+|---|---|---|
+| App Service (container) | Need event-driven workers and revision control | Containerize worker path and define scale rule |
+| AKS | Reduce cluster operations overhead | Move non-cluster-specific services first |
+| ACI | Need long-running service features (ingress, revisions) | Introduce environment + health probes |
+| Functions | Need service-centric runtime and custom dependencies | Carve out API service into a dedicated container app |
+
+!!! note "Hybrid is common"
+    Mature teams frequently combine Container Apps with Functions, Event Grid, or AKS based on workload boundaries. Service choice does not need to be exclusive.
+
+## Cost and Complexity Heuristic
+
+| Priority | Suggested First Choice |
+|---|---|
+| Minimize platform complexity while keeping container flexibility | Container Apps |
+| Maximum Kubernetes control and platform engineering depth | AKS |
+| Fast web hosting with minimal architecture change | App Service |
+| Ephemeral task execution without full app lifecycle | ACI |
+| Event-handler programming model and trigger-centric design | Functions |
+
+## Extended See Also
+
+- [Start Here: Overview](overview.md)
+- [Start Here: Learning Paths](learning-paths.md)
+- [Platform: Environments](../platform/environments/index.md)
+- [Platform: Jobs](../platform/jobs/index.md)
+- [Best Practices: Anti-Patterns](../best-practices/anti-patterns.md)
+
+## Additional Sources
+
+- [Azure Container Apps hosting considerations (Microsoft Learn)](https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps)
+- [App Service overview (Microsoft Learn)](https://learn.microsoft.com/azure/app-service/overview)
+- [Azure Kubernetes Service (AKS) documentation (Microsoft Learn)](https://learn.microsoft.com/azure/aks/)
+- [Azure Functions documentation (Microsoft Learn)](https://learn.microsoft.com/azure/azure-functions/)

@@ -87,8 +87,64 @@ az containerapp logs show \
   --type system
 ```
 
+## Image Pull Workflow
+
+```mermaid
+flowchart LR
+    A[Deploy Revision] --> B[Container Apps requests image]
+    B --> C{Registry Authentication}
+    C -->|Managed identity authorized| D[Pull image manifest and layers]
+    C -->|Unauthorized| E[Image pull failure]
+    D --> F[Replica starts]
+    E --> G[System logs + rollback action]
+```
+
+## Registry Access Strategy Matrix
+
+| Method | Security Posture | Operational Overhead | Recommendation |
+|---|---|---|---|
+| System-assigned managed identity | Strong | Low | Preferred default |
+| User-assigned managed identity | Strong | Medium | Use for shared identity patterns |
+| Service principal secret | Medium | High | Use only when MI is not possible |
+| ACR admin user | Low | Medium | Avoid in production |
+
+!!! tip "Validate image existence before deployment"
+    Run a registry tag check in CI before calling `az containerapp update` to prevent preventable revision failures.
+
+!!! warning "Network-restricted ACR requires DNS correctness"
+    Private endpoint registry access fails if private DNS zone links are missing or stale, even when identity permissions are correct.
+
+### Registry and Image Validation Commands
+
+```bash
+az acr repository show-tags \
+  --name "$ACR_NAME" \
+  --repository "$APP_NAME" \
+  --output table
+
+az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "properties.template.containers[].image" \
+  --output table
+```
+
+### Pull Failure Triage Table
+
+| Log Pattern | Likely Cause | Immediate Action |
+|---|---|---|
+| `UNAUTHORIZED` | Missing `AcrPull` role or wrong identity | Verify role assignment scope and principal |
+| `MANIFEST_UNKNOWN` | Tag does not exist in repository | Confirm image tag pushed to ACR |
+| `dial tcp` timeout | DNS or network path issue to registry | Validate private DNS and subnet routing |
+| `denied` | Registry firewall policy blocks request | Allow trusted network path or private endpoint |
+
 ## See Also
 
 - [Troubleshooting Playbooks](../../troubleshooting/playbooks/index.md)
 - [Deployment Workflows](../deployment/index.md)
 - [Secret Rotation](../secret-rotation/index.md)
+
+## Sources
+
+- [Manage containers in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/containers)
+- [Authenticate with managed identity in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)

@@ -17,6 +17,19 @@ export ENVIRONMENT_NAME="aca-env-prod"
 
 Configure startup, liveness, and readiness probes in your Container App template:
 
+```mermaid
+flowchart LR
+    U[User Traffic] --> R[Readiness Probe]
+    P[Platform Runtime] --> L[Liveness Probe]
+    S[Container Startup] --> ST[Startup Probe]
+    R --> D[Receives Requests]
+    L --> E[Restart Decision]
+```
+
+!!! warning "Probe paths must reflect real dependency posture"
+    If readiness requires unavailable downstream services, the app can stay unavailable even when the container is healthy.
+    Separate process-health from dependency-health where appropriate.
+
 ```bash
 az containerapp update \
   --name "$APP_NAME" \
@@ -46,6 +59,18 @@ az containerapp revision restart \
 ```
 
 For persistent failures, roll traffic back to a healthy revision (see revisions guide).
+
+!!! tip "Prefer rollback over repeated restart loops"
+    If failures continue after one restart cycle, route traffic to a known-good revision and investigate offline.
+
+## Recovery Action Matrix
+
+| Symptom | First Action | Escalation Action |
+|---|---|---|
+| Sporadic probe failures | Restart revision once | Increase probe delay and inspect dependency latency |
+| All replicas failing readiness | Check configuration/secrets rollout | Shift traffic to prior healthy revision |
+| Repeated liveness restarts | Inspect memory/CPU pressure and startup logs | Reduce resource contention and redeploy |
+| Environment-wide instability | Validate managed environment health | Activate incident response and failover runbook |
 
 ## Verification Steps
 

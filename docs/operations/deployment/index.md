@@ -87,6 +87,70 @@ Prefer immutable tags for release traceability, and maintain a stable alias tag 
 - Post-deploy smoke test completed.
 - Rollback path documented and tested.
 
+## Deployment Workflow and Release Guardrails
+
+```mermaid
+flowchart TD
+    A[Commit Merged] --> B[Build and Test]
+    B --> C[Push Immutable Image to ACR]
+    C --> D[Deploy New Revision]
+    D --> E[Run Health and SLO Checks]
+    E --> F{Healthy?}
+    F -->|Yes| G[Promote Traffic]
+    F -->|No| H[Rollback Traffic]
+    H --> I[Open Incident and Fix]
+```
+
+| Deployment Method | Strength | Tradeoff | Best Operational Use |
+|---|---|---|---|
+| Direct CLI (`az containerapp up/update`) | Fastest change path | Higher drift risk | Hotfixes and smoke deployments |
+| Bicep (`az deployment group create`) | Deterministic infra state | Requires template discipline | Production baseline and governance |
+| CI/CD pipeline | Approval + traceability + repeatability | More setup overhead | Team-wide standard release workflow |
+
+!!! tip "Prefer immutable image tags per deployment"
+    Use tags like `git-<sha>` or date-based release tags to guarantee revision traceability and safe rollback.
+
+!!! warning "Run what-if before production IaC applies"
+    `az deployment group what-if` should be mandatory for production environments to prevent accidental networking, identity, or ingress drift.
+
+### Progressive Rollout Example
+
+```bash
+export IMAGE_TAG="git-$(git rev-parse --short HEAD)"
+export IMAGE_NAME="$ACR_NAME.azurecr.io/$APP_NAME:$IMAGE_TAG"
+
+az acr build \
+  --registry "$ACR_NAME" \
+  --image "$APP_NAME:$IMAGE_TAG" \
+  --file "apps/python/Dockerfile" \
+  "apps/python"
+
+az containerapp update \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --image "$IMAGE_NAME"
+
+az containerapp revision list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output table
+```
+
+### Post-Deployment Acceptance Checks
+
+```bash
+az containerapp logs show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --type console \
+  --follow false
+
+az containerapp ingress traffic show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output table
+```
+
 ## See Also
 
 - [Language Guides](../../language-guides/index.md)

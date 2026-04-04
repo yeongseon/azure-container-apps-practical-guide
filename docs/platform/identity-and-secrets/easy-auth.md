@@ -6,19 +6,46 @@ Azure Container Apps (ACA) provides built-in authentication and authorization, o
 
 When you enable authentication, the platform's built-in authentication middleware intercepts incoming requests and validates the user's identity before forwarding the request to your application container.
 
+```mermaid
+sequenceDiagram
+    participant U as User Browser
+    participant P as Easy Auth Middleware
+    participant I as Identity Provider
+    participant A as Container App
+    U->>P: Request /protected
+    P->>I: Redirect for sign-in
+    I-->>P: Token/claims
+    P->>A: Forward request with X-MS-* headers
+    A-->>U: Authenticated response
+```
+
+!!! warning "Easy Auth does not replace app authorization"
+    Easy Auth authenticates users, but your application still must enforce role/tenant/resource-level authorization rules.
+
 ## Enabling Authentication
 
 To enable authentication with Microsoft Entra ID (formerly Azure AD):
 
 ```bash
+export RG="rg-myapp"
+export APP_NAME="ca-myapp"
+export CLIENT_ID="<client-id>"
+export CLIENT_SECRET="<client-secret>"
+export TENANT_ID="<tenant-id>"
+```
+
+```bash
 az containerapp auth microsoft update \
-  --name my-python-app \
-  --resource-group my-aca-rg \
-  --client-id <CLIENT_ID> \
-  --client-secret <CLIENT_SECRET> \
-  --tenant-id <TENANT_ID> \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --client-id "$CLIENT_ID" \
+  --client-secret "$CLIENT_SECRET" \
+  --tenant-id "$TENANT_ID" \
   --action RedirectToLoginPage
 ```
+
+!!! note "Use secret references for client secrets"
+    Avoid storing raw client secrets directly in scripts. Use secure secret handling workflows and rotate credentials regularly.
 
 ## Accessing User Information
 
@@ -53,6 +80,15 @@ def home():
 - **Simplicity:** No need to implement OAuth/OpenID Connect flows in your Python code.
 - **Security:** Managed by Azure, ensuring it's always up to date with the latest security standards.
 - **Flexibility:** Supports multiple identity providers, including Google, Facebook, and GitHub.
+
+## Easy Auth Capability Matrix
+
+| Capability | Easy Auth Coverage | App Responsibility |
+|---|---|---|
+| Authentication handshake | Built-in | Configure provider correctly |
+| Token/header injection | Built-in (`X-MS-*`) | Validate claim assumptions |
+| Business authorization | Partial | Enforce route/resource policies |
+| Session/user experience | Partial | Handle app-specific redirects and UX |
 
 ## See Also
 - [Managed Identity](managed-identity.md)

@@ -18,6 +18,28 @@ export ENVIRONMENT_NAME="aca-env-prod"
 - **Consumption profile**: best for variable traffic and scale-to-zero scenarios.
 - **Workload profiles**: best for predictable baseline load and dedicated capacity planning.
 
+```mermaid
+flowchart LR
+    T[Traffic Pattern] --> P{Profile Choice}
+    P -->|Bursty/idle| C[Consumption]
+    P -->|Steady baseline| W[Workload Profiles]
+    C --> S[Scale-to-zero friendly]
+    W --> R[Reserved capacity planning]
+```
+
+!!! warning "Cost optimization without SLO context is risky"
+    Lowering replicas or CPU aggressively can reduce spend but degrade latency and reliability.
+    Validate changes against service objectives.
+
+## Cost Lever Matrix
+
+| Lever | Cost Impact | Reliability Impact | Recommended Guardrail |
+|---|---|---|---|
+| `minReplicas` | High | Cold starts possible when set to 0 | Keep critical APIs at 1+ warm replica |
+| `maxReplicas` | Medium to high | Throttling risk if set too low | Tune to dependency capacity |
+| CPU/memory per replica | Medium | OOM/restarts if undersized | Observe p95 utilization trends |
+| Profile selection | High | Performance isolation varies | Reassess quarterly by workload type |
+
 Inspect environment profile configuration:
 
 ```bash
@@ -49,6 +71,9 @@ az containerapp update \
 ```
 
 Set conservative max replicas for non-critical services to cap runaway spend.
+
+!!! tip "Use separate policies for critical vs non-critical apps"
+    Apply tighter cost caps to batch/background services and protect user-facing APIs with stronger availability baselines.
 
 ## Cost Monitoring and Guardrails
 

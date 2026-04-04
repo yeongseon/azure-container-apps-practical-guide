@@ -36,6 +36,36 @@ Follow these step-by-step guides to master the deployment of Python applications
 6.  [**CI/CD with GitHub Actions**](./06-ci-cd.md) — Build automated pipelines to test and deploy your code on every commit.
 7.  [**Revisions & Traffic**](./07-revisions-traffic.md) — Master advanced deployment strategies like blue-green and canary releases.
 
+## Python Guide Progress Snapshot
+
+| Area | Coverage | Primary Asset |
+|---|---|---|
+| Build and run locally | Complete | [01-local-development](./01-local-development.md) |
+| First cloud deployment | Complete | [02-first-deploy](./02-first-deploy.md) |
+| Config, secrets, and Dapr | Complete | [03-configuration](./03-configuration.md) |
+| Observability | Complete | [04-logging-monitoring](./04-logging-monitoring.md) |
+| Infrastructure as Code | Complete | [05-infrastructure-as-code](./05-infrastructure-as-code.md) |
+| CI/CD automation | Complete | [06-ci-cd](./06-ci-cd.md) |
+| Safe rollout strategy | Complete | [07-revisions-traffic](./07-revisions-traffic.md) |
+| Runtime tuning | Complete | [python-runtime](./python-runtime.md) |
+| Integration recipes | Complete | [recipes/index](./recipes/index.md) |
+
+## End-to-End Learning Flow
+
+```mermaid
+flowchart LR
+    A[Local Docker Validation] --> B[Azure First Deployment]
+    B --> C[Configuration and Secrets]
+    C --> D[Logs, Metrics, Traces]
+    D --> E[Bicep-Driven Infrastructure]
+    E --> F[GitHub Actions CI/CD]
+    F --> G[Revisions and Traffic Splits]
+    G --> H[Runtime Tuning and Recipes]
+```
+
+!!! tip "Use this order for fastest production readiness"
+    Complete tutorials `01` through `07` sequentially first, then use runtime and recipe pages for optimization and integration. This prevents configuration drift and keeps your revisions reproducible.
+
 ## Runtime Guide
 
 For detailed technical information on how the Python runtime is configured and optimized for Azure Container Apps, see the [Python Runtime Reference](./python-runtime.md).
@@ -67,6 +97,9 @@ By completing this guide, you will gain the following capabilities:
 - Troubleshooting distributed systems using platform-native logs and KQL queries.
 - Managing the full application lifecycle through infrastructure-as-code and automated CI/CD.
 
+!!! note "Use standard variables consistently"
+    For command consistency across tutorials and recipes, use `$RG`, `$APP_NAME`, `$ENVIRONMENT_NAME`, `$ACR_NAME`, and `$LOCATION` in your shell session before running commands.
+
 !!! info "Architecture Best Practices"
     The patterns shown in this guide follow the Azure Well-Architected Framework. We prioritize security via Managed Identity, reliability via Health Probes, and operational excellence via automated deployments.
 
@@ -76,3 +109,8 @@ By completing this guide, you will gain the following capabilities:
 - [Operations Guide](../../operations/index.md) — Production operations and day-2 activities.
 - [Troubleshooting Methodology](../../troubleshooting/index.md) — Systematic approach to debugging issues.
 - [CLI Reference](../../troubleshooting/first-10-minutes/cli-reference.md) — Quick lookup for CLI commands and limits.
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Python on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/python-overview)

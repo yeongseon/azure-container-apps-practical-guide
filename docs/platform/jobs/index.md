@@ -18,6 +18,10 @@ Use apps when:
 - You expose an ingress endpoint to clients.
 - You maintain long-lived process state in memory.
 
+!!! warning "Jobs must be idempotent"
+    Retries and parallel executions can reprocess the same work item.
+    Design input handling so duplicate execution does not corrupt state.
+
 ## Execution Models
 
 ### Manual trigger
@@ -125,6 +129,10 @@ Monitor these signals:
 - Duration distribution (p50/p95)
 - Dependency-specific errors (authentication, throttling, timeout)
 
+!!! tip "Set timeouts from measured runtime"
+    Start from observed p95 execution duration and add headroom.
+    Avoid unlimited timeout behavior that hides stuck executions.
+
 ## Common Patterns
 
 ### Data processing pipeline
@@ -162,3 +170,8 @@ flowchart LR
 - [Platform Overview](../index.md)
 - [Identity and Secrets](../identity-and-secrets/managed-identity.md)
 - [Operations - Monitoring](../../operations/monitoring/index.md)
+
+## Sources
+
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
+- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#jobs)

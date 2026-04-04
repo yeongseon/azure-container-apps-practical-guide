@@ -10,11 +10,45 @@ These guides are designed to help you build applications that are "platform-nati
 
 -   **[Python (Flask)](python/01-local-development.md)**: A comprehensive guide covering Flask with Gunicorn, health endpoints, structured logging, and common integration recipes.
 
-## Coming Soon
+## Language Support Matrix
+
+| Language | Runtime | Status | Tutorial Count | Recipes |
+|---|---|---|---:|---:|
+| Python | Flask + Gunicorn on `python:3.11-slim` | Available now | 7 (`01`-`07`) | 13+
+| Node.js | Express/Fastify on Node LTS | Planned | 0 (planned) | 0 (planned)
+| Java | Spring Boot / Quarkus | Planned | 0 (planned) | 0 (planned)
+| C# | ASP.NET Core / Minimal API (.NET 8+) | Planned | 0 (planned) | 0 (planned)
+
+!!! tip "Start with Python for the full end-to-end path"
+    Python is currently the most complete language track in this repository, including local development, first deployment, configuration/secrets, observability, IaC, CI/CD, revisions/traffic, runtime guidance, and integration recipes.
+
+## Tutorial Progression Model
+
+```mermaid
+flowchart LR
+    A[01 Local Development] --> B[02 First Deploy]
+    B --> C[03 Configuration and Secrets]
+    C --> D[04 Logging and Monitoring]
+    D --> E[05 Infrastructure as Code]
+    E --> F[06 CI/CD]
+    F --> G[07 Revisions and Traffic]
+    G --> H[Recipes and Runtime Tuning]
+```
+
+## Coming Soon (Roadmap)
 
 -   **Node.js (Express)**: Best practices for async performance, memory management, and package optimization.
 -   **Java (Spring Boot / Quarkus)**: Guides for optimizing startup times with Native Image, JVM tuning, and Dapr SDK.
 -   **C# (.NET 8+)**: Minimal APIs, health check middleware, and managed identity integration.
+
+Roadmap principles used for new language tracks:
+
+1. Start with a production-ready reference app under `apps/<language>/`.
+2. Publish the 7-step tutorial sequence (`01` to `07`) before adding advanced recipes.
+3. Add runtime tuning guidance and troubleshooting playbooks after baseline tutorials stabilize.
+
+!!! note "Contributions are welcome for planned languages"
+    If you want to help build Node.js, Java, or C# tracks, open an issue with a proposed scope (runtime, tutorial step, or recipe). Prioritize parity with the Python structure so users can transfer the same operational model across languages.
 
 ## What Each Language Guide Includes
 
@@ -34,8 +68,25 @@ While the implementation details vary, every application in this hub follows the
 -   **Revision-Safe Behavior**: Handling SIGTERM for graceful shutdown and stateful handoffs.
 -   **Port Binding**: Listening on the port specified by the platform (defaulting to 8000).
 
+## How to Choose Your Starting Path
+
+| Goal | Recommended starting point | Why |
+|---|---|---|
+| First deployment this week | [Python Step 01](python/01-local-development.md) | Fastest validated path in this repository |
+| Team platform alignment | [Python index](python/index.md) | Covers full lifecycle and operating model |
+| Runtime tuning focus | [Python runtime](python/python-runtime.md) | Concentrated Gunicorn/container guidance |
+| Service integration focus | [Python recipes](python/recipes/index.md) | Task-oriented patterns for data, identity, and ingress |
+
 ## See Also
 
 - [Python Guide](python/01-local-development.md)
+- [Python Language Guide Index](python/index.md)
+- [Python Recipes Index](python/recipes/index.md)
 - [Start Here - Learning Paths](../start-here/learning-paths.md)
 - [Platform - Architecture](../platform/index.md)
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Dapr documentation](https://docs.dapr.io/)
+- [KEDA documentation](https://keda.sh/)

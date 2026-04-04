@@ -29,6 +29,15 @@ Solid arrows show runtime data flow. Dashed arrows show identity and authenticat
 - **System-assigned:** Tied to the lifecycle of the Container App.
 - **User-assigned:** Created as a separate resource and can be shared among multiple apps.
 
+| Identity Type | Lifecycle | Best Use Case |
+|---|---|---|
+| System-assigned | Deleted with the app | Single app, simplest setup |
+| User-assigned | Independent resource | Shared identity across multiple apps/jobs |
+
+!!! warning "Role assignment propagation is eventually consistent"
+    Newly assigned RBAC roles can take time to become effective.
+    Build retries into startup checks for first-time deployments.
+
 ## Enabling Managed Identity
 
 To enable a system-assigned managed identity for your app:
@@ -72,6 +81,9 @@ blob_service_client = BlobServiceClient(
     credential=credential
 )
 ```
+
+!!! tip "Use service-specific SDK clients with DefaultAzureCredential"
+    Keep authorization centralized in managed identity and avoid embedding keys or SAS tokens in app configuration.
 
 ## Why use Managed Identity?
 

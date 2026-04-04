@@ -87,8 +87,69 @@ Run controlled drills at least once per quarter:
 
 Measure detection-to-recovery time and refine runbooks after each drill.
 
+## Incident Recovery Workflow
+
+```mermaid
+flowchart TD
+    A[Incident Detected] --> B[Assess Scope and Severity]
+    B --> C[Stabilize Service]
+    C --> D{Deployment-related?}
+    D -->|Yes| E[Rollback Revision Traffic]
+    D -->|No| F[Recover Dependency]
+    E --> G[Verify Customer Transactions]
+    F --> G
+    G --> H[Post-Incident Review and Actions]
+```
+
+## Recovery Strategy Matrix
+
+| Failure Type | First Response | Preferred Mitigation | Validation |
+|---|---|---|---|
+| Bad application release | Route traffic to stable revision | Deactivate failed revision | Health endpoint + business transaction checks |
+| Secret/authentication expiry | Rotate secret and redeploy revision | Temporary failover credential if available | Authentication success rate and error logs |
+| Dependency outage | Activate fallback path or queue buffering | Dependency-specific DR process | Queue drain and response-time normalization |
+| Regional platform issue | Shift traffic to pre-provisioned secondary region | Rehydrate state and restore normal routing | End-to-end synthetic checks |
+
+!!! tip "Define explicit RTO and RPO targets"
+    Recovery drills should measure actual restoration against target objectives, not only procedural completion.
+
+!!! warning "Avoid simultaneous mitigation changes"
+    During active incidents, apply one mitigation at a time (rollback, scale, secret change, network update) to preserve causal clarity.
+
+### Recovery Verification Commands
+
+```bash
+az containerapp revision list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output table
+
+az containerapp ingress traffic show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output json
+
+az containerapp logs show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --type console \
+  --follow false
+```
+
+### Recovery Exit Criteria
+
+- End-user transactions succeed at normal error and latency levels.
+- Alert severity is reduced and no new sev1/sev2 signals are firing.
+- Rollback/mitigation steps are recorded with timestamps and owners.
+- Follow-up actions are created before incident closure.
+
 ## See Also
 
 - [Troubleshooting Hub](../../troubleshooting/index.md)
 - [Troubleshooting Playbooks](../../troubleshooting/playbooks/index.md)
 - [Deployment Workflows](../deployment/index.md)
+
+## Sources
+
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)

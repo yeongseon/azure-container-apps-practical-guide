@@ -9,6 +9,18 @@ By default, Container Apps can access:
 - Azure services via public endpoints
 - Resources in the same VNet (if VNet integrated)
 
+!!! warning "Uncontrolled egress increases data exfiltration risk"
+    Production workloads should define explicit outbound paths and approved destinations,
+    especially when handling regulated or sensitive data.
+
+## Egress Strategy Comparison
+
+| Strategy | Primary Goal | Trade-off | Typical Fit |
+|---|---|---|---|
+| Default outbound | Fast setup | Minimal governance | Dev/test environments |
+| UDR + Azure Firewall | Domain/IP filtering and inspection | Higher complexity and cost | Regulated production workloads |
+| NAT Gateway | Static outbound IP for allow-lists | No L7 filtering by itself | SaaS allow-list integrations |
+
 ## User-Defined Routes (UDR)
 
 Route outbound traffic through Azure Firewall or NVA:
@@ -151,6 +163,10 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-05-01' = {
   }
 }
 ```
+
+!!! tip "Combine NAT and firewall when needed"
+    Use NAT Gateway for predictable source IP and Azure Firewall for destination governance
+    when both compliance and partner allow-list requirements exist.
 
 ## Verify Outbound IP
 

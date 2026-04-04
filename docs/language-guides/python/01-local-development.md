@@ -17,6 +17,9 @@ graph LR
 - Docker Engine or Docker Desktop
 - Source code with a Dockerfile
 
+!!! tip "Aim for local-cloud parity"
+    Keep local container port mapping and environment variable names aligned with your Azure deployment settings. This reduces revision failures caused by mismatched runtime assumptions.
+
 ## Step-by-step
 
 1. **Build the container image**
@@ -96,6 +99,9 @@ graph LR
 - Required environment variables are present
 - `/health` returns HTTP 200
 - No startup exceptions in container logs
+
+!!! warning "Do not commit local secret files"
+    If you create a local `.env` file for testing, keep sensitive values out of source control and use placeholder values in shared examples.
 
 ## Advanced Topics
 

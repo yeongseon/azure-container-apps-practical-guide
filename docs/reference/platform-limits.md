@@ -2,6 +2,28 @@
 
 Use this quick reference for common design-time and runtime limits in Azure Container Apps. Values can vary by region/SKU and may change; always confirm against official documentation.
 
+!!! warning "Differentiate hard platform limits from adjustable quotas"
+    Some boundaries are fixed implementation constraints, while others are subscription or region quotas that can be increased. Treat each limit category differently during capacity planning.
+
+!!! tip "Plan increase requests before scale events"
+    If your growth forecast approaches environment or regional quotas, submit increase requests early and validate rollout plans with current quota values.
+
+## Limits hierarchy and blast radius
+
+```mermaid
+flowchart TD
+    A[Container Apps Environment] --> B[Container App]
+    B --> C[Revision]
+    C --> D[Replica]
+    D --> E[Container]
+
+    A --> A1[Shared networking and logging boundary]
+    B --> B1[Ingress, scale rules, identity, secrets]
+    C --> C1[Immutable app template snapshot]
+    D --> D1[Scaled runtime unit]
+    E --> E1[CPU and memory constrained process]
+```
+
 ## Prerequisites
 
 - Familiarity with Container Apps environments, revisions, and jobs
@@ -116,8 +138,14 @@ Job snapshot from `az containerapp job show`:
 - Set alerts for scale saturation and throttling symptoms.
 - Reconcile platform limits with SLOs and peak demand models.
 
+!!! info "Use limits as a design input, not only an operations check"
+    Include limit validation in architecture review, load test planning, and release gates so teams discover constraint issues before production incidents.
+
 ## See Also
 
 - [CLI Reference](cli-reference.md)
 - [Troubleshooting First 10 Minutes](../troubleshooting/first-10-minutes/index.md)
+
+## Sources
+
 - [Microsoft Learn: Azure Container Apps limits and quotas](https://learn.microsoft.com/azure/container-apps/quotas)

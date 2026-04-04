@@ -17,6 +17,10 @@ flowchart LR
 
 KEDA continuously evaluates rules and updates desired replica count within configured bounds.
 
+!!! note "Scaling is revision-scoped"
+    Scale decisions apply to the active revision(s) receiving traffic.
+    During progressive rollouts, evaluate scaling behavior for each active revision mix.
+
 ## Min and Max Replicas
 
 - **minReplicas**: lower bound of warm capacity.
@@ -60,6 +64,10 @@ graph TD
 - High max replicas vs budget predictability.
 
 Good scaling design balances **user experience**, **system stability**, and **cost controls**.
+
+!!! warning "Max replicas without dependency limits can cause outages"
+    Aggressive scale-out can overload databases, caches, or third-party APIs.
+    Set max replicas based on downstream capacity, not only frontend demand.
 
 ## Advanced Topics
 

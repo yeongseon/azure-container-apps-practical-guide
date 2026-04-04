@@ -330,6 +330,21 @@ Inside the container, use:
 | IP reachable, port closed | L4 (Transport) | Service firewall, wrong port, service stopped | Check target service network rules |
 | Port open, HTTP error | L7 (Application) | Auth failure, bad cert, app crash | Check credentials, TLS config, app logs |
 
+### Change Window Decision Matrix
+
+| Change Type | Risk Level | Recommended Window | Rollback Plan |
+|---|---|---|---|
+| Ingress external/internal toggle | Medium | Low-traffic period | Restore prior ingress type and re-validate FQDN |
+| Subnet/route/NSG update | High | Planned maintenance window | Reapply last known-good network policy from IaC |
+| Private DNS zone link update | High | Planned maintenance window | Re-link previous zone and flush DNS clients |
+| WAF or gateway routing change | Medium | Controlled release window | Revert listener/rule set and retest `/health` |
+
+!!! tip "Validate from caller network context"
+    Always run connectivity checks from the same network path as the failing caller (same VNet/subnet/peering boundary). Control-plane success does not guarantee data-plane reachability.
+
+!!! warning "Do not combine multiple network changes in one window"
+    Applying DNS, NSG, UDR, and ingress changes together makes root-cause isolation significantly harder during incidents.
+
 ## Troubleshooting
 
 ### Requests time out

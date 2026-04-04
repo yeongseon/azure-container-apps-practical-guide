@@ -29,3 +29,114 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 - [Playbooks](../playbooks/index.md)
 - [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)
 - [Troubleshooting Methodology](../methodology/index.md)
+
+## How to Use These Labs Effectively
+
+Use this section when you want a repeatable learning loop (reproduce → observe → fix → verify).
+
+```mermaid
+flowchart TD
+    A[Choose Lab by Symptom] --> B[Deploy Lab Infrastructure]
+    B --> C[Trigger Failure]
+    C --> D[Collect Evidence]
+    D --> E[Apply Targeted Fix]
+    E --> F[Verify Recovery]
+    F --> G[Capture Lessons Learned]
+```
+
+!!! info "Run labs like incident drills"
+    Treat each lab as an on-call simulation. Time-box your investigation and record which signal (revision state, system log, console log, metrics) gave you the fastest root-cause clue.
+
+!!! tip "Reuse one naming convention across all labs"
+    Keep variable names consistent between labs (`$RG`, `$APP_NAME`, `$ENVIRONMENT_NAME`, `$ACR_NAME`, `$LOCATION`) so your troubleshooting muscle memory transfers cleanly.
+
+## Lab Selection Matrix
+
+| Lab | Primary Symptom | First Signal to Check | Typical Root Cause | Fastest Recovery |
+|---|---|---|---|---|
+| ACR Image Pull Failure | Revision never starts | `ContainerAppSystemLogs_CL` pull errors | Bad image tag / registry auth | Push valid image + update app image |
+| Revision Failover and Rollback | New revision unhealthy | `az containerapp revision list` | Risky config change in latest revision | Shift traffic back to healthy revision |
+| Scale Rule Mismatch | Load increases, replicas do not | Replica count + KEDA events | Threshold too high / max replicas too low | Tune scale rule and retry load |
+| Probe and Port Mismatch | Probe failures, no stable ready state | Probe failure warnings | App bind port != ingress target port | Align target port and rollout new revision |
+| Managed Identity Key Vault Failure | Route returns 500/403 | App logs with identity errors | Missing role assignment on Key Vault scope | Assign RBAC role and re-verify |
+| Revision Provisioning Failure | Revision stuck/failed provisioning | Revision lifecycle events | `secretRef` points to missing secret | Add secret and redeploy revision |
+
+## Step-by-Step: Standard Lab Execution Pattern
+
+1. **Prepare shell variables**
+
+   ```bash
+   export RG="rg-aca-lab-shared"
+   export LOCATION="koreacentral"
+   export ENVIRONMENT_NAME="cae-myapp"
+   export APP_NAME="ca-myapp"
+   export ACR_NAME="acrmyapp"
+   ```
+
+   Expected output: no output (environment variables set in your shell).
+
+2. **Validate CLI context**
+
+   ```bash
+   az account show --output table
+   az extension add --name containerapp --upgrade
+   ```
+
+   Expected output: active subscription metadata and extension upgrade confirmation.
+
+3. **Deploy the chosen lab infrastructure**
+
+   ```bash
+   az deployment group create \
+     --name "lab-run" \
+     --resource-group "$RG" \
+     --template-file "./labs/<lab-name>/infra/main.bicep" \
+     --parameters baseName="labrun"
+   ```
+
+   Expected output pattern:
+
+   ```text
+   "provisioningState": "Succeeded"
+   ```
+
+4. **Trigger failure and collect signals**
+
+   ```bash
+   ./labs/<lab-name>/trigger.sh
+   ./labs/<lab-name>/verify.sh
+   ```
+
+   Expected output: one or more failure indicators (for example `ImagePullBackOff`, `ProbeFailed`, `403 Forbidden`, or non-scaling replica count).
+
+5. **Apply targeted fix and verify recovery**
+
+   ```bash
+   # Use the specific fix command from each lab guide
+   az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+   ```
+
+   Expected output pattern: at least one `Healthy` revision with intended traffic weight.
+
+6. **Clean up resources**
+
+   ```bash
+   ./labs/<lab-name>/cleanup.sh
+   ```
+
+   Expected output: deletion completed or a `Succeeded` state for cleanup actions.
+
+## Expected vs Actual Investigation Template
+
+| Checkpoint | Expected State | Typical Failure State | Action |
+|---|---|---|---|
+| Revision health | `Healthy` and active | `Failed` or stuck provisioning | Inspect system logs and revision events |
+| Replica status | Running replicas under load | 0 replicas or repeated restart | Check probes, scale settings, and runtime logs |
+| Route behavior | HTTP 200 with expected payload | 5xx, timeout, or connection refused | Validate ingress + target port + dependencies |
+| Identity access | Token retrieval and authorized resource call | 401/403 in console logs | Verify managed identity and RBAC scope |
+
+## Sources
+
+- [Azure Container Apps troubleshooting overview](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Azure Container Apps revisions](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Azure Container Apps scale behavior](https://learn.microsoft.com/azure/container-apps/scale-app)

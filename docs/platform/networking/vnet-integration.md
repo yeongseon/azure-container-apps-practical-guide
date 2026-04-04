@@ -9,6 +9,10 @@ Container Apps can be deployed into a custom VNet to:
 - Connect to private resources (databases, storage)
 - Control ingress/egress with NSG rules
 
+!!! warning "Subnet sizing is not optional"
+    The Container Apps infrastructure subnet must be at least /23.
+    Smaller subnets commonly fail at environment provisioning time.
+
 ## Architecture
 
 ```mermaid
@@ -119,6 +123,10 @@ Once in a VNet, Container Apps can access:
 - Private Endpoints (Azure SQL, Storage, Key Vault)
 - VNet-peered resources
 - On-premises via VPN/ExpressRoute
+
+!!! tip "Treat DNS as part of networking design"
+    Private endpoint connectivity depends on DNS zone linkage and name resolution.
+    Validate DNS records before investigating application code.
 
 ### Example: Connect to Private Azure SQL
 ```python

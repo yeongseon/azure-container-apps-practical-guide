@@ -1,5 +1,21 @@
 # Python Runtime
 
+This reference summarizes practical runtime defaults for Python workloads on Azure Container Apps so you can keep startup behavior, probe health, and logging predictable across revisions.
+
+## Runtime Execution Model
+
+```mermaid
+flowchart LR
+    IMG[Container Image] --> BOOT[Gunicorn Startup]
+    BOOT --> PORT[Bind 0.0.0.0:8000]
+    PORT --> PROBE[Health Probes]
+    PROBE --> TRAFFIC[Ingress Traffic]
+    TRAFFIC --> LOGS[stdout/stderr to Log Analytics]
+```
+
+!!! tip "Treat runtime settings as deployment contracts"
+    Keep port binding, process model, and logging behavior stable between revisions. Changing all three at once makes incident triage much harder.
+
 ## Runtime Baseline (This Repo)
 
 | Item | Value |
@@ -73,6 +89,16 @@ ps aux
 | Intermittent worker timeouts | Long request handlers | Optimize handler or raise Gunicorn timeout |
 | High memory usage, restarts | Too many workers for memory size | Reduce workers or increase memory |
 | Missing traces in App Insights | `TELEMETRY_MODE` or connection string not set | Set `TELEMETRY_MODE=advanced` and `APPLICATIONINSIGHTS_CONNECTION_STRING` |
+
+!!! warning "Avoid hardcoding runtime assumptions"
+    If your app assumes a fixed port, writable local filesystem, or shell-only startup dependencies, revisions may pass locally but fail in Container Apps. Validate behavior with environment-driven configuration and health probes.
+
+## See Also
+
+- [Python Language Guide Index](./index.md)
+- [01 - Run Locally with Docker](./01-local-development.md)
+- [03 - Configuration, Secrets, and Dapr](./03-configuration.md)
+- [Container Design Best Practices](../../best-practices/container-design.md)
 
 ## Sources
 - [Azure Container Apps containers reference (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)

@@ -65,6 +65,10 @@ This deploys:
 | Redis Cache | `privatelink.redis.cache.windows.net` | `redisCache` |
 | Container Registry | `privatelink.azurecr.io` | `registry` + `registry_data_<region>` |
 
+!!! tip "Validate DNS before transport troubleshooting"
+    Most private endpoint connectivity failures are DNS-related.
+    Confirm private name resolution first, then inspect NSG and route behavior.
+
 !!! note "ACR requires two private endpoints"
     Container Registry is unique — you need a private endpoint for the **login server** (`registry`) and a second one for the **data endpoint** (`registry_data_<region>`). Both must resolve to private IPs for image pulls to work. See [Private Container Registry](../../language-guides/python/recipes/container-registry.md) for the full setup.
 

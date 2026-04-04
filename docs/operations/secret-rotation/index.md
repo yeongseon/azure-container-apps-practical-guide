@@ -73,8 +73,79 @@ Operational controls:
 
 Document secret owners and rotation cadence per dependency.
 
+## Secret Rotation Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant Ops as Operations Team
+    participant KV as Azure Key Vault
+    participant ACA as Azure Container Apps
+    participant App as Application Revision
+    Ops->>KV: Create new secret version
+    Ops->>ACA: Update secret reference/value
+    ACA->>App: Create new revision with updated secretref
+    App->>Ops: Health checks and smoke tests
+    Ops->>KV: Disable old secret version after validation window
+```
+
+## Rotation Pattern Decision Matrix
+
+| Pattern | Downtime Risk | Complexity | Best Fit |
+|---|---|---|---|
+| Dual secret versioning | Low | Medium | Services supporting parallel credentials |
+| Blue/green cutover | Low | Medium | User-facing APIs requiring traffic control |
+| Immediate replacement | Medium/High | Low | Non-critical internal tools only |
+
+!!! tip "Use revision-based cutover for safer rotations"
+    Secret updates should create a new revision and pass readiness checks before traffic shifts. This provides a clean rollback path.
+
+!!! warning "Do not revoke old credentials immediately"
+    Keep the previous credential active until post-rotation validation confirms successful reads/writes and no authentication errors.
+
+### Key Vault Reference Example
+
+```bash
+az containerapp secret set \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --secrets "db-conn=keyvaultref:https://<key-vault-name>.vault.azure.net/secrets/db-conn,identityref:system"
+
+az containerapp update \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --set-env-vars "DB_CONNECTION=secretref:db-conn"
+```
+
+### Post-Rotation Verification Checklist
+
+| Check | Command | Expected Result |
+|---|---|---|
+| New revision created | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Latest revision is healthy |
+| Auth errors not increasing | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow false` | No spike in auth failures |
+| Traffic served by new revision | `az containerapp ingress traffic show --name "$APP_NAME" --resource-group "$RG" --output table` | Target revision receives expected weight |
+| Old secret can be retired | Key Vault audit review | No calls using old version |
+
+### Rotation Run Command Set
+
+```bash
+az containerapp secret list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output table
+
+az containerapp revision list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output table
+```
+
 ## See Also
 
 - [Identity and Secrets](../../platform/identity-and-secrets/managed-identity.md)
 - [Alerts](../alerts/index.md)
 - [Recovery and Incident Readiness](../recovery/index.md)
+
+## Sources
+
+- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
+- [Use managed identity in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)

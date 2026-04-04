@@ -136,8 +136,51 @@ Keep ownership explicit by mapping each alert to an on-call team.
 
 Tune these values using your normal load patterns after 2-4 weeks of baseline data.
 
+## Alert Lifecycle Flow
+
+```mermaid
+flowchart TD
+    A[Metric or Log Threshold Breach] --> B[Azure Monitor Alert Rule]
+    B --> C[Action Group Triggered]
+    C --> D[Notify On-call Channel]
+    D --> E[Run Investigation Queries]
+    E --> F{Customer Impact?}
+    F -->|Yes| G[Mitigate and Rollback]
+    F -->|No| H[Track and Tune Threshold]
+```
+
+## Alert Rule Decision Matrix
+
+| Alert Type | Best Use Case | Strength | Limitation |
+|---|---|---|---|
+| Metric alert | Fast resource saturation detection | Near-real-time signal | Less detailed error context |
+| Log search alert | Semantic detection from app/system logs | Rich context and pattern matching | Slightly higher detection latency |
+| Activity log alert | Control-plane change visibility | Captures config mutations | Not a direct user-impact metric |
+
+!!! tip "Map each alert to a specific runbook"
+    Include runbook URL, owner team, and first query in the alert description so responders can act immediately.
+
+!!! warning "Avoid alert storms"
+    Duplicate rules for the same symptom across metrics and logs can flood channels. Deduplicate by signal ownership and escalation target.
+
+### Activity Log Alert Example
+
+```bash
+az monitor activity-log alert create \
+  --name "aca-config-change" \
+  --resource-group "$RG" \
+  --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
+  --condition category=Administrative and operationName=Microsoft.App/containerApps/write and level=Informational \
+  --action-group "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/microsoft.insights/actionGroups/ag-oncall"
+```
+
 ## See Also
 
 - [Monitoring](../monitoring/index.md)
 - [Troubleshooting](../../troubleshooting/index.md)
 - [Recovery and Incident Readiness](../recovery/index.md)
+
+## Sources
+
+- [Set alerts in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/alerts)
+- [Monitor logs in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)

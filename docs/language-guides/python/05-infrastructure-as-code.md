@@ -17,6 +17,9 @@ graph LR
 - Completed [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - Bicep files under `infra/`
 
+!!! tip "Run validate and what-if before every apply"
+    Treat `az deployment group validate` and `az deployment group what-if` as required safety checks to prevent accidental production-impacting infrastructure changes.
+
 ## Step-by-step
 
 1. **Set standard variables**
@@ -162,6 +165,9 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 - Split templates into modules (network, observability, apps, identity).
 - Use parameter files per environment (dev, test, prod).
 - Provision Dapr components declaratively with managed identities.
+
+!!! warning "Avoid out-of-band portal edits"
+    Manual portal changes can create drift from your Bicep templates. Prefer template updates and redeployment so environments remain reproducible and auditable.
 
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)

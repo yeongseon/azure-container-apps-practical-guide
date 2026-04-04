@@ -20,6 +20,10 @@ graph LR
 
 Envoy acts as the managed ingress layer, handling routing into app revisions and enforcing transport behavior.
 
+!!! warning "Ingress mode is a security boundary"
+    Accidentally enabling external ingress for internal-only workloads exposes endpoints to the public internet.
+    Validate ingress mode in deployment reviews and policy checks.
+
 ## Ingress Modes
 
 | Mode | Reachability | Typical Use |
@@ -95,6 +99,9 @@ Use VNet integration when you need:
 Apps in the same environment can use internal naming/service invocation patterns for service-to-service communication.
 
 With optional Dapr integration, service invocation becomes more uniform across services while keeping networking concerns centralized.
+
+!!! tip "Use internal ingress by default for backend services"
+    Reserve external ingress for entry-point APIs. This reduces attack surface and simplifies network governance.
 
 ## Revisions and Traffic Routing
 

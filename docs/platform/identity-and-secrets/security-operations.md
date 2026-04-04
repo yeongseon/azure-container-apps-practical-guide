@@ -17,6 +17,18 @@ export ENVIRONMENT_NAME="cae-myapp"
 
 Enable system-assigned managed identity:
 
+```mermaid
+flowchart LR
+    A[Container App] --> B[Managed Identity]
+    B --> C[Microsoft Entra ID]
+    C --> D[Access Token]
+    D --> E[Key Vault/Storage/SQL]
+```
+
+!!! warning "Identity and secret changes must be auditable"
+    Apply security operations through automation and change records.
+    Ad-hoc portal changes make incident forensics difficult.
+
 ```bash
 az containerapp identity assign \
   --name "$APP_NAME" \
@@ -65,6 +77,18 @@ az containerapp secret set \
 ```
 
 Reference the secret as an environment variable in app template updates.
+
+## Security Operations Cadence
+
+| Operation | Suggested Frequency | Validation Signal |
+|---|---|---|
+| Managed identity review | Monthly | Unused roles removed |
+| Secret rotation | Per policy (for example, 30-90 days) | Apps remain healthy after rotation |
+| Easy Auth policy review | Monthly or after app route changes | Unauthorized access paths denied |
+| RBAC scope audit | Quarterly | Least-privilege posture maintained |
+
+!!! tip "Rotate secrets with staged rollout"
+    Introduce new values, validate app health, then retire old values to avoid abrupt runtime failures.
 
 ## Easy Auth Operations
 

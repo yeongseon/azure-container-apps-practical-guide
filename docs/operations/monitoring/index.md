@@ -174,6 +174,35 @@ Example output (PII masked):
 }
 ```
 
+## Observability Decision Matrix
+
+| Signal Type | Best For | Query Surface | Typical Alert Latency |
+|---|---|---|---|
+| Platform metrics | Fast saturation and availability detection | Azure Monitor metrics | 1-2 minutes |
+| Console/system logs | Detailed failure context and root cause hints | Log Analytics (KQL) | 2-5 minutes |
+| Distributed traces | Cross-service request path analysis | Application Insights | 2-5 minutes |
+
+!!! tip "Pair every alert with an investigation query"
+    For each alert rule, store a companion KQL query that responders can run immediately. This shortens MTTR by removing first-response guesswork.
+
+!!! warning "Avoid unbounded log volume"
+    Excessive debug logging can increase ingestion cost and hide actionable events. Use structured JSON logs and severity controls in production.
+
+### Telemetry Freshness Workflow
+
+```mermaid
+sequenceDiagram
+    participant App as Container App
+    participant LA as Log Analytics
+    participant AI as Application Insights
+    participant Ops as On-call Engineer
+    App->>LA: Console and system logs
+    App->>AI: Traces and requests
+    Ops->>LA: KQL error and restart checks
+    Ops->>AI: End-to-end trace validation
+    Ops->>Ops: Decide rollback or mitigation
+```
+
 ## Troubleshooting
 
 ### No logs in workspace

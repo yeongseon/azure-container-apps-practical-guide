@@ -74,6 +74,9 @@ az containerapp update \
   --set-env-vars KEY_VAULT_URL="https://$KEY_VAULT_NAME.vault.azure.net/"
 ```
 
+!!! warning "Key Vault references still require correct RBAC and network path"
+    Secret resolution fails when identity permissions, private DNS linkage, or endpoint connectivity are incomplete.
+
 ## Step 4: Python code (SDK access)
 
 Install dependencies:
@@ -102,6 +105,18 @@ print(secret.value)
 - Use Container App secrets for app-level values that are not in Key Vault.
 - Use Key Vault for centralized secret lifecycle and rotation.
 - For private access, combine with VNet integration and Key Vault private endpoint.
+
+## Secret Access Pattern Comparison
+
+| Pattern | Security Posture | Operational Overhead | Recommended Usage |
+|---|---|---|---|
+| Inline secret in app config | Lowest | Low initially, high long-term risk | Avoid in production |
+| Container App secret store | Medium | Medium | App-local secrets with periodic rotation |
+| Key Vault + managed identity | Highest | Medium upfront, lower ongoing | Production baseline for sensitive secrets |
+
+!!! tip "Separate secret naming from business naming"
+    Use stable secret names (for example `database-password`) and rotate values behind the same key
+    to reduce application change frequency.
 
 ## Verification steps
 

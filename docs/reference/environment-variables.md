@@ -7,6 +7,27 @@ Use this reference to understand variables injected by Azure Container Apps and 
 - Python app running in Azure Container Apps
 - Basic understanding of app configuration and secrets
 
+!!! warning "Port mismatches cause startup and ingress failures"
+    If your application listens on a different port than the configured ingress target, the revision may stay unhealthy. Ensure app binding and `CONTAINER_APP_PORT` expectations are aligned.
+
+!!! tip "Debug variable state from inside the running container"
+    Use `az containerapp exec` to inspect runtime environment values when behavior differs between local and cloud. Validate expected names, defaults, and secret references directly in the replica.
+
+## Environment variable resolution flow
+
+```mermaid
+flowchart TD
+    A[Container App Configuration] --> B[Platform Injected Variables]
+    A --> C[User-defined Env Vars]
+    A --> D[Secret References]
+    D --> C
+    B --> E[Container Runtime Environment]
+    C --> E
+    E --> F[Application Startup]
+    F --> G[os.getenv or framework config loader]
+    G --> H[Effective Runtime Configuration]
+```
+
 ## Platform-injected variables
 
 These variables are provided by the platform at runtime.
@@ -109,6 +130,9 @@ def runtime_info():
 - Prefer `secretref:` for sensitive values instead of plain env values.
 - Keep environment variable names consistent across local/dev/prod.
 - Use schema validation on app startup to fail fast on missing critical configuration.
+
+!!! note "Establish a configuration contract"
+    Keep a versioned list of required environment variables per service. This helps teams detect breaking configuration changes before deployment.
 
 ## See Also
 

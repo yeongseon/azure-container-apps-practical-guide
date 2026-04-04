@@ -169,3 +169,35 @@ ContainerAppConsoleLogs_CL
 - [Playbooks](../playbooks/index.md)
 - [KQL Queries](../kql/index.md)
 - [Detector Map: Symptom to Playbook](detector-map.md)
+
+## Verification Loop (Fix Confidence)
+
+After applying a candidate fix, run this loop before declaring incident closure.
+
+```mermaid
+flowchart LR
+    A[Apply single targeted fix] --> B[Check revision health]
+    B --> C[Run endpoint validation]
+    C --> D[Review system and console logs]
+    D --> E{Residual errors?}
+    E -->|Yes| F[Return to hypothesis stage]
+    E -->|No| G[Document root cause and closure evidence]
+```
+
+!!! info "Closure requires evidence, not assumption"
+    A successful deployment operation alone is not proof of recovery. Confirm user-facing behavior and error-rate normalization.
+
+## Command Pack by Investigation Stage
+
+| Stage | Fast Command | Expected Signal |
+|---|---|---|
+| Revision status | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Identify healthy vs failed revisions |
+| Replica health | `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Detect restart or zero-replica patterns |
+| Ingress config | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json` | Validate external/internal access and target port |
+| Identity baseline | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Confirm principal assignment |
+| Live logs | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Capture platform-level failure reasons |
+
+## Sources
+
+- [Microsoft Learn: Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Microsoft Learn: Monitor Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)

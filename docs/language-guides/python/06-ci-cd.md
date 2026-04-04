@@ -18,6 +18,9 @@ graph LR
 - GitHub repository with Actions enabled
 - Azure service principal stored as GitHub secret
 
+!!! warning "Never expose credentials in workflow logs"
+    Keep all credential material in GitHub Secrets and avoid printing secret-derived values in shell steps. Use masked placeholders in documentation and workflow examples.
+
 ## Step-by-step
 
 1. **Configure repository variables and secrets**
@@ -140,6 +143,9 @@ graph LR
 - Add pre-deploy tests and security scanning gates.
 - Implement staged deployment with manual approval.
 - Use multiple active revisions for canary rollout in pipeline.
+
+!!! tip "Use immutable image tags in pipelines"
+    Prefer commit SHA or release-based tags for image versions. Immutable tags make revision-to-commit tracing straightforward during incident response.
 
 ## See Also
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)

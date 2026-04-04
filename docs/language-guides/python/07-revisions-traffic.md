@@ -15,6 +15,9 @@ graph LR
 - Completed [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - At least two deployed images/tags
 
+!!! tip "Define promotion criteria before traffic split"
+    Decide in advance which metrics (error rate, latency percentile, saturation) must stay within threshold before increasing canary traffic.
+
 ## Step-by-step
 
 1. **Set standard variables (reuse Bicep outputs from Step 02)**
@@ -209,6 +212,9 @@ graph LR
 - Pair canary rollout with telemetry checks (errors, latency, saturation).
 - Keep one prior known-good revision for emergency rollback.
 - Use KEDA metrics and revision health together for rollout decisions.
+
+!!! warning "Do not leave stale canary revisions active"
+    After rollback or promotion, deactivate obsolete revisions to reduce operational confusion and prevent unintended traffic assignment during future updates.
 
 ## Advanced Topics
 

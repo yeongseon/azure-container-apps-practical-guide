@@ -9,6 +9,10 @@ Container Apps in the same environment can communicate:
 - Without exposing to public internet
 - With optional Dapr service invocation
 
+!!! warning "Do not hardcode revision-specific endpoints"
+    Use app-level internal hostnames, not revision hostnames, for service calls.
+    Revision names change during deployments and break static routing assumptions.
+
 ## Internal DNS
 
 Each Container App gets an internal FQDN:
@@ -120,6 +124,10 @@ def get_data():
 | Retries | Implement yourself | Built-in |
 | Tracing | Manual | Automatic |
 | mTLS | Configure yourself | Automatic |
+
+!!! tip "Add explicit timeouts and retries"
+    Even with internal networking or Dapr service invocation, enforce client-side timeouts,
+    bounded retries, and idempotency to avoid cascading failures.
 
 ## See Also
 - [Dapr Integration](../../language-guides/python/recipes/dapr-integration.md)

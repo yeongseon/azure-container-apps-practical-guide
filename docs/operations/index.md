@@ -68,6 +68,68 @@ Example output (PII masked):
 }
 ```
 
+### Day-2 Operations Control Loop
+
+Use a repeatable control loop so every operational change is observable, reversible, and documented.
+
+```mermaid
+flowchart LR
+    A[Baseline Health Check] --> B[Apply Change]
+    B --> C[Validate Revision and Replicas]
+    C --> D[Observe Metrics and Logs]
+    D --> E{SLO Healthy?}
+    E -->|Yes| F[Record Outcome and Close]
+    E -->|No| G[Rollback and Escalate]
+    G --> A
+```
+
+### Operational Cadence Matrix
+
+| Cadence | Primary Goal | Required Commands | Exit Criteria |
+|---|---|---|---|
+| Per deployment | Prevent bad revision promotion | `az containerapp revision list`, `az containerapp ingress traffic show` | New revision healthy with expected traffic |
+| Daily | Catch platform drift early | `az containerapp show`, `az containerapp env show` | Running status is healthy and config matches baseline |
+| Weekly | Validate scale and alert posture | `az monitor metrics list`, `az monitor scheduled-query list` | Alerts are enabled and thresholds are current |
+| Monthly | Recovery readiness | rollback simulation + runbook review | Recovery target time met in drill |
+
+!!! tip "Use pre-change and post-change snapshots"
+    Capture key fields before and after updates (ingress, scale rules, identity, revision mode). A small JSON diff dramatically reduces incident triage time.
+
+!!! warning "Treat operations changes as production releases"
+    Any update to scale rules, traffic weights, ingress, secrets, or identity can change customer impact immediately. Always run health verification and rollback checks after each change.
+
+### Baseline Snapshot Commands
+
+```bash
+az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "{name:name,latestRevision:properties.latestRevisionName,provisioningState:properties.provisioningState,runningStatus:properties.runningStatus}" \
+  --output json
+
+az containerapp ingress traffic show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output json
+```
+
+### Operational Ownership Checklist
+
+| Capability | Primary Owner | Backup Owner | Evidence |
+|---|---|---|---|
+| Deployment and rollback | Application team | Platform team | Successful revision promotion logs |
+| Alert tuning | SRE/operations | Application team | Alert history and threshold review notes |
+| Secret rotation | Security/app owner | Operations | Rotation runbook and audit log entries |
+| Recovery drills | Operations lead | Incident commander | Quarterly drill report |
+
+!!! info "Keep runbooks co-located with services"
+    Store the operational runbook path in each service repository so on-call engineers can find the latest rollback and recovery guidance without context switching.
+
+Operational readiness minimum:
+
+- Every production app has a tested rollback command set.
+- Every sev1 alert maps to a named incident owner.
+
 ## Advanced Topics
 
 - Build an SLO-based operating model mapping each control to measurable service outcomes.

@@ -16,6 +16,9 @@ graph LR
     end
 ```
 
+!!! warning "Treat revisions as immutable deployment artifacts"
+    Avoid manual drift between revisions; configuration and image updates should flow through repeatable pipelines.
+
 ## States and Transitions
 
 Revisions progress through a lifecycle managed by the Container Apps platform.
@@ -60,6 +63,10 @@ In **Single mode**, the platform automatically deactivates the old revision when
 - **Sticky Sessions**: Traffic splitting may disrupt session state if not handled at the app layer.
 - **Database Schema**: Revisions share the same backing services; ensure backward compatibility.
 - **Max Revisions**: The platform limits the number of revisions; inactive ones are eventually purged.
+
+!!! tip "Use canary windows with explicit success criteria"
+    Define rollback thresholds (error rate, latency, saturation) before shifting traffic.
+    This keeps progressive delivery objective and repeatable.
 
 ## See Also
 

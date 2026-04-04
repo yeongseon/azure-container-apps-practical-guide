@@ -112,6 +112,47 @@ az containerapp show \
   --output json
 ```
 
+## Revision Promotion Workflow
+
+```mermaid
+flowchart TD
+    A[Deploy Candidate Revision] --> B[Assign 5-10% Traffic]
+    B --> C[Observe Errors Latency Restarts]
+    C --> D{Within SLO?}
+    D -->|Yes| E[Increase Traffic in Stages]
+    D -->|No| F[Rollback to Stable Revision]
+    E --> G[Promote 100% Traffic]
+    F --> H[Deactivate Failed Revision]
+```
+
+| Scenario | Recommended Action | Why |
+|---|---|---|
+| New feature with unknown risk | Multiple revision mode + staged traffic | Limits blast radius |
+| Security hotfix | Fast deploy + focused health checks | Reduces exposure window |
+| Runtime regression detected | Immediate traffic rollback | Restores service quickly |
+| Stable period after rollout | Deactivate stale revisions | Reduces operational noise |
+
+!!! tip "Name revisions with meaningful image tags"
+    Immutable image tags mapped to commit SHA or release IDs make revision rollback decisions deterministic during incidents.
+
+!!! warning "Do not promote traffic without replica health checks"
+    A revision can exist but still fail under real load. Validate health, restart count, and error rate before increasing traffic.
+
+### Revision Health Validation Commands
+
+```bash
+az containerapp revision list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "[].{name:name,active:properties.active,replicas:properties.replicas,healthState:properties.healthState,runningState:properties.runningState}" \
+  --output table
+
+az containerapp ingress traffic show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --output table
+```
+
 ## Advanced Topics
 
 - Use labels for stable/candidate routing patterns.

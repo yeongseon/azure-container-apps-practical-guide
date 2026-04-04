@@ -15,6 +15,50 @@ az login
 
 ## Recipe Catalog
 
+These recipes are intentionally task-oriented: each page solves a specific production integration problem without changing the core tutorial sequence.
+
+## Recipe Selection Guide
+
+| Recipe | Complexity | Key Concept | Prerequisites |
+|---|---|---|---|
+| Custom Container | Medium | Docker hardening, non-root runtime | Docker build basics, Step 01 |
+| Native Dependencies | Medium | System libraries in Python images | Dockerfile familiarity |
+| Container Registry | Low | ACR auth and pull flow | `$ACR_NAME`, `$RG`, `$APP_NAME` |
+| Revision Validation | Medium | 0% traffic validation and promotion | Step 07 revisions concepts |
+| Cosmos DB | Medium | Managed identity + RBAC for NoSQL | Identity basics, role assignment rights |
+| Azure SQL | Medium | Entra-based auth for relational access | SQL server/database provisioned |
+| Redis | Low | Cache integration and connection configuration | Redis instance available |
+| Storage | Medium | Blob SDK + Azure Files mounts | Storage account and share |
+| Bring Your Own Storage | Medium | Persistent volume mounting patterns | Azure Files share + mount path plan |
+| Managed Identity | Low | Secretless auth with `DefaultAzureCredential` | User/system-assigned identity enabled |
+| Key Vault Reference | Medium | `secretref` and externalized secret management | Key Vault access policy / RBAC |
+| Easy Auth | Medium | Built-in auth and claims consumption | Identity provider configuration |
+| Dapr Integration | High | Sidecar-based service invocation/state/pubsub | Dapr concepts and component config |
+| Custom Domains | Medium | DNS + certificate binding for ingress | Domain ownership and DNS control |
+
+!!! tip "Choose by operational bottleneck"
+    If your immediate issue is deployment safety, start with **Revision Validation**. If your issue is security posture, start with **Managed Identity** and **Key Vault Reference**. If your issue is integration velocity, start with data recipes (Cosmos DB, Azure SQL, Redis, Storage).
+
+## Integration Dependency Map
+
+```mermaid
+flowchart TD
+    BASE[Baseline app deployed<br/>Steps 01-07] --> ID[Managed Identity]
+    BASE --> REV[Revision Validation]
+    ID --> KV[Key Vault Reference]
+    ID --> COSMOS[Cosmos DB]
+    ID --> SQL[Azure SQL]
+    ID --> ACR[Container Registry]
+    BASE --> REDIS[Redis]
+    BASE --> STORAGE[Storage]
+    STORAGE --> BYOS[Bring Your Own Storage]
+    BASE --> DAPR[Dapr Integration]
+    REV --> DOMAIN[Custom Domains]
+```
+
+!!! warning "Apply prerequisites before recipe commands"
+    Most recipe failures come from missing baseline resources or missing role assignments. Confirm `$RG`, `$APP_NAME`, `$ENVIRONMENT_NAME`, and (when needed) `$ACR_NAME` are already set and valid in your current subscription context before you run recipe commands.
+
 ### Container & Runtime
 
 - [Custom Container](custom-container.md): Build optimized Python images with non-root runtime and probe-ready configuration.
@@ -61,3 +105,9 @@ az containerapp show \
 - [Python Tutorials](../index.md)
 - [Operations](../../../operations/index.md)
 - [Platform Architecture](../../../platform/architecture/resource-relationships.md)
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Azure Identity client library for Python](https://learn.microsoft.com/python/api/overview/azure/identity-readme)
+- [Dapr documentation](https://docs.dapr.io/)

@@ -37,11 +37,20 @@ graph LR
 5. Finalize networking controls and ingress
 6. Validate identity, secrets, and reliability patterns
 
+!!! tip "Read by decision sequence"
+    If you are designing a new workload, treat this section as a dependency chain: architecture and environments first, then revisions/scaling, and finally networking plus identity controls.
+
+!!! warning "Do not skip platform concepts"
+    Jumping directly to language guides without understanding revision mode, ingress boundaries, and scaling behavior often leads to production misconfigurations.
+
 ## Advanced Topics
 
 - Build architecture decision records (ADRs) per environment
 - Standardize profile and scaling baselines by workload class
 - Define SLO-driven scaling and networking review checkpoints
+
+!!! note "Platform docs are language-agnostic"
+    Implementation snippets in language guides should follow the architectural boundaries defined here, not the other way around.
 
 ## Language-Specific Details
 
