@@ -35,6 +35,19 @@ Real lifecycle summary from a deployed Container Apps environment:
 
 ## Query Categories
 
+### HTTP
+
+- [HTTP Query Pack](http/index.md)
+- [Latency Trend by Status Code](http/latency-trend-by-status-code.md)
+- [5xx Trend Over Time](http/5xx-trend-over-time.md)
+- [Slowest Requests by Path](http/slowest-requests-by-path.md)
+
+### Restarts
+
+- [Restarts Query Pack](restarts/index.md)
+- [Restart Timing Correlation](restarts/restart-timing-correlation.md)
+- [Repeated Startup Attempts](restarts/repeated-startup-attempts.md)
+
 ### System and Revisions
 
 - [Revision Failures and Startup](system-and-revisions/revision-failures-and-startup.md)

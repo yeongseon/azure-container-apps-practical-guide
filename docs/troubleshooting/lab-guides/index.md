@@ -14,6 +14,10 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 | Probe and Port Mismatch | App listens on port 3000 while ingress targets 8000, causing probe failures until target port is fixed. | Beginner | 20-25 min | [Guide](./probe-and-port-mismatch.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/probe-and-port-mismatch) |
 | Managed Identity Key Vault Failure | App uses managed identity to read Key Vault secret but fails without `Key Vault Secrets User` role assignment. | Intermediate | 25-35 min | [Guide](./managed-identity-key-vault-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/managed-identity-key-vault-failure) |
 | Revision Provisioning Failure | Revision fails because container env var references a missing secret; fixed by setting secret and deploying new revision. | Intermediate | 20-30 min | [Guide](./revision-provisioning-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/revision-provisioning-failure) |
+| Ingress TLS and Custom Domain | Diagnose custom domain and TLS certificate binding issues with DNS validation. | Intermediate | 30-40 min | [Guide](./ingress-tls-custom-domain.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/ingress-tls-custom-domain) |
+| Traffic Routing and Canary | Practice blue-green deployments, canary releases, and traffic splitting between revisions. | Intermediate | 30-40 min | [Guide](./traffic-routing-canary.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/traffic-routing-canary) |
+| Dapr Integration | Troubleshoot Dapr sidecar and component configuration issues. | Intermediate | 35-45 min | [Guide](./dapr-integration.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/dapr-integration) |
+| Observability and Tracing | Set up OpenTelemetry and Application Insights, troubleshoot missing traces and metrics. | Intermediate | 35-45 min | [Guide](./observability-tracing.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/observability-tracing) |
 
 ## Suggested Learning Path
 
@@ -23,6 +27,10 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 4. [Revision Provisioning Failure](./revision-provisioning-failure.md)
 5. [Scale Rule Mismatch](./scale-rule-mismatch.md)
 6. [Managed Identity Key Vault Failure](./managed-identity-key-vault-failure.md)
+7. [Ingress TLS and Custom Domain](./ingress-tls-custom-domain.md)
+8. [Traffic Routing and Canary](./traffic-routing-canary.md)
+9. [Dapr Integration](./dapr-integration.md)
+10. [Observability and Tracing](./observability-tracing.md)
 
 ## See Also
 
@@ -60,6 +68,10 @@ flowchart TD
 | Probe and Port Mismatch | Probe failures, no stable ready state | Probe failure warnings | App bind port != ingress target port | Align target port and rollout new revision |
 | Managed Identity Key Vault Failure | Route returns 500/403 | App logs with identity errors | Missing role assignment on Key Vault scope | Assign RBAC role and re-verify |
 | Revision Provisioning Failure | Revision stuck/failed provisioning | Revision lifecycle events | `secretRef` points to missing secret | Add secret and redeploy revision |
+| Ingress TLS and Custom Domain | Custom domain not reachable | Hostname validation status | DNS misconfiguration or cert not bound | Add DNS records and bind certificate |
+| Traffic Routing and Canary | Traffic not shifting as expected | Traffic weight config | Revision mode or weight misconfiguration | Set multiple revision mode and adjust weights |
+| Dapr Integration | Dapr calls fail | System logs with Dapr errors | Sidecar not enabled or component misconfigured | Enable Dapr and fix component YAML |
+| Observability and Tracing | No traces in App Insights | Application Insights query | Connection string not set | Configure OTel and connection string |
 
 ## Step-by-Step: Standard Lab Execution Pattern
 

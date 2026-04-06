@@ -1,32 +1,52 @@
 # Image Pull Failure
 
-This playbook isolates failures where a revision never starts because the platform cannot pull the configured container image.
+## 1. Summary
 
-## Symptoms
+### Symptom
 
-- Revision remains `Failed` or `Provisioning` and never becomes healthy.
-- System logs include `ImagePullBackOff`, `manifest unknown`, `unauthorized`, or `denied`.
-- No useful application logs because the container never starts.
+Revision remains stuck in `Failed` or `Provisioning` state and never becomes healthy. The container never starts because the platform cannot pull the configured image. Application logs are empty because no code ever executes.
 
-## Common Misreadings
+### Why this scenario is confusing
 
-!!! warning "Common Misreadings"
-    - Misreading: "The app code is crashing." If image pull fails, your app code never executes.
-    - Misreading: "ACR is down." Most incidents are identity scope, wrong tag, or registry URL mismatch.
+Image pull failures look similar to app crashes at first glance—both result in unhealthy revisions. However, the root cause is entirely different: networking, authentication, or image reference issues rather than application code. Without checking system logs, you might waste time debugging code that never ran.
 
-## Competing Hypotheses
+### Troubleshooting decision flow
 
-| Hypothesis | Evidence For | Evidence Against |
+```mermaid
+graph TD
+    A[Symptom: Revision never starts] --> B{System log shows error?}
+    B -->|unauthorized/denied| H1[H1: Registry authentication failure]
+    B -->|manifest unknown| H2[H2: Image tag doesn't exist]
+    B -->|timeout/connection refused| H3[H3: Network path blocked]
+    B -->|No clear error| C{Image reference format correct?}
+    C -->|No| H4[H4: Malformed image reference]
+    C -->|Yes| D[Check DNS and private endpoint]
+```
+
+## 2. Common Misreadings
+
+- "The app code is crashing" — If image pull fails, your app code never executes. No point debugging application logic.
+- "ACR is down" — Most incidents are identity scope issues, wrong tag, or registry URL mismatch, not ACR outages.
+- "I just pushed the image, it should be there" — Push succeeded to wrong repository, wrong registry, or tag was overwritten.
+- "Managed identity is configured" — Identity exists but lacks `AcrPull` role on the specific registry.
+- "It worked yesterday" — Image tag was overwritten with broken image, or RBAC was modified.
+
+## 3. Competing Hypotheses
+
+| Hypothesis | Typical Evidence For | Typical Evidence Against |
 |---|---|---|
-| Image tag does not exist | `manifest unknown`, tag missing from ACR | Tag exists and digest is resolvable |
-| Registry auth is wrong | `unauthorized`, `denied`, missing `AcrPull` role | Successful pull for same identity on other app |
-| Private registry network path blocked | Timeouts to registry endpoint, DNS failures | Same environment can pull same registry image |
+| **H1: Registry authentication failure** | `unauthorized`, `denied`, `403`, missing role assignment | Same identity pulls successfully elsewhere |
+| **H2: Image tag doesn't exist** | `manifest unknown`, `not found`, tag missing from ACR | Tag exists and digest is resolvable |
+| **H3: Network path blocked** | Timeout, connection refused, DNS resolution failure | Same environment pulls other images successfully |
+| **H4: Malformed image reference** | Invalid format errors, empty image field | Image reference parses correctly |
 
-## What to Check First
+## 4. What to Check First
 
 ### Metrics
 
-- Failed revision count and provisioning duration in Azure Portal metrics for the Container App.
+- Failed revision count in Azure Portal
+- Provisioning duration (stuck revisions show extended duration)
+- No replica metrics (replicas never created)
 
 ### Logs
 
@@ -34,7 +54,9 @@ This playbook isolates failures where a revision never starts because the platfo
 let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
 | where ContainerAppName_s == AppName
-| where Log_s has_any ("pull", "manifest", "unauthorized", "denied")
+| where TimeGenerated > ago(1h)
+| where Reason_s has_any ("ImagePullBackOff", "ErrImagePull", "Failed")
+   or Log_s has_any ("pull", "manifest", "unauthorized", "denied", "timeout", "connection refused")
 | project TimeGenerated, RevisionName_s, Reason_s, Log_s
 | order by TimeGenerated desc
 ```
@@ -42,58 +64,270 @@ ContainerAppSystemLogs_CL
 ### Platform Signals
 
 ```bash
-az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].image" --output tsv
+# Check configured image
+az containerapp show --name "$APP_NAME" --resource-group "$RG" \
+  --query "properties.template.containers[0].image" --output tsv
+
+# Check revision status
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
+  --query "[].{name:name,health:properties.healthState,created:properties.createdTime}" \
+  --output table
+
+# Check system logs for pull errors
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
-az acr repository show-tags --name "$ACR_NAME" --repository "$APP_NAME" --output table
 ```
 
-## Evidence Collection
+## 5. Evidence to Collect
+
+### Required Evidence
+
+| Evidence | Command/Query | Purpose |
+|---|---|---|
+| Configured image | `az containerapp show ... --query containers[0].image` | Verify image reference |
+| Revision health | `az containerapp revision list` | Confirm stuck/failed state |
+| System logs | KQL for pull errors | Find specific error message |
+| Identity config | `az containerapp show ... --query identity` | Check managed identity |
+| ACR role assignment | `az role assignment list --scope <acr-id>` | Verify AcrPull role |
+| ACR tag existence | `az acr repository show-tags` | Confirm tag exists |
+
+### Useful Context
+
+- Registry type (ACR, Docker Hub, private registry)
+- Authentication method (managed identity, admin credentials, service principal)
+- Network configuration (public ACR, private endpoint, firewall)
+- Recent changes (new image push, RBAC modification, network change)
+
+## 6. Validation and Disproof by Hypothesis
+
+### H1: Registry authentication failure
+
+**Signals that support:**
+
+- System logs show `unauthorized`, `denied`, `403`
+- Managed identity exists but no `AcrPull` role assignment
+- ACR admin credentials disabled but app expects them
+- Different registry used than expected
+
+**Signals that weaken:**
+
+- Same identity successfully pulls other images
+- Role assignment exists and is correct
+- Using public image that doesn't require auth
+
+**What to verify:**
 
 ```bash
-az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,health:properties.healthState,active:properties.active,created:properties.createdTime}" --output table
-az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
-az role assignment list --scope "$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
-az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
+# Check managed identity
+az containerapp show --name "$APP_NAME" --resource-group "$RG" \
+  --query "identity" --output json
+
+# Get identity principal ID
+PRINCIPAL_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" \
+  --query "identity.principalId" --output tsv)
+
+# Check AcrPull role assignment
+ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query "id" --output tsv)
+az role assignment list --scope "$ACR_ID" --assignee "$PRINCIPAL_ID" --output table
 ```
 
-Observed system-log success pattern (baseline to compare against failures):
-
-```text
-TimeGenerated              Reason_s      Log_s
--------------------------  ------------  -----------------------------------------------------------------
-2026-04-04T12:54:11.477Z   PullingImage  Pulling image '<acr-name>.azurecr.io/myapp:v1.0.0'
-2026-04-04T12:54:11.477Z   PulledImage   Successfully pulled image in 2.42s. Image size: 58720256 bytes.
+```kusto
+// Find auth errors
+let AppName = "ca-myapp";
+ContainerAppSystemLogs_CL
+| where ContainerAppName_s == AppName
+| where TimeGenerated > ago(2h)
+| where Log_s has_any ("unauthorized", "denied", "403", "authentication", "credential")
+| project TimeGenerated, Log_s
+| order by TimeGenerated desc
 ```
 
-## Decision Flow
+**Fix:**
 
-```mermaid
-flowchart TD
-    A[Revision fails before container starts] --> B{System log shows unauthorized or denied?}
-    B -->|Yes| C[Validate managed identity and AcrPull assignment]
-    B -->|No| D{System log shows manifest unknown?}
-    D -->|Yes| E[Fix image repository or tag]
-    D -->|No| F[Check private DNS, private endpoint, firewall path]
-    C --> G[Redeploy revision]
-    E --> G
-    F --> G
+```bash
+# Assign AcrPull role
+az role assignment create \
+  --assignee "$PRINCIPAL_ID" \
+  --role "AcrPull" \
+  --scope "$ACR_ID"
+
+# Or configure registry credentials
+az containerapp registry set \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --server "$ACR_NAME.azurecr.io" \
+  --identity system
 ```
 
-## Resolution Steps
+### H2: Image tag doesn't exist
 
-1. Correct image reference (`registry/repository:tag`) and verify the tag exists.
-2. Assign managed identity and grant `AcrPull` on the exact registry scope.
-3. For private ACR, validate DNS and private endpoint routing from the Container Apps environment.
-4. Deploy a new revision and confirm it reaches `healthState=Healthy`.
+**Signals that support:**
 
-## Prevention
+- System logs show `manifest unknown`, `not found`
+- Tag not listed in ACR repository
+- Typo in image reference
 
-- Use immutable image tags (for example, commit SHA).
-- Add CI validation that checks image existence before deployment.
-- Keep ACR RBAC in IaC to avoid drift.
+**Signals that weaken:**
+
+- Tag exists in ACR and digest matches
+- Auth errors appear instead of manifest errors
+
+**What to verify:**
+
+```bash
+# Check if tag exists
+az acr repository show-tags --name "$ACR_NAME" --repository "myapp" --output table
+
+# Check manifest
+az acr manifest show --registry "$ACR_NAME" --name "myapp:v1.0.0"
+
+# Verify exact image reference in app
+az containerapp show --name "$APP_NAME" --resource-group "$RG" \
+  --query "properties.template.containers[0].image" --output tsv
+```
+
+```kusto
+// Find manifest errors
+let AppName = "ca-myapp";
+ContainerAppSystemLogs_CL
+| where ContainerAppName_s == AppName
+| where TimeGenerated > ago(2h)
+| where Log_s has_any ("manifest unknown", "not found", "does not exist")
+| project TimeGenerated, Log_s
+```
+
+**Fix:**
+
+```bash
+# Push correct image
+az acr build --registry "$ACR_NAME" --image "myapp:v1.0.0" .
+
+# Or update app to use existing tag
+az containerapp update --name "$APP_NAME" --resource-group "$RG" \
+  --image "$ACR_NAME.azurecr.io/myapp:existing-tag"
+```
+
+### H3: Network path blocked
+
+**Signals that support:**
+
+- System logs show timeout, connection refused, DNS failure
+- ACR is private but environment not VNet-integrated
+- Private endpoint exists but DNS not configured
+- Firewall blocking outbound to ACR
+
+**Signals that weaken:**
+
+- Same environment successfully pulls other ACR images
+- Public ACR with no network restrictions
+
+**What to verify:**
+
+```bash
+# Check if ACR is public or private
+az acr show --name "$ACR_NAME" --query "publicNetworkAccess" --output tsv
+
+# Check environment VNet integration
+az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" \
+  --query "properties.vnetConfiguration" --output json
+
+# Check ACR private endpoint (if applicable)
+az network private-endpoint list --resource-group "$RG" \
+  --query "[?contains(name, 'acr')]" --output table
+```
+
+**Fix:**
+
+```bash
+# For private ACR, ensure private DNS zone is linked
+az network private-dns zone list --resource-group "$RG" --output table
+
+# Or allow Container Apps environment subnet in ACR firewall
+az acr network-rule add --name "$ACR_NAME" --subnet "<subnet-id>"
+```
+
+### H4: Malformed image reference
+
+**Signals that support:**
+
+- Image field empty or malformed
+- Missing registry prefix
+- Invalid characters in image name
+
+**Signals that weaken:**
+
+- Image reference parses correctly
+- Same reference works in docker pull locally
+
+**What to verify:**
+
+```bash
+# Check image format
+IMAGE=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" \
+  --query "properties.template.containers[0].image" --output tsv)
+echo "Configured image: $IMAGE"
+
+# Validate format: registry/repository:tag
+# Examples:
+# ✅ myacr.azurecr.io/myapp:v1.0.0
+# ✅ docker.io/library/nginx:latest
+# ❌ myapp:v1.0.0 (missing registry)
+# ❌ myacr.azurecr.io/myapp (missing tag)
+```
+
+## 7. Likely Root Cause Patterns
+
+| Pattern | Frequency | First Signal | Typical Resolution |
+|---|---|---|---|
+| Missing AcrPull role | Very common | `unauthorized` in logs | Add role assignment |
+| Wrong image tag | Common | `manifest unknown` | Fix tag or push image |
+| System identity not enabled | Common | `unauthorized` | Enable system identity |
+| Private ACR without VNet | Occasional | Timeout | Configure VNet or private endpoint |
+| Typo in registry name | Occasional | DNS failure | Fix registry URL |
+
+## 8. Immediate Mitigations
+
+1. **If auth failure:** Assign AcrPull role
+   ```bash
+   az role assignment create --assignee "$PRINCIPAL_ID" --role "AcrPull" --scope "$ACR_ID"
+   ```
+
+2. **If tag missing:** Use known good tag
+   ```bash
+   az containerapp update --name "$APP_NAME" --resource-group "$RG" \
+     --image "$ACR_NAME.azurecr.io/myapp:known-good-tag"
+   ```
+
+3. **If private ACR issues:** Temporarily enable public access (for debugging only)
+   ```bash
+   az acr update --name "$ACR_NAME" --public-network-enabled true
+   ```
+
+4. **Force new revision after fix:**
+   ```bash
+   az containerapp update --name "$APP_NAME" --resource-group "$RG" \
+     --revision-suffix "fix-$(date +%s)"
+   ```
+
+## 9. Prevention
+
+- Use immutable image tags (commit SHA) to prevent tag overwrites
+- Add CI validation that checks image existence before deployment
+- Keep ACR RBAC in Infrastructure as Code to avoid drift
+- Use digest references for critical deployments: `image@sha256:...`
+- Automate image build + deploy in single pipeline to ensure consistency
+- Set up ACR webhook to trigger deployment only after successful push
 
 ## See Also
 
 - [Revision Provisioning Failure](revision-provisioning-failure.md)
+- [Container Start Failure](container-start-failure.md)
 - [Managed Identity Auth Failure](../identity-and-configuration/managed-identity-auth-failure.md)
 - [Image Pull and Auth Errors KQL](../../kql/system-and-revisions/image-pull-and-auth-errors.md)
+- [ACR Pull Failure Lab](../../lab-guides/acr-pull-failure.md)
+
+## Sources
+
+- [Manage container registries in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/containers#container-registries)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Azure Container Registry authentication](https://learn.microsoft.com/azure/container-registry/container-registry-authentication)

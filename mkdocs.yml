@@ -204,8 +204,10 @@ nav:
     - Recovery: operations/recovery/index.md
   - Troubleshooting:
     - troubleshooting/index.md
+    - Quick Diagnosis Cards: troubleshooting/quick-diagnosis-cards.md
     - Architecture Overview: troubleshooting/architecture-overview.md
     - Decision Tree: troubleshooting/decision-tree.md
+    - Mental Model: troubleshooting/mental-model.md
     - Evidence Map: troubleshooting/evidence-map.md
     - First 10 Minutes:
       - troubleshooting/first-10-minutes/index.md
@@ -239,6 +241,15 @@ nav:
       - Detector Map: troubleshooting/methodology/detector-map.md
     - KQL Queries:
       - troubleshooting/kql/index.md
+      - HTTP:
+        - troubleshooting/kql/http/index.md
+        - Latency Trend by Status Code: troubleshooting/kql/http/latency-trend-by-status-code.md
+        - 5xx Trend Over Time: troubleshooting/kql/http/5xx-trend-over-time.md
+        - Slowest Requests by Path: troubleshooting/kql/http/slowest-requests-by-path.md
+      - Restarts:
+        - troubleshooting/kql/restarts/index.md
+        - Restart Timing Correlation: troubleshooting/kql/restarts/restart-timing-correlation.md
+        - Repeated Startup Attempts: troubleshooting/kql/restarts/repeated-startup-attempts.md
       - System and Revisions:
         - Revision Failures and Startup: troubleshooting/kql/system-and-revisions/revision-failures-and-startup.md
         - Image Pull and Auth Errors: troubleshooting/kql/system-and-revisions/image-pull-and-auth-errors.md
@@ -271,6 +282,10 @@ nav:
       - Probe and Port Mismatch: troubleshooting/lab-guides/probe-and-port-mismatch.md
       - Managed Identity Key Vault Failure: troubleshooting/lab-guides/managed-identity-key-vault-failure.md
       - Revision Provisioning Failure: troubleshooting/lab-guides/revision-provisioning-failure.md
+      - Ingress TLS and Custom Domain: troubleshooting/lab-guides/ingress-tls-custom-domain.md
+      - Traffic Routing and Canary: troubleshooting/lab-guides/traffic-routing-canary.md
+      - Dapr Integration: troubleshooting/lab-guides/dapr-integration.md
+      - Observability and Tracing: troubleshooting/lab-guides/observability-tracing.md
   - Reference:
     - reference/index.md
     - CLI Reference: reference/cli-reference.md
