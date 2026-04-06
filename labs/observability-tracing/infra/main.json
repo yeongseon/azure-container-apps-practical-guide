@@ -1,0 +1,169 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.41.2.15936",
+      "templateHash": "3940392455408016963"
+    }
+  },
+  "parameters": {
+    "baseName": {
+      "type": "string",
+      "metadata": {
+        "description": "Base name for all resources"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    }
+  },
+  "variables": {
+    "suffix": "[take(uniqueString(resourceGroup().id, parameters('baseName')), 6)]",
+    "cloudName": "[environment().name]",
+    "logAnalyticsWorkspaceName": "[format('log-{0}-{1}', parameters('baseName'), variables('suffix'))]",
+    "appInsightsName": "[format('appi-{0}-{1}', parameters('baseName'), variables('suffix'))]",
+    "containerAppsEnvironmentName": "[format('cae-{0}-{1}', parameters('baseName'), variables('suffix'))]",
+    "containerAppName": "[format('ca-{0}-{1}', parameters('baseName'), variables('suffix'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('logAnalyticsWorkspaceName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "lab": "observability-tracing",
+        "cloud": "[variables('cloudName')]"
+      },
+      "properties": {
+        "sku": {
+          "name": "PerGB2018"
+        },
+        "retentionInDays": 30
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "tags": {
+        "lab": "observability-tracing",
+        "cloud": "[variables('cloudName')]"
+      },
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2023-05-01",
+      "name": "[variables('containerAppsEnvironmentName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "lab": "observability-tracing",
+        "cloud": "[variables('cloudName')]"
+      },
+      "properties": {
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName')), '2022-10-01').customerId]",
+            "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName')), '2022-10-01').primarySharedKey]"
+          }
+        },
+        "daprAIConnectionString": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2023-05-01",
+      "name": "[variables('containerAppName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "lab": "observability-tracing",
+        "cloud": "[variables('cloudName')]"
+      },
+      "properties": {
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('containerAppsEnvironmentName'))]",
+        "configuration": {
+          "ingress": {
+            "external": true,
+            "targetPort": 80,
+            "transport": "auto",
+            "allowInsecure": false
+          },
+          "secrets": [
+            {
+              "name": "appinsights-connection-string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+            }
+          ]
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "app",
+              "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+              "resources": {
+                "cpu": "[json('0.5')]",
+                "memory": "1Gi"
+              },
+              "env": [
+                {
+                  "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                  "secretRef": "appinsights-connection-string"
+                },
+                {
+                  "name": "OTEL_SERVICE_NAME",
+                  "value": "[variables('containerAppName')]"
+                }
+              ]
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 1
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+        "[resourceId('Microsoft.App/managedEnvironments', variables('containerAppsEnvironmentName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "containerAppName": {
+      "type": "string",
+      "value": "[variables('containerAppName')]"
+    },
+    "containerAppsEnvironmentName": {
+      "type": "string",
+      "value": "[variables('containerAppsEnvironmentName')]"
+    },
+    "appInsightsName": {
+      "type": "string",
+      "value": "[variables('appInsightsName')]"
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "value": "[variables('logAnalyticsWorkspaceName')]"
+    }
+  }
+}

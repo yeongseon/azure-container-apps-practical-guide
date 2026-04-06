@@ -23,8 +23,8 @@ echo "Ingress external: $INGRESS_EXTERNAL"
 echo "Ingress target port: $TARGET_PORT"
 echo "FQDN: $FQDN"
 
-if [ "$INGRESS_EXTERNAL" != "true" ] || [ "$TARGET_PORT" != "8000" ]; then
-  echo "FAIL: Ingress is not correctly configured. Expected external=true and targetPort=8000."
+if [ "$INGRESS_EXTERNAL" != "true" ] || [ "$TARGET_PORT" != "80" ]; then
+  echo "FAIL: Ingress is not correctly configured. Expected external=true and targetPort=80."
   exit 1
 fi
 

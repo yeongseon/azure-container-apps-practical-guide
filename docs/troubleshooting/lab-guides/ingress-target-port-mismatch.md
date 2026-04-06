@@ -36,13 +36,13 @@ flowchart LR
 
 ## 2) Hypothesis
 
-**IF** the ingress target port is changed from 8000 to 8081, **THEN** external requests will fail with 502 errors because no process is listening on port 8081 inside the container.
+**IF** the ingress target port is changed from 80 to 8081, **THEN** external requests will fail with 503 errors because no process is listening on port 8081 inside the container.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
-| Target Port | 8000 (matches app) | 8081 (mismatch) |
+| Target Port | 80 (matches app) | 8081 (mismatch) |
 | Container Health | Healthy | Healthy |
-| External Access | HTTP 200 | HTTP 502 or timeout |
+| External Access | HTTP 200 | HTTP 503 or timeout |
 
 ## 3) Runbook
 
@@ -99,7 +99,7 @@ Expected output:
 ```text
 External    TargetPort    Transport    AllowInsecure
 ----------  ------------  -----------  ---------------
-True        8000          auto         False
+True        80            auto         False
 ```
 
 ```bash
@@ -141,7 +141,11 @@ Expected: `8081`
 curl --silent --max-time 10 "https://${APP_FQDN}" || echo "Request failed"
 ```
 
-Expected: Connection timeout or 502 error.
+Expected: Connection timeout or 503 error with message like:
+
+```text
+upstream connect error or disconnect/reset before headers. retried and the latest reset reason: remote connection failure, transport failure reason: delayed connect error: Connection refused
+```
 
 ```bash
 # Verify container is still running (the issue is ingress, not the app)
@@ -157,10 +161,10 @@ Expected: Replicas show `Running` state—the container is healthy, just unreach
 ### Fix the Issue
 
 ```bash
-az containerapp update \
+az containerapp ingress update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --target-port 8000
+    --target-port 80
 ```
 
 ### Verify the Fix
@@ -172,7 +176,7 @@ cd labs/ingress-target-port-mismatch
 
 The verify script confirms:
 
-1. `targetPort` is back to 8000
+1. `targetPort` is back to 80
 2. `external` is true
 3. HTTPS endpoint returns a successful response
 
@@ -183,9 +187,9 @@ The verify script confirms:
 | 1 | Deploy baseline | Deployment succeeds | | |
 | 2 | Verify baseline endpoint | HTTP 200 | | |
 | 3 | Run trigger.sh | Target port changes to 8081 | | |
-| 4 | Curl endpoint | Timeout or 502 | | |
+| 4 | Curl endpoint | Timeout or 503 | | |
 | 5 | Check replica status | Running | | |
-| 6 | Fix target port to 8000 | Update succeeds | | |
+| 6 | Fix target port to 80 | Update succeeds | | |
 | 7 | Run verify.sh | All checks pass | | |
 
 ## Expected Evidence
@@ -195,14 +199,14 @@ The verify script confirms:
 | Evidence Source | Expected State |
 |---|---|
 | `az containerapp show ... --query "properties.configuration.ingress.targetPort"` | `8081` |
-| `curl https://${APP_FQDN}` | Timeout or 502 |
+| `curl https://${APP_FQDN}` | Timeout or 503 |
 | Container replicas | Running (healthy) |
 
 ### After Fix
 
 | Evidence Source | Expected State |
 |---|---|
-| `az containerapp show ... --query "properties.configuration.ingress.targetPort"` | `8000` |
+| `az containerapp show ... --query "properties.configuration.ingress.targetPort"` | `80` |
 | `curl https://${APP_FQDN}` | HTTP 200 |
 | `./verify.sh` | PASS |
 

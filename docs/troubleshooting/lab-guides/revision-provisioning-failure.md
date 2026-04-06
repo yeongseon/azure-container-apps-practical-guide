@@ -1,6 +1,6 @@
 # Revision Provisioning Failure Lab
 
-Reproduce provisioning failure when a container environment variable references a non-existent secret.
+Reproduce a revision that is created but never becomes ready due to startup probe misconfiguration.
 
 ## Lab Metadata
 
@@ -9,44 +9,45 @@ Reproduce provisioning failure when a container environment variable references 
 | Difficulty | Intermediate |
 | Estimated Duration | 20-30 minutes |
 | Tier | Consumption |
-| Failure Mode | Revision fails because `secretRef` points to `missing-secret` |
-| Skills Practiced | Revision diagnostics, secret reference validation, recovery by secret creation |
+| Failure Mode | Revision created but startup probe fails repeatedly |
+| Skills Practiced | Revision diagnostics, probe configuration, system log analysis |
 
 ## 1) Background
 
-This lab introduces a configuration error where the app template uses `secretRef: missing-secret` for `REQUIRED_CONFIG`, but the secret does not exist. Azure Container Apps validates the secret binding during revision creation, so the failure happens at provisioning time before normal application startup completes.
+This lab demonstrates what happens when a revision is accepted by the Azure Container Apps control plane but never stabilizes. The trigger misconfigures a startup probe to target a non-existent path, causing the probe to fail repeatedly. The revision exists and containers may start, but the platform marks the revision as unhealthy because it never passes the startup probe.
 
-This is a good example of a platform configuration failure that can look like a runtime issue unless you inspect revision state, system logs, and configured secrets first.
+This pattern is distinct from API validation failures (which reject the update before creating a revision) and from port mismatches (covered in a separate lab).
 
 ### Architecture
 
 ```mermaid
 flowchart TD
-    A[New revision created] --> B[Template references secretRef: missing-secret]
-    B --> C[Platform validates secret bindings]
-    C --> D[Revision provisioning fails]
-    D --> E[Service impact during rollout]
-    E --> F[Create missing secret]
-    F --> G[Deploy new revision]
-    G --> H[Revision healthy]
+    A[Deploy baseline app] --> B[Healthy revision running]
+    B --> C[Trigger: Add bad startup probe]
+    C --> D[New revision created]
+    D --> E[Startup probe targets /nonexistent]
+    E --> F[Probe fails repeatedly]
+    F --> G[Revision never becomes Ready]
+    G --> H[Fix: Correct probe path]
+    H --> I[New revision becomes Healthy]
 ```
 
-!!! warning "Configuration failures can mimic runtime issues"
-    If provisioning fails before the container starts, focus on revision configuration and secrets rather than application code first.
+!!! warning "Revision created ≠ Revision ready"
+    A revision can exist in the system but remain in a Failed or Degraded state if health probes never pass. Always check revision health state, not just existence.
 
-!!! tip "Keep a secret naming standard"
-    Consistent secret keys across environments reduce typo-driven failures during deployments.
+!!! note "API validation vs runtime failure"
+    Some configuration errors (like referencing a non-existent secret) are now rejected at the API layer with `ContainerAppSecretRefNotFound`. This lab focuses on errors that pass API validation but fail at runtime.
 
 ## 2) Hypothesis
 
-**IF** a Container App revision references a secret that does not exist, **THEN** the newest revision will fail provisioning until the missing secret is created and a new revision is rolled.
+**IF** a startup probe is configured to target a path that returns 404 or times out, **THEN** the revision will be created but never become ready, and system logs will show `ProbeFailed` events until the probe configuration is fixed.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
-| `REQUIRED_CONFIG` binding | References an existing secret | References `missing-secret` that does not exist |
-| Latest revision health | `Healthy` | Failed or non-healthy state |
-| System logs | No secret reference errors | Missing secret or invalid env binding errors |
-| Recovery path | No action required | Create secret and roll a new revision |
+| Startup probe path | Not configured or valid path | `/nonexistent` (returns 404) |
+| Latest revision health | `Healthy` | `Degraded` or `Failed` |
+| System logs | Normal startup events | `ProbeFailed` events |
+| Recovery path | No action required | Fix probe path and deploy new revision |
 
 ## 3) Runbook
 
@@ -76,7 +77,7 @@ az deployment group create \
 Expected output:
 
 - Resource group creation succeeds.
-- Deployment operations complete with `Succeeded`.
+- Deployment completes with `Succeeded` state.
 
 ### Capture deployment outputs
 
@@ -94,10 +95,22 @@ export ENVIRONMENT_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+### Verify baseline health
+
+```bash
+az containerapp revision list \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --output table
+```
+
 Expected output:
 
-- Commands return no console output.
-- Variables resolve to the deployed app and environment names.
+```text
+CreatedTime                Active    Replicas    TrafficWeight    HealthState    ProvisioningState    Name
+-------------------------  --------  ----------  ---------------  -------------  -------------------  ---------------------------
+2026-04-06T12:00:00+00:00  True      1           100              Healthy        Provisioned          ca-labrevprov-xxxxx--abc123
+```
 
 ### Trigger the failure
 
@@ -105,104 +118,77 @@ Expected output:
 ./labs/revision-provisioning-failure/trigger.sh
 ```
 
-The trigger script waits for the failed revision and then runs:
+The trigger script adds a startup probe targeting a non-existent path:
 
 ```bash
-az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
-az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
+az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --set-env-vars "PROBE_TRIGGER=$(date +%s)" \
+    --container-name app \
+    --startup-probe-path "/nonexistent-health-endpoint" \
+    --startup-probe-port 80 \
+    --startup-probe-failure-threshold 3 \
+    --startup-probe-period-seconds 5
 ```
 
-Expected output:
-
-- The newest revision is not healthy.
-- System logs show provisioning activity related to the broken configuration.
-
-One expected diagnostic pattern showing provisioning failure:
-
-```text
-ContainerAppUpdate  → Updating containerApp: ca-myapp
-RevisionCreation    → Creating new revision
-RevisionFailed      → Revision failed to provision: secret 'missing-secret' not found
-ContainerAppReady   → Degraded state reached
-```
-
-This pattern indicates the revision failed during provisioning because the referenced secret does not exist. The `RevisionFailed` event with a secret-related error confirms the hypothesis.
-
-### Observe and diagnose the failing revision
+### Observe the failure
 
 ```bash
 az containerapp revision list \
     --name "$APP_NAME" \
     --resource-group "$RG" \
     --output table
+```
 
+Expected output shows the new revision in a non-Healthy state:
+
+```text
+CreatedTime                Active    Replicas    TrafficWeight    HealthState    ProvisioningState    Name
+-------------------------  --------  ----------  ---------------  -------------  -------------------  ---------------------------
+2026-04-06T12:05:00+00:00  True      0           100              Degraded       Provisioned          ca-labrevprov-xxxxx--def456
+2026-04-06T12:00:00+00:00  False     1           0                Healthy        Provisioned          ca-labrevprov-xxxxx--abc123
+```
+
+Check system logs for probe failures:
+
+```bash
 az containerapp logs show \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --type system
-
-az containerapp secret list \
-    --name "$APP_NAME" \
-    --resource-group "$RG" \
-    --output table
+    --type system \
+    --tail 30
 ```
 
-Expected output:
+Expected log evidence:
 
-- The latest revision health/provisioning state indicates failure.
-- System logs contain evidence of a missing secret reference or invalid env binding.
-- `missing-secret` is absent from the app secret list before the fix.
+```text
+Reason_s             Log_s
+-------------------  -----------------------------------------------------------------
+ProbeFailed          Startup probe failed: HTTP probe failed with status code: 404
+ContainerRestart     Container 'app' was restarted
+```
 
-### Verify failure, apply the fix, and roll a new revision
+### Fix the issue
+
+Remove the bad probe configuration by deploying without the startup probe:
 
 ```bash
 ./labs/revision-provisioning-failure/verify.sh
 ```
 
-The verification script confirms the broken state first:
-
-```text
-PASS: Revision health is '<non-Healthy>' due to missing secret
-```
-
-It then performs the fix with these commands:
+The verify script removes the startup probe and confirms recovery:
 
 ```bash
-az containerapp secret set \
-    --name "$APP_NAME" \
-    --resource-group "$RG" \
-    --secrets "missing-secret=resolved-value"
-
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --set-env-vars "REVISION_FIX_TOKEN=$(date +%s)"
+    --set-env-vars "PROBE_FIX=$(date +%s)"
 ```
-
-You can also run the equivalent manual update from the original walkthrough:
-
-```bash
-az containerapp secret set \
-    --name "$APP_NAME" \
-    --resource-group "$RG" \
-    --secrets "missing-secret=demo-safe-value"
-
-az containerapp update \
-    --name "$APP_NAME" \
-    --resource-group "$RG" \
-    --set-env-vars "REQUIRED_CONFIG=secretref:missing-secret"
-```
-
-Expected output:
-
-- Secret creation succeeds.
-- A new revision is created after the update.
 
 ### Verify recovery
 
 ```bash
-./labs/revision-provisioning-failure/verify.sh
-
 az containerapp revision list \
     --name "$APP_NAME" \
     --resource-group "$RG" \
@@ -211,20 +197,23 @@ az containerapp revision list \
 
 Expected output:
 
-- The latest revision becomes `Healthy` after the secret is created and the new revision is deployed.
-- The verification script prints the post-fix health state.
+```text
+HealthState    ProvisioningState
+-------------  -------------------
+Healthy        Provisioned
+```
 
 ## 4) Experiment Log
 
 | Step | Action | Expected | Actual | Pass/Fail |
 |---|---|---|---|---|
 | 1 | Deploy baseline infrastructure | Deployment succeeds | | |
-| 2 | Capture app outputs | App and environment names resolved | | |
-| 3 | Run `trigger.sh` | Latest revision shows failed provisioning evidence | | |
-| 4 | Review revision list and system logs | Missing secret symptoms visible | | |
-| 5 | Run `verify.sh` before fix | Script confirms non-healthy latest revision | | |
-| 6 | Create `missing-secret` and roll new revision | Secret update succeeds | | |
-| 7 | Re-check revision health | Latest revision becomes healthy | | |
+| 2 | Verify baseline health | Revision is Healthy | | |
+| 3 | Run `trigger.sh` | New revision created with bad probe | | |
+| 4 | Check revision list | New revision is Degraded/Failed | | |
+| 5 | Check system logs | ProbeFailed events visible | | |
+| 6 | Run `verify.sh` | Probe removed, new revision created | | |
+| 7 | Verify recovery | Latest revision is Healthy | | |
 
 ## Expected Evidence
 
@@ -232,18 +221,17 @@ Expected output:
 
 | Evidence Source | Expected State |
 |---|---|
-| `az containerapp revision list` | Latest revision is not healthy |
-| `az containerapp logs show --type system` | Missing secret reference or env binding error evidence |
-| `az containerapp secret list` | `missing-secret` absent |
-| `./labs/revision-provisioning-failure/verify.sh` | PASS for expected failure state |
+| `az containerapp revision list` | Latest revision shows `Degraded` or `Failed` |
+| `az containerapp logs show --type system` | `ProbeFailed` with 404 status code |
+| Replica count | 0 or unstable |
 
 ### After fix
 
 | Evidence Source | Expected State |
 |---|---|
-| `az containerapp secret list` | `missing-secret` present |
-| `az containerapp revision list` | Latest revision is `Healthy` |
-| Verification script output | Post-fix health state reported successfully |
+| `az containerapp revision list` | Latest revision shows `Healthy` |
+| System logs | Normal startup events |
+| `./verify.sh` | PASS |
 
 ## Clean Up
 
@@ -253,14 +241,14 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Related Playbook
 
-- [Revision Provisioning Failure Playbook](../playbooks/startup-and-provisioning/revision-provisioning-failure.md)
+- [Probe Failure and Slow Start](../playbooks/startup-and-provisioning/probe-failure-and-slow-start.md)
 
 ## See Also
 
+- [Probe and Port Mismatch Lab](./probe-and-port-mismatch.md) — covers port mismatch; this lab covers probe path mismatch
 - [Container Start Failure Playbook](../playbooks/startup-and-provisioning/container-start-failure.md)
-- [Traffic Routing and Canary Failure Lab](./traffic-routing-canary.md)
 
 ## Sources
 
-- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
 - [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)

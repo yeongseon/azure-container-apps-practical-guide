@@ -44,7 +44,7 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
     configuration: {
       ingress: {
         external: true
-        targetPort: 8000
+        targetPort: 80
       }
     }
     template: {

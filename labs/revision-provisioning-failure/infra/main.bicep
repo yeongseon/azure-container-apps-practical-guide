@@ -57,7 +57,7 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
     configuration: {
       ingress: {
         external: true
-        targetPort: 8000
+        targetPort: 80
       }
     }
     template: {
@@ -69,12 +69,6 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
             cpu: json('0.5')
             memory: '1Gi'
           }
-          env: [
-            {
-              name: 'REQUIRED_CONFIG'
-              secretRef: 'missing-secret'
-            }
-          ]
         }
       ]
       scale: {
