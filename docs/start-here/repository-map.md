@@ -44,12 +44,6 @@ graph TD
     Problem -- No --> Running[Production Stable]
 ```
 
-## See Also
-
-- [Platform Overview](overview.md)
-- [Learning Paths](learning-paths.md)
-- [Language Guides](../language-guides/index.md)
-
 ## Navigation by Goal
 
 Use this table when you need a direct path from a practical goal to the right part of the repository.
@@ -119,8 +113,11 @@ graph TD
 4. Complete at least one tutorial track in `docs/language-guides/python/`.
 5. Set up monitoring and alerts from `docs/operations/` before production traffic.
 
-## Additional See Also
+## See Also
 
+- [Platform Overview](overview.md)
+- [Learning Paths](learning-paths.md)
+- [Language Guides](../language-guides/index.md)
 - [When to Use Container Apps](when-to-use-container-apps.md)
 - [Best Practices Hub](../best-practices/index.md)
 - [Operations Hub](../operations/index.md)
@@ -131,4 +128,4 @@ graph TD
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
 - [Well-Architected Framework for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps)
-- [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/deploy-container-app)
+- [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli)

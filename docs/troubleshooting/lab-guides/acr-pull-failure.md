@@ -154,7 +154,7 @@ sequenceDiagram
 
    ```bash
    az acr login --name "$ACR_NAME"
-   docker build --tag "$ACR_NAME.azurecr.io/myapp:v1.0.1" "./labs/acr-pull-failure/app"
+   docker build --tag "$ACR_NAME.azurecr.io/myapp:v1.0.1" "./labs/acr-pull-failure/workload"
    docker push "$ACR_NAME.azurecr.io/myapp:v1.0.1"
 
    az containerapp update \

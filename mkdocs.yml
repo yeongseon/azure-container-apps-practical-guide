@@ -282,8 +282,8 @@ nav:
       - Probe and Port Mismatch: troubleshooting/lab-guides/probe-and-port-mismatch.md
       - Managed Identity Key Vault Failure: troubleshooting/lab-guides/managed-identity-key-vault-failure.md
       - Revision Provisioning Failure: troubleshooting/lab-guides/revision-provisioning-failure.md
-      - Ingress TLS and Custom Domain: troubleshooting/lab-guides/ingress-tls-custom-domain.md
-      - Traffic Routing and Canary: troubleshooting/lab-guides/traffic-routing-canary.md
+      - Ingress Target Port Mismatch Lab: troubleshooting/lab-guides/ingress-tls-custom-domain.md
+      - Traffic Routing and Canary Failure Lab: troubleshooting/lab-guides/traffic-routing-canary.md
       - Dapr Integration: troubleshooting/lab-guides/dapr-integration.md
       - Observability and Tracing: troubleshooting/lab-guides/observability-tracing.md
   - Reference:

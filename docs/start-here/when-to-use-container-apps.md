@@ -76,16 +76,6 @@ quadrantChart
 - Migration patterns from App Service containers to revisions and KEDA rules.
 - Governance models when combining AKS and Container Apps in one organization.
 
-## See Also
-- [How Container Apps Works](overview.md)
-- [Environments and Apps](../platform/environments/index.md)
-- [Scaling with KEDA](../platform/scaling/index.md)
-- [Networking](../platform/networking/index.md)
-
-## Sources
-- [Azure Container Apps vs Other Azure Compute Options (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/compare-options)
-- [Choose an Azure container service (Microsoft Learn)](https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service)
-
 ## Decision Tree: Which Service Should You Choose?
 
 ```mermaid
@@ -152,16 +142,20 @@ Use these signals to confirm Container Apps is a strong fit:
 | Ephemeral task execution without full app lifecycle | ACI |
 | Event-handler programming model and trigger-centric design | Functions |
 
-## Extended See Also
+## See Also
 
-- [Start Here: Overview](overview.md)
-- [Start Here: Learning Paths](learning-paths.md)
-- [Platform: Environments](../platform/environments/index.md)
+- [How Container Apps Works](overview.md)
+- [Environments and Apps](../platform/environments/index.md)
+- [Scaling with KEDA](../platform/scaling/index.md)
+- [Networking](../platform/networking/index.md)
+- [Learning Paths](learning-paths.md)
 - [Platform: Jobs](../platform/jobs/index.md)
 - [Best Practices: Anti-Patterns](../best-practices/anti-patterns.md)
 
-## Additional Sources
+## Sources
 
+- [Azure Container Apps vs Other Azure Compute Options (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/compare-options)
+- [Choose an Azure container service (Microsoft Learn)](https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service)
 - [Azure Container Apps hosting considerations (Microsoft Learn)](https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps)
 - [App Service overview (Microsoft Learn)](https://learn.microsoft.com/azure/app-service/overview)
 - [Azure Kubernetes Service (AKS) documentation (Microsoft Learn)](https://learn.microsoft.com/azure/aks/)

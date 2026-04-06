@@ -46,19 +46,6 @@ graph TD
 6. Use Troubleshooting during incident response and for preventive learning.
 7. Consult Reference for quick CLI, environment variable, and limits lookups.
 
-## See Also
-
-- [Learning Paths](learning-paths.md)
-- [When to Use Container Apps](when-to-use-container-apps.md)
-- [Repository Map](repository-map.md)
-- [Platform](../platform/index.md)
-- [Best Practices](../best-practices/index.md)
-
-## Sources
-
-- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
-- [Azure Container Apps documentation hub (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-
 ## Role-Based Starting Points
 
 If your team includes multiple roles, align on a shared baseline and then split into focused tracks.
@@ -117,17 +104,22 @@ The diagram above highlights the operating loop:
 | Runtime health | Are startup, readiness, and liveness paths defined? | [Container Design Best Practices](../best-practices/container-design.md) |
 | Operational visibility | Can we detect and diagnose failures quickly? | [Operations Monitoring](../operations/monitoring/index.md) |
 
-## Extended See Also
+## See Also
 
-- [Start Here: Learning Paths](learning-paths.md)
-- [Start Here: Repository Map](repository-map.md)
+- [Learning Paths](learning-paths.md)
+- [When to Use Container Apps](when-to-use-container-apps.md)
+- [Repository Map](repository-map.md)
+- [Platform](../platform/index.md)
+- [Best Practices](../best-practices/index.md)
 - [Platform: Revisions](../platform/revisions/index.md)
 - [Platform: Scaling](../platform/scaling/index.md)
 - [Best Practices: Container Design](../best-practices/container-design.md)
 - [Troubleshooting: First 10 Minutes](../troubleshooting/first-10-minutes/index.md)
 
-## Additional Sources
+## Sources
 
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
+- [Azure Container Apps documentation hub (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
 - [Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment)
 - [Scale applications in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)

@@ -30,11 +30,6 @@ az login
 - Add VNet and private networking patterns from [networking recipes](../platform/networking/vnet-integration.md).
 - Standardize environment provisioning with reusable Bicep modules.
 
-## See Also
-- [How Container Apps Works](overview.md)
-- [Environment Variables Reference](../troubleshooting/first-10-minutes/environment-variables.md)
-- [Managed Identity Recipe](../platform/identity-and-secrets/managed-identity.md)
-
 ## Role-Based Learning Paths
 
 Use the table below to choose a role-first path. Each path points to the same core materials, but in a different order based on daily responsibilities.
@@ -126,9 +121,11 @@ Before moving from one phase to the next, validate these checkpoints:
 | Operate | Logs are queryable and structured | KQL query returns expected JSON schema |
 | Improve | Safe rollout behavior | Successful traffic split or rollback simulation |
 
-## Additional See Also
+## See Also
 
-- [Start Here Overview](overview.md)
+- [How Container Apps Works](overview.md)
+- [Environment Variables Reference](../troubleshooting/first-10-minutes/environment-variables.md)
+- [Managed Identity Recipe](../platform/identity-and-secrets/managed-identity.md)
 - [When to Use Container Apps](when-to-use-container-apps.md)
 - [Repository Map](repository-map.md)
 - [Platform Hub](../platform/index.md)
