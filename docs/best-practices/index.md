@@ -38,7 +38,7 @@ flowchart LR
 1. Read [Platform](../platform/index.md) first to align on environment, revision, scale, and networking behavior.
 2. Establish a baseline from [Container Design](container-design.md), [Revision Strategy](revision-strategy.md), and [Scaling](scaling.md).
 3. Add boundary controls through [Networking](networking.md) and [Identity and Secrets](identity-and-secrets.md).
-4. Harden for day-2 with [Reliability](reliability.md), [Cost Optimization](cost.md), and [Jobs](jobs.md).
+4. Harden for production with [Reliability](reliability.md), [Cost Optimization](cost.md), and [Jobs](jobs.md).
 5. Run [Anti-Patterns](anti-patterns.md) as a final pre-production and post-incident review checklist.
 
 !!! info "Design judgment over checklist thinking"

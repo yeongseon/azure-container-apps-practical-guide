@@ -9,7 +9,7 @@ The hub is divided into 5 main categories to help you navigate based on your cur
 1. **Start Here**: The entry point for everyone. Includes a platform overview, learning paths for different skill levels, and this repository map.
 2. **Platform**: Architectural and conceptual guides. This is where you go to *design* your application, covering scaling, networking, identity, and jobs.
 3. **Language Guides**: Practical, language-specific implementation. Includes step-by-step tutorials, runtime guides, and integration recipes.
-4. **Operations**: Focuses on *running* in production. Covers deployment patterns, monitoring, alerts, and day-2 tasks like secret rotation.
+4. **Operations**: Focuses on *running* in production. Covers deployment patterns, monitoring, alerts, and operational tasks like secret rotation.
 5. **Troubleshooting**: A systematic guide to fixing issues. Includes quick triage steps, detailed playbooks, and Lab Guides for practice.
 
 ## Directory Structure

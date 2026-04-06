@@ -1,6 +1,6 @@
 # Networking Operations
 
-This guide covers day-2 networking operations for Container Apps: ingress updates, VNet-related checks, and service discovery between apps.
+This guide covers networking operations for Container Apps: ingress updates, VNet-related checks, and service discovery between apps.
 
 ## Prerequisites
 

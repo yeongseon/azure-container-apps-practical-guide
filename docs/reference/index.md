@@ -9,7 +9,7 @@ This section is optimized for fast operational lookup during build, deploy, and 
 !!! tip "Use this as your runbook landing page"
     Keep this page open during deployment and troubleshooting sessions. The linked reference pages are designed to reduce context switching when you need exact command syntax, variable meaning, or limit checks.
 
-!!! note "Bookmark for day-2 operations"
+!!! note "Bookmark for production operations"
     Save this page and the linked reference pages in your browser. During incidents, a predictable navigation path is more valuable than searching through full tutorial content.
 
 ```mermaid

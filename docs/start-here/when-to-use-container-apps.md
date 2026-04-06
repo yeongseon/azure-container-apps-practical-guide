@@ -102,7 +102,7 @@ flowchart TD
 ```
 
 !!! tip "Start from operational ownership"
-    The most reliable decision point is not feature count; it is who will own day-2 operations and how much control they can realistically support.
+    The most reliable decision point is not feature count; it is who will own ongoing operations and how much control they can realistically support.
 
 !!! warning "Do not choose AKS by default"
     AKS is powerful, but if you do not need cluster-level control, Container Apps usually reduces delivery and operations complexity significantly.
@@ -116,7 +116,7 @@ flowchart TD
 | Native scale-to-zero for app containers | ✅ | ⚠️ (possible with add-ons and tuning) | ❌ | ❌ | ✅ |
 | Cluster-level Kubernetes API control | ❌ | ✅ | ❌ | ❌ | ❌ |
 | Event-driven scaling for workers | ✅ (KEDA) | ✅ (KEDA + cluster ops) | ⚠️ (depends on app pattern) | ❌ | ✅ |
-| Lowest day-2 operational burden | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Lowest operational burden | ✅ | ❌ | ✅ | ✅ | ✅ |
 
 ## Workload Signal Checklist
 

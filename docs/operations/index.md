@@ -1,6 +1,6 @@
 # Operations
 
-This section covers production operations and day-2 practices for Azure Container Apps. It is language-agnostic and focuses on platform behavior, reliability, and cost control in running systems.
+This section covers production operations for Azure Container Apps. It is language-agnostic and focuses on platform behavior, reliability, and cost control in running systems.
 
 !!! note "Variable naming in this section"
     Operations guides use production-style variable names (e.g., `RG="rg-aca-prod"`) to reflect real operational contexts. Tutorial guides use demo-style names (e.g., `RG="rg-aca-python-demo"`). Substitute your own resource names as appropriate.
@@ -68,7 +68,7 @@ Example output (PII masked):
 }
 ```
 
-### Day-2 Operations Control Loop
+### Operations Control Loop
 
 Use a repeatable control loop so every operational change is observable, reversible, and documented.
 

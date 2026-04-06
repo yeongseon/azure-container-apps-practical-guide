@@ -19,7 +19,7 @@ This guide is built for:
 | Platform | Core platform concepts needed before implementation choices | [Platform](../platform/index.md) |
 | Best Practices | Production patterns, standards, and anti-pattern avoidance | [Best Practices](../best-practices/index.md) |
 | Language Guides | Runtime-specific tutorials and implementation walkthroughs | [Language Guides](../language-guides/index.md) |
-| Operations | Day-2 deployment, monitoring, alerting, and recovery workflows | [Operations](../operations/index.md) |
+| Operations | Deployment, monitoring, alerting, and recovery workflows | [Operations](../operations/index.md) |
 | Troubleshooting | Incident triage, diagnostic playbooks, and investigation paths | [Troubleshooting](../troubleshooting/index.md) |
 | Reference | Quick lookup for CLI, environment variables, and limits | [Reference](../reference/index.md) |
 

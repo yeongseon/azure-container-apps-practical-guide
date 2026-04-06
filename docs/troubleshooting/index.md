@@ -29,7 +29,7 @@ Every playbook uses this 6-step flow: observe symptoms, enumerate likely causes,
 | --- | --- |
 | Commands, tables, snippets | Long conceptual explanations (see [Platform](../platform/index.md)) |
 | Frequent incidents and fixes | End-to-end deployment tutorials (see [Language Guides](../language-guides/index.md)) |
-| Runtime defaults and knobs | Day-2 operational guides (see [Operations](../operations/index.md)) |
+| Runtime defaults and knobs | Operational guides (see [Operations](../operations/index.md)) |
 
 ## Start Here
 

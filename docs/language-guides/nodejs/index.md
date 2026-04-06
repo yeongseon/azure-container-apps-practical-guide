@@ -106,7 +106,7 @@ By completing this guide, you will gain the following capabilities:
 ## See Also
 
 - [Platform Architecture](../../platform/index.md) — Understand the underlying ACA infrastructure.
-- [Operations Guide](../../operations/index.md) — Production operations and day-2 activities.
+- [Operations Guide](../../operations/index.md) — Production operations.
 - [Troubleshooting Methodology](../../troubleshooting/index.md) — Systematic approach to debugging issues.
 - [CLI Reference](../../troubleshooting/first-10-minutes/cli-reference.md) — Quick lookup for CLI commands and limits.
 
