@@ -288,7 +288,7 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
 - [Service-to-Service Connectivity Failure](service-to-service-connectivity-failure.md)
 - [Ingress Error Analysis KQL](../../kql/ingress-and-networking/ingress-error-analysis.md)
 - [HTTP Query Pack](../../kql/http/index.md)
-- [Ingress Target Port Mismatch Lab](../../lab-guides/ingress-tls-custom-domain.md)
+- [Ingress Target Port Mismatch Lab](../../lab-guides/ingress-target-port-mismatch.md)
 
 ## Sources
 

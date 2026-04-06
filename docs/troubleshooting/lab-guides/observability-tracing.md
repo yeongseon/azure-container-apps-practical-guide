@@ -271,7 +271,7 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Related Playbook
 
-- [CrashLoop OOM and Resource Pressure](../playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md)
+- [Secret and Key Vault Reference Failure](../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md)
 
 ## See Also
 

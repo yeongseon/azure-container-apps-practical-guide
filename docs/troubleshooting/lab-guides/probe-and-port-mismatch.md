@@ -217,7 +217,7 @@ az group delete --name "$RG" --yes --no-wait
 ## See Also
 
 - [Ingress Not Reachable Playbook](../playbooks/ingress-and-networking/ingress-not-reachable.md)
-- [Ingress Target Port Mismatch Lab](./ingress-tls-custom-domain.md)
+- [Ingress Target Port Mismatch Lab](./ingress-target-port-mismatch.md)
 
 ## Sources
 

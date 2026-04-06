@@ -117,15 +117,16 @@ Expected output:
 - The newest revision is not healthy.
 - System logs show provisioning activity related to the broken configuration.
 
-One expected diagnostic pattern is:
+One expected diagnostic pattern showing provisioning failure:
 
 ```text
 ContainerAppUpdate  → Updating containerApp: ca-myapp
 RevisionCreation    → Creating new revision
-ProbeFailed         → Probe of StartUp failed with status code: 1
-RevisionReady       → Revision ready
-ContainerAppReady   → Running state reached
+RevisionFailed      → Revision failed to provision: secret 'missing-secret' not found
+ContainerAppReady   → Degraded state reached
 ```
+
+This pattern indicates the revision failed during provisioning because the referenced secret does not exist. The `RevisionFailed` event with a secret-related error confirms the hypothesis.
 
 ### Observe and diagnose the failing revision
 

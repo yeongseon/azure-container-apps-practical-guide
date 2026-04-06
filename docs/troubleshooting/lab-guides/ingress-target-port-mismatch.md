@@ -57,7 +57,7 @@ az group create --name "$RG" --location "$LOCATION"
 az deployment group create \
     --name "lab-ingress" \
     --resource-group "$RG" \
-    --template-file "./labs/ingress-tls-custom-domain/infra/main.bicep" \
+    --template-file "./labs/ingress-target-port-mismatch/infra/main.bicep" \
     --parameters baseName="labingress"
 ```
 
@@ -110,7 +110,7 @@ curl --silent --fail "https://${APP_FQDN}" && echo "Endpoint reachable"
 ### Trigger the Failure
 
 ```bash
-cd labs/ingress-tls-custom-domain
+cd labs/ingress-target-port-mismatch
 ./trigger.sh
 ```
 
@@ -166,7 +166,7 @@ az containerapp update \
 ### Verify the Fix
 
 ```bash
-cd labs/ingress-tls-custom-domain
+cd labs/ingress-target-port-mismatch
 ./verify.sh
 ```
 

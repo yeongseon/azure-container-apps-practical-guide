@@ -125,16 +125,17 @@ Name                Active    HealthState
 ca-myapp--0000002   True      Failed
 ```
 
-Expected log evidence pattern:
+Expected log evidence pattern showing image pull failure:
 
 ```text
-Reason_s      Log_s
-------------  -----------------------------------------------------------------
-PullingImage  Pulling image '<acr-name>.azurecr.io/myapp:v1.0.0'
-PulledImage   Successfully pulled image in 2.42s. Image size: 58720256 bytes.
+Reason_s          Log_s
+----------------  -----------------------------------------------------------------
+PullingImage      Pulling image '<acr-name>.azurecr.io/labacr:does-not-exist'
+ImagePullFailed   Failed to pull image: manifest unknown: manifest tagged by "does-not-exist" is not found
+BackOff           Back-off pulling image '<acr-name>.azurecr.io/labacr:does-not-exist'
 ```
 
-For this failure scenario, expect image pull errors, `manifest unknown`, or similar pull-failure messages instead of a successful pull.
+This pattern confirms the hypothesis: the revision cannot start because the specified image tag does not exist in the registry.
 
 ### Inspect system evidence directly
 

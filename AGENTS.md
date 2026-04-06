@@ -49,7 +49,7 @@ Guidance for AI agents working in this repository.
 ├── labs/                       # Lab infrastructure + app source
 │   ├── acr-pull-failure/
 │   ├── dapr-integration/
-│   ├── ingress-tls-custom-domain/
+│   ├── ingress-target-port-mismatch/
 │   ├── managed-identity-key-vault-failure/
 │   ├── observability-tracing/
 │   ├── probe-and-port-mismatch/

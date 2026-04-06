@@ -148,7 +148,7 @@ Deploy reproduction environments and observe real symptoms:
 - [Probe and Port Mismatch](lab-guides/probe-and-port-mismatch.md)
 - [Managed Identity Key Vault Failure](lab-guides/managed-identity-key-vault-failure.md)
 - [Revision Provisioning Failure](lab-guides/revision-provisioning-failure.md)
-- [Ingress Target Port Mismatch](lab-guides/ingress-tls-custom-domain.md)
+- [Ingress Target Port Mismatch](lab-guides/ingress-target-port-mismatch.md)
 - [Traffic Routing Canary Failure](lab-guides/traffic-routing-canary.md)
 - [Dapr Integration](lab-guides/dapr-integration.md)
 - [Observability and Tracing](lab-guides/observability-tracing.md)
