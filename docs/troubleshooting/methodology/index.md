@@ -163,13 +163,6 @@ ContainerAppConsoleLogs_CL
 !!! warning "Do not ignore system logs"
     Console logs show app behavior; system logs usually reveal platform-level failures first.
 
-## See Also
-
-- [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)
-- [Playbooks](../playbooks/index.md)
-- [KQL Queries](../kql/index.md)
-- [Detector Map: Symptom to Playbook](detector-map.md)
-
 ## Verification Loop (Fix Confidence)
 
 After applying a candidate fix, run this loop before declaring incident closure.
@@ -196,6 +189,13 @@ flowchart LR
 | Ingress config | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json` | Validate external/internal access and target port |
 | Identity baseline | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Confirm principal assignment |
 | Live logs | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Capture platform-level failure reasons |
+
+## See Also
+
+- [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)
+- [Playbooks](../playbooks/index.md)
+- [KQL Queries](../kql/index.md)
+- [Detector Map: Symptom to Playbook](detector-map.md)
 
 ## Sources
 

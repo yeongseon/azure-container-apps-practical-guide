@@ -148,20 +148,15 @@ Deploy reproduction environments and observe real symptoms:
 - [Probe and Port Mismatch](lab-guides/probe-and-port-mismatch.md)
 - [Managed Identity Key Vault Failure](lab-guides/managed-identity-key-vault-failure.md)
 - [Revision Provisioning Failure](lab-guides/revision-provisioning-failure.md)
+- [Ingress Target Port Mismatch](lab-guides/ingress-tls-custom-domain.md)
+- [Traffic Routing Canary Failure](lab-guides/traffic-routing-canary.md)
+- [Dapr Integration](lab-guides/dapr-integration.md)
+- [Observability and Tracing](lab-guides/observability-tracing.md)
 
 ## Architecture and Methodology
 
 - [Methodology](methodology/index.md) — Systematic root-cause workflow
 - [Detector Map](methodology/detector-map.md) — Symptom-to-playbook routing tree and error-string mapping
-
-## See Also
-
-- [Operations](../operations/index.md)
-- [Troubleshooting Playbooks](playbooks/index.md)
-
-## Sources
-
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
 
 ## Incident Escalation and Routing Matrix
 
@@ -177,3 +172,12 @@ Deploy reproduction environments and observe real symptoms:
 
 !!! tip "Preserve a timeline while troubleshooting"
     Capture timestamps for deployment, first failure, mitigation action, and recovery confirmation. A precise timeline accelerates post-incident reviews.
+
+## See Also
+
+- [Operations](../operations/index.md)
+- [Troubleshooting Playbooks](playbooks/index.md)
+
+## Sources
+
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)

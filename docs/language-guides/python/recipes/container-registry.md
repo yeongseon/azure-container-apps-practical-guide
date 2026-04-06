@@ -407,7 +407,7 @@ az containerapp logs show \
 
 ## Using Bicep
 
-See [`infra/modules/acr-private.bicep`](https://github.com/yeongseon/azure-container-apps-python-guide/blob/main/infra/modules/acr-private.bicep) for the full module.
+See [`infra/modules/acr-private.bicep`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/infra/modules/acr-private.bicep) for the full module.
 
 Integration into your environment:
 

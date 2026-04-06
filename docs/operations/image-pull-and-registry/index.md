@@ -63,7 +63,7 @@ ACR Tasks can build images on commit or schedule without external runners.
 az acr task create \
   --registry "$ACR_NAME" \
   --name "build-python-app" \
-  --context "https://github.com/yeongseon/azure-container-apps-python-guide.git" \
+  --context "https://github.com/yeongseon/azure-container-apps-practical-guide.git" \
   --file "apps/python/Dockerfile" \
   --image "python-app:{{.Run.ID}}" \
   --commit-trigger-enabled true

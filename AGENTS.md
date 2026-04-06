@@ -48,11 +48,15 @@ Guidance for AI agents working in this repository.
 ├── infra/                      # Shared Bicep modules
 ├── labs/                       # Lab infrastructure + app source
 │   ├── acr-pull-failure/
+│   ├── dapr-integration/
+│   ├── ingress-tls-custom-domain/
 │   ├── managed-identity-key-vault-failure/
+│   ├── observability-tracing/
 │   ├── probe-and-port-mismatch/
 │   ├── revision-failover/
 │   ├── revision-provisioning-failure/
-│   └── scale-rule-mismatch/
+│   ├── scale-rule-mismatch/
+│   └── traffic-routing-canary/
 └── mkdocs.yml                  # MkDocs Material configuration (7-tab nav)
 ```
 

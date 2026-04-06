@@ -8,16 +8,16 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 
 | Lab | Description | Difficulty | Duration | Guide | Lab Files |
 |---|---|---|---|---|---|
-| ACR Image Pull Failure | Reproduces `ImagePullBackOff` from a non-existent image tag, then fixes image publishing/update. | Beginner | 20-30 min | [Guide](./acr-pull-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/acr-pull-failure) |
-| Revision Failover and Rollback | Deploys a healthy revision, then breaks ingress port on a new revision and restores traffic. | Intermediate | 20-30 min | [Guide](./revision-failover.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/revision-failover) |
-| Scale Rule Mismatch | Uses unrealistic HTTP scaling thresholds to show non-scaling under load, then corrects KEDA settings. | Intermediate | 25-35 min | [Guide](./scale-rule-mismatch.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/scale-rule-mismatch) |
-| Probe and Port Mismatch | App listens on port 3000 while ingress targets 8000, causing probe failures until target port is fixed. | Beginner | 20-25 min | [Guide](./probe-and-port-mismatch.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/probe-and-port-mismatch) |
-| Managed Identity Key Vault Failure | App uses managed identity to read Key Vault secret but fails without `Key Vault Secrets User` role assignment. | Intermediate | 25-35 min | [Guide](./managed-identity-key-vault-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/managed-identity-key-vault-failure) |
-| Revision Provisioning Failure | Revision fails because container env var references a missing secret; fixed by setting secret and deploying new revision. | Intermediate | 20-30 min | [Guide](./revision-provisioning-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/revision-provisioning-failure) |
-| Ingress Target Port Mismatch | Diagnose and fix ingress failures caused by target port misconfiguration. | Beginner | 15-20 min | [Guide](./ingress-tls-custom-domain.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/ingress-tls-custom-domain) |
-| Traffic Routing Canary Failure | Diagnose traffic splitting failures when a bad revision receives production traffic. | Intermediate | 20-30 min | [Guide](./traffic-routing-canary.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/traffic-routing-canary) |
-| Dapr Integration | Troubleshoot Dapr sidecar and component configuration issues. | Intermediate | 35-45 min | [Guide](./dapr-integration.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/dapr-integration) |
-| Observability and Tracing | Set up OpenTelemetry and Application Insights, troubleshoot missing traces and metrics. | Intermediate | 35-45 min | [Guide](./observability-tracing.md) | [Directory](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/labs/observability-tracing) |
+| ACR Image Pull Failure | Reproduces `ImagePullBackOff` from a non-existent image tag, then fixes image publishing/update. | Beginner | 20-30 min | [Guide](./acr-pull-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/acr-pull-failure) |
+| Revision Failover and Rollback | Deploys a healthy revision, then breaks ingress port on a new revision and restores traffic. | Intermediate | 20-30 min | [Guide](./revision-failover.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/revision-failover) |
+| Scale Rule Mismatch | Uses unrealistic HTTP scaling thresholds to show non-scaling under load, then corrects KEDA settings. | Intermediate | 25-35 min | [Guide](./scale-rule-mismatch.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/scale-rule-mismatch) |
+| Probe and Port Mismatch | App listens on port 3000 while ingress targets 8000, causing probe failures until target port is fixed. | Beginner | 20-25 min | [Guide](./probe-and-port-mismatch.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/probe-and-port-mismatch) |
+| Managed Identity Key Vault Failure | App uses managed identity to read Key Vault secret but fails without `Key Vault Secrets User` role assignment. | Intermediate | 25-35 min | [Guide](./managed-identity-key-vault-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/managed-identity-key-vault-failure) |
+| Revision Provisioning Failure | Revision fails because container env var references a missing secret; fixed by setting secret and deploying new revision. | Intermediate | 20-30 min | [Guide](./revision-provisioning-failure.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/revision-provisioning-failure) |
+| Ingress Target Port Mismatch | Diagnose and fix ingress failures caused by target port misconfiguration. | Beginner | 15-20 min | [Guide](./ingress-tls-custom-domain.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/ingress-tls-custom-domain) |
+| Traffic Routing Canary Failure | Diagnose traffic splitting failures when a bad revision receives production traffic. | Intermediate | 20-30 min | [Guide](./traffic-routing-canary.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/traffic-routing-canary) |
+| Dapr Integration | Troubleshoot Dapr sidecar and component configuration issues. | Intermediate | 35-45 min | [Guide](./dapr-integration.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/dapr-integration) |
+| Observability and Tracing | Set up OpenTelemetry and Application Insights, troubleshoot missing traces and metrics. | Intermediate | 35-45 min | [Guide](./observability-tracing.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/observability-tracing) |
 
 ## Suggested Learning Path
 
@@ -31,12 +31,6 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 8. [Traffic Routing and Canary Failure Lab](./traffic-routing-canary.md)
 9. [Dapr Integration](./dapr-integration.md)
 10. [Observability and Tracing](./observability-tracing.md)
-
-## See Also
-
-- [Playbooks](../playbooks/index.md)
-- [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)
-- [Troubleshooting Methodology](../methodology/index.md)
 
 ## How to Use These Labs Effectively
 
@@ -77,66 +71,66 @@ flowchart TD
 
 1. **Prepare shell variables**
 
-   ```bash
-   export RG="rg-aca-lab-shared"
-   export LOCATION="koreacentral"
-   export ENVIRONMENT_NAME="cae-myapp"
-   export APP_NAME="ca-myapp"
-   export ACR_NAME="acrmyapp"
-   ```
+    ```bash
+    export RG="rg-aca-lab-shared"
+    export LOCATION="koreacentral"
+    export ENVIRONMENT_NAME="cae-myapp"
+    export APP_NAME="ca-myapp"
+    export ACR_NAME="acrmyapp"
+    ```
 
-   Expected output: no output (environment variables set in your shell).
+    Expected output: no output (environment variables set in your shell).
 
 2. **Validate CLI context**
 
-   ```bash
-   az account show --output table
-   az extension add --name containerapp --upgrade
-   ```
+    ```bash
+    az account show --output table
+    az extension add --name containerapp --upgrade
+    ```
 
-   Expected output: active subscription metadata and extension upgrade confirmation.
+    Expected output: active subscription metadata and extension upgrade confirmation.
 
 3. **Deploy the chosen lab infrastructure**
 
-   ```bash
-   az deployment group create \
-     --name "lab-run" \
-     --resource-group "$RG" \
-     --template-file "./labs/<lab-name>/infra/main.bicep" \
-     --parameters baseName="labrun"
-   ```
+    ```bash
+    az deployment group create \
+      --name "lab-run" \
+      --resource-group "$RG" \
+      --template-file "./labs/<lab-name>/infra/main.bicep" \
+      --parameters baseName="labrun"
+    ```
 
-   Expected output pattern:
+    Expected output pattern:
 
-   ```text
-   "provisioningState": "Succeeded"
-   ```
+    ```text
+    "provisioningState": "Succeeded"
+    ```
 
 4. **Trigger failure and collect signals**
 
-   ```bash
-   ./labs/<lab-name>/trigger.sh
-   ./labs/<lab-name>/verify.sh
-   ```
+    ```bash
+    ./labs/<lab-name>/trigger.sh
+    ./labs/<lab-name>/verify.sh
+    ```
 
-   Expected output: one or more failure indicators (for example `ImagePullBackOff`, `ProbeFailed`, `403 Forbidden`, or non-scaling replica count).
+    Expected output: one or more failure indicators (for example `ImagePullBackOff`, `ProbeFailed`, `403 Forbidden`, or non-scaling replica count).
 
 5. **Apply targeted fix and verify recovery**
 
-   ```bash
-   # Use the specific fix command from each lab guide
-   az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
-   ```
+    ```bash
+    # Use the specific fix command from each lab guide
+    az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+    ```
 
-   Expected output pattern: at least one `Healthy` revision with intended traffic weight.
+    Expected output pattern: at least one `Healthy` revision with intended traffic weight.
 
 6. **Clean up resources**
 
-   ```bash
-   ./labs/<lab-name>/cleanup.sh
-   ```
+    ```bash
+    ./labs/<lab-name>/cleanup.sh
+    ```
 
-   Expected output: deletion completed or a `Succeeded` state for cleanup actions.
+    Expected output: deletion completed or a `Succeeded` state for cleanup actions.
 
 ## Expected vs Actual Investigation Template
 
@@ -146,6 +140,12 @@ flowchart TD
 | Replica status | Running replicas under load | 0 replicas or repeated restart | Check probes, scale settings, and runtime logs |
 | Route behavior | HTTP 200 with expected payload | 5xx, timeout, or connection refused | Validate ingress + target port + dependencies |
 | Identity access | Token retrieval and authorized resource call | 401/403 in console logs | Verify managed identity and RBAC scope |
+
+## See Also
+
+- [Playbooks](../playbooks/index.md)
+- [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)
+- [Troubleshooting Methodology](../methodology/index.md)
 
 ## Sources
 

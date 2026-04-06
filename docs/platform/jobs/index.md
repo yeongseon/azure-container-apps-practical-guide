@@ -162,8 +162,8 @@ flowchart LR
 
 ## Reference Implementation
 
-- [Python Reference Job README](https://github.com/yeongseon/azure-container-apps-python-guide/tree/main/jobs/python)
-- [Python Job Source](https://github.com/yeongseon/azure-container-apps-python-guide/blob/main/jobs/python/src/job.py)
+- [Python Reference Job README](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/jobs/python)
+- [Python Job Source](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/jobs/python/src/job.py)
 
 ## See Also
 

@@ -53,7 +53,7 @@ Minimal reference applications demonstrating Azure Container Apps patterns:
 
 ## Troubleshooting Labs
 
-6 hands-on labs in `labs/` with Bicep templates that reproduce real-world Container Apps issues. Each lab includes:
+10 hands-on labs in `labs/` with Bicep templates that reproduce real-world Container Apps issues. Each lab includes:
 
 - Falsifiable hypothesis and step-by-step runbook
 - Real Azure deployment data (KQL logs, CLI output)

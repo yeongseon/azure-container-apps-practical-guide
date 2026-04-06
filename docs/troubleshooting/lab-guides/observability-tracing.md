@@ -2,226 +2,266 @@
 
 Troubleshoot Application Insights connectivity issues by simulating a misconfigured telemetry connection string.
 
-## Scenario
+## Lab Metadata
 
-- **Difficulty**: Intermediate
-- **Estimated duration**: 25-35 minutes
-- **Failure mode**: Application Insights connection string misconfigured, traces not appearing
+| Attribute | Value |
+|---|---|
+| Difficulty | Intermediate |
+| Estimated Duration | 25-35 minutes |
+| Tier | Consumption |
+| Failure Mode | Application Insights connection string is misconfigured, so traces stop appearing |
+| Skills Practiced | Telemetry configuration review, secret reference validation, Log Analytics and Application Insights verification |
 
-## Prerequisites
+## 1) Background
 
-- Azure CLI with Container Apps extension
-- Basic understanding of Application Insights concepts
+This lab starts with working observability: the Container Apps environment sends logs to Log Analytics, the app has `APPLICATIONINSIGHTS_CONNECTION_STRING` configured through a secret reference, and Application Insights receives telemetry. The trigger replaces that working configuration with an invalid literal connection string, causing telemetry export to fail.
 
-```bash
-az extension add --name containerapp --upgrade
-az login
-```
+The main troubleshooting pattern is to compare the app's environment variable configuration with the expected secret reference, then validate telemetry absence in Application Insights and Log Analytics.
 
-## Quick Start
-
-```bash
-export RG="rg-aca-lab-observability"
-export LOCATION="koreacentral"
-
-az group create --name "$RG" --location "$LOCATION"
-az deployment group create --name "lab-obs" --resource-group "$RG" --template-file ./labs/observability-tracing/infra/main.bicep --parameters baseName="labobs"
-
-export APP_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.containerAppName.value" --output tsv)"
-export ENVIRONMENT_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"
-export APPINSIGHTS_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.appInsightsName.value" --output tsv)"
-export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.logAnalyticsWorkspaceName.value" --output tsv)"
-
-cd labs/observability-tracing
-./trigger.sh    # Misconfigure telemetry
-./verify.sh     # Should FAIL - telemetry broken
-# Fix the issue, then run verify again
-./cleanup.sh
-```
-
-## Scenario Setup
-
-This lab starts with a **working** observability configuration:
-
-- Application Insights is connected to the Container Apps environment
-- Container App has `APPLICATIONINSIGHTS_CONNECTION_STRING` set via secret reference
-- Log Analytics workspace receives container logs
-
-The trigger script **breaks** observability by replacing the valid connection string with an invalid one, simulating a common misconfiguration.
+### Architecture
 
 ```mermaid
 flowchart TD
-    A[Baseline: App Insights configured] --> B[trigger.sh: Set invalid connection string]
-    B --> C[Traces stop appearing]
-    C --> D{Diagnose: Check env vars}
-    D --> E[Fix: Restore valid connection string]
-    E --> F[verify.sh: Confirm traces appear]
+    A[Container App] --> B[APPLICATIONINSIGHTS_CONNECTION_STRING]
+    B -->|Valid secretRef| C[Application Insights]
+    A --> D[Container Apps Environment]
+    D --> E[Log Analytics Workspace]
+    D --> F[daprAIConnectionString]
+    B -->|Invalid literal value| G[Telemetry dropped]
 ```
-
-## Key Concepts
 
 ### Telemetry Flow in Container Apps
 
 | Component | Role |
 |---|---|
-| Application Insights | Receives traces, metrics, exceptions |
-| Connection String | Identifies the App Insights resource |
-| Secret Reference | Secure way to inject connection string |
+| Application Insights | Receives traces, metrics, and exceptions |
+| Connection String | Identifies the Application Insights resource |
+| Secret Reference | Secure way to inject the connection string |
 | Dapr AI Connection | Environment-level tracing for Dapr |
 
-### Common Misconfiguration Scenarios
+## 2) Hypothesis
 
-| Scenario | Symptom | Diagnosis |
+**IF** `APPLICATIONINSIGHTS_CONNECTION_STRING` is replaced with an invalid literal value instead of the working secret reference, **THEN** new traces will stop appearing in Application Insights and Log Analytics until the valid secret-backed configuration is restored.
+
+| Variable | Control State | Experimental State |
 |---|---|---|
-| Invalid connection string | No traces in App Insights | Check env var value |
-| Missing env var | No traces | Check container env config |
-| Wrong secret name | App fails to start or no traces | Check secret reference |
-| Expired/rotated key | Traces stop appearing | Regenerate connection string |
+| App env var configuration | `secretRef: appinsights-connection-string` | Invalid literal connection string |
+| Application Insights telemetry | New traces appear | No new traces or only stale traces |
+| Log Analytics trace query | Returns recent trace count | Returns zero or stale count |
+| `verify.sh` result | PASS | FAIL |
 
-## Step-by-Step Walkthrough
+## 3) Runbook
 
-### 1. Deploy baseline (observability enabled)
+### Deploy baseline infrastructure
+
+Prerequisites:
+
+- Azure CLI with the Container Apps extension
+- Basic understanding of Application Insights concepts
 
 ```bash
+az extension add --name containerapp --upgrade
+az login
+
 export RG="rg-aca-lab-observability"
 export LOCATION="koreacentral"
+
 az group create --name "$RG" --location "$LOCATION"
 
 az deployment group create \
-  --name "lab-obs" \
-  --resource-group "$RG" \
-  --template-file "./labs/observability-tracing/infra/main.bicep" \
-  --parameters baseName="labobs"
-
-export APP_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.containerAppName.value" --output tsv)"
-export ENVIRONMENT_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"
-export APPINSIGHTS_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.appInsightsName.value" --output tsv)"
-export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show --resource-group "$RG" --name "lab-obs" --query "properties.outputs.logAnalyticsWorkspaceName.value" --output tsv)"
+    --name "lab-obs" \
+    --resource-group "$RG" \
+    --template-file "./labs/observability-tracing/infra/main.bicep" \
+    --parameters baseName="labobs"
 ```
 
-### 2. Verify baseline observability is working
+Expected output:
+
+- Resource group creation succeeds.
+- Deployment creates a Container App, Container Apps environment, Application Insights component, and Log Analytics workspace.
+
+### Capture deployment outputs
 
 ```bash
-# Check that App Insights connection string is set via secret reference
-az containerapp show --name "$APP_NAME" --resource-group "$RG" \
-  --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']" \
-  --output table
+export APP_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-obs" \
+    --query "properties.outputs.containerAppName.value" \
+    --output tsv)"
+
+export ENVIRONMENT_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-obs" \
+    --query "properties.outputs.containerAppsEnvironmentName.value" \
+    --output tsv)"
+
+export APPINSIGHTS_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-obs" \
+    --query "properties.outputs.appInsightsName.value" \
+    --output tsv)"
+
+export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-obs" \
+    --query "properties.outputs.logAnalyticsWorkspaceName.value" \
+    --output tsv)"
 ```
 
-Expected output: Shows `secretRef: appinsights-connection-string`
+Expected output:
 
-### 3. Trigger the failure (misconfigure telemetry)
+- Commands return no console output.
+- Variables resolve to the app, environment, Application Insights, and workspace names.
+
+### Verify baseline observability
 
 ```bash
-./trigger.sh
+az containerapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']" \
+    --output table
 ```
 
-This replaces the valid connection string with an invalid one, breaking telemetry export.
+Expected output:
 
-### 4. Observe the broken state
+- The app shows `secretRef: appinsights-connection-string` for `APPLICATIONINSIGHTS_CONNECTION_STRING`.
+
+### Trigger the failure
 
 ```bash
-# Check current env var - now shows literal invalid value instead of secret reference
-az containerapp show --name "$APP_NAME" --resource-group "$RG" \
-  --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']" \
-  --output json
+./labs/observability-tracing/trigger.sh
 ```
 
-### 5. Diagnose: Why are traces missing?
+The trigger applies this misconfiguration:
 
 ```bash
-# The env var is set to an invalid endpoint
-# Traces are being sent to a non-existent endpoint and dropped
+az containerapp update \
+    --resource-group "$RG" \
+    --name "$APP_NAME" \
+    --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"
+```
 
-# Check App Insights for recent traces (should be empty or stale)
-APPINSIGHTS_ID="$(az monitor app-insights component show --app "$APPINSIGHTS_NAME" --resource-group "$RG" --query "appId" --output tsv)"
+Expected output:
+
+- The script prints that telemetry settings were misconfigured.
+- The Container App now uses an invalid literal connection string.
+
+### Observe the broken state
+
+```bash
+az containerapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']" \
+    --output json
+
+APPINSIGHTS_ID="$(az monitor app-insights component show \
+    --app "$APPINSIGHTS_NAME" \
+    --resource-group "$RG" \
+    --query "appId" \
+    --output tsv)"
 
 az monitor app-insights query \
-  --app "$APPINSIGHTS_ID" \
-  --analytics-query "requests | where timestamp > ago(5m) | count"
+    --app "$APPINSIGHTS_ID" \
+    --analytics-query "requests | where timestamp > ago(5m) | count"
 ```
 
-### 6. Fix: Restore valid connection string
+Expected output:
+
+- The env var now shows a literal invalid value instead of a secret reference.
+- Recent Application Insights queries are empty or stale.
+
+### Diagnose with additional evidence and restore the valid configuration
+
+Useful debugging commands:
 
 ```bash
-# Get the valid connection string from App Insights
-APPINSIGHTS_CONNECTION_STRING="$(az monitor app-insights component show --app "$APPINSIGHTS_NAME" --resource-group "$RG" --query "connectionString" --output tsv)"
-
-# Restore using the secret reference (best practice)
-az containerapp update \
-  --name "$APP_NAME" \
-  --resource-group "$RG" \
-  --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"
-```
-
-### 7. Verify the fix
-
-```bash
-./verify.sh
-```
-
-Expected output: PASS messages indicating connection string is configured and traces are appearing.
-
-## Symptoms / Cause / Fix Matrix
-
-| What you see | What is happening | How to fix |
-|---|---|---|
-| No traces in App Insights | Connection string invalid or missing | Restore valid `APPLICATIONINSIGHTS_CONNECTION_STRING` |
-| Traces stopped suddenly | Connection string was changed/rotated | Update to new connection string |
-| Secret reference error | Secret name typo or secret deleted | Fix secret name or recreate secret |
-| Partial traces only | Some replicas have old config | Force new revision deployment |
-
-## Debugging Commands
-
-```bash
-# Check current Application Insights configuration
-az containerapp show --name "$APP_NAME" --resource-group "$RG" \
-  --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
-
-# Check environment-level Dapr AI configuration
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" \
-  --query "properties.daprAIConnectionString"
-
-# View console logs for telemetry errors
+az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.daprAIConnectionString"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --tail 50
 
-# Query Log Analytics for traces
 WORKSPACE_ID=$(az monitor log-analytics workspace show \
-  --resource-group "$RG" \
-  --workspace-name "$LOG_ANALYTICS_WORKSPACE_NAME" \
-  --query customerId \
-  --output tsv)
+    --resource-group "$RG" \
+    --workspace-name "$LOG_ANALYTICS_WORKSPACE_NAME" \
+    --query customerId \
+    --output tsv)
 
 az monitor log-analytics query \
-  --workspace "$WORKSPACE_ID" \
-  --analytics-query "union isfuzzy=true AppTraces, traces | where TimeGenerated > ago(15m) | summarize count()"
+    --workspace "$WORKSPACE_ID" \
+    --analytics-query "union isfuzzy=true AppTraces, traces | where TimeGenerated > ago(15m) | summarize count()"
 ```
+
+Restore the valid connection string using the original secret reference:
+
+```bash
+APPINSIGHTS_CONNECTION_STRING="$(az monitor app-insights component show \
+    --app "$APPINSIGHTS_NAME" \
+    --resource-group "$RG" \
+    --query "connectionString" \
+    --output tsv)"
+
+az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"
+```
+
+Expected output:
+
+- The environment-level `daprAIConnectionString` remains configured.
+- The app env var returns to the secret reference.
+- Telemetry resumes after the new revision is applied.
+
+### Verify recovery
+
+```bash
+./labs/observability-tracing/verify.sh
+```
+
+Expected output:
+
+- `PASS: Application Insights connection string is configured on $APP_NAME.`
+- `PASS: Found <count> trace record(s) in Log Analytics.`
+- `Verification complete.`
+
+## 4) Experiment Log
+
+| Step | Action | Expected | Actual | Pass/Fail |
+|---|---|---|---|---|
+| 1 | Deploy baseline infrastructure | Observability resources deploy successfully | | |
+| 2 | Verify baseline env var | `APPLICATIONINSIGHTS_CONNECTION_STRING` uses secret reference | | |
+| 3 | Run `trigger.sh` | Invalid literal connection string applied | | |
+| 4 | Query current env config | Secret reference replaced by literal value | | |
+| 5 | Check Application Insights or Log Analytics | Recent traces are missing or stale | | |
+| 6 | Restore secret-backed configuration | App update succeeds | | |
+| 7 | Run `verify.sh` | Connection string and traces validated | | |
 
 ## Expected Evidence
 
-### Before Trigger (Baseline)
+### Before trigger
 
 | Evidence Source | Expected State |
 |---|---|
-| Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` with secretRef |
-| Environment config | `daprAIConnectionString` set |
-| App Insights | Traces appearing |
+| Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` uses `secretRef` |
+| Environment config | `daprAIConnectionString` is set |
+| Application Insights or Log Analytics | Recent traces are present |
 
-### During Incident (After Trigger)
+### During incident
 
 | Evidence Source | Expected State |
 |---|---|
 | Container env vars | Invalid literal connection string |
-| App Insights | No new traces |
+| Application Insights query | No new traces or only stale results |
 | Console logs | Possible telemetry export errors |
+| `./labs/observability-tracing/verify.sh` | FAIL |
 
-### After Fix
+### After fix
 
 | Evidence Source | Expected State |
 |---|---|
-| Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` with secretRef |
-| App Insights | Traces resuming |
-| verify.sh | PASS |
+| Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` restored to `secretRef` |
+| Log Analytics query | Recent traces return |
+| `./labs/observability-tracing/verify.sh` | PASS |
 
 ## Clean Up
 
@@ -242,4 +282,4 @@ az group delete --name "$RG" --yes --no-wait
 
 - [Application Insights for Azure Container Apps](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)
 - [Observability in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/observability)
-- [Azure Monitor OpenTelemetry](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable)
+- [Enable Azure Monitor OpenTelemetry](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable)

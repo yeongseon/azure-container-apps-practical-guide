@@ -2,75 +2,35 @@
 
 Reproduce Key Vault access denial by running a managed-identity-enabled app without the required RBAC role assignment.
 
-## Scenario
+## Lab Metadata
 
-- **Difficulty**: Intermediate
-- **Estimated duration**: 25-35 minutes
-- **Failure mode**: app returns 500 when reading secret because identity lacks `Key Vault Secrets User`
+| Attribute | Value |
+|---|---|
+| Difficulty | Intermediate |
+| Estimated Duration | 25-35 minutes |
+| Tier | Consumption |
+| Failure Mode | App returns 500 when reading a secret because the managed identity lacks `Key Vault Secrets User` |
+| Skills Practiced | Managed identity validation, Key Vault RBAC diagnosis, revision restart verification |
 
-## Prerequisites
+## 1) Background
 
-- Azure CLI with Container Apps extension
-- Permissions for role assignments (`Microsoft.Authorization/roleAssignments/write`)
+This lab provisions a Container App with a system-assigned managed identity, an Azure Container Registry, and a Key Vault secret. The application uses the managed identity to request a token and read the secret at runtime. The failure occurs because the identity exists, but no RBAC role assignment grants secret-read access at the Key Vault scope.
 
-```bash
-az extension add --name containerapp --upgrade
-az login
-```
+Managed identity failures are easy to misread because the revision can stay healthy while the secret-dependent route fails with 401/403-derived application errors.
 
-## Quick Start
-
-```bash
-export RG="rg-aca-lab-kv"
-export LOCATION="koreacentral"
-
-az group create --name "$RG" --location "$LOCATION"
-az deployment group create --name "lab-kv" --resource-group "$RG" --template-file ./labs/managed-identity-key-vault-failure/infra/main.bicep --parameters baseName="labkv"
-
-export APP_NAME="$(az deployment group show --resource-group "$RG" --name "lab-kv" --query \"properties.outputs.containerAppName.value\" --output tsv)"
-export ACR_NAME="$(az deployment group show --resource-group "$RG" --name "lab-kv" --query \"properties.outputs.containerRegistryName.value\" --output tsv)"
-export KV_NAME="$(az deployment group show --resource-group "$RG" --name "lab-kv" --query \"properties.outputs.keyVaultName.value\" --output tsv)"
-
-cd labs/managed-identity-key-vault-failure
-./trigger.sh
-./verify.sh
-./cleanup.sh
-```
-
-## Expected Diagnostic Output Pattern
-
-```text
-Managed identity failures commonly present as 401/403 in app logs while revision stays Running:
-
-Name               Active    TrafficWeight    Replicas    HealthState    RunningState
------------------  --------  ---------------  ----------  -------------  ------------
-ca-myapp--0000001  True      100              1           Healthy        Running
-```
-
-## Key Takeaways
-
-- System-assigned identity alone is not enough; RBAC role assignment is mandatory.
-- Secret access failures often surface as 500 errors in app routes.
-- Restart/new revision after RBAC assignment helps validate full recovery path.
-
-## See Also
-
-- [Managed Identity Auth Failure Playbook](../playbooks/identity-and-configuration/managed-identity-auth-failure.md)
-- [Secret and Key Vault Reference Failure Playbook](../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md)
-
-## Scenario Setup
-
-This lab provisions a managed-identity-enabled Container App and a Key Vault secret. The failure is triggered by omitting the required RBAC role assignment, causing secret-read operations to fail at runtime.
+### Architecture
 
 ```mermaid
 sequenceDiagram
+    participant User
     participant App as Container App
     participant MI as Managed Identity
     participant KV as Key Vault
+    User->>App: Request secret-dependent endpoint
     App->>MI: Request token for Key Vault
     MI-->>App: Access token
     App->>KV: Read secret
-    KV-->>App: 403 Forbidden (missing role)
+    KV-->>App: 403 Forbidden (missing RBAC role)
     App-->>User: 500/authorization error path
     User->>Azure: Assign Key Vault Secrets User role
     App->>KV: Read secret again
@@ -78,109 +38,263 @@ sequenceDiagram
 ```
 
 !!! warning "Identity enabled does not mean authorized"
-    System-assigned identity creation is only step one. Without role assignment at correct scope, token retrieval can succeed while resource access still fails.
+    System-assigned identity creation is only step one. Without role assignment at the correct scope, token retrieval can succeed while resource access still fails.
 
 !!! tip "Verify scope explicitly"
-    Assigning role at wrong scope (for example resource group instead of Key Vault) is a frequent cause of persistent 403 errors.
+    Assigning the role at the wrong scope, such as the resource group instead of the Key Vault resource ID, is a frequent cause of persistent 403 errors.
 
-## Step-by-Step Walkthrough
+## 2) Hypothesis
 
-1. **Deploy the lab environment**
+**IF** a Container App uses a system-assigned managed identity to read a Key Vault secret but does not have the `Key Vault Secrets User` role on that vault, **THEN** the revision can remain running while the secret-dependent endpoint fails until the RBAC assignment is added and a new revision starts.
 
-   ```bash
-   export RG="rg-aca-lab-kv"
-   export LOCATION="koreacentral"
-   az group create --name "$RG" --location "$LOCATION"
-
-   az deployment group create \
-     --name "lab-kv" \
-     --resource-group "$RG" \
-     --template-file "./labs/managed-identity-key-vault-failure/infra/main.bicep" \
-     --parameters baseName="labkv"
-   ```
-
-   Expected output pattern: `provisioningState` is `Succeeded`.
-
-2. **Capture outputs**
-
-   ```bash
-   export APP_NAME="$(az deployment group show --resource-group "$RG" --name "lab-kv" --query "properties.outputs.containerAppName.value" --output tsv)"
-   export ACR_NAME="$(az deployment group show --resource-group "$RG" --name "lab-kv" --query "properties.outputs.containerRegistryName.value" --output tsv)"
-   export ENVIRONMENT_NAME="$(az deployment group show --resource-group "$RG" --name "lab-kv" --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"
-   export KV_NAME="$(az deployment group show --resource-group "$RG" --name "lab-kv" --query "properties.outputs.keyVaultName.value" --output tsv)"
-   ```
-
-   Expected output: no output.
-
-3. **Trigger and observe failure**
-
-   ```bash
-   ./labs/managed-identity-key-vault-failure/trigger.sh
-   ./labs/managed-identity-key-vault-failure/verify.sh
-   ```
-
-   Expected output: API call path fails with authorization-related behavior.
-
-4. **Confirm identity configuration**
-
-   ```bash
-   az containerapp show \
-     --name "$APP_NAME" \
-     --resource-group "$RG" \
-     --query "identity" \
-     --output json
-   ```
-
-   Expected output pattern: system-assigned identity has a principal ID.
-
-5. **Check role assignments for app principal**
-
-   ```bash
-   export PRINCIPAL_ID="$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity.principalId" --output tsv)"
-   az role assignment list --assignee "$PRINCIPAL_ID" --output table
-   ```
-
-   Expected output pattern: missing `Key Vault Secrets User` at Key Vault scope before fix.
-
-6. **Apply RBAC fix**
-
-   ```bash
-   export KV_ID="$(az keyvault show --name "$KV_NAME" --resource-group "$RG" --query "id" --output tsv)"
-   az role assignment create \
-     --assignee-object-id "$PRINCIPAL_ID" \
-     --assignee-principal-type ServicePrincipal \
-     --role "Key Vault Secrets User" \
-     --scope "$KV_ID"
-   ```
-
-   Expected output pattern: role assignment object is returned successfully.
-
-7. **Verify resolution**
-
-   ```bash
-   ./labs/managed-identity-key-vault-failure/verify.sh
-   az role assignment list --assignee "$PRINCIPAL_ID" --scope "$KV_ID" --output table
-   ```
-
-   Expected output: secret read succeeds and role assignment is visible.
-
-## Symptoms / Cause / Fix Matrix
-
-| What you see | What is happening | How to fix |
+| Variable | Control State | Experimental State |
 |---|---|---|
-| Route returns 500 when reading secret | App code receives Key Vault authorization failure | Assign `Key Vault Secrets User` to app principal |
-| Identity exists but still 403 | RBAC scope is wrong or role missing | Recreate assignment on exact Key Vault resource ID |
-| Revision appears healthy despite failures | Runtime path fails only on secret access route | Test secret-dependent endpoint explicitly |
-| Intermittent failures after role assignment | RBAC propagation delay | Wait and retry verification after short delay |
+| Managed identity authorization | `Key Vault Secrets User` assigned at Key Vault scope | No role assignment at Key Vault scope |
+| Secret-dependent endpoint | HTTP 200 | HTTP 500 or authorization-related failure |
+| Revision runtime state | Running and healthy | Running and healthy |
+| App logs | No Key Vault authorization errors | 401/403-style authorization errors |
 
-## Resolution Verification Checklist
+## 3) Runbook
 
-1. App principal ID is present.
-2. `Key Vault Secrets User` role is assigned at Key Vault scope.
-3. Secret-dependent endpoint returns expected success response.
-4. Logs no longer show Key Vault 403 for the tested path.
+### Deploy baseline infrastructure
+
+Prerequisites:
+
+- Azure CLI with the Container Apps extension
+- Permissions for role assignments: `Microsoft.Authorization/roleAssignments/write`
+
+```bash
+az extension add --name containerapp --upgrade
+az login
+
+export RG="rg-aca-lab-kv"
+export LOCATION="koreacentral"
+
+az group create --name "$RG" --location "$LOCATION"
+
+az deployment group create \
+    --name "lab-kv" \
+    --resource-group "$RG" \
+    --template-file "./labs/managed-identity-key-vault-failure/infra/main.bicep" \
+    --parameters baseName="labkv"
+```
+
+Expected output:
+
+- Resource group creation succeeds.
+- Deployment `provisioningState` is `Succeeded`.
+
+### Capture deployment outputs
+
+```bash
+export APP_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-kv" \
+    --query "properties.outputs.containerAppName.value" \
+    --output tsv)"
+
+export ACR_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-kv" \
+    --query "properties.outputs.containerRegistryName.value" \
+    --output tsv)"
+
+export ENVIRONMENT_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-kv" \
+    --query "properties.outputs.environmentName.value" \
+    --output tsv)"
+
+export KV_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-kv" \
+    --query "properties.outputs.keyVaultName.value" \
+    --output tsv)"
+```
+
+Expected output:
+
+- Commands return no console output.
+- Environment variables resolve to the deployed app, registry, environment, and vault names.
+
+### Trigger the failure
+
+```bash
+./labs/managed-identity-key-vault-failure/trigger.sh
+```
+
+The trigger script runs these key actions:
+
+```bash
+az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
+
+az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1" \
+    --registry-server "$ACR_LOGIN_SERVER" \
+    --registry-username "$ACR_USERNAME" \
+    --registry-password "$ACR_PASSWORD"
+```
+
+Expected output:
+
+- The app is updated to an image that reads Key Vault at runtime.
+- The script prints `Waiting for app startup with missing Key Vault RBAC...`.
+- The `/health` request does not return success before the fix.
+
+### Observe and diagnose the failure
+
+```bash
+./labs/managed-identity-key-vault-failure/verify.sh
+```
+
+Before the RBAC fix, the verification script should print:
+
+```text
+PASS: App returned HTTP <non-200> before RBAC fix
+```
+
+Collect direct evidence:
+
+```bash
+az containerapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "identity" \
+    --output json
+
+export PRINCIPAL_ID="$(az containerapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "identity.principalId" \
+    --output tsv)"
+
+az role assignment list \
+    --assignee "$PRINCIPAL_ID" \
+    --output table
+
+az containerapp logs show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --type system \
+    --tail 20
+```
+
+Expected output:
+
+- `identity.principalId` is present.
+- No `Key Vault Secrets User` assignment exists yet at the Key Vault scope.
+- System logs show authorization-related behavior while the app still has a running revision.
+
+Managed identity failures commonly present like this while the revision stays running:
+
+```text
+Name               Active    TrafficWeight    Replicas    HealthState    RunningState
+-----------------  --------  ---------------  ----------  -------------  ------------
+ca-myapp--0000001  True      100              1           Healthy        Running
+```
+
+### Apply the RBAC fix
+
+If you want the direct fix command, use:
+
+```bash
+export KV_ID="$(az keyvault show \
+    --name "$KV_NAME" \
+    --resource-group "$RG" \
+    --query "id" \
+    --output tsv)"
+
+az role assignment create \
+    --assignee-object-id "$PRINCIPAL_ID" \
+    --assignee-principal-type ServicePrincipal \
+    --role "Key Vault Secrets User" \
+    --scope "$KV_ID"
+```
+
+The verification script then rolls a new revision with:
+
+```bash
+az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --set-env-vars "RESTART_TOKEN=$(date +%s)"
+```
+
+Expected output:
+
+- The role assignment create command returns a role assignment object.
+- A new revision starts after the restart token update.
+
+### Verify recovery
+
+Re-run the lab verification flow:
+
+```bash
+./labs/managed-identity-key-vault-failure/verify.sh
+
+az role assignment list \
+    --assignee "$PRINCIPAL_ID" \
+    --scope "$KV_ID" \
+    --output table
+```
+
+Expected output:
+
+- `PASS: App returned 200 after RBAC fix`
+- The role assignment is visible at the Key Vault scope.
+- The secret-dependent endpoint succeeds.
+
+## 4) Experiment Log
+
+| Step | Action | Expected | Actual | Pass/Fail |
+|---|---|---|---|---|
+| 1 | Deploy baseline infrastructure | Deployment succeeds | | |
+| 2 | Capture outputs | App, registry, environment, and vault names resolved | | |
+| 3 | Run `trigger.sh` | App starts with missing Key Vault RBAC | | |
+| 4 | Run `verify.sh` before fix | Non-200 response before RBAC assignment | | |
+| 5 | Check identity and role assignments | Principal exists, required role missing | | |
+| 6 | Create Key Vault role assignment | Role assignment succeeds | | |
+| 7 | Re-run verification | App returns HTTP 200 after fix | | |
+
+## Expected Evidence
+
+### During failure
+
+| Evidence Source | Expected State |
+|---|---|
+| `az containerapp show --query "identity"` | System-assigned identity exists with a principal ID |
+| `az role assignment list --assignee "$PRINCIPAL_ID"` | No `Key Vault Secrets User` assignment at Key Vault scope |
+| `curl https://${FQDN}/health` from scripts | Non-200 response |
+| `az containerapp logs show --type system` | Authorization-related behavior during secret access |
+| Revision status | Running and healthy despite endpoint failure |
+
+### After fix
+
+| Evidence Source | Expected State |
+|---|---|
+| `az role assignment list --assignee "$PRINCIPAL_ID" --scope "$KV_ID"` | `Key Vault Secrets User` assignment present |
+| `./labs/managed-identity-key-vault-failure/verify.sh` | PASS after RBAC assignment |
+| Secret-dependent endpoint | HTTP 200 |
+| Logs | No continuing Key Vault authorization failure for the tested path |
+
+## Clean Up
+
+```bash
+az group delete --name "$RG" --yes --no-wait
+```
+
+## Related Playbook
+
+- [Managed Identity Auth Failure Playbook](../playbooks/identity-and-configuration/managed-identity-auth-failure.md)
+
+## See Also
+
+- [Secret and Key Vault Reference Failure Playbook](../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md)
+- [Managed Identity](../../platform/identity-and-secrets/managed-identity.md)
 
 ## Sources
 
-- [Microsoft Learn: Managed identity in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Microsoft Learn: Key Vault RBAC guide](https://learn.microsoft.com/azure/key-vault/general/rbac-guide)
+- [Managed identity in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
+- [Azure Key Vault RBAC guide](https://learn.microsoft.com/azure/key-vault/general/rbac-guide)

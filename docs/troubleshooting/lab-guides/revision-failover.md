@@ -2,186 +2,223 @@
 
 Practice safe rollback by intentionally creating an unhealthy revision and routing traffic back to a healthy one.
 
-## Scenario
+## Lab Metadata
 
-- **Difficulty**: Intermediate
-- **Estimated duration**: 20-30 minutes
-- **Failure mode**: latest revision unhealthy after ingress target port is changed to the wrong value
+| Attribute | Value |
+|---|---|
+| Difficulty | Intermediate |
+| Estimated Duration | 20-30 minutes |
+| Tier | Consumption |
+| Failure Mode | Latest revision unhealthy after ingress target port is changed to the wrong value |
+| Skills Practiced | Revision management, rollback, traffic shifting, system log analysis |
 
-## Prerequisites
+## 1) Background
 
-- Azure CLI with Container Apps extension
-- Permissions to deploy resources and update Container Apps
+This lab starts with a healthy revision, then introduces a wrong ingress target port on a new revision. In multi-revision mode, rollback is primarily a traffic decision: keep a healthy revision available and shift traffic away from the bad one while you correct the misconfiguration.
 
-```bash
-az extension add --name containerapp --upgrade
-az login
-```
+Traffic shifting is usually faster than rebuilding during an incident, but it only works if at least one known-good revision remains healthy.
 
-## Quick Start
-
-```bash
-export RG="rg-aca-lab-revision"
-export LOCATION="koreacentral"
-
-az group create --name "$RG" --location "$LOCATION"
-az deployment group create --name "lab-revision" --resource-group "$RG" --template-file ./labs/revision-failover/infra/main.bicep --parameters baseName="labrevision"
-
-export APP_NAME="$(az deployment group show --resource-group "$RG" --name "lab-revision" --query \"properties.outputs.containerAppName.value\" --output tsv)"
-export ACR_NAME="$(az deployment group show --resource-group "$RG" --name "lab-revision" --query \"properties.outputs.containerRegistryName.value\" --output tsv)"
-
-cd labs/revision-failover
-./trigger.sh
-./verify.sh
-./cleanup.sh
-```
-
-## Expected Diagnostic Output Pattern
-
-```text
-Name               Active    TrafficWeight    Replicas    HealthState    RunningState
------------------  --------  ---------------  ----------  -------------  ------------
-ca-myapp--0000001  True      100              1           Healthy        Running
-```
-
-During rollback drills, compare against revision lifecycle events:
-
-```text
-RevisionUpdate     → New revision updated
-RevisionDeactivating → Prior bad revision deactivated
-RevisionReady      → Stable revision ready
-ContainerAppReady  → Running state reached
-```
-
-## Key Takeaways
-
-- Keep multiple revisions available when testing risky updates.
-- Traffic shifting and rollback are faster than full redeploy during incidents.
-- Always validate revision health after config changes.
-
-## See Also
-
-- [Bad Revision Rollout and Rollback Playbook](../playbooks/platform-features/bad-revision-rollout-and-rollback.md)
-- [Probe Failure and Slow Start Playbook](../playbooks/startup-and-provisioning/probe-failure-and-slow-start.md)
-
-## Scenario Setup
-
-This lab starts with a healthy revision, then introduces a wrong ingress target port on a new revision. Traffic is shifted back to the healthy revision as the rollback/failover exercise.
+### Architecture
 
 ```mermaid
 flowchart LR
     A[Revision N healthy] --> B[Deploy revision N+1 with wrong target port]
-    B --> C[Revision N+1 fails health checks]
+    B --> C[Revision N+1 becomes unhealthy]
     C --> D[Requests fail or return 5xx]
     D --> E[Route traffic back to revision N]
     E --> F[Service stabilized]
 ```
 
-!!! warning "Keep at least one known-good revision active"
-    If you deactivate all healthy revisions during testing, recovery becomes slower because rollback is no longer a traffic-only operation.
+## 2) Hypothesis
 
-!!! note "Rollback is a traffic decision first"
-    In multi-revision mode, the fastest mitigation is often traffic reassignment, not immediate app rebuild.
+**IF** a new revision is created with ingress `targetPort` changed from `8000` to `9999`, **THEN** the latest revision will become non-healthy while a previous healthy revision can still receive traffic after rollback.
 
-## Step-by-Step Walkthrough
-
-1. **Create resource group and deploy lab**
-
-   ```bash
-   export RG="rg-aca-lab-revision"
-   export LOCATION="koreacentral"
-   az group create --name "$RG" --location "$LOCATION"
-
-   az deployment group create \
-     --name "lab-revision" \
-     --resource-group "$RG" \
-     --template-file "./labs/revision-failover/infra/main.bicep" \
-     --parameters baseName="labrevision"
-   ```
-
-   Expected output pattern: deployment shows `Succeeded`.
-
-2. **Capture outputs**
-
-   ```bash
-   export APP_NAME="$(az deployment group show --resource-group "$RG" --name "lab-revision" --query "properties.outputs.containerAppName.value" --output tsv)"
-   export ACR_NAME="$(az deployment group show --resource-group "$RG" --name "lab-revision" --query "properties.outputs.containerRegistryName.value" --output tsv)"
-   export ENVIRONMENT_NAME="$(az deployment group show --resource-group "$RG" --name "lab-revision" --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"
-   ```
-
-   Expected output: no output (variables set).
-
-3. **Confirm baseline healthy revision**
-
-   ```bash
-   az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
-   ```
-
-   Expected output pattern:
-
-   ```text
-   Name               Active    TrafficWeight    HealthState
-   -----------------  --------  ---------------  -----------
-   ca-myapp--0000001  True      100              Healthy
-   ```
-
-4. **Trigger bad rollout**
-
-   ```bash
-   ./labs/revision-failover/trigger.sh
-   az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
-   ```
-
-   Expected output pattern: a new revision appears with unhealthy status.
-
-5. **Investigate failure signal**
-
-   ```bash
-   az containerapp logs show \
-     --name "$APP_NAME" \
-     --resource-group "$RG" \
-     --type system
-   ```
-
-   Expected evidence: probe failure or connection failure related to wrong target port.
-
-6. **Rollback traffic to healthy revision**
-
-   ```bash
-   az containerapp ingress traffic set \
-     --name "$APP_NAME" \
-     --resource-group "$RG" \
-     --revision-weight "ca-myapp--0000001=100"
-   ```
-
-   Expected output pattern: traffic update succeeds and healthy revision handles requests.
-
-7. **Verify stabilization**
-
-   ```bash
-   ./labs/revision-failover/verify.sh
-   az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
-   ```
-
-   Expected output: healthy revision active with traffic restored.
-
-## Symptoms / Cause / Fix Matrix
-
-| What you see | What is happening | How to fix |
+| Variable | Control State | Experimental State |
 |---|---|---|
-| New revision `Failed` after config change | Bad runtime/ingress configuration in latest revision | Keep previous revision active and shift traffic back |
-| Intermittent 5xx after rollout | Partial traffic on unhealthy revision | Set traffic 100% to healthy revision |
-| All traffic disrupted | No healthy active revision available | Re-activate known-good revision or redeploy last known-good image/config |
-| Rollback succeeded but errors persist | Root cause not isolated yet | Inspect system logs for secondary failure (identity, dependency, scale) |
+| Active revisions mode | Multiple revisions enabled | Multiple revisions enabled |
+| Latest revision target port | `8000` | `9999` |
+| Latest revision health | `Healthy` | Non-`Healthy` |
+| Traffic routing outcome | Stable on healthy revision | Requires traffic reassignment to healthy revision |
 
-## Resolution Steps and Verification
+## 3) Runbook
 
-1. Confirm at least one revision reports `Healthy`.
-2. Route 100% traffic to healthy revision.
-3. Validate endpoint behavior with repeated requests.
-4. Deactivate known-bad revision only after stable verification.
+### Deploy baseline infrastructure
+
+```bash
+export RG="rg-aca-lab-revision"
+export LOCATION="koreacentral"
+
+az extension add --name containerapp --upgrade
+az login
+
+az group create --name "$RG" --location "$LOCATION"
+
+az deployment group create \
+    --name "lab-revision" \
+    --resource-group "$RG" \
+    --template-file "./labs/revision-failover/infra/main.bicep" \
+    --parameters baseName="labrevision"
+```
+
+Expected output pattern: deployment shows `Succeeded`.
+
+### Capture deployment outputs
+
+```bash
+export APP_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-revision" \
+    --query "properties.outputs.containerAppName.value" \
+    --output tsv)"
+
+export ACR_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-revision" \
+    --query "properties.outputs.containerRegistryName.value" \
+    --output tsv)"
+
+export ENVIRONMENT_NAME="$(az deployment group show \
+    --resource-group "$RG" \
+    --name "lab-revision" \
+    --query "properties.outputs.environmentName.value" \
+    --output tsv)"
+```
+
+Expected output: no output; variables are set.
+
+### Confirm baseline healthy revision
+
+```bash
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+```
+
+Expected output pattern:
+
+```text
+Name               Active    TrafficWeight    HealthState
+-----------------  --------  ---------------  -----------
+ca-myapp--0000001  True      100              Healthy
+```
+
+### Trigger the bad rollout
+
+```bash
+./labs/revision-failover/trigger.sh
+```
+
+The trigger script performs these actions:
+
+```bash
+az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
+
+az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1" \
+    --target-port 8000 \
+    --registry-server "$ACR_LOGIN_SERVER" \
+    --registry-username "$ACR_USERNAME" \
+    --registry-password "$ACR_PASSWORD"
+
+sleep 40
+
+az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 9999
+sleep 40
+
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
+```
+
+Expected output: a new revision appears with unhealthy status and system logs show probe or connection failures related to the wrong target port.
+
+### Investigate the failure signal
+
+```bash
+az containerapp logs show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --type system
+```
+
+Expected evidence: probe failure or connection failure associated with the port change.
+
+### Roll traffic back to a healthy revision
+
+```bash
+export HEALTHY_REVISION="$(az containerapp revision list \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "sort_by([?properties.healthState=='Healthy'].{name:name,created:properties.createdTime}, &created)[-1].name" \
+    --output tsv)"
+
+az containerapp ingress traffic set \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --revision-weight "${HEALTHY_REVISION}=100"
+```
+
+Expected output: traffic update succeeds and the healthy revision handles requests.
+
+### Restore the correct target port and verify stabilization
+
+```bash
+./labs/revision-failover/verify.sh
+```
+
+The verify script confirms the latest revision is unhealthy, finds a healthy revision for rollback, then runs:
+
+```bash
+az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"
+az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 8000
+sleep 40
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv
+```
+
+Expected output pattern:
+
+```text
+RevisionUpdate        → New revision updated
+RevisionDeactivating  → Prior bad revision deactivated
+RevisionReady         → Stable revision ready
+ContainerAppReady     → Running state reached
+```
+
+## 4) Experiment Log
+
+| Step | Action | Expected | Actual | Pass/Fail |
+|---|---|---|---|---|
+| 1 | Deploy baseline | Single healthy revision | | |
+| 2 | Capture outputs | Variables populated | | |
+| 3 | Run `trigger.sh` | New unhealthy revision appears | | |
+| 4 | Review system logs | Port or probe failure evidence appears | | |
+| 5 | Shift traffic to healthy revision | Healthy revision serves traffic | | |
+| 6 | Run `verify.sh` | Corrected revision becomes healthy | | |
+
+## Expected Evidence
+
+| Evidence Source | Expected State |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Healthy baseline revision exists before trigger; latest revision becomes non-healthy after `targetPort` changes to `9999` |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Probe failure or connection failure related to wrong target port |
+| `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"` | Traffic can be restored to a healthy revision without rebuilding first |
+| `./labs/revision-failover/verify.sh` | Rollback path succeeds and latest post-fix revision health improves |
+
+## Clean Up
+
+```bash
+az group delete --name "$RG" --yes --no-wait
+```
+
+## Related Playbook
+
+- [Bad Revision Rollout and Rollback](../playbooks/platform-features/bad-revision-rollout-and-rollback.md)
+
+## See Also
+
+- [Probe Failure and Slow Start Playbook](../playbooks/startup-and-provisioning/probe-failure-and-slow-start.md)
+- [Traffic Routing and Canary Failure Lab](./traffic-routing-canary.md)
 
 ## Sources
 
-- [Microsoft Learn: Manage revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions-manage)
-- [Microsoft Learn: Ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
+- [Manage revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions-manage)
+- [Ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
