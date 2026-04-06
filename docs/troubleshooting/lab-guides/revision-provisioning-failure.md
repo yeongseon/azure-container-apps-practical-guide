@@ -28,7 +28,7 @@ flowchart TD
     D --> E[Startup probe targets /nonexistent]
     E --> F[Probe fails repeatedly]
     F --> G[Revision never becomes Ready]
-    G --> H[Fix: Correct probe path]
+    G --> H[Fix: Disable startup probe]
     H --> I[New revision becomes Healthy]
 ```
 
@@ -47,7 +47,7 @@ flowchart TD
 | Startup probe path | Not configured or valid path | `/nonexistent` (returns 404) |
 | Latest revision health | `Healthy` | `Degraded` or `Failed` |
 | System logs | Normal startup events | `ProbeFailed` events |
-| Recovery path | No action required | Fix probe path and deploy new revision |
+| Recovery path | No action required | Disable startup probe and deploy new revision |
 
 ## 3) Runbook
 
@@ -183,7 +183,9 @@ The verify script removes the startup probe and confirms recovery:
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --set-env-vars "PROBE_FIX=$(date +%s)"
+    --set-env-vars "PROBE_FIX=$(date +%s)" \
+    --container-name app \
+    --startup-probe-disabled
 ```
 
 ### Verify recovery

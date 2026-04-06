@@ -21,7 +21,7 @@ This is one of the most common "works locally, fails in Azure" scenarios because
 - Local testing often uses different ports than production
 - Dockerfile `EXPOSE` is documentation only—it doesn't configure ingress
 - The container starts successfully (health probes may pass on a different port)
-- External requests return 502 or connection refused
+- External requests return 503 or connection refused
 
 ### Architecture
 
@@ -29,9 +29,9 @@ This is one of the most common "works locally, fails in Azure" scenarios because
 flowchart LR
     A[External Request] --> B[Ingress Controller]
     B --> C{Target Port 8081?}
-    C -->|App listens on 8000| D[Connection Refused]
+    C -->|App listens on 80| D[Connection Refused]
     C -->|Correct port| E[Request Reaches App]
-    D --> F[502 Bad Gateway]
+    D --> F[503 Service Unavailable]
 ```
 
 ## 2) Hypothesis

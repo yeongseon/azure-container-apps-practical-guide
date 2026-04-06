@@ -120,9 +120,9 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 Expected revision output pattern:
 
 ```text
-Name                Active    HealthState
-------------------  --------  ----------
-ca-myapp--0000002   True      Failed
+Name                     Active    HealthState
+-----------------------  --------  ----------
+ca-labacr-xxxxx--abc123  True      Failed
 ```
 
 Expected log evidence pattern showing image pull failure:
@@ -154,13 +154,13 @@ Build and push a valid image, then update the Container App to use it:
 
 ```bash
 az acr login --name "$ACR_NAME"
-docker build --tag "$ACR_NAME.azurecr.io/myapp:v1.0.1" "./labs/acr-pull-failure/workload"
-docker push "$ACR_NAME.azurecr.io/myapp:v1.0.1"
+docker build --tag "$ACR_NAME.azurecr.io/labacr:v1" "./labs/acr-pull-failure/workload"
+docker push "$ACR_NAME.azurecr.io/labacr:v1"
 
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --image "$ACR_NAME.azurecr.io/myapp:v1.0.1"
+    --image "$ACR_NAME.azurecr.io/labacr:v1"
 ```
 
 Expected output pattern:
@@ -180,8 +180,8 @@ Expected output pattern:
 The verify script checks that the failure was reproduced, then applies this script-based recovery flow:
 
 ```bash
-az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
-az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "${ACR_NAME}.azurecr.io/${APP_NAME}:v1"
+az acr build --registry "$ACR_NAME" --image "labacr:v1" "./labs/acr-pull-failure/workload"
+az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "${ACR_NAME}.azurecr.io/labacr:v1"
 sleep 30
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[0].properties.healthState" --output tsv
 ```
@@ -205,8 +205,8 @@ Expected result: the latest revision becomes `Healthy` and system logs no longer
 |---|---|
 | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Latest revision is not `Healthy` before the fix |
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Image pull failure, manifest not found, or related registry error |
-| `az acr repository show-tags --name "$ACR_NAME" --repository "myapp"` | Missing tag before fix; valid tag present after publish |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "$ACR_NAME.azurecr.io/myapp:v1.0.1"` | Update succeeds and creates a recoverable revision |
+| `az acr repository show-tags --name "$ACR_NAME" --repository "labacr"` | Missing tag before fix; valid tag present after publish |
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "$ACR_NAME.azurecr.io/labacr:v1"` | Update succeeds and creates a recoverable revision |
 | `./labs/acr-pull-failure/verify.sh` | Failure reproduced first, then post-fix health improves |
 
 ## Clean Up
