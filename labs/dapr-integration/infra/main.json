@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "17092851877878137547"
+      "templateHash": "4527209845665259183"
     }
   },
   "parameters": {
@@ -27,9 +27,8 @@
     "suffix": "[take(uniqueString(resourceGroup().id, parameters('baseName')), 6)]",
     "logAnalyticsName": "[format('log-{0}-{1}', parameters('baseName'), variables('suffix'))]",
     "environmentName": "[format('cae-{0}-{1}', parameters('baseName'), variables('suffix'))]",
-    "registryName": "[toLower(replace(format('acr{0}{1}', parameters('baseName'), variables('suffix')), '-', ''))]",
     "appName": "[format('ca-{0}-{1}', parameters('baseName'), variables('suffix'))]",
-    "keyVaultName": "[take(toLower(replace(format('kv-{0}-{1}', parameters('baseName'), variables('suffix')), '_', '-')), 24)]"
+    "daprAppId": "[format('dapr-{0}-{1}', parameters('baseName'), variables('suffix'))]"
   },
   "resources": [
     {
@@ -43,47 +42,6 @@
         },
         "retentionInDays": 30
       }
-    },
-    {
-      "type": "Microsoft.ContainerRegistry/registries",
-      "apiVersion": "2023-07-01",
-      "name": "[variables('registryName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "Basic"
-      },
-      "properties": {
-        "adminUserEnabled": true
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults",
-      "apiVersion": "2023-07-01",
-      "name": "[variables('keyVaultName')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "tenantId": "[subscription().tenantId]",
-        "sku": {
-          "family": "A",
-          "name": "standard"
-        },
-        "enableRbacAuthorization": true,
-        "enabledForTemplateDeployment": false,
-        "enabledForDiskEncryption": false,
-        "enabledForDeployment": false,
-        "publicNetworkAccess": "Enabled"
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2023-07-01",
-      "name": "[format('{0}/{1}', variables('keyVaultName'), 'demo-secret')]",
-      "properties": {
-        "value": "aca-lab-secret-value"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
-      ]
     },
     {
       "type": "Microsoft.App/managedEnvironments",
@@ -108,15 +66,17 @@
       "apiVersion": "2023-05-01",
       "name": "[variables('appName')]",
       "location": "[parameters('location')]",
-      "identity": {
-        "type": "SystemAssigned"
-      },
       "properties": {
         "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
         "configuration": {
           "ingress": {
             "external": true,
             "targetPort": 8000
+          },
+          "dapr": {
+            "enabled": true,
+            "appId": "[variables('daprAppId')]",
+            "appPort": 8000
           }
         },
         "template": {
@@ -127,17 +87,7 @@
               "resources": {
                 "cpu": "[json('0.5')]",
                 "memory": "1Gi"
-              },
-              "env": [
-                {
-                  "name": "KEY_VAULT_URL",
-                  "value": "[format('https://{0}{1}/', variables('keyVaultName'), environment().suffixes.keyvaultDns)]"
-                },
-                {
-                  "name": "SECRET_NAME",
-                  "value": "demo-secret"
-                }
-              ]
+              }
             }
           ],
           "scale": {
@@ -147,44 +97,22 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'demo-secret')]",
-        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
-        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]"
       ]
     }
   ],
   "outputs": {
-    "logAnalyticsWorkspaceName": {
-      "type": "string",
-      "value": "[variables('logAnalyticsName')]"
-    },
-    "environmentName": {
-      "type": "string",
-      "value": "[variables('environmentName')]"
-    },
-    "containerRegistryName": {
-      "type": "string",
-      "value": "[variables('registryName')]"
-    },
-    "containerRegistryLoginServer": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), '2023-07-01').loginServer]"
-    },
-    "keyVaultName": {
-      "type": "string",
-      "value": "[variables('keyVaultName')]"
-    },
-    "secretName": {
-      "type": "string",
-      "value": "demo-secret"
-    },
     "containerAppName": {
       "type": "string",
       "value": "[variables('appName')]"
     },
-    "containerAppUrl": {
+    "containerAppsEnvironmentName": {
       "type": "string",
-      "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', variables('appName')), '2023-05-01').configuration.ingress.fqdn)]"
+      "value": "[variables('environmentName')]"
+    },
+    "daprAppId": {
+      "type": "string",
+      "value": "[variables('daprAppId')]"
     }
   }
 }

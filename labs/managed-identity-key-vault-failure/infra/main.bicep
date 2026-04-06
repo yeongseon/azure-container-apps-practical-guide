@@ -101,7 +101,7 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
           env: [
             {
               name: 'KEY_VAULT_URL'
-              value: 'https://${keyVault.name}${environment().suffixes.keyvaultDns}/'
+              value: 'https://${keyVault.name}${az.environment().suffixes.keyvaultDns}/'
             }
             {
               name: 'SECRET_NAME'
