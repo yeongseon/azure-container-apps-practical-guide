@@ -258,13 +258,23 @@ az containerapp create -g $RG -n $APP_NAME  # ❌ Don't do this
 
 **CRITICAL**: All CLI output examples MUST have PII removed.
 
-Patterns to mask:
-- UUIDs: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+**Must mask (real Azure identifiers):**
+
 - Subscription IDs: `<subscription-id>`
 - Tenant IDs: `<tenant-id>`
 - Object IDs: `<object-id>`
-- Emails: Remove or mask
+- Resource IDs containing real subscription/tenant
+- Emails: Remove or mask as `user@example.com`
 - Secrets/Tokens: NEVER include
+
+**OK to keep (synthetic example values):**
+
+- Demo correlation IDs: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+- Example request IDs in logs
+- Placeholder domains: `example.com`, `contoso.com`
+- Sample app names used consistently in docs
+
+The goal is to prevent leaking **real Azure account information**, not to mask obviously-fake example values that aid readability.
 
 ### Mermaid Diagrams
 
