@@ -28,7 +28,7 @@ flowchart LR
     APP -.-> MI[Managed Identity]
     MI -.-> ENTRA[Microsoft Entra ID]
 
-    DAPR -.-> APP2[Container App (peer service)]
+    DAPR -.-> APP2["Container App (peer service)"]
 
     MI -.-> COSMOS
     MI -.-> SQL
