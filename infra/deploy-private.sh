@@ -70,7 +70,6 @@ DEPLOYMENT_OUTPUT=$(az deployment group create \
   --parameters \
     baseName="$BASE_NAME" \
     location="$LOCATION" \
-    imageTag="$IMAGE_TAG" \
     minReplicas="$MIN_REPLICAS" \
     maxReplicas="$MAX_REPLICAS" \
     internalOnly="$INTERNAL_ONLY" \

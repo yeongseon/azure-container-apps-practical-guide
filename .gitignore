@@ -67,6 +67,7 @@ site/
 
 # Azure
 .azure/
+.deploy-*-output.env
 
 # Docker
 docker-compose.override.yml

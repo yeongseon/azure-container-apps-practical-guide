@@ -18,7 +18,7 @@ param managedIdentityPrincipalId string = ''
 
 // Generate unique suffix
 var uniqueSuffix = uniqueString(resourceGroup().id)
-var keyVaultName = 'kv-${baseName}-${uniqueSuffix}'
+var keyVaultName = 'kv-${take(baseName, 8)}-${take(uniqueSuffix, 8)}'
 var privateEndpointName = 'pe-kv-${baseName}'
 var privateDnsZoneName = 'privatelink.vaultcore.azure.net'
 
