@@ -482,3 +482,38 @@ type: short description
 - [Dapr Documentation](https://docs.dapr.io/)
 - [KEDA Documentation](https://keda.sh/)
 - [Bicep Documentation](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
+
+## Tutorial Validation Tracking
+
+Every tutorial document supports **validation frontmatter** that records when and how it was last tested against a real Azure deployment.
+
+### Frontmatter Schema
+
+Add a `validation` block inside the YAML frontmatter (`---` fences) of any tutorial file:
+
+```yaml
+---
+hide:
+  - toc
+validation:
+  az_cli:
+    last_tested: 2026-04-09
+    cli_version: "2.83.0"
+    result: pass
+  bicep:
+    last_tested: null
+    result: not_tested
+---
+```
+
+### Agent Rules for Validation
+
+1. **After deploying a tutorial end-to-end**, add or update the `validation` frontmatter with the current date, CLI version, and `result: pass`.
+2. **If a tutorial step fails during validation**, set `result: fail` and note the issue.
+3. **Never fabricate validation dates.** Only stamp a tutorial after actually executing all steps.
+4. **After updating frontmatter**, regenerate the dashboard:
+    ```bash
+    python3 scripts/generate_validation_status.py
+    ```
+5. **Include the regenerated dashboard** (`docs/reference/validation-status.md`) in the same commit as the frontmatter change.
+6. **Do not manually edit** `docs/reference/validation-status.md` — it is auto-generated.
