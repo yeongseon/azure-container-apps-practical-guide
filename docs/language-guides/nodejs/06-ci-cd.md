@@ -7,6 +7,50 @@ hide:
 
 Automate build and deployment so every commit can produce a new Container App revision. This tutorial uses GitHub Actions, ACR, and Azure Container Apps deploy actions.
 
+!!! info "Infrastructure Context"
+    **Service**: Container Apps (Consumption) | **Network**: VNet integrated | **VNet**: ✅
+
+    This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
+
+    ```mermaid
+    flowchart TD
+        INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
+
+        subgraph VNET["VNet 10.0.0.0/16"]
+            subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
+                CAE[Container Apps Environment]
+                CA
+            end
+            subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
+                PE_ACR[PE: ACR]
+                PE_KV[PE: Key Vault]
+                PE_ST[PE: Storage]
+            end
+        end
+
+        PE_ACR --> ACR[Azure Container Registry]
+        PE_KV --> KV[Key Vault]
+        PE_ST --> ST[Storage Account]
+
+        subgraph DNS[Private DNS Zones]
+            DNS_ACR[privatelink.azurecr.io]
+            DNS_KV[privatelink.vaultcore.azure.net]
+            DNS_ST[privatelink.blob.core.windows.net]
+        end
+
+        PE_ACR -.-> DNS_ACR
+        PE_KV -.-> DNS_KV
+        PE_ST -.-> DNS_ST
+
+        CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
+        CAE --> LOG[Log Analytics]
+        CA --> AI[Application Insights]
+
+        style CA fill:#107c10,color:#fff
+        style VNET fill:#E8F5E9,stroke:#4CAF50
+        style DNS fill:#E3F2FD
+    ```
+
 ## CI/CD Pipeline Flow
 
 ```mermaid
