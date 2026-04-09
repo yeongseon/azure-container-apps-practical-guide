@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # HTTP Query Pack
 
 HTTP request analysis queries for Azure Container Apps. Use these to investigate latency, error rates, and request patterns.

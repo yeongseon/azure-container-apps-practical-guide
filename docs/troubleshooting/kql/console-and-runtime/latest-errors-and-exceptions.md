@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Latest Errors and Exceptions
 
 Use this query for quick inspection of recent application exceptions and error logs.

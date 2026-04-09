@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Troubleshooting Architecture Overview
 
 This page answers one practical question first: **where can this fail?**

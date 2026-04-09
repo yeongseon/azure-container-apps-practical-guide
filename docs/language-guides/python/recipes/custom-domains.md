@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Custom Domains and Certificates
 
 Azure Container Apps supports custom hostnames and TLS certificates so you can serve production traffic on your own domain instead of the default `azurecontainerapps.io` endpoint. Managed certificates are validated through DigiCert and require public DNS reachability during issuance.

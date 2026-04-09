@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Built-in Authentication (Easy Auth)
 
 Azure Container Apps (ACA) provides built-in authentication and authorization, often referred to as "Easy Auth." This allows you to secure your Python application without writing complex authentication code.

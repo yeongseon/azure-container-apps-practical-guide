@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure Container Apps CLI Reference
 
 This reference summarizes commonly used Azure Container Apps CLI command groups with production-friendly examples that use long flags.

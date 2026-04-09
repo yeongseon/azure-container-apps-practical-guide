@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Link Exceptions to Operations
 
 Use this query to correlate exceptions to request operation IDs for end-to-end failure tracing.

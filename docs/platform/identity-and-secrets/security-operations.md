@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Security Operations
 
 This guide covers daily and periodic security operations: managed identity lifecycle, secret rotation, and Easy Auth policy management.

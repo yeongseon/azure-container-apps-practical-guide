@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure SQL Integration (Managed Identity)
 
 Use this recipe to connect Azure Container Apps to Azure SQL Database with Microsoft Entra authentication and no SQL passwords.

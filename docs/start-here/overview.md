@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure Container Apps Practical Guide
 
 This practical guide helps you design, deploy, operate, and troubleshoot containerized applications on Azure Container Apps. It is organized for hands-on execution across platform concepts, language implementation, and production operations.

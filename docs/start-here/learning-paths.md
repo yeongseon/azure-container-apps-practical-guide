@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Tutorial: Azure Container Apps for Python
 
 Follow this tutorial sequence to containerize a Python app, deploy it to Azure Container Apps, configure runtime settings, and operate it with production-ready practices.

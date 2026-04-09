@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # ACR Image Pull Failure Lab
 
 Reproduce and resolve container startup failure caused by referencing a non-existent image tag in Azure Container Registry (ACR).

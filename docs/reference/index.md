@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Reference
 
 Quick lookup documentation for Azure Container Apps operations and diagnostics.

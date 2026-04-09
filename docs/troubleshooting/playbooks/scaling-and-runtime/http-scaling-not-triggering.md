@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # HTTP Scaling Not Triggering
 
 ## 1. Summary

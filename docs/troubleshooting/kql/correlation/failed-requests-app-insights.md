@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Failed Requests App Insights
 
 Use this query in Application Insights (workspace-based) to inspect failed HTTP requests and operation context.

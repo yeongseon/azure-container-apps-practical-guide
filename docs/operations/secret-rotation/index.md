@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Secret Rotation
 
 Secret rotation in Container Apps should be planned as an operational routine, not an emergency-only action. This guide outlines secure rotation patterns with minimal downtime.

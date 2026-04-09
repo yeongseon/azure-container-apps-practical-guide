@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure Container Apps Platform Limits and Quotas
 
 Use this quick reference for common design-time and runtime limits in Azure Container Apps. Values can vary by region/SKU and may change; always confirm against official documentation.

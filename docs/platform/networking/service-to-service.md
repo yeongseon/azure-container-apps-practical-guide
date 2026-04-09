@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Service-to-Service Communication
 
 Connect multiple Container Apps within the same environment.

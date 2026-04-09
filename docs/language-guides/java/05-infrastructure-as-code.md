@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 05 - Infrastructure as Code
 
 Azure Bicep provides a declarative way to define and manage your Azure Container Apps resources. This guide covers how to define your Spring Boot environment, registry, and application using Bicep templates.

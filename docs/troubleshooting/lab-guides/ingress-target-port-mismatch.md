@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Ingress Target Port Mismatch Lab
 
 Diagnose and fix ingress failures caused by target port misconfiguration where the ingress routes traffic to the wrong port.

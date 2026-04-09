@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # .NET Runtime Reference
 
 This reference summarizes practical runtime defaults for .NET workloads on Azure Container Apps so you can keep startup behavior, probe health, and logging predictable across revisions.

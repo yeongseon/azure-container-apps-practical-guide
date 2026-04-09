@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipe: Easy Auth (Built-in Authentication) for Python Apps
 
 Use Container Apps authentication (Easy Auth) to offload sign-in and token handling, then apply app-level authorization in Flask.

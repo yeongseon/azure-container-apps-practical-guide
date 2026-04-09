@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Probe and Port Mismatch Lab
 
 Reproduce probe failures when the container process listens on one port while ingress and probes target a different port.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Traffic Routing and Canary Failure Lab
 
 Practice traffic splitting between revisions and learn to diagnose scenarios where a bad revision receives production traffic.

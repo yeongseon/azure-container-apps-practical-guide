@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 04 - Logging and Monitoring
 
 Azure Container Apps provides native support for observability through Azure Monitor, Log Analytics, and Application Insights. This guide covers how to configure structured logging and monitor your Spring Boot application in production.

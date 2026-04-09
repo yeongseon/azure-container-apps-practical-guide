@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Internal DNS and Private Endpoint Failure
 
 ## 1. Summary

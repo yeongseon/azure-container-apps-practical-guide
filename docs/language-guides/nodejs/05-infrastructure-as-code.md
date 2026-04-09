@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 05 - Infrastructure as Code with Bicep
 
 Use Bicep to define your Azure Container Apps platform consistently across environments. This step focuses on repeatable provisioning and safe updates.

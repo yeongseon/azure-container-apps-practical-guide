@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Ingress Not Reachable
 
 ## 1. Summary

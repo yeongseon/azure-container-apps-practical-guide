@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # KQL Queries
 
 Use this section as a query catalog. Each page includes scenario context, data-source notes, query pipeline, interpretation guidance, and limitations.

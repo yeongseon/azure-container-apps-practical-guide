@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure Cache for Redis Integration (Managed Identity)
 
 Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Microsoft Entra authentication and managed identity.

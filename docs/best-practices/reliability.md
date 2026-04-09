@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure Container Apps Reliability Best Practices
 
 This guide covers production reliability patterns for Azure Container Apps, including probe design, graceful termination, revision rollback, and disaster recovery planning. Use it to run stable services under failure, scale transitions, and regional incidents.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Container Apps Troubleshooting
 
 This section is a practical field guide for troubleshooting real-world issues on Azure Container Apps. Use it to quickly narrow symptoms, validate hypotheses, and apply targeted mitigation.

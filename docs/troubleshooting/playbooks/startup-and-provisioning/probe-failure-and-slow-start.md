@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Probe Failure and Slow Start
 
 ## 1. Summary

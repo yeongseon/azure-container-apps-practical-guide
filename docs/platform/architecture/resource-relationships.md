@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Resource Relationships
 
 This overview maps how Azure Container Apps runtime components, identities, and dependent Azure services interact in a typical production deployment.

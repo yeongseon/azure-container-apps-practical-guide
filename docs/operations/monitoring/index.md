@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Observability Operations
 
 This guide covers production observability operations for Container Apps using Log Analytics, Application Insights, and distributed tracing.

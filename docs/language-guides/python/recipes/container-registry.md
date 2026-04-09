@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Private Container Registry (ACR with Private Endpoint)
 
 Pull container images from Azure Container Registry over a private network path — no public registry exposure, no admin credentials.

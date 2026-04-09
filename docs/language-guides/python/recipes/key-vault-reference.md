@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipe: Key Vault Secret References in Azure Container Apps
 
 Use managed identity and Key Vault references so your Python app receives secrets as environment variables without embedding secret values in deployment manifests.

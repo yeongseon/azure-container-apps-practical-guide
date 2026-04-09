@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Networking in Azure Container Apps
 
 Networking in Azure Container Apps combines managed ingress with optional private networking controls. Understanding ingress mode, service discovery, and environment boundaries is key to secure and reliable architectures.

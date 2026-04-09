@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Latency Trend by Status Code
 
 **Scenario**: Performance degradation where you need to distinguish normal successful traffic from failing traffic latency.

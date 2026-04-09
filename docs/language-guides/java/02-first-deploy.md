@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 02 - First Deploy to Azure
 
 This guide walks you through the initial deployment of your Spring Boot application to Azure Container Apps. We'll use the Azure CLI to create a Container Registry, build the image in the cloud, and provision a Container App environment.

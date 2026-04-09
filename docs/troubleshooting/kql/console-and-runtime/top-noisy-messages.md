@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Top Noisy Messages
 
 Use this query to identify repetitive log lines that may indicate error storms or low-signal noise.

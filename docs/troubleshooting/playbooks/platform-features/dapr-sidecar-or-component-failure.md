@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Dapr Sidecar or Component Failure
 
 ## 1. Summary

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Container Apps Jobs
 
 Azure Container Apps Jobs run **finite background work** instead of continuously serving traffic. Use jobs when execution has a clear start and finish, such as scheduled cleanup, data import, queue processing, and file transformation.

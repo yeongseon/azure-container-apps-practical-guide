@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipe: Managed Identity in Python Apps on Azure Container Apps
 
 Use managed identity and `DefaultAzureCredential` to access Azure services from Python without storing credentials in code or configuration.

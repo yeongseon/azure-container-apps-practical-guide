@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipe: Custom Container Images for Python on Azure Container Apps
 
 Build production-ready Python container images that start quickly, stay small, and meet Azure Container Apps runtime expectations.

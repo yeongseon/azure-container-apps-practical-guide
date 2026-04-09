@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Container Design Best Practices for Azure Container Apps
 
 This guide focuses on container-level operational decisions that improve startup reliability, revision stability, observability quality, and cost control in Azure Container Apps. It complements the platform architecture pages by translating core runtime behaviors into repeatable container design standards.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Passwordless Access with Managed Identity
 
 Azure Container Apps (ACA) supports managed identities, allowing your Python application to securely access other Azure services without managing credentials like connection strings or API keys.

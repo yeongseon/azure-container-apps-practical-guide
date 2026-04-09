@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Errors by Revision
 
 Use this query to compare error volume across revisions and detect rollout regressions.

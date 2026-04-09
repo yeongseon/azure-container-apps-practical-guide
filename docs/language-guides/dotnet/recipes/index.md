@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipes: Integration Patterns for Azure Container Apps (.NET)
 
 Use these practical recipes to implement common production patterns for .NET applications running on Azure Container Apps.

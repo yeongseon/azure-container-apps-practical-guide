@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipe: Python Native Dependencies on Azure Container Apps
 
 Handle Python packages with compiled/native components by installing required system libraries and using build strategies that keep runtime images lean.

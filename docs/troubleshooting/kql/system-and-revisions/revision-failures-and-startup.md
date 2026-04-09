@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Revision Failures and Startup
 
 Use this query when a revision fails to become healthy or startup behavior is unstable.

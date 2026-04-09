@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Container Apps Environment Variables Reference
 
 Use this reference to understand variables injected by Azure Container Apps and common application/runtime variables used in Python workloads.

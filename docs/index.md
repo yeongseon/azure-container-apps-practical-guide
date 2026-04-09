@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure Container Apps Practical Guide
 
 Comprehensive, practical documentation for designing, deploying, operating, and troubleshooting containerized applications on Azure Container Apps.

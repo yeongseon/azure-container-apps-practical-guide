@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Replica Crash Signals
 
 Use this query to identify restart-heavy replicas and crash-loop patterns by revision.

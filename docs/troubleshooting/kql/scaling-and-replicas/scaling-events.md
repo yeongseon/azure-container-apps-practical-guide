@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Scaling Events
 
 Use this query to inspect scale-out and scale-in related system signals for KEDA and platform scaling decisions.

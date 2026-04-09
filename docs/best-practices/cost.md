@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Cost-Aware Best Practices
 
 Cost optimization in Azure Container Apps is an operational design activity, not a one-time tuning task. This guide explains how to reduce spend without sacrificing reliability by using the platform's scaling, profile, registry, and observability features intentionally.

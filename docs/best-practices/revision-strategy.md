@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Revision Strategy Best Practices for Azure Container Apps
 
 This guide explains how to operate revisions as a controlled release mechanism in Azure Container Apps, including rollout safety, rollback speed, and lifecycle hygiene. It focuses on practical decision patterns you can apply in production pipelines.

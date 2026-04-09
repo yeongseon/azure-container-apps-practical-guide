@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Scale Rule Mismatch Lab
 
 Diagnose non-scaling behavior caused by unrealistic HTTP concurrency thresholds, then tune scale settings.

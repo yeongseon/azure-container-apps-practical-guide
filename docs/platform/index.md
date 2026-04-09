@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Concepts
 
 This section explains Azure Container Apps platform behavior in a language-agnostic way. Use these documents to understand architecture, scaling, and networking before diving into implementation.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Troubleshooting Mental Model
 
 This page provides a classification model for Azure Container Apps incidents so you can start with the correct evidence source instead of guessing.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Revision Lifecycle in Azure Container Apps
 
 A revision is an immutable snapshot of a Container App version. Every change to the configuration or container image creates a new revision, enabling safe deployments and easy rollbacks.

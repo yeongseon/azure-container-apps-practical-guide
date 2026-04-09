@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Quick Diagnosis Cards
 
 One-page reference cards for rapid incident triage. Each card maps: **Symptom → First Query → Platform Segment → Playbook**.

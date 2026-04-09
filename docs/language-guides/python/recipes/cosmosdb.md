@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Cosmos DB Integration (Managed Identity)
 
 Use this recipe to connect a Python Container App to Azure Cosmos DB (NoSQL) without account keys or connection strings.

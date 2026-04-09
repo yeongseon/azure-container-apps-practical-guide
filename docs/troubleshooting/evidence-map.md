@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Evidence Map for Container Apps Troubleshooting
 
 This page maps common investigation questions to the best evidence source, the CLI command to run, and the KQL table/query to use.

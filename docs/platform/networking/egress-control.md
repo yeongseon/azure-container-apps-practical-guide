@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Egress Control
 
 Control outbound traffic from Container Apps.

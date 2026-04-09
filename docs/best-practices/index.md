@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Best Practices
 
 This section is the design judgment layer of the guide. Read it after [Platform](../platform/index.md) and before implementation so architectural choices are intentional rather than reactive.

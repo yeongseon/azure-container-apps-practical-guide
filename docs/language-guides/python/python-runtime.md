@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Python Runtime
 
 This reference summarizes practical runtime defaults for Python workloads on Azure Container Apps so you can keep startup behavior, probe health, and logging predictable across revisions.

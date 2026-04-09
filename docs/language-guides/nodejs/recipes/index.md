@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipes: Integration Patterns for Azure Container Apps (Node.js)
 
 Use these practical recipes to implement common production patterns for Node.js apps running on Azure Container Apps.

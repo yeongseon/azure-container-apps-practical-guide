@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 07 - Revisions and Traffic
 
 Azure Container Apps supports multiple revisions, allowing you to run multiple versions of your Spring Boot application simultaneously. This guide covers how to manage revisions and split traffic between them for zero-downtime releases and safe rollouts.

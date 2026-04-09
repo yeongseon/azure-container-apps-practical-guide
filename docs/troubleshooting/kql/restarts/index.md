@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Restarts Query Pack
 
 Queries for analyzing container and replica restart patterns in Azure Container Apps. Use these to correlate restarts with latency spikes and error incidents.

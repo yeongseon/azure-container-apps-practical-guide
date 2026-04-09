@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Networking Operations
 
 This guide covers networking operations for Container Apps: ingress updates, VNet-related checks, and service discovery between apps.

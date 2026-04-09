@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Health and Recovery Operations
 
 This guide covers production health checks and recovery operations: probe tuning, restart behavior, and incident response patterns.

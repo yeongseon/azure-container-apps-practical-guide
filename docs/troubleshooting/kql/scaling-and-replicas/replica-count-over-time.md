@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Replica Count Over Time
 
 Use this query to visualize how many replicas are active per revision over time and detect scaling plateaus.

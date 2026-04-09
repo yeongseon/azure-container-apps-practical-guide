@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Cost Optimization Operations
 
 This guide describes production cost operations for Azure Container Apps, including profile selection, scale-to-zero strategy, and spend governance.

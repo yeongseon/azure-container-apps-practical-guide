@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Detector Map: Symptom to Playbook
 
 Use this detector map to move from first symptom to the most likely troubleshooting playbook with minimal guesswork.

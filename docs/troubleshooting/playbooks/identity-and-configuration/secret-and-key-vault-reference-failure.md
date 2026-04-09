@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Secret and Key Vault Reference Failure
 
 ## 1. Summary

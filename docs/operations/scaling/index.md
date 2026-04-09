@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Scaling Operations
 
 This guide explains how to operate scaling in production, including manual replica control, KEDA-based autoscaling, and scale-to-zero behavior.

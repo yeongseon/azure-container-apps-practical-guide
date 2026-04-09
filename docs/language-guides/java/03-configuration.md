@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 03 - Configuration and Secrets
 
 Spring Boot applications on Azure Container Apps use environment variables, secrets, and Azure Key Vault for flexible, secure configuration management. This guide covers the essential patterns for configuring your Java application in production.

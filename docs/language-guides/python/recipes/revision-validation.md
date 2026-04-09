@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipe: Revision Validation Before Production Traffic
 
 Validate new revisions with direct testing and controlled traffic movement so you can release safely without impacting all users at once.

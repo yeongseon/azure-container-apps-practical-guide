@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Repository Map
 
 The Azure Container Apps Guide is a comprehensive hub for all things Container Apps and Jobs. This page describes the structure and how to find what you need.

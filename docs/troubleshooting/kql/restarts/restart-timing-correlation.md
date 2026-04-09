@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Restart Timing Correlation
 
 **Scenario**: Latency or error spikes appear to align with unknown events; need to verify if restarts are the cause.

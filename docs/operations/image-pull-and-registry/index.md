@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Image Pull and Registry Operations
 
 Image distribution reliability is foundational for stable deployments. This guide covers authentication, tagging, rotation, and troubleshooting for registry operations.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Managed Identity Auth Failure
 
 ## 1. Summary

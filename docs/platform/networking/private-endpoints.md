@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Private Endpoints
 
 Connect Container Apps to Azure services using Private Endpoints.

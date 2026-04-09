@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Event Scaler Mismatch
 
 ## 1. Summary

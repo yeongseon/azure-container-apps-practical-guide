@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Alerting for Container Apps
 
 Alerting translates platform telemetry into actionable incident signals. This page provides a baseline alert set for production Container Apps.

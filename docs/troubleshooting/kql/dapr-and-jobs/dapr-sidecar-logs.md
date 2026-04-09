@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Dapr Sidecar Logs
 
 Use this query when Dapr sidecar startup, component loading, or invocation behaviors are failing.

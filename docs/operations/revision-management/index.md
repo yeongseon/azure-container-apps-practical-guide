@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Revision Operations
 
 This guide focuses on operating revisions in production: activating/deactivating revisions, splitting traffic safely, and performing fast rollbacks.

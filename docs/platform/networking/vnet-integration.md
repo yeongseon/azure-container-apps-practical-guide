@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # VNet Integration
 
 Deploy Container Apps in a custom virtual network for network isolation.

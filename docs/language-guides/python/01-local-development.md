@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 01 - Run Locally with Docker
 
 Before deploying to Azure Container Apps, validate your Python app in a container locally. This catches image, dependency, and port issues early.

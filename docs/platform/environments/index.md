@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Environments and Apps in Azure Container Apps
 
 The most important design decision in Azure Container Apps is the boundary between a **Container Apps Environment** and the **apps inside it**. This boundary determines networking scope, isolation, and operational blast radius.

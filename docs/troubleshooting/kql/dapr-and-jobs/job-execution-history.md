@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Job Execution History
 
 Use this query to review Container Apps Job execution events, failures, retries, and timeout patterns.

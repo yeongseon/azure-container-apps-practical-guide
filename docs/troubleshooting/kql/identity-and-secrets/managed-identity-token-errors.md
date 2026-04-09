@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Managed Identity Token Errors
 
 Use this query to detect token acquisition and authorization failures related to managed identity usage.

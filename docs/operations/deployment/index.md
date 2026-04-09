@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Deployment Workflows
 
 This guide summarizes practical deployment workflows for Azure Container Apps across CLI, Infrastructure as Code, and CI/CD pipelines.

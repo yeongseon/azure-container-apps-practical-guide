@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Scaling Best Practices for Azure Container Apps
 
 This guide provides practical scaling patterns for Azure Container Apps using KEDA-backed rules, replica boundaries, and production validation techniques. It focuses on tuning decisions that balance latency, reliability, and cost under real workload variability.

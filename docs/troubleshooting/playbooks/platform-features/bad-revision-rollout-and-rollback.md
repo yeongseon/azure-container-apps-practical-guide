@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Bad Revision Rollout and Rollback
 
 ## 1. Summary

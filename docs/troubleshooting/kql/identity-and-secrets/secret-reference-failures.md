@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Secret Reference Failures
 
 Use this query to identify failures caused by missing secrets, invalid secret references, or Key Vault access problems.

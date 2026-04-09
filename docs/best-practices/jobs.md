@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Jobs Best Practices
 
 Azure Container Apps Jobs are built for bounded background execution, not permanently running processes. This guide covers design patterns that keep job workloads reliable, observable, and cost-efficient in production.

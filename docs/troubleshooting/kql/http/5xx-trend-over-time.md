@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 5xx Trend Over Time
 
 **Scenario**: Intermittent or sustained server-side errors reported by customers or monitoring alerts.

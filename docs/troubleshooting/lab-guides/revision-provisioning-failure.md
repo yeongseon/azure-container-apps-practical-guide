@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Revision Provisioning Failure Lab
 
 Reproduce a revision that is created but never becomes ready due to startup probe misconfiguration.

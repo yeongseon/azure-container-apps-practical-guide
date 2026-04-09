@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipes: Integration Patterns for Azure Container Apps (Python)
 
 Use these practical recipes to implement common production patterns for Python apps running on Azure Container Apps.

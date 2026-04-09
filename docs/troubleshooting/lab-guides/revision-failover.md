@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Revision Failover and Rollback Lab
 
 Practice safe rollback by intentionally creating an unhealthy revision and routing traffic back to a healthy one.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Python on Azure Container Apps
 
 This guide provides a comprehensive reference implementation for running Python applications on Azure Container Apps (ACA). We use a production-ready Flask application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.

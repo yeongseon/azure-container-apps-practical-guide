@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Repeated Startup Attempts
 
 **Scenario**: Container fails to start successfully and enters a crash loop or repeated restart cycle.

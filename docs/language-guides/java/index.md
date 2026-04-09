@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Java (Spring Boot) on Azure Container Apps
 
 This guide provides a comprehensive reference implementation for running Java applications on Azure Container Apps (ACA). We use a production-ready Spring Boot application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.

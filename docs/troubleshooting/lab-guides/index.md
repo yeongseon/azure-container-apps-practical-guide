@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Lab Guides
 
 Hands-on troubleshooting labs for Azure Container Apps with deployable infrastructure and scripted failure/recovery flows.

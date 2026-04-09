@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Image Pull and Auth Errors
 
 Use this query to isolate registry pull failures and authentication errors during revision provisioning.

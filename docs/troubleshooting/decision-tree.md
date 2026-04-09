@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Troubleshooting Decision Tree
 
 Use this page when you need to triage quickly from symptom to likely failure category and then open the right playbook.

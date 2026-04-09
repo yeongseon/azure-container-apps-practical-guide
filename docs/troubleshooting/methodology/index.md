@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Troubleshooting Methodology
 
 When the quick triage checklist does not isolate the issue, use this systematic workflow to move from symptom to verified root cause.

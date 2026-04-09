@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Platform Limits
 
 Use this page as a quick checkpoint before scaling, rollout, or incident response.

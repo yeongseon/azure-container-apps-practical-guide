@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Dapr Integration Troubleshooting Lab
 
 Diagnose and fix Dapr sidecar port misconfiguration issues in Azure Container Apps.

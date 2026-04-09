@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Scaling in Azure Container Apps with KEDA
 
 Azure Container Apps uses **KEDA (Kubernetes Event-Driven Autoscaling)** to scale replicas based on demand signals such as HTTP requests, queue depth, and custom metrics.

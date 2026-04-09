@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Service-to-Service Connectivity Failure
 
 ## 1. Summary

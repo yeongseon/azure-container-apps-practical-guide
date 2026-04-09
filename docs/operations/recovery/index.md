@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recovery and Incident Readiness
 
 Recovery readiness for Container Apps combines fast rollback, dependency recovery, and clear incident operations. This document provides baseline procedures for service restoration.

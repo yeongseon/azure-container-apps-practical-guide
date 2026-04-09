@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 04 - Logging, Monitoring, and Observability
 
 This tutorial step shows how to inspect console logs, query Log Analytics, and add Application Insights-based observability for production operations.

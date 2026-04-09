@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Language Guides: Step-by-Step Implementation
 
 Language Guides provide a tailored experience for developers working with specific runtimes on Azure Container Apps. Each guide is a complete learning path from local development to production operations.

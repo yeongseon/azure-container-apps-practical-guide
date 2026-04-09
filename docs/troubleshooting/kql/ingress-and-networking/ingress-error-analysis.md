@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Ingress Error Analysis
 
 Use this query to investigate ingress-related request failures such as 502/504 and backend connectivity errors.

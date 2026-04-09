@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Slowest Requests by Path
 
 **Scenario**: Need to identify which API endpoints or pages are causing the worst user experience.

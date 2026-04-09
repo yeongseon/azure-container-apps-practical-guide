@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Storage: Volume Mounts and Blob Storage
 
 Connect your Container App to Azure Storage — either by mounting an Azure Files share directly into the container filesystem, or by accessing Blob Storage programmatically via the SDK with Managed Identity.

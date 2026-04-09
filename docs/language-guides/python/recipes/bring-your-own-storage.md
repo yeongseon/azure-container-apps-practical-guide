@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Recipe: Bring Your Own Storage with Azure Files Mounts
 
 Mount Azure Files into your Python Container App when you need shared, persistent filesystem access across replicas.

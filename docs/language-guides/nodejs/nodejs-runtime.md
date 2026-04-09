@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Node.js Runtime
 
 This reference summarizes practical runtime defaults for Node.js workloads on Azure Container Apps so you can keep startup behavior, probe health, and logging predictable across revisions.

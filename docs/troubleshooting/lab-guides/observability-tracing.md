@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Observability and Distributed Tracing Lab
 
 Troubleshoot Application Insights connectivity issues by simulating a misconfigured telemetry connection string.

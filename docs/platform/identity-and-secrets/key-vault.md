@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Key Vault Secrets Management (Managed Identity)
 
 Use this recipe to access Key Vault secrets from a Python Container App without embedding secrets in code or images.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Java Recipes Overview
 
 Accelerate your development process with these common integration patterns and production recipes for Java (Spring Boot) applications on Azure Container Apps.

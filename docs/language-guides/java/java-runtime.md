@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Java Runtime Reference
 
 This guide provides technical details on the Java runtime environment and optimization strategies for running Spring Boot applications on Azure Container Apps.

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # 07 - Revisions and Traffic Splitting
 
 Azure Container Apps revisions provide immutable deployment snapshots. Use them for safe releases, canary traffic, and quick rollback.

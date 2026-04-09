@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # DNS and Connectivity Failures
 
 Use this query when dependency calls fail due to DNS lookup errors, timeouts, or transport connectivity issues.

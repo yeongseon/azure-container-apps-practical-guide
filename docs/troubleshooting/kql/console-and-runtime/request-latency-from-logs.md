@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Request Latency from Logs
 
 Use this query when your app emits request duration values (for example `duration_ms=<number>`) and you need percentile trends.

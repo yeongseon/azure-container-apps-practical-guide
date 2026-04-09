@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Revision Provisioning Failure
 
 ## 1. Summary

@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Managed Identity Key Vault Failure Lab
 
 Reproduce Key Vault access denial by running a managed-identity-enabled app without the required RBAC role assignment.

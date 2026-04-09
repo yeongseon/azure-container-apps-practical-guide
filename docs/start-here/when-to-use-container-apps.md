@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Azure Container Apps vs Other Azure Compute Options
 
 Azure offers multiple ways to run apps. This guide compares Container Apps with AKS, App Service, ACI, and Functions so you can choose based on operational model, scaling behavior, and control requirements.
