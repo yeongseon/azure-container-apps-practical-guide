@@ -2,6 +2,17 @@
 
 Use managed identity and `DefaultAzureCredential` to access Azure services from Python without storing credentials in code or configuration.
 
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Container App]
+    APP -.-> MI[Managed Identity]
+    MI -.-> ENTRA[Microsoft Entra ID]
+    MI -.-> BLOB[Azure Blob Storage]
+    MI -.-> SQL[Azure SQL]
+    MI -.-> KV[Azure Key Vault]
+```
+
 ## Prerequisites
 
 - Existing Container App (`$APP_NAME`) in resource group (`$RG`)

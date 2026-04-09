@@ -2,6 +2,35 @@
 
 Use this section as a query catalog. Each page includes scenario context, data-source notes, query pipeline, interpretation guidance, and limitations.
 
+```mermaid
+flowchart LR
+    subgraph Sources["Data Sources"]
+        SYS["ContainerAppSystemLogs_CL"]
+        CON["ContainerAppConsoleLogs_CL"]
+    end
+    subgraph Categories["Query Categories"]
+        HTTP["HTTP"]
+        RST["Restarts"]
+        SYSREV["System and Revisions"]
+        CONRT["Console and Runtime"]
+        ING["Ingress and Networking"]
+        SCL["Scaling and Replicas"]
+        IDSEC["Identity and Secrets"]
+        DAPR["Dapr and Jobs"]
+        COR["Correlation"]
+    end
+    SYS --> RST
+    SYS --> SYSREV
+    SYS --> SCL
+    SYS --> DAPR
+    CON --> HTTP
+    CON --> CONRT
+    CON --> ING
+    CON --> IDSEC
+    SYS --> COR
+    CON --> COR
+```
+
 ## Schema Note
 
 | Workspace table | Common columns |

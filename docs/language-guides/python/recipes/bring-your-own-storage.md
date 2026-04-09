@@ -2,6 +2,15 @@
 
 Mount Azure Files into your Python Container App when you need shared, persistent filesystem access across replicas.
 
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Container App]
+    APP --> VOL["Azure Files Mount (/mnt/shared)"]
+    VOL --> SA[Azure Storage Account]
+    SA -.-> KEY["Storage Account Key"]
+```
+
 ## Prerequisites
 
 - Existing Storage account (`$STORAGE_ACCOUNT`) in `$RG`

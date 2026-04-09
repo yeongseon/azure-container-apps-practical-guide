@@ -1,5 +1,14 @@
 # Environment Variables
 
+```mermaid
+flowchart TD
+    APP["Container App"] --> APPVAR["Application Variables (LOG_LEVEL, FLASK_ENV)"]
+    APP --> SYSVAR["System Variables (CONTAINER_APP_NAME, CONTAINER_APP_REVISION)"]
+    APP --> RTVAR["Runtime Variables (PORT, PYTHONUNBUFFERED)"]
+    APP --> SECRETS["Secret References (secretref:db-connection)"]
+    SECRETS -.-> KV["Key Vault"]
+```
+
 ## Application Variables (Reference App)
 
 | Variable | Used by | Purpose | Default | Example |

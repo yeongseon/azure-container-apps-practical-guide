@@ -12,6 +12,16 @@ IMAGE_TAG="v1"
 
 Use `APP_NAME="ca-myapp"` for troubleshooting examples in this guide.
 
+```mermaid
+flowchart LR
+    INSPECT["Inspect"] --> DEPLOY["Deploy / Update"]
+    DEPLOY --> CONFIG["Configuration / Secrets"]
+    CONFIG --> SCALE["Scale"]
+    SCALE --> LOGS["Logs / Debugging"]
+    LOGS --> REVISIONS["Revisions / Traffic"]
+    REVISIONS --> CLEANUP["Cleanup"]
+```
+
 ## Inspect
 
 | Task | Command |

@@ -2,6 +2,17 @@
 
 Use managed identity and Key Vault references so your Python app receives secrets as environment variables without embedding secret values in deployment manifests.
 
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Container App]
+    APP -.-> MI[Managed Identity]
+    MI -.-> ENTRA[Microsoft Entra ID]
+    MI -.-> KV[Azure Key Vault]
+    KV -.-> SEC["Secrets (env vars)"]
+    SEC -.-> APP
+```
+
 ## Prerequisites
 
 - Existing Key Vault name (`$KEYVAULT_NAME`)

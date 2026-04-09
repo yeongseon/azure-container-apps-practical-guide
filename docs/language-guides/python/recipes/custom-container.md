@@ -2,6 +2,16 @@
 
 Build production-ready Python container images that start quickly, stay small, and meet Azure Container Apps runtime expectations.
 
+```mermaid
+flowchart LR
+    SRC[Source Code] --> BUILD["Docker Build (Multi-stage)"]
+    BUILD --> IMG[Container Image]
+    IMG --> ACR[Azure Container Registry]
+    ACR --> APP[Container App]
+    APP --> I[Container Apps Ingress]
+    I --> C[Client]
+```
+
 ## Prerequisites
 
 - Azure CLI 2.57+ and Container Apps extension

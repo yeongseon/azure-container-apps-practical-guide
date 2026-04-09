@@ -2,6 +2,16 @@
 
 Use this page as a quick checkpoint before scaling, rollout, or incident response.
 
+```mermaid
+flowchart TD
+    REQ[Incoming Request] --> TIMEOUT{"Ingress Timeout (~240s)"}
+    TIMEOUT -->|Under limit| SCALE{"Scale Rules"}
+    TIMEOUT -->|Over limit| ASYNC["Move to Async Pattern"]
+    SCALE --> REPLICA["Replica Sizing (CPU/Memory)"]
+    REPLICA --> MINMAX["Min/Max Replicas"]
+    MINMAX --> QUOTA["Subscription Quota"]
+```
+
 ## Common Limits and Timeouts
 
 | Area | Typical value / behavior | Notes |

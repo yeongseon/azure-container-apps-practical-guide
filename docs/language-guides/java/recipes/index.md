@@ -2,6 +2,16 @@
 
 Accelerate your development process with these common integration patterns and production recipes for Java (Spring Boot) applications on Azure Container Apps.
 
+```mermaid
+flowchart LR
+    APP["Spring Boot App"] --> DB["Database (Cosmos DB / SQL)"]
+    APP --> CACHE["Redis Cache"]
+    APP --> MSG["Service Bus"]
+    APP -.-> MI[Managed Identity]
+    MI -.-> KV[Azure Key Vault]
+    APP --> DAPR[Dapr Sidecar]
+```
+
 ## Integration Patterns
 
 Azure Container Apps provides a flexible platform for building distributed systems. These recipes demonstrate how to integrate your Spring Boot application with other Azure services and platform features.

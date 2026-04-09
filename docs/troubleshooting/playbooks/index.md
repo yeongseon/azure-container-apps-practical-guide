@@ -24,6 +24,21 @@ Name               Active    TrafficWeight    Replicas    HealthState    Running
 ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
+```mermaid
+flowchart TD
+    TRIAGE["Fast Triage Commands"] --> SYM{"First Symptom?"}
+    SYM --> S1["Startup and Provisioning"]
+    SYM --> S2["Ingress and Networking"]
+    SYM --> S3["Scaling and Runtime"]
+    SYM --> S4["Identity and Configuration"]
+    SYM --> S5["Platform Features"]
+    S1 --> PB1["Image Pull / Revision / Container Start / Probe"]
+    S2 --> PB2["Ingress / DNS / Service-to-Service"]
+    S3 --> PB3["HTTP Scaling / Event Scaler / CrashLoop"]
+    S4 --> PB4["Managed Identity / Secret Reference"]
+    S5 --> PB5["Dapr / Jobs / Rollback"]
+```
+
 ## Common Errors
 
 | Error message / symptom | Likely cause | Fix |

@@ -2,6 +2,16 @@
 
 Handle Python packages with compiled/native components by installing required system libraries and using build strategies that keep runtime images lean.
 
+```mermaid
+flowchart LR
+    REQ["requirements.txt"] --> BUILD["Builder Stage (gcc, libpq-dev)"]
+    BUILD --> WHEELS["Compiled Wheels"]
+    WHEELS --> RUNTIME["Runtime Stage (slim)"]
+    RUNTIME --> IMG[Final Image]
+    IMG --> ACR[Azure Container Registry]
+    ACR --> APP[Container App]
+```
+
 ## Prerequisites
 
 - Docker 24+

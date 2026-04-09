@@ -2,6 +2,20 @@
 
 Use this ordered checklist when a Container App is down, unhealthy, or unreachable. Run each step in sequence and stop when you find the first confirmed failure.
 
+```mermaid
+flowchart TD
+    START["App Down / Unhealthy"] --> R["1) Revision Status"]
+    R --> REP["2) Replica Status"]
+    REP --> LOG["3) Container Logs"]
+    LOG --> IMG["4) Image Pull"]
+    IMG --> ING["5) Ingress Config"]
+    ING --> PROBE["6) Health Probes"]
+    PROBE --> REGAUTH["7) Registry Auth"]
+    REGAUTH --> SEC["8) Secrets and Config"]
+    SEC --> NET["9) Environment and Network"]
+    NET --> DEP["10) Dependencies"]
+```
+
 !!! tip "Run from a clean shell session"
     Export variables once to avoid command mistakes:
 

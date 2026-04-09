@@ -4,6 +4,19 @@ This page maps common investigation questions to the best evidence source, the C
 
 Use it when you know **what you need to answer** but not **where to collect proof**.
 
+```mermaid
+flowchart TD
+    Q["Investigation Question"] --> SRC{"Best Evidence Source?"}
+    SRC --> SYS["System Logs (ContainerAppSystemLogs_CL)"]
+    SRC --> CON["Console Logs (ContainerAppConsoleLogs_CL)"]
+    SRC --> ACT["Activity Log"]
+    SRC --> CFG["App Configuration"]
+    SYS --> CLI["az containerapp logs show --type system"]
+    CON --> CLI2["az containerapp logs show --type console"]
+    ACT --> CLI3["az monitor activity-log list"]
+    CFG --> CLI4["az containerapp show"]
+```
+
 ## Why an evidence map
 
 During incidents, teams lose time by checking the wrong signal first.

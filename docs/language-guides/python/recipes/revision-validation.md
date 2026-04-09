@@ -2,6 +2,16 @@
 
 Validate new revisions with direct testing and controlled traffic movement so you can release safely without impacting all users at once.
 
+```mermaid
+flowchart LR
+    DEV[Developer] --> IMG["New Image Tag"]
+    IMG --> REV["New Revision (0% traffic)"]
+    REV --> LABEL["Label URL (canary---)"]
+    LABEL --> TEST[Smoke Test]
+    TEST -->|Pass| PROMOTE["Promote (100% traffic)"]
+    TEST -->|Fail| ROLLBACK[Rollback]
+```
+
 ## Prerequisites
 
 - Existing Container App with multiple revision mode enabled

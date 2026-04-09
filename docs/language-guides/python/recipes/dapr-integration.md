@@ -2,6 +2,16 @@
 
 Azure Container Apps (ACA) provides native Dapr integration, allowing your Python application to easily interact with other services and manage state, publish/subscribe messaging, and secrets.
 
+```mermaid
+flowchart LR
+    C[Client] --> I[Container Apps Ingress]
+    I --> APP[Python App]
+    APP <--> DAPR[Dapr Sidecar]
+    DAPR --> STATE[State Store]
+    DAPR --> PUBSUB["Pub/Sub Broker"]
+    DAPR --> SVC[Other Services]
+```
+
 ## Enabling Dapr
 
 To enable Dapr for your container app:

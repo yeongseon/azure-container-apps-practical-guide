@@ -2,6 +2,15 @@
 
 Use Container Apps authentication (Easy Auth) to offload sign-in and token handling, then apply app-level authorization in Flask.
 
+```mermaid
+flowchart LR
+    C[Client] --> AUTH["Easy Auth (Built-in)"]
+    AUTH --> IDP[Identity Provider]
+    IDP --> AUTH
+    AUTH --> APP[Python App]
+    APP -.-> HEADERS["X-MS-CLIENT-PRINCIPAL"]
+```
+
 ## Prerequisites
 
 - Container App with ingress enabled
