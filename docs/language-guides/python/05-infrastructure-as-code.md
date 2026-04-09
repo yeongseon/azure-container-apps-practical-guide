@@ -218,6 +218,95 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 !!! warning "Avoid out-of-band portal edits"
     Manual portal changes can create drift from your Bicep templates. Prefer template updates and redeployment so environments remain reproducible and auditable.
 
+## CLI Alternative (No Bicep)
+
+Use these commands when you need an imperative deployment path without Bicep.
+
+### Step 1: Set variables
+
+```bash
+RG="rg-flask-containerapp"
+APP_NAME="ca-flask-demo"
+BASE_NAME="flask-app"
+ENVIRONMENT_NAME="cae-flask-demo"
+ACR_NAME="crflaskdemo"
+LOG_NAME="log-flask-demo"
+LOCATION="koreacentral"
+```
+
+???+ example "Expected output"
+    ```text
+    Variables set for rg-flask-containerapp, ca-flask-demo, and crflaskdemo.
+    ```
+
+### Step 2: Create resource group and Log Analytics workspace
+
+```bash
+az group create --name "$RG" --location "$LOCATION"
+
+az monitor log-analytics workspace create --resource-group "$RG" --workspace-name "$LOG_NAME" --location "$LOCATION"
+
+LOG_ID=$(az monitor log-analytics workspace show --resource-group "$RG" --workspace-name "$LOG_NAME" --query customerId --output tsv)
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "resourceGroup": "rg-flask-containerapp",
+      "workspace": "log-flask-demo",
+      "workspaceId": "11111111-2222-3333-4444-555555555555",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 3: Create ACR and Container Apps environment
+
+```bash
+az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic
+
+az containerapp env create --resource-group "$RG" --name "$ENVIRONMENT_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
+
+az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/python
+```
+
+???+ example "Expected output"
+    ```text
+    ACR crflaskdemo created.
+    Container Apps environment cae-flask-demo provisioned.
+    Image pushed: crflaskdemo.azurecr.io/flask-app:v1
+    ```
+
+### Step 4: Create Container App with environment variables
+
+```bash
+az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ENVIRONMENT_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --env-vars FLASK_ENV=production --query "properties.configuration.ingress.fqdn"
+```
+
+???+ example "Expected output"
+    ```text
+    "ca-flask-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    ```
+
+### Step 5: Validate configuration
+
+```bash
+az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "{state:properties.provisioningState,fqdn:properties.configuration.ingress.fqdn,env:properties.template.containers[0].env}"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "state": "Succeeded",
+      "fqdn": "ca-flask-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "env": [
+        {
+          "name": "FLASK_ENV",
+          "value": "production"
+        }
+      ]
+    }
+    ```
+
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)

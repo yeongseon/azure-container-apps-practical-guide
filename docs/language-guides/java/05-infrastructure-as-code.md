@@ -208,6 +208,103 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
 !!! tip "Use what-if to preview changes"
     Before deploying updates, use `az deployment group what-if` to see exactly what resources will be created, modified, or deleted without actually making the changes.
 
+## CLI Alternative (No Bicep)
+
+Use these commands when you need an imperative deployment path without Bicep.
+
+### Step 1: Set variables
+
+```bash
+RG="rg-springboot-containerapp"
+LOCATION="koreacentral"
+APP_NAME="ca-springboot-demo"
+BASE_NAME="springboot-app"
+ENVIRONMENT_NAME="cae-springboot-demo"
+ACR_NAME="crspringbootdemo"
+LOG_NAME="log-springboot-demo"
+```
+
+???+ example "Expected output"
+    ```text
+    Variables exported for resource group, workspace, registry, environment, and app.
+    ```
+
+### Step 2: Create resource group and Log Analytics workspace
+
+```bash
+az group create --name $RG --location $LOCATION
+az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
+```
+
+???+ example "Expected output"
+    ```text
+    {
+      "name": "rg-springboot-containerapp",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    {
+      "name": "log-springboot-demo",
+      "customerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-springboot-containerapp/providers/Microsoft.OperationalInsights/workspaces/log-springboot-demo"
+    }
+    ```
+
+### Step 3: Create ACR and Container Apps environment
+
+```bash
+az acr create --resource-group $RG --name $ACR_NAME --sku Basic
+LOG_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_NAME --query customerId --output tsv)
+LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_NAME --query primarySharedKey --output tsv)
+az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
+```
+
+???+ example "Expected output"
+    ```text
+    {
+      "name": "crspringbootdemo",
+      "loginServer": "crspringbootdemo.azurecr.io",
+      "provisioningState": "Succeeded"
+    }
+    {
+      "name": "cae-springboot-demo",
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-springboot-containerapp/providers/Microsoft.App/managedEnvironments/cae-springboot-demo",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 4: Create Container App with environment variables
+
+```bash
+az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --env-vars SPRING_PROFILES_ACTIVE=prod --query "properties.configuration.ingress.fqdn"
+```
+
+???+ example "Expected output"
+    ```text
+    "ca-springboot-demo.gentlewave-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    ```
+
+### Step 5: Validate configuration
+
+```bash
+az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:properties.configuration.ingress.fqdn,targetPort:properties.configuration.ingress.targetPort,environmentVariables:properties.template.containers[0].env}"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "environmentVariables": [
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        }
+      ],
+      "fqdn": "ca-springboot-demo.gentlewave-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "targetPort": 8000
+    }
+    ```
+
 ## See Also
 
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)

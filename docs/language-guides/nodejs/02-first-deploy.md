@@ -305,6 +305,152 @@ graph LR
 - Add workload profiles and min/max replicas for predictable performance.
 - Use managed identity-based ACR pull for stronger credential hygiene.
 
+## CLI Alternative (No Bicep)
+
+Use these commands to deploy without Bicep templates. This creates the same resources imperatively.
+
+### Step 1: Set variables
+
+```bash
+RG="rg-express-containerapp"
+APP_NAME="ca-express-demo"
+BASE_NAME="express-app"
+ENVIRONMENT_NAME="cae-express-demo"
+ACR_NAME="crexpressdemo"
+LOG_NAME="log-express-demo"
+LOCATION="koreacentral"
+```
+
+???+ example "Expected output"
+    ```text
+    Variables set for RG=rg-express-containerapp, APP_NAME=ca-express-demo, and LOCATION=koreacentral.
+    ```
+
+### Step 2: Create resource group
+
+```bash
+az group create --name "$RG" --location "$LOCATION"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-express-containerapp",
+      "location": "koreacentral",
+      "name": "rg-express-containerapp",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 3: Create Log Analytics workspace
+
+```bash
+az monitor log-analytics workspace create --resource-group "$RG" --workspace-name "$LOG_NAME" --location "$LOCATION"
+
+LOG_ID=$(az monitor log-analytics workspace show --resource-group "$RG" --workspace-name "$LOG_NAME" --query customerId --output tsv)
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-express-containerapp/providers/Microsoft.OperationalInsights/workspaces/log-express-demo",
+      "location": "koreacentral",
+      "name": "log-express-demo",
+      "properties": {
+        "customerId": "11111111-2222-3333-4444-555555555555",
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 4: Create Azure Container Registry
+
+```bash
+az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-express-containerapp/providers/Microsoft.ContainerRegistry/registries/crexpressdemo",
+      "location": "koreacentral",
+      "loginServer": "crexpressdemo.azurecr.io",
+      "name": "crexpressdemo",
+      "provisioningState": "Succeeded",
+      "sku": {
+        "name": "Basic"
+      }
+    }
+    ```
+
+### Step 5: Create Container Apps environment
+
+```bash
+az containerapp env create --resource-group "$RG" --name "$ENVIRONMENT_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-express-containerapp/providers/Microsoft.App/managedEnvironments/cae-express-demo",
+      "location": "koreacentral",
+      "name": "cae-express-demo",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 6: Build and push image with ACR Tasks
+
+```bash
+az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/nodejs
+```
+
+???+ example "Expected output"
+    ```text
+    Queued a build with ID: acb_default_1700000000000
+    Successfully built image: express-app:v1
+    Successfully pushed image: crexpressdemo.azurecr.io/express-app:v1
+    ```
+
+### Step 7: Create Container App
+
+```bash
+az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ENVIRONMENT_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
+```
+
+???+ example "Expected output"
+    ```text
+    "ca-express-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    ```
+
+### Step 8: Verify deployment
+
+```bash
+APP_FQDN=$(az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "properties.configuration.ingress.fqdn" --output tsv)
+
+az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "{state:properties.provisioningState,fqdn:properties.configuration.ingress.fqdn,image:properties.template.containers[0].image}"
+
+curl "https://$APP_FQDN/health"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "state": "Succeeded",
+      "fqdn": "ca-express-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "image": "crexpressdemo.azurecr.io/express-app:v1"
+    }
+    ```
+
+???+ example "Expected output (health check)"
+    ```json
+    {"status":"healthy","timestamp":"2026-04-09T10:30:00.000Z"}
+    ```
+
 ## See Also
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)

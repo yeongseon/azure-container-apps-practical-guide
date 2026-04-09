@@ -180,6 +180,136 @@ az containerapp create \
 !!! note "Managed Identity for ACR Pull"
     In this first deployment, the CLI handles authentication between ACR and ACA. For production-ready templates, use a User-Assigned Managed Identity for the container app to pull images from the registry.
 
+## CLI Alternative (No Bicep)
+
+Use these commands to deploy without Bicep templates. This creates the same resources imperatively.
+
+### Step 1: Set variables
+
+```bash
+RG="rg-springboot-containerapp"
+LOCATION="koreacentral"
+APP_NAME="ca-springboot-demo"
+BASE_NAME="springboot-app"
+ENVIRONMENT_NAME="cae-springboot-demo"
+ACR_NAME="crspringbootdemo"
+LOG_NAME="log-springboot-demo"
+```
+
+???+ example "Expected output"
+    ```text
+    Variables set for resource group, logging workspace, registry, environment, and app.
+    ```
+
+### Step 2: Create resource group
+
+```bash
+az group create --name $RG --location $LOCATION
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-springboot-containerapp",
+      "location": "koreacentral",
+      "name": "rg-springboot-containerapp",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 3: Create Log Analytics workspace
+
+```bash
+az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "customerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-springboot-containerapp/providers/Microsoft.OperationalInsights/workspaces/log-springboot-demo",
+      "location": "koreacentral",
+      "name": "log-springboot-demo",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 4: Create Azure Container Registry
+
+```bash
+az acr create --resource-group $RG --name $ACR_NAME --sku Basic
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-springboot-containerapp/providers/Microsoft.ContainerRegistry/registries/crspringbootdemo",
+      "loginServer": "crspringbootdemo.azurecr.io",
+      "name": "crspringbootdemo",
+      "provisioningState": "Succeeded",
+      "sku": {
+        "name": "Basic"
+      }
+    }
+    ```
+
+### Step 5: Create Container Apps environment
+
+```bash
+LOG_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_NAME --query customerId --output tsv)
+LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_NAME --query primarySharedKey --output tsv)
+az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-springboot-containerapp/providers/Microsoft.App/managedEnvironments/cae-springboot-demo",
+      "location": "koreacentral",
+      "name": "cae-springboot-demo",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 6: Build and push image with ACR Tasks
+
+```bash
+az acr build --registry $ACR_NAME --image $BASE_NAME:v1 ./apps/java-springboot
+```
+
+???+ example "Expected output"
+    ```text
+    Packing source code into tar to upload...
+    Uploading archived source code from '/tmp/build.tar.gz'...
+    Queued a build with ID: cf1
+    Run ID: cf1 was successful after 1m 10s
+    ```
+
+### Step 7: Create Container App
+
+```bash
+az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
+```
+
+???+ example "Expected output"
+    ```text
+    "ca-springboot-demo.gentlewave-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    ```
+
+### Step 8: Verify deployment
+
+```bash
+FQDN=$(az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.ingress.fqdn" --output tsv)
+curl https://$FQDN/health
+```
+
+???+ example "Expected output"
+    ```json
+    {"timestamp":"2026-04-09T09:14:22.103125Z","status":"healthy"}
+    ```
+
 ## See Also
 - [03 - Configuration and Secrets](03-configuration.md)
 - [05 - Infrastructure as Code (Bicep)](05-infrastructure-as-code.md)

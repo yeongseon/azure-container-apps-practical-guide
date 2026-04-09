@@ -327,6 +327,152 @@ graph LR
 - Add workload profiles and min/max replicas for predictable performance.
 - Use managed identity-based ACR pull for stronger credential hygiene.
 
+## CLI Alternative (No Bicep)
+
+Use these commands to deploy without Bicep templates. This creates the same resources imperatively.
+
+### Step 1: Set variables
+
+```bash
+RG="rg-flask-containerapp"
+APP_NAME="ca-flask-demo"
+BASE_NAME="flask-app"
+ENVIRONMENT_NAME="cae-flask-demo"
+ACR_NAME="crflaskdemo"
+LOG_NAME="log-flask-demo"
+LOCATION="koreacentral"
+```
+
+???+ example "Expected output"
+    ```text
+    Variables set for RG=rg-flask-containerapp, APP_NAME=ca-flask-demo, and LOCATION=koreacentral.
+    ```
+
+### Step 2: Create resource group
+
+```bash
+az group create --name "$RG" --location "$LOCATION"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-flask-containerapp",
+      "location": "koreacentral",
+      "name": "rg-flask-containerapp",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 3: Create Log Analytics workspace
+
+```bash
+az monitor log-analytics workspace create --resource-group "$RG" --workspace-name "$LOG_NAME" --location "$LOCATION"
+
+LOG_ID=$(az monitor log-analytics workspace show --resource-group "$RG" --workspace-name "$LOG_NAME" --query customerId --output tsv)
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-flask-containerapp/providers/Microsoft.OperationalInsights/workspaces/log-flask-demo",
+      "location": "koreacentral",
+      "name": "log-flask-demo",
+      "properties": {
+        "customerId": "11111111-2222-3333-4444-555555555555",
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 4: Create Azure Container Registry
+
+```bash
+az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-flask-containerapp/providers/Microsoft.ContainerRegistry/registries/crflaskdemo",
+      "location": "koreacentral",
+      "loginServer": "crflaskdemo.azurecr.io",
+      "name": "crflaskdemo",
+      "provisioningState": "Succeeded",
+      "sku": {
+        "name": "Basic"
+      }
+    }
+    ```
+
+### Step 5: Create Container Apps environment
+
+```bash
+az containerapp env create --resource-group "$RG" --name "$ENVIRONMENT_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-flask-containerapp/providers/Microsoft.App/managedEnvironments/cae-flask-demo",
+      "location": "koreacentral",
+      "name": "cae-flask-demo",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 6: Build and push image with ACR Tasks
+
+```bash
+az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/python
+```
+
+???+ example "Expected output"
+    ```text
+    Queued a build with ID: acb_default_1700000000000
+    Successfully built image: flask-app:v1
+    Successfully pushed image: crflaskdemo.azurecr.io/flask-app:v1
+    ```
+
+### Step 7: Create Container App
+
+```bash
+az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ENVIRONMENT_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
+```
+
+???+ example "Expected output"
+    ```text
+    "ca-flask-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    ```
+
+### Step 8: Verify deployment
+
+```bash
+APP_FQDN=$(az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "properties.configuration.ingress.fqdn" --output tsv)
+
+az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "{state:properties.provisioningState,fqdn:properties.configuration.ingress.fqdn,image:properties.template.containers[0].image}"
+
+curl "https://$APP_FQDN/health"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "state": "Succeeded",
+      "fqdn": "ca-flask-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "image": "crflaskdemo.azurecr.io/flask-app:v1"
+    }
+    ```
+
+???+ example "Expected output (health check)"
+    ```json
+    {"status":"healthy","timestamp":"2026-04-09T10:30:00.000000+00:00"}
+    ```
+
 ## See Also
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)

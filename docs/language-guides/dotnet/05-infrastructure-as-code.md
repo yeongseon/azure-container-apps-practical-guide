@@ -237,6 +237,103 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
 !!! warning "Avoid out-of-band portal edits"
     Manual portal changes can create drift from your Bicep templates. Prefer template updates and redeployment so environments remain reproducible and auditable.
 
+## CLI Alternative (No Bicep)
+
+Use these commands when you need an imperative deployment path without Bicep.
+
+### Step 1: Set variables
+
+```bash
+RG="rg-dotnet-containerapp"
+LOCATION="koreacentral"
+APP_NAME="ca-dotnet-demo"
+BASE_NAME="dotnet-app"
+ENVIRONMENT_NAME="cae-dotnet-demo"
+ACR_NAME="crdotnetdemo"
+LOG_NAME="log-dotnet-demo"
+```
+
+???+ example "Expected output"
+    ```text
+    Variables exported for resource group, workspace, registry, environment, and app.
+    ```
+
+### Step 2: Create resource group and Log Analytics workspace
+
+```bash
+az group create --name $RG --location $LOCATION
+az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
+```
+
+???+ example "Expected output"
+    ```text
+    {
+      "name": "rg-dotnet-containerapp",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    {
+      "name": "log-dotnet-demo",
+      "customerId": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-dotnet-containerapp/providers/Microsoft.OperationalInsights/workspaces/log-dotnet-demo"
+    }
+    ```
+
+### Step 3: Create ACR and Container Apps environment
+
+```bash
+az acr create --resource-group $RG --name $ACR_NAME --sku Basic
+LOG_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_NAME --query customerId --output tsv)
+LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_NAME --query primarySharedKey --output tsv)
+az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
+```
+
+???+ example "Expected output"
+    ```text
+    {
+      "name": "crdotnetdemo",
+      "loginServer": "crdotnetdemo.azurecr.io",
+      "provisioningState": "Succeeded"
+    }
+    {
+      "name": "cae-dotnet-demo",
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-dotnet-containerapp/providers/Microsoft.App/managedEnvironments/cae-dotnet-demo",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 4: Create Container App with environment variables
+
+```bash
+az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --env-vars ASPNETCORE_ENVIRONMENT=Production --query "properties.configuration.ingress.fqdn"
+```
+
+???+ example "Expected output"
+    ```text
+    "ca-dotnet-demo.mistyfield-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    ```
+
+### Step 5: Validate configuration
+
+```bash
+az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:properties.configuration.ingress.fqdn,targetPort:properties.configuration.ingress.targetPort,environmentVariables:properties.template.containers[0].env}"
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "environmentVariables": [
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Production"
+        }
+      ],
+      "fqdn": "ca-dotnet-demo.mistyfield-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "targetPort": 8000
+    }
+    ```
+
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)

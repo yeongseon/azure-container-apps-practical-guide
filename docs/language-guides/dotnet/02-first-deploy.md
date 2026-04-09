@@ -309,6 +309,130 @@ graph LR
 - **Revision names**: Customize revision names for better traceability using `--revision-suffix`.
 - **Private connectivity**: Use internal ingress for APIs that don't need public exposure.
 
+## CLI Alternative (No Bicep)
+
+Use these commands to deploy without Bicep templates. This creates the same resources imperatively.
+
+### Step 1: Set variables
+
+```bash
+RG="rg-dotnet-containerapp"
+LOCATION="koreacentral"
+APP_NAME="ca-dotnet-demo"
+BASE_NAME="dotnet-app"
+ENVIRONMENT_NAME="cae-dotnet-demo"
+ACR_NAME="crdotnetdemo"
+LOG_NAME="log-dotnet-demo"
+```
+
+???+ example "Expected output"
+    ```text
+    Variables initialized for the .NET Container Apps deployment.
+    ```
+
+### Step 2: Create resource group
+
+```bash
+az group create --name $RG --location $LOCATION
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-dotnet-containerapp",
+      "location": "koreacentral",
+      "name": "rg-dotnet-containerapp",
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+    ```
+
+### Step 3: Create Log Analytics workspace
+
+```bash
+az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "customerId": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-dotnet-containerapp/providers/Microsoft.OperationalInsights/workspaces/log-dotnet-demo",
+      "name": "log-dotnet-demo",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 4: Create Azure Container Registry
+
+```bash
+az acr create --resource-group $RG --name $ACR_NAME --sku Basic
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-dotnet-containerapp/providers/Microsoft.ContainerRegistry/registries/crdotnetdemo",
+      "loginServer": "crdotnetdemo.azurecr.io",
+      "name": "crdotnetdemo",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 5: Create Container Apps environment
+
+```bash
+LOG_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_NAME --query customerId --output tsv)
+LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_NAME --query primarySharedKey --output tsv)
+az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
+```
+
+???+ example "Expected output"
+    ```json
+    {
+      "id": "/subscriptions/<subscription-id>/resourceGroups/rg-dotnet-containerapp/providers/Microsoft.App/managedEnvironments/cae-dotnet-demo",
+      "name": "cae-dotnet-demo",
+      "provisioningState": "Succeeded"
+    }
+    ```
+
+### Step 6: Build and push image with ACR Tasks
+
+```bash
+az acr build --registry $ACR_NAME --image $BASE_NAME:v1 ./apps/dotnet-aspnetcore
+```
+
+???+ example "Expected output"
+    ```text
+    Packing source code into tar to upload...
+    Queued a build with ID: cg1
+    Run ID: cg1 was successful after 1m 05s
+    ```
+
+### Step 7: Create Container App
+
+```bash
+az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
+```
+
+???+ example "Expected output"
+    ```text
+    "ca-dotnet-demo.mistyfield-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    ```
+
+### Step 8: Verify deployment
+
+```bash
+FQDN=$(az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.ingress.fqdn" --output tsv)
+curl https://$FQDN/health
+```
+
+???+ example "Expected output"
+    ```json
+    {"status":"healthy","timestamp":"2026-04-09T09:24:33.5123345Z"}
+    ```
+
 ## See Also
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)

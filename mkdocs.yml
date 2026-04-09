@@ -172,6 +172,10 @@ nav:
       - Node.js Runtime: language-guides/nodejs/nodejs-runtime.md
       - Recipes:
         - language-guides/nodejs/recipes/index.md
+        - Managed Identity: language-guides/nodejs/recipes/managed-identity.md
+        - Easy Auth: language-guides/nodejs/recipes/easy-auth.md
+        - Key Vault Reference: language-guides/nodejs/recipes/key-vault-reference.md
+        - Container Registry: language-guides/nodejs/recipes/container-registry.md
     - Java:
       - language-guides/java/index.md
       - 1. Local Development: language-guides/java/01-local-development.md
@@ -184,6 +188,10 @@ nav:
       - Java Runtime: language-guides/java/java-runtime.md
       - Recipes:
         - language-guides/java/recipes/index.md
+        - Managed Identity: language-guides/java/recipes/managed-identity.md
+        - Easy Auth: language-guides/java/recipes/easy-auth.md
+        - Key Vault Reference: language-guides/java/recipes/key-vault-reference.md
+        - Container Registry: language-guides/java/recipes/container-registry.md
     - .NET:
       - language-guides/dotnet/index.md
       - 1. Local Development: language-guides/dotnet/01-local-development.md
@@ -196,6 +204,10 @@ nav:
       - .NET Runtime: language-guides/dotnet/dotnet-runtime.md
       - Recipes:
         - language-guides/dotnet/recipes/index.md
+        - Managed Identity: language-guides/dotnet/recipes/managed-identity.md
+        - Easy Auth: language-guides/dotnet/recipes/easy-auth.md
+        - Key Vault Reference: language-guides/dotnet/recipes/key-vault-reference.md
+        - Container Registry: language-guides/dotnet/recipes/container-registry.md
   - Operations:
     - operations/index.md
     - Deployment:
