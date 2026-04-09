@@ -24,6 +24,52 @@ Before you begin the tutorial, ensure you have the following tools and resources
 - **Azure CLI 2.57+**: The primary tool for provisioning and managing Azure Container Apps and related infrastructure.
 - **Azure Subscription**: An active subscription with sufficient permissions to create Resource Groups and Container Apps environments.
 
+## Network Architecture by Deployment Mode
+
+Azure Container Apps supports two primary deployment architectures: **public consumption mode** for development and proof-of-concept workloads, and **private VNet-integrated mode** for production environments requiring network isolation and secure access to dependent services.
+
+### Public Consumption Mode
+
+Ideal for development, testing, and public-facing applications. The Container Apps Environment is deployed without a VNet, and your application is accessible via a public HTTPS endpoint.
+
+```mermaid
+graph TB
+    Internet["🌐 Internet"] -->|HTTP/HTTPS| CAApp["Container App<br/>(Public Ingress, Port 8000)"]
+    CAApp -->|Managed Identity| LA["Log Analytics<br/>Workspace"]
+    CAApp -->|Monitoring| AI["Application<br/>Insights"]
+    CAApp -->|Pull Image| ACR["Azure Container Registry<br/>(Basic SKU)"]
+    CAEnv["Container Apps<br/>Environment"] -->|Hosts| CAApp
+    CAApp -->|System-Assigned| SAMI["Managed Identity"]
+    CAApp -->|Scaling 0-3| HSM["HTTP Scale Metrics"]
+```
+
+
+### Private VNet-Integrated Mode
+
+For production environments requiring network isolation. The Container Apps Environment is deployed inside a dedicated VNet with private endpoints to all dependent services.
+
+```mermaid
+graph TB
+    VNet["Virtual Network"] --> CASub["Container Apps<br/>Subnet"]
+    VNet --> PESub["Private Endpoints<br/>Subnet"]
+    CASub -->|Hosts| CAEnv["Container Apps<br/>Environment<br/>(VNet-Integrated)"]
+    CAEnv -->|Hosts| CAApp["Container App<br/>(Optional Internal<br/>Ingress)"]
+    CAApp -->|User-Assigned| UAMI["User-Assigned<br/>Managed Identity"]
+    UAMI -->|Access| KV["Key Vault<br/>+ Private Endpoint"]
+    UAMI -->|Access| Storage["Storage Account<br/>(Blob) +<br/>Private Endpoint"]
+    UAMI -->|Pull via PE| ACRPriv["ACR Premium<br/>+ Private Endpoint"]
+    PESub -->|Hosts| KVPE["KV PE"]
+    PESub -->|Hosts| StorPE["Storage PE"]
+    PESub -->|Hosts| ACRPE["ACR PE"]
+    CAApp -->|Scaling 0-3| HSM["HTTP Scale Metrics"]
+    CAApp -->|Monitoring| LA["Log Analytics<br/>Workspace"]
+    CAApp -->|Traces| AI["Application<br/>Insights"]
+    DNS["Private DNS Zones<br/>(ACR, KV, Storage)"] -.->|Name Resolution| KVPE
+```
+
+!!! tip "Which mode to choose?"
+    Start with **Public Consumption** for development and PoC. Move to **Private VNet-Integrated** when your security policy requires private-only access to dependent services or you need to comply with corporate network isolation requirements.
+
 ## Tutorial Steps
 
 Follow these step-by-step guides to master the deployment of Python applications on Azure Container Apps:
