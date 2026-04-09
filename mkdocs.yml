@@ -115,6 +115,8 @@ nav:
       - Key Vault: platform/identity-and-secrets/key-vault.md
       - Easy Auth: platform/identity-and-secrets/easy-auth.md
       - Security Operations: platform/identity-and-secrets/security-operations.md
+    - Security:
+      - platform/security/index.md
     - Reliability:
       - Cost Optimization: platform/reliability/cost-optimization.md
       - Health and Recovery: platform/reliability/health-recovery.md
@@ -125,6 +127,7 @@ nav:
     - Scaling: best-practices/scaling.md
     - Networking: best-practices/networking.md
     - Identity and Secrets: best-practices/identity-and-secrets.md
+    - Security: best-practices/security.md
     - Reliability: best-practices/reliability.md
     - Cost Optimization: best-practices/cost.md
     - Jobs: best-practices/jobs.md
