@@ -100,6 +100,7 @@ nav:
     - platform/index.md
     - Architecture:
       - Resource Relationships: platform/architecture/resource-relationships.md
+    - Deployment Scenarios: platform/deployment-scenarios.md
     - Environments: platform/environments/index.md
     - Revisions: platform/revisions/index.md
     - Scaling: platform/scaling/index.md
