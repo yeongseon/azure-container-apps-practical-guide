@@ -306,6 +306,7 @@ nav:
       - Observability and Tracing: troubleshooting/lab-guides/observability-tracing.md
   - Reference:
     - reference/index.md
+    - Content Validation: reference/content-validation-status.md
     - Validation Status: reference/validation-status.md
     - CLI Reference: reference/cli-reference.md
     - Environment Variables: reference/environment-variables.md

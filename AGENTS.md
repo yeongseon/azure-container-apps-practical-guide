@@ -289,6 +289,51 @@ graph LR
 ```
 ```
 
+## Content Source Requirements
+
+### 1. MSLearn-First Policy
+All content MUST be traceable to official Microsoft Learn documentation:
+
+- **Platform content** (`docs/platform/`): MUST have direct MSLearn source URLs
+- **Architecture diagrams**: MUST reference official Microsoft documentation
+- **Troubleshooting playbooks**: MAY synthesize MSLearn content with clear attribution
+- **Self-generated content**: MUST have justification explaining the source basis
+
+### 2. Source Types
+| Type | Description | Allowed? |
+|---|---|---|
+| `mslearn` | Directly from Microsoft Learn | ✅ Required for platform content |
+| `mslearn-adapted` | MSLearn content adapted for this guide | ✅ With source URL |
+| `self-generated` | Original content for this guide | ⚠️ Requires justification |
+| `community` | From community sources (Stack Overflow, GitHub) | ❌ Not for core content |
+| `unknown` | Source not documented | ❌ Must be validated |
+
+### 3. Diagram Source Documentation
+Every Mermaid diagram MUST have source metadata in frontmatter:
+
+```yaml
+content_sources:
+  diagrams:
+    - id: architecture-overview
+      type: flowchart
+      source: mslearn
+      mslearn_url: https://learn.microsoft.com/en-us/azure/container-apps/
+    - id: troubleshooting-flow
+      type: flowchart
+      source: self-generated
+      justification: "Synthesized from MSLearn articles for clarity"
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+```
+
+### 4. Content Validation Tracking
+- See [Content Validation Status](docs/reference/content-validation-status.md) for current status
+- See [Tutorial Validation Status](docs/reference/validation-status.md) for tutorial testing
+
+### 5. Quality Gate
+- All diagrams and platform content must have documented MSLearn sources.
+- Run `mkdocs build --strict` after updating navigation or content sources.
+
 ## Container Apps Specifics
 
 ### Key Concepts
