@@ -1,6 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
+        - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
+    - id: container-apps-containers-are-ephemeral-by
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
+        - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
 ---
 
 # Storage: Volume Mounts and Blob Storage
@@ -9,6 +25,7 @@ Connect your Container App to Azure Storage — either by mounting an Azure File
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     MNT[Environment storage mount<br/>appfiles] --> FILES[Azure Files share]
@@ -25,6 +42,7 @@ Solid arrows show runtime data flow. Dashed arrows show identity and authenticat
 
 Container Apps containers are ephemeral by default — all writes to the local filesystem are lost when a replica restarts or scales down. To persist data or share files across replicas, you need external storage.
 
+<!-- diagram-id: container-apps-containers-are-ephemeral-by -->
 ```mermaid
 graph TD
     CA[Container App<br/>Replica] -->|SDK + Managed Identity| BLOB[Azure Blob Storage<br/>Containers / Objects]

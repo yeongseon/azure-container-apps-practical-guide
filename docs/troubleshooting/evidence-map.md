@@ -1,6 +1,17 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-it-when-you-know-what
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/log-options
+        - https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics
+        - https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Evidence Map for Container Apps Troubleshooting
@@ -9,6 +20,7 @@ This page maps common investigation questions to the best evidence source, the C
 
 Use it when you know **what you need to answer** but not **where to collect proof**.
 
+<!-- diagram-id: use-it-when-you-know-what -->
 ```mermaid
 flowchart TD
     Q["Investigation Question"] --> SRC{"Best Evidence Source?"}

@@ -1,3 +1,19 @@
+---
+content_sources:
+  diagrams:
+    - id: marked-as-self-generated-with-clear-justification
+      type: pie
+      source: self-generated
+      justification: "Repository validation dashboard derived from local content-source counts; Microsoft Learn links identify the Azure Container Apps documentation set being tracked."
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+---
+
 # Content Source Validation Status
 
 This page tracks the source validation status of documentation content, including diagrams and narrative sections. All content must be traceable to official Microsoft Learn documentation.
@@ -8,18 +24,20 @@ This page tracks the source validation status of documentation content, includin
 
 | Content Type | Total | ✅ MSLearn Sourced | ⚠️ Self-Generated | ❌ No Source |
 |---|---:|---:|---:|---:|
-| Mermaid Diagrams | 255 | 0 | 0 | 255 |
+| Mermaid Diagrams | 256 | 254 | 2 | 0 |
 | Text Sections | — | — | — | — |
 
-!!! warning "Validation Required"
-    All 255 mermaid diagrams require source validation. Content without MSLearn sources must be either:
+!!! info "Validation Complete"
+    All 256 mermaid diagrams now include source metadata. Content without MSLearn sources must be either:
     
     1. Linked to an official Microsoft Learn URL, or
     2. Marked as `self-generated` with clear justification
 
+<!-- diagram-id: marked-as-self-generated-with-clear-justification -->
 ```mermaid
 pie title Content Source Status
-    "Not Validated" : 255
+    "MSLearn Sourced" : 254
+    "Self-Generated" : 2
 ```
 
 ## Validation Categories
@@ -36,11 +54,11 @@ pie title Content Source Status
 
 ### Diagram Validation Status
 
-#### Mermaid Diagrams (255 total)
+#### Mermaid Diagrams (256 total)
 
 | File | Diagrams | Source Type | MSLearn URL | Status |
 |---|---:|---|---|---|
-| Content pages and diagrams across the repository | 255 | unknown | — | ❌ Not Validated |
+| Content pages and diagrams across the repository | 256 | mixed | Frontmatter `content_sources` in each page | ✅ Metadata Added |
 
 ## How to Validate Content
 

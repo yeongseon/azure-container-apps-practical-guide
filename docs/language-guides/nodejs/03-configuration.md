@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/containers
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - id: configuration-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/containers
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
 ---
 
 # 03 - Configuration, Secrets, and Dapr
@@ -12,6 +26,7 @@ This step configures runtime settings in Azure Container Apps, including environ
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
@@ -53,6 +68,7 @@ This step configures runtime settings in Azure Container Apps, including environ
 
 ## Configuration Flow
 
+<!-- diagram-id: configuration-flow -->
 ```mermaid
 graph TD
     ENV[Env Vars] --> ACA[Container App]

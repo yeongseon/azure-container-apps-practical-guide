@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Service-to-Service Connectivity Failure
@@ -19,6 +28,7 @@ The caller app can be healthy while every downstream call still fails. Ingress s
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Inter-service call fails] --> B{DNS resolves target?}

@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
+        - https://learn.microsoft.com/azure/container-apps/monitor
+    - id: monitoring-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
+        - https://learn.microsoft.com/azure/container-apps/monitor
 ---
 
 # 04 - Logging and Monitoring
@@ -12,6 +26,7 @@ Azure Container Apps provides native support for observability through Azure Mon
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
@@ -53,6 +68,7 @@ Azure Container Apps provides native support for observability through Azure Mon
 
 ## Monitoring Workflow
 
+<!-- diagram-id: monitoring-workflow -->
 ```mermaid
 graph LR
     APP[Spring Boot App] --> STDOUT[Console Output]

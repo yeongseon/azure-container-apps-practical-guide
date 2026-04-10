@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: runtime-execution-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/dotnet-overview
+        - https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints
+        - https://learn.microsoft.com/dotnet/core/tools/sdk-errors/gc-heap-hard-limit
 ---
 
 # .NET Runtime Reference
@@ -9,6 +18,7 @@ This reference summarizes practical runtime defaults for .NET workloads on Azure
 
 ## Runtime Execution Model
 
+<!-- diagram-id: runtime-execution-model -->
 ```mermaid
 flowchart LR
     IMG[Container Image] --> BOOT[Kestrel Startup]

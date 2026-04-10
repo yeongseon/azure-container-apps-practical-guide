@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: when-you-enable-authentication-the-platform-s
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/authentication
+        - https://learn.microsoft.com/azure/container-apps/authentication-oidc
 ---
 
 # Built-in Authentication (Easy Auth)
@@ -11,6 +19,7 @@ Azure Container Apps (ACA) provides built-in authentication and authorization, o
 
 When you enable authentication, the platform's built-in authentication middleware intercepts incoming requests and validates the user's identity before forwarding the request to your application container.
 
+<!-- diagram-id: when-you-enable-authentication-the-platform-s -->
 ```mermaid
 sequenceDiagram
     participant U as User Browser

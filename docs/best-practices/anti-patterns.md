@@ -1,6 +1,16 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: anti-pattern-relationship-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/best-practices
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
 ---
 
 # Common Anti-Patterns
@@ -378,6 +388,7 @@ az containerapp show \
 
 ### Anti-pattern relationship map
 
+<!-- diagram-id: anti-pattern-relationship-map -->
 ```mermaid
 graph TD
     A[Anti-Patterns] --> B[Release Safety]

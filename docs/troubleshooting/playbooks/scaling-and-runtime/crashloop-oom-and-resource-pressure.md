@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/containers
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # CrashLoop OOM and Resource Pressure
@@ -17,6 +26,7 @@ Resource pressure manifests differently depending on the bottleneck (memory vs C
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 graph TD
     A[Symptom: Frequent restarts] --> B{OOMKilled signal in logs?}

@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
 ---
 
 # Observability and Distributed Tracing Lab
@@ -25,6 +34,7 @@ The main troubleshooting pattern is to compare the app's environment variable co
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
     A[Container App] --> B[APPLICATIONINSIGHTS_CONNECTION_STRING]

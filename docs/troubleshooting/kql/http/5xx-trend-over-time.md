@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: purpose-tracks-5xx-volume-over-time
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/kusto/query/
 ---
 
 # 5xx Trend Over Time
@@ -9,6 +18,7 @@ hide:
 **Data Source**: Application Insights `requests` table or `ContainerAppConsoleLogs_CL`
 **Purpose**: Tracks 5xx volume over time and separates by status code to detect spikes and dominant failure types.
 
+<!-- diagram-id: purpose-tracks-5xx-volume-over-time -->
 ```mermaid
 graph LR
     A[requests / ConsoleLogs] -->|resultCode >= 500| B[Filter 5xx]

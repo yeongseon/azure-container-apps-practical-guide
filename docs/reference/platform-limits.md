@@ -1,6 +1,13 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: limits-hierarchy-and-blast-radius
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/quotas
 ---
 
 # Azure Container Apps Platform Limits and Quotas
@@ -15,6 +22,7 @@ Use this quick reference for common design-time and runtime limits in Azure Cont
 
 ## Limits hierarchy and blast radius
 
+<!-- diagram-id: limits-hierarchy-and-blast-radius -->
 ```mermaid
 flowchart TD
     A[Container Apps Environment] --> B[Container App]

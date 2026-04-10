@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: job-lifecycle
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/jobs
+        - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
 ---
 
 # Container Apps Jobs
@@ -154,6 +162,7 @@ Trigger on new uploads, transcode or enrich content, and emit completion metadat
 
 ## Job Lifecycle
 
+<!-- diagram-id: job-lifecycle -->
 ```mermaid
 flowchart LR
     A[Trigger] --> B[Execution Created]

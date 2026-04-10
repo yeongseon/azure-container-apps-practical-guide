@@ -1,12 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-key-vault-references-and-azure
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/aspnet/core/security/key-vault-configuration
+        - https://learn.microsoft.com/dotnet/api/overview/azure/security.keyvault.secrets-readme
 ---
 
 # Recipe: Key Vault Reference in .NET Apps on Azure Container Apps
 
 Use Key Vault references and Azure SDK integration to keep ASP.NET Core secrets externalized and auditable.
 
+<!-- diagram-id: use-key-vault-references-and-azure -->
 ```mermaid
 flowchart LR
     APP[ASP.NET Core App] -.-> MI[Managed Identity]

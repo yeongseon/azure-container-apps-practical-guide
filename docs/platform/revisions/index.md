@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: when-you-deploy-a-change-the
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - id: revisions-progress-through-a-lifecycle-managed
+      type: state
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
 ---
 
 # Revision Lifecycle in Azure Container Apps
@@ -11,6 +25,7 @@ A revision is an immutable snapshot of a Container App version. Every change to 
 
 When you deploy a change, the platform creates a new revision. Depending on your traffic settings, the ingress layer routes requests to one or more active revisions.
 
+<!-- diagram-id: when-you-deploy-a-change-the -->
 ```mermaid
 graph LR
     U[User] --> IN[Envoy Ingress]
@@ -28,6 +43,7 @@ graph LR
 
 Revisions progress through a lifecycle managed by the Container Apps platform.
 
+<!-- diagram-id: revisions-progress-through-a-lifecycle-managed -->
 ```mermaid
 stateDiagram-v2
     [*] --> Provisioning

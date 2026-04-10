@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
 ---
 
 # Traffic Routing and Canary Failure Lab
@@ -36,6 +45,7 @@ This lab simulates this scenario by:
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     A[User Request] --> B[Ingress Controller]

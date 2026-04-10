@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: diagnostic-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - id: after-applying-a-candidate-fix-run
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
 ---
 
 # Troubleshooting Methodology
@@ -9,6 +23,7 @@ When the quick triage checklist does not isolate the issue, use this systematic 
 
 ## Diagnostic Flow
 
+<!-- diagram-id: diagnostic-flow -->
 ```mermaid
 flowchart TD
     A[Collect symptom and impact] --> B[Map to affected revision]
@@ -172,6 +187,7 @@ ContainerAppConsoleLogs_CL
 
 After applying a candidate fix, run this loop before declaring incident closure.
 
+<!-- diagram-id: after-applying-a-candidate-fix-run -->
 ```mermaid
 flowchart LR
     A[Apply single targeted fix] --> B[Check revision health]

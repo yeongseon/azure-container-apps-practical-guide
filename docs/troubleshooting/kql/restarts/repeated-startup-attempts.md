@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: purpose-identifies-replicas-with-multiple-startup
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-apps/health-probes
 ---
 
 # Repeated Startup Attempts
@@ -9,6 +18,7 @@ hide:
 **Data Source**: `ContainerAppSystemLogs_CL`
 **Purpose**: Identifies replicas with multiple startup failures to detect crash loops and persistent startup issues.
 
+<!-- diagram-id: purpose-identifies-replicas-with-multiple-startup -->
 ```mermaid
 graph LR
     A[ContainerAppSystemLogs_CL] --> B[Filter Startup Events]

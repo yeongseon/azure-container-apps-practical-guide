@@ -1,6 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: without-explicit-objectives-scaling-rules-become
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+    - id: scale-to-zero-is-ideal-for-intermittent-workloads
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 
 # Scaling Best Practices for Azure Container Apps
@@ -33,6 +49,7 @@ Before setting rules, define objective boundaries:
 
 Without explicit objectives, scaling rules become arbitrary and unstable.
 
+<!-- diagram-id: without-explicit-objectives-scaling-rules-become -->
 ```mermaid
 flowchart LR
     W[Workload Demand] --> K[KEDA Rule Evaluation]
@@ -171,6 +188,7 @@ Scale-to-zero is ideal for intermittent workloads but can be harmful for strict 
 | Startup probe | Must tolerate full cold boot | Only on new revision deploy |
 | Queue processing | Acceptable lag on first message | Immediate processing |
 
+<!-- diagram-id: scale-to-zero-is-ideal-for-intermittent-workloads -->
 ```mermaid
 flowchart TD
     Q{Latency SLO strict?}

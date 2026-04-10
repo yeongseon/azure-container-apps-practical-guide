@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-managed-identity-with-spring-boot
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/java/api/overview/azure/identity-readme
 ---
 
 # Recipe: Managed Identity in Java Apps on Azure Container Apps
 
 Use managed identity with Spring Boot so Java applications can access Azure services without client secrets.
 
+<!-- diagram-id: use-managed-identity-with-spring-boot -->
 ```mermaid
 flowchart LR
     C[Client] --> APP[Spring Boot App]

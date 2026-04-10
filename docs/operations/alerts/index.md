@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: alert-lifecycle-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/alerts
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
 ---
 
 # Alerting for Container Apps
@@ -143,6 +151,7 @@ Tune these values using your normal load patterns after 2-4 weeks of baseline da
 
 ## Alert Lifecycle Flow
 
+<!-- diagram-id: alert-lifecycle-flow -->
 ```mermaid
 flowchart TD
     A[Metric or Log Threshold Breach] --> B[Azure Monitor Alert Rule]

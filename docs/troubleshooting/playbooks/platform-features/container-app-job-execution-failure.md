@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/jobs
+        - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Container App Job Execution Failure
@@ -19,6 +28,7 @@ Container Apps Jobs can fail before the workload does useful work, fail near the
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Job does not complete successfully] --> B{Execution created?}

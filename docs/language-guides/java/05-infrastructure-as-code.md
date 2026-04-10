@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/get-started-xml-bicep?tabs=azure-cli
+        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+    - id: iac-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/get-started-xml-bicep?tabs=azure-cli
+        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
 ---
 
 # 05 - Infrastructure as Code
@@ -12,6 +26,7 @@ Azure Bicep provides a declarative way to define and manage your Azure Container
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
@@ -53,6 +68,7 @@ Azure Bicep provides a declarative way to define and manage your Azure Container
 
 ## IaC Workflow
 
+<!-- diagram-id: iac-workflow -->
 ```mermaid
 graph LR
     CODE[Bicep Templates] --> VALIDATE[az deployment validate]

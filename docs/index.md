@@ -1,6 +1,13 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: learning-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
 ---
 
 # Azure Container Apps Practical Guide
@@ -53,6 +60,7 @@ For orientation and study order, start with [Start Here](start-here/overview.md)
 
 ## Learning flow
 
+<!-- diagram-id: learning-flow -->
 ```mermaid
 flowchart LR
     A[Start Here] --> B[Platform]

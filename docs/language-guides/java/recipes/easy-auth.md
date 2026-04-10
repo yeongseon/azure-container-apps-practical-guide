@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: enable-easy-auth-in-azure-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/authentication
+        - https://learn.microsoft.com/azure/container-apps/authentication-identity-providers
 ---
 
 # Recipe: Easy Auth in Java Apps on Azure Container Apps
 
 Enable Easy Auth in Azure Container Apps and parse authenticated principal claims in a Spring Boot filter.
 
+<!-- diagram-id: enable-easy-auth-in-azure-container -->
 ```mermaid
 flowchart LR
     C[Client] --> AUTH[Easy Auth]

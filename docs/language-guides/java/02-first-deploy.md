@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-acr
+    - id: deployment-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-acr
 ---
 
 # 02 - First Deploy to Azure
@@ -12,6 +26,7 @@ This guide walks you through the initial deployment of your Spring Boot applicat
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
@@ -53,6 +68,7 @@ This guide walks you through the initial deployment of your Spring Boot applicat
 
 ## Deployment Workflow
 
+<!-- diagram-id: deployment-workflow -->
 ```mermaid
 graph TD
     CODE[Local Source] --> ACR_BUILD[ACR Build]

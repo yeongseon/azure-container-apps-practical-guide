@@ -1,6 +1,36 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-one-entry-app-for-public
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: traffic-weights-are-applied-at-ingress
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: choose-vnet-integration-when-private-networking
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: a-common-enterprise-pattern-is-controlled
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
 ---
 
 # Azure Container Apps Networking Best Practices
@@ -53,6 +83,7 @@ Use this table before creating or updating an app:
 
 Use one entry app for public traffic, and keep downstream services internal.
 
+<!-- diagram-id: use-one-entry-app-for-public -->
 ```mermaid
 graph LR
     U[Internet Client] --> D[Custom Domain]
@@ -120,6 +151,7 @@ false
 
 Traffic weights are applied at ingress and route requests to active revisions.
 
+<!-- diagram-id: traffic-weights-are-applied-at-ingress -->
 ```mermaid
 graph TD
     C[Client Request] --> V[Envoy]
@@ -154,6 +186,7 @@ Best practice rollout sequence:
 
 Choose VNet integration when private networking requirements are explicit.
 
+<!-- diagram-id: choose-vnet-integration-when-private-networking -->
 ```mermaid
 flowchart TD
     A[Need private connectivity?] -->|No| B[Managed environment without VNet integration]
@@ -200,6 +233,7 @@ az containerapp env show \
 
 A common enterprise pattern is controlled outbound internet access through Azure Firewall or NVA.
 
+<!-- diagram-id: a-common-enterprise-pattern-is-controlled -->
 ```mermaid
 graph LR
     A[Container App Replica] --> R[Subnet Route Table]

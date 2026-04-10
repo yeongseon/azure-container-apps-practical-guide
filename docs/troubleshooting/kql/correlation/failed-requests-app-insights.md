@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 ---
 
 # Failed Requests App Insights
@@ -15,6 +24,7 @@ Use this query in Application Insights (workspace-based) to inspect failed HTTP 
 
 ## Query Pipeline
 
+<!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart LR
     A[Filter by cloud role name] --> B[Filter failed requests] --> C[Project operation metadata] --> D[Sort by time]

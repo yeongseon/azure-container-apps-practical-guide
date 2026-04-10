@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: purpose-shows-p50-p95-p99-latency-trends-split
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/kusto/query/
 ---
 
 # Latency Trend by Status Code
@@ -9,6 +18,7 @@ hide:
 **Data Source**: Application Insights `requests` table (requires OpenTelemetry or App Insights SDK)
 **Purpose**: Shows P50/P95/P99 latency trends split by HTTP status code to identify whether specific status groups are driving tail latency.
 
+<!-- diagram-id: purpose-shows-p50-p95-p99-latency-trends-split -->
 ```mermaid
 graph LR
     A[requests table] --> B[Percentile Calc per Status]

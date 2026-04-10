@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom
+        - https://learn.microsoft.com/azure/container-apps/networking
 ---
 
 # VNet Integration
@@ -20,6 +28,7 @@ Container Apps can be deployed into a custom VNet to:
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
     subgraph VNet ["Virtual Network (10.0.0.0/16)"]

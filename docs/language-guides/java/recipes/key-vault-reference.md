@@ -1,12 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-azure-key-vault-with-managed
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault
+        - https://learn.microsoft.com/java/api/overview/azure/security-keyvault-secrets-readme
 ---
 
 # Recipe: Key Vault Reference in Java Apps on Azure Container Apps
 
 Use Azure Key Vault with managed identity and Spring Boot to externalize secrets for Java workloads on Azure Container Apps.
 
+<!-- diagram-id: use-azure-key-vault-with-managed -->
 ```mermaid
 flowchart LR
     APP[Spring Boot App] -.-> MI[Managed Identity]

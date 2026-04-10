@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 ---
 
 # Ingress Error Analysis
@@ -15,6 +24,7 @@ Use this query to investigate ingress-related request failures such as 502/504 a
 
 ## Query Pipeline
 
+<!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart LR
     A[Filter by app] --> B[Filter ingress and gateway signals] --> C[Project revision and reason] --> D[Sort by time]

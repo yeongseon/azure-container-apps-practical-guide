@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: integration-dependency-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
 ---
 
 # Recipes: Integration Patterns for Azure Container Apps (Node.js)
@@ -45,6 +53,7 @@ These recipes are intentionally task-oriented: each page solves a specific produ
 
 ## Integration Dependency Map
 
+<!-- diagram-id: integration-dependency-map -->
 ```mermaid
 flowchart TD
     BASE[Baseline app deployed<br/>Steps 01-07] --> ID[Managed Identity]

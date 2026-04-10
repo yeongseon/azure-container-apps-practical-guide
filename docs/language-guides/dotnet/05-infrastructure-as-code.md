@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+        - https://learn.microsoft.com/azure/container-apps/bicep-infrastructure
+    - id: infrastructure-lifecycle
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+        - https://learn.microsoft.com/azure/container-apps/bicep-infrastructure
 ---
 
 # 05 - Infrastructure as Code with Bicep
@@ -12,6 +26,7 @@ Use Bicep to define your .NET application infrastructure consistently across env
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux .NET 8"]
@@ -53,6 +68,7 @@ Use Bicep to define your .NET application infrastructure consistently across env
 
 ## Infrastructure Lifecycle
 
+<!-- diagram-id: infrastructure-lifecycle -->
 ```mermaid
 graph LR
     WRITE[Write Bicep] --> VAL[Validate]

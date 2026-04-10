@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 ---
 
 # Errors by Revision
@@ -15,6 +24,7 @@ Use this query to compare error volume across revisions and detect rollout regre
 
 ## Query Pipeline
 
+<!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart LR
     A[Filter by app] --> B[Filter error patterns] --> C[Summarize by revision] --> D[Sort by error volume]

@@ -1,6 +1,18 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: how-it-works
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+    - id: quick-decision-tree
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
 ---
 
 # Container Apps Troubleshooting
@@ -17,6 +29,7 @@ This is a hypothesis-driven troubleshooting guide built around repeatable incide
 
 ## How It Works
 
+<!-- diagram-id: how-it-works -->
 ```mermaid
 graph LR
     A[Observe Symptom] --> B[List Hypotheses]
@@ -58,6 +71,7 @@ When something goes wrong, ask these questions in order:
 
 ## Quick Decision Tree
 
+<!-- diagram-id: quick-decision-tree -->
 ```mermaid
 graph TD
     A[Symptom Observed] --> B{App returns HTTP errors?}

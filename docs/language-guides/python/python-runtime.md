@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: runtime-execution-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/containers
+        - https://learn.microsoft.com/azure/container-apps/connect-apps
 ---
 
 # Python Runtime
@@ -9,6 +17,7 @@ This reference summarizes practical runtime defaults for Python workloads on Azu
 
 ## Runtime Execution Model
 
+<!-- diagram-id: runtime-execution-model -->
 ```mermaid
 flowchart LR
     IMG[Container Image] --> BOOT[Gunicorn Startup]

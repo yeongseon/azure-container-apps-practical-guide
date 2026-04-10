@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 ---
 
 # Top Noisy Messages
@@ -15,6 +24,7 @@ Use this query to identify repetitive log lines that may indicate error storms o
 
 ## Query Pipeline
 
+<!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart LR
     A[Filter by app and time window] --> B[Normalize message text] --> C[Count by message] --> D[Top noisy entries]

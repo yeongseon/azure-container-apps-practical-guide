@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
+        - https://learn.microsoft.com/azure/azure-sql/database/connect-query-python
 ---
 
 # Azure SQL Integration (Managed Identity)
@@ -9,6 +17,7 @@ Use this recipe to connect Azure Container Apps to Azure SQL Database with Micro
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
+        - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-python
 ---
 
 # Cosmos DB Integration (Managed Identity)
@@ -9,6 +17,7 @@ Use this recipe to connect a Python Container App to Azure Cosmos DB (NoSQL) wit
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

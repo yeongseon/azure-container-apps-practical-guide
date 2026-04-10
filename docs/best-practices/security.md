@@ -1,6 +1,44 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: create-environments-with-no-public-endpoint
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/security-concept
+        - https://learn.microsoft.com/azure/container-apps/authentication
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+        - https://learn.microsoft.com/azure/role-based-access-control/overview
+        - https://learn.microsoft.com/azure/container-apps/policy-reference
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - id: enable-vulnerability-scanning
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/security-concept
+        - https://learn.microsoft.com/azure/container-apps/authentication
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+        - https://learn.microsoft.com/azure/role-based-access-control/overview
+        - https://learn.microsoft.com/azure/container-apps/policy-reference
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - id: apply-least-privilege-role-assignments
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/security-concept
+        - https://learn.microsoft.com/azure/container-apps/authentication
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+        - https://learn.microsoft.com/azure/role-based-access-control/overview
+        - https://learn.microsoft.com/azure/container-apps/policy-reference
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
 ---
 
 # Azure Container Apps Security Best Practices
@@ -46,6 +84,7 @@ Each of these creates an exploitable surface. The patterns below address them sy
 
 Create environments with no public endpoint. Front with Application Gateway or API Management for controlled entry.
 
+<!-- diagram-id: create-environments-with-no-public-endpoint -->
 ```mermaid
 flowchart LR
     subgraph Public ["Public Internet"]
@@ -225,6 +264,7 @@ az containerapp update \
 
 #### Enable vulnerability scanning
 
+<!-- diagram-id: enable-vulnerability-scanning -->
 ```mermaid
 flowchart LR
     DEV[Developer] -- "Push" --> ACR[ACR]
@@ -301,6 +341,7 @@ az containerapp update \
 
 #### Apply least-privilege role assignments
 
+<!-- diagram-id: apply-least-privilege-role-assignments -->
 ```mermaid
 flowchart TD
     subgraph Roles ["Production RBAC Model"]

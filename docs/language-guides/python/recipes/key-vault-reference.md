@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-managed-identity-and-key-vault
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 
 # Recipe: Key Vault Secret References in Azure Container Apps
 
 Use managed identity and Key Vault references so your Python app receives secrets as environment variables without embedding secret values in deployment manifests.
 
+<!-- diagram-id: use-managed-identity-and-key-vault -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

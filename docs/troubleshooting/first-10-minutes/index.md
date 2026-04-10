@@ -1,12 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-this-ordered-checklist-when-a
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
 ---
 
 # First 10 Minutes: Quick Triage Checklist
 
 Use this ordered checklist when a Container App is down, unhealthy, or unreachable. Run each step in sequence and stop when you find the first confirmed failure.
 
+<!-- diagram-id: use-this-ordered-checklist-when-a -->
 ```mermaid
 flowchart TD
     START["App Down / Unhealthy"] --> R["1) Revision Status"]

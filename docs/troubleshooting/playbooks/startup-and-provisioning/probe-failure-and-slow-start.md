@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Probe Failure and Slow Start
@@ -17,6 +25,7 @@ The application code is correct and the container runs fine locally. The problem
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 graph TD
     A[Symptom: Probe failures, restart loops] --> B{Probe path returns 200 when tested manually?}

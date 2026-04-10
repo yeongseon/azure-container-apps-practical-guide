@@ -1,6 +1,13 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-a-repeatable-control-loop-so
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
 ---
 
 # Operations
@@ -77,6 +84,7 @@ Example output (PII masked):
 
 Use a repeatable control loop so every operational change is observable, reversible, and documented.
 
+<!-- diagram-id: use-a-repeatable-control-loop-so -->
 ```mermaid
 flowchart LR
     A[Baseline Health Check] --> B[Apply Change]

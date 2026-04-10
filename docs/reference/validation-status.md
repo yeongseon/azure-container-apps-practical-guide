@@ -1,3 +1,15 @@
+---
+content_sources:
+  diagrams:
+    - id: generated-2026-04-09
+      type: pie
+      source: self-generated
+      justification: "Repository validation dashboard derived from local tutorial verification metadata; Microsoft Learn links identify the Azure Container Apps tutorials being tracked."
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+---
+
 # Tutorial Validation Status
 
 This page tracks which tutorials have been validated against real Azure deployments. Each tutorial can be tested via **az-cli** (manual CLI commands) or **Bicep** (infrastructure as code). Tutorials not tested within 90 days are marked as stale.
@@ -14,6 +26,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 | ❌ Failed | 0 |
 | ➖ Not tested | 28 |
 
+<!-- diagram-id: generated-2026-04-09 -->
 ```mermaid
 pie title Tutorial Validation Status
     "Not Tested" : 28

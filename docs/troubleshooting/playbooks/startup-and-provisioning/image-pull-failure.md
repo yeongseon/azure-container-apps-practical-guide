@@ -1,6 +1,16 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/containers#container-registries
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
 ---
 
 # Image Pull Failure
@@ -17,6 +27,7 @@ Image pull failures look similar to app crashes at first glance—both result in
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 graph TD
     A[Symptom: Revision never starts] --> B{System log shows error?}

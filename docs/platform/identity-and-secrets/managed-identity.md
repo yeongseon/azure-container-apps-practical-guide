@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
 ---
 
 # Passwordless Access with Managed Identity
@@ -9,6 +17,7 @@ Azure Container Apps (ACA) supports managed identities, allowing your Python app
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

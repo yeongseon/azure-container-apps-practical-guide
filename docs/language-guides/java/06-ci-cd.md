@@ -1,6 +1,18 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/github-actions-repo-auth
+    - id: ci-cd-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/github-actions-repo-auth
 ---
 
 # 06 - CI/CD with GitHub Actions
@@ -12,6 +24,7 @@ Automating the build and deployment of your Spring Boot application ensures cons
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
@@ -53,6 +66,7 @@ Automating the build and deployment of your Spring Boot application ensures cons
 
 ## CI/CD Workflow
 
+<!-- diagram-id: ci-cd-workflow -->
 ```mermaid
 graph TD
     PUSH[Git Push] --> BUILD[Maven Build]

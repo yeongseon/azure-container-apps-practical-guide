@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
 ---
 
 # Image Pull and Auth Errors
@@ -15,6 +24,7 @@ Use this query to isolate registry pull failures and authentication errors durin
 
 ## Query Pipeline
 
+<!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart LR
     A[Filter by app] --> B[Filter pull and auth terms] --> C[Project revision and reason] --> D[Sort by time]

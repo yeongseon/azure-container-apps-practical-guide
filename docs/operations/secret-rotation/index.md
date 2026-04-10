@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: secret-rotation-lifecycle
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
 ---
 
 # Secret Rotation
@@ -80,6 +88,7 @@ Document secret owners and rotation cadence per dependency.
 
 ## Secret Rotation Lifecycle
 
+<!-- diagram-id: secret-rotation-lifecycle -->
 ```mermaid
 sequenceDiagram
     participant Ops as Operations Team

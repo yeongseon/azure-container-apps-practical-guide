@@ -1,12 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: validate-new-revisions-with-direct-testing
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 ---
 
 # Recipe: Revision Validation Before Production Traffic
 
 Validate new revisions with direct testing and controlled traffic movement so you can release safely without impacting all users at once.
 
+<!-- diagram-id: validate-new-revisions-with-direct-testing -->
 ```mermaid
 flowchart LR
     DEV[Developer] --> IMG["New Image Tag"]

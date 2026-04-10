@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: route-outbound-traffic-through-azure-firewall
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements
+        - https://learn.microsoft.com/azure/container-apps/user-defined-routes
+    - id: nat-gateway-architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements
+        - https://learn.microsoft.com/azure/container-apps/user-defined-routes
 ---
 
 # Egress Control
@@ -30,6 +44,7 @@ By default, Container Apps can access:
 
 Route outbound traffic through Azure Firewall or NVA:
 
+<!-- diagram-id: route-outbound-traffic-through-azure-firewall -->
 ```mermaid
 flowchart LR
     subgraph VNet [Virtual Network]
@@ -80,6 +95,7 @@ Allow required outbound traffic:
 
 ### NAT Gateway Architecture
 
+<!-- diagram-id: nat-gateway-architecture -->
 ```mermaid
 flowchart TD
     subgraph VNet [Virtual Network]

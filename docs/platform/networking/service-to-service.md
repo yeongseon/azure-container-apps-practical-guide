@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: internal-resolution-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/connect-apps
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
 ---
 
 # Service-to-Service Communication
@@ -32,6 +40,7 @@ http://<app-name>
 
 ### Internal Resolution Flow
 
+<!-- diagram-id: internal-resolution-flow -->
 ```mermaid
 flowchart LR
     subgraph Env [Managed Environment]

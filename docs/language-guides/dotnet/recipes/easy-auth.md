@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-easy-auth-to-handle-identity
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/authentication
+        - https://learn.microsoft.com/azure/container-apps/authentication-identity-providers
 ---
 
 # Recipe: Easy Auth in .NET Apps on Azure Container Apps
 
 Use Easy Auth to handle identity at the edge, then map claims inside ASP.NET Core middleware.
 
+<!-- diagram-id: use-easy-auth-to-handle-identity -->
 ```mermaid
 flowchart LR
     C[Client] --> AUTH[Easy Auth]

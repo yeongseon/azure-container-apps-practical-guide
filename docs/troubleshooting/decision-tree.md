@@ -1,6 +1,26 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: main-triage-decision-tree
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: 5xx-branch-deep-dive-tree
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/scale-app
 ---
 
 # Troubleshooting Decision Tree
@@ -11,6 +31,7 @@ The tree is intentionally symptom-first and optimized for the first 10–15 minu
 
 ## Main triage decision tree
 
+<!-- diagram-id: main-triage-decision-tree -->
 ```mermaid
 flowchart TD
     S[Incident starts: user-visible impact] --> Q1{Is it a 5xx issue?}
@@ -51,6 +72,7 @@ flowchart TD
 
 ## 5xx branch deep-dive tree
 
+<!-- diagram-id: 5xx-branch-deep-dive-tree -->
 ```mermaid
 flowchart LR
     A[Observed 5xx] --> B{Status pattern}

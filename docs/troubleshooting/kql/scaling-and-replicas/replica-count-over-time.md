@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 ---
 
 # Replica Count Over Time
@@ -15,6 +24,7 @@ Use this query to visualize how many replicas are active per revision over time 
 
 ## Query Pipeline
 
+<!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart LR
     A[Filter by app and time] --> B[Keep replica lifecycle events] --> C[Distinct replica count by bin] --> D[Trend output]

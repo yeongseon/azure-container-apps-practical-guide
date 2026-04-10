@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline-overview
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/kusto/query/
 ---
 
 # Restarts Query Pack
@@ -19,6 +28,7 @@ Queries for analyzing container and replica restart patterns in Azure Container 
 
 ## Query Pipeline Overview
 
+<!-- diagram-id: query-pipeline-overview -->
 ```mermaid
 flowchart LR
     A[System Logs] --> B[Filter Restart Events]

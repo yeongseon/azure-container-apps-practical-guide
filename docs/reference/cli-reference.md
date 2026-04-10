@@ -1,6 +1,13 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: cli-workflow-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/cli/azure/containerapp
 ---
 
 # Azure Container Apps CLI Reference
@@ -24,6 +31,7 @@ az extension add --name containerapp --upgrade
 
 ## CLI workflow map
 
+<!-- diagram-id: cli-workflow-map -->
 ```mermaid
 flowchart LR
     A[Create App or Job] --> B[Configure Runtime and Access]

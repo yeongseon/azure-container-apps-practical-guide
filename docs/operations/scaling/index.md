@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: scaling-decision-framework
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/scale-app
+        - https://learn.microsoft.com/azure/container-apps/scale-app#scale-triggers
 ---
 
 # Scaling Operations
@@ -129,6 +137,7 @@ Example output (PII masked):
 
 ## Scaling Decision Framework
 
+<!-- diagram-id: scaling-decision-framework -->
 ```mermaid
 flowchart LR
     A[Traffic or Queue Increase] --> B{Workload Type}

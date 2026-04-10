@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-container-apps-authentication-easy-auth
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-identity-providers
 ---
 
 # Recipe: Easy Auth (Built-in Authentication) for Python Apps
 
 Use Container Apps authentication (Easy Auth) to offload sign-in and token handling, then apply app-level authorization in Flask.
 
+<!-- diagram-id: use-container-apps-authentication-easy-auth -->
 ```mermaid
 flowchart LR
     C[Client] --> AUTH["Easy Auth (Built-in)"]

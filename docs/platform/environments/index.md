@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: environment-and-app-relationship
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/environment
+        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+    - id: revisions-are-scoped-per-app-not
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/environment
+        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
 ---
 
 # Environments and Apps in Azure Container Apps
@@ -9,6 +23,7 @@ The most important design decision in Azure Container Apps is the boundary betwe
 
 ## Environment and App Relationship
 
+<!-- diagram-id: environment-and-app-relationship -->
 ```mermaid
 graph TD
     subgraph ENV1[Container Apps Environment: prod-core]
@@ -62,6 +77,7 @@ Keep apps in one environment when you need:
 
 Revisions are scoped per app, not per environment.
 
+<!-- diagram-id: revisions-are-scoped-per-app-not -->
 ```mermaid
 graph LR
     ENV[Environment] --> APPA[App A]

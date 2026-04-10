@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: enable-system-assigned-managed-identity
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
 ---
 
 # Security Operations
@@ -22,6 +30,7 @@ export ENVIRONMENT_NAME="cae-myapp"
 
 Enable system-assigned managed identity:
 
+<!-- diagram-id: enable-system-assigned-managed-identity -->
 ```mermaid
 flowchart LR
     A[Container App] --> B[Managed Identity]

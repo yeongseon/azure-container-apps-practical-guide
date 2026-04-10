@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: purpose-lists-restart-related-platform-events-to
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/kusto/query/
 ---
 
 # Restart Timing Correlation
@@ -9,6 +18,7 @@ hide:
 **Data Source**: `ContainerAppSystemLogs_CL`
 **Purpose**: Lists restart-related platform events to correlate with incident timelines.
 
+<!-- diagram-id: purpose-lists-restart-related-platform-events-to -->
 ```mermaid
 graph LR
     A[ContainerAppSystemLogs_CL] -->|Restart Events| B[Filter by Reason]

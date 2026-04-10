@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: handle-python-packages-with-compiled-native-components
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/python-overview
 ---
 
 # Recipe: Python Native Dependencies on Azure Container Apps
 
 Handle Python packages with compiled/native components by installing required system libraries and using build strategies that keep runtime images lean.
 
+<!-- diagram-id: handle-python-packages-with-compiled-native-components -->
 ```mermaid
 flowchart LR
     REQ["requirements.txt"] --> BUILD["Builder Stage (gcc, libpq-dev)"]

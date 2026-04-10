@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: deploy-asp-net-core-images-from-private
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-azure-cli
 ---
 
 # Recipe: Container Registry in .NET Apps on Azure Container Apps
 
 Deploy ASP.NET Core images from private ACR using a user-assigned managed identity for image pulls.
 
+<!-- diagram-id: deploy-asp-net-core-images-from-private -->
 ```mermaid
 flowchart LR
     ACR[Azure Container Registry] --> APP[ASP.NET Core Container App]

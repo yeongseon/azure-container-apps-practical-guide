@@ -1,6 +1,16 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: the-following-flow-helps-teams-move
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/get-started
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
 ---
 
 # Tutorial: Azure Container Apps for Python
@@ -56,6 +66,7 @@ Use the table below to choose a role-first path. Each path points to the same co
 
 The following flow helps teams move from orientation to production readiness without skipping operational fundamentals.
 
+<!-- diagram-id: the-following-flow-helps-teams-move -->
 ```mermaid
 flowchart LR
     A[Start Here: Overview] --> B[When to Use Container Apps]

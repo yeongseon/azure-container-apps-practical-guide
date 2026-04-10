@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 
 # Secret Reference Failures
@@ -15,6 +24,7 @@ Use this query to identify failures caused by missing secrets, invalid secret re
 
 ## Query Pipeline
 
+<!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart LR
     A[Filter by app] --> B[Filter secret and Key Vault signals] --> C[Project reason and revision] --> D[Sort by time]

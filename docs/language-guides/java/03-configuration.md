@@ -1,6 +1,18 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - id: configuration-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
 ---
 
 # 03 - Configuration and Secrets
@@ -12,6 +24,7 @@ Spring Boot applications on Azure Container Apps use environment variables, secr
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
@@ -53,6 +66,7 @@ Spring Boot applications on Azure Container Apps use environment variables, secr
 
 ## Configuration Workflow
 
+<!-- diagram-id: configuration-workflow -->
 ```mermaid
 graph LR
     APP[Spring Boot App] --> ENV[Environment Variables]

@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/scale-app
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # HTTP Scaling Not Triggering
@@ -17,6 +25,7 @@ HTTP scaling involves multiple components: KEDA metrics server, stabilization wi
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 graph TD
     A[Symptom: Latency high, replicas flat] --> B{maxReplicas reached?}

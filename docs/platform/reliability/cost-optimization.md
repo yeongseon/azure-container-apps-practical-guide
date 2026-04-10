@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: workload-profiles-best-for-predictable-baseline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/azure/container-apps/billing
 ---
 
 # Cost Optimization Operations
@@ -23,6 +31,7 @@ export ENVIRONMENT_NAME="aca-env-prod"
 - **Consumption profile**: best for variable traffic and scale-to-zero scenarios.
 - **Workload profiles**: best for predictable baseline load and dedicated capacity planning.
 
+<!-- diagram-id: workload-profiles-best-for-predictable-baseline -->
 ```mermaid
 flowchart LR
     T[Traffic Pattern] --> P{Profile Choice}

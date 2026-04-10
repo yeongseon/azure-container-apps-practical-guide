@@ -1,10 +1,19 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: environment-variables
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/environment-variables
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
 ---
 
 # Environment Variables
 
+<!-- diagram-id: environment-variables -->
 ```mermaid
 flowchart TD
     APP["Container App"] --> APPVAR["Application Variables (LOG_LEVEL, FLASK_ENV)"]

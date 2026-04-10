@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-container-apps-built-in-authentication-easy
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/authentication
+        - https://learn.microsoft.com/azure/container-apps/authentication-identity-providers
 ---
 
 # Recipe: Easy Auth in Node.js Apps on Azure Container Apps
 
 Use Container Apps built-in authentication (Easy Auth) and parse the authenticated principal inside Express middleware.
 
+<!-- diagram-id: use-container-apps-built-in-authentication-easy -->
 ```mermaid
 flowchart LR
     C[Client] --> AUTH[Easy Auth]

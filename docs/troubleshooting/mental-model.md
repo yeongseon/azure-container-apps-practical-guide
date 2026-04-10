@@ -1,6 +1,17 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: classification-flowchart
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 
 # Troubleshooting Mental Model
@@ -22,6 +33,7 @@ This classification helps you avoid looking at the wrong logs from the start.
 
 ## Classification flowchart
 
+<!-- diagram-id: classification-flowchart -->
 ```mermaid
 flowchart TD
     A[Observed symptom] --> B{Primary failure signal}

@@ -1,6 +1,26 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: ingress-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+    - id: vnet-setup-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+    - id: diagnostic-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
 ---
 
 # Networking Operations
@@ -32,6 +52,7 @@ az containerapp ingress enable \
 
 ### Ingress Flow
 
+<!-- diagram-id: ingress-flow -->
 ```mermaid
 flowchart TD
     subgraph ControlPlane [Azure Control Plane]
@@ -128,6 +149,7 @@ Example health payload:
 
 ### VNet Setup Flow
 
+<!-- diagram-id: vnet-setup-flow -->
 ```mermaid
 flowchart LR
     subgraph Infrastructure [Azure Infrastructure]
@@ -245,6 +267,7 @@ When connectivity issues arise with privately networked resources, follow this s
 
 ### Diagnostic Flow
 
+<!-- diagram-id: diagnostic-flow -->
 ```mermaid
 flowchart TD
     Start["Connectivity Issue"] --> DNS["1. nslookup hostname"]

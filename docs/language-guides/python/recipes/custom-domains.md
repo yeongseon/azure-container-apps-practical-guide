@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
+    - id: digi-cert-managed-certificate-issued
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
 ---
 
 # Custom Domains and Certificates
@@ -9,6 +23,7 @@ Azure Container Apps supports custom hostnames and TLS certificates so you can s
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     U[Client] --> DNS[Public DNS zone]
@@ -19,6 +34,7 @@ flowchart LR
     DIGI --> CERT[Managed certificate issued]
 ```
 
+<!-- diagram-id: digi-cert-managed-certificate-issued -->
 ```mermaid
 flowchart LR
     U[Client HTTPS request] --> CDNS[Custom domain DNS]

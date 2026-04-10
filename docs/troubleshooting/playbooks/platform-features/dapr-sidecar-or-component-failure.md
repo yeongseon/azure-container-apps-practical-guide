@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/azure/container-apps/dapr-components
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
 ---
 
 # Dapr Sidecar or Component Failure
@@ -21,6 +30,7 @@ The same symptom also appears for multiple root causes: wrong `dapr.appPort`, in
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 graph TD
     A[Dapr call fails or sidecar never works] --> B{Dapr enabled on the Container App?}

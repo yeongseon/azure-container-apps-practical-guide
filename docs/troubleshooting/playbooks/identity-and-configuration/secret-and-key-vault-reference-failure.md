@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets#reference-secret-from-key-vault
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
 ---
 
 # Secret and Key Vault Reference Failure
@@ -17,6 +26,7 @@ Secret failures span configuration mapping, revision lifecycle behavior, and Key
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Secret-related failure observed] --> B{secretRef exists in app secret set?}

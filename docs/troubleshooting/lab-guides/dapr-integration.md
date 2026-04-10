@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/azure/container-apps/dapr-components
 ---
 
 # Dapr Integration Troubleshooting Lab
@@ -25,6 +33,7 @@ The key troubleshooting lesson is that ingress `targetPort` and Dapr `appPort` a
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     A[External Request] --> B[Ingress :8000]

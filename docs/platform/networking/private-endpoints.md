@@ -1,6 +1,26 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: overview
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
+    - id: privatelink-region-data-microsoft-com-for-the-data-endpoint-layer
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
 ---
 
 # Private Endpoints
@@ -9,6 +29,7 @@ Connect Container Apps to Azure services using Private Endpoints.
 
 ## Overview
 
+<!-- diagram-id: overview -->
 ```mermaid
 flowchart LR
     subgraph VNet
@@ -79,6 +100,7 @@ This deploys:
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
     subgraph ClientSubnet [Client Subnet]
@@ -113,6 +135,7 @@ ACR is unique and requires two private DNS zones for full functionality within a
 1.  `privatelink.azurecr.io`: For the login server (authentication and metadata)
 2.  `privatelink.<region>.data.microsoft.com`: For the data endpoint (layer downloads)
 
+<!-- diagram-id: privatelink-region-data-microsoft-com-for-the-data-endpoint-layer -->
 ```mermaid
 flowchart LR
     subgraph VNet

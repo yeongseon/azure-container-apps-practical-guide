@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: symptom-routing-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 ---
 
 # Detector Map: Symptom to Playbook
@@ -27,6 +36,7 @@ Use this detector map to move from first symptom to the most likely troubleshoot
 
 ## Symptom Routing Flow
 
+<!-- diagram-id: symptom-routing-flow -->
 ```mermaid
 flowchart TD
     A[Start: user-visible symptom] --> B{Revision created and healthy?}

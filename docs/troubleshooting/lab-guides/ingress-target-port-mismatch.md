@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/azure/container-apps/ingress-how-to
 ---
 
 # Ingress Target Port Mismatch Lab
@@ -30,6 +38,7 @@ This is one of the most common "works locally, fails in Azure" scenarios because
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     A[External Request] --> B[Ingress Controller]

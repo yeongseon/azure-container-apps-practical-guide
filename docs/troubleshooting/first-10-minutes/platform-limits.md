@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-this-page-as-a-quick
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/quotas
+        - https://learn.microsoft.com/azure/container-apps/scale-app
 ---
 
 # Platform Limits
 
 Use this page as a quick checkpoint before scaling, rollout, or incident response.
 
+<!-- diagram-id: use-this-page-as-a-quick -->
 ```mermaid
 flowchart TD
     REQ[Incoming Request] --> TIMEOUT{"Ingress Timeout (~240s)"}

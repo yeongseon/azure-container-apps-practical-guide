@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - id: revision-traffic-splitting
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
 ---
 
 # 07 - Revisions and Traffic Splitting
@@ -12,6 +26,7 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
@@ -53,6 +68,7 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
 
 ## Revision Traffic Splitting
 
+<!-- diagram-id: revision-traffic-splitting -->
 ```mermaid
 graph LR
     INGRESS[Ingress] -->|90%| V1[Revision v1]

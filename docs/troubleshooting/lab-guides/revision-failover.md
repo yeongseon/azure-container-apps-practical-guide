@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions-manage
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
 ---
 
 # Revision Failover and Rollback Lab
@@ -25,6 +33,7 @@ Traffic shifting is usually faster than rebuilding during an incident, but it on
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     A[Revision N healthy] --> B[Deploy revision N+1 with wrong target port]

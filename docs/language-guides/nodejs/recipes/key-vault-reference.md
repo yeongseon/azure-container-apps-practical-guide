@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-key-vault-references-and-managed
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/javascript/api/overview/azure/keyvault-secrets-readme
 ---
 
 # Recipe: Key Vault Reference in Node.js Apps on Azure Container Apps
 
 Use Key Vault references and managed identity so Express workloads can consume secrets without embedding values in code or deployment files.
 
+<!-- diagram-id: use-key-vault-references-and-managed -->
 ```mermaid
 flowchart LR
     APP[Express App] -.-> MI[Managed Identity]

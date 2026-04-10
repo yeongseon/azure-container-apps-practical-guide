@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-azure-container-registry-acr-with
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
 ---
 
 # Recipe: Container Registry in Node.js Apps on Azure Container Apps
 
 Use Azure Container Registry (ACR) with managed identity to pull private Node.js images securely into Azure Container Apps.
 
+<!-- diagram-id: use-azure-container-registry-acr-with -->
 ```mermaid
 flowchart LR
     ACR[Azure Container Registry] --> APP[Node.js Container App]

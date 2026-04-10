@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: image-pull-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/containers
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
 ---
 
 # Image Pull and Registry Operations
@@ -94,6 +102,7 @@ az containerapp logs show \
 
 ## Image Pull Workflow
 
+<!-- diagram-id: image-pull-workflow -->
 ```mermaid
 flowchart LR
     A[Deploy Revision] --> B[Container Apps requests image]

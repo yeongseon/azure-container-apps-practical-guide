@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: azure-container-apps-uses-the-eclipse
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/developer/java/fundamentals/java-on-azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 ---
 
 # Java Runtime Reference
@@ -11,6 +20,7 @@ This guide provides technical details on the Java runtime environment and optimi
 
 Azure Container Apps uses the [Eclipse Temurin](https://adoptium.net/temurin/) distribution for the OpenJDK runtime. The reference application uses **Java 21 (LTS)**.
 
+<!-- diagram-id: azure-container-apps-uses-the-eclipse -->
 ```mermaid
 graph TD
     JVM[JVM Runtime] --> GC[Garbage Collector]

@@ -1,6 +1,13 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/scale-app
 ---
 
 # Scale Rule Mismatch Lab
@@ -25,6 +32,7 @@ The initial scale rule uses `concurrentRequests=500`, which is too high for the 
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
     A[Incoming traffic increases] --> B[KEDA observes HTTP concurrency]

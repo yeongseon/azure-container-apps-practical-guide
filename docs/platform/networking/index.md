@@ -1,6 +1,32 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: high-level-network-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - id: traffic-flow-external-vs-internal-ingress
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - id: vnet-integration-architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - id: ingress-routes-traffic-to-active-revisions
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
 ---
 
 # Networking in Azure Container Apps
@@ -9,6 +35,7 @@ Networking in Azure Container Apps combines managed ingress with optional privat
 
 ## High-Level Network Flow
 
+<!-- diagram-id: high-level-network-flow -->
 ```mermaid
 graph LR
     C[Client] --> E[Envoy Ingress]
@@ -39,6 +66,7 @@ Envoy acts as the managed ingress layer, handling routing into app revisions and
 
 ### Traffic Flow: External vs Internal Ingress
 
+<!-- diagram-id: traffic-flow-external-vs-internal-ingress -->
 ```mermaid
 flowchart TD
     subgraph Public [Public Internet]
@@ -71,6 +99,7 @@ Container Apps environments can integrate with virtual networks to control east-
 
 ### VNet Integration Architecture
 
+<!-- diagram-id: vnet-integration-architecture -->
 ```mermaid
 flowchart LR
     subgraph VNet ["Virtual Network (10.0.0.0/16)"]
@@ -112,6 +141,7 @@ With optional Dapr integration, service invocation becomes more uniform across s
 
 Ingress routes traffic to active revisions based on configured weights.
 
+<!-- diagram-id: ingress-routes-traffic-to-active-revisions -->
 ```mermaid
 graph TD
     I[Envoy Ingress] --> R1[Revision v1 - 70%]

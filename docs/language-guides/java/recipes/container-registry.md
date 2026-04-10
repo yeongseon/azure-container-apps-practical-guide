@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: pull-private-spring-boot-images-from
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-docker-cli
 ---
 
 # Recipe: Container Registry in Java Apps on Azure Container Apps
 
 Pull private Spring Boot images from Azure Container Registry using managed identity in Azure Container Apps.
 
+<!-- diagram-id: pull-private-spring-boot-images-from -->
 ```mermaid
 flowchart LR
     ACR[Azure Container Registry] --> APP[Java Container App]

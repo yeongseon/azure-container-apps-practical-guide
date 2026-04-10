@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Revision Provisioning Failure
@@ -17,6 +26,7 @@ Control-plane success is easy to misread as workload success. A deployment comma
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Revision health is Failed] --> B{Error references secret or env?}

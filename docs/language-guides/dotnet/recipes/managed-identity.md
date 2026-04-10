@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-defaultazurecredential-and-asp-net-core-dependency
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme
 ---
 
 # Recipe: Managed Identity in .NET Apps on Azure Container Apps
 
 Use `DefaultAzureCredential` and ASP.NET Core dependency injection to access Azure resources without connection secrets.
 
+<!-- diagram-id: use-defaultazurecredential-and-asp-net-core-dependency -->
 ```mermaid
 flowchart LR
     C[Client] --> APP[ASP.NET Core App]

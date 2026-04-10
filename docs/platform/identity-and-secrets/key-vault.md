@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/azure/app-service/app-service-key-vault-references
 ---
 
 # Key Vault Secrets Management (Managed Identity)
@@ -9,6 +17,7 @@ Use this recipe to access Key Vault secrets from a Python Container App without 
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     P[Container Apps platform] --> S[Secret reference resolution]

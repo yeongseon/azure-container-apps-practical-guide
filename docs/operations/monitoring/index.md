@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: signals-and-alerting-architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+    - id: telemetry-freshness-workflow
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
 ---
 
 # Observability Operations
@@ -9,6 +23,7 @@ This guide covers production observability operations for Container Apps using L
 
 ## Signals and Alerting Architecture
 
+<!-- diagram-id: signals-and-alerting-architecture -->
 ```mermaid
 flowchart TD
     METRICS[Metrics: Requests, ResponseTime, CPU, Memory, Replicas] --> METRIC_ALERTS[Metric alert rules]
@@ -195,6 +210,7 @@ Example output (PII masked):
 
 ### Telemetry Freshness Workflow
 
+<!-- diagram-id: telemetry-freshness-workflow -->
 ```mermaid
 sequenceDiagram
     participant App as Container App

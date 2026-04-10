@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/get-started
+        - https://learn.microsoft.com/cli/azure/containerapp#az-containerapp-up
+    - id: deployment-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/get-started
+        - https://learn.microsoft.com/cli/azure/containerapp#az-containerapp-up
 ---
 
 # 02 - First Deploy to Azure Container Apps
@@ -12,6 +26,7 @@ In this step, you provision the core Azure resources, build your image in Azure 
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
@@ -53,6 +68,7 @@ In this step, you provision the core Azure resources, build your image in Azure 
 
 ## Deployment Workflow
 
+<!-- diagram-id: deployment-workflow -->
 ```mermaid
 graph LR
     BICEP[Bicep Deploy] --> ACR[ACR Build]

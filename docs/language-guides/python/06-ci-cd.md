@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/github-actions
+        - https://learn.microsoft.com/azure/developer/github/connect-from-azure
+    - id: ci-cd-pipeline-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/github-actions
+        - https://learn.microsoft.com/azure/developer/github/connect-from-azure
 ---
 
 # 06 - CI/CD with GitHub Actions
@@ -12,6 +26,7 @@ Automate build and deployment so every commit can produce a new Container App re
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Python 3.11"]
@@ -53,6 +68,7 @@ Automate build and deployment so every commit can produce a new Container App re
 
 ## CI/CD Pipeline Flow
 
+<!-- diagram-id: ci-cd-pipeline-flow -->
 ```mermaid
 graph LR
     PUSH[Push to main] --> GHA[GitHub Actions]

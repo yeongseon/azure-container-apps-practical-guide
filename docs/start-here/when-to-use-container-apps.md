@@ -1,6 +1,28 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: visual-positioning
+      type: quadrantChart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/compare-options
+        - https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service
+        - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+        - https://learn.microsoft.com/azure/app-service/overview
+        - https://learn.microsoft.com/azure/aks/
+        - https://learn.microsoft.com/azure/azure-functions/
+    - id: decision-tree-which-service-should-you-choose
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/compare-options
+        - https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service
+        - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+        - https://learn.microsoft.com/azure/app-service/overview
+        - https://learn.microsoft.com/azure/aks/
+        - https://learn.microsoft.com/azure/azure-functions/
 ---
 
 # Azure Container Apps vs Other Azure Compute Options
@@ -27,6 +49,7 @@ Choose based on these priorities:
 
 ## Visual Positioning
 
+<!-- diagram-id: visual-positioning -->
 ```mermaid
 quadrantChart
     title Control vs Simplicity (higher is more)
@@ -83,6 +106,7 @@ quadrantChart
 
 ## Decision Tree: Which Service Should You Choose?
 
+<!-- diagram-id: decision-tree-which-service-should-you-choose -->
 ```mermaid
 flowchart TD
     A[Workload Type] --> B{Function-first event handlers only?}

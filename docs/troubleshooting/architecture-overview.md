@@ -1,6 +1,48 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: 1-request-path-architecture-where-5xx-can-originate
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: 2-runtime-replica-model-memory-pressure-oom-timeout
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: 3-deployment-path-revision-failures-and-config-drift
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: 4-outbound-network-path-dns-private-endpoints
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: 5-observability-coverage-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/observability
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Troubleshooting Architecture Overview
@@ -22,6 +64,7 @@ Use this architecture map to route quickly to the right playbook.
 
 ## 1) Request Path Architecture (where 5xx can originate)
 
+<!-- diagram-id: 1-request-path-architecture-where-5xx-can-originate -->
 ```mermaid
 flowchart LR
     A[Client Browser or API Caller] --> B[Container Apps Ingress]
@@ -53,6 +96,7 @@ flowchart LR
 
 ## 2) Runtime / Replica Model (memory pressure, OOM, timeout)
 
+<!-- diagram-id: 2-runtime-replica-model-memory-pressure-oom-timeout -->
 ```mermaid
 flowchart TD
     A[Container Apps Environment] --> B[Revision]
@@ -83,6 +127,7 @@ flowchart TD
 
 ## 3) Deployment Path (revision failures and config drift)
 
+<!-- diagram-id: 3-deployment-path-revision-failures-and-config-drift -->
 ```mermaid
 flowchart LR
     A[Image push or config change] --> B[New Revision created]
@@ -108,6 +153,7 @@ flowchart LR
 
 ## 4) Outbound / Network Path (DNS, Private Endpoints)
 
+<!-- diagram-id: 4-outbound-network-path-dns-private-endpoints -->
 ```mermaid
 flowchart LR
     A[Container Replica] --> B[DNS Resolver Path]
@@ -133,6 +179,7 @@ flowchart LR
 
 ## 5) Observability Coverage Map
 
+<!-- diagram-id: 5-observability-coverage-map -->
 ```mermaid
 flowchart TD
     A[Component] --> B[Best First Log Source]

@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: end-to-end-learning-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/dotnet-overview
 ---
 
 # .NET on Azure Container Apps
@@ -57,6 +65,7 @@ Follow these step-by-step guides to master the deployment of .NET applications o
 
 ## End-to-End Learning Flow
 
+<!-- diagram-id: end-to-end-learning-flow -->
 ```mermaid
 flowchart LR
     A[Local Docker Validation] --> B[Azure First Deployment]

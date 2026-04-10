@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: query-pipeline-overview
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/kusto/query/
 ---
 
 # HTTP Query Pack
@@ -20,6 +29,7 @@ HTTP request analysis queries for Azure Container Apps. Use these to investigate
 
 ## Query Pipeline Overview
 
+<!-- diagram-id: query-pipeline-overview -->
 ```mermaid
 flowchart LR
     A[Raw Logs] --> B[Filter HTTP Patterns]

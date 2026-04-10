@@ -1,6 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
+    - id: configure-the-container-app-to-reference
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
 ---
 
 # Private Container Registry (ACR with Private Endpoint)
@@ -9,6 +25,7 @@ Pull container images from Azure Container Registry over a private network path 
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]
@@ -33,6 +50,7 @@ By default, Container Apps pulls images from a public ACR endpoint. In a private
 3. Grant that identity `AcrPull` on the registry
 4. Configure the Container App to reference that identity for the registry
 
+<!-- diagram-id: configure-the-container-app-to-reference -->
 ```mermaid
 graph TD
     subgraph VNet["Virtual Network (10.0.0.0/16)"]

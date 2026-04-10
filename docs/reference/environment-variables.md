@@ -1,6 +1,13 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: environment-variable-resolution-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/environment-variables
 ---
 
 # Container Apps Environment Variables Reference
@@ -20,6 +27,7 @@ Use this reference to understand variables injected by Azure Container Apps and 
 
 ## Environment variable resolution flow
 
+<!-- diagram-id: environment-variable-resolution-flow -->
 ```mermaid
 flowchart TD
     A[Container App Configuration] --> B[Platform Injected Variables]

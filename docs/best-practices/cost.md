@@ -1,6 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: if-you-optimize-only-one-meter
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/billing
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - id: choose-profile-type-by-workload-shape
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/billing
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
 ---
 
 # Cost-Aware Best Practices
@@ -39,6 +55,7 @@ Azure Container Apps costs come from multiple meters that interact:
 
 If you optimize only one meter (for example, CPU), your total cost can still increase due to logs, always-on replicas, or over-frequent job schedules.
 
+<!-- diagram-id: if-you-optimize-only-one-meter -->
 ```mermaid
 flowchart TD
     A[Workload Characteristics] --> B[Container Apps Runtime Cost]
@@ -76,6 +93,7 @@ Choose profile type by workload shape, not team preference:
 | Best for | Bursty, intermittent, unknown traffic | Stable baseline, GPU, large memory |
 | Cold start | Platform-managed, possible delay | Faster if nodes pre-provisioned |
 
+<!-- diagram-id: choose-profile-type-by-workload-shape -->
 ```mermaid
 flowchart TD
     Q{Traffic pattern known?}

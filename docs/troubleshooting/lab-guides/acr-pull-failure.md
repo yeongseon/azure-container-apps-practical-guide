@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures
+        - https://learn.microsoft.com/azure/container-apps/revisions
 ---
 
 # ACR Image Pull Failure Lab
@@ -25,6 +33,7 @@ For pull failures, the fastest evidence usually comes from revision state and sy
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 sequenceDiagram
     participant Dev as Operator

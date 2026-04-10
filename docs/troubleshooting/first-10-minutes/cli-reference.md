@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-app-name-ca-myapp-for-troubleshooting-examples-in
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/cli/azure/containerapp
+        - https://learn.microsoft.com/azure/container-apps/overview
 ---
 
 # CLI Cheatsheet
@@ -17,6 +25,7 @@ IMAGE_TAG="v1"
 
 Use `APP_NAME="ca-myapp"` for troubleshooting examples in this guide.
 
+<!-- diagram-id: use-app-name-ca-myapp-for-troubleshooting-examples-in -->
 ```mermaid
 flowchart LR
     INSPECT["Inspect"] --> DEPLOY["Deploy / Update"]

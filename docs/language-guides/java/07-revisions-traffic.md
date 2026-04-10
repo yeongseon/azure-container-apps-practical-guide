@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
+    - id: revision-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
 ---
 
 # 07 - Revisions and Traffic
@@ -12,6 +26,7 @@ Azure Container Apps supports multiple revisions, allowing you to run multiple v
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
@@ -53,6 +68,7 @@ Azure Container Apps supports multiple revisions, allowing you to run multiple v
 
 ## Revision Workflow
 
+<!-- diagram-id: revision-workflow -->
 ```mermaid
 graph TD
     APP_V1[App v1] --> REV_V1[Revision 1]

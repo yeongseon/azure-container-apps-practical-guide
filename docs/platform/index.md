@@ -1,6 +1,13 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: documents
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
 ---
 
 # Concepts
@@ -22,6 +29,7 @@ This section explains Azure Container Apps platform behavior in a language-agnos
 | [Identity and Secrets](identity-and-secrets/managed-identity.md) | Managed identity setup and RBAC patterns (see also Key Vault, Easy Auth, Security Operations pages) |
 | [Reliability](reliability/health-recovery.md) | Health probes, graceful shutdown, zone redundancy, recovery |
 
+<!-- diagram-id: documents -->
 ```mermaid
 graph LR
     A[Architecture] --> B[Environments]

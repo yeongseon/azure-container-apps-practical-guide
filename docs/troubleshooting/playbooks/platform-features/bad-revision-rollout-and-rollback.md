@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Bad Revision Rollout and Rollback
@@ -19,6 +28,7 @@ Revision health, replica readiness, and business correctness are not the same th
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Post-rollout errors detected] --> B{Errors isolated to new revision?}

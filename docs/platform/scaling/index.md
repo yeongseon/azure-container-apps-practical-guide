@@ -1,6 +1,18 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: how-keda-based-scaling-works
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: practical-example-api-worker-pattern
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/scale-app
 ---
 
 # Scaling in Azure Container Apps with KEDA
@@ -11,6 +23,7 @@ This model enables both reactive scale-out and cost-efficient scale-in, includin
 
 ## How KEDA-Based Scaling Works
 
+<!-- diagram-id: how-keda-based-scaling-works -->
 ```mermaid
 flowchart LR
     M[Metric Source\nHTTP / Queue / Custom] --> K[KEDA Scaler]
@@ -51,6 +64,7 @@ Think of these as your scaling guardrails:
 
 ## Practical Example: API + Worker Pattern
 
+<!-- diagram-id: practical-example-api-worker-pattern -->
 ```mermaid
 graph TD
     U[Users] --> API[API App\nminReplicas: 1]

@@ -1,6 +1,29 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: shift-traffic-only-when-release-criteria
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+    - id: when-slo-and-dependency-metrics
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+    - id: deactivate-stale-revisions-after-confidence-window
+      type: sequenceDiagram
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 ---
 
 # Revision Strategy Best Practices for Azure Container Apps
@@ -33,6 +56,7 @@ Revision-first release means:
 3. Validate health and telemetry on that specific revision.
 4. Shift traffic only when release criteria pass.
 
+<!-- diagram-id: shift-traffic-only-when-release-criteria -->
 ```mermaid
 flowchart LR
     I[Immutable Image Tag] --> C[Create New Revision]
@@ -144,6 +168,7 @@ Typical progression:
 3. 50% for sustained behavior under normal load.
 4. 100% when SLO and dependency metrics remain healthy.
 
+<!-- diagram-id: when-slo-and-dependency-metrics -->
 ```mermaid
 graph LR
     U[Users] --> I[Ingress]
@@ -220,6 +245,7 @@ Recommended workflow:
 5. Observe post-cutover SLO window.
 6. Deactivate stale revisions after confidence window ends.
 
+<!-- diagram-id: deactivate-stale-revisions-after-confidence-window -->
 ```mermaid
 sequenceDiagram
     participant CI as CI/CD

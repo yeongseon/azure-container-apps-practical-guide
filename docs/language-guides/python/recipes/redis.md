@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+        - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-python-get-started
 ---
 
 # Azure Cache for Redis Integration (Managed Identity)
@@ -9,6 +17,7 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

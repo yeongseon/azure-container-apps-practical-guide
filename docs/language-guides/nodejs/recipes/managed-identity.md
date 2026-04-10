@@ -1,12 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-managed-identity-and-defaultazurecredential-so
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
+        - https://learn.microsoft.com/javascript/api/overview/azure/storage-blob-readme
 ---
 
 # Recipe: Managed Identity in Node.js Apps on Azure Container Apps
 
 Use managed identity and `DefaultAzureCredential` so your Express app can call Azure services without storing secrets.
 
+<!-- diagram-id: use-managed-identity-and-defaultazurecredential-so -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

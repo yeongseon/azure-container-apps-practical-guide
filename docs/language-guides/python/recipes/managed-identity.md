@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-managed-identity-and-defaultazurecredential-to
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-acr
 ---
 
 # Recipe: Managed Identity in Python Apps on Azure Container Apps
 
 Use managed identity and `DefaultAzureCredential` to access Azure services from Python without storing credentials in code or configuration.
 
+<!-- diagram-id: use-managed-identity-and-defaultazurecredential-to -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

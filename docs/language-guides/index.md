@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: tutorial-progression-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/python-overview
 ---
 
 # Language Guides: Step-by-Step Implementation
@@ -29,6 +37,7 @@ These guides are designed to help you build applications that are "platform-nati
 
 ## Tutorial Progression Model
 
+<!-- diagram-id: tutorial-progression-model -->
 ```mermaid
 flowchart LR
     A[01 Local Development] --> B[02 First Deploy]

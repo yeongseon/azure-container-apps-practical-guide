@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: incident-recovery-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/health-probes
 ---
 
 # Recovery and Incident Readiness
@@ -94,6 +102,7 @@ Measure detection-to-recovery time and refine runbooks after each drill.
 
 ## Incident Recovery Workflow
 
+<!-- diagram-id: incident-recovery-workflow -->
 ```mermaid
 flowchart TD
     A[Incident Detected] --> B[Assess Scope and Severity]

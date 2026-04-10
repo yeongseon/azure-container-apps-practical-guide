@@ -1,6 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+    - id: final-status-published-to-dashboard-alert-channel
+      type: state
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
 ---
 
 # Jobs Best Practices
@@ -191,6 +207,7 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
+<!-- diagram-id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0 -->
 ```mermaid
 flowchart LR
     A[Execution Triggered] --> B[Replica 1]
@@ -384,6 +401,7 @@ Use a consistent lifecycle runbook for every production job:
 5. Retry decision logged
 6. Final status published to dashboard/alert channel
 
+<!-- diagram-id: final-status-published-to-dashboard-alert-channel -->
 ```mermaid
 stateDiagram-v2
     [*] --> Triggered

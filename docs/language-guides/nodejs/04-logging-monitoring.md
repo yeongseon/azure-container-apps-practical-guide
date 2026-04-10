@@ -1,6 +1,20 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/observability
+    - id: how-observability-works-in-container-apps
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/azure/container-apps/observability
 ---
 
 # 04 - Logging, Monitoring, and Observability
@@ -12,6 +26,7 @@ This tutorial step shows how to inspect console logs, query Log Analytics, and a
 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
+    <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
     ```mermaid
     flowchart TD
         INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
@@ -53,6 +68,7 @@ This tutorial step shows how to inspect console logs, query Log Analytics, and a
 
 ## How Observability Works in Container Apps
 
+<!-- diagram-id: how-observability-works-in-container-apps -->
 ```mermaid
 flowchart LR
     APP[App container stdout/stderr] --> CONSOLE[Console logs]

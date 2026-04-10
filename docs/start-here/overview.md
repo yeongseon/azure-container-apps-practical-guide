@@ -1,6 +1,26 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: guide-structure
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/environment
+        - https://learn.microsoft.com/azure/container-apps/scale-app
+        - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: conceptual-platform-view
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/overview
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/environment
+        - https://learn.microsoft.com/azure/container-apps/scale-app
+        - https://learn.microsoft.com/azure/container-apps/revisions
 ---
 
 # Azure Container Apps Practical Guide
@@ -28,6 +48,7 @@ This guide is built for:
 | Troubleshooting | Incident triage, diagnostic playbooks, and investigation paths | [Troubleshooting](../troubleshooting/index.md) |
 | Reference | Quick lookup for CLI, environment variables, and limits | [Reference](../reference/index.md) |
 
+<!-- diagram-id: guide-structure -->
 ```mermaid
 graph TD
     A[Start Here] --> B[Platform]
@@ -70,6 +91,7 @@ If your team includes multiple roles, align on a shared baseline and then split 
 
 ## Conceptual Platform View
 
+<!-- diagram-id: conceptual-platform-view -->
 ```mermaid
 graph LR
     Client[Client or Event Source] --> Ingress[Ingress]

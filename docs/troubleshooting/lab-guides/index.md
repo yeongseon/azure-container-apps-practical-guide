@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: use-this-section-when-you-want
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/scale-app
 ---
 
 # Lab Guides
@@ -41,6 +50,7 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 
 Use this section when you want a repeatable learning loop (reproduce → observe → fix → verify).
 
+<!-- diagram-id: use-this-section-when-you-want -->
 ```mermaid
 flowchart TD
     A[Choose Lab by Symptom] --> B[Deploy Lab Infrastructure]

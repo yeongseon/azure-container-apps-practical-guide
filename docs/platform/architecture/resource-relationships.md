@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/architecture
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
 ---
 
 # Resource Relationships
@@ -9,6 +17,7 @@ This overview maps how Azure Container Apps runtime components, identities, and 
 
 ## Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

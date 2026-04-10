@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/ingress-how-to
 ---
 
 # Probe and Port Mismatch Lab
@@ -25,6 +33,7 @@ Port mismatch often looks like an application crash because repeated probe failu
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart LR
     A[Container process binds :3000] --> B[Ingress targets :8000]

@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/scale-app
+        - https://learn.microsoft.com/azure/container-apps/scale-app#scale-rules
+        - https://learn.microsoft.com/azure/container-apps/jobs
 ---
 
 # Event Scaler Mismatch
@@ -17,6 +26,7 @@ A scaler mismatch can look like low traffic, platform delay, or an insufficient 
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Backlog increases, no scale-out] --> B{Trigger metadata matches source?}

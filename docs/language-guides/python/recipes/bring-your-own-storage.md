@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: mount-azure-files-into-your-python
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
 ---
 
 # Recipe: Bring Your Own Storage with Azure Files Mounts
 
 Mount Azure Files into your Python Container App when you need shared, persistent filesystem access across replicas.
 
+<!-- diagram-id: mount-azure-files-into-your-python -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

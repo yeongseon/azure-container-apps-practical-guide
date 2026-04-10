@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/azure/container-apps/health-probes
 ---
 
 # Ingress Not Reachable
@@ -17,6 +26,7 @@ Ingress failures have many possible causes spanning DNS, networking, revision he
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 graph TD
     A[Symptom: Endpoint unreachable] --> B{DNS resolves to correct IP?}

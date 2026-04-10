@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
+        - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Internal DNS and Private Endpoint Failure
@@ -19,6 +28,7 @@ The dependency service may be healthy while the resolution path is broken somewh
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Dependency unreachable from app] --> B{Hostname resolves to private IP?}

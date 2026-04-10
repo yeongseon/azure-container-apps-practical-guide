@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: build-production-ready-python-container-images-that
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
 ---
 
 # Recipe: Custom Container Images for Python on Azure Container Apps
 
 Build production-ready Python container images that start quickly, stay small, and meet Azure Container Apps runtime expectations.
 
+<!-- diagram-id: build-production-ready-python-container-images-that -->
 ```mermaid
 flowchart LR
     SRC[Source Code] --> BUILD["Docker Build (Multi-stage)"]

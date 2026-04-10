@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/revisions
 ---
 
 # Revision Provisioning Failure Lab
@@ -25,6 +33,7 @@ This pattern is distinct from API validation failures (which reject the update b
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
     A[Deploy baseline app] --> B[Healthy revision running]

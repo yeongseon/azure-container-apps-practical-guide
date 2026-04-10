@@ -1,6 +1,17 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: language-guides-show-how-to-implement
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/best-practices
+        - https://learn.microsoft.com/azure/container-apps/security-concept
+        - https://learn.microsoft.com/azure/container-apps/networking
+        - https://learn.microsoft.com/azure/container-apps/scale-app
 ---
 
 # Best Practices
@@ -17,6 +28,7 @@ Use this section as the bridge between platform knowledge and implementation dec
 2. Best Practices helps you decide what to do with that behavior.
 3. Language Guides show how to implement those decisions.
 
+<!-- diagram-id: language-guides-show-how-to-implement -->
 ```mermaid
 flowchart LR
     A[Platform Understanding<br/>How Container Apps works] --> B[Best Practices<br/>Design judgment and trade-offs]

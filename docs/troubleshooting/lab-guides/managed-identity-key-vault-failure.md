@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: architecture
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/azure/key-vault/general/rbac-guide
 ---
 
 # Managed Identity Key Vault Failure Lab
@@ -25,6 +33,7 @@ Managed identity failures are easy to misread because the revision can stay heal
 
 ### Architecture
 
+<!-- diagram-id: architecture -->
 ```mermaid
 sequenceDiagram
     participant User

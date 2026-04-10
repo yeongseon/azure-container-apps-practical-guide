@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: ca-myapp-0000001-true-100-1-healthy-running
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
 ---
 
 # Troubleshooting
@@ -29,6 +37,7 @@ Name               Active    TrafficWeight    Replicas    HealthState    Running
 ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
+<!-- diagram-id: ca-myapp-0000001-true-100-1-healthy-running -->
 ```mermaid
 flowchart TD
     TRIAGE["Fast Triage Commands"] --> SYM{"First Symptom?"}

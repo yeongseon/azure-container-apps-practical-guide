@@ -1,6 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: navigation-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+        - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
+    - id: visual-repository-topology
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+        - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
 ---
 
 # Repository Map
@@ -38,6 +54,7 @@ Use this simple logic to find your way:
 
 ## Navigation Flow
 
+<!-- diagram-id: navigation-flow -->
 ```mermaid
 graph TD
     Start[Start Here] --> Learn[Learning Paths]
@@ -69,6 +86,7 @@ Use this table when you need a direct path from a practical goal to the right pa
 
 ## Visual Repository Topology
 
+<!-- diagram-id: visual-repository-topology -->
 ```mermaid
 graph TD
     R[Repository Root] --> D[docs]

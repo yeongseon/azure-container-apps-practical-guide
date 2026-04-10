@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: revision-promotion-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/revisions
+        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
 ---
 
 # Revision Operations
@@ -119,6 +127,7 @@ az containerapp show \
 
 ## Revision Promotion Workflow
 
+<!-- diagram-id: revision-promotion-workflow -->
 ```mermaid
 flowchart TD
     A[Deploy Candidate Revision] --> B[Assign 5-10% Traffic]

@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: purpose-ranks-request-paths-by-p95
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/kusto/query/
 ---
 
 # Slowest Requests by Path
@@ -9,6 +18,7 @@ hide:
 **Data Source**: Application Insights `requests` table or `ContainerAppConsoleLogs_CL`
 **Purpose**: Ranks request paths by P95 latency to pinpoint slow endpoints for optimization.
 
+<!-- diagram-id: purpose-ranks-request-paths-by-p95 -->
 ```mermaid
 graph LR
     A[requests / ConsoleLogs] --> B[Group by URL Path]

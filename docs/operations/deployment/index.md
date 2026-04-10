@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: deployment-workflow-and-release-guardrails
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
 ---
 
 # Deployment Workflows
@@ -94,6 +102,7 @@ Prefer immutable tags for release traceability, and maintain a stable alias tag 
 
 ## Deployment Workflow and Release Guardrails
 
+<!-- diagram-id: deployment-workflow-and-release-guardrails -->
 ```mermaid
 flowchart TD
     A[Commit Merged] --> B[Build and Test]

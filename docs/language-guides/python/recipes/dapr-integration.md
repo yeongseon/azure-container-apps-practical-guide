@@ -1,12 +1,21 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: azure-container-apps-aca-provides-native
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/azure/container-apps/dapr-component-schema
 ---
 
 # Dapr Integration (Distributed Application Runtime)
 
 Azure Container Apps (ACA) provides native Dapr integration, allowing your Python application to easily interact with other services and manage state, publish/subscribe messaging, and secrets.
 
+<!-- diagram-id: azure-container-apps-aca-provides-native -->
 ```mermaid
 flowchart LR
     C[Client] --> I[Container Apps Ingress]

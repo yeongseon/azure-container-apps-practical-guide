@@ -1,6 +1,22 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: if-you-use-dapr-centralize-runtime
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - id: use-managed-identity-entra-authentication
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
 ---
 
 # Azure Container Apps Identity and Secret Management Best Practices
@@ -244,6 +260,7 @@ Shared identity acceptable cases:
 
 If you use Dapr, centralize runtime secret retrieval with a secret store component.
 
+<!-- diagram-id: if-you-use-dapr-centralize-runtime -->
 ```mermaid
 graph LR
     A[Container App] --> D[Dapr Sidecar]
@@ -325,6 +342,7 @@ az role assignment create \
 
 Use managed identity + Entra authentication end to end.
 
+<!-- diagram-id: use-managed-identity-entra-authentication -->
 ```mermaid
 flowchart LR
     APP[Container App] --> ENTRA[Microsoft Entra ID]

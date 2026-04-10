@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/azure/container-apps/troubleshooting
 ---
 
 # Container Start Failure
@@ -17,6 +26,7 @@ Startup loops are often misread as platform instability or probe defects. In rea
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
     A[Replica restarts repeatedly] --> B{Console log has traceback?}

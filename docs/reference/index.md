@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: save-this-page-and-the-linked
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/cli/azure/containerapp
 ---
 
 # Reference
@@ -17,6 +25,7 @@ This section is optimized for fast operational lookup during build, deploy, and 
 !!! note "Bookmark for production operations"
     Save this page and the linked reference pages in your browser. During incidents, a predictable navigation path is more valuable than searching through full tutorial content.
 
+<!-- diagram-id: save-this-page-and-the-linked -->
 ```mermaid
 flowchart LR
     A[Reference Index] --> B[CLI Reference]

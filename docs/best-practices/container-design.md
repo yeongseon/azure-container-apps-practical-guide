@@ -1,6 +1,18 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: bad-container-defaults-slow-startup-missing
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/containers
+    - id: probe-design-in-container-apps-should
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/containers
 ---
 
 # Container Design Best Practices for Azure Container Apps
@@ -33,6 +45,7 @@ Use these design assumptions:
 2. A revision must pass startup and readiness checks before it can safely carry production traffic.
 3. Bad container defaults (slow startup, missing probe path, unhandled SIGTERM, noisy logs) become deployment incidents.
 
+<!-- diagram-id: bad-container-defaults-slow-startup-missing -->
 ```mermaid
 flowchart LR
     B[Build Image] --> R[Create Revision]
@@ -147,6 +160,7 @@ Probe design in Container Apps should represent actual lifecycle intent.
 | **Readiness** | Control when traffic can reach the revision | Return 200 only when serving is safe | Traffic sent to unready replica |
 | **Liveness** | Restart hung processes after running state | Return 200 if process loop is healthy | Stuck replica stays in rotation |
 
+<!-- diagram-id: probe-design-in-container-apps-should -->
 ```mermaid
 flowchart TD
     S[Container Starts] --> SP[Startup Probe]

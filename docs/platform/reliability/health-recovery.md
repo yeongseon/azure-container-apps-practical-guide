@@ -1,6 +1,14 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: configure-startup-liveness-and-readiness-probes
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/health-probes
+        - https://learn.microsoft.com/azure/container-apps/revisions
 ---
 
 # Health and Recovery Operations
@@ -22,6 +30,7 @@ export ENVIRONMENT_NAME="aca-env-prod"
 
 Configure startup, liveness, and readiness probes in your Container App template:
 
+<!-- diagram-id: configure-startup-liveness-and-readiness-probes -->
 ```mermaid
 flowchart LR
     U[User Traffic] --> R[Readiness Probe]

@@ -1,6 +1,26 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: ideal-for-development-testing-and-public-facing
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/python-overview
+    - id: for-production-environments-requiring-network-isolation
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/python-overview
+    - id: end-to-end-learning-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/
+        - https://learn.microsoft.com/azure/container-apps/python-overview
 ---
 
 # Python on Azure Container Apps
@@ -37,6 +57,7 @@ Azure Container Apps supports two primary deployment architectures: **public con
 
 Ideal for development, testing, and public-facing applications. The Container Apps Environment is deployed without a VNet, and your application is accessible via a public HTTPS endpoint.
 
+<!-- diagram-id: ideal-for-development-testing-and-public-facing -->
 ```mermaid
 graph TB
     Internet["🌐 Internet"] -->|HTTP/HTTPS| CAApp["Container App<br/>(Public Ingress, Port 8000)"]
@@ -53,6 +74,7 @@ graph TB
 
 For production environments requiring network isolation. The Container Apps Environment is deployed inside a dedicated VNet with private endpoints to all dependent services.
 
+<!-- diagram-id: for-production-environments-requiring-network-isolation -->
 ```mermaid
 graph TB
     VNet["Virtual Network"] --> CASub["Container Apps<br/>Subnet"]
@@ -103,6 +125,7 @@ Follow these step-by-step guides to master the deployment of Python applications
 
 ## End-to-End Learning Flow
 
+<!-- diagram-id: end-to-end-learning-flow -->
 ```mermaid
 flowchart LR
     A[Local Docker Validation] --> B[Azure First Deployment]

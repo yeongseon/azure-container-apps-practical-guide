@@ -1,6 +1,29 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: do-not-reuse-one-endpoint-for
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - id: for-high-availability-public-services-run-active-passive
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - id: dapr-resiliency-high-level-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 ---
 
 # Azure Container Apps Reliability Best Practices
@@ -38,6 +61,7 @@ Use each probe for one purpose only:
 
 Do not reuse one endpoint for all three unless behavior is intentionally identical.
 
+<!-- diagram-id: do-not-reuse-one-endpoint-for -->
 ```mermaid
 flowchart LR
     S[Container Start] --> SP[Startup Probe]
@@ -167,6 +191,7 @@ az containerapp env show \
 
 For high-availability public services, run active-passive or active-active across regions.
 
+<!-- diagram-id: for-high-availability-public-services-run-active-passive -->
 ```mermaid
 graph TD
     C[Client] --> DNS[Traffic Manager / Front Door]
@@ -200,6 +225,7 @@ Reliability policy guidance:
 
 Dapr resiliency high-level flow:
 
+<!-- diagram-id: dapr-resiliency-high-level-flow -->
 ```mermaid
 flowchart LR
     A[App] --> D[Dapr Sidecar]

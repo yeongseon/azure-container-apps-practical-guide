@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
+        - https://learn.microsoft.com/azure/key-vault/general/authentication
 ---
 
 # Managed Identity Auth Failure
@@ -21,6 +30,7 @@ It is also common for the app to fail only for one dependency while everything e
 
 ### Troubleshooting decision flow
 
+<!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 graph TD
     A[Managed identity call fails] --> B{Identity assigned to Container App?}

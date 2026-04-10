@@ -1,6 +1,15 @@
 ---
 hide:
   - toc
+content_sources:
+  diagrams:
+    - id: card-1-image-pull-failure
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/logging
 ---
 
 # Quick Diagnosis Cards
@@ -13,6 +22,7 @@ Use these when you have 60 seconds to identify the failure category.
 
 ## Card 1: Image Pull Failure
 
+<!-- diagram-id: card-1-image-pull-failure -->
 ```mermaid
 graph LR
     A[Revision stuck Provisioning] --> B[First Query]
