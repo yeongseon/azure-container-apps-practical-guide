@@ -27,44 +27,44 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
     This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
 
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
-    ```mermaid
-    flowchart TD
-        INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Python 3.11"]
+```mermaid
+flowchart TD
+    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Python 3.11"]
 
-        subgraph VNET["VNet 10.0.0.0/16"]
-            subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-                CAE[Container Apps Environment]
-                CA
-            end
-            subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-                PE_ACR[PE: ACR]
-                PE_KV[PE: Key Vault]
-                PE_ST[PE: Storage]
-            end
+    subgraph VNET["VNet 10.0.0.0/16"]
+        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
+            CAE[Container Apps Environment]
+            CA
         end
-
-        PE_ACR --> ACR[Azure Container Registry]
-        PE_KV --> KV[Key Vault]
-        PE_ST --> ST[Storage Account]
-
-        subgraph DNS[Private DNS Zones]
-            DNS_ACR[privatelink.azurecr.io]
-            DNS_KV[privatelink.vaultcore.azure.net]
-            DNS_ST[privatelink.blob.core.windows.net]
+        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
+            PE_ACR[PE: ACR]
+            PE_KV[PE: Key Vault]
+            PE_ST[PE: Storage]
         end
+    end
 
-        PE_ACR -.-> DNS_ACR
-        PE_KV -.-> DNS_KV
-        PE_ST -.-> DNS_ST
+    PE_ACR --> ACR[Azure Container Registry]
+    PE_KV --> KV[Key Vault]
+    PE_ST --> ST[Storage Account]
 
-        CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-        CAE --> LOG[Log Analytics]
-        CA --> AI[Application Insights]
+    subgraph DNS[Private DNS Zones]
+        DNS_ACR[privatelink.azurecr.io]
+        DNS_KV[privatelink.vaultcore.azure.net]
+        DNS_ST[privatelink.blob.core.windows.net]
+    end
 
-        style CA fill:#107c10,color:#fff
-        style VNET fill:#E8F5E9,stroke:#4CAF50
-        style DNS fill:#E3F2FD
-    ```
+    PE_ACR -.-> DNS_ACR
+    PE_KV -.-> DNS_KV
+    PE_ST -.-> DNS_ST
+
+    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
+    CAE --> LOG[Log Analytics]
+    CA --> AI[Application Insights]
+
+    style CA fill:#107c10,color:#fff
+    style VNET fill:#E8F5E9,stroke:#4CAF50
+    style DNS fill:#E3F2FD
+```
 
 ## Revision Traffic Splitting
 
