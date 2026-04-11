@@ -41,9 +41,9 @@ flowchart LR
     end
     
     subgraph Azure Services
-        KV[Key Vault<br/>10.0.2.4]
-        ST[Storage Account<br/>10.0.2.5]
-        ACR[Container Registry<br/>10.0.2.10 / 10.0.2.11]
+        KV[Key Vault<br/>&lt;private-ip&gt;]
+        ST[Storage Account<br/>&lt;private-ip&gt;]
+        ACR[Container Registry<br/>&lt;private-ip&gt; / &lt;private-ip&gt;]
     end
     
     CA --> PE1 --> KV
@@ -67,6 +67,11 @@ We provide a complete private endpoint test environment with Key Vault and Stora
 cd infra
 ./deploy-private.sh
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `cd infra` | Moves to the infrastructure script directory. |
+| `./deploy-private.sh` | Deploys the sample VNet, private endpoints, DNS, and identity resources. |
 
 This deploys:
 
@@ -113,7 +118,7 @@ flowchart TD
     end
 
     subgraph PESubnet [Private Endpoint Subnet]
-        PE[Private Endpoint<br/>10.x.x.x]
+        PE[Private Endpoint<br/>&lt;private-ip&gt;]
     end
 
     subgraph Backbone [Microsoft Backbone]
@@ -122,7 +127,7 @@ flowchart TD
 
     APP -- 1. DNS Query --> RESL
     RESL -- 2. Recursive Query --> ZONE
-    ZONE -- 3. CNAME + A Record (10.x.x.x) --> RESL
+    ZONE -- 3. CNAME + A Record (&lt;private-ip&gt;) --> RESL
     RESL -- 4. Return Private IP --> APP
     APP -- 5. Connect to Private IP --> PE
     PE -- 6. Private Link --> SVC
@@ -140,8 +145,8 @@ ACR is unique and requires two private DNS zones for full functionality within a
 flowchart LR
     subgraph VNet
         CA[Container App]
-        PE1[PE: Login Server<br/>10.0.2.10]
-        PE2[PE: Data Endpoint<br/>10.0.2.11]
+        PE1[PE: Login Server<br/>&lt;private-ip&gt;]
+        PE2[PE: Data Endpoint<br/>&lt;private-ip&gt;]
     end
     
     subgraph DNS [Private DNS Zones]
@@ -167,23 +172,19 @@ flowchart LR
 
 The network module creates a VNet with two subnets:
 
-```bash
-infra/modules/network.bicep
-```
+Source template: `infra/modules/network.bicep`
 
 | Subnet | CIDR | Purpose |
 |--------|------|---------|
-| `snet-container-apps` | 10.0.0.0/23 | Container Apps Environment |
-| `snet-private-endpoints` | 10.0.2.0/24 | Private Endpoints |
+| `snet-container-apps` | `<container-apps-subnet-cidr>` | Container Apps Environment |
+| `snet-private-endpoints` | `<private-endpoints-subnet-cidr>` | Private Endpoints |
 
 !!! warning "Subnet Size"
     Container Apps requires a minimum /23 subnet (512 IPs). Smaller subnets will cause deployment failures.
 
 ### 2. Key Vault with Private Endpoint
 
-```bash
-infra/modules/keyvault-private.bicep
-```
+Source template: `infra/modules/keyvault-private.bicep`
 
 Features:
 
@@ -194,9 +195,7 @@ Features:
 
 ### 3. Storage Account with Private Endpoint
 
-```bash
-infra/modules/storage-private.bicep
-```
+Source template: `infra/modules/storage-private.bicep`
 
 Features:
 
@@ -246,20 +245,63 @@ for blob in container.list_blobs():
 
 ## Verify Connectivity
 
-### Testing Internal Ingress (VM/Bastion Required)
+### Testing Internal Environments vs Internal App Ingress
 
-!!! warning "VNet Access Required for Internal Ingress"
-    When Container Apps Environment is configured with `internal: true`, the app is **only reachable from within the VNet**. You need one of:
-    
+Microsoft Learn separates **environment-level ingress scope** from **app-level ingress scope**:
+
+- **Environment**: create the Container Apps environment with `internal: true` by using `az containerapp env create --internal-only true`.
+- **App**: configure the individual app ingress as internal-only (`external: false` in ARM/Bicep/YAML).
+
+Only an **internal environment** combined with **internal app ingress** gives you true VNet-scoped private inbound access. If the environment remains external, setting only `external: false` on the app does **not** make the environment private. Per Microsoft Learn, the `.internal.` FQDN is for calls from other apps in the **same Container Apps environment**; requests from outside that environment receive `404` from the environment proxy.
+
+Reference this guidance in Microsoft Learn:
+
+- [Integrate a virtual network with an Azure Container Apps environment](https://learn.microsoft.com/azure/container-apps/vnet-custom)
+- [Ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
+- [Communicate between container apps in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/connect-apps)
+
+!!! warning "Internal ingress validation requires an internal environment"
+    VM, Bastion, VPN, or ExpressRoute tests validate **internal environments** because those environments are exposed through the VNet. They do **not** validate app-level `.internal.` ingress, which Microsoft Learn scopes to callers inside the same Container Apps environment. Use one of these paths to reach the VNet:
+
     - Jump box VM in the VNet + Azure Bastion
-    - VPN/ExpressRoute connection
-    - Container console (`az containerapp exec`) for outbound tests only
+    - VPN or ExpressRoute connection
+    - Container console (`az containerapp exec`) for outbound dependency tests only
+
+#### Create the environment as internal
+
+The following Microsoft Learn-based command creates a Container Apps environment without a public static IP.
+
+```bash
+az containerapp env create \
+  --name "$CONTAINERAPPS_ENVIRONMENT" \
+  --resource-group "$RESOURCE_GROUP" \
+  --location "$LOCATION" \
+  --infrastructure-subnet-resource-id "$INFRASTRUCTURE_SUBNET" \
+  --internal-only true
+```
+
+| Command/Parameter | Purpose |
+|-------------------|---------|
+| `az containerapp env create` | Creates the Container Apps environment. |
+| `--infrastructure-subnet-resource-id` | Places the environment into the delegated subnet in your VNet. |
+| `--internal-only true` | Makes the environment internal so inbound traffic stays on the VNet-connected path. |
+
+#### Environment scope vs app scope
+
+| Scope | Setting | Result |
+|-------|---------|--------|
+| Environment | `--internal-only true` / `internal: true` | Removes the public environment entry point and makes the environment VNet-only. |
+| App ingress | `external: false` | Restricts that app to callers in the same Container Apps environment; by itself it does not make the environment VNet-only. |
+
+#### Case 1: Validate an internal environment from a VM or Bastion host
+
+After the environment is internal, validate the **environment-scoped endpoint** from a host that can resolve the private DNS zone for the environment default domain.
 
 #### Option A: Deploy Jump Box VM with Bastion
 
 ```bash
 # Set variables (adjust CIDR if needed)
-export BASTION_SUBNET_PREFIX="10.0.4.0/26"
+export BASTION_SUBNET_PREFIX="<bastion-subnet-cidr>"
 
 # Create Bastion subnet (required: /26 or larger)
 az network vnet subnet create \
@@ -300,7 +342,7 @@ az vm create \
 | Command/Parameter | Purpose |
 |-------------------|---------|
 | `AzureBastionSubnet` | Required subnet name for Bastion (must be exactly this name) |
-| `--address-prefixes "10.0.4.0/26"` | Minimum /26 CIDR for Bastion subnet |
+| `--address-prefixes "<bastion-subnet-cidr>"` | Supplies the Bastion subnet CIDR; use `/26` or larger. |
 | `--sku "Basic"` | Basic Bastion SKU (~$0.19/hour) |
 | `--public-ip-address ""` | VM has no public IP - only accessible via Bastion |
 
@@ -318,17 +360,27 @@ az network bastion ssh \
   --ssh-key "~/.ssh/id_rsa"
 ```
 
-#### Test Internal Ingress from Jump Box
+| Command/Parameter | Purpose |
+|-------------------|---------|
+| `az network bastion ssh` | Opens an SSH session to the jump box through Azure Bastion. |
+| `--target-resource-id` | Resolves the VM resource ID dynamically for the SSH target. |
+| `--ssh-key` | Uses your local SSH private key for authentication. |
 
-Once connected to the VM, test access to internal Container Apps:
+#### Test internal-environment reachability from Jump Box
+
+Once connected to the VM, test the app FQDN that uses the environment default domain.
 
 ```bash
-# Get the internal FQDN of your Container App
-# Format: <app-name>.internal.<unique-id>.<region>.azurecontainerapps.io
+# Get the app FQDN in the internal environment
+# Format: <app-name>.<environment-default-domain>
 
-# Test DNS resolution - should return private IP
-nslookup <your-app>.internal.<unique-id>.<region>.azurecontainerapps.io
+# Test DNS resolution - should return the environment private IP
+nslookup <your-app>.<environment-default-domain>
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `nslookup <your-app>.<environment-default-domain>` | Confirms that the app FQDN in the internal environment resolves from inside the VNet-connected host. |
 
 Expected output:
 ```
@@ -336,14 +388,18 @@ Server:         127.0.0.53
 Address:        127.0.0.53#53
 
 Non-authoritative answer:
-Name:   myapp.internal.abc123.koreacentral.azurecontainerapps.io
-Address: 10.0.0.100
+Name:   myapp.<environment-default-domain>
+Address: <private-ip>
 ```
 
 ```bash
 # Test app endpoint
-curl https://<your-app>.internal.<unique-id>.<region>.azurecontainerapps.io/health
+curl https://<your-app>.<environment-default-domain>/health
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `curl https://<your-app>.<environment-default-domain>/health` | Sends an HTTPS request to the app through the VNet-scoped endpoint of the internal environment. |
 
 #### Option B: Minimal Test VM (No Bastion)
 
@@ -364,9 +420,31 @@ az vm create \
 ssh azureuser@<public-ip>
 
 # Test from inside VM
-nslookup <your-app>.internal.<unique-id>.<region>.azurecontainerapps.io
-curl https://<your-app>.internal.<unique-id>.<region>.azurecontainerapps.io/health
+nslookup <your-app>.<environment-default-domain>
+curl https://<your-app>.<environment-default-domain>/health
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `az vm create ...` | Creates a temporary VM inside the VNet for validation. |
+| `ssh azureuser@<public-ip>` | Connects to the temporary VM when you use the public-IP shortcut. |
+| `nslookup ...` / `curl ...` | Verifies DNS resolution and HTTPS connectivity to the internal environment endpoint from the VM. |
+
+#### Case 2: Validate app-level internal ingress from the same Container Apps environment
+
+Use this test when the app is configured with `external: false`. Microsoft Learn states that the `.internal.` FQDN is reachable from **other apps in the same environment**, not from a VM in the VNet.
+
+```bash
+az containerapp exec --name <source-app> --resource-group <resource-group> --command /bin/bash
+
+# Inside the source app container
+curl https://<target-app>.internal.<unique-id>.<region>.azurecontainerapps.io/health
+```
+
+| Command | Purpose |
+|---------|---------|
+| `az containerapp exec --name <source-app> --resource-group <resource-group> --command /bin/bash` | Opens a shell in another app that runs in the same Container Apps environment. |
+| `curl https://<target-app>.internal.<unique-id>.<region>.azurecontainerapps.io/health` | Validates app-level internal ingress from a supported same-environment caller. |
 
 !!! tip "Cost Optimization"
     Delete test resources after verification:
@@ -375,6 +453,12 @@ curl https://<your-app>.internal.<unique-id>.<region>.azurecontainerapps.io/heal
     az network bastion delete --resource-group $RG --name "bastion-$BASENAME"
     az network public-ip delete --resource-group $RG --name "pip-bastion"
     ```
+
+    | Command | Purpose |
+    |---------|---------|
+    | `az vm delete` | Removes the temporary jump box VM. |
+    | `az network bastion delete` | Removes the Bastion host after testing. |
+    | `az network public-ip delete` | Removes the Bastion public IP resource. |
     
     - VM (B1s): ~$0.01/hour
     - Bastion (Basic): ~$0.19/hour
@@ -382,14 +466,25 @@ curl https://<your-app>.internal.<unique-id>.<region>.azurecontainerapps.io/heal
 ### From Container Console (Outbound Tests)
 
 ```bash
-az containerapp exec -n <app-name> -g <resource-group> --command /bin/bash
+az containerapp exec --name <app-name> --resource-group <resource-group> --command /bin/bash
 ```
+
+| Command/Parameter | Purpose |
+|-------------------|---------|
+| `az containerapp exec` | Opens a shell into the running container for outbound-only validation. |
+| `--name` | Specifies the Container App to connect to. |
+| `--resource-group` | Specifies the resource group that contains the app. |
+| `--command /bin/bash` | Starts a Bash shell when the image includes Bash. |
 
 ### Check DNS Resolution
 
 ```bash
 nslookup <keyvault-name>.vault.azure.net
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `nslookup <keyvault-name>.vault.azure.net` | Verifies that the public service name resolves through the linked private DNS zone. |
 
 Expected output (private IP):
 ```
@@ -399,7 +494,7 @@ Address:   168.63.129.16#53
 Non-authoritative answer:
 <keyvault-name>.vault.azure.net  canonical name = <keyvault-name>.privatelink.vaultcore.azure.net.
 Name:   <keyvault-name>.privatelink.vaultcore.azure.net
-Address: 10.0.2.4
+Address: <private-ip>
 ```
 
 !!! warning "Public IP Response"
@@ -410,6 +505,10 @@ Address: 10.0.2.4
 ```bash
 nc -zv <keyvault-name>.vault.azure.net 443
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `nc -zv <keyvault-name>.vault.azure.net 443` | Confirms that TCP port 443 is reachable over the private endpoint path. |
 
 ## Troubleshooting
 
@@ -426,6 +525,11 @@ az network private-endpoint show \
   --query 'provisioningState'
 ```
 
+| Command/Parameter | Purpose |
+|-------------------|---------|
+| `az network private-endpoint show` | Displays the private endpoint resource during troubleshooting. |
+| `--query 'provisioningState'` | Returns only the provisioning state value. |
+
 ### Connection Timeout
 
 1. Check NSG rules on the private endpoint subnet
@@ -439,14 +543,25 @@ az network private-endpoint show \
 3. Ensure `AZURE_CLIENT_ID` environment variable is set
 
 ```bash
-az containerapp show -n <app-name> -g <rg> --query 'identity'
+az containerapp show --name <app-name> --resource-group <resource-group> --query 'identity'
 ```
+
+| Command/Parameter | Purpose |
+|-------------------|---------|
+| `az containerapp show` | Displays the Container App resource definition. |
+| `--query 'identity'` | Filters the output to the managed identity configuration. |
 
 ## Clean Up
 
 ```bash
 az group delete --name rg-container-apps-private --yes --no-wait
 ```
+
+| Command/Parameter | Purpose |
+|-------------------|---------|
+| `az group delete` | Deletes the test resource group and all contained resources. |
+| `--yes` | Skips the interactive confirmation prompt. |
+| `--no-wait` | Starts the delete operation asynchronously. |
 
 !!! note "Soft Delete"
     Key Vault uses soft delete by default. Deleted vaults are retained for 7 days before permanent deletion.
