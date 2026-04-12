@@ -1,5 +1,7 @@
 # Azure Container Apps Practical Guide
 
+[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+
 Comprehensive guide for running containerized applications on Azure Container Apps — from first deployment to production troubleshooting.
 
 ## What's Inside
