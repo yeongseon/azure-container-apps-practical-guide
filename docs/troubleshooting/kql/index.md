@@ -59,23 +59,23 @@ If `_CL` tables are empty, check non-`_CL` tables in your workspace.
 
 ## Sample Result
 
-Real lifecycle summary from a deployed Container Apps environment:
+Real lifecycle summary from a deployed Container Apps environment (`ca-cakqltest-54kxmtjeuidri`, captured 2026-04-12):
 
 | Reason_s | Type_s | count_ |
 |---|---|---:|
-| ProbeFailed | Warning | 74 |
-| RevisionUpdate | Normal | 14 |
-| ContainerAppUpdate | Normal | 9 |
-| RevisionReady | Normal | 7 |
-| ContainerAppReady | Normal | 6 |
-| KEDAScalersStarted | Normal | 6 |
-| RevisionDeactivating | Normal | 5 |
-| ContainerStarted | Normal | 3 |
-| PulledImage | Normal | 3 |
-| ContainerCreated | Normal | 3 |
-| AssigningReplica | Normal | 3 |
-| PullingImage | Normal | 2 |
-| ContainerTerminated | Warning | 2 |
+| RevisionUpdate | Normal | 10 |
+| ContainerAppUpdate | Normal | 7 |
+| ContainerAppReady | Normal | 4 |
+| RevisionReady | Normal | 3 |
+| KEDAScalersStarted | Normal | 3 |
+| RevisionDeactivating | Normal | 3 |
+| RollingRevisionCompleted | Normal | 1 |
+| AssigningReplica | Normal | 1 |
+| ContainerStarted | Normal | 1 |
+| PullingImage | Normal | 1 |
+| PulledImage | Normal | 1 |
+| ProbeFailed | Warning | 1 |
+| ContainerCreated | Normal | 1 |
 
 ## Query Categories
 
@@ -97,27 +97,41 @@ Real lifecycle summary from a deployed Container Apps environment:
 - [Revision Failures and Startup](system-and-revisions/revision-failures-and-startup.md)
 - [Image Pull and Auth Errors](system-and-revisions/image-pull-and-auth-errors.md)
 - [Replica Crash Signals](system-and-revisions/replica-crash-signals.md)
+- [Health Probe Timeline](system-and-revisions/health-probe-timeline.md)
+- [Deployment Progression](system-and-revisions/deployment-progression.md)
 
 ### Console and Runtime
 
 - [Latest Errors and Exceptions](console-and-runtime/latest-errors-and-exceptions.md)
 - [Request Latency from Logs](console-and-runtime/request-latency-from-logs.md)
 - [Top Noisy Messages](console-and-runtime/top-noisy-messages.md)
+- [Memory Usage Patterns](console-and-runtime/memory-usage-patterns.md)
+- [Startup Duration Analysis](console-and-runtime/startup-duration-analysis.md)
 
 ### Ingress and Networking
 
 - [Ingress Error Analysis](ingress-and-networking/ingress-error-analysis.md)
 - [DNS and Connectivity Failures](ingress-and-networking/dns-and-connectivity-failures.md)
+- [Request Routing Analysis](ingress-and-networking/request-routing-analysis.md)
+- [TLS Handshake Errors](ingress-and-networking/tls-handshake-errors.md)
+- [Timeout and Retry Patterns](ingress-and-networking/timeout-and-retry-patterns.md)
 
 ### Scaling and Replicas
 
 - [Scaling Events](scaling-and-replicas/scaling-events.md)
 - [Replica Count Over Time](scaling-and-replicas/replica-count-over-time.md)
+- [KEDA Scaler Metrics](scaling-and-replicas/keda-scaler-metrics.md)
+- [Scale-In Delay Analysis](scaling-and-replicas/scale-in-delay-analysis.md)
+- [Replica Distribution by Revision](scaling-and-replicas/replica-distribution-by-revision.md)
 
 ### Identity and Secrets
 
 - [Managed Identity Token Errors](identity-and-secrets/managed-identity-token-errors.md)
 - [Secret Reference Failures](identity-and-secrets/secret-reference-failures.md)
+- [Authentication Failure Timeline](identity-and-secrets/authentication-failure-timeline.md)
+- [Key Vault Access Errors](identity-and-secrets/keyvault-access-errors.md)
+- [Authentication Failure Timeline](identity-and-secrets/authentication-failure-timeline.md)
+- [Key Vault Access Errors](identity-and-secrets/keyvault-access-errors.md)
 
 ### Dapr and Jobs
 

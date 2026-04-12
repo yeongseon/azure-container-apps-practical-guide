@@ -2,6 +2,17 @@
 content_sources:
   - type: self-generated
     justification: Auto-generated dashboard tracking content validation status
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
+      source: "https://learn.microsoft.com/azure/container-apps/overview"
+      verified: true
+    - claim: "Azure Container Apps troubleshooting guidance includes diagnostic and logging workflows."
+      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
+      verified: true
 ---
 
 # Content Validation Status
@@ -15,14 +26,14 @@ This page tracks the source validation status of all documentation content. All 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 87 | 87 | 0 | 0 | 0 |
+| Text Documents | 100 | 100 | 0 | 0 | 0 |
 
 !!! success "All Content Verified"
     All text documents have verified Microsoft Learn sources for core claims.
 
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 87
+    "Verified" : 100
 ```
 
 ## By Section
@@ -72,8 +83,10 @@ pie title Document Validation Status
 | [5Xx Trend Over Time](../troubleshooting/kql/http/5xx-trend-over-time.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Architecture Overview](../troubleshooting/architecture-overview.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Authentication Failure Timeline](../troubleshooting/kql/identity-and-secrets/authentication-failure-timeline.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Bad Revision Rollout And Rollback](../troubleshooting/playbooks/platform-features/bad-revision-rollout-and-rollback.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Cli Reference](../troubleshooting/first-10-minutes/cli-reference.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Cold Start Scale To Zero](../troubleshooting/lab-guides/cold-start-scale-to-zero.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
 | [Container App Job Execution Failure](../troubleshooting/playbooks/platform-features/container-app-job-execution-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Container Start Failure](../troubleshooting/playbooks/startup-and-provisioning/container-start-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Crashloop Oom And Resource Pressure](../troubleshooting/playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -81,6 +94,7 @@ pie title Document Validation Status
 | [Dapr Sidecar Logs](../troubleshooting/kql/dapr-and-jobs/dapr-sidecar-logs.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Dapr Sidecar Or Component Failure](../troubleshooting/playbooks/platform-features/dapr-sidecar-or-component-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Decision Tree](../troubleshooting/decision-tree.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Deployment Progression](../troubleshooting/kql/system-and-revisions/deployment-progression.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Detector Map](../troubleshooting/methodology/detector-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Dns And Connectivity Failures](../troubleshooting/kql/ingress-and-networking/dns-and-connectivity-failures.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Environment Variables](../troubleshooting/first-10-minutes/environment-variables.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
@@ -88,6 +102,7 @@ pie title Document Validation Status
 | [Event Scaler Mismatch](../troubleshooting/playbooks/scaling-and-runtime/event-scaler-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Evidence Map](../troubleshooting/evidence-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Failed Requests App Insights](../troubleshooting/kql/correlation/failed-requests-app-insights.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Health Probe Timeline](../troubleshooting/kql/system-and-revisions/health-probe-timeline.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Http Scaling Not Triggering](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Image Pull And Auth Errors](../troubleshooting/kql/system-and-revisions/image-pull-and-auth-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Image Pull Failure](../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -96,12 +111,15 @@ pie title Document Validation Status
 | [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Internal Dns And Private Endpoint Failure](../troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Job Execution History](../troubleshooting/kql/dapr-and-jobs/job-execution-history.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Keda Scaler Metrics](../troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Keyvault Access Errors](../troubleshooting/kql/identity-and-secrets/keyvault-access-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Latency Trend By Status Code](../troubleshooting/kql/http/latency-trend-by-status-code.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Latest Errors And Exceptions](../troubleshooting/kql/console-and-runtime/latest-errors-and-exceptions.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Link Exceptions To Operations](../troubleshooting/kql/correlation/link-exceptions-to-operations.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Managed Identity Auth Failure](../troubleshooting/playbooks/identity-and-configuration/managed-identity-auth-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Managed Identity Token Errors](../troubleshooting/kql/identity-and-secrets/managed-identity-token-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Memory Usage Patterns](../troubleshooting/kql/console-and-runtime/memory-usage-patterns.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Mental Model](../troubleshooting/mental-model.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Platform Limits](../troubleshooting/first-10-minutes/platform-limits.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
@@ -111,18 +129,24 @@ pie title Document Validation Status
 | [Repeated Startup Attempts](../troubleshooting/kql/restarts/repeated-startup-attempts.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Replica Count Over Time](../troubleshooting/kql/scaling-and-replicas/replica-count-over-time.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Replica Crash Signals](../troubleshooting/kql/system-and-revisions/replica-crash-signals.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Replica Distribution By Revision](../troubleshooting/kql/scaling-and-replicas/replica-distribution-by-revision.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Request Latency From Logs](../troubleshooting/kql/console-and-runtime/request-latency-from-logs.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Request Routing Analysis](../troubleshooting/kql/ingress-and-networking/request-routing-analysis.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Restart Timing Correlation](../troubleshooting/kql/restarts/restart-timing-correlation.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Revision Failures And Startup](../troubleshooting/kql/system-and-revisions/revision-failures-and-startup.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Revision Provisioning Failure](../troubleshooting/lab-guides/revision-provisioning-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Revision Provisioning Failure](../troubleshooting/playbooks/startup-and-provisioning/revision-provisioning-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Scale In Delay Analysis](../troubleshooting/kql/scaling-and-replicas/scale-in-delay-analysis.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Scaling Events](../troubleshooting/kql/scaling-and-replicas/scaling-events.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Secret And Key Vault Reference Failure](../troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Secret Reference Failures](../troubleshooting/kql/identity-and-secrets/secret-reference-failures.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Service To Service Connectivity Failure](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Slowest Requests By Path](../troubleshooting/kql/http/slowest-requests-by-path.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Startup Duration Analysis](../troubleshooting/kql/console-and-runtime/startup-duration-analysis.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Timeout And Retry Patterns](../troubleshooting/kql/ingress-and-networking/timeout-and-retry-patterns.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Tls Handshake Errors](../troubleshooting/kql/ingress-and-networking/tls-handshake-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Top Noisy Messages](../troubleshooting/kql/console-and-runtime/top-noisy-messages.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 

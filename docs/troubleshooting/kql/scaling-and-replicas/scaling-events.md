@@ -56,9 +56,8 @@ ContainerAppSystemLogs_CL
 
 | TimeGenerated | RevisionName_s | ReplicaName_s | Reason_s | Log_s |
 |---|---|---|---|---|
-| 2026-04-04T11:37:08.918Z | ca-myapp--0000001 |  | KEDAScalersStarted | KEDA scaler started for revision |
-| 2026-04-04T11:37:15.102Z | ca-myapp--0000001 | ca-myapp--0000001-6cc5f7cc66-vk4pp | AssigningReplica | Assigning replica for scale-out |
-| 2026-04-04T11:37:23.741Z | ca-myapp--0000001 | ca-myapp--0000001-6cc5f7cc66-vk4pp | ContainerStarted | Started container after scale event |
+| 2026-04-12T05:57:38.558Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji |  | KEDAScalersStarted | KEDA is starting a watch for revision 'ca-cakqltest-54kxmtjeuidri--nu8o2ji' to monitor scale operations |
+| 2026-04-12T05:57:38.558Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji | ca-cakqltest-54kxmtjeuidri--nu8o2ji-5cbf89478b-hfgkq | AssigningReplica | Replica 'ca-cakqltest-54kxmtjeuidri--nu8o2ji-5cbf89478b-hfgkq' has been scheduled to run on a node |
 
 ## Interpretation Notes
 

@@ -54,11 +54,9 @@ ContainerAppConsoleLogs_CL
 
 ## Example Output
 
-| TimeGenerated | RevisionName_s | Log_s |
-|---|---|---|
-| 2026-04-04T11:41:12.917Z | ca-myapp--0000002 | ERROR: dependency call failed: connection refused |
-| 2026-04-04T11:41:12.916Z | ca-myapp--0000002 | Traceback (most recent call last): RuntimeError: upstream timeout |
-| 2026-04-04T11:40:58.104Z | ca-myapp--0000002 | request failed status=500 path=/api/items |
+| TimeGenerated | RevisionName_s | Log_s | Stream |
+|---|---|---|---|
+| 2026-04-12T05:59:05.795Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji | 100.100.0.125 - - [12/Apr/2026:05:59:04 +0000] "GET /api/exceptions/test-error HTTP/1.1" 500 173 "-" "curl/8.5.0" | stdout |
 
 ## Interpretation Notes
 

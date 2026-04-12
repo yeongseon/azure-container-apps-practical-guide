@@ -281,19 +281,31 @@ nav:
         - Revision Failures and Startup: troubleshooting/kql/system-and-revisions/revision-failures-and-startup.md
         - Image Pull and Auth Errors: troubleshooting/kql/system-and-revisions/image-pull-and-auth-errors.md
         - Replica Crash Signals: troubleshooting/kql/system-and-revisions/replica-crash-signals.md
+        - Health Probe Timeline: troubleshooting/kql/system-and-revisions/health-probe-timeline.md
+        - Deployment Progression: troubleshooting/kql/system-and-revisions/deployment-progression.md
       - Console and Runtime:
         - Latest Errors and Exceptions: troubleshooting/kql/console-and-runtime/latest-errors-and-exceptions.md
         - Request Latency from Logs: troubleshooting/kql/console-and-runtime/request-latency-from-logs.md
         - Top Noisy Messages: troubleshooting/kql/console-and-runtime/top-noisy-messages.md
+        - Memory Usage Patterns: troubleshooting/kql/console-and-runtime/memory-usage-patterns.md
+        - Startup Duration Analysis: troubleshooting/kql/console-and-runtime/startup-duration-analysis.md
       - Ingress and Networking:
         - Ingress Error Analysis: troubleshooting/kql/ingress-and-networking/ingress-error-analysis.md
         - DNS and Connectivity Failures: troubleshooting/kql/ingress-and-networking/dns-and-connectivity-failures.md
+        - Request Routing Analysis: troubleshooting/kql/ingress-and-networking/request-routing-analysis.md
+        - TLS Handshake Errors: troubleshooting/kql/ingress-and-networking/tls-handshake-errors.md
+        - Timeout and Retry Patterns: troubleshooting/kql/ingress-and-networking/timeout-and-retry-patterns.md
       - Scaling and Replicas:
         - Scaling Events: troubleshooting/kql/scaling-and-replicas/scaling-events.md
         - Replica Count Over Time: troubleshooting/kql/scaling-and-replicas/replica-count-over-time.md
+        - KEDA Scaler Metrics: troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md
+        - Replica Distribution by Revision: troubleshooting/kql/scaling-and-replicas/replica-distribution-by-revision.md
+        - Scale-In Delay Analysis: troubleshooting/kql/scaling-and-replicas/scale-in-delay-analysis.md
       - Identity and Secrets:
         - Managed Identity Token Errors: troubleshooting/kql/identity-and-secrets/managed-identity-token-errors.md
         - Secret Reference Failures: troubleshooting/kql/identity-and-secrets/secret-reference-failures.md
+        - Authentication Failure Timeline: troubleshooting/kql/identity-and-secrets/authentication-failure-timeline.md
+        - Key Vault Access Errors: troubleshooting/kql/identity-and-secrets/keyvault-access-errors.md
       - Dapr and Jobs:
         - Dapr Sidecar Logs: troubleshooting/kql/dapr-and-jobs/dapr-sidecar-logs.md
         - Job Execution History: troubleshooting/kql/dapr-and-jobs/job-execution-history.md
@@ -306,6 +318,7 @@ nav:
       - ACR Pull Failure: troubleshooting/lab-guides/acr-pull-failure.md
       - Revision Failover: troubleshooting/lab-guides/revision-failover.md
       - Scale Rule Mismatch: troubleshooting/lab-guides/scale-rule-mismatch.md
+      - Cold Start and Scale-to-Zero Lab: troubleshooting/lab-guides/cold-start-scale-to-zero.md
       - Probe and Port Mismatch: troubleshooting/lab-guides/probe-and-port-mismatch.md
       - Managed Identity Key Vault Failure: troubleshooting/lab-guides/managed-identity-key-vault-failure.md
       - Revision Provisioning Failure: troubleshooting/lab-guides/revision-provisioning-failure.md

@@ -89,6 +89,19 @@ ContainerAppSystemLogs_CL
 | order by TimeGenerated desc
 ```
 
+**Example Output**
+
+| TimeGenerated | RevisionName_s | Reason_s | Log_s |
+|---|---|---|---|
+| 2026-04-12T05:57:38.558Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji | AssigningReplica | Replica has been scheduled to run on a node |
+| 2026-04-12T05:57:38.558Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji | KEDAScalersStarted | KEDA is starting a watch for revision 'ca-cakqltest-54kxmtjeuidri--nu8o2ji' to monitor scale operations |
+
+**How to Read This**
+
+- `KEDAScalersStarted` confirms the HTTP scaler is active for revision `ca-cakqltest-54kxmtjeuidri--nu8o2ji`.
+- `AssigningReplica` at the same timestamp shows the platform was also placing a replica, so scaling infrastructure was not idle.
+- If your output has no KEDA or replica events during load, investigate missing scale rules, wrong target URL, or insufficient traffic.
+
 ### Platform Signals
 
 ```bash
@@ -161,6 +174,18 @@ ContainerAppSystemLogs_CL
 | render timechart
 ```
 
+**Example Output**
+
+| TimeGenerated | Reason_s | count_ |
+|---|---|---:|
+| 2026-04-12T05:55:00Z | AssigningReplica | 1 |
+
+**Interpretation**
+
+- The 5-minute bucket at `2026-04-12T05:55:00Z` contains one `AssigningReplica` event, which is consistent with a single scale-out action.
+- If this table flattens while latency rises, the app may be pinned by `maxReplicas` or not receiving enough concurrent load to trigger more replicas.
+- A complete absence of replica lifecycle events during the test window weakens the "max replicas too low" hypothesis.
+
 **Fix:**
 
 ```bash
@@ -211,6 +236,18 @@ ContainerAppSystemLogs_CL
 | where Reason_s == "KEDAScalersStarted"
 | project TimeGenerated, Log_s
 ```
+
+**Example Output**
+
+| TimeGenerated | Log_s |
+|---|---|
+| 2026-04-12T05:57:38.558Z | KEDA is starting a watch for revision 'ca-cakqltest-54kxmtjeuidri--nu8o2ji' to monitor scale operations |
+
+**How to Read This**
+
+- This event is strong evidence that Azure Container Apps started the KEDA watcher for the active revision.
+- If you see this event, "no HTTP scale rule configured" becomes less likely and you should inspect threshold math or request routing next.
+- If you do not see any `KEDAScalersStarted` rows after a deployment, verify that the scale rules array includes an HTTP rule.
 
 **Fix:**
 
@@ -268,6 +305,18 @@ ContainerAppConsoleLogs_CL
 | summarize RequestCount=count() by bin(TimeGenerated, 1m)
 | render timechart
 ```
+
+**Example Output**
+
+| TimeGenerated | RequestCount |
+|---|---:|
+| 2026-04-12T05:59:00Z | 1 |
+
+**How to Read This**
+
+- This 1-minute bucket lines up with the observed console log `GET /api/exceptions/test-error HTTP/1.1 500 173`, proving traffic reached the container.
+- When request buckets rise during the load test but replicas stay flat, focus on thresholds, min/max settings, or stabilization timing.
+- If no rows appear at all, the test may be targeting the wrong FQDN, path, revision, or network entry point.
 
 **Fix:**
 
@@ -335,6 +384,18 @@ ContainerAppSystemLogs_CL
 | project TimeGenerated, Reason_s, Log_s
 | order by TimeGenerated asc
 ```
+
+**Example Output**
+
+| TimeGenerated | Reason_s | Log_s |
+|---|---|---|
+| 2026-04-12T05:57:38.558Z | AssigningReplica | Replica has been scheduled to run on a node |
+
+**Interpretation**
+
+- This row shows a replica assignment event for revision `ca-cakqltest-54kxmtjeuidri--nu8o2ji` at `2026-04-12T05:57:38.558Z`.
+- If your load-test timestamps are earlier than this row, the gap represents expected polling and stabilization delay rather than a total scaling failure.
+- If this query never shows replica events during sustained load, investigate threshold configuration or whether the traffic spike was too short-lived.
 
 **Explanation:**
 

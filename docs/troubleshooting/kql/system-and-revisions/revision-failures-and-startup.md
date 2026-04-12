@@ -56,9 +56,9 @@ ContainerAppSystemLogs_CL
 
 | TimeGenerated | RevisionName_s | ReplicaName_s | Reason_s | Log_s |
 |---|---|---|---|---|
-| 2026-04-04T11:36:44.201Z | ca-myapp--0000002 | ca-myapp--0000002-5f8b7fbbd8-7j4nm | ProbeFailed | Readiness probe failed: timeout after 5s |
-| 2026-04-04T11:35:10.110Z | ca-myapp--0000002 | ca-myapp--0000002-5f8b7fbbd8-7j4nm | RevisionUpdate | New revision provisioning started |
-| 2026-04-04T11:34:55.774Z | ca-myapp--0000002 |  | ContainerAppUpdate | Configuration update detected for revision rollout |
+| 2026-04-12T05:58:04.234Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji | ca-cakqltest-54kxmtjeuidri--nu8o2ji-5cbf89478b-hfgkq | ProbeFailed | Probe of StartUp failed with status code: 1 |
+| 2026-04-12T05:57:38.558Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji |  | PullingImage |  |
+| 2026-04-12T05:57:38.558Z | ca-cakqltest-54kxmtjeuidri--nu8o2ji |  | PulledImage |  |
 
 ## Interpretation Notes
 
