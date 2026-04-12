@@ -9,6 +9,26 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/azure/container-apps/managed-identity
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "When a managed identity is added, deleted, or modified on a running container app, the app does not automatically restart and a new revision is not created."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "The authentication and authorization middleware runs as a sidecar container on each replica in the application."
+      source: "https://learn.microsoft.com/azure/container-apps/authentication"
+      verified: true
+    - claim: "When authentication is enabled, the platform middleware injects identity information into HTTP request headers."
+      source: "https://learn.microsoft.com/azure/container-apps/authentication"
+      verified: true
+    - claim: "Require authentication can reject unauthenticated traffic by redirecting to a configured identity provider or by returning HTTP 401 or HTTP 403 responses."
+      source: "https://learn.microsoft.com/azure/container-apps/authentication"
+      verified: true
 ---
 
 # Security Operations

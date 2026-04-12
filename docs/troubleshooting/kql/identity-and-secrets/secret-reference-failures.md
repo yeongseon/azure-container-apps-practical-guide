@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps can send system logs that record platform events to a Log Analytics workspace."
+      source: "https://learn.microsoft.com/azure/container-apps/logging"
+      verified: true
+    - claim: "Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data."
+      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
+      verified: true
 ---
 
 # Secret Reference Failures

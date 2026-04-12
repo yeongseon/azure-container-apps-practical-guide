@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/traffic-splitting
         - https://learn.microsoft.com/azure/container-apps/revisions
         - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights."
+      source: "https://learn.microsoft.com/azure/container-apps/traffic-splitting"
+      verified: true
+    - claim: "To route traffic to more than one revision in Azure Container Apps, the app must use multiple revision mode."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
 ---
 
 # Traffic Routing and Canary Failure Lab

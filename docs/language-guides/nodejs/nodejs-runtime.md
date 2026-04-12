@@ -114,8 +114,8 @@ ps aux
 ## See Also
 
 - [Node.js Language Guide Index](./index.md)
-- [01 - Run Locally with Docker](./01-local-development.md)
-- [03 - Configuration, Secrets, and Dapr](./03-configuration.md)
+- [01 - Run Locally with Docker](./tutorial/01-local-development.md)
+- [03 - Configuration, Secrets, and Dapr](./tutorial/03-configuration.md)
 - [Container Design Best Practices](../../best-practices/container-design.md)
 
 ## Sources

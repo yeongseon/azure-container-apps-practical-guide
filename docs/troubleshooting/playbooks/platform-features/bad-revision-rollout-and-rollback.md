@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/revisions
         - https://learn.microsoft.com/azure/container-apps/traffic-splitting
         - https://learn.microsoft.com/azure/container-apps/troubleshooting
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Each revision in Azure Container Apps is an immutable snapshot of a container app version."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "In multiple revision mode, Azure Container Apps can run multiple active revisions at the same time."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
 ---
 
 # Bad Revision Rollout and Rollback

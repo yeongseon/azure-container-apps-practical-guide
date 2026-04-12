@@ -11,6 +11,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/managed-identity
         - https://learn.microsoft.com/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps can pull container images from public and private registries, including Azure Container Registry."
+      source: "https://learn.microsoft.com/azure/container-apps/containers"
+      verified: true
+    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
 ---
 
 # Image Pull Failure

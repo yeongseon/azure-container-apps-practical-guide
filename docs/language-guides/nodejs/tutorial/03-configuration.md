@@ -215,7 +215,7 @@ module.exports = { LOG_LEVEL, FEATURE_FLAG, DB_PASSWORD };
 
 - [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
-- [Recipes Index](recipes/index.md)
+- [Recipes Index](../recipes/index.md)
 
 ## Sources
 - [Containers (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)

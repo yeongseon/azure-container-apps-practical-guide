@@ -9,6 +9,17 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/health-probes
         - https://learn.microsoft.com/azure/container-apps/ingress-how-to
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports startup, readiness, and liveness probes for containers."
+      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
+      verified: true
+    - claim: "Ingress in Azure Container Apps routes incoming requests to the app's target port inside the container."
+      source: "https://learn.microsoft.com/azure/container-apps/ingress-how-to"
+      verified: true
 ---
 
 # Probe and Port Mismatch Lab

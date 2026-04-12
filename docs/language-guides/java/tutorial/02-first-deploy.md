@@ -329,7 +329,7 @@ curl https://$FQDN/health
 ## See Also
 - [03 - Configuration and Secrets](03-configuration.md)
 - [05 - Infrastructure as Code (Bicep)](05-infrastructure-as-code.md)
-- [Operations Guide](../../operations/index.md)
+- [Operations Guide](../../../operations/index.md)
 
 ## Sources
 - [Quickstart: Build and deploy from source to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)

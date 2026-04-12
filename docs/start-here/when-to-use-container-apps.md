@@ -23,6 +23,17 @@ content_sources:
         - https://learn.microsoft.com/azure/app-service/overview
         - https://learn.microsoft.com/azure/aks/
         - https://learn.microsoft.com/azure/azure-functions/
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps abstracts away Kubernetes complexity while providing container-native capabilities."
+      source: "https://learn.microsoft.com/azure/container-apps/compare-options"
+      verified: true
+    - claim: "Container Apps is ideal for microservices, APIs, and event-driven workloads that benefit from automatic scaling."
+      source: "https://learn.microsoft.com/azure/container-apps/overview"
+      verified: true
 ---
 
 # Azure Container Apps vs Other Azure Compute Options

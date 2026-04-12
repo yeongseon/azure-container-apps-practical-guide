@@ -98,7 +98,7 @@ Good scaling design balances **user experience**, **system stability**, and **co
 - [How Container Apps Works](../../start-here/overview.md)
 - [Environments and Apps](../environments/index.md)
 - [Networking](../networking/index.md)
-- [Revision Management and Traffic Splitting](../../language-guides/python/07-revisions-traffic.md)
+- [Revision Management and Traffic Splitting](../../language-guides/python/tutorial/07-revisions-traffic.md)
 - [KEDA open-source scalers documentation](https://keda.sh/docs/latest/scalers/)
 
 ## Sources

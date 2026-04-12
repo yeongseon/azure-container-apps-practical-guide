@@ -9,6 +9,26 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/health-probes
         - https://learn.microsoft.com/azure/container-apps/revisions
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Revisions are snapshots of each version of a container app."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Revisions are immutable once they are established."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "In single revision mode, the existing revision continues to receive traffic until the new revision is ready."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "A new revision is considered ready only after it provisions successfully, scales to match the previous replica count, and its replicas pass startup and readiness probes."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Revision running status can include states such as Scale to 0, Activating, Running, Degraded, and Failed."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
 ---
 
 # Health and Recovery Operations

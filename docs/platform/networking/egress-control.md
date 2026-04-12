@@ -15,6 +15,23 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements
         - https://learn.microsoft.com/azure/container-apps/user-defined-routes
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Workload profiles environments support user-defined routes and egress through NAT Gateway."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Consumption only environments do not support user-defined routes or egress through NAT Gateway."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Using an existing virtual network enables Azure Firewall integration for Container Apps."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Using a NAT Gateway or other outbound proxy for outbound traffic from a Container Apps environment is supported only in a workload profiles environment."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
 ---
 
 # Egress Control

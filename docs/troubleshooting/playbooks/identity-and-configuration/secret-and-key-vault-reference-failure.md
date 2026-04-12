@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/azure/container-apps/manage-secrets#reference-secret-from-key-vault
         - https://learn.microsoft.com/azure/container-apps/managed-identity
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "Each revision in Azure Container Apps is an immutable snapshot of a container app version."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
 ---
 
 # Secret and Key Vault Reference Failure

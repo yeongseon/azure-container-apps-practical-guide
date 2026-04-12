@@ -110,6 +110,45 @@ content_sources:
 - See [Content Validation Status](docs/reference/content-validation-status.md) for current status
 - See [Tutorial Validation Status](docs/reference/validation-status.md) for tutorial testing
 
+### 5. Text Content Validation
+
+Every non-tutorial document should include a `content_validation` block in frontmatter to track the verification status of its core claims.
+
+```yaml
+---
+content_sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/azure/container-apps/...
+content_validation:
+  status: verified  # verified | pending_review | unverified
+  last_reviewed: 2026-04-12
+  reviewer: ai-agent  # ai-agent | human
+  core_claims:
+    - claim: "Container Apps supports automatic scaling based on HTTP traffic, CPU, memory, and custom metrics."
+      source: https://learn.microsoft.com/azure/container-apps/scale-app
+      verified: true
+    - claim: "Revisions are immutable snapshots of a container app version."
+      source: https://learn.microsoft.com/azure/container-apps/revisions
+      verified: true
+---
+```
+
+#### Validation Status Values
+
+| Status | Description |
+|--------|-------------|
+| `verified` | All core claims have been traced to Microsoft Learn sources |
+| `pending_review` | Document exists but claims need source verification |
+| `unverified` | New document, no validation performed |
+
+#### Agent Rules for Content Validation
+
+1. When creating or modifying Platform, Best Practices, or Operations documents, add `content_validation` frontmatter.
+2. List 2-5 core claims that are factual assertions (not opinions or procedures).
+3. Each claim must have a Microsoft Learn source URL.
+4. Set `status: verified` only when ALL core claims have verified sources.
+5. Run `python3 scripts/generate_content_validation_status.py` after updates.
+
 ## Quality Gates & Verification
 1. **PII Check**: Manually verify no subscription IDs, tenant IDs, or private IP addresses are in the documentation.
 2. **Link Validation**: Use `mkdocs build --strict` to ensure no broken internal or external links.

@@ -31,6 +31,26 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "The network type of a Container Apps environment can't be changed after the environment is created."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "In workload profiles environments, the minimum required subnet size is /27."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "In consumption-only environments, the minimum required subnet size is /23."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Traffic splitting rules can define how incoming traffic is split between different revisions of an application."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
 ---
 
 # Azure Container Apps Networking Best Practices

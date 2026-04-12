@@ -9,6 +9,26 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/vnet-custom
         - https://learn.microsoft.com/azure/container-apps/networking
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "A Container Apps environment can use either the default Azure network or an existing virtual network, and the network type cannot be changed after creation."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "A subnet provided for an existing virtual network deployment must be dedicated exclusively to the Container Apps environment."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Using an existing virtual network enables Network Security Groups, Azure Firewall integration, outbound traffic control, and access to resources behind private endpoints."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "An internal Container Apps environment does not use a public static IP and uses internal IP addresses from the custom virtual network."
+      source: "https://learn.microsoft.com/azure/container-apps/vnet-custom"
+      verified: true
+    - claim: "Container apps deployed to the same environment are deployed in the same virtual network and write logs to the same Log Analytics workspace."
+      source: "https://learn.microsoft.com/azure/container-apps/vnet-custom"
+      verified: true
 ---
 
 # VNet Integration

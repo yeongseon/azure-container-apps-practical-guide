@@ -228,7 +228,7 @@ const jsonLogger = (req, res, next) => {
 
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
-- [Recipes Index](recipes/index.md)
+- [Recipes Index](../recipes/index.md)
 
 ## Sources
 - [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)

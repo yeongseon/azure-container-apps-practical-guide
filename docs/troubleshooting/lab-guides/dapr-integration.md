@@ -9,6 +9,17 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/dapr-overview
         - https://learn.microsoft.com/azure/container-apps/dapr-components
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol."
+      source: "https://learn.microsoft.com/azure/container-apps/dapr-overview"
+      verified: true
+    - claim: "Dapr components in Azure Container Apps are defined at the Container Apps environment scope and can be used by apps in that environment."
+      source: "https://learn.microsoft.com/azure/container-apps/dapr-components"
+      verified: true
 ---
 
 # Dapr Integration Troubleshooting Lab

@@ -124,8 +124,8 @@ curl https://$FQDN/info
     Spring Boot applications typically require at least **512 MiB** of container memory to run efficiently. For production workloads, **1 GiB** or more is recommended to avoid OutOfMemory (OOM) errors during startup or under load.
 
 ## See Also
-- [01 - Local Development](01-local-development.md)
-- [04 - Logging and Monitoring](04-logging-monitoring.md)
+- [01 - Local Development](./tutorial/01-local-development.md)
+- [04 - Logging and Monitoring](./tutorial/04-logging-monitoring.md)
 - [Java on Azure (Microsoft Learn)](https://learn.microsoft.com/azure/developer/java/)
 
 ## Sources

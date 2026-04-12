@@ -29,7 +29,7 @@ Azure Container Apps revisions provide immutable deployment snapshots. Use them 
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
+    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Python 3.11"]
 
     subgraph VNET["VNet 10.0.0.0/16"]
         subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
@@ -85,87 +85,117 @@ graph LR
 
 ## Step-by-step
 
-1. **Set standard variables**
+1. **Set standard variables (reuse Bicep outputs from Step 02)**
 
-    ```bash
-    RG="rg-nodejs-guide"
-    BASE_NAME="nodejs-guide"
-    DEPLOYMENT_NAME="main"
+   ```bash
+   RG="rg-myapp"
+   BASE_NAME="myapp"
+   DEPLOYMENT_NAME="main"
 
-    APP_NAME=$(az deployment group show \
-      --name "$DEPLOYMENT_NAME" \
-      --resource-group "$RG" \
-      --query "properties.outputs.containerAppName.value" \
-      --output tsv)
-    ```
+   APP_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerAppName.value" \
+     --output tsv)
+
+   ENVIRONMENT_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerAppEnvName.value" \
+     --output tsv)
+
+   ACR_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerRegistryName.value" \
+     --output tsv)
+
+   ACR_LOGIN_SERVER=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerRegistryLoginServer.value" \
+     --output tsv)
+   ```
 
 2. **Switch to multiple revision mode**
 
-    ```bash
-    az containerapp revision set-mode \
-      --name "$APP_NAME" \
-      --resource-group "$RG" \
-      --mode multiple
-    ```
+   ```bash
+   az containerapp revision set-mode \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --mode multiple
+   ```
 
-    ???+ example "Expected output"
-        ```text
-        "Multiple"
-        ```
+   ???+ example "Expected output"
+       ```
+       "Multiple"
+       ```
 
 3. **Deploy a new version to create a new revision**
 
-    ```bash
-    az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v3" ./apps/nodejs
+   ```bash
+   az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v3" ./app
 
-    az containerapp update \
-      --name "$APP_NAME" \
-      --resource-group "$RG" \
-      --image "$ACR_LOGIN_SERVER/$BASE_NAME:v3"
-    ```
+   az containerapp update \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --image "$ACR_LOGIN_SERVER/$BASE_NAME:v3"
+   ```
 
-    ???+ example "Expected output"
-        `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
-        ```json
-        {
-          "latestRevision": "<your-app-name>--xxxxxxx",
-          "name": "<your-app-name>",
-          "provisioningState": "Succeeded"
-        }
-        ```
+   ???+ example "Expected output"
+       `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
+       ```json
+       {
+         "latestRevision": "<your-app-name>--xxxxxxx",
+         "name": "<your-app-name>",
+         "provisioningState": "Succeeded"
+       }
+       ```
 
 4. **List revisions and choose targets**
 
-    ```bash
-    az containerapp revision list \
-      --name "$APP_NAME" \
-      --resource-group "$RG" \
-      --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}" \
-      --output table
-    ```
+   ```bash
+   az containerapp revision list \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}" \
+     --output table
+   ```
 
-    ???+ example "Expected output"
+   ???+ example "Expected output"
         ```text
         Name                                     Active    CreatedTime
         ---------------------------------------  --------  -------------------------
-        <your-app-name>--0000001                 True      2026-04-05T10:00:00+00:00
-        <your-app-name>--0000002                 True      2026-04-05T10:15:00+00:00
+        <your-app-name>--0000001                 True      2024-01-15T10:00:00+00:00
+        <your-app-name>--0000002                 True      2024-01-15T10:15:00+00:00
+        ```
+
+        JSON equivalent (`--output json`):
+        ```json
+        [
+          {
+            "name": "<your-app-name>--0000001",
+            "active": true,
+            "createdTime": "2024-01-15T10:00:00+00:00"
+          },
+          {
+            "name": "<your-app-name>--0000002",
+            "active": true,
+            "createdTime": "2024-01-15T10:15:00+00:00"
+          }
+        ]
         ```
 
 5. **Apply canary traffic split (90/10)**
 
-    ```bash
-    # Capture revision names from the list above
-    STABLE_REV="${APP_NAME}--0000001"
-    CANARY_REV="${APP_NAME}--0000002"
+   ```bash
+   az containerapp ingress traffic set \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --revision-weight "<stable-revision>=90" "<canary-revision>=10"
+   ```
 
-    az containerapp ingress traffic set \
-      --name "$APP_NAME" \
-      --resource-group "$RG" \
-      --revision-weight "$STABLE_REV=90" "$CANARY_REV=10"
-    ```
-
-    ???+ example "Expected output"
+   ???+ example "Expected output"
         ```json
         [
           {
@@ -179,42 +209,68 @@ graph LR
         ]
         ```
 
+   Verify applied traffic routing:
+
+   ```bash
+   az containerapp ingress show \
+     --name "$APP_NAME" \
+     --resource-group "$RG"
+   ```
+
+   ???+ example "Expected output"
+        ```json
+        {
+          "allowInsecure": false,
+          "external": true,
+          "fqdn": "<your-app-name>.<hash>.<region>.azurecontainerapps.io",
+          "targetPort": 8000,
+          "transport": "Auto",
+          "traffic": [
+            {
+              "revisionName": "<your-app-name>--0000001",
+              "weight": 90
+            },
+            {
+              "revisionName": "<your-app-name>--0000002",
+              "weight": 10
+            }
+          ]
+        }
+        ```
+
 6. **Rollback instantly if errors increase**
 
-    ```bash
-    az containerapp ingress traffic set \
-      --name "$APP_NAME" \
-      --resource-group "$RG" \
-      --revision-weight "$STABLE_REV=100"
-    ```
+   ```bash
+   az containerapp ingress traffic set \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --revision-weight "<stable-revision>=100"
+   ```
 
-    ???+ example "Expected output"
-        ```json
-        [
-          {
-            "revisionName": "<your-app-name>--0000001",
-            "weight": 100
-          }
-        ]
-        ```
+   ???+ example "Expected output"
+       ```json
+       [
+         {
+           "revisionName": "<your-app-name>--0000001",
+           "weight": 100
+         }
+       ]
+       ```
 
 7. **Deactivate bad revision after confirmation**
 
-    ```bash
-    az containerapp revision deactivate \
-      --name "$APP_NAME" \
-      --resource-group "$RG" \
-      --revision "$CANARY_REV"
-    ```
+   ```bash
+   az containerapp revision deactivate \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --revision "<canary-revision>"
+   ```
 
-    ???+ example "Expected output"
-        ```text
-        "Deactivate succeeded"
-        ```
+   ???+ example "Expected output"
+       ```
+       "Deactivate succeeded"
+       ```
 
-## Node.js Revision Management
-
-When using multiple revisions with Node.js, ensure your application handles statelessness correctly. Session data should be stored in an external cache like Azure Cache for Redis to prevent user impact when traffic is split between different revisions.
 
 ## Operational guidance
 
@@ -234,7 +290,7 @@ When using multiple revisions with Node.js, ensure your application handles stat
 ## See Also
 - [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
-- [Revisions Operations](../../operations/revision-management/index.md)
+- [Revisions Operations](../../../operations/revision-management/index.md)
 
 ## Sources
 - [Revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)

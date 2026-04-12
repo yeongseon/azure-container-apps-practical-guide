@@ -186,7 +186,7 @@ graph LR
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [03 - Configuration and Secrets](03-configuration.md)
-- [Java Runtime Reference](java-runtime.md)
+- [Java Runtime Reference](../java-runtime.md)
 
 ## Sources
 - [Spring Boot with Docker](https://spring.io/guides/topicals/spring-boot-docker/)

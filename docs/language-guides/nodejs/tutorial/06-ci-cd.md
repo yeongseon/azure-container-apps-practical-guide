@@ -209,7 +209,7 @@ graph LR
 ## See Also
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
-- [Managed Identity Recipe](../../platform/identity-and-secrets/managed-identity.md)
+- [Managed Identity Recipe](../../../platform/identity-and-secrets/managed-identity.md)
 
 ## Sources
 - [GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)

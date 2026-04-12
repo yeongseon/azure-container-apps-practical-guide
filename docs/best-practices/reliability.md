@@ -24,6 +24,23 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "When you deploy a container app for the first time, an initial revision is automatically created."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "If ingress is enabled in single revision mode, the existing revision continues to receive 100% of the traffic until the new revision is ready."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "A new revision is considered ready only after it provisions successfully, scales to match the previous revision's replica count, and all replicas pass startup and readiness probes."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "In single revision mode, if an update fails, traffic remains pointed to the old revision."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
 ---
 
 # Azure Container Apps Reliability Best Practices

@@ -71,8 +71,8 @@ Azure Container Apps provides a flexible platform for building distributed syste
 
 ## See Also
 
-- [03 - Configuration and Secrets](../03-configuration.md)
-- [04 - Logging and Monitoring](../04-logging-monitoring.md)
+- [03 - Configuration and Secrets](../tutorial/03-configuration.md)
+- [04 - Logging and Monitoring](../tutorial/04-logging-monitoring.md)
 - [Java Guide Index](../index.md)
 
 ## Sources

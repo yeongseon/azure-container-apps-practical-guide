@@ -8,6 +8,17 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/azure/container-apps/environment-variables
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps injects runtime environment variables into running containers."
+      source: "https://learn.microsoft.com/azure/container-apps/environment-variables"
+      verified: true
+    - claim: "Environment variables can reference secrets stored in Container Apps."
+      source: "https://learn.microsoft.com/azure/container-apps/manage-secrets"
+      verified: true
 ---
 
 # Container Apps Environment Variables Reference

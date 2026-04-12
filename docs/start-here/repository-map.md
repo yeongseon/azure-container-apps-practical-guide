@@ -17,6 +17,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/
         - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
         - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps documentation covers platform concepts, deployment tutorials, and operational guidance."
+      source: "https://learn.microsoft.com/azure/container-apps/"
+      verified: true
+    - claim: "The Azure Well-Architected Framework provides service-specific guidance for Container Apps."
+      source: "https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps"
+      verified: true
 ---
 
 # Repository Map
@@ -73,7 +84,7 @@ Use this table when you need a direct path from a practical goal to the right pa
 | Goal | Primary Path | Supporting Path |
 |---|---|---|
 | Decide if Container Apps is the right service | [when-to-use-container-apps.md](when-to-use-container-apps.md) | [platform/index.md](../platform/index.md) |
-| Deploy first Python service | [language-guides/python/01-local-development.md](../language-guides/python/01-local-development.md) | [language-guides/python/02-first-deploy.md](../language-guides/python/02-first-deploy.md) |
+| Deploy first Python service | [Python Tutorial: Local Development](../language-guides/python/tutorial/01-local-development.md) | [Python Tutorial: First Deploy](../language-guides/python/tutorial/02-first-deploy.md) |
 | Harden production runtime | [best-practices/container-design.md](../best-practices/container-design.md) | [best-practices/index.md](../best-practices/index.md) |
 | Establish operations workflow | [operations/index.md](../operations/index.md) | [operations/monitoring/index.md](../operations/monitoring/index.md) |
 | Debug a failing revision quickly | [troubleshooting/first-10-minutes/index.md](../troubleshooting/first-10-minutes/index.md) | [troubleshooting/playbooks/index.md](../troubleshooting/playbooks/index.md) |

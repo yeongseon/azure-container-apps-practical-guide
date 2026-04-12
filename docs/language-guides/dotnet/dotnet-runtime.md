@@ -125,8 +125,8 @@ ps aux
 ## See Also
 
 - [.NET Language Guide Index](./index.md)
-- [01 - Run Locally with Docker](./01-local-development.md)
-- [04 - Logging, Monitoring, and Observability](./04-logging-monitoring.md)
+- [01 - Run Locally with Docker](./tutorial/01-local-development.md)
+- [04 - Logging, Monitoring, and Observability](./tutorial/04-logging-monitoring.md)
 - [Container Design Best Practices](../../best-practices/container-design.md)
 
 ## Sources

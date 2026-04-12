@@ -21,6 +21,23 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/networking
         - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports both external and internal ingress."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Internal ingress FQDNs for Azure Container Apps resolve only from within the environment virtual network."
+      source: "https://learn.microsoft.com/azure/container-apps/vnet-custom-internal"
+      verified: true
+    - claim: "A subnet used for an Azure Container Apps environment must be delegated to Microsoft.App/environments."
+      source: "https://learn.microsoft.com/azure/container-apps/vnet-custom-internal"
+      verified: true
+    - claim: "Container apps in the same environment can communicate by using their ingress FQDNs."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
 ---
 
 # Networking Operations

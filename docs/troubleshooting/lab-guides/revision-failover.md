@@ -9,6 +9,17 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/revisions-manage
         - https://learn.microsoft.com/azure/container-apps/ingress-overview
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps lets you activate, deactivate, and manage revisions for a container app."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions-manage"
+      verified: true
+    - claim: "Azure Container Apps supports traffic splitting so requests can be distributed across multiple active revisions by percentage."
+      source: "https://learn.microsoft.com/azure/container-apps/traffic-splitting"
+      verified: true
 ---
 
 # Revision Failover and Rollback Lab

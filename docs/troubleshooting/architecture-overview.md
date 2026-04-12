@@ -43,6 +43,23 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/observability
         - https://learn.microsoft.com/azure/container-apps/health-probes
         - https://learn.microsoft.com/azure/container-apps/troubleshooting
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps revisions are immutable snapshots of a container app version."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Azure Container Apps supports startup, liveness, and readiness probes for containers."
+      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
+      verified: true
+    - claim: "Azure Container Apps can send system logs and console logs to a Log Analytics workspace."
+      source: "https://learn.microsoft.com/azure/container-apps/observability"
+      verified: true
+    - claim: "Azure Container Apps supports ingress for HTTP and TCP traffic to applications."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
 ---
 
 # Troubleshooting Architecture Overview

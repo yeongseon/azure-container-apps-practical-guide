@@ -9,6 +9,23 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/connect-apps
         - https://learn.microsoft.com/azure/container-apps/ingress-overview
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports internal ingress and service discovery for secure internal-only endpoints with built-in DNS-based service discovery."
+      source: "https://learn.microsoft.com/azure/container-apps/overview"
+      verified: true
+    - claim: "Container app ingress can be limited to traffic from within the same Container Apps environment."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Azure Container Apps supports building microservices with Dapr."
+      source: "https://learn.microsoft.com/azure/container-apps/overview"
+      verified: true
+    - claim: "A Container Apps environment creates a secure boundary around a group of container apps that are deployed in the same virtual network."
+      source: "https://learn.microsoft.com/azure/container-apps/vnet-custom"
+      verified: true
 ---
 
 # Service-to-Service Communication

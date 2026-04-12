@@ -10,6 +10,23 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/observability
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/logging
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps provides system logs and console logs for diagnosis and troubleshooting."
+      source: "https://learn.microsoft.com/azure/container-apps/observability"
+      verified: true
+    - claim: "Azure Container Apps health probes include startup, liveness, and readiness probes."
+      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
+      verified: true
+    - claim: "Azure Container Apps supports automatic scaling based on HTTP traffic and events."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "Managed identities can be used by Azure Container Apps to access Azure services."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
 ---
 
 # Quick Diagnosis Cards

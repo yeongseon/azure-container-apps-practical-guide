@@ -91,7 +91,7 @@ In **Single mode**, the platform automatically deactivates the old revision when
 
 ## See Also
 
-- [Revision Management and Traffic Splitting](../../language-guides/python/07-revisions-traffic.md)
+- [Revision Management and Traffic Splitting](../../language-guides/python/tutorial/07-revisions-traffic.md)
 - [Managing Revisions and Traffic](../../operations/revision-management/index.md)
 - [Scaling with KEDA](../scaling/index.md)
 

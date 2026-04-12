@@ -9,6 +9,23 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/authentication
         - https://learn.microsoft.com/azure/container-apps/authentication-oidc
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps provides built-in authentication and authorization features to secure external ingress-enabled container apps with minimal or no code."
+      source: "https://learn.microsoft.com/azure/container-apps/authentication"
+      verified: true
+    - claim: "The authentication and authorization middleware runs as a sidecar container on each replica in the application."
+      source: "https://learn.microsoft.com/azure/container-apps/authentication"
+      verified: true
+    - claim: "The platform middleware injects identity information into HTTP request headers."
+      source: "https://learn.microsoft.com/azure/container-apps/authentication"
+      verified: true
+    - claim: "Built-in authentication supports Microsoft Entra ID, Facebook, GitHub, Google, X, and custom OpenID Connect providers."
+      source: "https://learn.microsoft.com/azure/container-apps/authentication"
+      verified: true
 ---
 
 # Built-in Authentication (Easy Auth)
@@ -107,7 +124,7 @@ def home():
 ## See Also
 - [Managed Identity](managed-identity.md)
 - [Operations: Security](security-operations.md)
-- [Python Guide Configuration](../../language-guides/python/03-configuration.md)
+- [Python Guide Configuration](../../language-guides/python/tutorial/03-configuration.md)
 
 ## Sources
 - [Container Apps authentication and authorization](https://learn.microsoft.com/azure/container-apps/authentication)

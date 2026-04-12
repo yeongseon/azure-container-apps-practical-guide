@@ -186,7 +186,7 @@ az containerapp secret set \
     Spring Boot is very flexible with environment variable naming. Both `SPRING_DATASOURCE_URL` and `spring_datasource_url` will map to the `spring.datasource.url` property. Use ALL_CAPS with underscores for standard Docker and Azure compatibility.
 
 ## See Also
-- [Java Runtime Reference](java-runtime.md)
+- [Java Runtime Reference](../java-runtime.md)
 - [02 - First Deploy to Azure](02-first-deploy.md)
 - [Key Vault integration (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets?tabs=azure-cli#key-vault-references)
 

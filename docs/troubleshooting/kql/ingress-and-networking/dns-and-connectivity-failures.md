@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/environment
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps can send application console logs to a Log Analytics workspace for querying."
+      source: "https://learn.microsoft.com/azure/container-apps/logging"
+      verified: true
+    - claim: "Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data."
+      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
+      verified: true
 ---
 
 # DNS and Connectivity Failures

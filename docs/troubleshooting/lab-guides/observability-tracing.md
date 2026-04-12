@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
         - https://learn.microsoft.com/azure/container-apps/observability
         - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability."
+      source: "https://learn.microsoft.com/azure/container-apps/observability"
+      verified: true
+    - claim: "Application Insights uses a connection string to send telemetry to the correct monitoring resource."
+      source: "https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable"
+      verified: true
 ---
 
 # Observability and Distributed Tracing Lab

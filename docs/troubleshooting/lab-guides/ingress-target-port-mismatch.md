@@ -9,6 +9,17 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/ingress-overview
         - https://learn.microsoft.com/azure/container-apps/ingress-how-to
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app."
+      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
+      verified: true
+    - claim: "When external ingress is enabled for a Container App, Azure assigns the app a publicly reachable fully qualified domain name."
+      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
+      verified: true
 ---
 
 # Ingress Target Port Mismatch Lab

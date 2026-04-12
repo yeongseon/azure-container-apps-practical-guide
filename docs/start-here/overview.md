@@ -21,6 +21,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/environment
         - https://learn.microsoft.com/azure/container-apps/scale-app
         - https://learn.microsoft.com/azure/container-apps/revisions
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps is a fully managed environment for running containerized applications."
+      source: "https://learn.microsoft.com/azure/container-apps/overview"
+      verified: true
+    - claim: "Container Apps supports automatic scaling including scale to zero."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
 ---
 
 # Azure Container Apps Practical Guide

@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/health-probes
         - https://learn.microsoft.com/azure/container-apps/containers
         - https://learn.microsoft.com/azure/container-apps/troubleshooting
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports startup, readiness, and liveness probes."
+      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
+      verified: true
+    - claim: "A container app template defines one or more containers."
+      source: "https://learn.microsoft.com/azure/container-apps/containers"
+      verified: true
 ---
 
 # CrashLoop OOM and Resource Pressure

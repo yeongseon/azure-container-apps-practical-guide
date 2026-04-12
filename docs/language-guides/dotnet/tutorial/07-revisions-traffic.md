@@ -252,7 +252,7 @@ graph LR
 ## See Also
 - [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
-- [Revision Management Operations](../../operations/revision-management/index.md)
+- [Revision Management Operations](../../../operations/revision-management/index.md)
 
 ## Sources
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)

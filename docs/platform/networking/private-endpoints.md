@@ -21,6 +21,26 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
         - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Workload profiles environments support creating private endpoints on the Container Apps environment."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Using an existing virtual network allows Container Apps to access resources behind private endpoints in the virtual network."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Internal environments have no public endpoints and are deployed with an internal load balancer IP from the virtual network's private address space."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Public network access must be disabled to create private endpoints on a Container Apps environment."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Container app ingress can be limited to traffic from within the same Container Apps environment."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
 ---
 
 # Private Endpoints

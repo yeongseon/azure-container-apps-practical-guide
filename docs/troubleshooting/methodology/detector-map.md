@@ -10,6 +10,23 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/observability
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps troubleshooting guidance includes common startup, networking, and runtime failure scenarios."
+      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
+      verified: true
+    - claim: "Azure Container Apps observability includes system and console logs."
+      source: "https://learn.microsoft.com/azure/container-apps/observability"
+      verified: true
+    - claim: "Azure Container Apps health probes are used to determine whether containers are healthy."
+      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
+      verified: true
+    - claim: "Azure Container Apps supports scale rules for automatic scaling."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
 ---
 
 # Detector Map: Symptom to Playbook

@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
         - https://learn.microsoft.com/azure/container-apps/log-monitoring
         - https://learn.microsoft.com/kusto/query/
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps observability supports integration with Azure Monitor and Application Insights for telemetry analysis."
+      source: "https://learn.microsoft.com/azure/container-apps/observability"
+      verified: true
+    - claim: "Log Analytics uses Kusto Query Language to query and analyze collected telemetry data."
+      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
+      verified: true
 ---
 
 # Latency Trend by Status Code

@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/revisions
         - https://learn.microsoft.com/azure/container-apps/health-probes
         - https://learn.microsoft.com/azure/container-apps/troubleshooting
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Each revision in Azure Container Apps is an immutable snapshot of a container app version."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Azure Container Apps supports startup, readiness, and liveness probes."
+      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
+      verified: true
 ---
 
 # Revision Provisioning Failure

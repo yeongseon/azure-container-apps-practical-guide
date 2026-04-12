@@ -188,7 +188,7 @@ graph LR
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
-- [.NET Runtime Reference](dotnet-runtime.md)
+- [.NET Runtime Reference](../dotnet-runtime.md)
 
 ## Sources
 - [Quickstart: Code to Cloud (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)

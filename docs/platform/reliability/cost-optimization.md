@@ -9,6 +9,26 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
         - https://learn.microsoft.com/azure/container-apps/billing
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps manages automatic horizontal scaling through declarative scaling rules."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "Azure Container Apps does not bill usage charges when a container app scales to zero."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "To ensure an instance of a revision is always running, the minimum number of replicas must be set to 1 or higher."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "Workload profiles environments support both Consumption and Dedicated plan types."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "The maximum number of replicas per revision can be configured up to 1,000."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
 ---
 
 # Cost Optimization Operations

@@ -234,7 +234,7 @@ sequenceDiagram
            If no errors exist, the query returns an empty result set — which is the healthy baseline.
 
    !!! note "KQL Table Names"
-       Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schema), while newer workspaces may use `ContainerAppConsoleLogs`. If queries return no results, try the alternate table name. See [KQL Queries Reference](../../troubleshooting/kql/index.md#schema-note) for details.
+Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schema), while newer workspaces may use `ContainerAppConsoleLogs`. If queries return no results, try the alternate table name. See [KQL Queries Reference](../../../troubleshooting/kql/index.md#schema-note) for details.
 
 6. **Add OpenTelemetry for traces and metrics**
 
@@ -271,7 +271,7 @@ sequenceDiagram
 ## See Also
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
-- [Dapr Integration Recipe](recipes/dapr-integration.md)
+- [Dapr Integration Recipe](../recipes/dapr-integration.md)
 
 ## Sources
 - [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)

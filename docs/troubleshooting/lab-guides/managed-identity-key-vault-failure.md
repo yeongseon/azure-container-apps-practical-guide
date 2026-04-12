@@ -9,6 +9,17 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/managed-identity
         - https://learn.microsoft.com/azure/key-vault/general/rbac-guide
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "The Key Vault Secrets User built-in role permits reading secret values from Azure Key Vault."
+      source: "https://learn.microsoft.com/azure/key-vault/general/rbac-guide"
+      verified: true
 ---
 
 # Managed Identity Key Vault Failure Lab

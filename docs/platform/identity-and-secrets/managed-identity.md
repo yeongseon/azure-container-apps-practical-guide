@@ -9,6 +9,23 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/managed-identity
         - https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "A system-assigned identity is tied to the container app and is deleted when the container app is deleted."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "A user-assigned identity is a standalone Azure resource that can be assigned to a container app and other resources."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "Managed identities let a container app connect to Microsoft Entra protected resources without managing credentials in the app."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "When a managed identity is added, deleted, or modified on a running container app, the app does not automatically restart and a new revision is not created."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
 ---
 
 # Passwordless Access with Managed Identity

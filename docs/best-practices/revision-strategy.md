@@ -24,6 +24,26 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Revisions are immutable snapshots of each version of a container app."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Azure Container Apps supports single and multiple revision modes."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "In multiple revision mode, you can have multiple active revisions and split traffic between revisions."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Labels provide unique URLs that route traffic to specific revisions."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Container Apps doesn't charge for inactive revisions, and by default it keeps up to 100 inactive revisions."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
 ---
 
 # Revision Strategy Best Practices for Azure Container Apps
@@ -372,5 +392,5 @@ For distributed systems, sequence rollouts by dependency direction and maintain 
 - [Platform: Scaling](../platform/scaling/index.md)
 - [Operations: Revision Management](../operations/revision-management/index.md)
 - [Operations: Deployment](../operations/deployment/index.md)
-- [Python Guide: Revisions and Traffic](../language-guides/python/07-revisions-traffic.md)
+- [Python Guide: Revisions and Traffic](../language-guides/python/tutorial/07-revisions-traffic.md)
 - [Microsoft Learn: Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)

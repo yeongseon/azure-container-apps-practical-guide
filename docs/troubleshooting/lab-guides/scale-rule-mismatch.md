@@ -8,6 +8,17 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/azure/container-apps/scale-app
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "The minimum and maximum replica settings in Azure Container Apps define the lower and upper bounds for scaling behavior."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
 ---
 
 # Scale Rule Mismatch Lab

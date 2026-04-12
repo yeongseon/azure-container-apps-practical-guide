@@ -221,8 +221,8 @@ flowchart LR
 
 ## See Also
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
-- [.NET Runtime Reference](dotnet-runtime.md)
-- [Troubleshooting Methodology](../../troubleshooting/methodology/index.md)
+- [.NET Runtime Reference](../dotnet-runtime.md)
+- [Troubleshooting Methodology](../../../troubleshooting/methodology/index.md)
 
 ## Sources
 - [Monitoring Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/monitor)

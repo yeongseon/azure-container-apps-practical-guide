@@ -7,19 +7,19 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
+        - https://learn.microsoft.com/azure/container-apps/containers
         - https://learn.microsoft.com/azure/container-apps/manage-secrets
     - id: configuration-flow
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
+        - https://learn.microsoft.com/azure/container-apps/containers
         - https://learn.microsoft.com/azure/container-apps/manage-secrets
 ---
 
 # 03 - Configuration, Secrets, and Dapr
 
-This step configures runtime settings in Azure Container Apps for your .NET application, including environment variables, secrets, KEDA scaling rules, and Dapr sidecar options.
+This step configures runtime settings in Azure Container Apps, including environment variables, secrets, KEDA scaling rules, and Dapr sidecar options.
 
 !!! info "Infrastructure Context"
     **Service**: Container Apps (Consumption) | **Network**: VNet integrated | **VNet**: ✅
@@ -29,7 +29,7 @@ This step configures runtime settings in Azure Container Apps for your .NET appl
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux .NET 8"]
+    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Python 3.11"]
 
     subgraph VNET["VNet 10.0.0.0/16"]
         subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
@@ -74,27 +74,33 @@ graph TD
     ENV[Env Vars] --> ACA[Container App]
     SEC[Secrets] --> ACA
     DAPR[Dapr] --> ACA
-    ACA --> APP[ASP.NET Core App]
-    APP --> KESTREL[Kestrel Server]
+    ACA --> APP[Application]
 ```
 
 ## Prerequisites
 
 - Completed [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
-- A running Container App (deployed in [02 - First Deploy](02-first-deploy.md))
+- A running Container App
 
 ## Step-by-step
 
 1. **Set standard variables (reuse Bicep outputs from Step 02)**
 
    ```bash
-   RG="rg-dotnet-guide"
+   RG="rg-aca-python-demo"
+   BASE_NAME="pycontainer"
    DEPLOYMENT_NAME="main"
 
    APP_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
      --resource-group "$RG" \
      --query "properties.outputs.containerAppName.value" \
+     --output tsv)
+
+   ENVIRONMENT_NAME=$(az deployment group show \
+     --name "$DEPLOYMENT_NAME" \
+     --resource-group "$RG" \
+     --query "properties.outputs.containerAppEnvName.value" \
      --output tsv)
 
    ACR_NAME=$(az deployment group show \
@@ -104,21 +110,34 @@ graph TD
      --output tsv)
    ```
 
-2. **Set environment variables**
+   ???+ example "Expected output"
+       The commands above set shell variables silently. Verify them with:
 
-   ASP.NET Core automatically reads environment variables into its configuration system.
+       ```bash
+       echo "APP_NAME=$APP_NAME"
+       echo "ENVIRONMENT_NAME=$ENVIRONMENT_NAME"
+       echo "ACR_NAME=$ACR_NAME"
+       ```
+
+       ```text
+       APP_NAME=<your-app-name>
+       ENVIRONMENT_NAME=<your-env-name>
+       ACR_NAME=<acr-name>
+       ```
+
+2. **Set environment variables**
 
    ```bash
    az containerapp update \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --set-env-vars "Logging__LogLevel__Default=Information" "FeatureManagement__NewUI=true"
+      --set-env-vars "LOG_LEVEL=INFO" "FEATURE_FLAG=true"
    ```
 
    ???+ example "Expected output"
        ```json
        {
-         "name": "<your-app-name>",
+         "name": "ca-pycontainer-<unique-suffix>",
          "provisioningState": "Succeeded"
        }
        ```
@@ -129,7 +148,7 @@ graph TD
    az containerapp secret set \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --secrets "db-connection-string=Server=tcp:sql.database.windows.net;Database=mydb;"
+      --secrets "db-password=<secret-value>"
    ```
 
    ???+ example "Expected output"
@@ -139,19 +158,31 @@ graph TD
        ```json
        [
          {
-           "name": "db-connection-string"
+           "name": "appinsights-connection-string"
+         },
+         {
+           "name": "registry-password"
+         },
+         {
+           "name": "db-password"
          }
        ]
        ```
-
-   Map the secret to an environment variable:
 
    ```bash
    az containerapp update \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --set-env-vars "ConnectionStrings__DefaultConnection=secretref:db-connection-string"
+     --set-env-vars "DB_PASSWORD=secretref:db-password"
    ```
+
+   ???+ example "Expected output"
+       ```json
+       {
+         "name": "ca-pycontainer-<unique-suffix>",
+         "provisioningState": "Succeeded"
+       }
+       ```
 
 4. **Configure KEDA HTTP autoscaling**
 
@@ -163,7 +194,30 @@ graph TD
      --max-replicas 10 \
      --scale-rule-name "http-scale" \
      --scale-rule-type "http" \
-     --scale-rule-http-concurrency 50
+      --scale-rule-http-concurrency 50
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       {
+         "name": "ca-pycontainer-<unique-suffix>",
+         "provisioningState": "Succeeded"
+       }
+       ```
+
+!!! tip "Choosing HTTP concurrency threshold"
+    A lower value (e.g., 50) triggers scale-out more aggressively, suitable for latency-sensitive APIs. A higher value (e.g., 100, used in `infra/main.bicep`) delays scale-out for cost efficiency. Choose based on your latency SLO and budget. The Bicep template in `infra/main.bicep` defaults to `maxReplicas=3` for cost safety. Override with `--parameters maxReplicas=10` when deploying infrastructure.
+
+5. **Configure queue-driven KEDA scaling (example)**
+
+   ```bash
+   az containerapp update \
+     --name "$APP_NAME" \
+     --resource-group "$RG" \
+     --scale-rule-name "queue-scale" \
+     --scale-rule-type "azure-servicebus" \
+     --scale-rule-metadata "queueName=orders" "namespace=sb-namespace" \
+     --scale-rule-auth "connection=servicebus-connection"
    ```
 
    ???+ example "Expected output"
@@ -174,52 +228,64 @@ graph TD
        }
        ```
 
-5. **Enable Dapr sidecar**
+   Verify pushed repositories in ACR:
+
+   ```bash
+   az acr repository list \
+     --name "$ACR_NAME" \
+     --output json
+   ```
+
+   ???+ example "Expected output"
+       ```json
+       ["myapp", "myapp-job"]
+       ```
+
+6. **Enable Dapr sidecar**
 
    ```bash
    az containerapp dapr enable \
      --name "$APP_NAME" \
      --resource-group "$RG" \
-     --dapr-app-id "dotnet-api" \
+     --dapr-app-id "$APP_NAME" \
      --dapr-app-port 8000
    ```
 
    ???+ example "Expected output"
        ```json
        {
-         "appId": "dotnet-api",
+         "appId": "ca-pycontainer-<unique-suffix>",
          "appPort": 8000,
          "appProtocol": "http",
-         "enabled": true
+         "enableApiLogging": false,
+         "enabled": true,
+         "httpMaxRequestSize": null,
+         "httpReadBufferSize": null,
+         "logLevel": "info"
        }
        ```
 
-## .NET example: read config safely
+## Python example: read config safely
 
-ASP.NET Core's `IConfiguration` makes it easy to read these values.
+```python
+import os
 
-```csharp
-// In Program.cs or a Controller
-var logLevel = configuration["Logging:LogLevel:Default"];
-var isNewUIEnabled = configuration.GetValue<bool>("FeatureManagement:NewUI");
-var connectionString = configuration.GetConnectionString("DefaultConnection");
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+FEATURE_FLAG = os.environ.get("FEATURE_FLAG", "false").lower() == "true"
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
 ```
-
-!!! tip "Environment Variable Naming"
-    Use double underscores (`__`) in environment variable names to represent hierarchical configuration keys in .NET (e.g., `Logging__LogLevel__Default` maps to `Logging:LogLevel:Default`).
 
 ## Advanced Topics
 
-- **Managed Identity**: Use `DefaultAzureCredential` from the Azure Identity SDK to access Key Vault without managing client secrets.
-- **KEDA Scalers**: Explore .NET specific scalers like `azure-servicebus` or `rabbitmq` for background processing.
-- **Dapr SDK**: Use the `Dapr.Client` NuGet package for advanced Dapr features like state store and pub/sub.
+- Use Key Vault + managed identity instead of direct secret values.
+- Tune KEDA thresholds differently for API and background worker apps.
+- Add Dapr pub/sub and state store components for event-driven workflows.
 
 ## See Also
-
 - [04 - Logging, Monitoring, and Observability](04-logging-monitoring.md)
-- [.NET Runtime Reference](dotnet-runtime.md)
-- [Recipes Index](recipes/index.md)
+- [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
+- [Dapr Integration Recipe](../recipes/dapr-integration.md)
 
 ## Sources
-- [Configuration in ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/aspnet/core/fundamentals/configuration/)
+- [Containers (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)

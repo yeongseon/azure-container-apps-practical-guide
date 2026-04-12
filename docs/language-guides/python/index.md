@@ -101,25 +101,25 @@ graph TB
 
 Follow these step-by-step guides to master the deployment of Python applications on Azure Container Apps:
 
-1.  [**Local Development**](./01-local-development.md) — Learn how to containerize and run your Flask app in Docker on your local machine.
-2.  [**First Deployment**](./02-first-deploy.md) — Push your container image to Azure Container Registry and create your first Container App.
-3.  [**Configuration & Secrets**](./03-configuration.md) — Securely manage environment variables and integrate with Azure Key Vault.
-4.  [**Logging & Monitoring**](./04-logging-monitoring.md) — Configure structured logging and visualize metrics in the Azure Portal.
-5.  [**Infrastructure as Code**](./05-infrastructure-as-code.md) — Define and deploy your application environment using Bicep templates.
-6.  [**CI/CD with GitHub Actions**](./06-ci-cd.md) — Build automated pipelines to test and deploy your code on every commit.
-7.  [**Revisions & Traffic**](./07-revisions-traffic.md) — Master advanced deployment strategies like blue-green and canary releases.
+1.  [**Local Development**](./tutorial/01-local-development.md) — Learn how to containerize and run your Flask app in Docker on your local machine.
+2.  [**First Deployment**](./tutorial/02-first-deploy.md) — Push your container image to Azure Container Registry and create your first Container App.
+3.  [**Configuration & Secrets**](./tutorial/03-configuration.md) — Securely manage environment variables and integrate with Azure Key Vault.
+4.  [**Logging & Monitoring**](./tutorial/04-logging-monitoring.md) — Configure structured logging and visualize metrics in the Azure Portal.
+5.  [**Infrastructure as Code**](./tutorial/05-infrastructure-as-code.md) — Define and deploy your application environment using Bicep templates.
+6.  [**CI/CD with GitHub Actions**](./tutorial/06-ci-cd.md) — Build automated pipelines to test and deploy your code on every commit.
+7.  [**Revisions & Traffic**](./tutorial/07-revisions-traffic.md) — Master advanced deployment strategies like blue-green and canary releases.
 
 ## Python Guide Progress Snapshot
 
 | Area | Coverage | Primary Asset |
 |---|---|---|
-| Build and run locally | Complete | [01-local-development](./01-local-development.md) |
-| First cloud deployment | Complete | [02-first-deploy](./02-first-deploy.md) |
-| Config, secrets, and Dapr | Complete | [03-configuration](./03-configuration.md) |
-| Observability | Complete | [04-logging-monitoring](./04-logging-monitoring.md) |
-| Infrastructure as Code | Complete | [05-infrastructure-as-code](./05-infrastructure-as-code.md) |
-| CI/CD automation | Complete | [06-ci-cd](./06-ci-cd.md) |
-| Safe rollout strategy | Complete | [07-revisions-traffic](./07-revisions-traffic.md) |
+| Build and run locally | Complete | [01-local-development](./tutorial/01-local-development.md) |
+| First cloud deployment | Complete | [02-first-deploy](./tutorial/02-first-deploy.md) |
+| Config, secrets, and Dapr | Complete | [03-configuration](./tutorial/03-configuration.md) |
+| Observability | Complete | [04-logging-monitoring](./tutorial/04-logging-monitoring.md) |
+| Infrastructure as Code | Complete | [05-infrastructure-as-code](./tutorial/05-infrastructure-as-code.md) |
+| CI/CD automation | Complete | [06-ci-cd](./tutorial/06-ci-cd.md) |
+| Safe rollout strategy | Complete | [07-revisions-traffic](./tutorial/07-revisions-traffic.md) |
 | Runtime tuning | Complete | [python-runtime](./python-runtime.md) |
 | Integration recipes | Complete | [recipes/index](./recipes/index.md) |
 

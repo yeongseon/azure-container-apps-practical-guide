@@ -71,10 +71,10 @@ While the implementation details vary, every application in this guide follows t
 
 | Goal | Recommended starting point | Why |
 |---|---|---|
-| Python Flask deployment | [Python Step 01](python/01-local-development.md) | Production-hardened Flask reference |
-| Node.js Express deployment | [Node.js Step 01](nodejs/01-local-development.md) | Express with async/await patterns |
-| Java Spring Boot deployment | [Java Step 01](java/01-local-development.md) | Spring Boot with Actuator health endpoints |
-| .NET ASP.NET Core deployment | [.NET Step 01](dotnet/01-local-development.md) | ASP.NET Core with health checks middleware |
+| Python Flask deployment | [Python Step 01](python/tutorial/01-local-development.md) | Production-hardened Flask reference |
+| Node.js Express deployment | [Node.js Step 01](nodejs/tutorial/01-local-development.md) | Express with async/await patterns |
+| Java Spring Boot deployment | [Java Step 01](java/tutorial/01-local-development.md) | Spring Boot with Actuator health endpoints |
+| .NET ASP.NET Core deployment | [.NET Step 01](dotnet/tutorial/01-local-development.md) | ASP.NET Core with health checks middleware |
 | Full lifecycle understanding | Any language index page | Covers complete operating model |
 
 ## Reference Applications

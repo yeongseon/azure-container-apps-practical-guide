@@ -10,6 +10,17 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/managed-identity
         - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
         - https://learn.microsoft.com/azure/key-vault/general/authentication
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "Managed identities let applications authenticate to Azure services without managing credentials in code."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
 ---
 
 # Managed Identity Auth Failure

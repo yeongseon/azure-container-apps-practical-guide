@@ -9,6 +9,17 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures
         - https://learn.microsoft.com/azure/container-apps/revisions
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure Container Registry."
+      source: "https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures"
+      verified: true
+    - claim: "In Azure Container Apps, revisions are immutable snapshots of a container app version."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
 ---
 
 # ACR Image Pull Failure Lab

@@ -21,6 +21,23 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/azure/container-apps/health-probes
         - https://learn.microsoft.com/azure/container-apps/scale-app
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps provides both system logs and console logs for troubleshooting."
+      source: "https://learn.microsoft.com/azure/container-apps/observability"
+      verified: true
+    - claim: "Health probe failures can prevent a revision from becoming healthy in Azure Container Apps."
+      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
+      verified: true
+    - claim: "Azure Container Apps supports automatic scaling with HTTP and event-driven scale rules."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "Azure Container Apps troubleshooting guidance recommends checking logs and deployment events during investigations."
+      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
+      verified: true
 ---
 
 # Troubleshooting Decision Tree

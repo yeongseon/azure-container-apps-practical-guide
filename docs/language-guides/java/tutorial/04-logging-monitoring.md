@@ -231,8 +231,8 @@ az monitor log-analytics query \
 
 ## See Also
 - [07 - Revisions and Traffic](07-revisions-traffic.md)
-- [Troubleshooting Playbooks](../../troubleshooting/playbooks/index.md)
-- [KQL Query Pack](../../troubleshooting/kql/index.md)
+- [Troubleshooting Playbooks](../../../troubleshooting/playbooks/index.md)
+- [KQL Query Pack](../../../troubleshooting/kql/index.md)
 
 ## Sources
 - [Azure Monitor Application Insights for Java (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent)

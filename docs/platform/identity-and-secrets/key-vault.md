@@ -9,6 +9,23 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/azure/app-service/app-service-key-vault-references
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "A managed identity from Microsoft Entra ID allows a container app to access other Microsoft Entra protected resources."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "Calls from a container app to services such as Azure Key Vault can be rejected without the required role assignments even when the app uses a valid token for its managed identity."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "A container app with a managed identity exposes a local identity endpoint that the app can use to request tokens."
+      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
+      verified: true
+    - claim: "Using an existing virtual network allows Container Apps to access resources behind private endpoints in the virtual network."
+      source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
 ---
 
 # Key Vault Secrets Management (Managed Identity)

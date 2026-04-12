@@ -17,6 +17,23 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/billing
         - https://learn.microsoft.com/en-us/azure/container-apps/environment
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-12"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "You aren't billed usage charges if your container app scales to zero."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "Replicas that aren't processing but remain in memory might be billed at a lower idle rate."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "Azure Container Apps uses minimum and maximum replica limits per revision as part of scale definition."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to 1 or higher."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
 ---
 
 # Cost-Aware Best Practices
