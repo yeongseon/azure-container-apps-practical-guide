@@ -1,6 +1,4 @@
 ---
-hide:
-  - toc
 content_sources:
   diagrams:
     - id: ca-myapp-0000001-true-100-1-healthy-running

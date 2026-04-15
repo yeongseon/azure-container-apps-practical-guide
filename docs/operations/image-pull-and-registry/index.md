@@ -1,6 +1,4 @@
 ---
-hide:
-  - toc
 content_sources:
   diagrams:
     - id: image-pull-workflow
@@ -154,6 +152,8 @@ az containerapp show \
 
 ## See Also
 
+- [Image Pull Failure Playbook](../../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md)
+- [Egress Control — Required Outbound Dependencies](../../platform/networking/egress-control.md#required-outbound-dependencies)
 - [Troubleshooting Playbooks](../../troubleshooting/playbooks/index.md)
 - [Deployment Workflows](../deployment/index.md)
 - [Secret Rotation](../secret-rotation/index.md)

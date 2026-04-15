@@ -1,6 +1,4 @@
 ---
-hide:
-  - toc
 content_sources:
   diagrams:
     - id: route-outbound-traffic-through-azure-firewall
@@ -14,6 +12,12 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements
+        - https://learn.microsoft.com/azure/container-apps/user-defined-routes
+    - id: managed-identity-acr-egress-dependencies
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/firewall-integration
         - https://learn.microsoft.com/azure/container-apps/user-defined-routes
 content_validation:
   status: verified
@@ -31,6 +35,9 @@ content_validation:
       verified: true
     - claim: "Using a NAT Gateway or other outbound proxy for outbound traffic from a Container Apps environment is supported only in a workload profiles environment."
       source: "https://learn.microsoft.com/azure/container-apps/networking"
+      verified: true
+    - claim: "Managed identity-based pulls from Azure Container Registry in restricted egress environments require outbound access to AzureActiveDirectory, and ACR image pulls also depend on registry and regional storage endpoints."
+      source: "https://learn.microsoft.com/azure/container-apps/firewall-integration"
       verified: true
 ---
 
@@ -218,6 +225,48 @@ def my_ip():
     return response.json()  # Returns NAT Gateway's public IP
 ```
 
+## Required Outbound Dependencies
+
+If you restrict egress and pull application images from Azure Container Registry (ACR) by using managed identity, allow the dependency categories that support both token acquisition and image download.
+
+| Service Tag / Dependency | Port | When Required |
+|---|---|---|
+| `AzureActiveDirectory` | 443 | Required when the container app uses managed identity to obtain an access token for ACR. |
+| `ACR login server` | 443 | Required for the registry endpoint (for example, `<registry-name>.azurecr.io`) unless you use a private endpoint for the registry. |
+| `Storage.<Region>` | 443 | Required for ACR-backed image layer downloads from regional storage. |
+| `MicrosoftContainerRegistry` | 443 | Required for Microsoft-managed system container dependencies in the environment. |
+| `AzureContainerRegistry` | 443 | Required when pulling images from ACR without a private endpoint. When using a private endpoint for ACR, this tag is not required. |
+| `AzureFrontDoor.FirstParty` | 443 | Required as a dependency of Microsoft Container Registry. |
+
+When using Azure Firewall application rules instead of (or in addition to) NSG service tags, allow these FQDNs for managed identity token acquisition:
+
+| FQDN | When Required |
+|---|---|
+| `login.microsoftonline.com` | Token issuance for managed identity |
+| `*.login.microsoftonline.com` | Regional token endpoints |
+| `login.microsoft.com` | Primary Microsoft login endpoint |
+| `*.login.microsoft.com` | Alternative login endpoints |
+| `*.identity.azure.net` | Managed identity metadata |
+
+Use service tags where Azure provides them, and use private endpoints or FQDN-aware firewall rules for registry-specific destinations.
+
+<!-- diagram-id: managed-identity-acr-egress-dependencies -->
+```mermaid
+flowchart LR
+    APP[Container App] --> FW[Firewall / NSG]
+    FW --> AAD[Microsoft Entra ID<br/>AzureActiveDirectory token]
+    FW --> MCR[Microsoft Container Registry<br/>System containers]
+    FW --> ACR[Azure Container Registry<br/>Application image]
+    ACR --> STG[Storage.<Region><br/>Image layers]
+```
+
+!!! warning "Private ACR does not remove all outbound requirements"
+    Even when ACR uses a private endpoint, managed identity image pulls still require outbound access to `AzureActiveDirectory` on port `443` so the platform can acquire a token.
+
+Also keep DNS to `168.63.129.16:53` available; blocking platform DNS breaks name resolution for these dependencies.
+
+For the failure symptoms and validation steps, see [Image Pull Failure](../../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md).
+
 ## See Also
 - [VNet Integration](vnet-integration.md)
 - [Private Endpoints](private-endpoints.md)
@@ -226,3 +275,5 @@ def my_ip():
 ## Sources
 - [Outbound FQDN requirements in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements)
 - [User-defined routes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/user-defined-routes)
+- [Firewall integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/firewall-integration)
+- [Use Azure Firewall with Azure Container Apps — outbound FQDNs (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/use-azure-firewall)

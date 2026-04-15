@@ -1,6 +1,4 @@
 ---
-hide:
-  - toc
 content_sources:
   diagrams:
     - id: troubleshooting-decision-flow
@@ -231,6 +229,7 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 ## See Also
 
 - [Service-to-Service Connectivity Failure](service-to-service-connectivity-failure.md)
+- [Image Pull Failure — H5: Egress blocks MI token acquisition](../startup-and-provisioning/image-pull-failure.md#h5-auth-looking-unauthorized-that-can-indicate-restricted-egress-blocking-managed-identity-token-acquisition)
 - [Managed Identity Auth Failure](../identity-and-configuration/managed-identity-auth-failure.md)
 - [DNS and Connectivity Failures KQL](../../kql/ingress-and-networking/dns-and-connectivity-failures.md)
 

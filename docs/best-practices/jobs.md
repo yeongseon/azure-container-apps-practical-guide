@@ -1,6 +1,4 @@
 ---
-hide:
-  - toc
 content_sources:
   diagrams:
     - id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0

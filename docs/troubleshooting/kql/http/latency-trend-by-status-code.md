@@ -1,6 +1,4 @@
 ---
-hide:
-  - toc
 content_sources:
   diagrams:
     - id: purpose-shows-p50-p95-p99-latency-trends-split

@@ -1,6 +1,4 @@
 ---
-hide:
-  - toc
 content_sources:
   diagrams:
     - id: use-app-name-ca-myapp-for-troubleshooting-examples-in
