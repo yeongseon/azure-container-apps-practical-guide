@@ -35,7 +35,7 @@ Use this query to trace ingress routing decisions such as path matching, revisio
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter routing and path signals] --> C[Project revision and reason] --> D[Sort by time]
 ```
 

@@ -76,7 +76,7 @@ Revision-first release means:
 
 <!-- diagram-id: shift-traffic-only-when-release-criteria -->
 ```mermaid
-flowchart LR
+flowchart TD
     I[Immutable Image Tag] --> C[Create New Revision]
     C --> V[Validate Revision]
     V -->|Pass| S[Shift Traffic]
@@ -188,7 +188,7 @@ Typical progression:
 
 <!-- diagram-id: when-slo-and-dependency-metrics -->
 ```mermaid
-graph LR
+graph TD
     U[Users] --> I[Ingress]
     I --> O[Old Revision 95%]
     I --> N[New Revision 5%]

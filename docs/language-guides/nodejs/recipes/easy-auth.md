@@ -15,7 +15,7 @@ Use Container Apps built-in authentication (Easy Auth) and parse the authenticat
 
 <!-- diagram-id: use-container-apps-built-in-authentication-easy -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> AUTH[Easy Auth]
     AUTH --> IDP[Identity Provider]
     AUTH --> APP[Express App]

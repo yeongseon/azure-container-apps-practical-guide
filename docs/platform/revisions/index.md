@@ -25,7 +25,7 @@ When you deploy a change, the platform creates a new revision. Depending on your
 
 <!-- diagram-id: when-you-deploy-a-change-the -->
 ```mermaid
-graph LR
+graph TD
     U[User] --> IN[Envoy Ingress]
     subgraph App[Container App]
       IN --> R1[Revision v1\n90% Traffic]

@@ -29,7 +29,7 @@ This is a hypothesis-driven troubleshooting guide built around repeatable incide
 
 <!-- diagram-id: how-it-works -->
 ```mermaid
-graph LR
+graph TD
     A[Observe Symptom] --> B[List Hypotheses]
     B --> C[Collect Evidence]
     C --> D[Validate / Disprove]

@@ -74,7 +74,7 @@ flowchart TD
 
 <!-- diagram-id: how-observability-works-in-container-apps -->
 ```mermaid
-flowchart LR
+flowchart TD
     APP[App container stdout/stderr] --> CONSOLE[Console logs]
     DAPR[Dapr sidecar stdout/stderr] --> CONSOLE
     PLATFORM[Platform/revision/auth events] --> SYSTEM[System logs]

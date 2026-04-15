@@ -162,7 +162,7 @@ Trigger on new uploads, transcode or enrich content, and emit completion metadat
 
 <!-- diagram-id: job-lifecycle -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Trigger] --> B[Execution Created]
     B --> C[Replica Starts]
     C --> D{Result}

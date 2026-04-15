@@ -15,7 +15,7 @@ Use Azure Container Registry (ACR) with managed identity to pull private Node.js
 
 <!-- diagram-id: use-azure-container-registry-acr-with -->
 ```mermaid
-flowchart LR
+flowchart TD
     ACR[Azure Container Registry] --> APP[Node.js Container App]
     APP -.-> UAMI[User-Assigned Managed Identity]
     UAMI -.-> ENTRA[Microsoft Entra ID]

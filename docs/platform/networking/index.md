@@ -35,7 +35,7 @@ Networking in Azure Container Apps combines managed ingress with optional privat
 
 <!-- diagram-id: high-level-network-flow -->
 ```mermaid
-graph LR
+graph TD
     C[Client] --> E[Envoy Ingress]
     E --> A[Container App: Public API]
     A --> B[Container App: Internal Worker]
@@ -99,7 +99,7 @@ Container Apps environments can integrate with virtual networks to control east-
 
 <!-- diagram-id: vnet-integration-architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph VNet ["Virtual Network (10.0.0.0/16)"]
         subgraph Subnet ["CAE Subnet (10.0.0.0/23)"]
             APP[Container App]

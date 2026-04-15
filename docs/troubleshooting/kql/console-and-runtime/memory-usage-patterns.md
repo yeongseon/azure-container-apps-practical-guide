@@ -35,7 +35,7 @@ Use this query to spot memory pressure trends, allocation failures, and likely O
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app and time window] --> B[Match memory and OOM terms] --> C[Classify signal type] --> D[Summarize by time bin and revision]
 ```
 

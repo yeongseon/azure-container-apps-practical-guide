@@ -44,7 +44,7 @@ Port mismatch often looks like an application crash because repeated probe failu
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Container process binds :3000] --> B[Ingress targets :8000]
     B --> C[Startup and readiness probes hit :8000]
     C --> D[Probe failures accumulate]

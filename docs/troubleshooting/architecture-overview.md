@@ -81,7 +81,7 @@ Use this architecture map to route quickly to the right playbook.
 
 <!-- diagram-id: 1-request-path-architecture-where-5xx-can-originate -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Client Browser or API Caller] --> B[Container Apps Ingress]
     B --> C[Environment Load Balancer]
     C --> D[Revision Replica]
@@ -144,7 +144,7 @@ flowchart TD
 
 <!-- diagram-id: 3-deployment-path-revision-failures-and-config-drift -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Image push or config change] --> B[New Revision created]
     B --> C[Image pull from registry]
     C --> D[Container start command executes]
@@ -170,7 +170,7 @@ flowchart LR
 
 <!-- diagram-id: 4-outbound-network-path-dns-private-endpoints -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Container Replica] --> B[DNS Resolver Path]
     B --> C[Resolved target IP]
     C --> D[Outbound via Environment VNet]

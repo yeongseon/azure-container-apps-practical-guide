@@ -35,7 +35,7 @@ Use this query to investigate ingress-related request failures such as 502/504 a
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter ingress and gateway signals] --> C[Project revision and reason] --> D[Sort by time]
 ```
 

@@ -28,7 +28,7 @@ Queries for analyzing container and replica restart patterns in Azure Container 
 
 <!-- diagram-id: query-pipeline-overview -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[System Logs] --> B[Filter Restart Events]
     B --> C[Correlate with Timeline]
     C --> D[Identify Patterns]

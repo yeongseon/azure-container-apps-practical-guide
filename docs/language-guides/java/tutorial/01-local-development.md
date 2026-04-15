@@ -66,7 +66,7 @@ flowchart TD
 
 <!-- diagram-id: local-development-workflow -->
 ```mermaid
-graph LR
+graph TD
     CODE[Source Code] --> BUILD[Maven Build]
     BUILD --> IMAGE[Docker Build]
     IMAGE --> CONT[Container]

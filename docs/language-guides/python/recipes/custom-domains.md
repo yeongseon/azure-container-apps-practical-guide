@@ -23,7 +23,7 @@ Azure Container Apps supports custom hostnames and TLS certificates so you can s
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     U[Client] --> DNS[Public DNS zone]
     DNS --> INGRESS[Container Apps ingress]
     DNS --> TXT[TXT record: asuid.<host>]
@@ -34,7 +34,7 @@ flowchart LR
 
 <!-- diagram-id: digi-cert-managed-certificate-issued -->
 ```mermaid
-flowchart LR
+flowchart TD
     U[Client HTTPS request] --> CDNS[Custom domain DNS]
     CDNS --> INGRESS[Container Apps ingress]
     INGRESS --> APP[Container App revision]

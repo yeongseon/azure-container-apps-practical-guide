@@ -68,7 +68,7 @@ flowchart TD
 
 <!-- diagram-id: infrastructure-lifecycle -->
 ```mermaid
-graph LR
+graph TD
     WRITE[Write Bicep] --> VAL[Validate]
     VAL --> WHAT[What-If]
     WHAT --> DEPLOY[Deploy]

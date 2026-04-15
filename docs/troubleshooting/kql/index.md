@@ -16,7 +16,7 @@ Use this section as a query catalog. Each page includes scenario context, data-s
 
 <!-- diagram-id: use-this-section-as-a-query -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Sources["Data Sources"]
         SYS["ContainerAppSystemLogs_CL"]
         CON["ContainerAppConsoleLogs_CL"]

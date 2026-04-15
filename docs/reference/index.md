@@ -25,7 +25,7 @@ This section is optimized for fast operational lookup during build, deploy, and 
 
 <!-- diagram-id: save-this-page-and-the-linked -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Reference Index] --> B[CLI Reference]
     A --> C[Environment Variables]
     A --> D[Platform Limits]

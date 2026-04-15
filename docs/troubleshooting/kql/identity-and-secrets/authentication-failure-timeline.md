@@ -35,7 +35,7 @@ Use this query to track authentication failures over time and spot recurring 401
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter auth failure terms] --> C[Classify 401 403 and token expiry] --> D[Summarize by 15 minute bins]
 ```
 

@@ -89,7 +89,7 @@ flowchart TD
 
 <!-- diagram-id: 5xx-branch-deep-dive-tree -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Observed 5xx] --> B{Status pattern}
     B -->|Mostly 500| C[Check application exceptions and console logs]
     B -->|Mostly 502| D[Check ingress and probe failures]

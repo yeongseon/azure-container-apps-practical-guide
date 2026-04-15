@@ -153,7 +153,7 @@ The managed Envoy ingress layer controls inbound traffic:
 
 <!-- diagram-id: no-ingress-not-http-addressable-event-driven -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Public ["Public Internet"]
         U[Client]
     end
@@ -236,7 +236,7 @@ Dapr sidecar enables automatic mTLS for service-to-service communication within 
 
 <!-- diagram-id: dapr-sidecar-enables-automatic-mtls-for -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Env ["Container Apps Environment"]
         subgraph A ["App A"]
             A_APP[Application Code]
@@ -281,7 +281,7 @@ Microsoft Defender for Containers provides continuous image scanning:
 
 <!-- diagram-id: microsoft-defender-for-containers-provides-continuous -->
 ```mermaid
-flowchart LR
+flowchart TD
     DEV[Developer] -- "Push image" --> ACR[Azure Container Registry]
     ACR -- "Scan on push" --> DEF[Defender for Containers]
     DEF -- "Vulnerability report" --> SEC[Security Team]

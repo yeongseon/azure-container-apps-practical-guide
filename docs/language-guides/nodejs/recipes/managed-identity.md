@@ -16,7 +16,7 @@ Use managed identity and `DefaultAzureCredential` so your Express app can call A
 
 <!-- diagram-id: use-managed-identity-and-defaultazurecredential-so -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Node.js Container App]
     APP -.-> MI[Managed Identity]

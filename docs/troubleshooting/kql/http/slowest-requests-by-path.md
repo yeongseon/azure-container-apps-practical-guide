@@ -29,7 +29,7 @@ content_validation:
 
 <!-- diagram-id: purpose-ranks-request-paths-by-p95 -->
 ```mermaid
-graph LR
+graph TD
     A[requests / ConsoleLogs] --> B[Group by URL Path]
     B --> C[Calculate P50 / P95 / P99]
     C --> D[Rank by P95 Descending]

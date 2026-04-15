@@ -35,7 +35,7 @@ Use this query to estimate how long a revision waits between the previous scale 
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter scale lifecycle logs] --> B[Sort by revision and time] --> C[Attach previous signal] --> D[Calculate delay and cooldown hint]
 ```
 

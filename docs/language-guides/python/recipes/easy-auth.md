@@ -15,7 +15,7 @@ Use Container Apps authentication (Easy Auth) to offload sign-in and token handl
 
 <!-- diagram-id: use-container-apps-authentication-easy-auth -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> AUTH["Easy Auth (Built-in)"]
     AUTH --> IDP[Identity Provider]
     IDP --> AUTH

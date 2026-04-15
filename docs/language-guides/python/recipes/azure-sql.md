@@ -17,7 +17,7 @@ Use this recipe to connect Azure Container Apps to Azure SQL Database with Micro
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Container App]
     APP --> SQL[Azure SQL Database]

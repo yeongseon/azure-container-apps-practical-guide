@@ -56,7 +56,7 @@ This lab simulates this scenario by:
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[User Request] --> B[Ingress Controller]
     B --> C{Traffic Split}
     C -->|50%| D[Good Revision<br/>Port 80 ✓]

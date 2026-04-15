@@ -35,7 +35,7 @@ Use this query when dependency calls fail due to DNS lookup errors, timeouts, or
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter DNS and network terms] --> C[Project replica context] --> D[Sort by time]
 ```
 

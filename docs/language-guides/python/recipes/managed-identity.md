@@ -15,7 +15,7 @@ Use managed identity and `DefaultAzureCredential` to access Azure services from 
 
 <!-- diagram-id: use-managed-identity-and-defaultazurecredential-to -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Container App]
     APP -.-> MI[Managed Identity]

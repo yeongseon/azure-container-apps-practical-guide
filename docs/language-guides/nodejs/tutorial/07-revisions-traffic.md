@@ -68,7 +68,7 @@ flowchart TD
 
 <!-- diagram-id: revision-traffic-splitting -->
 ```mermaid
-graph LR
+graph TD
     INGRESS[Ingress] -->|90%| V1[Revision v1]
     INGRESS -->|10%| V2[Revision v2]
 ```

@@ -69,7 +69,7 @@ Without explicit objectives, scaling rules become arbitrary and unstable.
 
 <!-- diagram-id: without-explicit-objectives-scaling-rules-become -->
 ```mermaid
-flowchart LR
+flowchart TD
     W[Workload Demand] --> K[KEDA Rule Evaluation]
     K --> D[Desired Replicas]
     D --> R[Running Replicas]

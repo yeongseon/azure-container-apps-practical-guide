@@ -15,7 +15,7 @@ Build production-ready Python container images that start quickly, stay small, a
 
 <!-- diagram-id: build-production-ready-python-container-images-that -->
 ```mermaid
-flowchart LR
+flowchart TD
     SRC[Source Code] --> BUILD["Docker Build (Multi-stage)"]
     BUILD --> IMG[Container Image]
     IMG --> ACR[Azure Container Registry]

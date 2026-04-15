@@ -25,7 +25,7 @@ Pull container images from Azure Container Registry over a private network path 
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Container App]
     ACR[Azure Container Registry] --> APP

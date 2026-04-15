@@ -15,7 +15,7 @@ Use managed identity with Spring Boot so Java applications can access Azure serv
 
 <!-- diagram-id: use-managed-identity-with-spring-boot -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> APP[Spring Boot App]
     APP -.-> MI[Managed Identity]
     MI -.-> ENTRA[Microsoft Entra ID]

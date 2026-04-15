@@ -23,7 +23,7 @@ This model enables both reactive scale-out and cost-efficient scale-in, includin
 
 <!-- diagram-id: how-keda-based-scaling-works -->
 ```mermaid
-flowchart LR
+flowchart TD
     M[Metric Source\nHTTP / Queue / Custom] --> K[KEDA Scaler]
     K --> D[Desired Replica Count]
     D --> R[Container App Revision Replicas]

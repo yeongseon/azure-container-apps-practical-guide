@@ -16,7 +16,7 @@ Use Azure Key Vault with managed identity and Spring Boot to externalize secrets
 
 <!-- diagram-id: use-azure-key-vault-with-managed -->
 ```mermaid
-flowchart LR
+flowchart TD
     APP[Spring Boot App] -.-> MI[Managed Identity]
     MI -.-> KV[Azure Key Vault]
     KV -.-> SEC[Container Apps Secret Reference]

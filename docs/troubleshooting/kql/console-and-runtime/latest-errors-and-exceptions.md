@@ -35,7 +35,7 @@ Use this query for quick inspection of recent application exceptions and error l
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter error patterns] --> C[Project key runtime fields] --> D[Sort by newest]
 ```
 

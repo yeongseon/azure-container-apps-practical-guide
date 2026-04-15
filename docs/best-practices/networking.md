@@ -103,7 +103,7 @@ Use one entry app for public traffic, and keep downstream services internal.
 
 <!-- diagram-id: use-one-entry-app-for-public -->
 ```mermaid
-graph LR
+graph TD
     U[Internet Client] --> D[Custom Domain]
     D --> E[Envoy Ingress]
     E --> P[Public API Container App]
@@ -253,7 +253,7 @@ A common enterprise pattern is controlled outbound internet access through Azure
 
 <!-- diagram-id: a-common-enterprise-pattern-is-controlled -->
 ```mermaid
-graph LR
+graph TD
     A[Container App Replica] --> R[Subnet Route Table]
     R --> F[Azure Firewall]
     F --> I[Internet]

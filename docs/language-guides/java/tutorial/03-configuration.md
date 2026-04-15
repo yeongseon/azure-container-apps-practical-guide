@@ -66,7 +66,7 @@ flowchart TD
 
 <!-- diagram-id: configuration-workflow -->
 ```mermaid
-graph LR
+graph TD
     APP[Spring Boot App] --> ENV[Environment Variables]
     APP --> SECRETS[ACA Secrets]
     SECRETS --> KV[Azure Key Vault]

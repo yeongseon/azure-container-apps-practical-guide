@@ -37,7 +37,7 @@ These guides are designed to help you build applications that are "platform-nati
 
 <!-- diagram-id: tutorial-progression-model -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[01 Local Development] --> B[02 First Deploy]
     B --> C[03 Configuration and Secrets]
     C --> D[04 Logging and Monitoring]

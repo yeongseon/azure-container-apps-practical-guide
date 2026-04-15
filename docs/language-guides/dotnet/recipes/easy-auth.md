@@ -15,7 +15,7 @@ Use Easy Auth to handle identity at the edge, then map claims inside ASP.NET Cor
 
 <!-- diagram-id: use-easy-auth-to-handle-identity -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> AUTH[Easy Auth]
     AUTH --> IDP[Identity Provider]
     AUTH --> APP[ASP.NET Core App]

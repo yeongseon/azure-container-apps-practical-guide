@@ -68,7 +68,7 @@ flowchart TD
 
 <!-- diagram-id: deployment-workflow -->
 ```mermaid
-graph LR
+graph TD
     BICEP[Bicep Deploy] --> ACR[ACR Build]
     ACR --> UPDATE[Container App Update]
     UPDATE --> VERIFY[Verify URL]

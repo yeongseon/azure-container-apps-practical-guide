@@ -35,7 +35,7 @@ Use this query to identify restart-heavy replicas and crash-loop patterns by rev
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter crash and restart terms] --> C[Summarize by replica and revision] --> D[Sort by event count]
 ```
 

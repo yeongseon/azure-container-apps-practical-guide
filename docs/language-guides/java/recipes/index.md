@@ -15,7 +15,7 @@ Accelerate your development process with these common integration patterns and p
 
 <!-- diagram-id: accelerate-your-development-process-with-these -->
 ```mermaid
-flowchart LR
+flowchart TD
     APP["Spring Boot App"] --> DB["Database (Cosmos DB / SQL)"]
     APP --> CACHE["Redis Cache"]
     APP --> MSG["Service Bus"]

@@ -42,7 +42,7 @@ az extension add --name containerapp --upgrade
 
 <!-- diagram-id: cli-workflow-map -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Create App or Job] --> B[Configure Runtime and Access]
     B --> C[Deploy Revision / Update Image]
     C --> D[Validate Revision and Replica State]

@@ -84,7 +84,7 @@ Use a repeatable control loop so every operational change is observable, reversi
 
 <!-- diagram-id: use-a-repeatable-control-loop-so -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Baseline Health Check] --> B[Apply Change]
     B --> C[Validate Revision and Replicas]
     C --> D[Observe Metrics and Logs]

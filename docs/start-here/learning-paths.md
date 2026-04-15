@@ -77,7 +77,7 @@ The following flow helps teams move from orientation to production readiness wit
 
 <!-- diagram-id: the-following-flow-helps-teams-move -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Start Here: Overview] --> B[When to Use Container Apps]
     B --> C[Learning Paths by Role]
     C --> D[Platform Concepts]

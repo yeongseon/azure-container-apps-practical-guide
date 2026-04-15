@@ -17,7 +17,7 @@ This reference summarizes practical runtime defaults for Node.js workloads on Az
 
 <!-- diagram-id: runtime-execution-model -->
 ```mermaid
-flowchart LR
+flowchart TD
     IMG[Container Image] --> BOOT[Node.js Startup]
     BOOT --> PORT[Bind 0.0.0.0:8000]
     PORT --> PROBE[Health Probes]

@@ -35,7 +35,7 @@ Use this query to isolate registry pull failures and authentication errors durin
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter pull and auth terms] --> C[Project revision and reason] --> D[Sort by time]
 ```
 

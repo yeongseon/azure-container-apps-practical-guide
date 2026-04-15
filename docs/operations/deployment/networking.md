@@ -166,7 +166,7 @@ Example health payload:
 
 <!-- diagram-id: vnet-setup-flow -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Infrastructure [Azure Infrastructure]
         VNET[Virtual Network / Subnet]
         DEL[Subnet Delegation]

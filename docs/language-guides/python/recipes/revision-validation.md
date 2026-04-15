@@ -16,7 +16,7 @@ Validate new revisions with direct testing and controlled traffic movement so yo
 
 <!-- diagram-id: validate-new-revisions-with-direct-testing -->
 ```mermaid
-flowchart LR
+flowchart TD
     DEV[Developer] --> IMG["New Image Tag"]
     IMG --> REV["New Revision (0% traffic)"]
     REV --> LABEL["Label URL (canary---)"]

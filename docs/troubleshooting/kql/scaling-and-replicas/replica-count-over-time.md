@@ -35,7 +35,7 @@ Use this query to visualize how many replicas are active per revision over time 
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app and time] --> B[Keep replica lifecycle events] --> C[Distinct replica count by bin] --> D[Trend output]
 ```
 

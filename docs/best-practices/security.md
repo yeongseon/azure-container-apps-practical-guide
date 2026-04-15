@@ -104,7 +104,7 @@ Create environments with no public endpoint. Front with Application Gateway or A
 
 <!-- diagram-id: create-environments-with-no-public-endpoint -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Public ["Public Internet"]
         U[Client]
     end
@@ -284,7 +284,7 @@ az containerapp update \
 
 <!-- diagram-id: enable-vulnerability-scanning -->
 ```mermaid
-flowchart LR
+flowchart TD
     DEV[Developer] -- "Push" --> ACR[ACR]
     ACR -- "Scan on push" --> DEF[Defender for Containers]
     DEF -- "Critical CVE found" --> ALERT[Security Alert]

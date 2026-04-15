@@ -29,7 +29,7 @@ This section explains Azure Container Apps platform behavior in a language-agnos
 
 <!-- diagram-id: documents -->
 ```mermaid
-graph LR
+graph TD
     A[Architecture] --> B[Environments]
     B --> C[Revisions]
     C --> D[Scaling]

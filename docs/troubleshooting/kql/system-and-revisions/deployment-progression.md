@@ -35,7 +35,7 @@ Use this query to follow a revision from initial configuration change through pr
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter revision lifecycle signals] --> C[Project deployment milestones] --> D[Sort oldest to newest]
 ```
 

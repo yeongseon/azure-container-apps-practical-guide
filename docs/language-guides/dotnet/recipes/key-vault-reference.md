@@ -16,7 +16,7 @@ Use Key Vault references and Azure SDK integration to keep ASP.NET Core secrets 
 
 <!-- diagram-id: use-key-vault-references-and-azure -->
 ```mermaid
-flowchart LR
+flowchart TD
     APP[ASP.NET Core App] -.-> MI[Managed Identity]
     MI -.-> KV[Azure Key Vault]
     KV -.-> SEC[Container Apps Secret Reference]

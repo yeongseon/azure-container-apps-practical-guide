@@ -29,7 +29,7 @@ HTTP request analysis queries for Azure Container Apps. Use these to investigate
 
 <!-- diagram-id: query-pipeline-overview -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Raw Logs] --> B[Filter HTTP Patterns]
     B --> C[Extract Status/Latency]
     C --> D[Aggregate by Time]

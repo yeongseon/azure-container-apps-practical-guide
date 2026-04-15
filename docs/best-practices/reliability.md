@@ -78,7 +78,7 @@ Do not reuse one endpoint for all three unless behavior is intentionally identic
 
 <!-- diagram-id: do-not-reuse-one-endpoint-for -->
 ```mermaid
-flowchart LR
+flowchart TD
     S[Container Start] --> SP[Startup Probe]
     SP -->|Pass| R[Readiness Probe]
     R -->|Pass| T[Traffic Eligible]
@@ -242,7 +242,7 @@ Dapr resiliency high-level flow:
 
 <!-- diagram-id: dapr-resiliency-high-level-flow -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[App] --> D[Dapr Sidecar]
     D --> P[Resiliency Policy]
     P --> S[Downstream Service]

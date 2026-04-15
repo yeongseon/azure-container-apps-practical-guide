@@ -29,7 +29,7 @@ content_validation:
 
 <!-- diagram-id: purpose-shows-p50-p95-p99-latency-trends-split -->
 ```mermaid
-graph LR
+graph TD
     A[requests table] --> B[Percentile Calc per Status]
     B --> C[P50 / P95 / P99 by 5m bins]
     C --> D[Timechart: Tail Latency by Status]

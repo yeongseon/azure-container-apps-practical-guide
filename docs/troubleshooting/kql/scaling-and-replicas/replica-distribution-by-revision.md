@@ -35,7 +35,7 @@ Use this query to show how active replicas are distributed across revisions so y
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter recent replica logs] --> B[Deduplicate replicas per revision] --> C[Count replicas by revision] --> D[Calculate replica share]
 ```
 

@@ -29,7 +29,7 @@ content_validation:
 
 <!-- diagram-id: purpose-identifies-replicas-with-multiple-startup -->
 ```mermaid
-graph LR
+graph TD
     A[ContainerAppSystemLogs_CL] --> B[Filter Startup Events]
     B --> C[Group by Replica]
     C --> D[Count Failures]

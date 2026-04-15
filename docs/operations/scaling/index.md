@@ -137,7 +137,7 @@ Example output (PII masked):
 
 <!-- diagram-id: scaling-decision-framework -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Traffic or Queue Increase] --> B{Workload Type}
     B -->|HTTP interactive| C[HTTP concurrency rule]
     B -->|Queue driven| D[Event scaler rule]

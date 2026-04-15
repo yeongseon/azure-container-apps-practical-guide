@@ -44,7 +44,7 @@ The key troubleshooting lesson is that ingress `targetPort` and Dapr `appPort` a
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[External Request] --> B[Ingress :8000]
     B --> C[App Container :8000]
     D[Dapr Sidecar :3500] --> E[App Container :appPort]

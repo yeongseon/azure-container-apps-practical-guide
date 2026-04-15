@@ -68,7 +68,7 @@ flowchart TD
 
 <!-- diagram-id: iac-workflow -->
 ```mermaid
-graph LR
+graph TD
     CODE[Bicep Templates] --> VALIDATE[az deployment validate]
     VALIDATE --> DEPLOY[az deployment group create]
     DEPLOY --> AZURE[Azure Resources]

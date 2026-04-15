@@ -68,7 +68,7 @@ flowchart TD
 
 <!-- diagram-id: monitoring-workflow -->
 ```mermaid
-graph LR
+graph TD
     APP[Spring Boot App] --> STDOUT[Console Output]
     APP --> OTLP[OpenTelemetry]
     STDOUT --> LOGS[Log Analytics]

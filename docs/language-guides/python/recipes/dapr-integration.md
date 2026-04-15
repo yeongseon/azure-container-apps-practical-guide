@@ -15,7 +15,7 @@ Azure Container Apps (ACA) provides native Dapr integration, allowing your Pytho
 
 <!-- diagram-id: azure-container-apps-aca-provides-native -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Python App]
     APP <--> DAPR[Dapr Sidecar]

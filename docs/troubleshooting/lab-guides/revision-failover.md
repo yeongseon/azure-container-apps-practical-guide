@@ -44,7 +44,7 @@ Traffic shifting is usually faster than rebuilding during an incident, but it on
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Revision N healthy] --> B[Deploy revision N+1 with wrong target port]
     B --> C[Revision N+1 becomes unhealthy]
     C --> D[Requests fail or return 5xx]

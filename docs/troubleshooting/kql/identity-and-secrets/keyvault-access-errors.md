@@ -35,7 +35,7 @@ Use this query to analyze Key Vault secret reference resolution failures and sep
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter Key Vault signals] --> C[Classify failure category] --> D[Project revision and reason]
 ```
 

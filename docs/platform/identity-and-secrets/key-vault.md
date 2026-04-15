@@ -34,7 +34,7 @@ Use this recipe to access Key Vault secrets from a Python Container App without 
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     P[Container Apps platform] --> S[Secret reference resolution]
     S --> KV[Azure Key Vault]
     KV --> SECRET[Resolved secret value]

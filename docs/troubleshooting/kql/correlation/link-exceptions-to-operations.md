@@ -35,7 +35,7 @@ Use this query to correlate exceptions to request operation IDs for end-to-end f
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by cloud role name] --> B[Project exception fields] --> C[Join mentally with requests on operation_Id] --> D[Sort by time]
 ```
 

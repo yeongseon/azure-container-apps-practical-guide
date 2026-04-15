@@ -15,7 +15,7 @@ Deploy ASP.NET Core images from private ACR using a user-assigned managed identi
 
 <!-- diagram-id: deploy-asp-net-core-images-from-private -->
 ```mermaid
-flowchart LR
+flowchart TD
     ACR[Azure Container Registry] --> APP[ASP.NET Core Container App]
     APP -.-> UAMI[User-Assigned Managed Identity]
     UAMI -.-> ENTRA[Microsoft Entra ID]

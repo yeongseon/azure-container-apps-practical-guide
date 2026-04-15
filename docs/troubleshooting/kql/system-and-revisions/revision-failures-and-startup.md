@@ -35,7 +35,7 @@ Use this query when a revision fails to become healthy or startup behavior is un
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter startup and failure signals] --> C[Project revision columns] --> D[Sort by time]
 ```
 

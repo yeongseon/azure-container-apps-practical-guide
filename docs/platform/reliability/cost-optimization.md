@@ -51,7 +51,7 @@ export ENVIRONMENT_NAME="aca-env-prod"
 
 <!-- diagram-id: workload-profiles-best-for-predictable-baseline -->
 ```mermaid
-flowchart LR
+flowchart TD
     T[Traffic Pattern] --> P{Profile Choice}
     P -->|Bursty/idle| C[Consumption]
     P -->|Steady baseline| W[Workload Profiles]

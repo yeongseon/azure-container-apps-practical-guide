@@ -68,7 +68,7 @@ flowchart TD
 
 <!-- diagram-id: ci-cd-pipeline-flow -->
 ```mermaid
-graph LR
+graph TD
     PUSH[Push to main] --> GHA[GitHub Actions]
     GHA --> ACR[ACR Build]
     ACR --> DEPLOY[Deploy Revision]

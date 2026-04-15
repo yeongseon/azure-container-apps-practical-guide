@@ -15,7 +15,7 @@ Use managed identity and Key Vault references so your Python app receives secret
 
 <!-- diagram-id: use-managed-identity-and-key-vault -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Container App]
     APP -.-> MI[Managed Identity]

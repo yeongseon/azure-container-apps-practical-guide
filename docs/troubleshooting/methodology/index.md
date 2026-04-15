@@ -187,7 +187,7 @@ After applying a candidate fix, run this loop before declaring incident closure.
 
 <!-- diagram-id: after-applying-a-candidate-fix-run -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Apply single targeted fix] --> B[Check revision health]
     B --> C[Run endpoint validation]
     C --> D[Review system and console logs]

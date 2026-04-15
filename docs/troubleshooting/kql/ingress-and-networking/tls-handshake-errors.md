@@ -35,7 +35,7 @@ Use this query to investigate ingress TLS configuration events such as certifica
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter TLS and custom domain signals] --> C[Project revision and reason] --> D[Sort by time]
 ```
 

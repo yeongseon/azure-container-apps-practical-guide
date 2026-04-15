@@ -15,7 +15,7 @@ Use `DefaultAzureCredential` and ASP.NET Core dependency injection to access Azu
 
 <!-- diagram-id: use-defaultazurecredential-and-asp-net-core-dependency -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> APP[ASP.NET Core App]
     APP -.-> MI[Managed Identity]
     MI -.-> ENTRA[Microsoft Entra ID]

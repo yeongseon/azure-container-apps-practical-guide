@@ -35,7 +35,7 @@ Use this query when the app emits both startup and ready messages and you need t
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app and time window] --> B[Match startup and ready log markers] --> C[Pair first start and ready events per container group] --> D[Calculate startup duration]
 ```
 

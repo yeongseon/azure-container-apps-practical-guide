@@ -15,7 +15,7 @@ Use Key Vault references and managed identity so Express workloads can consume s
 
 <!-- diagram-id: use-key-vault-references-and-managed -->
 ```mermaid
-flowchart LR
+flowchart TD
     APP[Express App] -.-> MI[Managed Identity]
     MI -.-> ENTRA[Microsoft Entra ID]
     MI -.-> KV[Azure Key Vault]

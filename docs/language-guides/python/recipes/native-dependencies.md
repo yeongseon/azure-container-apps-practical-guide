@@ -15,7 +15,7 @@ Handle Python packages with compiled/native components by installing required sy
 
 <!-- diagram-id: handle-python-packages-with-compiled-native-components -->
 ```mermaid
-flowchart LR
+flowchart TD
     REQ["requirements.txt"] --> BUILD["Builder Stage (gcc, libpq-dev)"]
     BUILD --> WHEELS["Compiled Wheels"]
     WHEELS --> RUNTIME["Runtime Stage (slim)"]

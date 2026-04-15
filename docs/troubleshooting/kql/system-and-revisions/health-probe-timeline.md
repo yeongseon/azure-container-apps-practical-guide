@@ -35,7 +35,7 @@ Use this query to reconstruct the sequence of probe-related events so you can se
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter probe signals] --> C[Project timeline columns] --> D[Sort oldest to newest]
 ```
 

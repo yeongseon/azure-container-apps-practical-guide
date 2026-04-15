@@ -28,7 +28,7 @@ Use this section as the bridge between platform knowledge and implementation dec
 
 <!-- diagram-id: language-guides-show-how-to-implement -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Platform Understanding<br/>How Container Apps works] --> B[Best Practices<br/>Design judgment and trade-offs]
     B --> C[Implementation<br/>Language Guides and recipes]
     C --> D[Operations<br/>Run, monitor, and improve]

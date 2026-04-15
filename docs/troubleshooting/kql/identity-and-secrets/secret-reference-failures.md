@@ -35,7 +35,7 @@ Use this query to identify failures caused by missing secrets, invalid secret re
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter secret and Key Vault signals] --> C[Project reason and revision] --> D[Sort by time]
 ```
 

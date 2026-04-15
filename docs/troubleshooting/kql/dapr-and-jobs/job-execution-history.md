@@ -35,7 +35,7 @@ Use this query to review Container Apps Job execution events, failures, retries,
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by job app name] --> B[Filter execution terms] --> C[Project run details] --> D[Sort by time]
 ```
 

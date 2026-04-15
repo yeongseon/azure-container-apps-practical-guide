@@ -50,7 +50,7 @@ Enable system-assigned managed identity:
 
 <!-- diagram-id: enable-system-assigned-managed-identity -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Container App] --> B[Managed Identity]
     B --> C[Microsoft Entra ID]
     C --> D[Access Token]

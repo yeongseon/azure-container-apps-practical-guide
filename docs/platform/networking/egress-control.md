@@ -70,7 +70,7 @@ Route outbound traffic through Azure Firewall or NVA:
 
 <!-- diagram-id: route-outbound-traffic-through-azure-firewall -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph VNet [Virtual Network]
         subgraph Subnet [CAE Subnet]
             APP[Container App]
@@ -252,7 +252,7 @@ Use service tags where Azure provides them, and use private endpoints or FQDN-aw
 
 <!-- diagram-id: managed-identity-acr-egress-dependencies -->
 ```mermaid
-flowchart LR
+flowchart TD
     APP[Container App] --> FW[Firewall / NSG]
     FW --> AAD[Microsoft Entra ID<br/>AzureActiveDirectory token]
     FW --> MCR[Microsoft Container Registry<br/>System containers]

@@ -39,7 +39,7 @@ Use these when you have 60 seconds to identify the failure category.
 
 <!-- diagram-id: card-1-image-pull-failure -->
 ```mermaid
-graph LR
+graph TD
     A[Revision stuck Provisioning] --> B[First Query]
     B --> C[Platform Segment]
     C --> D[Playbook]

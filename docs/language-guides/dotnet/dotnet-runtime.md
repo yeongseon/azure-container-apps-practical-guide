@@ -18,7 +18,7 @@ This reference summarizes practical runtime defaults for .NET workloads on Azure
 
 <!-- diagram-id: runtime-execution-model -->
 ```mermaid
-flowchart LR
+flowchart TD
     IMG[Container Image] --> BOOT[Kestrel Startup]
     BOOT --> PORT[Bind 0.0.0.0:8000]
     PORT --> PROBE[Health Probes]

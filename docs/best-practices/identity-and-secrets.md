@@ -280,7 +280,7 @@ If you use Dapr, centralize runtime secret retrieval with a secret store compone
 
 <!-- diagram-id: if-you-use-dapr-centralize-runtime -->
 ```mermaid
-graph LR
+graph TD
     A[Container App] --> D[Dapr Sidecar]
     D --> S[Secret Store Component]
     S --> K[Azure Key Vault]
@@ -362,7 +362,7 @@ Use managed identity + Entra authentication end to end.
 
 <!-- diagram-id: use-managed-identity-entra-authentication -->
 ```mermaid
-flowchart LR
+flowchart TD
     APP[Container App] --> ENTRA[Microsoft Entra ID]
     ENTRA --> SQL[Azure SQL]
     ENTRA --> STG[Azure Storage]

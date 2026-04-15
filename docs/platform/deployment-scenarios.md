@@ -45,7 +45,7 @@ This page compares the reference deployment patterns used in this guide across d
 
 <!-- diagram-id: scenario-overview -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph PUBLIC["Scenario A: Public Consumption"]
         A1[Consumption Only] --- A2[External Ingress]
         A2 --- A3[Public ACR / Admin Auth]

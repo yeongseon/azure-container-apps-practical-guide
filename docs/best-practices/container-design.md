@@ -65,7 +65,7 @@ Use these design assumptions:
 
 <!-- diagram-id: bad-container-defaults-slow-startup-missing -->
 ```mermaid
-flowchart LR
+flowchart TD
     B[Build Image] --> R[Create Revision]
     R --> S[Container Starts]
     S --> P[Startup and Readiness Probes]

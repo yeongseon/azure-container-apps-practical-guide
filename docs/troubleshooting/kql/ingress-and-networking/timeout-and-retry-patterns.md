@@ -35,7 +35,7 @@ Use this query to investigate repeated retry loops, backoff escalation, and exha
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter retry and backoff terms] --> C[Project revision context] --> D[Sort by time]
 ```
 

@@ -34,7 +34,7 @@ This overview maps how Azure Container Apps runtime components, identities, and 
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
 
     subgraph ENV[Container Apps Environment]

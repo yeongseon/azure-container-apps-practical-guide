@@ -29,7 +29,7 @@ content_validation:
 
 <!-- diagram-id: purpose-lists-restart-related-platform-events-to -->
 ```mermaid
-graph LR
+graph TD
     A[ContainerAppSystemLogs_CL] -->|Restart Events| B[Filter by Reason]
     B --> C[Timeline Projection]
     C --> D[Correlate with Incident Window]

@@ -102,7 +102,7 @@ az containerapp logs show \
 
 <!-- diagram-id: image-pull-workflow -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Deploy Revision] --> B[Container Apps requests image]
     B --> C{Registry Authentication}
     C -->|Managed identity authorized| D[Pull image manifest and layers]

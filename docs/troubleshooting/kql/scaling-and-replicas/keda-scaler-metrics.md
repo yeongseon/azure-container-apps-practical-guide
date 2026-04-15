@@ -35,7 +35,7 @@ Use this query to track KEDA scaler activation, deactivation, and related scale 
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app and window] --> B[Keep KEDA or scale signals] --> C[Classify scaler state and decision] --> D[Summarize by time bin]
 ```
 

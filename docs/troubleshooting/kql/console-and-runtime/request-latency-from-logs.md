@@ -35,7 +35,7 @@ Use this query when your app emits request duration values (for example `duratio
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Parse duration field] --> C[Summarize p50 and p95] --> D[Trend by time bin]
 ```
 

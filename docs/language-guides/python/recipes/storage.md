@@ -25,7 +25,7 @@ Connect your Container App to Azure Storage — either by mounting an Azure File
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     MNT[Environment storage mount<br/>appfiles] --> FILES[Azure Files share]
     APP[Container App] --> RW[Read/write on /mnt/appfiles]
     RW --> MNT

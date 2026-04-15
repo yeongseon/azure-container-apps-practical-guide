@@ -50,7 +50,7 @@ Configure startup, liveness, and readiness probes in your Container App template
 
 <!-- diagram-id: configure-startup-liveness-and-readiness-probes -->
 ```mermaid
-flowchart LR
+flowchart TD
     U[User Traffic] --> R[Readiness Probe]
     P[Platform Runtime] --> L[Liveness Probe]
     S[Container Startup] --> ST[Startup Probe]

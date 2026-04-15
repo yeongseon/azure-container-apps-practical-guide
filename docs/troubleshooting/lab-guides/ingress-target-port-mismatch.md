@@ -49,7 +49,7 @@ This is one of the most common "works locally, fails in Azure" scenarios because
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[External Request] --> B[Ingress Controller]
     B --> C{Target Port 8081?}
     C -->|App listens on 80| D[Connection Refused]

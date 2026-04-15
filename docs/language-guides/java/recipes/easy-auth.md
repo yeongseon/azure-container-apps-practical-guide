@@ -15,7 +15,7 @@ Enable Easy Auth in Azure Container Apps and parse authenticated principal claim
 
 <!-- diagram-id: enable-easy-auth-in-azure-container -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> AUTH[Easy Auth]
     AUTH --> IDP[Identity Provider]
     AUTH --> APP[Spring Boot App]

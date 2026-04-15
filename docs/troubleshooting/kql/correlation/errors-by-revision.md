@@ -35,7 +35,7 @@ Use this query to compare error volume across revisions and detect rollout regre
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter error patterns] --> C[Summarize by revision] --> D[Sort by error volume]
 ```
 

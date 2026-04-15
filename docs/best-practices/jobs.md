@@ -227,7 +227,7 @@ az containerapp job create \
 
 <!-- diagram-id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0 -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Execution Triggered] --> B[Replica 1]
     A --> C[Replica 2]
     A --> D[Replica 3]

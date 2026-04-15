@@ -68,7 +68,7 @@ flowchart TD
 
 <!-- diagram-id: local-development-workflow -->
 ```mermaid
-graph LR
+graph TD
     CODE[Source Code] --> BUILD[Docker Build]
     BUILD --> CONT[Container]
     CONT --> LOCAL[localhost:8000]

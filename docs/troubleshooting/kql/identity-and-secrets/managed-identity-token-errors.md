@@ -35,7 +35,7 @@ Use this query to detect token acquisition and authorization failures related to
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter identity and token terms] --> C[Project revision and replica] --> D[Sort by time]
 ```
 

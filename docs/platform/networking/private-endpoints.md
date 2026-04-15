@@ -49,7 +49,7 @@ Connect Container Apps to Azure services using Private Endpoints.
 
 <!-- diagram-id: overview -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph VNet
         CA[Container App]
         PE1[Private Endpoint<br/>Key Vault]
@@ -160,7 +160,7 @@ ACR is unique and requires two private DNS zones for full functionality within a
 
 <!-- diagram-id: privatelink-region-data-microsoft-com-for-the-data-endpoint-layer -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph VNet
         CA[Container App]
         PE1[PE: Login Server<br/>&lt;private-ip&gt;]

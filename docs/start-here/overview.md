@@ -102,7 +102,7 @@ If your team includes multiple roles, align on a shared baseline and then split 
 
 <!-- diagram-id: conceptual-platform-view -->
 ```mermaid
-graph LR
+graph TD
     Client[Client or Event Source] --> Ingress[Ingress]
     Ingress --> App[Container App Revision]
     App --> Replica[Replica]

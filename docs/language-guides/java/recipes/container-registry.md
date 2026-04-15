@@ -15,7 +15,7 @@ Pull private Spring Boot images from Azure Container Registry using managed iden
 
 <!-- diagram-id: pull-private-spring-boot-images-from -->
 ```mermaid
-flowchart LR
+flowchart TD
     ACR[Azure Container Registry] --> APP[Java Container App]
     APP -.-> UAMI[User-Assigned Managed Identity]
     UAMI -.-> ENTRA[Microsoft Entra ID]

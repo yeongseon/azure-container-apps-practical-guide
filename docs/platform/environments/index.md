@@ -77,7 +77,7 @@ Revisions are scoped per app, not per environment.
 
 <!-- diagram-id: revisions-are-scoped-per-app-not -->
 ```mermaid
-graph LR
+graph TD
     ENV[Environment] --> APPA[App A]
     ENV --> APPB[App B]
     APPA --> RA1[Revision A-v1]

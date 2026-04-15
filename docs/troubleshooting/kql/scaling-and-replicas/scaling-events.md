@@ -35,7 +35,7 @@ Use this query to inspect scale-out and scale-in related system signals for KEDA
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app] --> B[Filter scale terms] --> C[Project scale context] --> D[Sort by time]
 ```
 

@@ -17,7 +17,7 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Container App]
     APP --> REDIS[Azure Cache for Redis]

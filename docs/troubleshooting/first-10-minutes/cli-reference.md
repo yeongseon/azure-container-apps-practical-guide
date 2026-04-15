@@ -45,7 +45,7 @@ Use `APP_NAME="ca-myapp"` for troubleshooting examples in this guide.
 
 <!-- diagram-id: use-app-name-ca-myapp-for-troubleshooting-examples-in -->
 ```mermaid
-flowchart LR
+flowchart TD
     INSPECT["Inspect"] --> DEPLOY["Deploy / Update"]
     DEPLOY --> CONFIG["Configuration / Secrets"]
     CONFIG --> SCALE["Scale"]

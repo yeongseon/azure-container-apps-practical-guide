@@ -25,7 +25,7 @@ Before starting, install and verify:
 
 <!-- diagram-id: tutorial-progression -->
 ```mermaid
-flowchart LR
+flowchart TD
     S01[01 Local Development] --> S02[02 First Deploy]
     S02 --> S03[03 Configuration]
     S03 --> S04[04 Logging & Monitoring]

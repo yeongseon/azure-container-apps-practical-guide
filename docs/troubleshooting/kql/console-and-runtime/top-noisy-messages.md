@@ -35,7 +35,7 @@ Use this query to identify repetitive log lines that may indicate error storms o
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by app and time window] --> B[Normalize message text] --> C[Count by message] --> D[Top noisy entries]
 ```
 

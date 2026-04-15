@@ -57,7 +57,7 @@ http://<app-name>
 
 <!-- diagram-id: internal-resolution-flow -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Env [Managed Environment]
         subgraph Calling [Calling App]
             APP1[Frontend]

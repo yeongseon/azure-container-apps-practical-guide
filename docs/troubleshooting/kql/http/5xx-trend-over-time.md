@@ -29,7 +29,7 @@ content_validation:
 
 <!-- diagram-id: purpose-tracks-5xx-volume-over-time -->
 ```mermaid
-graph LR
+graph TD
     A[requests / ConsoleLogs] -->|resultCode >= 500| B[Filter 5xx]
     B --> C[Count by 15m bins + Status]
     C --> D[Timechart: Spike Detection]

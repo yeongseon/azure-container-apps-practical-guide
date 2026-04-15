@@ -66,7 +66,7 @@ Follow these step-by-step guides to master the deployment of Java applications o
 
 <!-- diagram-id: end-to-end-learning-flow -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Local Docker Validation] --> B[Azure First Deployment]
     B --> C[Configuration and Secrets]
     C --> D[Logs, Metrics, Traces]

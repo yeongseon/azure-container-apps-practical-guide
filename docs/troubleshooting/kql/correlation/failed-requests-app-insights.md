@@ -35,7 +35,7 @@ Use this query in Application Insights (workspace-based) to inspect failed HTTP 
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
-flowchart LR
+flowchart TD
     A[Filter by cloud role name] --> B[Filter failed requests] --> C[Project operation metadata] --> D[Sort by time]
 ```
 

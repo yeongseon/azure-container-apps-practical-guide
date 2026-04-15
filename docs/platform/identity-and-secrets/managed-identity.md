@@ -34,7 +34,7 @@ Azure Container Apps (ACA) supports managed identities, allowing your Python app
 
 <!-- diagram-id: architecture -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Container App]
     APP --> COSMOS[Azure Cosmos DB]

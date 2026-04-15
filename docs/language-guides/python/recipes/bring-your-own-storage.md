@@ -15,7 +15,7 @@ Mount Azure Files into your Python Container App when you need shared, persisten
 
 <!-- diagram-id: mount-azure-files-into-your-python -->
 ```mermaid
-flowchart LR
+flowchart TD
     C[Client] --> I[Container Apps Ingress]
     I --> APP[Container App]
     APP --> VOL["Azure Files Mount (/mnt/shared)"]
