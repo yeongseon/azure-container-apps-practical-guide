@@ -75,6 +75,9 @@ docker-compose.override.yml
 # Sisyphus (AI agent working files)
 .sisyphus/
 
+# Playwright MCP artifacts
+.playwright-mcp/
+
 # Coverage
 htmlcov/
 .coverage
