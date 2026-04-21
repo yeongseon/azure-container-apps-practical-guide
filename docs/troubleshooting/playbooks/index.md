@@ -91,6 +91,7 @@ Use the category that best matches your first confirmed symptom.
 
 - [Managed Identity Auth Failure](identity-and-configuration/managed-identity-auth-failure.md)
 - [Secret and Key Vault Reference Failure](identity-and-configuration/secret-and-key-vault-reference-failure.md)
+- [Continuous Deployment RBAC Role Assignment Conflict](identity-and-configuration/cd-rbac-role-assignment-conflict.md)
 
 ### Platform Features
 

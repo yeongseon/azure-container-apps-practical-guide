@@ -260,6 +260,7 @@ nav:
       - Identity and Configuration:
         - Managed Identity Auth Failure: troubleshooting/playbooks/identity-and-configuration/managed-identity-auth-failure.md
         - Secret and Key Vault Reference Failure: troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md
+        - CD RBAC Role Assignment Conflict: troubleshooting/playbooks/identity-and-configuration/cd-rbac-role-assignment-conflict.md
       - Platform Features:
         - Dapr Sidecar or Component Failure: troubleshooting/playbooks/platform-features/dapr-sidecar-or-component-failure.md
         - Container App Job Execution Failure: troubleshooting/playbooks/platform-features/container-app-job-execution-failure.md
@@ -327,6 +328,7 @@ nav:
       - Traffic Routing and Canary Failure Lab: troubleshooting/lab-guides/traffic-routing-canary.md
       - Dapr Integration: troubleshooting/lab-guides/dapr-integration.md
       - Observability and Tracing: troubleshooting/lab-guides/observability-tracing.md
+      - CD Reconnect RBAC Conflict: troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md
   - Reference:
     - reference/index.md
     - Content Validation: reference/content-validation-status.md

@@ -30,6 +30,7 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 | Traffic Routing Canary Failure | Diagnose traffic splitting failures when a bad revision receives production traffic. | Intermediate | 20-30 min | [Guide](./traffic-routing-canary.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/traffic-routing-canary) |
 | Dapr Integration | Troubleshoot Dapr sidecar and component configuration issues. | Intermediate | 35-45 min | [Guide](./dapr-integration.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/dapr-integration) |
 | Observability and Tracing | Set up OpenTelemetry and Application Insights, troubleshoot missing traces and metrics. | Intermediate | 35-45 min | [Guide](./observability-tracing.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/observability-tracing) |
+| CD Reconnect RBAC Conflict | Reproduces `AppRbacDeployment: The role assignment already exists` after a previous CD disconnect left RBAC role assignments behind. | Intermediate | 25-35 min | [Guide](./cd-reconnect-rbac-conflict.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/cd-reconnect-rbac-conflict) |
 
 ## Suggested Learning Path
 
@@ -43,6 +44,7 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 8. [Traffic Routing and Canary Failure Lab](./traffic-routing-canary.md)
 9. [Dapr Integration](./dapr-integration.md)
 10. [Observability and Tracing](./observability-tracing.md)
+11. [CD Reconnect RBAC Conflict](./cd-reconnect-rbac-conflict.md)
 
 ## How to Use These Labs Effectively
 
@@ -79,6 +81,7 @@ flowchart TD
 | Traffic Routing Canary Failure | Intermittent failures (~50%) | Traffic weight and revision health | Bad revision receiving traffic | Rollback traffic to healthy revision |
 | Dapr Integration | Dapr calls fail | System logs with Dapr errors | Sidecar not enabled or component misconfigured | Enable Dapr and fix component YAML |
 | Observability and Tracing | No traces in App Insights | Application Insights query | Connection string not set | Configure OTel and connection string |
+| CD Reconnect RBAC Conflict | `AppRbacDeployment` failure on reconnect | Role assignment ID in deployment error | Orphaned role assignment from previous CD | Delete conflicting assignment, then reconnect |
 
 ## Step-by-Step: Standard Lab Execution Pattern
 
