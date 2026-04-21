@@ -18,6 +18,18 @@ content_validation:
     - claim: "Container Apps GitHub Actions continuous deployment provisions role assignments for the deployment identity on the Azure Container Registry and the Container App."
       source: "https://learn.microsoft.com/azure/container-apps/github-actions"
       verified: true
+    - claim: "ARM deployments that create Microsoft.Authorization/roleAssignments fail with RoleAssignmentExists when a different assignment name targets the same scope, principal, and role."
+      source: "https://learn.microsoft.com/azure/role-based-access-control/troubleshooting"
+      verified: true
+validation:
+  az_cli:
+    last_tested: "2026-04-21"
+    cli_version: "2.70.0"
+    result: pass
+    notes: "Reproduced the exact 'RoleAssignmentExists' error with the existing role assignment ID returned by the second ARM deployment. Recovery (delete + redeploy) succeeded."
+  bicep:
+    last_tested: "2026-04-21"
+    result: pass
 ---
 
 # CD Reconnect RBAC Conflict Lab
@@ -56,28 +68,36 @@ sequenceDiagram
     participant RBAC as Azure RBAC
     participant ACR as Azure Container Registry
     participant ACA as Container App
+    participant ARM as ARM Deployment
     Op->>AAD: Create service principal (simulating CD setup)
-    Op->>RBAC: Assign AcrPush on ACR scope
-    RBAC-->>Op: Assignment created (success)
+    Op->>ARM: Deploy role-assignment.bicep (initial, deterministic GUID)
+    ARM->>RBAC: Create AcrPush assignment on ACR scope
+    RBAC-->>ARM: Assignment created
     Op->>Op: "Disconnect" CD (GitHub side only)
-    Op->>RBAC: Re-assign same role on same scope to same principal
-    RBAC-->>Op: 409 RoleAssignmentExists with assignment ID
+    Op->>ARM: Deploy role-assignment.bicep (reconnect, fresh GUID)
+    ARM->>RBAC: Create AcrPush assignment on ACR scope (different name)
+    RBAC-->>ARM: 409 RoleAssignmentExists with existing assignment ID
+    ARM-->>Op: Deployment failed
     Op->>RBAC: Look up conflicting assignment by ID
     Op->>RBAC: Delete the orphaned assignment
-    Op->>RBAC: Re-assign role
-    RBAC-->>Op: Assignment created (success)
+    Op->>ARM: Retry deployment
+    ARM->>RBAC: Create AcrPush assignment
+    RBAC-->>ARM: Assignment created
 ```
 
 ## 2) Hypothesis
 
-**IF** a service principal already holds an `AcrPush` role assignment on an ACR scope, **THEN** any subsequent `az role assignment create` call with the same principal, role, and scope will fail with `RoleAssignmentExists` and return the existing assignment ID, until the existing assignment is deleted or the principal is replaced.
+**IF** a service principal already holds an `AcrPush` role assignment on an ACR scope, **THEN** any subsequent ARM deployment that creates a `Microsoft.Authorization/roleAssignments` resource with a *different* name but the *same* `(scope, principal, role)` will fail with `RoleAssignmentExists` and return the existing assignment ID, until the existing assignment is deleted or the principal is replaced.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
 | Existing role assignment | None on the target scope for this principal+role | One pre-existing `AcrPush` assignment on the same scope for this principal |
-| Result of `az role assignment create` | Success, returns new assignment object | Failure, `RoleAssignmentExists` with existing assignment ID |
-| Recovery action | Not required | Delete the conflicting assignment before retrying |
+| ARM deployment with a fresh assignment GUID | Succeeds | Fails with `RoleAssignmentExists` returning the existing assignment ID |
+| Recovery action | Not required | Delete the conflicting assignment before re-deploying |
 | Service principal state | Active in tenant in both states | Active in tenant in both states |
+
+!!! note "Why ARM deployment, not the CLI directly"
+    Modern `az role assignment create` is idempotent on the same `(scope, principal, role)` triple — it returns the existing assignment instead of erroring. The real `AppRbacDeployment` failure comes from the ARM template that `az containerapp github-action add` runs internally, which generates a *new* assignment GUID on each invocation. This lab reproduces the failure by mimicking the same ARM-level mechanism with a Bicep template.
 
 ## 3) Runbook
 
@@ -135,57 +155,48 @@ Expected output: no output; variables are populated.
 
 ### Trigger the conflict
 
-The trigger script simulates the full disconnect/reconnect lifecycle:
+The trigger script provisions a service principal that stands in for the CD identity, then runs two ARM deployments of `infra/role-assignment.bicep` against the registry. The first deployment uses the deterministic GUID derived from `(scope, principal, role)`. The second deployment uses a freshly generated GUID, mimicking what `az containerapp github-action add` does on each invocation.
 
 ```bash
 ./labs/cd-reconnect-rbac-conflict/trigger.sh
 ```
 
-The trigger script runs:
+Key fragment from `trigger.sh`:
 
 ```bash
-# 1) Create a service principal that simulates the CD identity
-SP_NAME="${APP_NAME}-github-actions-lab"
-SP_APP_ID=$(az ad sp create-for-rbac --name "$SP_NAME" --skip-assignment --query appId --output tsv)
-SP_OBJECT_ID=$(az ad sp show --id "$SP_APP_ID" --query id --output tsv)
+# Initial CD setup: ARM deployment with the deterministic role assignment GUID
+az deployment group create \
+    --resource-group "$RG" \
+    --name "lab-ra-initial" \
+    --template-file "./labs/cd-reconnect-rbac-conflict/infra/role-assignment.bicep" \
+    --parameters principalObjectId="$SP_OBJECT_ID" registryName="$ACR_NAME"
 
-# 2) Initial CD setup: grant AcrPush on the registry
-az role assignment create \
-    --assignee-object-id "$SP_OBJECT_ID" \
-    --assignee-principal-type ServicePrincipal \
-    --role AcrPush \
-    --scope "$ACR_ID"
+# Simulated disconnect: no Azure-side cleanup performed.
 
-# 3) Simulate "Disconnect" - in real life, only GitHub workflow and secrets are removed
-echo "Simulated disconnect: GitHub workflow and secrets removed (no Azure cleanup)."
-
-# 4) Attempt reconnect - try to recreate the same assignment
-set +e
-az role assignment create \
-    --assignee-object-id "$SP_OBJECT_ID" \
-    --assignee-principal-type ServicePrincipal \
-    --role AcrPush \
-    --scope "$ACR_ID" 2>&1 | tee /tmp/cd-rbac-conflict.log
-set -e
-
-grep -E "RoleAssignmentExists|already exists" /tmp/cd-rbac-conflict.log
+# Reconnect: same scope + principal + role, but a fresh role assignment GUID
+NEW_NAME=$(cat /proc/sys/kernel/random/uuid)
+az deployment group create \
+    --resource-group "$RG" \
+    --name "lab-ra-reconnect" \
+    --template-file "./labs/cd-reconnect-rbac-conflict/infra/role-assignment.bicep" \
+    --parameters principalObjectId="$SP_OBJECT_ID" \
+                 registryName="$ACR_NAME" \
+                 roleAssignmentName="$NEW_NAME"
 ```
 
-Expected error output pattern:
+The `infra/role-assignment.bicep` template creates a single `Microsoft.Authorization/roleAssignments@2022-04-01` resource on the registry scope with `roleDefinitionId` set to the `AcrPush` built-in role.
+
+Expected error output pattern from the second deployment:
 
 ```text
-(RoleAssignmentExists) The role assignment already exists.
-Code: RoleAssignmentExists
-Message: The role assignment already exists.
+{"code": "RoleAssignmentExists", "message": "The role assignment already exists.
+The ID of the existing role assignment is <32-char-hex>."}
 ```
 
-The CLI may also include the existing assignment ID in the error body, similar to the Portal message:
+The script extracts the 32-character hex ID from the error and prints both the raw form and its hyphenated GUID form. This is the same identifier the Portal surfaces in `AppRbacDeployment` failures.
 
-```text
-The ID of the existing role assignment is <32-char-hex>
-```
-
-This pattern confirms the hypothesis: the second create call with the same `(scope, principal, role)` triple is rejected with a uniqueness violation.
+!!! info "Why the CLI alone does not reproduce this"
+    `az role assignment create --assignee-object-id <id> --role AcrPush --scope <acr>` is idempotent — modern Azure CLI returns the existing assignment when the same `(scope, principal, role)` triple already exists. The conflict only surfaces through ARM deployments that try to create a `Microsoft.Authorization/roleAssignments` resource with a *different* name. CD setup uses ARM internally, which is why end users see the failure and CLI users following ad-hoc commands usually do not.
 
 ### Inspect the conflicting assignment
 
@@ -205,38 +216,7 @@ Name                                  Role      Scope                           
 <guid-of-existing-assignment>         AcrPush   /subscriptions/<sub>/resourceGroups/.../<acr>         ServicePrincipal
 ```
 
-Capture the `Name` field — that is the role assignment ID Azure returns in the deployment error.
-
-### Apply the recovery path
-
-Delete the conflicting assignment, then re-run the create:
-
-```bash
-ASSIGNMENT_ID=$(az role assignment list \
-    --assignee "$SP_APP_ID" \
-    --scope "$ACR_ID" \
-    --query "[0].name" --output tsv)
-
-az role assignment delete \
-    --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ASSIGNMENT_ID"
-
-az role assignment create \
-    --assignee-object-id "$SP_OBJECT_ID" \
-    --assignee-principal-type ServicePrincipal \
-    --role AcrPush \
-    --scope "$ACR_ID"
-```
-
-Expected output pattern:
-
-```text
-{
-  "principalId": "<object-id>",
-  "principalType": "ServicePrincipal",
-  "roleDefinitionId": ".../providers/Microsoft.Authorization/roleDefinitions/<guid-AcrPush>",
-  "scope": "/subscriptions/<sub>/resourceGroups/.../<acr>"
-}
-```
+The `Name` field matches the GUID returned by the failed ARM deployment.
 
 ### Verify recovery
 
@@ -244,55 +224,65 @@ Expected output pattern:
 ./labs/cd-reconnect-rbac-conflict/verify.sh
 ```
 
-The verify script checks that the failure was reproduced first, then applies the cleanup-and-reassign recovery flow:
+The verify script confirms the conflict still reproduces, deletes the existing assignment, then retries the same ARM deployment with the fresh GUID and confirms it now succeeds. Key fragment:
 
 ```bash
-# Confirm pre-existing assignment exists
-INITIAL_COUNT=$(az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID" --query "length(@)" --output tsv)
-[ "$INITIAL_COUNT" -ge 1 ] || { echo "FAIL: no pre-existing assignment to conflict against"; exit 1; }
+# Confirm conflict still reproduces
+NEW_NAME=$(cat /proc/sys/kernel/random/uuid)
+az deployment group create \
+    --resource-group "$RG" --name "lab-ra-verify-conflict" \
+    --template-file "./labs/cd-reconnect-rbac-conflict/infra/role-assignment.bicep" \
+    --parameters principalObjectId="$SP_OBJECT_ID" registryName="$ACR_NAME" \
+                 roleAssignmentName="$NEW_NAME" 2>&1 | tee /tmp/cd-rbac-verify.log
+grep -qE "RoleAssignmentExists|already exists" /tmp/cd-rbac-verify.log
 
-# Delete and recreate
-ASSIGNMENT_ID=$(az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID" --query "[0].name" --output tsv)
-az role assignment delete --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ASSIGNMENT_ID"
-az role assignment create --assignee-object-id "$SP_OBJECT_ID" --assignee-principal-type ServicePrincipal --role AcrPush --scope "$ACR_ID"
+# Apply recovery: delete the existing assignment
+ASSIGNMENT_ID=$(az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID" \
+    --query "[0].name" --output tsv)
+az role assignment delete \
+    --ids "${ACR_ID}/providers/Microsoft.Authorization/roleAssignments/$ASSIGNMENT_ID"
 
-# Verify exactly one active assignment now
-FINAL_COUNT=$(az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID" --query "length(@)" --output tsv)
-[ "$FINAL_COUNT" = "1" ] && echo "PASS: recovery successful" || { echo "FAIL: unexpected assignment count $FINAL_COUNT"; exit 1; }
+# Retry the same deployment - should now succeed
+az deployment group create \
+    --resource-group "$RG" --name "lab-ra-verify-recovery" \
+    --template-file "./labs/cd-reconnect-rbac-conflict/infra/role-assignment.bicep" \
+    --parameters principalObjectId="$SP_OBJECT_ID" registryName="$ACR_NAME" \
+                 roleAssignmentName="$NEW_NAME"
 ```
 
-Expected result: the conflict is removed and a new assignment is created successfully.
+Expected result: the second deployment fails with `RoleAssignmentExists`, the delete removes the existing assignment, and the retry succeeds. The script ends with `PASS: recovery successful - 1 active AcrPush assignment`.
 
 ## 4) Experiment Log
 
-| Step | Action | Expected | Actual | Pass/Fail |
+| Step | Action | Expected | Actual (2026-04-21) | Pass/Fail |
 |---|---|---|---|---|
-| 1 | Deploy lab infrastructure | Deployment succeeds | | |
-| 2 | Capture deployment outputs | Variables populated | | |
-| 3 | Run `trigger.sh` | Second `role assignment create` fails with `RoleAssignmentExists` | | |
-| 4 | Inspect conflicting assignment | One pre-existing `AcrPush` assignment for the SP on ACR scope | | |
-| 5 | Delete and recreate assignment | `az role assignment create` succeeds | | |
-| 6 | Run `verify.sh` | Final state has exactly one active assignment | | |
+| 1 | Deploy `infra/main.bicep` | `provisioningState: Succeeded` | Container App `ca-labcdrbac-r7g4h7`, ACR `acrlabcdrbacr7g4h7` provisioned | Pass |
+| 2 | Capture deployment outputs | `APP_NAME`, `ACR_NAME`, `ACR_ID` populated | All variables set from deployment outputs | Pass |
+| 3 | Run `trigger.sh` | Second ARM deployment fails with `RoleAssignmentExists` and includes existing assignment ID | Failed with `existing role assignment is 0426f1573d5455088d6c650341b2a9e7` | Pass |
+| 4 | Inspect conflicting assignment | One `AcrPush` assignment for the SP on ACR scope | Single assignment matching the GUID returned by the failure | Pass |
+| 5 | Run `verify.sh` (delete + redeploy) | Conflict reproduces, delete succeeds, retry deployment succeeds | Recovery completed; `PASS: recovery successful - 1 active AcrPush assignment` | Pass |
+| 6 | Run `cleanup.sh` | Service principal, app registration, and resource group removed | SP and app registration deleted; resource group deletion initiated | Pass |
 
 ## Expected Evidence
 
 | Evidence Source | Expected State |
 |---|---|
-| `az role assignment create` (second call, same triple) | Fails with `RoleAssignmentExists` and references existing assignment ID |
+| Second `az deployment group create` of `infra/role-assignment.bicep` with a fresh `roleAssignmentName` | Fails with `RoleAssignmentExists`; error body contains `The ID of the existing role assignment is <32-char-hex>` |
 | `az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID" --output table` | Returns exactly one `AcrPush` assignment before recovery |
-| `az role assignment delete --ids ...` | Returns no error; assignment removed |
-| `az role assignment create` (after delete) | Returns the new assignment object successfully |
+| `az role assignment delete --ids "${ACR_ID}/providers/Microsoft.Authorization/roleAssignments/$ASSIGNMENT_ID"` | Returns no error; assignment removed |
+| Retry `az deployment group create` with the same fresh `roleAssignmentName` | Succeeds with `provisioningState: Succeeded` |
 | `az ad sp show --id "$SP_APP_ID"` | Service principal remains active throughout the lab |
 
 ### Falsification
 
 The hypothesis is falsified if any of the following occur:
 
-- The second `az role assignment create` call succeeds without error → contradicts the RBAC uniqueness constraint.
-- Deleting the conflicting assignment does not allow the recreate to succeed → suggests a different blocking factor (for example, deny assignment or management lock).
-- The conflict occurs even when the principal does not exist before the second call → suggests an unrelated cause.
+- The second ARM deployment succeeds without error → contradicts the RBAC uniqueness constraint on `(scope, principal, role)`.
+- Deleting the conflicting assignment does not allow the retried deployment to succeed → suggests a different blocking factor (for example, deny assignment, management lock, or policy assignment).
+- The conflict reproduces even when no prior role assignment exists for the principal on the registry scope → suggests an unrelated cause such as a deny assignment or a tenant-wide RBAC policy.
+- A direct `az role assignment create` with the same triple returns success while the ARM deployment fails → expected; this confirms the ARM-vs-CLI behavior difference rather than falsifying the hypothesis.
 
-If the trigger script does not produce `RoleAssignmentExists` on the second create, capture the full CLI output and re-check whether the first create call actually persisted (RBAC propagation can take up to one minute; rerun after a short wait).
+If the trigger script does not produce `RoleAssignmentExists` on the second deployment, capture `/tmp/cd-rbac-conflict.log`, confirm the first deployment created the assignment (`az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID"`), and rerun after a 30-second wait to allow RBAC propagation.
 
 ## Clean Up
 
@@ -300,13 +290,20 @@ If the trigger script does not produce `RoleAssignmentExists` on the second crea
 ./labs/cd-reconnect-rbac-conflict/cleanup.sh
 ```
 
-The cleanup script removes the service principal, any remaining role assignments, and the resource group:
+The cleanup script removes the service principal, deletes the underlying Microsoft Entra app registration, drops any remaining role assignments held by the principal, and queues the resource group for deletion:
 
 ```bash
-SP_APP_ID=$(az ad sp list --display-name "${APP_NAME}-github-actions-lab" --query "[0].appId" --output tsv)
+SP_APP_ID=$(az ad sp list --display-name "${APP_NAME}-github-actions-lab" \
+    --query "[0].appId" --output tsv | tr -d '\r')
 if [ -n "$SP_APP_ID" ] && [ "$SP_APP_ID" != "null" ]; then
-    az role assignment list --assignee "$SP_APP_ID" --all --query "[].id" --output tsv | xargs -r -n 1 az role assignment delete --ids
+    SP_OBJECT_ID=$(az ad sp show --id "$SP_APP_ID" --query id --output tsv | tr -d '\r')
+    az role assignment list --assignee "$SP_OBJECT_ID" --all --query "[].id" --output tsv \
+        | tr -d '\r' \
+        | xargs -r -n 1 az role assignment delete --ids
     az ad sp delete --id "$SP_APP_ID"
+    APP_OBJECT_ID=$(az ad app list --display-name "${APP_NAME}-github-actions-lab" \
+        --query "[0].id" --output tsv | tr -d '\r')
+    [ -n "$APP_OBJECT_ID" ] && az ad app delete --id "$APP_OBJECT_ID"
 fi
 az group delete --name "$RG" --yes --no-wait
 ```

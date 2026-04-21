@@ -49,6 +49,9 @@ When you reconnect using the same Container App and the same registry, Azure tri
 
 It is also confusing because the error refers to a role assignment ID, not to the principal or the role name, so you cannot tell from the message alone which permission is conflicting.
 
+!!! info "Why ad-hoc CLI testing does not reproduce this"
+    `az role assignment create --assignee-object-id <id> --role <role> --scope <scope>` is idempotent in modern Azure CLI: when the same `(scope, principal, role)` triple already exists, it returns the existing assignment instead of failing. The `RoleAssignmentExists` error surfaces only through ARM deployments — including `az containerapp github-action add`, the Portal CD wizard, and any Bicep or ARM template — because they create a `Microsoft.Authorization/roleAssignments` resource with a freshly generated assignment GUID on every run. The new GUID conflicts with the existing assignment's unique key, and ARM does not silently swallow the duplicate the way the CLI does.
+
 ### Troubleshooting decision flow
 
 <!-- diagram-id: troubleshooting-decision-flow -->
