@@ -8,6 +8,8 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/github-actions
         - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
         - https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
+        - https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
+        - https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
 content_validation:
   status: verified
   last_reviewed: "2026-04-22"
@@ -119,6 +121,10 @@ flowchart TD
 | H3: Stale role assignment created manually for testing | Assignment principal is a user account or a non-CD service principal | Principal display name matches the `<app>-github-actions-*` naming pattern Azure uses for CD identities |
 | H4: Reusing a name with a freshly recreated service principal | The principal in the conflicting assignment was deleted but assignment lingers as orphaned | Principal is still active in Microsoft Entra ID |
 | H5: Different deployment template version expects a different role set | Conflict appears even on a fresh Container App with no prior CD history | Conflict reproduces only on Container Apps that were previously connected to CD |
+| H6: Orphaned assignment whose principal was already deleted | `az role assignment show` succeeds but Portal hides the row; `az ad sp show --id <principalId>` returns `Resource not found` | The principal still resolves in Microsoft Entra ID |
+| H7: Assignment exists at a different scope than the one you are searching | Listing on the resource group, ACR, and Container App scopes individually returns nothing, but Resource Graph `AuthorizationResources` returns the row | Resource Graph also returns no row for the GUID |
+| H8: You lack `Microsoft.Authorization/roleAssignments/read` at the scope where the assignment lives | Resource Graph returns the row but `az role assignment show --ids …` fails with `AuthorizationFailed`; another account with `User Access Administrator` can see it | All accounts see the same empty result |
+| H9: Assignment lives at Management Group scope or in another tenant | Resource Graph row's `scope` starts with `/providers/Microsoft.Management/managementGroups/…` or principal is from a different `homeTenantId` | Scope is under the current subscription |
 
 ## 4. What to Check First
 
@@ -153,6 +159,100 @@ az role assignment show \
 ```
 
 The output reveals the principal ID, role definition, and scope of the conflicting assignment, which is enough to confirm hypothesis H1.
+
+### When the assignment ID returns nothing
+
+In a non-trivial number of real cases the GUID from the error message cannot be looked up through `az role assignment show`, `az role assignment list`, or the Azure Portal **Access control (IAM)** blade. Reported symptoms include:
+
+- `az role assignment show --ids …` returns `(NotFound)` or an empty body.
+- `az role assignment list --scope <RG|ACR|App>` does not include the GUID on any of the scopes you expect.
+- The Portal IAM blade for those scopes does not list the principal at all (Portal **hides** assignments whose principal has been deleted).
+
+The assignment still exists in ARM — otherwise the deployment would not fail — but standard tooling cannot see it from the scopes you are querying. The four causes worth eliminating are H6 (deleted principal), H7 (assignment is at a different scope, often a child resource), H8 (you do not have `Microsoft.Authorization/roleAssignments/read` at that scope), and H9 (assignment is at a Management Group scope or owned by another tenant).
+
+#### Step A — Query Azure Resource Graph (`AuthorizationResources`)
+
+The `AuthorizationResources` table in Azure Resource Graph indexes every role assignment your account can read **anywhere in the tenant**, regardless of subscription, scope, or whether the principal still exists. Because it bypasses per-scope `roleAssignments/read` enforcement, it usually surfaces assignments that `az role assignment show` cannot.
+
+```bash
+az extension add --name resource-graph --upgrade
+RA_GUID="716c4d15-9bc8-476d-a3c1-6ccb70082517"
+
+az graph query --first 100 -q "
+AuthorizationResources
+| where type =~ 'microsoft.authorization/roleassignments'
+| where name == '${RA_GUID}'
+| project id,
+          scope            = tostring(properties.scope),
+          principalId      = tostring(properties.principalId),
+          principalType    = tostring(properties.principalType),
+          roleDefinitionId = tostring(properties.roleDefinitionId),
+          createdOn        = tostring(properties.createdOn)
+"
+```
+
+If the query returns a row, capture the `scope` value verbatim — that is the resource ID you must use in the deletion step. If `principalType` is empty or `principalId` does not resolve via `az ad sp show --id <principalId>`, the row matches H6 (orphaned principal).
+
+If the query returns no row, broaden it to inspect all assignments held by the suspected principal across the tenant. This catches H7 cases where the assignment was created at a child scope (for example, a single ACR repository) and H9 cases at Management Group scope:
+
+```bash
+SP_OBJECT_ID="<principalId-from-old-CD-setup>"
+
+az graph query --first 100 -q "
+AuthorizationResources
+| where type =~ 'microsoft.authorization/roleassignments'
+| where properties.principalId == '${SP_OBJECT_ID}'
+| project name, scope = tostring(properties.scope), role = tostring(properties.roleDefinitionId)
+"
+```
+
+If even this returns nothing and you have read permission across the tenant, the assignment is owned by a different tenant (H9) — escalate to whoever administers that tenant.
+
+#### Step B — Sweep every scope you can reach directly
+
+Resource Graph is a strong default but it does not return data for tenants where indexing is disabled or for very recent assignments that have not propagated yet. Fall back to direct ARM listing on every scope CD touches, then grep for the GUID:
+
+```bash
+SUBSCRIPTION_ID="<subscription-id>"
+RG="<your-resource-group>"
+ACR_NAME="<your-acr-name>"
+APP_NAME="<your-container-app-name>"
+
+ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)
+APP_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query id --output tsv)
+RG_ID="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG"
+SUB_ID="/subscriptions/$SUBSCRIPTION_ID"
+
+for SCOPE in "$SUB_ID" "$RG_ID" "$ACR_ID" "$APP_ID"; do
+    echo "--- Scope: $SCOPE ---"
+    az role assignment list --scope "$SCOPE" --include-inherited \
+        --query "[?name=='$RA_GUID']" --output json
+done
+```
+
+`--include-inherited` is essential: without it, an assignment inherited from the subscription onto the resource group is invisible from the resource group scope.
+
+If you suspect a child-scope case (H7), enumerate child resources of the ACR (repositories, replications) and the Container App (custom domains, jobs) and re-run the query against each child resource ID.
+
+#### Step C — Delete by full resource ID with the REST API
+
+Once Resource Graph or the scope sweep returns the assignment's full resource ID, delete it directly through ARM. This works even when the Portal cannot render the row and when `az role assignment delete --ids` complains about validation:
+
+```bash
+FULL_ID="<id-from-AuthorizationResources-query>"
+
+az rest --method DELETE \
+    --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"
+
+# Verify removal.
+az rest --method GET \
+    --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01" 2>&1 | head -3
+```
+
+A successful DELETE returns HTTP 200 with the deleted resource body; a follow-up GET returns 404. If the DELETE returns `AuthorizationFailed`, you do not have `Microsoft.Authorization/roleAssignments/write` at that scope (H8) — request the `User Access Administrator` role on the scope's parent or hand the request to someone who already holds it.
+
+!!! warning "Not all `(scope, principal, role)` triples are removable from your tenant"
+    H9 cases — assignments at Management Group scope you do not own, or principals from another tenant — cannot be removed by you. Document the blocker and either (a) ask the owning tenant or MG admin to remove the assignment, or (b) connect CD using a brand-new principal that is guaranteed not to collide (a freshly created service principal or a new user-assigned managed identity), so the unique-key conflict cannot occur.
 
 ### Cross-check related leftovers
 
@@ -212,6 +312,8 @@ Look for service principals that were created for an earlier CD setup (commonly 
 | Evidence | Command/Query | Purpose |
 |---|---|---|
 | Conflicting assignment details | `az role assignment show --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID" --output json` | Identifies principal, role, and scope of the blocking assignment |
+| Tenant-wide lookup by GUID | `az graph query -q "AuthorizationResources \| where type =~ 'microsoft.authorization/roleassignments' \| where name == '$ROLE_ASSIGNMENT_ID'"` | Surfaces the assignment when standard `az role assignment show` returns nothing (H6-H9) |
+| Tenant-wide lookup by principal | `az graph query -q "AuthorizationResources \| where properties.principalId == '$SP_OBJECT_ID'"` | Lists every assignment owned by the suspected principal across all subscriptions and scopes |
 | All role assignments on ACR | `az role assignment list --scope "$ACR_ID" --output table` | Reveals all CD-related and unrelated assignments on registry scope |
 | All role assignments on Container App | `az role assignment list --scope "$APP_ID" --output table` | Reveals all CD-related and unrelated assignments on app scope |
 | Candidate service principals | `az ad sp list --display-name "$APP_NAME" --output table` | Confirms whether the previous CD service principal is still in the tenant |
@@ -319,6 +421,96 @@ az ad sp show --id "$PRINCIPAL_ID" --output json
 
 **What to verify:** This is rare. Confirm by attempting CD setup on a fresh Container App in a clean resource group and observing whether the same error appears.
 
+### H6: Orphaned assignment whose principal was already deleted
+
+**Signals that support:**
+
+- Resource Graph `AuthorizationResources` returns the row, but `az ad sp show --id <principalId>` returns `Resource not found`.
+- Portal IAM blade for the assignment's scope shows no entry for the principal even after refresh.
+- `principalType` in the Resource Graph row may be empty or stale.
+
+**Signals that weaken:**
+
+- The principal still resolves through `az ad sp show` or `az ad user show`.
+
+**What to verify:**
+
+```bash
+PRINCIPAL_ID=$(az graph query --first 1 -q "
+AuthorizationResources
+| where name == '$ROLE_ASSIGNMENT_ID'
+| project pid = tostring(properties.principalId)
+" --query "data[0].pid" --output tsv)
+
+az ad sp show --id "$PRINCIPAL_ID" 2>&1 | head -3
+az ad user show --id "$PRINCIPAL_ID" 2>&1 | head -3
+```
+
+### H7: Assignment exists at a different scope than the one you are searching
+
+**Signals that support:**
+
+- Per-scope `az role assignment list --scope <RG|ACR|App>` returns nothing for the GUID, but Resource Graph returns it with a different `scope` (for example, a child resource of the ACR or a Management Group above the subscription).
+- Adding `--include-inherited` to `az role assignment list` at the resource group scope surfaces the row.
+
+**Signals that weaken:**
+
+- The Resource Graph row's `scope` matches one of the scopes you already queried.
+
+**What to verify:**
+
+```bash
+RG_SCOPE_FROM_GRAPH=$(az graph query --first 1 -q "
+AuthorizationResources
+| where name == '$ROLE_ASSIGNMENT_ID'
+| project s = tostring(properties.scope)
+" --query "data[0].s" --output tsv)
+
+echo "Assignment lives at: $RG_SCOPE_FROM_GRAPH"
+```
+
+### H8: You lack `Microsoft.Authorization/roleAssignments/read` at the scope where the assignment lives
+
+**Signals that support:**
+
+- Resource Graph returns the row but `az role assignment show --ids <full-id>` fails with `AuthorizationFailed` or returns `(NotFound)`.
+- An account holding `User Access Administrator` or `Owner` at the scope can see and delete the row.
+
+**Signals that weaken:**
+
+- All accounts in the tenant see the same empty result for the GUID.
+
+**What to verify:** Re-run the same `az role assignment show --ids` and `az rest --method DELETE` commands as a principal that has `User Access Administrator` on the scope. If the second principal succeeds, H8 is confirmed.
+
+### H9: Assignment lives at Management Group scope or in another tenant
+
+**Signals that support:**
+
+- Resource Graph row's `scope` starts with `/providers/Microsoft.Management/managementGroups/…`.
+- The principal's `homeTenantId` differs from your own tenant ID.
+- Even an `Owner` on your subscription cannot delete the row.
+
+**Signals that weaken:**
+
+- Scope is under `/subscriptions/<your-sub>/…` and principal is from your tenant.
+
+**What to verify:**
+
+```bash
+az graph query --first 1 -q "
+AuthorizationResources
+| where name == '$ROLE_ASSIGNMENT_ID'
+| project scope            = tostring(properties.scope),
+          principalId      = tostring(properties.principalId),
+          principalType    = tostring(properties.principalType)
+"
+
+az ad sp show --id "$PRINCIPAL_ID" --query "appOwnerOrganizationId" --output tsv
+az account show --query "tenantId" --output tsv
+```
+
+If the two tenant IDs differ, the assignment is cross-tenant. Coordinate with the owning tenant or, as a workaround, reconnect CD using a freshly created principal so the conflicting `(scope, principal, role)` triple cannot recur.
+
 ## 7. Likely Root Cause Patterns
 
 | Pattern | Frequency | First Signal | Typical Resolution |
@@ -328,6 +520,9 @@ az ad sp show --id "$PRINCIPAL_ID" --output json
 | Multiple orphaned assignments across ACR and app | Medium | First retry succeeds past one role and fails on the next | Delete all orphaned assignments before retrying |
 | Stale service principal still active and re-selected by wizard | Medium | Same SP exists with `<app>-github-actions-*` name | Either reuse the SP (if you have its credentials) or delete it along with assignments |
 | Tenant-wide role assignment cleanup policy lag | Low | Assignment exists but principal is missing | Delete the orphaned assignment by ID |
+| Orphaned assignment whose principal was deleted (Portal hides it) | Medium | Portal IAM blade does not show the row; `az ad sp show` returns not found | Locate via Resource Graph `AuthorizationResources`, delete via `az rest DELETE` |
+| Assignment created at a child scope (ACR repository, Container App job) | Low | Per-scope listing is empty; Resource Graph reveals child-scope row | Delete using the full child-scope resource ID returned by Resource Graph |
+| Cross-tenant or Management Group scope assignment | Rare | Resource Graph row's scope starts with `/providers/Microsoft.Management/managementGroups/…` or principal's home tenant differs | Cannot delete from your tenant; reconnect CD with a brand-new principal to avoid the collision |
 
 ## 8. Immediate Mitigations
 
@@ -356,6 +551,15 @@ az role assignment show \
 az role assignment delete \
     --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID"
 ```
+
+!!! warning "If `az role assignment show` returns nothing for the GUID"
+    The Portal IAM blade and `az role assignment show/list` cannot see assignments whose principal has been deleted, that live at a child scope you did not query, or that you lack `Microsoft.Authorization/roleAssignments/read` on. Switch to the diagnosis path in §4 → "When the assignment ID returns nothing":
+
+    1. Run the `AuthorizationResources` Resource Graph query to obtain the assignment's full resource ID (`id` field).
+    2. If Resource Graph also returns nothing, sweep every scope (`subscription`, `resourceGroup`, ACR, Container App, child resources) with `az role assignment list --include-inherited`.
+    3. Once you have the full ID, delete it via the REST API: `az rest --method DELETE --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"`.
+
+    If even the REST DELETE fails with `AuthorizationFailed`, you have hit H8 (read/write permission gap) or H9 (cross-tenant / Management Group scope) — see §6 for the validation procedure and the workaround of reconnecting with a brand-new principal.
 
 Then sweep for sibling assignments that the same identity holds across the resource group, ACR, and Container App. Container Apps CD typically grants `Contributor` on the resource group **and** `AcrPush` on the registry, so a single conflicting GUID often hides additional siblings that will surface on the next reconnect.
 
@@ -411,6 +615,14 @@ If you skip this step, the next reconnect will overwrite the workflow file but t
 ### Step 3 — Remove leftover service principal and app registration
 
 If the GitHub Actions identity was a service principal (the default for `az containerapp github-action add` and the Portal CD wizard when no managed identity is selected), the principal and its underlying Microsoft Entra application registration both linger after disconnect.
+
+!!! note "Managed identity instead of a service principal"
+    If the previous CD setup used a managed identity (`--login-with-github` plus `--service-principal-tenant-id` omitted, or an explicit `--user-assigned-identity-id`), the lingering object is **not** a service principal you can `az ad sp delete`:
+
+    - **System-assigned MI**: tied to the Container App's lifecycle. Disable it with `az containerapp identity remove --system-assigned --name "$APP_NAME" --resource-group "$RG"` *only if* you are sure no other workloads depend on it. Role assignments held by the deleted system MI become orphaned and need the §4 → "When the assignment ID returns nothing" path to clean up.
+    - **User-assigned MI**: a standalone resource. List dependents with `az identity list --resource-group "$RG"` and delete with `az identity delete --name <mi-name> --resource-group <mi-rg>` only when no other resource references it.
+
+    In both MI cases, skip `az ad sp delete` and `az ad app delete`; jump directly to step 4 with the new identity model you intend to use.
 
 ```bash
 # The principalId from Step 1's `az role assignment show` output identifies the SP.
@@ -513,3 +725,6 @@ Delete `sp-creds.json` immediately after the reconnect succeeds — it contains 
 - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
 - https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
 - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-list-cli
+- https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
+- https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
+- https://learn.microsoft.com/azure/role-based-access-control/role-assignments-list-portal
