@@ -198,7 +198,7 @@ az rest --method GET \
     --output json
 ```
 
-The output reveals the principal ID (`properties.principalId`), role definition ID (`properties.roleDefinitionId`), and scope (`properties.scope`) of the conflicting assignment, which is enough to confirm hypothesis H1 once you cross-reference the role definition ID against `az role definition list --name <Role>` to recover the human-readable role name.
+The output reveals the principal ID (`properties.principalId`), role definition ID (`properties.roleDefinitionId`), and scope (`properties.scope`) of the conflicting assignment, which is enough to confirm hypothesis H1 once you cross-reference the role definition ID against `az role definition list --query "[?id=='<roleDefinitionId>'].roleName" --output tsv` to recover the human-readable role name.
 
 ### When the assignment ID returns nothing
 
