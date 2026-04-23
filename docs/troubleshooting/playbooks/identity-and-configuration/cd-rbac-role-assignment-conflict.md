@@ -294,12 +294,6 @@ If — and only if — the principal still resolves in Microsoft Entra ID, the `
 az role assignment list --assignee "$SP_OBJECT_ID" --all --include-inherited --output table
 ```
 
-If — and only if — the principal still resolves in Microsoft Entra ID, the `--assignee` form is also valid:
-
-```bash
-az role assignment list --assignee "$SP_OBJECT_ID" --all --include-inherited --output table
-```
-
 #### Step C — Delete by full resource ID with the REST API
 
 Once Resource Graph or the scope sweep returns the assignment's full resource ID, delete it directly through ARM. This works even when the Portal cannot render the row and when `az role assignment delete --ids` complains about validation:
@@ -400,8 +394,7 @@ Look for service principals that were created for an earlier CD setup (commonly 
 
 **Signals that support:**
 
-- `az rest --method GET …/roleAssignments/<guid>?api-version=2022-04-01` (or per-scope `az role assignment list --query "[?name=='<GUID>']"`) returns an assignment whose `roleDefinitionName` is `AcrPush`, `Contributor`, or another role used by Container Apps CD setup.
-- The `principalName` (or `principalId`) corresponds to a service principal whose display name references the Container App name.
+- Per-scope `az role assignment list --scope <SCOPE> --query "[?name=='<GUID>']"` returns a row whose `roleDefinitionName` is `AcrPush`, `Contributor`, or another role used by Container Apps CD setup, and whose `principalName` references the Container App name. (`az rest --method GET` against the assignment's full ARM `id` returns the same row's IDs — `properties.roleDefinitionId` and `properties.principalId` — which you must resolve separately via `az role definition list --query "[?id=='<roleDefinitionId>']"` and `az ad sp show --id <principalId>` to recover the human-readable names.)
 - The `createdOn` timestamp predates your reconnect attempt.
 
 **Signals that weaken:**
@@ -411,13 +404,34 @@ Look for service principals that were created for an earlier CD setup (commonly 
 **What to verify:**
 
 ```bash
+# Resolve the full ARM id first (scope-independent), then inspect.
+FULL_ID=$(az graph query --first 1 --graph-query "
+AuthorizationResources
+| where type =~ 'microsoft.authorization/roleassignments'
+| where name == '${ROLE_ASSIGNMENT_ID}'
+| project id
+" --query "data[0].id" --output tsv)
+
+# Per-scope list returns the resolved principalName / roleDefinitionName.
+SCOPE=$(az graph query --first 1 --graph-query "
+AuthorizationResources
+| where type =~ 'microsoft.authorization/roleassignments'
+| where name == '${ROLE_ASSIGNMENT_ID}'
+| project s = tostring(properties.scope)
+" --query "data[0].s" --output tsv)
+
+az role assignment list --scope "$SCOPE" \
+    --query "[?name=='${ROLE_ASSIGNMENT_ID}'].{principal:principalName, role:roleDefinitionName, scope:scope, created:createdOn}" \
+    --output json
+
+# REST GET against the full id returns IDs only (no resolved names).
 az rest --method GET \
-    --url "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID?api-version=2022-04-01" \
-    --query "{principalId:properties.principalId, principalType:properties.principalType, role:properties.roleDefinitionId, scope:properties.scope, created:properties.createdOn}" \
+    --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01" \
+    --query "{principalId:properties.principalId, principalType:properties.principalType, roleDefinitionId:properties.roleDefinitionId, scope:properties.scope, created:properties.createdOn}" \
     --output json
 ```
 
-If the GET returns `RoleAssignmentNotFound`, the assignment lives at a non-subscription scope; resolve the full ARM `id` first via §4 → "When the assignment ID returns nothing" → Step A (Resource Graph), then re-run `az rest --method GET` against `https://management.azure.com${FULL_ID}?api-version=2022-04-01`.
+If the Resource Graph query returns no row, the assignment may live at Management Group scope or in another tenant — see §4 → "When the assignment ID returns nothing" → Step B for the per-scope sweep fallback.
 
 ### H2: Service principal still exists and still holds CD-related roles
 
@@ -670,11 +684,7 @@ az role assignment delete --ids "$FULL_ID"
 ```
 
 !!! warning "If Step 1a returns nothing for the GUID"
-    The Portal IAM blade and per-scope `az role assignment list` cannot see assignments whose principal has been deleted, that live at a child scope you did not query, or that you lack `Microsoft.Authorization/roleAssignments/read` on. Switch to the diagnosis path in §4 → "When the assignment ID returns nothing":
-
-    1. Run the `AuthorizationResources` Resource Graph query in Step 1a to obtain the assignment's full resource ID (`id` field).
-    2. If Resource Graph also returns nothing, sweep every scope (`subscription`, `resourceGroup`, ACR, Container App, child resources) with `az role assignment list --scope <SCOPE> --include-inherited --query "[?name=='$ROLE_ASSIGNMENT_ID']"`.
-    3. Once you have the full ID, delete it via the REST API: `az rest --method DELETE --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"`.
+    Resource Graph cannot see the assignment when it is indexed in a tenant where Resource Graph is disabled, when it has not yet propagated, or when you lack `Microsoft.Authorization/roleAssignments/read` at every scope it could be inherited from. The Portal IAM blade and per-scope `az role assignment list` are subject to the same read-permission constraint and additionally hide rows whose principal has been deleted in some configurations. Fall back to §4 → "When the assignment ID returns nothing" → Step B and sweep every scope (`subscription`, `resourceGroup`, ACR, Container App, child resources) with `az role assignment list --scope <SCOPE> --include-inherited --query "[?name=='$ROLE_ASSIGNMENT_ID']"`. Once you recover the full ARM `id` from any of those scopes, delete it via the REST API: `az rest --method DELETE --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"`.
 
     If even the REST DELETE fails with `AuthorizationFailed`, you have hit H8 (read/write permission gap) or H9 (cross-tenant / Management Group scope) — see §6 for the validation procedure and the workaround of reconnecting with a brand-new principal.
 
