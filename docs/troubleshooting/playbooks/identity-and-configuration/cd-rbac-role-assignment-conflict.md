@@ -12,7 +12,7 @@ content_sources:
         - https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
 content_validation:
   status: verified
-  last_reviewed: "2026-04-22"
+  last_reviewed: "2026-04-23"
   reviewer: ai-agent
   validation_environment:
     subscription: "<subscription-id>"
@@ -32,6 +32,33 @@ content_validation:
         result: "PUT new role assignment with same (scope, principal, role) returned RoleAssignmentExists"
       - step: "4-step cleanup + reconnect"
         result: "All artifacts cleaned and CD reconnected with fresh SP"
+  additional_validation_environment:
+    subscription: "<subscription-id>"
+    resource_group: "rg-aca-orphan-ra-732926 / rg-rbac-cmd-verify-e727e8"
+    region: "koreacentral"
+    cli_version: "2.70.0"
+    resource_graph_extension: "2.1.1"
+    tested_date: "2026-04-23"
+    scenario: "Orphaned role-assignment lookup + diagnostic command-pattern verification"
+    outcomes:
+      - step: "Resource Graph AuthorizationResources query (single-GUID lookup)"
+        result: "Returns row with full ARM `id`, `properties.scope/principalId/principalType/roleDefinitionId/createdOn` populated; works for orphan principals"
+      - step: "Resource Graph per-principal sweep (properties.principalId == ...)"
+        result: "Returns all assignments held by the orphan SP; works after the principal is deleted"
+      - step: "az role assignment list --include-inherited at RG scope"
+        result: "Without flag: 0 rows; with flag: 18 inherited rows (flag is essential)"
+      - step: "az rest --method DELETE on full ARM `id` (api-version=2022-04-01)"
+        result: "200 with deleted resource body; follow-up GET returns 404 RoleAssignmentNotFound"
+      - step: "az rest --method GET on full ARM `id` (api-version=2022-04-01)"
+        result: "200 for assignment at the queried scope; 404 RoleAssignmentNotFound for a sub-scope URL when the assignment lives at RG scope (URL is scope-aware)"
+      - step: "az role assignment show subcommand"
+        result: "Does not exist on CLI 2.70 (`'show' is misspelled or not recognized`); subcommands are create/delete/list/list-changelogs/update only"
+      - step: "az role assignment list --assignee <orphan-principalId>"
+        result: "Fails with `Cannot find user or service principal in graph database for '<id>'` because --assignee performs a Microsoft Entra ID lookup; use Resource Graph instead"
+      - step: "Per-scope az role assignment list visibility for orphan RA"
+        result: "Row remains visible with `principalName` empty (not hidden); orphan signal is the empty principalName, not a NotFound"
+      - step: "az ad sp create-for-rbac --years 1"
+        result: "Rejected by tenant credential lifetime policy 9d2624cb-b59a-459a-bb1a-31e4ec43bf74; default (no --years) succeeded in 1st validation environment"
   core_claims:
     - claim: "Azure RBAC enforces a unique constraint on the combination of scope, principal, and role definition for role assignments."
       source: "https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli"
@@ -116,19 +143,19 @@ flowchart TD
 
 | Hypothesis | Typical Evidence For | Typical Evidence Against |
 |---|---|---|
-| H1: Orphaned role assignment from previous CD setup | Error includes role assignment ID; `az role assignment show` returns an assignment whose principal name matches a `<app>-github-actions-*` pattern | The principal in the conflicting assignment is unrelated to GitHub Actions |
+| H1: Orphaned role assignment from previous CD setup | Error includes role assignment ID; `az role assignment list --scope <SCOPE> --query "[?name=='<GUID>']"` (or `az rest --method GET` against the full assignment ID) returns an assignment whose principal name matches a `<app>-github-actions-*` pattern | The principal in the conflicting assignment is unrelated to GitHub Actions |
 | H2: Service principal still exists and still holds CD-related roles | `az ad sp list --display-name "$APP_NAME"` returns a CD service principal; multiple role assignments for that principal exist on ACR and Container App | No matching service principal exists in the tenant |
 | H3: Stale role assignment created manually for testing | Assignment principal is a user account or a non-CD service principal | Principal display name matches the `<app>-github-actions-*` naming pattern Azure uses for CD identities |
 | H4: Reusing a name with a freshly recreated service principal | The principal in the conflicting assignment was deleted but assignment lingers as orphaned | Principal is still active in Microsoft Entra ID |
 | H5: Different deployment template version expects a different role set | Conflict appears even on a fresh Container App with no prior CD history | Conflict reproduces only on Container Apps that were previously connected to CD |
 
-The next four hypotheses are *lookup-failure modes* rather than independent root causes — they explain why the conflicting GUID cannot be located through the standard `az role assignment show/list` and Portal IAM blade path described in §4. Each one points to a different remediation path within §4 → "When the assignment ID returns nothing".
+The next four hypotheses are *lookup-failure modes* rather than independent root causes — they explain why the conflicting GUID cannot be located through the standard `az role assignment list` and Portal IAM blade path described in §4. Each one points to a different remediation path within §4 → "When the assignment ID returns nothing".
 
 | Hypothesis | Typical Evidence For | Typical Evidence Against |
 |---|---|---|
-| H6: Orphaned assignment whose principal was already deleted | `az role assignment show --ids …` returns `(NotFound)` or empty; Resource Graph `AuthorizationResources` returns the row; `az ad sp show --id <principalId>` returns `Resource not found` | The principal still resolves in Microsoft Entra ID and `az role assignment show` returns the assignment normally |
+| H6: Orphaned assignment whose principal was already deleted | `az rest --method GET` against the full assignment ID returns `(NotFound)` or `az role assignment list --scope <SCOPE> --query "[?name=='<GUID>']"` returns a row with empty `principalName`; Resource Graph `AuthorizationResources` returns the row; `az ad sp show --id <principalId>` returns `Resource not found` | The principal still resolves in Microsoft Entra ID and `principalName` is populated normally |
 | H7: Assignment exists at a different scope than the one you are searching | Per-scope `az role assignment list --scope …` returns nothing for the GUID, but Resource Graph returns it with a `scope` value pointing to a different subscription, resource group, or resource | Resource Graph also returns no row for the GUID |
-| H8: You lack `Microsoft.Authorization/roleAssignments/read` at the scope where the assignment lives | Resource Graph returns the row but `az role assignment show --ids …` fails with `AuthorizationFailed`; another account with `User Access Administrator` can see it | All accounts see the same empty result |
+| H8: You lack `Microsoft.Authorization/roleAssignments/read` at the scope where the assignment lives | Resource Graph returns the row but `az rest --method GET` against the full assignment ID fails with `AuthorizationFailed`; another account with `User Access Administrator` can see it | All accounts see the same empty result |
 | H9: Assignment lives at Management Group scope or in another tenant | Resource Graph row's `scope` starts with `/providers/Microsoft.Management/managementGroups/…` or principal is from a different `homeTenantId` | Scope is under the current subscription |
 
 ## 4. What to Check First
@@ -158,19 +185,23 @@ az role assignment list \
     --query "[?name=='$ROLE_ASSIGNMENT_ID']" \
     --output json
 
-az role assignment show \
-    --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID" \
+az rest --method GET \
+    --url "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID?api-version=2022-04-01" \
     --output json
 ```
 
 The output reveals the principal ID, role definition, and scope of the conflicting assignment, which is enough to confirm hypothesis H1.
 
+!!! warning "`az rest GET` against a single role-assignment ID is scope-aware"
+    The URL above only resolves when the assignment actually lives at the subscription scope. If the assignment was created at a resource group, ACR, or Container App scope, the same URL returns `404 RoleAssignmentNotFound` even though the assignment exists. [Observed 2026-04-23 in `koreacentral`]: an RG-scoped Reader assignment returned `200` from `…/resourceGroups/<rg>/providers/Microsoft.Authorization/roleAssignments/<guid>` but `404` from `…/subscriptions/<sub>/providers/Microsoft.Authorization/roleAssignments/<guid>`. When you do not know the scope yet, run the per-scope `az role assignment list` sweep below or jump straight to §4 → "When the assignment ID returns nothing" → Step A (Resource Graph), which returns the assignment's full ARM `id` regardless of scope.
+
 ### When the assignment ID returns nothing
 
-In a non-trivial number of real cases the GUID from the error message cannot be looked up through `az role assignment show`, `az role assignment list`, or the Azure Portal **Access control (IAM)** blade. Reported symptoms include:
+In a non-trivial number of real cases the GUID from the error message cannot be looked up through `az role assignment list`, `az rest --method GET` against a guessed scope, or the Azure Portal **Access control (IAM)** blade. Reported symptoms include:
 
-- `az role assignment show --ids …` returns `(NotFound)` or an empty body.
-- `az role assignment list --scope <RG|ACR|App>` does not include the GUID on any of the scopes you expect.
+- `az rest --method GET …/roleAssignments/<guid>?api-version=2022-04-01` returns `(NotFound)` against the scope you guessed.
+- `az role assignment list --scope <RG|ACR|App>` does not include the GUID on any of the scopes you expect (or returns it with empty `principalName` — that is the orphan-principal signal, not a "not found" failure).
+- `az role assignment list --assignee <orphan-principalId>` fails with `Cannot find user or service principal in graph database for '<id>'`. [Observed 2026-04-23]: this Microsoft Entra ID lookup is required by `--assignee` and breaks for any principal whose object has been deleted; use Resource Graph instead.
 - The Portal IAM blade for those scopes does not render the row. [Observed]: in the cases reported on this playbook this matched assignments whose principal had been deleted; the Portal behavior is not documented as a platform guarantee.
 
 The assignment still exists in ARM — otherwise the deployment would not fail — but standard tooling cannot see it from the scopes you are querying. The four causes worth eliminating are H6 (deleted principal), H7 (assignment is at a different scope than the ones you queried), H8 (you do not have `Microsoft.Authorization/roleAssignments/read` at that scope), and H9 (assignment is at a Management Group scope or owned by another tenant).
@@ -242,6 +273,18 @@ If H7 is still in play after sweeping the four CD-relevant scopes above, list ev
 ```bash
 az role assignment list --assignee "$SP_OBJECT_ID" --all --include-inherited --output table
 ```
+
+!!! warning "`--assignee` fails for orphan principals — use Resource Graph instead"
+    `az role assignment list --assignee <object-id>` performs a Microsoft Entra ID lookup on the principal before issuing the ARM query. If the principal has been deleted (the most common cause of the conflict you are diagnosing), the command fails with `Cannot find user or service principal in graph database for '<id>'` and returns no rows — even though the role assignments still exist in ARM. [Observed 2026-04-23 in `koreacentral`]: a deleted service principal whose orphan RA was visible in `AuthorizationResources` and in per-scope `az role assignment list` returned exactly that error from `--assignee`. Fall back to Resource Graph, which queries the assignment index directly and does not require the principal to exist:
+
+    ```bash
+    az graph query --first 100 --graph-query "
+    AuthorizationResources
+    | where type =~ 'microsoft.authorization/roleassignments'
+    | where properties.principalId == '${SP_OBJECT_ID}'
+    | project name, scope = tostring(properties.scope), role = tostring(properties.roleDefinitionId)
+    "
+    ```
 
 #### Step C — Delete by full resource ID with the REST API
 
@@ -320,8 +363,8 @@ Look for service principals that were created for an earlier CD setup (commonly 
 
 | Evidence | Command/Query | Purpose |
 |---|---|---|
-| Conflicting assignment details | `az role assignment show --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID" --output json` | Identifies principal, role, and scope of the blocking assignment |
-| Tenant-wide lookup by GUID | `az graph query --graph-query "AuthorizationResources \| where type =~ 'microsoft.authorization/roleassignments' \| where name == '$ROLE_ASSIGNMENT_ID'"` | Surfaces the assignment when standard `az role assignment show` returns nothing (H6-H9) |
+| Conflicting assignment details | `az rest --method GET --url "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID?api-version=2022-04-01"` (works only when the assignment lives at sub scope; otherwise use the per-scope `az role assignment list --query "[?name=='$ROLE_ASSIGNMENT_ID']"` sweep from §4 Step B) | Identifies principal, role, and scope of the blocking assignment |
+| Tenant-wide lookup by GUID | `az graph query --graph-query "AuthorizationResources \| where type =~ 'microsoft.authorization/roleassignments' \| where name == '$ROLE_ASSIGNMENT_ID'"` | Surfaces the assignment when standard per-scope `az role assignment list` returns nothing (H6-H9) |
 | Tenant-wide lookup by principal | `az graph query --graph-query "AuthorizationResources \| where properties.principalId == '$SP_OBJECT_ID'"` | Lists every assignment owned by the suspected principal across all subscriptions and scopes you can read |
 | All role assignments on ACR | `az role assignment list --scope "$ACR_ID" --output table` | Reveals all CD-related and unrelated assignments on registry scope |
 | All role assignments on Container App | `az role assignment list --scope "$APP_ID" --output table` | Reveals all CD-related and unrelated assignments on app scope |
@@ -341,7 +384,7 @@ Look for service principals that were created for an earlier CD setup (commonly 
 
 **Signals that support:**
 
-- `az role assignment show` returns an assignment whose `roleDefinitionName` is `AcrPush`, `Contributor`, or another role used by Container Apps CD setup.
+- `az rest --method GET …/roleAssignments/<guid>?api-version=2022-04-01` (or per-scope `az role assignment list --query "[?name=='<GUID>']"`) returns an assignment whose `roleDefinitionName` is `AcrPush`, `Contributor`, or another role used by Container Apps CD setup.
 - The `principalName` (or `principalId`) corresponds to a service principal whose display name references the Container App name.
 - The `createdOn` timestamp predates your reconnect attempt.
 
@@ -352,11 +395,13 @@ Look for service principals that were created for an earlier CD setup (commonly 
 **What to verify:**
 
 ```bash
-az role assignment show \
-    --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID" \
-    --query "{principal:principalName, role:roleDefinitionName, scope:scope, created:createdOn}" \
+az rest --method GET \
+    --url "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID?api-version=2022-04-01" \
+    --query "{principalId:properties.principalId, principalType:properties.principalType, role:properties.roleDefinitionId, scope:properties.scope, created:properties.createdOn}" \
     --output json
 ```
+
+If the GET returns `RoleAssignmentNotFound`, the assignment lives at a non-subscription scope; resolve the full ARM `id` first via §4 → "When the assignment ID returns nothing" → Step A (Resource Graph), then re-run `az rest --method GET` against `https://management.azure.com${FULL_ID}?api-version=2022-04-01`.
 
 ### H2: Service principal still exists and still holds CD-related roles
 
@@ -391,11 +436,13 @@ az role assignment list --assignee "$SP_APP_ID" --all --output table
 **What to verify:**
 
 ```bash
-az role assignment show \
-    --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID" \
-    --query "principalType" \
+az rest --method GET \
+    --url "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID?api-version=2022-04-01" \
+    --query "properties.principalType" \
     --output tsv
 ```
+
+(If the GET returns `RoleAssignmentNotFound`, resolve the assignment's full ARM `id` first — see §4 → "When the assignment ID returns nothing" → Step A — then GET that full URL.)
 
 ### H4: Reusing a name with a freshly recreated service principal
 
@@ -411,11 +458,13 @@ az role assignment show \
 **What to verify:**
 
 ```bash
-PRINCIPAL_ID=$(az role assignment show \
-    --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID" \
-    --query "principalId" --output tsv)
+PRINCIPAL_ID=$(az rest --method GET \
+    --url "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID?api-version=2022-04-01" \
+    --query "properties.principalId" --output tsv)
 az ad sp show --id "$PRINCIPAL_ID" --output json
 ```
+
+(If the GET returns `RoleAssignmentNotFound`, resolve the assignment's full ARM `id` first — see §4 → "When the assignment ID returns nothing" → Step A — then GET that full URL to capture `properties.principalId`.)
 
 ### H5: Different deployment template version expects a different role set
 
@@ -434,7 +483,7 @@ az ad sp show --id "$PRINCIPAL_ID" --output json
 
 **Signals that support:**
 
-- `az role assignment show --ids <full-id>` returns `(NotFound)` or an empty body even though the deployment error references the GUID.
+- `az rest --method GET …/roleAssignments/<guid>?api-version=2022-04-01` against the assignment's full ARM `id` returns `(NotFound)` or an empty body even though the deployment error references the GUID.
 - Resource Graph `AuthorizationResources` returns a row whose `principalType` is empty/stale.
 - `az ad sp show --id <principalId>` returns `Resource not found`.
 - [Observed]: in cases reported on this playbook, the Portal IAM blade did not render the row for these assignments. This Portal behavior is not formally documented as a guarantee.
@@ -483,14 +532,14 @@ echo "Assignment lives at: $RG_SCOPE_FROM_GRAPH"
 
 **Signals that support:**
 
-- Resource Graph returns the row but `az role assignment show --ids <full-id>` fails with `AuthorizationFailed` or returns `(NotFound)`.
+- Resource Graph returns the row but `az rest --method GET` against the assignment's full ARM `id` fails with `AuthorizationFailed` or returns `(NotFound)`.
 - An account holding `User Access Administrator` or `Owner` at the scope can see and delete the row.
 
 **Signals that weaken:**
 
 - All accounts in the tenant see the same empty result for the GUID.
 
-**What to verify:** Re-run the same `az role assignment show --ids` and `az rest --method DELETE` commands as a principal that has `User Access Administrator` on the scope. If the second principal succeeds, H8 is confirmed.
+**What to verify:** Re-run the same `az rest --method GET` and `az rest --method DELETE` calls (or `az role assignment delete --ids`) as a principal that has `User Access Administrator` on the scope. If the second principal succeeds, H8 is confirmed.
 
 ### H9: Assignment lives at Management Group scope or in another tenant
 
@@ -552,9 +601,12 @@ SUBSCRIPTION_ID="<subscription-id>"
 ROLE_ASSIGNMENT_ID="716c4d15-9bc8-476d-a3c1-6ccb70082517"
 
 # Inspect first - confirm the principal, role, and scope before you delete.
-az role assignment show \
-    --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID" \
-    --query "{principal:principalName, principalId:principalId, role:roleDefinitionName, scope:scope, created:createdOn}" \
+# This URL only resolves when the assignment lives at subscription scope.
+# If it returns RoleAssignmentNotFound, jump to §4 → "When the assignment ID
+# returns nothing" → Step A to obtain the full ARM id, then GET that URL.
+az rest --method GET \
+    --url "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID?api-version=2022-04-01" \
+    --query "{principalId:properties.principalId, principalType:properties.principalType, role:properties.roleDefinitionId, scope:properties.scope, created:properties.createdOn}" \
     --output json
 
 # Delete the conflicting assignment.
@@ -562,8 +614,8 @@ az role assignment delete \
     --ids "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleAssignments/$ROLE_ASSIGNMENT_ID"
 ```
 
-!!! warning "If `az role assignment show` returns nothing for the GUID"
-    The Portal IAM blade and `az role assignment show/list` cannot see assignments whose principal has been deleted, that live at a child scope you did not query, or that you lack `Microsoft.Authorization/roleAssignments/read` on. Switch to the diagnosis path in §4 → "When the assignment ID returns nothing":
+!!! warning "If the inspect call returns nothing for the GUID"
+    The Portal IAM blade and per-scope `az role assignment list` cannot see assignments whose principal has been deleted, that live at a child scope you did not query, or that you lack `Microsoft.Authorization/roleAssignments/read` on. The single-RA `az rest --method GET` above is also scope-aware — it only matches when the assignment actually lives at the subscription scope you guessed. Switch to the diagnosis path in §4 → "When the assignment ID returns nothing":
 
     1. Run the `AuthorizationResources` Resource Graph query to obtain the assignment's full resource ID (`id` field).
     2. If Resource Graph also returns nothing, sweep every scope (`subscription`, `resourceGroup`, ACR, Container App, child resources) with `az role assignment list --include-inherited`.
@@ -635,7 +687,7 @@ If the GitHub Actions identity was a service principal (the default for `az cont
     In both MI cases, skip `az ad sp delete` and `az ad app delete`; jump directly to step 4 with the new identity model you intend to use.
 
 ```bash
-# The principalId from Step 1's `az role assignment show` output identifies the SP.
+# The principalId from Step 1's `az rest --method GET` output identifies the SP.
 PRINCIPAL_ID="<principalId-from-step-1>"
 
 # Resolve to the application's appId (clientId).
@@ -668,6 +720,11 @@ TENANT_ID="<tenant-id>"
 SUBSCRIPTION_ID="<subscription-id>"
 
 # Create a fresh SP for CD. --years honors your tenant's credential lifetime policy.
+# [Observed 2026-04-23 in tenant 16b3c013-…]: --years 1 was rejected with
+# "The tenant has a credential lifetime policy that limits the maximum lifetime
+#  of password credentials" referencing policy 9d2624cb-b59a-459a-bb1a-31e4ec43bf74.
+# If your tenant rejects --years 1, drop the flag (uses the policy maximum, which
+# may be 30 days or another tenant-specific cap) and rotate the secret accordingly.
 SP_NAME="sp-${RG}-gha-$(date +%s)"
 az ad sp create-for-rbac \
     --name "$SP_NAME" \
