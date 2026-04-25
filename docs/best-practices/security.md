@@ -495,6 +495,12 @@ Use this checklist before promoting to production:
 - [Private Endpoints](../platform/networking/private-endpoints.md)
 - [Managed Identity](../platform/identity-and-secrets/managed-identity.md)
 - [Security Operations](../platform/identity-and-secrets/security-operations.md)
+- [Image Security Best Practices](image-security.md)
+- [Compliance Baseline](compliance-baseline.md)
+- [Image Security (Platform)](../platform/security/image-security.md)
+- [Secrets (Platform)](../platform/security/secrets.md)
+- [Network Isolation (Platform)](../platform/security/network-isolation.md)
+- [Customer-Managed Keys (Platform)](../platform/security/customer-managed-keys.md)
 
 ## Sources
 

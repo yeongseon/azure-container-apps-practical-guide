@@ -132,6 +132,10 @@ nav:
       - platform/security/index.md
       - mTLS Architecture: platform/security/mtls.md
       - Ingress Client Certificates: platform/security/ingress-client-certificates.md
+      - Image Security: platform/security/image-security.md
+      - Secrets: platform/security/secrets.md
+      - Network Isolation: platform/security/network-isolation.md
+      - Customer-Managed Keys: platform/security/customer-managed-keys.md
     - Reliability:
       - Cost Optimization: platform/reliability/cost-optimization.md
       - Health and Recovery: platform/reliability/health-recovery.md
@@ -146,6 +150,8 @@ nav:
     - Identity and Secrets: best-practices/identity-and-secrets.md
     - Security: best-practices/security.md
     - mTLS: best-practices/mtls.md
+    - Image Security: best-practices/image-security.md
+    - Compliance Baseline: best-practices/compliance-baseline.md
     - Reliability: best-practices/reliability.md
     - Cost Optimization: best-practices/cost.md
     - Jobs: best-practices/jobs.md

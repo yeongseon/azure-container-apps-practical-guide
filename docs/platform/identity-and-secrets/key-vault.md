@@ -180,6 +180,7 @@ az keyvault secret show \
 - [Managed Identity](managed-identity.md)
 - [Private Endpoints](../networking/private-endpoints.md)
 - [Operations Security](security-operations.md)
+- [Secrets in Azure Container Apps](../security/secrets.md)
 
 ## Sources
 - [Key Vault secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
