@@ -37,7 +37,11 @@ az account show --output table
 | Document | Description |
 |---|---|
 | [Deployment](deployment/index.md) | CI/CD patterns, image build, registry authentication, production rollouts |
+| [Custom Domains](custom-domains/index.md) | Hostname binding, managed certificates, and BYO TLS operations |
+| [Disaster Recovery](disaster-recovery/index.md) | Zone redundancy, multi-region routing, and regional failover patterns |
 | [Networking](deployment/networking.md) | VNet deployment, private endpoints, egress controls |
+| [Health Probes](health-probes/index.md) | Startup, readiness, and liveness probe runbooks |
+| [Logging](logging/index.md) | Console and system log streams, streaming, KQL, and export |
 | [Revision Management](revision-management/index.md) | Revision lifecycle, traffic splitting, rollback procedures |
 | [Monitoring](monitoring/index.md) | Log Analytics, metrics, distributed tracing, alerting |
 | [Scaling](scaling/index.md) | KEDA scale rules, manual scaling, concurrency limits |
@@ -140,6 +144,7 @@ Operational readiness minimum:
 
 - Every production app has a tested rollback command set.
 - Every sev1 alert maps to a named incident owner.
+- Every production app has an explicit logging, health probe, and custom-domain runbook where applicable.
 
 ## Advanced Topics
 
@@ -157,6 +162,10 @@ For language-specific operational guidance, see:
 - [Platform](../platform/index.md)
 - [Best Practices](../best-practices/index.md)
 - [Reference](../reference/index.md)
+- [Logging](logging/index.md)
+- [Custom Domains and TLS](custom-domains/index.md)
+- [Disaster Recovery](disaster-recovery/index.md)
+- [Health Probes](health-probes/index.md)
 
 ## Sources
 

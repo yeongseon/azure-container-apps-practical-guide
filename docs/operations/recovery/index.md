@@ -160,6 +160,8 @@ az containerapp logs show \
 - [Troubleshooting Hub](../../troubleshooting/index.md)
 - [Troubleshooting Playbooks](../../troubleshooting/playbooks/index.md)
 - [Deployment Workflows](../deployment/index.md)
+- [Disaster Recovery](../disaster-recovery/index.md)
+- [Health Probes](../health-probes/index.md)
 
 ## Sources
 

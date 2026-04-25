@@ -154,6 +154,7 @@ Example output (PII masked):
 ## See Also
 - [Revisions](../../operations/revision-management/index.md)
 - [Observability](../../operations/monitoring/index.md)
+- [Health Probes](../../operations/health-probes/index.md)
 
 ## Sources
 - [Azure Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)
