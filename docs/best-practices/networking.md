@@ -412,6 +412,15 @@ Operational risks:
 - Uneven replica utilization increases tail latency.
 - Failover can disrupt sticky clients abruptly.
 
+### Ingress configuration guardrails
+
+Use the conceptual guidance in [Ingress in Azure Container Apps](../platform/networking/ingress.md) to make the initial platform choice, then enforce these production guardrails:
+
+- Choose `http2` explicitly for gRPC workloads instead of relying on later guesswork.
+- Prefer `affinity: none` unless you have a documented stateful dependency that requires sticky sessions.
+- Apply IP restrictions at ingress for coarse network filtering, but keep application authorization separate.
+- Treat additional TCP ports as scarce shared environment resources because external ports must be unique across the environment.
+
 ### Production networking guardrails checklist
 
 Adopt this as a release gate before promoting revisions:

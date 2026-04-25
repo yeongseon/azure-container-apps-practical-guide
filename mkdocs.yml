@@ -107,6 +107,7 @@ nav:
     - Scaling: platform/scaling/index.md
     - Networking:
       - platform/networking/index.md
+      - Ingress: platform/networking/ingress.md
       - VNet Integration: platform/networking/vnet-integration.md
       - Private Endpoints: platform/networking/private-endpoints.md
       - Egress Control: platform/networking/egress-control.md

@@ -26,7 +26,7 @@ This page tracks the source validation status of all documentation content. All 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 106 | 105 | 0 | 0 | 1 |
+| Text Documents | 107 | 106 | 0 | 0 | 1 |
 
 !!! warning "Validation In Progress"
     1 documents need `content_validation` metadata added.
@@ -34,7 +34,7 @@ This page tracks the source validation status of all documentation content. All 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 105
+    "Verified" : 106
     "No Metadata" : 1
 ```
 
@@ -49,6 +49,7 @@ pie title Document Validation Status
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Health Recovery](../platform/reliability/health-recovery.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-04-25 |
 | [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
