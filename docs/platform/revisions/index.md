@@ -13,11 +13,27 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/revisions
         - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-25"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "A revision is an immutable snapshot of a Container App version."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Azure Container Apps supports single and multiple revision modes."
+      source: "https://learn.microsoft.com/azure/container-apps/revisions"
+      verified: true
+    - claim: "Azure Container Apps supports traffic splitting between revisions."
+      source: "https://learn.microsoft.com/azure/container-apps/traffic-splitting"
+      verified: true
 ---
 
 # Revision Lifecycle in Azure Container Apps
 
 A revision is an immutable snapshot of a Container App version. Every change to the configuration or container image creates a new revision, enabling safe deployments and easy rollbacks.
+
+Use this overview page as the entry point, then go deeper with [Revision Modes](revision-modes.md), [Traffic Split](traffic-split.md), and [Revision Lifecycle](lifecycle.md) for property-level behavior.
 
 ## Revision Creation and Traffic Flow
 
@@ -77,6 +93,12 @@ In **Single mode**, the platform automatically deactivates the old revision when
 | Deactivation | Multiple | Stops all replicas of a revision without deleting it |
 | Reactivation | Multiple | Re-provisions replicas for a previously inactive revision |
 
+## Deep-Dive Topics
+
+- [Revision Modes](revision-modes.md) — exact mode behavior, activation model, and rollout implications
+- [Traffic Split](traffic-split.md) — weighted routing, labels, and `latestRevision`
+- [Revision Lifecycle](lifecycle.md) — activation, inactive retention, and cleanup behavior
+
 ## Common Pitfalls
 
 - **Sticky Sessions**: Traffic splitting may disrupt session state if not handled at the app layer.
@@ -90,6 +112,9 @@ In **Single mode**, the platform automatically deactivates the old revision when
 ## See Also
 
 - [Revision Management and Traffic Splitting](../../language-guides/python/tutorial/07-revisions-traffic.md)
+- [Revision Modes](revision-modes.md)
+- [Traffic Split](traffic-split.md)
+- [Revision Lifecycle](lifecycle.md)
 - [Managing Revisions and Traffic](../../operations/revision-management/index.md)
 - [Scaling with KEDA](../scaling/index.md)
 

@@ -11,6 +11,20 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/azure/container-apps/scale-app
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-25"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps uses KEDA for scaling."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "The default minimum number of replicas per revision is 0 and the default maximum number is 10."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
+    - claim: "If more than one scale rule is defined, the container app begins to scale once the first condition of any rule is met."
+      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
+      verified: true
 ---
 
 # Scaling in Azure Container Apps with KEDA
@@ -18,6 +32,8 @@ content_sources:
 Azure Container Apps uses **KEDA (Kubernetes Event-Driven Autoscaling)** to scale replicas based on demand signals such as HTTP requests, queue depth, and custom metrics.
 
 This model enables both reactive scale-out and cost-efficient scale-in, including scale-to-zero in supported scenarios.
+
+This overview introduces the scaling model. Use the deep-dive pages for [HTTP Scaler](http-scaler.md), [CPU & Memory Scalers](cpu-memory-scaler.md), [Event Scalers](event-scalers.md), [Custom Scalers](custom-scalers.md), and the [Scaling Rules Reference](scaling-rules-reference.md).
 
 ## How KEDA-Based Scaling Works
 
@@ -92,9 +108,22 @@ Good scaling design balances **user experience**, **system stability**, and **co
 - Using custom metrics to scale on business throughput, not just infrastructure signals.
 - Managing revision-level scaling behavior during canary traffic splits.
 
+## Deep-Dive Topics
+
+- [HTTP Scaler](http-scaler.md) — `concurrentRequests`, cold starts, and request-driven scaling
+- [CPU & Memory Scalers](cpu-memory-scaler.md) — resource-pressure rules and scale-to-zero caveats
+- [Event Scalers](event-scalers.md) — queue and event-driven patterns
+- [Custom Scalers](custom-scalers.md) — KEDA-backed bring-your-own triggers
+- [Scaling Rules Reference](scaling-rules-reference.md) — defaults, limits, and multi-rule behavior
+
 ## See Also
 - [How Container Apps Works](../../start-here/overview.md)
 - [Environments and Apps](../environments/index.md)
+- [HTTP Scaler](http-scaler.md)
+- [CPU & Memory Scalers](cpu-memory-scaler.md)
+- [Event Scalers](event-scalers.md)
+- [Custom Scalers](custom-scalers.md)
+- [Scaling Rules Reference](scaling-rules-reference.md)
 - [Networking](../networking/index.md)
 - [Revision Management and Traffic Splitting](../../language-guides/python/tutorial/07-revisions-traffic.md)
 - [KEDA open-source scalers documentation](https://keda.sh/docs/latest/scalers/)

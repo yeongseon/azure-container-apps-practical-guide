@@ -41,6 +41,8 @@ content_validation:
 
 This guide provides practical scaling patterns for Azure Container Apps using KEDA-backed rules, replica boundaries, and production validation techniques. It focuses on tuning decisions that balance latency, reliability, and cost under real workload variability.
 
+Use this page for operational strategy and tuning heuristics, then use the platform deep dives for rule shapes and documented defaults: [HTTP Scaler](../platform/scaling/http-scaler.md), [CPU & Memory Scalers](../platform/scaling/cpu-memory-scaler.md), [Event Scalers](../platform/scaling/event-scalers.md), [Custom Scalers](../platform/scaling/custom-scalers.md), and [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md).
+
 ## Prerequisites
 
 - Azure CLI 2.57+ with Container Apps extension
@@ -412,6 +414,11 @@ Model safe replica ranges from downstream dependency limits (database connection
 ## See Also
 
 - [Platform: Scaling](../platform/scaling/index.md)
+- [Platform: HTTP Scaler](../platform/scaling/http-scaler.md)
+- [Platform: CPU & Memory Scalers](../platform/scaling/cpu-memory-scaler.md)
+- [Platform: Event Scalers](../platform/scaling/event-scalers.md)
+- [Platform: Custom Scalers](../platform/scaling/custom-scalers.md)
+- [Platform: Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md)
 - [Platform: Revisions](../platform/revisions/index.md)
 - [Operations: Monitoring](../operations/monitoring/index.md)
 - [Operations: Alerts](../operations/alerts/index.md)
