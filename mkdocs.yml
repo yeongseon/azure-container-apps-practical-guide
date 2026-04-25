@@ -102,7 +102,15 @@ nav:
     - Architecture:
       - Resource Relationships: platform/architecture/resource-relationships.md
     - Deployment Scenarios: platform/deployment-scenarios.md
-    - Environments: platform/environments/index.md
+    - Environments:
+      - platform/environments/index.md
+      - Plans and Workload Profiles: platform/environments/plans-and-workload-profiles.md
+      - Consumption Plan: platform/environments/consumption-plan.md
+      - Workload Profiles: platform/environments/workload-profiles.md
+      - Dedicated GPU Profiles: platform/environments/dedicated-gpu-profiles.md
+      - Networking and CIDR: platform/environments/networking-and-cidr.md
+      - Limits and Quotas: platform/environments/limits-and-quotas.md
+      - Migration: platform/environments/migration.md
     - Revisions:
       - platform/revisions/index.md
       - Revision Modes: platform/revisions/revision-modes.md
@@ -147,6 +155,7 @@ nav:
     - Canary Deployment: best-practices/canary-deployment.md
     - Scaling: best-practices/scaling.md
     - Networking: best-practices/networking.md
+    - Environment Design: best-practices/environment-design.md
     - Identity and Secrets: best-practices/identity-and-secrets.md
     - Security: best-practices/security.md
     - mTLS: best-practices/mtls.md

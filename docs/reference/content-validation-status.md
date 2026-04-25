@@ -26,7 +26,7 @@ This page tracks the source validation status of all documentation content. All 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 131 | 128 | 2 | 0 | 1 |
+| Text Documents | 139 | 136 | 2 | 0 | 1 |
 
 !!! warning "Validation In Progress"
     1 documents need `content_validation` metadata added.
@@ -34,7 +34,7 @@ This page tracks the source validation status of all documentation content. All 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 128
+    "Verified" : 136
     "Pending Review" : 2
     "No Metadata" : 1
 ```
@@ -45,10 +45,12 @@ pie title Document Validation Status
 
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
+| [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Cpu Memory Scaler](../platform/scaling/cpu-memory-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Custom Scalers](../platform/scaling/custom-scalers.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Customer Managed Keys](../platform/security/customer-managed-keys.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
+| [Dedicated Gpu Profiles](../platform/environments/dedicated-gpu-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
@@ -60,9 +62,13 @@ pie title Document Validation Status
 | [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Lifecycle](../platform/revisions/lifecycle.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
+| [Limits And Quotas](../platform/environments/limits-and-quotas.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Migration](../platform/environments/migration.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Network Isolation](../platform/security/network-isolation.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
+| [Networking And Cidr](../platform/environments/networking-and-cidr.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
+| [Plans And Workload Profiles](../platform/environments/plans-and-workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Private Endpoints](../platform/networking/private-endpoints.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
@@ -72,6 +78,7 @@ pie title Document Validation Status
 | [Service To Service](../platform/networking/service-to-service.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Traffic Split](../platform/revisions/traffic-split.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Vnet Integration](../platform/networking/vnet-integration.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Workload Profiles](../platform/environments/workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 
 ### Best Practices
 
@@ -83,6 +90,7 @@ pie title Document Validation Status
 | [Compliance Baseline](../best-practices/compliance-baseline.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Container Design](../best-practices/container-design.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Cost](../best-practices/cost.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Environment Design](../best-practices/environment-design.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Identity And Secrets](../best-practices/identity-and-secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Image Security](../best-practices/image-security.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Jobs](../best-practices/jobs.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
