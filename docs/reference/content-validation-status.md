@@ -26,15 +26,16 @@ This page tracks the source validation status of all documentation content. All 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 102 | 102 | 0 | 0 | 0 |
+| Text Documents | 106 | 105 | 0 | 0 | 1 |
 
-!!! success "All Content Verified"
-    All text documents have verified Microsoft Learn sources for core claims.
+!!! warning "Validation In Progress"
+    1 documents need `content_validation` metadata added.
 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 102
+    "Verified" : 105
+    "No Metadata" : 1
 ```
 
 ## By Section
@@ -48,8 +49,10 @@ pie title Document Validation Status
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Health Recovery](../platform/reliability/health-recovery.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Private Endpoints](../platform/networking/private-endpoints.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
@@ -65,6 +68,7 @@ pie title Document Validation Status
 | [Cost](../best-practices/cost.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Identity And Secrets](../best-practices/identity-and-secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Jobs](../best-practices/jobs.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Mtls](../best-practices/mtls.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Reliability](../best-practices/reliability.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Revision Strategy](../best-practices/revision-strategy.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
@@ -124,6 +128,7 @@ pie title Document Validation Status
 | [Managed Identity Token Errors](../troubleshooting/kql/identity-and-secrets/managed-identity-token-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Memory Usage Patterns](../troubleshooting/kql/console-and-runtime/memory-usage-patterns.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Mental Model](../troubleshooting/mental-model.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Mtls Failures](../troubleshooting/playbooks/mtls-failures.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Platform Limits](../troubleshooting/first-10-minutes/platform-limits.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -169,7 +174,7 @@ pie title Document Validation Status
 | [Cli Reference](../reference/cli-reference.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Environment Variables](../reference/environment-variables.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Platform Limits](../reference/platform-limits.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Validation Status](../reference/validation-status.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Validation Status](../reference/validation-status.md) | ❌ | ❓ No Metadata | — | — |
 
 ## Validation Categories
 

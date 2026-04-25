@@ -119,6 +119,8 @@ nav:
       - Security Operations: platform/identity-and-secrets/security-operations.md
     - Security:
       - platform/security/index.md
+      - mTLS Architecture: platform/security/mtls.md
+      - Ingress Client Certificates: platform/security/ingress-client-certificates.md
     - Reliability:
       - Cost Optimization: platform/reliability/cost-optimization.md
       - Health and Recovery: platform/reliability/health-recovery.md
@@ -130,6 +132,7 @@ nav:
     - Networking: best-practices/networking.md
     - Identity and Secrets: best-practices/identity-and-secrets.md
     - Security: best-practices/security.md
+    - mTLS: best-practices/mtls.md
     - Reliability: best-practices/reliability.md
     - Cost Optimization: best-practices/cost.md
     - Jobs: best-practices/jobs.md
@@ -163,6 +166,7 @@ nav:
         - Easy Auth: language-guides/python/recipes/easy-auth.md
         - Key Vault Reference: language-guides/python/recipes/key-vault-reference.md
         - Managed Identity: language-guides/python/recipes/managed-identity.md
+        - mTLS Client Certificates: language-guides/python/recipes/mtls-client-certificates.md
         - Native Dependencies: language-guides/python/recipes/native-dependencies.md
     - Node.js:
       - language-guides/nodejs/index.md
@@ -182,6 +186,7 @@ nav:
         - Easy Auth: language-guides/nodejs/recipes/easy-auth.md
         - Key Vault Reference: language-guides/nodejs/recipes/key-vault-reference.md
         - Container Registry: language-guides/nodejs/recipes/container-registry.md
+        - mTLS Client Certificates: language-guides/nodejs/recipes/mtls-client-certificates.md
     - Java:
       - language-guides/java/index.md
       - Tutorial:
@@ -200,6 +205,7 @@ nav:
         - Easy Auth: language-guides/java/recipes/easy-auth.md
         - Key Vault Reference: language-guides/java/recipes/key-vault-reference.md
         - Container Registry: language-guides/java/recipes/container-registry.md
+        - mTLS Client Certificates: language-guides/java/recipes/mtls-client-certificates.md
     - .NET:
       - language-guides/dotnet/index.md
       - Tutorial:
@@ -218,6 +224,7 @@ nav:
         - Easy Auth: language-guides/dotnet/recipes/easy-auth.md
         - Key Vault Reference: language-guides/dotnet/recipes/key-vault-reference.md
         - Container Registry: language-guides/dotnet/recipes/container-registry.md
+        - mTLS Client Certificates: language-guides/dotnet/recipes/mtls-client-certificates.md
   - Operations:
     - operations/index.md
     - Deployment:
@@ -244,6 +251,7 @@ nav:
       - Platform Limits: troubleshooting/first-10-minutes/platform-limits.md
     - Playbooks:
       - troubleshooting/playbooks/index.md
+      - mTLS Failures: troubleshooting/playbooks/mtls-failures.md
       - Startup and Provisioning:
         - Image Pull Failure: troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md
         - Revision Provisioning Failure: troubleshooting/playbooks/startup-and-provisioning/revision-provisioning-failure.md

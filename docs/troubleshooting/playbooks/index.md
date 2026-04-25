@@ -77,6 +77,7 @@ Use the category that best matches your first confirmed symptom.
 
 ### Ingress and Networking
 
+- [mTLS Failures](mtls-failures.md)
 - [Ingress Not Reachable](ingress-and-networking/ingress-not-reachable.md)
 - [Internal DNS and Private Endpoint Failure](ingress-and-networking/internal-dns-and-private-endpoint-failure.md)
 - [Service-to-Service Connectivity Failure](ingress-and-networking/service-to-service-connectivity-failure.md)
