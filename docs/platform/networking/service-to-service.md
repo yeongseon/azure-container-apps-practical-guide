@@ -37,6 +37,8 @@ Container Apps in the same environment can communicate:
 - Without exposing to public internet
 - With optional Dapr service invocation
 
+For the broader ingress decision model, including how internal-only app ingress differs from environment-level private exposure, see [Ingress in Azure Container Apps](ingress.md).
+
 !!! warning "Do not hardcode revision-specific endpoints"
     Use app-level internal hostnames, not revision hostnames, for service calls.
     Revision names change during deployments and break static routing assumptions.
@@ -159,6 +161,7 @@ def get_data():
     bounded retries, and idempotency to avoid cascading failures.
 
 ## See Also
+- [Ingress in Azure Container Apps](ingress.md)
 - [Dapr Integration](../../language-guides/python/recipes/dapr-integration.md)
 - [VNet Integration](vnet-integration.md)
 - [Egress Control](egress-control.md)

@@ -31,6 +31,8 @@ content_sources:
 
 Networking in Azure Container Apps combines managed ingress with optional private networking controls. Understanding ingress mode, service discovery, and environment boundaries is key to secure and reliable architectures.
 
+Start with [Ingress in Azure Container Apps](ingress.md) when you need the canonical explanation of external vs internal exposure, transport modes, TCP ingress, headers, and ingress edge features. Use this page for the broader networking map.
+
 ## High-Level Network Flow
 
 <!-- diagram-id: high-level-network-flow -->
@@ -174,6 +176,7 @@ This pattern reduces attack surface while keeping the public API straightforward
 
 ## See Also
 - [How Container Apps Works](../../start-here/overview.md)
+- [Ingress in Azure Container Apps](ingress.md)
 - [Environments and Apps](../environments/index.md)
 - [Scaling with KEDA](../scaling/index.md)
 - [Container Apps vs Others](../../start-here/when-to-use-container-apps.md)

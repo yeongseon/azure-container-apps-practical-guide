@@ -144,6 +144,8 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
 
 ## Internal vs External Ingress
 
+For the full ingress model, including the app-level `external` property, transport selection, TCP rules, headers, and request handling behavior, see [Ingress in Azure Container Apps](ingress.md). This section focuses on the environment-level VNet posture.
+
 | Mode | Description | Use Case |
 |------|-------------|----------|
 | `internal: false` | Public IP + VNet | Public APIs with VNet backend access |
@@ -211,6 +213,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
 3. Verify FQDN is correctly configured
 
 ## See Also
+- [Ingress in Azure Container Apps](ingress.md)
 - [Private Endpoints](private-endpoints.md)
 - [Egress Control](egress-control.md)
 - [Service-to-Service Communication](service-to-service.md)
