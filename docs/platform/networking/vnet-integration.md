@@ -217,6 +217,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
 - [Private Endpoints](private-endpoints.md)
 - [Egress Control](egress-control.md)
 - [Service-to-Service Communication](service-to-service.md)
+- [Environment Networking and CIDR](../environments/networking-and-cidr.md)
 - [Azure SQL](../../language-guides/python/recipes/azure-sql.md)
 
 ## Sources

@@ -1,112 +1,101 @@
 ---
 content_sources:
   diagrams:
-    - id: environment-and-app-relationship
+    - id: environment-boundary-and-follow-on-decisions
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/azure/container-apps/environment
-        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
-    - id: revisions-are-scoped-per-app-not
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/environment
-        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/structure
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+content_validation:
+  status: verified
+  last_reviewed: "2026-04-26"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps has two environment types: Workload profiles (v2) and Consumption-only (v1), with Workload profiles as the default."
+      source: "https://learn.microsoft.com/en-us/azure/container-apps/structure"
+      verified: true
+    - claim: "Once you create an environment with either the default Azure network or an existing VNet, the network type can't be changed."
+      source: "https://learn.microsoft.com/en-us/azure/container-apps/networking"
+      verified: true
+    - claim: "By default, you have access to 100 inactive revisions."
+      source: "https://learn.microsoft.com/en-us/azure/container-apps/revisions"
+      verified: true
 ---
 
-# Environments and Apps in Azure Container Apps
+# Environments in Azure Container Apps
 
-The most important design decision in Azure Container Apps is the boundary between a **Container Apps Environment** and the **apps inside it**. This boundary determines networking scope, isolation, and operational blast radius.
+An Azure Container Apps environment is the shared boundary for networking, logging, ingress behavior, and workload placement. Use this section to decide which environment type to create, how to size networking, and when to separate workloads into different environments.
 
-## Environment and App Relationship
+## Main Content
 
-<!-- diagram-id: environment-and-app-relationship -->
+### Environment decisions happen before app decisions
+
+<!-- diagram-id: environment-boundary-and-follow-on-decisions -->
 ```mermaid
-graph TD
-    subgraph ENV1[Container Apps Environment: prod-core]
-      A1[api-app]
-      A2[worker-app]
-      A3[scheduler-app]
-      A1 --> A2
-      A2 --> A3
-    end
-
-    subgraph ENV2[Container Apps Environment: prod-sensitive]
-      B1[payments-app]
-    end
-
-    ENV1 -.isolated boundary.- ENV2
+flowchart TD
+    A[Choose environment type] --> B[Choose networking model]
+    B --> C[Choose workload profiles]
+    C --> D[Place apps on profiles]
+    D --> E[Set revision and scale rules]
+    E --> F[Operate quotas and lifecycle]
 ```
 
-Apps in the same environment can communicate more directly using internal service discovery patterns. Separate environments create stronger isolation at the platform boundary.
+### What an environment controls
 
-!!! note "Environment is the core isolation boundary"
-    Networking, logging integration, and several operational concerns are shared at environment scope.
-    Decide this boundary early in platform design.
+An environment is the shared platform boundary for:
 
-## Environment Types
+- Virtual network placement and ingress exposure.
+- Log Analytics integration and shared platform services.
+- Workload profile mix in a Workload profiles (v2) environment.
+- App placement, replica capacity planning, and quota management.
 
-Container Apps supports different resource execution models in the environment:
+!!! note "Environment boundaries are hard to change later"
+    Microsoft Learn states that the network type can't be changed after environment creation.
+    Decide VNet model, subnet size, and isolation boundaries before large-scale app onboarding.
 
-| Environment Model | Conceptual Fit | Why Teams Choose It |
+### Environment map
+
+| Page | Focus | Use it when |
 |---|---|---|
-| **Consumption** | Variable traffic, bursty or idle workloads | Pay closer to usage, supports scale-to-zero behavior |
-| **Workload profiles** | Predictable or specialized performance needs | More control over resource shape and workload placement |
+| [Plans and Workload Profiles](plans-and-workload-profiles.md) | Environment types, plans, and capability comparison | You need to choose v1 vs v2 and understand plan terminology |
+| [Consumption Plan](consumption-plan.md) | Legacy Consumption-only environment behavior | You inherited a v1 environment or need to understand its limits |
+| [Workload Profiles](workload-profiles.md) | Consumption, Dedicated, and Flex profile placement | You need mixed compute shapes in one environment |
+| [Dedicated GPU Profiles](dedicated-gpu-profiles.md) | GPU-enabled profile options and limits | You need GPU-backed inference or batch workloads |
+| [Networking and CIDR](networking-and-cidr.md) | Subnet minimums, delegation, and IP planning | You are designing VNet-integrated environments |
+| [Limits and Quotas](limits-and-quotas.md) | Platform ceilings, quota scope, and increase paths | You need to validate scale headroom before production |
+| [Migration](migration.md) | Environment lifecycle and cutover playbooks | You are moving between environment types, regions, or subscriptions |
 
-## How to Decide Environment Boundaries
+### Boundary heuristics
 
 Use separate environments when you need:
 
-- Different network trust boundaries.
-- Different compliance or data-handling controls.
-- Different scaling/cost governance domains.
+- Different trust boundaries or ingress posture.
+- Different subnet, NAT, or private endpoint strategies.
+- Different workload profile mixes or quota domains.
+- Independent lifecycle control for production vs non-production tiers.
 
-Keep apps in one environment when you need:
+Keep related apps together when they share:
 
-- Low-friction service-to-service communication.
-- Shared operational visibility and common lifecycle.
+- The same network and compliance boundary.
+- The same operational ownership.
+- The same dependency and traffic profile.
 
-!!! warning "Over-consolidation increases blast radius"
-    Putting too many unrelated workloads in one environment can complicate incident isolation,
-    change coordination, and governance controls.
-
-## Revisions Inside an App
-
-Revisions are scoped per app, not per environment.
-
-<!-- diagram-id: revisions-are-scoped-per-app-not -->
-```mermaid
-graph TD
-    ENV[Environment] --> APPA[App A]
-    ENV --> APPB[App B]
-    APPA --> RA1[Revision A-v1]
-    APPA --> RA2[Revision A-v2]
-    APPB --> RB1[Revision B-v1]
-```
-
-This allows one app to run canary traffic while other apps in the same environment remain stable.
-
-## Practical Example: Team Topology
-
-| Team Goal | Suggested Layout |
-|---|---|
-| Shared platform for internal services | One environment with multiple internal apps |
-| Strict isolation for regulated workloads | Dedicated environment per trust zone |
-| Mixed workload behavior | Use workload profiles for heavy services, consumption-style apps for bursty services |
-
-## Advanced Topics
-
-- Multi-environment promotion (dev → staging → production) with consistent app naming.
-- Environment-level governance with policy and RBAC boundaries.
-- Interplay between internal ingress, Dapr service invocation, and trust segmentation.
+!!! warning "Do not treat the environment as only a folder for apps"
+    Environment design changes networking, quota scope, profile selection, and migration effort.
+    Rebuilding an environment later is possible, but it is always more disruptive than getting the boundary right early.
 
 ## See Also
-- [How Container Apps Works](../../start-here/overview.md)
+
+- [Concepts](../index.md)
 - [Networking](../networking/index.md)
-- [Scaling with KEDA](../scaling/index.md)
-- [Revision Management and Traffic Splitting](../../language-guides/python/tutorial/07-revisions-traffic.md)
+- [Scaling](../scaling/index.md)
+- [Azure Container Apps Networking Best Practices](../../best-practices/networking.md)
+- [Environment Design](../../best-practices/environment-design.md)
 
 ## Sources
-- [Azure Container Apps Environments and Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment)
-- [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/workload-profiles-overview)
+
+- [Compute and billing structures in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/structure)
+- [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Update and deploy changes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
