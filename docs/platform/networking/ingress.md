@@ -150,9 +150,7 @@ Key Microsoft Learn–verified constraints:
 - The TCP `exposedPort` can't be `80` or `443`.
 - If `exposedPort` is omitted, it defaults to `targetPort`.
 - Port `36985` is reserved for internal health checks.
-
-!!! warning "Avoid undocumented TCP assumptions"
-    Microsoft Learn documents the VNet requirement, exposed port behavior, reserved health-check port, and uniqueness rules. It does not document a blanket "only one TCP app per environment" rule. Instead, document the verified constraint: each externally exposed extra TCP port must be unique across the environment.
+- Microsoft Learn does **not** document a blanket "only one TCP app per environment" rule. Instead, it documents that externally exposed extra TCP ports must be unique across the environment, while internal extra ports can reuse the same port across multiple apps.
 
 TCP ingress does not use browser-oriented ingress features such as CORS, and it does not rely on HTTP request concepts such as headers, paths, or methods.
 
@@ -179,8 +177,7 @@ Use `ipSecurityRestrictions` to allow or deny inbound traffic by source IP or CI
 | Allow rules | Permit only matching sources |
 | Deny rules | Explicitly block matching sources |
 
-!!! warning "Rule evaluation order is not directly documented"
-    Microsoft Learn documents allow and deny behavior plus the default open posture when no rules exist. It does not clearly document the evaluation order when multiple allow and deny rules coexist. If rule precedence matters for your design, validate it in a test environment before treating it as policy.
+Microsoft Learn documents that there is no mixed allow-and-deny precedence model to evaluate in a single rule set: **all rules must be the same type**. The IP restrictions article states, "All rules must be the same type. You cannot combine allow rules and deny rules," and the Azure CLI reference reiterates that all restrictions must use the same action. If no restrictions are configured, all inbound traffic is allowed.
 
 Use platform IP restrictions when you want coarse-grained source filtering at ingress. Keep fine-grained authorization in the gateway or application layer.
 
@@ -235,7 +232,7 @@ For long-running work:
 ## Maximum request body size
 
 !!! warning "Maximum request body size is not directly documented"
-    Microsoft Learn documents request timeout behavior, transport options, headers, and many ingress features, but it does not publish a clear ingress maximum request body size limit on the cited Container Apps pages. Treat any body-size limit claim as unverified unless you validate it against current Microsoft documentation or platform testing.
+    Microsoft Learn documents ingress timeout, header-count, and idle-request limits, but it does not publish a clear maximum request body size for Container Apps ingress on the cited ingress pages. Microsoft Learn does document `httpMaxRequestSize` for Dapr's HTTP server, but that is a Dapr sidecar setting rather than a documented Container Apps ingress limit. Keep body-size claims warned unless you validate them through updated Microsoft documentation or direct platform testing.
 
 ## Traffic split
 
@@ -254,7 +251,7 @@ Microsoft Learn explicitly documents these ingress-forwarded headers for HTTP in
 | `X-Forwarded-Client-Cert` | Client certificate metadata when client cert mode accepts or requires certificates |
 
 !!! warning "Header coverage is documented only partially"
-    The Microsoft Learn ingress overview explicitly documents `X-Forwarded-Proto`, `X-Forwarded-For`, and `X-Forwarded-Client-Cert`. It does not explicitly document `X-Forwarded-Host` on the cited pages, so this guide does not treat that header as verified platform behavior.
+    The Microsoft Learn ingress overview says, "The following table lists the HTTP headers that are relevant to ingress in Container Apps," and that table lists only `X-Forwarded-Proto`, `X-Forwarded-For`, and `X-Forwarded-Client-Cert`. Because `X-Forwarded-Host` is not listed in the official ingress header table, this guide does not treat that header as verified platform behavior.
 
 ## Comparison: External vs Internal
 
@@ -293,7 +290,9 @@ Microsoft Learn explicitly documents these ingress-forwarded headers for HTTP in
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Ingress for your app in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
 - [Configure IP ingress restrictions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ip-restrictions)
+- [az containerapp ingress access-restriction (Microsoft Learn)](https://learn.microsoft.com/en-us/cli/azure/containerapp/ingress/access-restriction?view=azure-cli-latest)
 - [Configure CORS in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/cors)
 - [Session affinity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions)
 - [Configure client certificate authentication in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization)
 - [Configure rule-based routing in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing)
+- [Use premium ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/premium-ingress)
