@@ -8,7 +8,7 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
         - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
@@ -54,9 +54,7 @@ The two main certificate paths are:
 - **Managed certificate** for a lower-operations experience
 - **Bring your own certificate** when you need your own CA, packaging, or domain support path
 
-!!! warning "Confirm exact domain-type limitations before production use"
-    The custom-domain librarian task remained queued and did not return Microsoft evidence in time.
-    Confirm current support for apex domains, subdomains, validation method, and issuer details against the latest Container Apps custom-domain articles.
+Microsoft Learn now documents the current domain-type split: Container Apps supports apex domains and subdomains, uses **A record + HTTP validation** for apex domains, and **CNAME + CNAME validation** for subdomains. Both managed-certificate and uploaded-certificate workflows still require the matching TXT verification record.
 
 <!-- diagram-id: custom-domain-request-flow -->
 ```mermaid

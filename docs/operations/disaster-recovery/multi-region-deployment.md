@@ -9,16 +9,16 @@ content_sources:
         - https://learn.microsoft.com/azure/traffic-manager/traffic-manager-overview
         - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
     - claim: "Azure Front Door and Traffic Manager are Microsoft routing services commonly used for multi-region entry points."
       source: "https://learn.microsoft.com/azure/frontdoor/front-door-overview"
       verified: true
-    - claim: "Multi-region Container Apps requires separate regional deployments rather than a single cross-region environment."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps"
-      verified: false
+    - claim: "Multi-region Container Apps resiliency uses separate regional environments plus an external routing layer such as Azure Front Door or Azure Traffic Manager."
+      source: "https://learn.microsoft.com/azure/reliability/reliability-container-apps"
+      verified: true
 ---
 
 # Multi-Region Deployment
@@ -63,8 +63,9 @@ param secondaryLocation string = 'centralus'
 // Add global routing in Front Door or Traffic Manager separately.
 ```
 
-!!! warning "Front Door origin details and probe-path guidance were not re-verified in time"
-    Confirm the current Front Door or Traffic Manager origin configuration, health probe path, and failover behavior against the latest Microsoft routing documentation before standardizing this pattern.
+!!! warning "Front Door probe-path conventions remain app-specific"
+    Microsoft Learn verifies the multi-region pattern itself: Container Apps is single-region, and multi-region resiliency uses separate regional environments plus Azure Front Door or Azure Traffic Manager. Microsoft Learn also documents that Front Door origin groups use periodic HTTP/HTTPS health probes.
+    However, the cited Container Apps and Front Door pages do not prescribe one Container Apps-specific origin layout or canonical probe path, so keep those details app-specific and validate failover behavior before standardizing them.
 
 <!-- diagram-id: multi-region-deployment-steps -->
 ```mermaid
@@ -97,5 +98,7 @@ flowchart TD
 ## Sources
 
 - [Azure Front Door overview](https://learn.microsoft.com/azure/frontdoor/front-door-overview)
+- [Origins and origin groups - Azure Front Door](https://learn.microsoft.com/azure/frontdoor/origin)
+- [Health probes - Azure Front Door](https://learn.microsoft.com/azure/frontdoor/health-probes)
 - [Azure Traffic Manager overview](https://learn.microsoft.com/azure/traffic-manager/traffic-manager-overview)
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-container-apps)

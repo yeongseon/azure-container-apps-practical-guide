@@ -7,7 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
@@ -72,8 +72,9 @@ Rotation pattern:
 3. Verify HTTPS on the hostname.
 4. Remove the old certificate after successful cutover.
 
-!!! warning "Key Vault-backed certificate behavior was not re-verified in time"
-    If you plan to standardize on Key Vault-integrated certificate handling for Container Apps, confirm the current Microsoft Learn workflow before documenting it as a production baseline.
+!!! warning "Key Vault-backed custom-domain bindings are not documented on the cited Container Apps pages"
+    Microsoft Learn verifies the uploaded-certificate workflow: use `az containerapp env certificate upload` to upload an SNI `.pfx` certificate to the environment, then use `az containerapp hostname bind` to bind it to the hostname.
+    The cited Container Apps custom-domain pages do not document a Key Vault-backed certificate source for custom-domain bindings, so keep that integration unverified until Microsoft Learn publishes a dedicated workflow.
 
 <!-- diagram-id: byo-certificate-rotation-flow -->
 ```mermaid

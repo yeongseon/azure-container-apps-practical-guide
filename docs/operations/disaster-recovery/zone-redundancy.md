@@ -7,16 +7,16 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
     - claim: "Azure reliability guidance for Container Apps should be used when evaluating zone redundancy."
       source: "https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps"
       verified: true
-    - claim: "Exact zoneRedundant property rules and workload profile requirements were not re-verified in time."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps"
-      verified: false
+    - claim: "Zone redundancy is available to all Container Apps plans, must be enabled during environment creation, and can't be changed afterward."
+      source: "https://learn.microsoft.com/azure/reliability/reliability-container-apps"
+      verified: true
 ---
 
 # Zone Redundancy
@@ -60,8 +60,7 @@ resource managedEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 }
 ```
 
-!!! warning "Workload profile requirement and immutability were not re-verified in time"
-    Before using `zoneRedundant: true` in a production template, confirm the current Container Apps reliability documentation for region support, workload profile requirements, creation-time restrictions, and pricing impact.
+Microsoft Learn now documents the current zone-redundancy rules: zone redundancy is available to **all Container Apps plans**, it must be enabled **during environment creation**, it **can't be changed afterward**, and it doesn't add charges beyond standard Container Apps pricing.
 
 <!-- diagram-id: zone-redundancy-vs-multi-region -->
 ```mermaid
@@ -92,4 +91,4 @@ flowchart TD
 
 ## Sources
 
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-container-apps)

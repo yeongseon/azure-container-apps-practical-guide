@@ -78,8 +78,8 @@ resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
 ```
 
 !!! warning "Confirm category names against current Container Apps documentation"
-    The queued librarian lookup did not return category evidence in time.
-    Before using a production template, verify whether your environment should use `category`, `categoryGroup`, or a more specific Container Apps category list.
+    Azure Monitor diagnostic settings documentation confirms generic `categoryGroup` values such as `allLogs`, but the cited Container Apps pages don't publish a Container Apps-specific category list for managed environments.
+    Before using a production template, verify whether your environment exposes `category`, `categoryGroup`, or a more specific category set in the portal, template export, or current Microsoft Learn update.
 
 <!-- diagram-id: diagnostic-settings-routing-flow -->
 ```mermaid

@@ -8,7 +8,7 @@ content_sources:
         - https://learn.microsoft.com/azure/container-apps/health-probes
         - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
@@ -54,9 +54,7 @@ Recommended conservative starting posture for many web apps:
 - keep **readiness** focused on traffic readiness, not every downstream dependency
 - keep **liveness** narrow enough to catch hangs, not slow warm-up
 
-!!! warning "Use conservative starting values, then tune from evidence"
-    Because the queued health-probe research did not return exact default recommendations in time, do not treat any single timing profile as universal.
-    Prefer evidence from your revision activation time, dependency latency, and restart history.
+Microsoft Learn recommends tuning probe settings around real startup behavior rather than treating one timing profile as universal. If a revision needs longer to become healthy, adjust probe settings to match the app's startup characteristics, and in multiple revision mode wait for readiness probes to succeed before shifting traffic.
 
 <!-- diagram-id: probe-debugging-loop -->
 ```mermaid
@@ -90,3 +88,4 @@ flowchart TD
 
 - [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
 - [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-container-apps)

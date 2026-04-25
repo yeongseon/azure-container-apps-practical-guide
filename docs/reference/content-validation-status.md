@@ -26,7 +26,7 @@ This page tracks the source validation status of all documentation content. All 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 131 | 122 | 8 | 0 | 1 |
+| Text Documents | 131 | 128 | 2 | 0 | 1 |
 
 !!! warning "Validation In Progress"
     1 documents need `content_validation` metadata added.
@@ -34,8 +34,8 @@ This page tracks the source validation status of all documentation content. All 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 122
-    "Pending Review" : 8
+    "Verified" : 128
+    "Pending Review" : 2
     "No Metadata" : 1
 ```
 
@@ -97,15 +97,15 @@ pie title Document Validation Status
 
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
-| [Byo Certificates](../operations/custom-domains/byo-certificates.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
+| [Byo Certificates](../operations/custom-domains/byo-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Diagnostic Settings](../operations/logging/diagnostic-settings.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
-| [Log Analytics Queries](../operations/logging/log-analytics-queries.md) | ✅ | ⚠️ Pending Review | 2/3 | 2026-04-25 |
+| [Log Analytics Queries](../operations/logging/log-analytics-queries.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Log Streaming](../operations/logging/log-streaming.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
-| [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
-| [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ⚠️ Pending Review | 1/2 | 2026-04-25 |
+| [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
+| [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
-| [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
-| [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ⚠️ Pending Review | 1/2 | 2026-04-25 |
+| [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
+| [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 
 ### Troubleshooting
 

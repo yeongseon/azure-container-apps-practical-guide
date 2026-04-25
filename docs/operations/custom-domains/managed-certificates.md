@@ -7,7 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
@@ -69,8 +69,7 @@ curl --head "https://$HOSTNAME"
 openssl s_client -connect "$HOSTNAME:443" -servername "$HOSTNAME"
 ```
 
-!!! warning "Issuer, apex-domain support, and renewal cadence were not re-verified in time"
-    Confirm the current issuer, exact supported hostname types, and renewal behavior against the latest managed-certificate article before committing to a production standard.
+Microsoft Learn documents that Container Apps managed certificates are issued through DigiCert, support both apex domains and subdomains, and are "automatically renewed without any action from you as long as your app continues to meet the requirements for managed certificates."
 
 <!-- diagram-id: managed-certificate-lifecycle -->
 ```mermaid

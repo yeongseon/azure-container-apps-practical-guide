@@ -58,9 +58,7 @@ flowchart TD
     L --> E[Restart Decision]
 ```
 
-!!! warning "Probe paths must reflect real dependency posture"
-    If readiness requires unavailable downstream services, the app can stay unavailable even when the container is healthy.
-    Separate process-health from dependency-health where appropriate.
+HTTP probes can include dependency-aware logic, but they should reflect the health signal you actually want the platform to act on. Microsoft Learn notes that HTTP probes "let you implement custom logic to check the status of application dependencies before reporting a healthy status," so keep basic process health separate from stricter dependency checks when you don't want every downstream failure to block readiness.
 
 ```bash
 az containerapp update \
