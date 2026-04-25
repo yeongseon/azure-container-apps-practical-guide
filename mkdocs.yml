@@ -130,7 +130,13 @@ nav:
       - Private Endpoints: platform/networking/private-endpoints.md
       - Egress Control: platform/networking/egress-control.md
       - Service-to-Service: platform/networking/service-to-service.md
-    - Jobs: platform/jobs/index.md
+    - Jobs:
+      - platform/jobs/index.md
+      - Manual Jobs: platform/jobs/manual-jobs.md
+      - Scheduled Jobs: platform/jobs/scheduled-jobs.md
+      - Event-Driven Jobs: platform/jobs/event-driven-jobs.md
+      - Execution Lifecycle: platform/jobs/execution-lifecycle.md
+      - Jobs vs Apps: platform/jobs/jobs-vs-apps.md
     - Identity and Secrets:
       - Managed Identity: platform/identity-and-secrets/managed-identity.md
       - Key Vault: platform/identity-and-secrets/key-vault.md
@@ -164,6 +170,7 @@ nav:
     - Reliability: best-practices/reliability.md
     - Cost Optimization: best-practices/cost.md
     - Jobs: best-practices/jobs.md
+    - Job Design: best-practices/job-design.md
     - Common Anti-Patterns: best-practices/anti-patterns.md
   - Language Guides:
     - language-guides/index.md
@@ -192,6 +199,7 @@ nav:
         - Revision Validation: language-guides/python/recipes/revision-validation.md
         - Bring Your Own Storage: language-guides/python/recipes/bring-your-own-storage.md
         - Easy Auth: language-guides/python/recipes/easy-auth.md
+        - Jobs: language-guides/python/recipes/jobs.md
         - Key Vault Reference: language-guides/python/recipes/key-vault-reference.md
         - Managed Identity: language-guides/python/recipes/managed-identity.md
         - mTLS Client Certificates: language-guides/python/recipes/mtls-client-certificates.md
@@ -220,6 +228,7 @@ nav:
         - Key Vault Reference: language-guides/nodejs/recipes/key-vault-reference.md
         - Managed Identity: language-guides/nodejs/recipes/managed-identity.md
         - mTLS Client Certificates: language-guides/nodejs/recipes/mtls-client-certificates.md
+        - Jobs: language-guides/nodejs/recipes/jobs.md
     - Java:
       - language-guides/java/index.md
       - Tutorial:
@@ -244,6 +253,7 @@ nav:
         - Key Vault Reference: language-guides/java/recipes/key-vault-reference.md
         - Managed Identity: language-guides/java/recipes/managed-identity.md
         - mTLS Client Certificates: language-guides/java/recipes/mtls-client-certificates.md
+        - Jobs: language-guides/java/recipes/jobs.md
     - .NET:
       - language-guides/dotnet/index.md
       - Tutorial:
@@ -268,6 +278,7 @@ nav:
         - Key Vault Reference: language-guides/dotnet/recipes/key-vault-reference.md
         - Managed Identity: language-guides/dotnet/recipes/managed-identity.md
         - mTLS Client Certificates: language-guides/dotnet/recipes/mtls-client-certificates.md
+        - Jobs: language-guides/dotnet/recipes/jobs.md
   - Operations:
     - operations/index.md
     - Alerts: operations/alerts/index.md
@@ -286,6 +297,9 @@ nav:
       - operations/health-probes/index.md
       - Probe Tuning: operations/health-probes/probe-tuning.md
     - Image Pull and Registry: operations/image-pull-and-registry/index.md
+    - Jobs:
+      - operations/jobs/index.md
+      - Troubleshooting: operations/jobs/troubleshooting.md
     - Logging:
       - operations/logging/index.md
       - Log Streaming: operations/logging/log-streaming.md

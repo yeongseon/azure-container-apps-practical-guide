@@ -26,7 +26,7 @@ This page tracks the source validation status of all documentation content. All 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 139 | 136 | 2 | 0 | 1 |
+| Text Documents | 146 | 136 | 9 | 0 | 1 |
 
 !!! warning "Validation In Progress"
     1 documents need `content_validation` metadata added.
@@ -35,7 +35,7 @@ This page tracks the source validation status of all documentation content. All 
 ```mermaid
 pie title Document Validation Status
     "Verified" : 136
-    "Pending Review" : 2
+    "Pending Review" : 9
     "No Metadata" : 1
 ```
 
@@ -54,16 +54,20 @@ pie title Document Validation Status
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Event Driven Jobs](../platform/jobs/event-driven-jobs.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Event Scalers](../platform/scaling/event-scalers.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
+| [Execution Lifecycle](../platform/jobs/execution-lifecycle.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Health Recovery](../platform/reliability/health-recovery.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Http Scaler](../platform/scaling/http-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Image Security](../platform/security/image-security.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-04-25 |
 | [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
+| [Jobs Vs Apps](../platform/jobs/jobs-vs-apps.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Lifecycle](../platform/revisions/lifecycle.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Limits And Quotas](../platform/environments/limits-and-quotas.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Manual Jobs](../platform/jobs/manual-jobs.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Migration](../platform/environments/migration.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Network Isolation](../platform/security/network-isolation.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
@@ -73,6 +77,7 @@ pie title Document Validation Status
 | [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
+| [Scheduled Jobs](../platform/jobs/scheduled-jobs.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Service To Service](../platform/networking/service-to-service.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
@@ -93,6 +98,7 @@ pie title Document Validation Status
 | [Environment Design](../best-practices/environment-design.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Identity And Secrets](../best-practices/identity-and-secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Image Security](../best-practices/image-security.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
+| [Job Design](../best-practices/job-design.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Jobs](../best-practices/jobs.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Mtls](../best-practices/mtls.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
@@ -113,6 +119,7 @@ pie title Document Validation Status
 | [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
+| [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 
 ### Troubleshooting

@@ -455,6 +455,8 @@ stateDiagram-v2
 ## See Also
 
 - [Platform - Jobs](../platform/jobs/index.md)
+- [Best Practices - Job Design](job-design.md)
+- [Platform - Jobs vs Apps](../platform/jobs/jobs-vs-apps.md)
 - [Best Practices - Scaling](scaling.md)
 - [Best Practices - Reliability](reliability.md)
 - [Best Practices - Identity and Secrets](identity-and-secrets.md)

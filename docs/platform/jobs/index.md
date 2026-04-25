@@ -1,187 +1,92 @@
 ---
 content_sources:
   diagrams:
-    - id: job-lifecycle
+    - id: jobs-document-map
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Synthesized from existing repository Jobs content and Microsoft Learn Jobs/scale guidance while quote collection remained incomplete.
       based_on:
         - https://learn.microsoft.com/azure/container-apps/jobs
         - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+content_validation:
+  status: pending_review
+  last_reviewed: "2026-04-26"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps Jobs are designed for finite background execution rather than continuously serving traffic."
+      source: "https://learn.microsoft.com/azure/container-apps/jobs"
+      verified: true
+    - claim: "Azure Container Apps Jobs support manual, schedule, and event triggers."
+      source: "https://learn.microsoft.com/azure/container-apps/jobs"
+      verified: true
+    - claim: "Scheduled and event-driven job history is retained only for a limited number of recent executions."
+      source: "https://learn.microsoft.com/azure/container-apps/jobs"
+      verified: true
 ---
 
 # Container Apps Jobs
 
-Azure Container Apps Jobs run **finite background work** instead of continuously serving traffic. Use jobs when execution has a clear start and finish, such as scheduled cleanup, data import, queue processing, and file transformation.
+Azure Container Apps Jobs run bounded background work with a defined start and finish. Use this section to choose a trigger model, understand execution fan-out, and operate jobs safely in production.
 
-## What are Jobs?
+## Main Content
 
-A Container App is optimized for long-running API or worker services. A Container Apps Job is optimized for one execution unit that can complete, fail, and retry according to policy.
+### What this section covers
 
-Use jobs when:
+- [Manual Jobs](manual-jobs.md) for operator-driven backfills, maintenance, and replay.
+- [Scheduled Jobs](scheduled-jobs.md) for cron-based recurring execution.
+- [Event-Driven Jobs](event-driven-jobs.md) for queue- or event-triggered one-shot processing.
+- [Execution Lifecycle](execution-lifecycle.md) for execution states, retries, timeouts, and retention.
+- [Jobs vs Apps](jobs-vs-apps.md) for workload selection.
 
-- Work is bounded and can be retried safely.
-- You need manual, scheduled, or event-driven triggers.
-- Scale behavior is tied to execution count, not HTTP traffic.
+### When to choose Jobs
 
-Use apps when:
+Choose Jobs when:
 
-- You need always-on request handling.
-- You expose an ingress endpoint to clients.
-- You maintain long-lived process state in memory.
+- Work is finite and success is defined by completion.
+- Retries can safely re-run the same unit of work.
+- Triggering should happen manually, on a schedule, or from an event source.
 
-!!! warning "Jobs must be idempotent"
-    Retries and parallel executions can reprocess the same work item.
-    Design input handling so duplicate execution does not corrupt state.
+Choose Container Apps instead when:
 
-## Execution Models
+- You expose ingress and continuously handle requests.
+- A process should stay warm and consume work continuously.
+- You want scale decisions to adjust long-running replicas instead of starting discrete executions.
 
-### Manual trigger
+### Reading path
 
-Manual jobs are ideal for one-off tasks: backfills, schema migrations, reprocessing failed records, or operator-driven maintenance.
+1. Start with the trigger guide that matches your workload.
+2. Read [Execution Lifecycle](execution-lifecycle.md) before tuning parallelism or retries.
+3. Use [Jobs vs Apps](jobs-vs-apps.md) if the workload boundary is still unclear.
+4. Apply [Job Design](../../best-practices/job-design.md) before production rollout.
+5. Use [Jobs Operations](../../operations/jobs/index.md) for replay, inspection, and monitoring.
 
-```bash
-az containerapp job start \
-  --name "$JOB_NAME" \
-  --resource-group "$RG"
-```
+!!! warning "Advanced Jobs details need final source re-verification"
+    During this update, background source collection for exact schema/property quotes did not complete.
+    This section keeps verified high-level concepts, but pages that discuss exact cron semantics, execution state labels, Log Analytics columns, or event-scaler coverage call out those areas explicitly before you automate against them.
 
-### Scheduled
+### Jobs document map
 
-Scheduled jobs run by cron expression and are useful for recurring operations such as nightly compaction, report generation, and stale artifact cleanup.
-
-```bash
-az containerapp job create \
-  --name "$JOB_NAME" \
-  --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
-  --trigger-type "Schedule" \
-  --cron-expression "0 */6 * * *" \
-  --image "$ACR_NAME.azurecr.io/python-job:v1"
-```
-
-### Event-driven
-
-Event-driven jobs react to external signals such as queue depth or blob events. This model is suited for asynchronous throughput pipelines where scale and cost efficiency matter.
-
-```bash
-az containerapp job create \
-  --name "$JOB_NAME" \
-  --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
-  --trigger-type "Event" \
-  --scale-rule-name "queue-processor" \
-  --scale-rule-type "azure-servicebus" \
-  --scale-rule-metadata "queueName=jobs" "messageCount=10" "namespace=<servicebus-namespace>.servicebus.windows.net" \
-  --image "$ACR_NAME.azurecr.io/python-job:v1"
-```
-
-## App vs Job Decision Matrix
-
-| Decision area | Container App | Container Apps Job |
-|---|---|---|
-| Primary workload | API/service traffic | Batch or async task execution |
-| Lifetime model | Long-running process | Finite run with completion |
-| Trigger model | HTTP/event-driven scaling | Manual, cron, event trigger |
-| Ingress requirement | Common | Usually none |
-| Retry behavior | App-level logic | Job execution retry policy |
-| Cost profile | Baseline runtime + scale | Pay during execution windows |
-| Best examples | Public API, internal service | ETL, cleanup, periodic reporting |
-
-## Configuration Patterns
-
-### Timeout and retry settings
-
-- Set `--replica-timeout` based on worst-case execution plus headroom.
-- Use `--replica-retry-limit` for transient failures only.
-- Ensure your code is idempotent before increasing retry counts.
-
-### Parallelism and replica completion
-
-- `--parallelism` controls concurrent replicas for one execution.
-- `--replica-completion-count` controls how many successful replicas mark completion.
-- Start with conservative values, then scale after verifying external dependency limits.
-
-### Trigger configuration
-
-- Manual: prefer for operator-controlled execution.
-- Scheduled: use UTC cron and document business timezone assumptions.
-- Event-driven: verify scale rule metadata and identity permissions to event source.
-
-## Identity and Secrets
-
-Jobs use the same identity patterns as apps:
-
-- Prefer user-assigned or system-assigned managed identity.
-- Assign least-privilege RBAC to data stores and messaging services.
-- Store configuration in environment variables and sensitive values in secrets.
-- Use Key Vault references for centralized secret lifecycle management.
-
-## Monitoring Job Executions
-
-Track executions and troubleshoot failures with Azure CLI:
-
-```bash
-az containerapp job execution list \
-  --name "$JOB_NAME" \
-  --resource-group "$RG" \
-  --output table
-```
-
-```bash
-az containerapp job logs show \
-  --name "$JOB_NAME" \
-  --resource-group "$RG"
-```
-
-Monitor these signals:
-
-- Execution success/failure ratio
-- Retry count trend
-- Duration distribution (p50/p95)
-- Dependency-specific errors (authentication, throttling, timeout)
-
-!!! tip "Set timeouts from measured runtime"
-    Start from observed p95 execution duration and add headroom.
-    Avoid unlimited timeout behavior that hides stuck executions.
-
-## Common Patterns
-
-### Data processing pipeline
-
-Ingest file or queue item, transform it, then write canonical output. Keep each step idempotent so retries are safe.
-
-### Scheduled cleanup
-
-Run daily cleanup to remove expired blobs, temporary records, or stale artifacts. Add dry-run mode for safe validation.
-
-### Event-driven media processing
-
-Trigger on new uploads, transcode or enrich content, and emit completion metadata for downstream consumers.
-
-## Job Lifecycle
-
-<!-- diagram-id: job-lifecycle -->
+<!-- diagram-id: jobs-document-map -->
 ```mermaid
 flowchart TD
-    A[Trigger] --> B[Execution Created]
-    B --> C[Replica Starts]
-    C --> D{Result}
-    D -->|Success| E[Completed]
-    D -->|Failure| F{Retry Limit Reached?}
-    F -->|No| C
-    F -->|Yes| G[Failed]
+    A[Container Apps Jobs] --> B[Manual Jobs]
+    A --> C[Scheduled Jobs]
+    A --> D[Event-Driven Jobs]
+    A --> E[Execution Lifecycle]
+    A --> F[Jobs vs Apps]
+    E --> G[Job Design]
+    E --> H[Jobs Operations]
+    H --> I[Troubleshooting]
+    F --> J[Language Recipes]
 ```
-
-## Reference Implementation
-
-- [Python Reference Job README](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/jobs/python)
-- [Python Job Source](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/jobs/python/src/job.py)
 
 ## See Also
 
 - [Platform Overview](../index.md)
-- [Identity and Secrets](../identity-and-secrets/managed-identity.md)
-- [Operations - Monitoring](../../operations/monitoring/index.md)
+- [Job Design](../../best-practices/job-design.md)
+- [Jobs Best Practices](../../best-practices/jobs.md)
+- [Jobs Operations](../../operations/jobs/index.md)
+- [Python Jobs Recipe](../../language-guides/python/recipes/jobs.md)
 
 ## Sources
 
