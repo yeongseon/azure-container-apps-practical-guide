@@ -139,6 +139,15 @@ Each numbered path represents a security control layer:
 | 7 | Egress | Outbound filtering via Azure Firewall or UDR |
 | 8 | Control plane | Azure RBAC for management operations |
 
+## Security Deep Dives
+
+Use these focused pages when you need implementation details for a specific security domain:
+
+- [Image Security](image-security.md) — registry authentication, revision-time pulls, and vulnerability scanning scope.
+- [Secrets](secrets.md) — inline secrets, Key Vault references, `secretRef`, and refresh behavior.
+- [Network Isolation](network-isolation.md) — internal environments, private endpoints, NSG/UDR, ingress posture, and egress control.
+- [Customer-Managed Keys](customer-managed-keys.md) — current documented CMK status and Key Vault-related alternatives.
+
 ## Network Isolation
 
 Network isolation in Container Apps operates at three boundaries: ingress control, VNet integration, and egress filtering.
@@ -407,7 +416,13 @@ Security-relevant events are captured in:
 - [Key Vault Integration](../identity-and-secrets/key-vault.md)
 - [Easy Auth](../identity-and-secrets/easy-auth.md)
 - [Security Operations](../identity-and-secrets/security-operations.md)
+- [Image Security](image-security.md)
+- [Secrets](secrets.md)
+- [Network Isolation](network-isolation.md)
+- [Customer-Managed Keys](customer-managed-keys.md)
 - [Security Best Practices](../../best-practices/security.md)
+- [Image Security Best Practices](../../best-practices/image-security.md)
+- [Compliance Baseline](../../best-practices/compliance-baseline.md)
 
 ## Sources
 
