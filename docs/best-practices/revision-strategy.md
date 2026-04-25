@@ -48,6 +48,8 @@ content_validation:
 
 This guide explains how to operate revisions as a controlled release mechanism in Azure Container Apps, including rollout safety, rollback speed, and lifecycle hygiene. It focuses on practical decision patterns you can apply in production pipelines.
 
+Use this page for the decision framework, then go deeper with the dedicated [Blue/Green Deployment](blue-green-deployment.md) and [Canary Deployment](canary-deployment.md) playbooks.
+
 ## Prerequisites
 
 - Azure CLI 2.57+ with Container Apps extension
@@ -387,6 +389,8 @@ For distributed systems, sequence rollouts by dependency direction and maintain 
 ## See Also
 
 - [Platform: Revisions](../platform/revisions/index.md)
+- [Blue/Green Deployment](blue-green-deployment.md)
+- [Canary Deployment](canary-deployment.md)
 - [Platform: Scaling](../platform/scaling/index.md)
 - [Operations: Revision Management](../operations/revision-management/index.md)
 - [Operations: Deployment](../operations/deployment/index.md)

@@ -103,8 +103,18 @@ nav:
       - Resource Relationships: platform/architecture/resource-relationships.md
     - Deployment Scenarios: platform/deployment-scenarios.md
     - Environments: platform/environments/index.md
-    - Revisions: platform/revisions/index.md
-    - Scaling: platform/scaling/index.md
+    - Revisions:
+      - platform/revisions/index.md
+      - Revision Modes: platform/revisions/revision-modes.md
+      - Traffic Split: platform/revisions/traffic-split.md
+      - Revision Lifecycle: platform/revisions/lifecycle.md
+    - Scaling:
+      - platform/scaling/index.md
+      - HTTP Scaler: platform/scaling/http-scaler.md
+      - CPU & Memory Scalers: platform/scaling/cpu-memory-scaler.md
+      - Event Scalers: platform/scaling/event-scalers.md
+      - Custom Scalers: platform/scaling/custom-scalers.md
+      - Scaling Rules Reference: platform/scaling/scaling-rules-reference.md
     - Networking:
       - platform/networking/index.md
       - Ingress: platform/networking/ingress.md
@@ -129,6 +139,8 @@ nav:
     - best-practices/index.md
     - Container Design: best-practices/container-design.md
     - Revision Strategy: best-practices/revision-strategy.md
+    - Blue/Green Deployment: best-practices/blue-green-deployment.md
+    - Canary Deployment: best-practices/canary-deployment.md
     - Scaling: best-practices/scaling.md
     - Networking: best-practices/networking.md
     - Identity and Secrets: best-practices/identity-and-secrets.md
