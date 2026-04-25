@@ -30,19 +30,19 @@ Azure Container Apps provides a flexible platform for building distributed syste
 
 ### 1. Database Integration
 
-- **Azure Cosmos DB** (Coming Soon): Securely connect to NoSQL databases using Managed Identity and Spring Data Cosmos.
-- **Azure SQL** (Coming Soon): Relational database integration with passwordless authentication and Spring Data JPA.
+- [Azure Cosmos DB](cosmosdb.md): Securely connect to NoSQL databases using Managed Identity and RBAC.
+- [Azure SQL](azure-sql.md): Relational database integration with Microsoft Entra authentication and JDBC.
 
 ### 2. Messaging and Caching
 
-- **Redis Cache** (Coming Soon): High-performance distributed caching and session state management with Spring Data Redis.
+- [Redis Cache](redis.md): High-performance distributed caching with Microsoft Entra authentication and TLS.
 - **Service Bus** (Coming Soon): Reliable messaging for asynchronous communication and event-driven architectures.
 
 ### 3. Platform Features
 
 - **Dapr Integration** (Coming Soon): Building distributed microservices using the Dapr framework for service invocation and state management.
-- **Custom Domains** (Coming Soon): Mapping your own branded URLs and SSL certificates to your Java apps.
-- **Storage Integration** (Coming Soon): Cloud file storage and persistent volume mounts for containers using Azure Blob Storage.
+- [Custom Domains](custom-domains.md): Map your own branded URLs and TLS certificates to your Java apps.
+- [Storage Integration](storage.md): Use Azure Blob Storage from Java applications on Container Apps.
 
 ### 4. Security and Identity
 
