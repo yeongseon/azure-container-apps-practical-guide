@@ -17,7 +17,7 @@ content_sources:
 
 # Observability Operations
 
-This guide covers production observability operations for Container Apps using Log Analytics, Application Insights, and distributed tracing.
+This guide covers production observability operations for Container Apps using metrics, Log Analytics, Application Insights, and distributed tracing. Logging-specific runbooks now live in the dedicated [Logging](../logging/index.md) section.
 
 ## Signals and Alerting Architecture
 
@@ -25,7 +25,7 @@ This guide covers production observability operations for Container Apps using L
 ```mermaid
 flowchart TD
     METRICS[Metrics: Requests, ResponseTime, CPU, Memory, Replicas] --> METRIC_ALERTS[Metric alert rules]
-    LOGS[Log Analytics queries:<br/>ContainerAppConsoleLogs_CL<br/>ContainerAppSystemLogs_CL] --> LOG_ALERTS[Log search alert rules]
+    LOGS[Log Analytics queries:<br/>ContainerAppConsoleLogs or _CL<br/>ContainerAppSystemLogs or _CL] --> LOG_ALERTS[Log search alert rules]
     METRIC_ALERTS --> AG[Action Group]
     LOG_ALERTS --> AG
     AG --> EMAIL[Email]
@@ -72,9 +72,13 @@ Run a KQL query for recent errors:
 ```bash
 az monitor log-analytics query \
   --workspace "<log-analytics-workspace-id>" \
-  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s contains 'ERROR' | limit 50" \
+  --analytics-query "ContainerAppConsoleLogs | where ContainerAppName == '$APP_NAME' | where Log contains 'ERROR' | limit 50" \
   --output table
 ```
+
+!!! warning "Workspace schema can still vary"
+    If your workspace uses legacy custom-log tables, switch to `ContainerAppConsoleLogs_CL` and legacy suffixed columns.
+    See [Logging Operations](../logging/index.md) for the native-versus-legacy schema guidance.
 
 Example output:
 
@@ -242,6 +246,9 @@ sequenceDiagram
 - Use sampling strategies to balance fidelity and telemetry cost.
 
 ## See Also
+- [Logging](../logging/index.md)
+- [Log Streaming](../logging/log-streaming.md)
+- [Log Analytics Queries](../logging/log-analytics-queries.md)
 - [Health and Recovery](../../platform/reliability/health-recovery.md)
 - [Cost Optimization](../../platform/reliability/cost-optimization.md)
 

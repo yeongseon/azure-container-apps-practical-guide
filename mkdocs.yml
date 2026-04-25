@@ -246,16 +246,32 @@ nav:
         - mTLS Client Certificates: language-guides/dotnet/recipes/mtls-client-certificates.md
   - Operations:
     - operations/index.md
+    - Alerts: operations/alerts/index.md
+    - Custom Domains:
+      - operations/custom-domains/index.md
+      - Managed Certificates: operations/custom-domains/managed-certificates.md
+      - Bring Your Own Certificates: operations/custom-domains/byo-certificates.md
     - Deployment:
       - operations/deployment/index.md
       - Networking: operations/deployment/networking.md
+    - Disaster Recovery:
+      - operations/disaster-recovery/index.md
+      - Multi-Region Deployment: operations/disaster-recovery/multi-region-deployment.md
+      - Zone Redundancy: operations/disaster-recovery/zone-redundancy.md
+    - Health Probes:
+      - operations/health-probes/index.md
+      - Probe Tuning: operations/health-probes/probe-tuning.md
+    - Image Pull and Registry: operations/image-pull-and-registry/index.md
+    - Logging:
+      - operations/logging/index.md
+      - Log Streaming: operations/logging/log-streaming.md
+      - Log Analytics Queries: operations/logging/log-analytics-queries.md
+      - Diagnostic Settings: operations/logging/diagnostic-settings.md
     - Revision Management: operations/revision-management/index.md
     - Monitoring: operations/monitoring/index.md
-    - Scaling: operations/scaling/index.md
-    - Alerts: operations/alerts/index.md
-    - Image Pull and Registry: operations/image-pull-and-registry/index.md
-    - Secret Rotation: operations/secret-rotation/index.md
     - Recovery: operations/recovery/index.md
+    - Scaling: operations/scaling/index.md
+    - Secret Rotation: operations/secret-rotation/index.md
   - Troubleshooting:
     - troubleshooting/index.md
     - Quick Diagnosis Cards: troubleshooting/quick-diagnosis-cards.md
