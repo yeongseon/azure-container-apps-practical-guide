@@ -201,10 +201,15 @@ nav:
       - Node.js Runtime: language-guides/nodejs/nodejs-runtime.md
       - Recipes:
         - language-guides/nodejs/recipes/index.md
-        - Managed Identity: language-guides/nodejs/recipes/managed-identity.md
+        - Cosmos DB: language-guides/nodejs/recipes/cosmosdb.md
+        - Azure SQL: language-guides/nodejs/recipes/azure-sql.md
+        - Redis Cache: language-guides/nodejs/recipes/redis.md
+        - Blob Storage: language-guides/nodejs/recipes/storage.md
+        - Custom Domains: language-guides/nodejs/recipes/custom-domains.md
+        - Container Registry: language-guides/nodejs/recipes/container-registry.md
         - Easy Auth: language-guides/nodejs/recipes/easy-auth.md
         - Key Vault Reference: language-guides/nodejs/recipes/key-vault-reference.md
-        - Container Registry: language-guides/nodejs/recipes/container-registry.md
+        - Managed Identity: language-guides/nodejs/recipes/managed-identity.md
         - mTLS Client Certificates: language-guides/nodejs/recipes/mtls-client-certificates.md
     - Java:
       - language-guides/java/index.md
@@ -220,10 +225,15 @@ nav:
       - Java Runtime: language-guides/java/java-runtime.md
       - Recipes:
         - language-guides/java/recipes/index.md
-        - Managed Identity: language-guides/java/recipes/managed-identity.md
+        - Cosmos DB: language-guides/java/recipes/cosmosdb.md
+        - Azure SQL: language-guides/java/recipes/azure-sql.md
+        - Redis Cache: language-guides/java/recipes/redis.md
+        - Blob Storage: language-guides/java/recipes/storage.md
+        - Custom Domains: language-guides/java/recipes/custom-domains.md
+        - Container Registry: language-guides/java/recipes/container-registry.md
         - Easy Auth: language-guides/java/recipes/easy-auth.md
         - Key Vault Reference: language-guides/java/recipes/key-vault-reference.md
-        - Container Registry: language-guides/java/recipes/container-registry.md
+        - Managed Identity: language-guides/java/recipes/managed-identity.md
         - mTLS Client Certificates: language-guides/java/recipes/mtls-client-certificates.md
     - .NET:
       - language-guides/dotnet/index.md
@@ -239,10 +249,15 @@ nav:
       - .NET Runtime: language-guides/dotnet/dotnet-runtime.md
       - Recipes:
         - language-guides/dotnet/recipes/index.md
-        - Managed Identity: language-guides/dotnet/recipes/managed-identity.md
+        - Cosmos DB: language-guides/dotnet/recipes/cosmosdb.md
+        - Azure SQL: language-guides/dotnet/recipes/azure-sql.md
+        - Redis Cache: language-guides/dotnet/recipes/redis.md
+        - Blob Storage: language-guides/dotnet/recipes/storage.md
+        - Custom Domains: language-guides/dotnet/recipes/custom-domains.md
+        - Container Registry: language-guides/dotnet/recipes/container-registry.md
         - Easy Auth: language-guides/dotnet/recipes/easy-auth.md
         - Key Vault Reference: language-guides/dotnet/recipes/key-vault-reference.md
-        - Container Registry: language-guides/dotnet/recipes/container-registry.md
+        - Managed Identity: language-guides/dotnet/recipes/managed-identity.md
         - mTLS Client Certificates: language-guides/dotnet/recipes/mtls-client-certificates.md
   - Operations:
     - operations/index.md

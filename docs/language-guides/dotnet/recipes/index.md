@@ -83,10 +83,10 @@ flowchart TD
 
 ### Data & Storage
 
-- **Cosmos DB** (Coming Soon): Connect to Azure Cosmos DB with managed identity and RBAC from .NET.
-- **Azure SQL** (Coming Soon): Access Azure SQL using Microsoft Entra authentication (passwordless).
-- **Redis** (Coming Soon): Integrate Azure Cache for Redis from .NET apps using `StackExchange.Redis`.
-- **Storage** (Coming Soon): Use Azure.Storage.Blobs and Azure Files mounts.
+- [Cosmos DB](cosmosdb.md): Connect to Azure Cosmos DB with managed identity and RBAC from .NET.
+- [Azure SQL](azure-sql.md): Access Azure SQL using Microsoft Entra authentication.
+- [Redis](redis.md): Integrate Azure Cache for Redis from .NET apps.
+- [Storage](storage.md): Use Azure Storage Blobs for uploads and downloads.
 - **Bring Your Own Storage** (Coming Soon): Mount Azure Files shares as persistent volumes.
 
 ### Security & Identity
@@ -98,7 +98,7 @@ flowchart TD
 ### Integration
 
 - **Dapr Integration** (Coming Soon): Add pub/sub, service invocation, and state API patterns with the Dapr .NET SDK.
-- **Custom Domains** (Coming Soon): Configure custom domains and certificates for ingress.
+- [Custom Domains](custom-domains.md): Configure custom domains and certificates for ingress.
 
 ## Verification Steps
 

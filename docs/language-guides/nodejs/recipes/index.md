@@ -81,10 +81,10 @@ flowchart TD
 
 ### Data & Storage
 
-- **Cosmos DB** (Coming Soon): Connect to Azure Cosmos DB with managed identity and RBAC.
-- **Azure SQL** (Coming Soon): Access Azure SQL using Microsoft Entra authentication.
-- **Redis** (Coming Soon): Integrate Azure Cache for Redis from Node.js apps.
-- **Storage** (Coming Soon): Use Blob SDK patterns and Azure Files mounts.
+- [Cosmos DB](cosmosdb.md): Connect to Azure Cosmos DB with managed identity and RBAC.
+- [Azure SQL](azure-sql.md): Access Azure SQL using Microsoft Entra authentication.
+- [Redis](redis.md): Integrate Azure Cache for Redis from Node.js apps.
+- [Storage](storage.md): Use Blob SDK patterns for uploads and downloads.
 
 ### Security & Identity
 
@@ -95,7 +95,7 @@ flowchart TD
 ### Integration
 
 - **Dapr Integration** (Coming Soon): Add pub/sub, service invocation, and state API patterns.
-- **Custom Domains** (Coming Soon): Configure custom domains and certificates for ingress.
+- [Custom Domains](custom-domains.md): Configure custom domains and certificates for ingress.
 
 ## Verification Steps
 
