@@ -9,7 +9,7 @@ content_sources:
         - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
         - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
@@ -19,9 +19,9 @@ content_validation:
     - claim: "Azure Monitor publishes native table references for ContainerAppConsoleLogs and ContainerAppSystemLogs."
       source: "https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs"
       verified: true
-    - claim: "Some environments still require legacy _CL table names and legacy column suffixes."
-      source: "https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs"
-      verified: false
+    - claim: "Microsoft Learn currently documents both `_CL` query examples and native table references for Container Apps logs."
+      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
+      verified: true
 ---
 
 # Log Analytics Queries
@@ -96,11 +96,9 @@ ContainerAppSystemLogs
 | order by FailureCount desc
 ```
 
-Ingress 4xx or 5xx checks depend on what your app emits to console logs. If your app writes structured HTTP status lines, query those fields or strings from `ContainerAppConsoleLogs`.
+Ingress 4xx or 5xx checks depend on what your app emits to console logs. If your app writes structured HTTP status lines, query those fields or strings from the console-log table that exists in your workspace.
 
-!!! warning "Adjust the query to your workspace schema"
-    Native tables typically use columns such as `ContainerAppName`, `RevisionName`, and `Log`.
-    Legacy `_CL` tables use suffixed columns such as `ContainerAppName_s`, `RevisionName_s`, and `Log_s`.
+Microsoft Learn currently shows both schema shapes. The Container Apps log-monitoring article uses `_CL` tables and suffixed columns such as `ContainerAppName_s`, `RevisionName_s`, and `Log_s`, while Azure Monitor's table reference pages document native tables and columns such as `ContainerAppName`, `RevisionName`, and `Log`.
 
 <!-- diagram-id: log-analytics-query-workflow -->
 ```mermaid

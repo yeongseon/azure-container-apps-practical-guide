@@ -8,7 +8,7 @@ content_sources:
         - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
         - https://learn.microsoft.com/azure/frontdoor/front-door-overview
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
@@ -18,9 +18,9 @@ content_validation:
     - claim: "Azure Front Door provides a global entry point that can be used in front of regional origins."
       source: "https://learn.microsoft.com/azure/frontdoor/front-door-overview"
       verified: true
-    - claim: "Built-in cross-region failover for Container Apps was not re-verified in time and should not be assumed."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps"
-      verified: false
+    - claim: "Container Apps is a single-region service, so multi-region resiliency requires separate regional deployments plus an external load-balancing or failover service."
+      source: "https://learn.microsoft.com/azure/reliability/reliability-container-apps"
+      verified: true
 ---
 
 # Disaster Recovery
@@ -59,9 +59,7 @@ Common production pattern:
 - Azure Front Door or Traffic Manager in front
 - replicated backend state such as databases, Key Vault strategy, and ACR replication
 
-!!! warning "Do not assume platform-managed cross-region failover"
-    The Container Apps disaster-recovery librarian task remained queued and did not return evidence in time.
-    Treat cross-region failover as an application and routing architecture pattern until current Microsoft documentation explicitly proves otherwise.
+Microsoft Learn explicitly documents that "Container Apps is a single-region service. If the region becomes unavailable, your environment and apps are also unavailable." For multi-region resiliency, Microsoft Learn directs you to deploy environments across multiple regions and "configure load balancing and failover policies by using a service like Azure Front Door or Azure Traffic Manager."
 
 <!-- diagram-id: multi-region-front-door-topology -->
 ```mermaid
@@ -94,5 +92,6 @@ flowchart TD
 ## Sources
 
 - [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-container-apps)
 - [Azure Front Door overview](https://learn.microsoft.com/azure/frontdoor/front-door-overview)
 - [Azure Traffic Manager overview](https://learn.microsoft.com/azure/traffic-manager/traffic-manager-overview)

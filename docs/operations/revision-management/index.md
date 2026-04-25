@@ -147,8 +147,7 @@ flowchart TD
 !!! tip "Name revisions with meaningful image tags"
     Immutable image tags mapped to commit SHA or release IDs make revision rollback decisions deterministic during incidents.
 
-!!! warning "Do not promote traffic without replica health checks"
-    A revision can exist but still fail under real load. Validate health, restart count, and error rate before increasing traffic.
+Microsoft Learn explicitly ties traffic promotion to readiness: in multiple revision mode, "wait until your readiness probes indicate success before you shift traffic to that revision." A revision can exist before it is ready for safe promotion, so validate health, restart count, and error rate before increasing traffic.
 
 ### Revision Health Validation Commands
 

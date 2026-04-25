@@ -273,8 +273,7 @@ nslookup ca-myapp.internal.<region>.azurecontainerapps.io
 
 Expected result: The FQDN resolves to the environment's internal IP (e.g., `10.0.x.x`).
 
-!!! warning "Cross-environment calls"
-    Internal FQDNs are scoped to the environment. Apps in different environments cannot reach each other via these FQDNs — use VNet peering or public endpoints for cross-environment communication.
+Microsoft Learn documents that internal ingress FQDNs are environment-scoped: internal FQDNs are reachable from the **same environment only**, and traffic between apps in the same environment never leaves that environment. Don't treat internal FQDNs as a cross-environment addressing mechanism.
 
 ## Network Debugging Checklist
 
@@ -417,3 +416,4 @@ az network watcher test-connectivity \
 ## Sources
 - [Container Apps networking](https://learn.microsoft.com/azure/container-apps/networking)
 - [VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)
+- [Communicate between container apps in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/connect-apps)

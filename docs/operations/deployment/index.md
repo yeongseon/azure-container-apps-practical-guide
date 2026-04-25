@@ -122,8 +122,7 @@ flowchart TD
 !!! tip "Prefer immutable image tags per deployment"
     Use tags like `git-<sha>` or date-based release tags to guarantee revision traceability and safe rollback.
 
-!!! warning "Run what-if before production IaC applies"
-    `az deployment group what-if` should be mandatory for production environments to prevent accidental networking, identity, or ingress drift.
+Azure Resource Manager documents `what-if` as the preview step before deployment: "Before deploying an Azure Resource Manager template (ARM template), you can preview the changes that will happen," and for Azure CLI it specifically lists `az deployment group what-if` "to preview changes before deploying a template."
 
 ### Progressive Rollout Example
 
@@ -173,3 +172,4 @@ az containerapp ingress traffic show \
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
 - [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli)
+- [Template deployment what-if - Azure Resource Manager](https://learn.microsoft.com/azure/azure-resource-manager/templates/deploy-what-if)

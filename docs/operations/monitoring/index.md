@@ -76,9 +76,7 @@ az monitor log-analytics query \
   --output table
 ```
 
-!!! warning "Workspace schema can still vary"
-    If your workspace uses legacy custom-log tables, switch to `ContainerAppConsoleLogs_CL` and legacy suffixed columns.
-    See [Logging Operations](../logging/index.md) for the native-versus-legacy schema guidance.
+Microsoft Learn currently documents both schema patterns for Container Apps logs: the Container Apps log-monitoring article queries `ContainerAppConsoleLogs_CL`, while Azure Monitor table references document the native `ContainerAppConsoleLogs` table. Check your workspace schema first, then match the table and column names to that shape.
 
 Example output:
 
@@ -254,4 +252,6 @@ sequenceDiagram
 
 ## Sources
 - [Azure Monitor for Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
+- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)
 - [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)

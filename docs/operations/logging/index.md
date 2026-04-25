@@ -9,7 +9,7 @@ content_sources:
         - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
         - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-25"
   reviewer: agent
   core_claims:
@@ -19,9 +19,9 @@ content_validation:
     - claim: "Azure Monitor publishes table references for ContainerAppConsoleLogs and ContainerAppSystemLogs."
       source: "https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs"
       verified: true
-    - claim: "Some workspaces still surface legacy _CL table names alongside native tables."
-      source: "https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs"
-      verified: false
+    - claim: "Microsoft Learn currently documents `_CL` query examples in the Container Apps log monitoring article and native table references in Azure Monitor table reference pages."
+      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
+      verified: true
 ---
 
 # Logging Operations
@@ -60,14 +60,12 @@ Container Apps operationally produces two useful streams:
 - **Console logs** for application stdout and stderr
 - **System logs** for revision lifecycle, probe, scale, replica, and platform events
 
-For workspace queries, use the table names that exist in your environment. This repository already tracks both the native and legacy naming patterns:
+For workspace queries, use the table names that exist in your environment. Microsoft Learn currently documents both naming patterns:
 
-- Native: `ContainerAppConsoleLogs`, `ContainerAppSystemLogs`
-- Legacy in some workspaces: `ContainerAppConsoleLogs_CL`, `ContainerAppSystemLogs_CL`
+- Native Azure Monitor table reference pages: `ContainerAppConsoleLogs`, `ContainerAppSystemLogs`
+- Container Apps log-monitoring article and CLI examples: `ContainerAppConsoleLogs_CL`, `ContainerAppSystemLogs_CL`
 
-!!! warning "Table naming can differ by workspace generation"
-    This guide uses the native table names first because Azure Monitor publishes table references for `ContainerAppConsoleLogs` and `ContainerAppSystemLogs`.
-    If your workspace still uses the legacy custom-log schema, switch to the `_CL` tables and matching column names.
+Check your workspace schema before standardizing KQL. Microsoft Learn's Container Apps article still shows `_CL` tables and suffixed columns, while Azure Monitor's table reference pages document native tables and unsuffixed columns.
 
 <!-- diagram-id: logging-architecture-overview -->
 ```mermaid
@@ -117,5 +115,7 @@ Validate that the expected tables exist by running a short query against your wo
 ## Sources
 
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
+- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)
 - [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [ContainerAppSystemLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)
