@@ -6,6 +6,14 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/azure/container-apps/
+content_validation:
+  status: pending_review
+  last_reviewed: "2026-04-26"
+  reviewer: ai-agent
+  core_claims:
+    - claim: "Azure Container Apps operations include monitoring, scaling, deployment, and recovery tasks."
+      source: "https://learn.microsoft.com/azure/container-apps/"
+      verified: true
 ---
 
 # Operations
@@ -41,6 +49,7 @@ az account show --output table
 | [Disaster Recovery](disaster-recovery/index.md) | Zone redundancy, multi-region routing, and regional failover patterns |
 | [Networking](deployment/networking.md) | VNet deployment, private endpoints, egress controls |
 | [Health Probes](health-probes/index.md) | Startup, readiness, and liveness probe runbooks |
+| [Jobs](jobs/index.md) | Execution inspection, replay, stop actions, and job health monitoring |
 | [Logging](logging/index.md) | Console and system log streams, streaming, KQL, and export |
 | [Revision Management](revision-management/index.md) | Revision lifecycle, traffic splitting, rollback procedures |
 | [Monitoring](monitoring/index.md) | Log Analytics, metrics, distributed tracing, alerting |
