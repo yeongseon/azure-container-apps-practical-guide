@@ -1,17 +1,35 @@
 ---
 content_sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/environment
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/networking
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/vnet-custom
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/managed-identity
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/containers
+  diagrams:
+    - id: scenario-overview
+      type: flowchart
+      source: self-generated
+      justification: Synthesizes the four reference deployment scenarios used throughout this guide from MSLearn environment, workload profiles, and networking topics.
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/environment
+        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/azure/container-apps/networking
+    - id: scenario-a-public-consumption
+      type: flowchart
+      source: self-generated
+      justification: Illustrates the public Consumption-only scenario described in MSLearn environment and networking guidance.
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/environment
+        - https://learn.microsoft.com/azure/container-apps/networking
+    - id: scenario-b-internal-vnet
+      type: flowchart
+      source: self-generated
+      justification: Illustrates the internal VNet scenario based on MSLearn vnet-custom and networking guidance.
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/vnet-custom
+        - https://learn.microsoft.com/azure/container-apps/networking
+    - id: scenario-c-workload-profiles
+      type: flowchart
+      source: self-generated
+      justification: Illustrates the Workload Profiles scenario based on MSLearn workload-profiles-overview.
+      based_on:
+        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/azure/container-apps/networking
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"
