@@ -205,6 +205,7 @@ def generate_dashboard(documents: list[dict[str, Any]], today: date) -> str:
     lines.append("")
 
     # Mermaid pie chart
+    lines.append("<!-- diagram-id: content-validation-status-pie -->")
     lines.append("```mermaid")
     lines.append("pie title Document Validation Status")
     if verified > 0:
