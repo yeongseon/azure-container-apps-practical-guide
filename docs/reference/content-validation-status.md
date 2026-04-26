@@ -4,7 +4,7 @@ content_sources:
     justification: Auto-generated dashboard tracking content validation status
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: "2026-04-26"
   reviewer: ai-agent
   core_claims:
     - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
@@ -21,19 +21,20 @@ This page tracks the source validation status of all documentation content. All 
 
 ## Summary
 
-*Generated: 2026-04-12*
+*Generated: 2026-04-26*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 100 | 100 | 0 | 0 | 0 |
+| Text Documents | 102 | 102 | 0 | 0 | 0 |
 
 !!! success "All Content Verified"
     All text documents have verified Microsoft Learn sources for core claims.
 
+<!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 100
+    "Verified" : 102
 ```
 
 ## By Section
@@ -45,7 +46,7 @@ pie title Document Validation Status
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
-| [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Health Recovery](../platform/reliability/health-recovery.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
@@ -85,6 +86,8 @@ pie title Document Validation Status
 | [Architecture Overview](../troubleshooting/architecture-overview.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Authentication Failure Timeline](../troubleshooting/kql/identity-and-secrets/authentication-failure-timeline.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Bad Revision Rollout And Rollback](../troubleshooting/playbooks/platform-features/bad-revision-rollout-and-rollback.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Cd Rbac Role Assignment Conflict](../troubleshooting/playbooks/identity-and-configuration/cd-rbac-role-assignment-conflict.md) | ✅ | ✅ Verified | 3/3 | 2026-04-23 |
+| [Cd Reconnect Rbac Conflict](../troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md) | ✅ | ✅ Verified | 3/3 | 2026-04-21 |
 | [Cli Reference](../troubleshooting/first-10-minutes/cli-reference.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Cold Start Scale To Zero](../troubleshooting/lab-guides/cold-start-scale-to-zero.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
 | [Container App Job Execution Failure](../troubleshooting/playbooks/platform-features/container-app-job-execution-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -105,7 +108,7 @@ pie title Document Validation Status
 | [Health Probe Timeline](../troubleshooting/kql/system-and-revisions/health-probe-timeline.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Http Scaling Not Triggering](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Image Pull And Auth Errors](../troubleshooting/kql/system-and-revisions/image-pull-and-auth-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Image Pull Failure](../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Image Pull Failure](../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Ingress Error Analysis](../troubleshooting/kql/ingress-and-networking/ingress-error-analysis.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Ingress Not Reachable](../troubleshooting/playbooks/ingress-and-networking/ingress-not-reachable.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
