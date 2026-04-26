@@ -58,8 +58,11 @@ def extract_mslearn_urls(frontmatter: dict) -> List[str]:
     """Extract all MSLearn URLs from content_sources in frontmatter."""
     urls = set()
 
-    content_sources = frontmatter.get("content_sources", {})
-    diagrams = content_sources.get("diagrams", [])
+    content_sources = frontmatter.get("content_sources")
+    if isinstance(content_sources, dict):
+        diagrams = content_sources.get("diagrams", []) or []
+    else:
+        diagrams = []
 
     for diagram in diagrams:
         if isinstance(diagram, dict):
