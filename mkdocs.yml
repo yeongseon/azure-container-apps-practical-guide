@@ -100,7 +100,7 @@ nav:
   - Platform:
     - platform/index.md
     - Architecture:
-      - How Container Apps Works: platform/architecture/how-container-apps-works.md
+      - Overview: platform/architecture/index.md
       - Resource Relationships: platform/architecture/resource-relationships.md
     - Deployment Scenarios: platform/deployment-scenarios.md
     - Environments:
