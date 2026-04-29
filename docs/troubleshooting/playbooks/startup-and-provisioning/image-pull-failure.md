@@ -1,17 +1,17 @@
 ---
 content_sources:
-  diagrams:
-    - id: troubleshooting-decision-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/containers#container-registries
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/azure/container-apps/firewall-integration
-        - https://learn.microsoft.com/azure/container-apps/user-defined-routes
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
+diagrams:
+  - id: troubleshooting-decision-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/containers#container-registries
+      - https://learn.microsoft.com/azure/container-apps/managed-identity
+      - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+      - https://learn.microsoft.com/azure/container-apps/firewall-integration
+      - https://learn.microsoft.com/azure/container-apps/user-defined-routes
+      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+      - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"

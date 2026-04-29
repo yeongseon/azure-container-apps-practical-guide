@@ -1,14 +1,14 @@
 ---
 content_sources:
-  diagrams:
-    - id: aca-mtls-troubleshooting-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
-        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+diagrams:
+  - id: aca-mtls-troubleshooting-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+      - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+      - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 content_validation:
   status: verified
   last_reviewed: "2026-04-25"

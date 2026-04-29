@@ -1,12 +1,12 @@
 ---
 content_sources:
-  diagrams:
-    - id: troubleshooting-decision-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/scale-app
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+diagrams:
+  - id: troubleshooting-decision-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/scale-app
+      - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"

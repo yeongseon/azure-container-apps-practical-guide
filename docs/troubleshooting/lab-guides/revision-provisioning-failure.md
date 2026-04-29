@@ -1,12 +1,12 @@
 ---
 content_sources:
-  diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/azure/container-apps/revisions
+diagrams:
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/health-probes
+      - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"

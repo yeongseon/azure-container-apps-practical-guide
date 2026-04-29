@@ -1,11 +1,11 @@
 ---
 content_sources:
-  diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/scale-app
+diagrams:
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/scale-app
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"

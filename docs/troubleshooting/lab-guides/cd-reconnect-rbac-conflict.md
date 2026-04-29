@@ -1,12 +1,12 @@
 ---
 content_sources:
-  diagrams:
-    - id: architecture
-      type: sequence
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions
-        - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
+diagrams:
+  - id: architecture
+    type: sequence
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/github-actions
+      - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
 content_validation:
   status: verified
   last_reviewed: "2026-04-21"

@@ -1,13 +1,30 @@
 ---
 content_sources:
-  diagrams:
-    - id: use-this-section-when-you-want
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/scale-app
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/azure/container-apps/revisions
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/azure/container-apps/scale-app
+content_validation:
+  status: pending_review
+  last_reviewed: 2026-04-29
+  reviewer: agent
+  core_claims:
+    - claim: "Azure Container Apps supports log streaming and console access for live troubleshooting."
+      source: https://learn.microsoft.com/azure/container-apps/troubleshooting
+      verified: true
+    - claim: "Revisions allow traffic splitting and rollback to a previous known-good state."
+      source: https://learn.microsoft.com/azure/container-apps/revisions
+      verified: true
+diagrams:
+  - id: use-this-section-when-you-want
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+      - https://learn.microsoft.com/azure/container-apps/revisions
+      - https://learn.microsoft.com/azure/container-apps/scale-app
 ---
 
 # Lab Guides
@@ -31,6 +48,37 @@ All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp
 | Dapr Integration | Troubleshoot Dapr sidecar and component configuration issues. | Intermediate | 35-45 min | [Guide](./dapr-integration.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/dapr-integration) |
 | Observability and Tracing | Set up OpenTelemetry and Application Insights, troubleshoot missing traces and metrics. | Intermediate | 35-45 min | [Guide](./observability-tracing.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/observability-tracing) |
 | CD Reconnect RBAC Conflict | Reproduces `AppRbacDeployment: The role assignment already exists` after a previous CD disconnect left RBAC role assignments behind. | Intermediate | 25-35 min | [Guide](./cd-reconnect-rbac-conflict.md) | [Directory](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/cd-reconnect-rbac-conflict) |
+| Subnet CIDR Exhaustion | Demonstrates ACA environment creation failure when subnet is too small (/29) and resolves by resizing to /27. | Intermediate | 20-30 min | [Guide](./subnet-cidr-exhaustion.md) | Inline guide only |
+| UDR and NSG Egress Blocked | Shows replica startup failure when required outbound FQDNs are blocked by a UDR/NVA; resolves by allowing required rules. | Advanced | 30-45 min | [Guide](./udr-nsg-egress-blocked.md) | Inline guide only |
+| Private Endpoint DNS Failure | Reproduces DNS NXDOMAIN when Private DNS Zone is not linked to ACA VNet; resolves by adding VNet link. | Intermediate | 25-35 min | [Guide](./private-endpoint-dns-failure.md) | Inline guide only |
+| Egress IP Change | Documents egress IP shift when environment is recreated and shows how to update downstream firewall allowlists. | Intermediate | 20-30 min | [Guide](./egress-ip-change.md) | Inline guide only |
+| Custom Domain TLS Renewal | Reproduces managed certificate stuck in Pending when CNAME/asuid TXT records are missing or stale. | Intermediate | 20-30 min | [Guide](./custom-domain-tls-renewal.md) | Inline guide only |
+| WebSocket and gRPC Ingress | Demonstrates broken WebSocket connection when session affinity is off; resolves by enabling sticky sessions. | Intermediate | 25-35 min | [Guide](./websocket-grpc-ingress.md) | Inline guide only |
+| Session Affinity Failure | Shows state loss across replicas when sticky sessions are disabled; resolves by enabling ingress affinity. | Intermediate | 20-30 min | [Guide](./session-affinity-failure.md) | Inline guide only |
+| Azure Files Mount Failure | Reproduces SMB mount error when storage account key or share name is wrong; resolves by correcting environment storage config. | Intermediate | 25-35 min | [Guide](./azure-files-mount-failure.md) | Inline guide only |
+| EmptyDir Disk Full | Shows OOMKill-like restart when ephemeral storage is exhausted by log accumulation; resolves by increasing `ephemeralStorage` limit. | Intermediate | 20-30 min | [Guide](./emptydir-disk-full.md) | Inline guide only |
+| Volume Permission Denied | Reproduces `permission denied` when container UID does not match volume mount ownership; resolves by setting `mountOptions`. | Intermediate | 25-35 min | [Guide](./volume-permission-denied.md) | Inline guide only |
+| CPU Throttling | Uses a CPU-intensive workload to trigger throttling; shows metrics and resolves by increasing CPU allocation or scaling out. | Intermediate | 25-35 min | [Guide](./cpu-throttling.md) | Inline guide only |
+| Memory Leak OOMKilled | Injects a memory leak to trigger OOMKilled restarts; resolves by profiling and patching the leak plus setting memory limits. | Advanced | 35-45 min | [Guide](./memory-leak-oomkilled.md) | Inline guide only |
+| Replica Load Imbalance | Demonstrates uneven replica utilization under steady load; resolves by tuning KEDA scale rules and concurrency. | Advanced | 30-40 min | [Guide](./replica-load-imbalance.md) | Inline guide only |
+| Docker Hub Rate Limit | Reproduces `toomanyrequests` pull error from Docker Hub anonymous pulls; resolves by adding authenticated registry credentials. | Beginner | 15-25 min | [Guide](./docker-hub-rate-limit.md) | Inline guide only |
+| Image Size Startup Delay | Shows cold-start latency from a large image (>1 GB); resolves by multi-stage build and layer caching. | Intermediate | 25-35 min | [Guide](./image-size-startup-delay.md) | Inline guide only |
+| Multi-Arch Image Mismatch | Reproduces `exec format error` when an ARM64-only image is pulled on AMD64 ACA host; resolves by building a multi-arch manifest. | Intermediate | 20-30 min | [Guide](./multi-arch-image-mismatch.md) | Inline guide only |
+| Log Analytics Ingestion Gap | Demonstrates missing logs when diagnostic settings are not configured; resolves by enabling and linking Log Analytics workspace. | Beginner | 15-25 min | [Guide](./log-analytics-ingestion-gap.md) | Inline guide only |
+| App Insights Connection String Missing | Shows `No telemetry` when APPLICATIONINSIGHTS_CONNECTION_STRING env var is absent; resolves by injecting the secret. | Beginner | 15-20 min | [Guide](./appinsights-connection-string-missing.md) | Inline guide only |
+| Diagnostic Settings Missing | Reproduces metrics/log gaps when Azure Monitor diagnostic settings are not created; resolves by adding diagnostic setting. | Beginner | 15-20 min | [Guide](./diagnostic-settings-missing.md) | Inline guide only |
+| GitHub Actions OIDC Failure | Reproduces AADSTS70021 when federated credential subject does not match repo/branch; resolves by correcting subject claim. | Intermediate | 25-35 min | [Guide](./github-actions-oidc-failure.md) | Inline guide only |
+| Bicep Deployment Timeout | Shows revision stuck in Provisioning during IaC deploy; resolves by reducing container startup time and tuning probe settings. | Intermediate | 25-35 min | [Guide](./bicep-deployment-timeout.md) | Inline guide only |
+| Revision History Limit | Demonstrates `RevisionCountLimitReached` (100-revision cap); resolves by deactivating and deleting old revisions. | Beginner | 15-20 min | [Guide](./revision-history-limit.md) | Inline guide only |
+| Subscription Quota Exceeded | Reproduces `QuotaExceeded` when core quota is exhausted; resolves by requesting quota increase or moving to another region. | Intermediate | 20-30 min | [Guide](./subscription-quota-exceeded.md) | Inline guide only |
+| Workload Profile Mismatch | Shows cost and performance issues from selecting wrong profile (Consumption vs Dedicated); resolves by switching profile. | Intermediate | 25-35 min | [Guide](./workload-profile-mismatch.md) | Inline guide only |
+| Min Replicas Cost Surprise | Demonstrates unexpected billing from `minReplicas: 2` during off-hours; resolves by setting `minReplicas: 0` with cold-start mitigation. | Beginner | 15-20 min | [Guide](./min-replicas-cost-surprise.md) | Inline guide only |
+| Scheduled Job Missed | Reproduces missed cron job execution due to UTC timezone mismatch; resolves by correcting cron expression. | Beginner | 15-20 min | [Guide](./scheduled-job-missed.md) | Inline guide only |
+| Event Job Storm | Demonstrates queue-backed job storm from low `maxExecutions`; resolves by tuning KEDA scale rules. | Advanced | 30-40 min | [Guide](./event-job-storm.md) | Inline guide only |
+| Dapr State Store Failure | Reproduces Dapr state-store component failure from wrong component name or missing scope; resolves by correcting YAML. | Intermediate | 25-35 min | [Guide](./dapr-state-store-failure.md) | Inline guide only |
+| Dapr Pub/Sub Failure | Shows messages not delivered when Dapr pub/sub component has wrong topic or missing consumer app scope. | Intermediate | 25-35 min | [Guide](./dapr-pubsub-failure.md) | Inline guide only |
+| EasyAuth Entra ID Failure | Reproduces AADSTS50011 redirect URI mismatch after enabling built-in auth; resolves by updating app registration reply URLs. | Intermediate | 20-30 min | [Guide](./easyauth-entra-id-failure.md) | Inline guide only |
+| Multi-Region Failover | Demonstrates traffic failing to shift to secondary region when Front Door health probe is misconfigured. | Advanced | 35-50 min | [Guide](./multi-region-failover.md) | Inline guide only |
 
 ## Suggested Learning Path
 

@@ -1,12 +1,27 @@
 ---
 content_sources:
-  diagrams:
-    - id: ca-myapp-0000001-true-100-1-healthy-running
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/overview
+content_validation:
+  status: pending_review
+  last_reviewed: 2026-04-29
+  reviewer: agent
+  core_claims:
+    - claim: "Azure Container Apps provides built-in troubleshooting tools including log streaming and console access."
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+      verified: true
+    - claim: "Container Apps revisions are immutable snapshots that enable traffic splitting and rollback."
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+diagrams:
+  - id: ca-myapp-0000001-true-100-1-healthy-running
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+      - https://learn.microsoft.com/en-us/azure/container-apps/overview
 ---
 
 # Troubleshooting
@@ -99,6 +114,58 @@ Use the category that best matches your first confirmed symptom.
 - [Dapr Sidecar or Component Failure](platform-features/dapr-sidecar-or-component-failure.md)
 - [Container App Job Execution Failure](platform-features/container-app-job-execution-failure.md)
 - [Bad Revision Rollout and Rollback](platform-features/bad-revision-rollout-and-rollback.md)
+- [Scheduled Job Missed Execution](platform-features/scheduled-job-missed.md)
+- [Event-Triggered Job Storm](platform-features/event-job-storm.md)
+- [Dapr State Store Config Failure](platform-features/dapr-state-store-failure.md)
+- [Dapr Pub/Sub Config Failure](platform-features/dapr-pubsub-failure.md)
+- [EasyAuth Entra ID Config Failure](platform-features/easyauth-entra-id-failure.md)
+- [Multi-Region Failover Failure](platform-features/multi-region-failover.md)
+
+### Networking Advanced
+
+- [Subnet CIDR Exhaustion](networking-advanced/subnet-cidr-exhaustion.md)
+- [UDR and NSG Egress Blocked](networking-advanced/udr-nsg-egress-blocked.md)
+- [Private Endpoint DNS Failure](networking-advanced/private-endpoint-dns-failure.md)
+- [Egress IP Change](networking-advanced/egress-ip-change.md)
+- [Custom Domain TLS Renewal](networking-advanced/custom-domain-tls-renewal.md)
+- [WebSocket and gRPC Ingress](networking-advanced/websocket-grpc-ingress.md)
+- [Session Affinity Failure](networking-advanced/session-affinity-failure.md)
+
+### Storage and Volumes
+
+- [Azure Files Mount Failure](storage-and-volumes/azure-files-mount-failure.md)
+- [EmptyDir Disk Full](storage-and-volumes/emptydir-disk-full.md)
+- [Volume Permission Denied](storage-and-volumes/volume-permission-denied.md)
+
+### Observability
+
+- [Log Analytics Ingestion Gap](observability/log-analytics-ingestion-gap.md)
+- [App Insights Connection String Missing](observability/appinsights-connection-string-missing.md)
+- [Diagnostic Settings Missing](observability/diagnostic-settings-missing.md)
+
+### Deployment and CI/CD
+
+- [GitHub Actions OIDC Failure](deployment-and-cicd/github-actions-oidc-failure.md)
+- [Bicep Deployment Timeout](deployment-and-cicd/bicep-deployment-timeout.md)
+- [Revision History Limit](deployment-and-cicd/revision-history-limit.md)
+
+### Cost and Quota
+
+- [Subscription Quota Exceeded](cost-and-quota/subscription-quota-exceeded.md)
+- [Workload Profile Mismatch](cost-and-quota/workload-profile-mismatch.md)
+- [Min Replicas Cost Surprise](cost-and-quota/min-replicas-cost-surprise.md)
+
+### Startup and Provisioning (extended)
+
+- [Docker Hub Rate Limit](startup-and-provisioning/docker-hub-rate-limit.md)
+- [Image Size Startup Delay](startup-and-provisioning/image-size-startup-delay.md)
+- [Multi-Arch Image Mismatch](startup-and-provisioning/multi-arch-image-mismatch.md)
+
+### Scaling and Runtime (extended)
+
+- [CPU Throttling](scaling-and-runtime/cpu-throttling.md)
+- [Memory Leak OOMKilled](scaling-and-runtime/memory-leak-oomkilled.md)
+- [Replica Load Imbalance](scaling-and-runtime/replica-load-imbalance.md)
 
 ## How to Use This Hub
 
@@ -112,3 +179,9 @@ Use the category that best matches your first confirmed symptom.
 - [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)
 - [Troubleshooting Methodology](../methodology/index.md)
 - [Detector Map](../methodology/detector-map.md)
+
+## Sources
+
+- [Azure Container Apps troubleshooting overview](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Azure Container Apps overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

@@ -347,6 +347,44 @@ nav:
         - Dapr Sidecar or Component Failure: troubleshooting/playbooks/platform-features/dapr-sidecar-or-component-failure.md
         - Container App Job Execution Failure: troubleshooting/playbooks/platform-features/container-app-job-execution-failure.md
         - Bad Revision Rollout and Rollback: troubleshooting/playbooks/platform-features/bad-revision-rollout-and-rollback.md
+        - Scheduled Job Missed Execution: troubleshooting/playbooks/platform-features/scheduled-job-missed.md
+        - Event-Triggered Job Storm: troubleshooting/playbooks/platform-features/event-job-storm.md
+        - Dapr State Store Config Failure: troubleshooting/playbooks/platform-features/dapr-state-store-failure.md
+        - Dapr Pub/Sub Config Failure: troubleshooting/playbooks/platform-features/dapr-pubsub-failure.md
+        - EasyAuth Entra ID Config Failure: troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md
+        - Multi-Region Failover Failure: troubleshooting/playbooks/platform-features/multi-region-failover.md
+      - Networking Advanced:
+        - Subnet CIDR Exhaustion: troubleshooting/playbooks/networking-advanced/subnet-cidr-exhaustion.md
+        - UDR and NSG Egress Blocked: troubleshooting/playbooks/networking-advanced/udr-nsg-egress-blocked.md
+        - Private Endpoint DNS Failure: troubleshooting/playbooks/networking-advanced/private-endpoint-dns-failure.md
+        - Egress IP Change: troubleshooting/playbooks/networking-advanced/egress-ip-change.md
+        - Custom Domain TLS Renewal: troubleshooting/playbooks/networking-advanced/custom-domain-tls-renewal.md
+        - WebSocket and gRPC Ingress: troubleshooting/playbooks/networking-advanced/websocket-grpc-ingress.md
+        - Session Affinity Failure: troubleshooting/playbooks/networking-advanced/session-affinity-failure.md
+      - Storage and Volumes:
+        - Azure Files Mount Failure: troubleshooting/playbooks/storage-and-volumes/azure-files-mount-failure.md
+        - EmptyDir Disk Full: troubleshooting/playbooks/storage-and-volumes/emptydir-disk-full.md
+        - Volume Permission Denied: troubleshooting/playbooks/storage-and-volumes/volume-permission-denied.md
+      - Observability:
+        - Log Analytics Ingestion Gap: troubleshooting/playbooks/observability/log-analytics-ingestion-gap.md
+        - App Insights Connection String Missing: troubleshooting/playbooks/observability/appinsights-connection-string-missing.md
+        - Diagnostic Settings Missing: troubleshooting/playbooks/observability/diagnostic-settings-missing.md
+      - Deployment and CI/CD:
+        - GitHub Actions OIDC Failure: troubleshooting/playbooks/deployment-and-cicd/github-actions-oidc-failure.md
+        - Bicep Deployment Timeout: troubleshooting/playbooks/deployment-and-cicd/bicep-deployment-timeout.md
+        - Revision History Limit: troubleshooting/playbooks/deployment-and-cicd/revision-history-limit.md
+      - Cost and Quota:
+        - Subscription Quota Exceeded: troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md
+        - Workload Profile Mismatch: troubleshooting/playbooks/cost-and-quota/workload-profile-mismatch.md
+        - Min Replicas Cost Surprise: troubleshooting/playbooks/cost-and-quota/min-replicas-cost-surprise.md
+      - Startup and Provisioning (extended):
+        - Docker Hub Rate Limit: troubleshooting/playbooks/startup-and-provisioning/docker-hub-rate-limit.md
+        - Image Size Startup Delay: troubleshooting/playbooks/startup-and-provisioning/image-size-startup-delay.md
+        - Multi-Arch Image Mismatch: troubleshooting/playbooks/startup-and-provisioning/multi-arch-image-mismatch.md
+      - Scaling and Runtime (extended):
+        - CPU Throttling: troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md
+        - Memory Leak OOMKilled: troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md
+        - Replica Load Imbalance: troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md
     - Methodology:
       - troubleshooting/methodology/index.md
       - Detector Map: troubleshooting/methodology/detector-map.md
@@ -411,6 +449,37 @@ nav:
       - Dapr Integration: troubleshooting/lab-guides/dapr-integration.md
       - Observability and Tracing: troubleshooting/lab-guides/observability-tracing.md
       - CD Reconnect RBAC Conflict: troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md
+      - Subnet CIDR Exhaustion Lab: troubleshooting/lab-guides/subnet-cidr-exhaustion.md
+      - UDR and NSG Egress Blocked Lab: troubleshooting/lab-guides/udr-nsg-egress-blocked.md
+      - Private Endpoint DNS Failure Lab: troubleshooting/lab-guides/private-endpoint-dns-failure.md
+      - Egress IP Change Lab: troubleshooting/lab-guides/egress-ip-change.md
+      - Custom Domain TLS Renewal Lab: troubleshooting/lab-guides/custom-domain-tls-renewal.md
+      - WebSocket and gRPC Ingress Lab: troubleshooting/lab-guides/websocket-grpc-ingress.md
+      - Session Affinity Failure Lab: troubleshooting/lab-guides/session-affinity-failure.md
+      - Azure Files Mount Failure Lab: troubleshooting/lab-guides/azure-files-mount-failure.md
+      - EmptyDir Disk Full Lab: troubleshooting/lab-guides/emptydir-disk-full.md
+      - Volume Permission Denied Lab: troubleshooting/lab-guides/volume-permission-denied.md
+      - CPU Throttling Lab: troubleshooting/lab-guides/cpu-throttling.md
+      - Memory Leak OOMKilled Lab: troubleshooting/lab-guides/memory-leak-oomkilled.md
+      - Replica Load Imbalance Lab: troubleshooting/lab-guides/replica-load-imbalance.md
+      - Docker Hub Rate Limit Lab: troubleshooting/lab-guides/docker-hub-rate-limit.md
+      - Image Size Startup Delay Lab: troubleshooting/lab-guides/image-size-startup-delay.md
+      - Multi-Arch Image Mismatch Lab: troubleshooting/lab-guides/multi-arch-image-mismatch.md
+      - Log Analytics Ingestion Gap Lab: troubleshooting/lab-guides/log-analytics-ingestion-gap.md
+      - App Insights Connection String Missing Lab: troubleshooting/lab-guides/appinsights-connection-string-missing.md
+      - Diagnostic Settings Missing Lab: troubleshooting/lab-guides/diagnostic-settings-missing.md
+      - GitHub Actions OIDC Failure Lab: troubleshooting/lab-guides/github-actions-oidc-failure.md
+      - Bicep Deployment Timeout Lab: troubleshooting/lab-guides/bicep-deployment-timeout.md
+      - Revision History Limit Lab: troubleshooting/lab-guides/revision-history-limit.md
+      - Subscription Quota Exceeded Lab: troubleshooting/lab-guides/subscription-quota-exceeded.md
+      - Workload Profile Mismatch Lab: troubleshooting/lab-guides/workload-profile-mismatch.md
+      - Min Replicas Cost Surprise Lab: troubleshooting/lab-guides/min-replicas-cost-surprise.md
+      - Scheduled Job Missed Lab: troubleshooting/lab-guides/scheduled-job-missed.md
+      - Event Job Storm Lab: troubleshooting/lab-guides/event-job-storm.md
+      - Dapr State Store Failure Lab: troubleshooting/lab-guides/dapr-state-store-failure.md
+      - Dapr Pub/Sub Failure Lab: troubleshooting/lab-guides/dapr-pubsub-failure.md
+      - EasyAuth Entra ID Failure Lab: troubleshooting/lab-guides/easyauth-entra-id-failure.md
+      - Multi-Region Failover Lab: troubleshooting/lab-guides/multi-region-failover.md
   - Reference:
     - reference/index.md
     - Content Validation: reference/content-validation-status.md

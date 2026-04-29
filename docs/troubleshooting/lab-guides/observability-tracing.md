@@ -1,13 +1,13 @@
 ---
 content_sources:
-  diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-        - https://learn.microsoft.com/azure/container-apps/observability
-        - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
+diagrams:
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+      - https://learn.microsoft.com/azure/container-apps/observability
+      - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"

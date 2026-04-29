@@ -1,13 +1,13 @@
 ---
 content_sources:
-  diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
+diagrams:
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+      - https://learn.microsoft.com/azure/container-apps/revisions
+      - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"

@@ -1,15 +1,15 @@
 ---
 content_sources:
-  diagrams:
-    - id: troubleshooting-decision-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions
-        - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
-        - https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
-        - https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
-        - https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
+diagrams:
+  - id: troubleshooting-decision-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/github-actions
+      - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
+      - https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
+      - https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
+      - https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
 content_validation:
   status: verified
   last_reviewed: "2026-04-23"
@@ -81,7 +81,7 @@ When you reconnect GitHub Actions continuous deployment (CD) to a Container App 
 
 ```text
 RoleAssignmentExists: The role assignment already exists.
-The ID of the existing role assignment is 716c4d159bc8476da3c16ccb70082517.
+The ID of the existing role assignment is <role-assignment-id-hex>.
 ```
 
 ```text
@@ -94,7 +94,7 @@ The error appears during the deployment step that creates RBAC role assignments 
 The CD wizard or CLI fails atomically: no new workflow is committed to the repository, and no new secrets are written. The Container App itself continues to run normally on the previous revision.
 
 !!! note "Verified against the live API"
-    The error sample above (`716c4d15…`) was captured against a real Container App in `koreacentral` on 2026-04-22 by issuing a PUT to `Microsoft.Authorization/roleAssignments` with a fresh GUID for an `(ACR scope, service-principal, AcrPush)` triple that already had an assignment.
+    The error sample above is a representative example of the error format returned when a duplicate role assignment is detected by the Azure RBAC API.
 
 ### Why this scenario is confusing
 
@@ -165,13 +165,13 @@ The next four hypotheses are *lookup-failure modes* rather than independent root
 The error returned by the deployment includes the conflicting role assignment ID without hyphens. The example below was captured during live validation against `acrcdrbacdtyz5d` in `koreacentral`:
 
 ```text
-The ID of the existing role assignment is 716c4d159bc8476da3c16ccb70082517
+The ID of the existing role assignment is <role-assignment-id-hex>
 ```
 
 Convert this 32-character hex string into a standard GUID by inserting hyphens at positions 8, 12, 16, and 20:
 
 ```text
-716c4d15-9bc8-476d-a3c1-6ccb70082517
+<role-assignment-id>
 ```
 
 ### Platform Signals
@@ -186,7 +186,7 @@ Convert this 32-character hex string into a standard GUID by inserting hyphens a
 
 ```bash
 SUBSCRIPTION_ID="<subscription-id>"
-ROLE_ASSIGNMENT_ID="716c4d15-9bc8-476d-a3c1-6ccb70082517"
+ROLE_ASSIGNMENT_ID="<role-assignment-id>"
 
 az role assignment list \
     --subscription "$SUBSCRIPTION_ID" \
@@ -217,7 +217,7 @@ The `AuthorizationResources` table in Azure Resource Graph indexes role assignme
 
 ```bash
 az extension add --name resource-graph --upgrade
-RA_GUID="716c4d15-9bc8-476d-a3c1-6ccb70082517"
+RA_GUID="<role-assignment-id>"
 
 az graph query --first 100 --graph-query "
 AuthorizationResources
@@ -642,7 +642,7 @@ Container Apps CD assignments commonly land at the resource group, ACR, or Conta
 
 ```bash
 SUBSCRIPTION_ID="<subscription-id>"
-ROLE_ASSIGNMENT_ID="716c4d15-9bc8-476d-a3c1-6ccb70082517"
+ROLE_ASSIGNMENT_ID="<role-assignment-id>"
 
 az extension add --name resource-graph --upgrade
 

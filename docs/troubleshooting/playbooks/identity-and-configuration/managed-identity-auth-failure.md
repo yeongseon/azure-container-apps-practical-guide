@@ -1,13 +1,13 @@
 ---
 content_sources:
-  diagrams:
-    - id: troubleshooting-decision-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
-        - https://learn.microsoft.com/azure/key-vault/general/authentication
+diagrams:
+  - id: troubleshooting-decision-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+      - https://learn.microsoft.com/azure/container-apps/managed-identity
+      - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
+      - https://learn.microsoft.com/azure/key-vault/general/authentication
 content_validation:
   status: verified
   last_reviewed: "2026-04-12"
