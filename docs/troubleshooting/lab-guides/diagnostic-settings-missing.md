@@ -13,7 +13,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/log-options
       - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:

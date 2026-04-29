@@ -8,7 +8,7 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
   core_claims:
     - claim: "Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests."

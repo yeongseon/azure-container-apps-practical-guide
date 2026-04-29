@@ -9,7 +9,7 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/plans
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
   core_claims:
     - claim: "Azure Container Apps supports scale settings with a minimum replica count of 0, which allows a revision to scale to zero."

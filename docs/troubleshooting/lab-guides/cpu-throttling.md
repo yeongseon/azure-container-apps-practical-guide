@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/metrics
       - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:

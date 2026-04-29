@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:

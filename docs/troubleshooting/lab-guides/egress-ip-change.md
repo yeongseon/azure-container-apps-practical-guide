@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/networking
       - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:

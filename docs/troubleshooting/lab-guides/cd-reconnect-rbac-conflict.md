@@ -9,7 +9,7 @@ diagrams:
       - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
 content_validation:
   status: verified
-  last_reviewed: "2026-04-21"
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
   core_claims:
     - claim: "Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition."

@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
       - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:

@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
       - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:

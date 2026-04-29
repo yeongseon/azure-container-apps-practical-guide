@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
       - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:

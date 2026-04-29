@@ -13,7 +13,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
       - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
