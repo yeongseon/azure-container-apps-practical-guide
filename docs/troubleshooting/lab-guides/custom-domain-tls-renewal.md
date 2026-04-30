@@ -13,6 +13,12 @@ content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Custom domain TLS renewal requires registered domain + managed cert; infra-only confirmation"
+
   core_claims:
     - claim: "Managed certificates continue to renew automatically only while the app keeps meeting the documented requirements."
       source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates

@@ -11,9 +11,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
       - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "EasyAuth requires Entra app registration + redirect URI mismatch"
+
   core_claims:
     - claim: "Azure Container Apps can use built-in auth with Microsoft Entra ID."
       source: https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra

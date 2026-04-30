@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
       - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "NSG deny-443 created + HTTP 200→404→200 via ingress toggle confirmed"
+
   core_claims:
     - claim: "Workload profiles environments support user-defined routes."
       source: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes

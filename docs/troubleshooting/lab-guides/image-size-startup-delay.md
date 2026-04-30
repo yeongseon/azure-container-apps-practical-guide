@@ -11,9 +11,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/containers
       - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Large image startup delay requires specific large image"
+
   core_claims:
     - claim: "Container start troubleshooting in Azure Container Apps includes validating startup timing and revision readiness."
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures

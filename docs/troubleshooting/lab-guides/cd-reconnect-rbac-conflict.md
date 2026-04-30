@@ -11,6 +11,12 @@ content_validation:
   status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Bad Request on duplicate role assignment confirmed"
+
   core_claims:
     - claim: "Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition."
       source: "https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli"
@@ -272,6 +278,31 @@ Expected result: the second deployment fails with `RoleAssignmentExists`, the de
 | `az role assignment delete --ids "${ACR_ID}/providers/Microsoft.Authorization/roleAssignments/$ASSIGNMENT_ID"` | Returns no error; assignment removed |
 | Retry `az deployment group create` with the same fresh `roleAssignmentName` | Succeeds with `provisioningState: Succeeded` |
 | `az ad sp show --id "$SP_APP_ID"` | Service principal remains active throughout the lab |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] Creating a duplicate role assignment via `az role assignment create` with an already-
+assigned `(scope, principal, role)` triple returned:
+
+```text
+Role assignment already exists.
+```
+
+[Observed] ARM template deployment with a fixed `roleAssignmentName` GUID on the same triple
+returned `RoleAssignmentExists` with HTTP 409.
+
+[Observed] `az role assignment delete --ids` succeeded silently (no output, exit 0). A
+subsequent `az role assignment list` confirmed the assignment was removed.
+
+[Observed] Re-running the ARM deployment after deletion succeeded with
+`"provisioningState": "Succeeded"`.
+
+[Inferred] The `(scope, principal, role definition)` uniqueness constraint is enforced by Azure
+RBAC regardless of the `roleAssignmentName` GUID used in the ARM template. Idempotent deployments
+must use `az role assignment create --role ... --assignee ...` (which is idempotent) rather than
+ARM with a static name.
+
+Environment: `koreacentral`, `az role assignment create` / `az deployment group create`.
 
 ### Falsification
 

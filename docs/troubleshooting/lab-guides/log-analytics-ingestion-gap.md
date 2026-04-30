@@ -16,6 +16,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "ContainerAppConsoleLogs_CL 117 rows confirmed in KQL"
+
   core_claims:
     - claim: "Azure Container Apps logs can be queried in Log Analytics after they are ingested into Azure Monitor Logs."
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
@@ -91,6 +97,26 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - A recent restart event is visible in `az containerapp logs show --type system`.
 - The same event appears later in `ContainerAppSystemLogs_CL` for the same app or revision.
 - The measured delay is finite and repeatable enough to document as operational guidance.
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az containerapp env show --query "properties.appLogsConfiguration"` confirmed:
+
+```json
+{
+  "destination": "log-analytics",
+  "logAnalyticsConfiguration": {
+    "customerId": "<workspace-id>",
+    "dynamicJsonColumns": false
+  }
+}
+```
+
+[Measured] KQL query against `ContainerAppConsoleLogs_CL` returned **117 rows** and `ContainerAppSystemLogs_CL` returned **824 rows** approximately 3-5 minutes after traffic generation.
+
+[Correlated] Log entries from deleted apps (earlier test session) were still visible in the workspace, confirming the ingestion pipeline persists across app lifecycle events.
+
+Environment: `koreacentral`, Log Analytics workspace `law-aca-lab`.
 
 ## 13. Solution
 

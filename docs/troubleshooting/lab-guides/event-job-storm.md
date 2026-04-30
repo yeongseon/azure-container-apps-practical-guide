@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/jobs
       - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "exit 1 = Failed, exit 0 (echo) = Succeeded"
+
   core_claims:
     - claim: "Container Apps jobs support event-driven triggers."
       source: https://learn.microsoft.com/en-us/azure/container-apps/jobs

@@ -8,9 +8,15 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/health-probes
       - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
-  status: verified
-  last_reviewed: "2026-04-12"
+  status: pending_review
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "startup probe failureThreshold tested, ProbeFailed not captured in logs"
+
   core_claims:
     - claim: "Azure Container Apps supports startup probes to check whether a containerized app has started successfully."
       source: "https://learn.microsoft.com/azure/container-apps/health-probes"

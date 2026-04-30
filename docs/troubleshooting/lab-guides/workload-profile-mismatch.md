@@ -11,9 +11,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
       - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "D4 profile added to consumption env (operation accepted, mismatch noted)"
+
   core_claims:
     - claim: "Azure Container Apps environments can contain workload profiles that are managed through Azure CLI."
       source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli

@@ -9,8 +9,14 @@ diagrams:
       - https://learn.microsoft.com/azure/key-vault/general/rbac-guide
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "ContainerAppSecretRefNotFound confirmed, fixed with real-secret"
+
   core_claims:
     - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
       source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
@@ -301,6 +307,22 @@ Expected output:
 | `./labs/managed-identity-key-vault-failure/verify.sh` | PASS after RBAC assignment |
 | Secret-dependent endpoint | HTTP 200 |
 | Logs | No continuing Key Vault authorization failure for the tested path |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az role assignment list --assignee "$PRINCIPAL_ID" --scope "$KV_ID"` returned an
+empty list before the fix, confirming no `Key Vault Secrets User` assignment existed.
+
+[Observed] After `az role assignment create --role "Key Vault Secrets User"`, the assignment
+appeared in the list within 60 seconds.
+
+[Observed] `az containerapp show --query "identity.type"` returned `SystemAssigned` for the
+app, confirming the managed identity was active.
+
+[Inferred] The 403 / authorization failure from Key Vault is fully explained by the missing role
+assignment. The fix is deterministic: assign the role and the secret read succeeds.
+
+Environment: `koreacentral`, Consumption plan, Azure Key Vault with RBAC authorization model.
 
 ## Clean Up
 

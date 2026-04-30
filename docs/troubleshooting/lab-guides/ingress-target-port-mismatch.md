@@ -8,9 +8,15 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/ingress-overview
       - https://learn.microsoft.com/azure/container-apps/ingress-how-to
 content_validation:
-  status: verified
-  last_reviewed: "2026-04-12"
+  status: pending_review
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "ProbeFailed confirmed on port 8081, HTTP 200 on port 80 confirmed"
+
   core_claims:
     - claim: "Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app."
       source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"

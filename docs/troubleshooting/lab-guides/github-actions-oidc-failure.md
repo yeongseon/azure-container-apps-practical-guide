@@ -14,6 +14,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "OIDC federated credential misconfiguration confirmed, fix=correct subject"
+
   core_claims:
     - claim: "GitHub Actions OIDC to Azure depends on a matching federated identity credential."
       source: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect

@@ -13,6 +13,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "mount error + Permission denied system events, fixed with correct key"
+
   core_claims:
     - claim: "Azure Container Apps uses environment-level storage definitions to mount Azure Files shares into revisions."
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
@@ -90,6 +96,20 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] The failing revision and broken environment storage definition exist at the same time.
 - [Observed] After correcting the environment storage definition and redeploying, the new revision starts successfully.
 - [Inferred] The root cause is storage-definition mismatch rather than image, ingress, or probe configuration.
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az containerapp logs show --type system` returned the following events after mounting with a wrong storage key:
+
+```text
+Failed, Permission denied, mount error
+```
+
+[Observed] `az containerapp env storage set` with an incorrect account key accepted the definition without error at the API layer — the failure surface is at mount time inside the container.
+
+[Observed] After replacing the environment storage definition with the correct key, a new revision started successfully.
+
+Environment: `koreacentral`, Consumption plan, Standard LRS storage account.
 
 ## 13. Solution
 

@@ -4,7 +4,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-04-26*
+*Generated: 2026-04-30*
 
 | Metric | Count |
 |---|---:|

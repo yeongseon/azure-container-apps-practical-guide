@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
       - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Secondary env created in eastus, AFD setup requires custom domain"
+
   core_claims:
     - claim: "Container Apps reliability guidance recommends planning for regional resilience when business requirements demand it."
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps

@@ -11,6 +11,12 @@ content_validation:
   status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "0 replicas confirmed after 8min idle, 19011ms cold start measured"
+
   core_claims:
     - claim: "Azure Container Apps supports scale settings with a minimum replica count of 0, which allows a revision to scale to zero."
       source: "https://learn.microsoft.com/azure/container-apps/scale-app"
@@ -381,6 +387,16 @@ That result would mean the latency issue is not primarily caused by scale-to-zer
 | Follow-up `curl` requests | Lower warm-request latency than the first request |
 | `ContainerAppSystemLogs_CL` KQL query | Replica creation or start events align with the first cold request |
 | `ContainerAppConsoleLogs_CL` KQL query | Startup-to-ready interval is visible for cold-started replicas |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Measured] `az containerapp replica list` returned **0 replicas** after 8 minutes of idle with `minReplicas=0`.
+
+[Measured] First HTTP request after scale-to-zero: **19,011 ms** total latency (HTTP 200).
+
+[Measured] Warm request after `minReplicas=1`: **< 600 ms** total latency (HTTP 200).
+
+Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
 ## 13) Solution
 

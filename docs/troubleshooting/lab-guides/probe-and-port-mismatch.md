@@ -11,6 +11,12 @@ content_validation:
   status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "ProbeFailed system events confirmed, HTTP 200 on correct port"
+
   core_claims:
     - claim: "Azure Container Apps supports startup, readiness, and liveness probes for containers."
       source: "https://learn.microsoft.com/azure/container-apps/health-probes"
@@ -226,6 +232,22 @@ Expected output: latest revision becomes `Healthy` and requests succeed consiste
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | `ProbeFailed` and startup/readiness probe errors |
 | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Latest revision non-healthy before fix; healthy after alignment |
 | `./labs/probe-and-port-mismatch/verify.sh` | Failure reproduced first, then corrected revision stabilizes |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az containerapp logs show --type system` returned:
+
+```text
+"Probe of StartUp failed with status code: 1", "Reason": "ProbeFailed"
+```
+
+[Observed] Revision `healthState` reported `None` (unhealthy) with `targetPort: 8081` while the container serves on port `80`.
+
+[Measured] HTTP request to the internal FQDN: **HTTP 000** (connection refused — revision never became healthy).
+
+[Observed] After correcting `targetPort` to `80` (fresh deployment): **HTTP 200** confirmed.
+
+Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
 ## Clean Up
 

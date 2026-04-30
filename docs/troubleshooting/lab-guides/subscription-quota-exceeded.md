@@ -11,9 +11,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/quotas
       - https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "list-usages confirmed, actual quota limit not hit"
+
   core_claims:
     - claim: "Azure Container Apps exposes environment usage through Azure CLI."
       source: https://learn.microsoft.com/en-us/azure/container-apps/quotas

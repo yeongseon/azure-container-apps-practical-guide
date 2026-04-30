@@ -10,6 +10,12 @@ content_validation:
   status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "ContainerAppInvalidHttpScaleRule confirmed, fixed concurrency=100"
+
   core_claims:
     - claim: "Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests."
       source: "https://learn.microsoft.com/azure/container-apps/scale-app"
@@ -241,6 +247,18 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | `KEDAScalersStarted` appears without effective early scale-out |
 | `./labs/scale-rule-mismatch/verify.sh` before fix | Replica count stays at or below 1 |
 | `./labs/scale-rule-mismatch/verify.sh` after fix | Replica count increases above 1 |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az containerapp update` with `--scale-rule-http-concurrency 0` returned:
+
+```text
+(ContainerAppInvalidHttpScaleRule) The http scale rule must have a non-empty metadata collection.
+```
+
+[Observed] Setting `--scale-rule-http-concurrency 100` on the same app succeeded with HTTP 200 and the rule appeared in `az containerapp show`.
+
+Environment: `koreacentral`, Consumption plan.
 
 ## Clean Up
 

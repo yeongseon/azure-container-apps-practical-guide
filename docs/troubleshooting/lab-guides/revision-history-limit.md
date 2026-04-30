@@ -14,6 +14,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "11 revisions created, platform manages lifecycle"
+
   core_claims:
     - claim: "Inactive revisions are retained up to the configured limit rather than forever."
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions

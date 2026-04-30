@@ -13,6 +13,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "NetcfgSubnetRangesOverlap confirmed, fixed with /24 non-overlap"
+
   core_claims:
     - claim: "Workload profiles environments require a minimum subnet size of /27."
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
@@ -86,6 +92,20 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The failing path returns a subnet-size validation error or equivalent environment-creation failure.
 - [Observed] The corrected subnet shows `/27` and `Microsoft.App/environments` delegation.
 - [Inferred] Because only subnet size changed between runs, the deployment outcome difference is explained by CIDR compliance.
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] Creating an overlapping subnet (`10.0.1.0/24` inside `10.0.0.0/23`) returned:
+
+```text
+Code: NetcfgSubnetRangesOverlap
+Message: Subnet 'subnet-b' is not valid because its IP address range overlaps
+         with that of an existing subnet in virtual network 'vnet-cidr-test'.
+```
+
+[Observed] Creating a non-overlapping subnet (`10.0.2.0/24`) returned `provisioningState: Succeeded`.
+
+Environment: `koreacentral`, `az network vnet subnet create`.
 
 ## 13. Solution
 

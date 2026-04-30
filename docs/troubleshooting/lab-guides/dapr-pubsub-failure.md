@@ -13,6 +13,12 @@ content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "PubSub failure requires Service Bus + Dapr component setup"
+
   core_claims:
     - claim: "Azure Container Apps supports Dapr pub/sub building blocks through components."
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview

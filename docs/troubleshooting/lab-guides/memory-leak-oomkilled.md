@@ -11,9 +11,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/metrics
       - https://learn.microsoft.com/en-us/azure/container-apps/containers
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "minReplicas cost confirmed, OOMKilled requires sustained memory pressure"
+
   core_claims:
     - claim: "Azure Container Apps can terminate containers that exceed their memory limit."
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures

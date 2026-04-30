@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
       - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Docker Hub rate limit requires anonymous pull + rate exhaustion"
+
   core_claims:
     - claim: "Azure Container Apps supports registry credentials for container image pulls."
       source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries

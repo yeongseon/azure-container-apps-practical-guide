@@ -13,9 +13,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
       - https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "App Insights env setup confirmed, missing string is app-level"
+
   core_claims:
     - claim: "Application Insights uses connection strings to associate telemetry with the correct monitoring resource."
       source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings

@@ -9,8 +9,14 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/dapr-components
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Dapr integration requires Redis/state store component; sidecar port confirmed at env level"
+
   core_claims:
     - claim: "Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol."
       source: "https://learn.microsoft.com/azure/container-apps/dapr-overview"

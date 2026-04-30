@@ -13,6 +13,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "ContainerAppDuplicateMountPath confirmed, fixed with /cache"
+
   core_claims:
     - claim: "Azure Container Apps supports `EmptyDir` volumes for temporary storage."
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts

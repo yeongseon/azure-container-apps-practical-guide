@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
       - https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "ContainerAppDuplicateMountPath confirmed, volume-permission distinct scenario"
+
   core_claims:
     - claim: "Azure Container Apps Azure Files volumes accept `mountOptions` values in the revision template."
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files

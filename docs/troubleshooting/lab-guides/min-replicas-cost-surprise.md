@@ -15,6 +15,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "minReplicas=5→0 confirmed, scale-to-zero enabled"
+
   core_claims:
     - claim: "The minimum replica setting determines whether a revision can scale to zero."
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
@@ -92,6 +98,22 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | `az containerapp show --query "properties.template.scale"` | [Observed] The app clearly switches between `minReplicas=1` and `minReplicas=0`. |
 | `az monitor metrics list --metric Replicas` | [Measured] The average replica count remains above zero in the first phase and drops toward zero in the second phase. |
 | `az containerapp revision list` | [Correlated] The active revision no longer needs to hold a warm replica after the `minReplicas=0` phase. |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az containerapp update --min-replicas 5` succeeded; subsequent
+`az containerapp show --query "properties.template.scale.minReplicas"` returned `5`.
+
+[Observed] `az containerapp update --min-replicas 0` succeeded; subsequent query returned `0`.
+
+[Correlated] `az containerapp replica list` after idle period with `minReplicas=5` showed 5
+running replicas; same command after `minReplicas=0` and idle period showed 0 replicas.
+
+[Inferred] The cost difference between `minReplicas=5` and `minReplicas=0` on the Consumption
+plan is purely the idle compute for 5 permanently-warm replicas — no traffic required to
+accumulate charges.
+
+Environment: `koreacentral`, Consumption plan.
 
 ## 13. Solution
 

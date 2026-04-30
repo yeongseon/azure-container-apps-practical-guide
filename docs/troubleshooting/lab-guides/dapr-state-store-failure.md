@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Dapr wrong port confirmed, state store requires Redis/Cosmos setup"
+
   core_claims:
     - claim: "Dapr components are environment-scoped in Azure Container Apps."
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components

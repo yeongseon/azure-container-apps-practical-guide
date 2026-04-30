@@ -15,6 +15,12 @@ content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Bicep deployment timeout requires slow-provisioning resource; startup probe timeout scenario noted"
+
   core_claims:
     - claim: "A revision-scope update creates a new revision and that revision must become healthy for a successful rollout."
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions

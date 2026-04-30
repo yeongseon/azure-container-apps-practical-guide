@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
       - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: partial
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "internal FQDN .internal. confirmed inaccessible from public (HTTP 404)"
+
   core_claims:
     - claim: "Container Apps supports sticky or none affinity modes for session affinity."
       source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions

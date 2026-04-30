@@ -11,6 +11,12 @@ content_validation:
   status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "failed to resolve registry confirmed, fixed with valid image"
+
   core_claims:
     - claim: "A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure Container Registry."
       source: "https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures"
@@ -231,6 +237,23 @@ Expected result: the latest revision becomes `Healthy` and system logs no longer
 | `az acr repository show-tags --name "$ACR_NAME" --repository "labacr"` | Missing tag before fix; valid tag present after publish |
 | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "$ACR_NAME.azurecr.io/labacr:v1"` | Update succeeds and creates a recoverable revision |
 | `./labs/acr-pull-failure/verify.sh` | Failure reproduced first, then post-fix health improves |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az containerapp create` with `--image nonexistent.azurecr.io/fake/image:notexist` returned:
+
+```text
+Failed to provision revision for container app 'ca-d1'.
+Error details: The following field(s) are either invalid or missing.
+Field 'template.containers.ca-d1.image' is invalid with details:
+'Invalid value: "nonexistent.azurecr.io/fake/image:notexist":
+failed to resolve registry 'nonexistent.azurecr.io':
+lookup nonexistent.azurecr.io on 100.100.250.250:53: no such host'
+```
+
+[Observed] Using a valid public image (`mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`) succeeded immediately.
+
+Environment: `koreacentral`, Consumption plan.
 
 ## Clean Up
 

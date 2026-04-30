@@ -11,9 +11,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/metrics
       - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "CPU throttling requires sustained load generation tooling"
+
   core_claims:
     - claim: "Azure Container Apps supports configurable scale settings and replica limits."
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app

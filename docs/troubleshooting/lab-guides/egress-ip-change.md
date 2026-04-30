@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/networking
       - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Egress IP change requires NAT gateway or VNet-integrated env"
+
   core_claims:
     - claim: "NAT Gateway egress is supported for workload profiles environments."
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking

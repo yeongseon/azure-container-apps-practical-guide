@@ -9,9 +9,15 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/observability
       - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
 content_validation:
-  status: verified
-  last_reviewed: "2026-04-12"
+  status: pending_review
+  last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Tracing setup requires App Insights + distributed request"
+
   core_claims:
     - claim: "Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability."
       source: "https://learn.microsoft.com/azure/container-apps/observability"

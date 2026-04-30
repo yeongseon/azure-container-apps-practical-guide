@@ -11,6 +11,12 @@ content_validation:
   status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "traffic→0 + deactivate = HTTP 000, reactivate recovers"
+
   core_claims:
     - claim: "Azure Container Apps lets you activate, deactivate, and manage revisions for a container app."
       source: "https://learn.microsoft.com/azure/container-apps/revisions-manage"
@@ -225,6 +231,23 @@ ContainerAppReady     → Running state reached
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Probe failure or connection failure related to wrong target port |
 | `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"` | Traffic can be restored to a healthy revision without rebuilding first |
 | `./labs/revision-failover/verify.sh` | Rollback path succeeds and latest post-fix revision health improves |
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az containerapp revision deactivate` alone does **not** block traffic. HTTP 200 continued
+after deactivation when the revision still held a non-zero traffic weight.
+
+[Observed] Only the combination of `az containerapp ingress traffic set --revision-weight <rev>=0`
+followed by `az containerapp revision deactivate` caused traffic to stop (HTTP 000 / connection
+refused from external `curl`).
+
+[Observed] `az containerapp logs show --type system` emitted a `ProbeFailed` event when
+`--target-port 9999` was set on a container listening on port 80.
+
+[Inferred] The failover recovery path — traffic-weight=0 then deactivate — is the controlling
+variable. Deactivation without traffic reassignment is a no-op from a client perspective.
+
+Environment: `koreacentral`, Consumption plan, multiple-revision mode.
 
 ## Clean Up
 

@@ -16,6 +16,12 @@ content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Bad Request on invalid metric namespace, ReplicaCount valid"
+
   core_claims:
     - claim: "Azure Container Apps supports Azure Monitor as a log destination, and diagnostic settings complete routing to downstream stores such as Log Analytics."
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-options

@@ -10,9 +10,15 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
       - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
+  lab_validation:
+    status: setup_only
+    tested_date: 2026-04-29
+    az_cli_version: "2.70.0"
+    notes: "Private DNS zone created without VNet link - runtime failure requires VNet-integrated env"
+
   core_claims:
     - claim: "Private endpoint scenarios require service-specific private DNS zone mapping."
       source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
