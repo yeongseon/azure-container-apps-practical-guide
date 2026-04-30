@@ -12,10 +12,10 @@ content_validation:
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "ProbeFailed confirmed on port 8081, HTTP 200 on port 80 confirmed"
+    notes: "HTTP 503 + PortMismatch + ProbeFailed confirmed; fix restored HTTP 200 in 15s"
 
   core_claims:
     - claim: "Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app."
@@ -238,6 +238,25 @@ The verify script confirms:
 | `az containerapp show ... --query "properties.configuration.ingress.targetPort"` | `80` |
 | `curl https://${APP_FQDN}` | HTTP 200 |
 | `./verify.sh` | PASS |
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+[Observed] `az containerapp ingress update --target-port 9999` succeeded and created a new revision.
+The FQDN immediately returned HTTP 503.
+
+[Observed] System logs (`az containerapp logs show --type system`) emitted:
+
+```text
+"Msg": "The TargetPort 9999 does not match the listening port 80.", "Reason": "Pending:PortMismatch"
+"Msg": "Probe of StartUp failed with status code: 1", "Reason": "ProbeFailed"
+```
+
+[Observed] `az containerapp ingress update --target-port 80` (fix) restored HTTP 200 within 15 seconds.
+
+[Inferred] The `PortMismatch` event is the platform's detection layer — the startup probe fails because
+the specified target port has no listener, and the revision never enters a healthy state.
+
+Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
 ## Clean Up
 

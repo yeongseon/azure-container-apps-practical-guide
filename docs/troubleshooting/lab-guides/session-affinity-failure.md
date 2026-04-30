@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "internal FQDN .internal. confirmed inaccessible from public (HTTP 404)"
+    notes: "acaAffinity cookie present/absent confirmed with sticky/none toggle"
 
   core_claims:
     - claim: "Container Apps supports sticky or none affinity modes for session affinity."
@@ -92,6 +92,28 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Replica count is greater than one during the failing phase.
 - [Observed] Ingress output differs before and after the sticky-session update.
 - [Inferred] When continuity returns without changing application code, affinity explains the behavior change.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+[Observed] App deployed with `minReplicas=3`. `az containerapp ingress show` confirmed
+`stickySessions: null` by default (affinity disabled).
+
+[Observed] After `az containerapp ingress sticky-sessions set --affinity sticky`,
+`stickySessions` field changed to `{'affinity': 'sticky'}`.
+
+[Observed] `curl -sv https://${FQDN}` response included:
+
+```text
+< set-cookie: acaAffinity="4b163c42b8f13b28"; Path=/; HttpOnly; SameSite=None; Secure;
+```
+
+[Observed] After `--affinity none`, no `set-cookie` header was returned on subsequent requests.
+
+[Inferred] The `acaAffinity` cookie is the platform's sticky-session token. Clients that do not
+send this cookie will be load-balanced across all replicas, potentially breaking session state
+stored in-process.
+
+Environment: `koreacentral`, Consumption plan, 3 replicas, external ingress.
 
 ## 13. Solution
 

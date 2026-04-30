@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "minReplicas cost confirmed, OOMKilled requires sustained memory pressure"
+    notes: "exit code 137 (OOMKilled) confirmed; HealthState=Unhealthy ProvisioningState=Failed"
 
   core_claims:
     - claim: "Azure Container Apps can terminate containers that exceed their memory limit."
@@ -106,6 +106,25 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] System logs show an OOM-style restart or abrupt termination near the memory ceiling.
 - [Correlated] The restart occurs after sustained leak-path traffic rather than immediately at startup.
 - [Strongly Suggested] If increasing memory only delays the restart while the growth pattern remains, the root issue is retained memory rather than a harmless one-time spike.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+[Observed] Container updated to `python:3.11-slim` with command `bytearray(700*1024*1024)` under a
+`0.5Gi` memory limit. System logs emitted:
+
+```text
+"Msg": "Container 'ca-oom-test' was terminated with exit code '137' and reason 'ProcessExited'"
+"Reason": "ContainerTerminated"
+```
+
+[Observed] `az containerapp revision list` showed `HealthState=Unhealthy`, `ProvisioningState=Failed`
+for the revision running the over-limit workload.
+
+[Inferred] Exit code 137 is `SIGKILL` from the Linux OOM killer. The platform surfaces this as
+`ContainerTerminated` with `ProcessExited` reason. The revision enters `Failed` state and does not
+self-heal without a configuration change (reducing memory usage or increasing the memory limit).
+
+Environment: `koreacentral`, Consumption plan, `cpu=0.25`, `memory=0.5Gi`, `python:3.11-slim`.
 
 ## 13. Solution
 

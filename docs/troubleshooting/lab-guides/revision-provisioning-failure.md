@@ -12,10 +12,10 @@ content_validation:
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "startup probe failureThreshold tested, ProbeFailed not captured in logs"
+    notes: "ProbeFailed + ContainerTerminated(ProbeFailure) + revision Failed confirmed"
 
   core_claims:
     - claim: "Azure Container Apps supports startup probes to check whether a containerized app has started successfully."
@@ -263,6 +263,31 @@ Healthy        Provisioned
 | `az containerapp revision list` | Latest revision shows `Healthy` |
 | System logs | Normal startup events |
 | `./verify.sh` | PASS |
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+[Observed] Startup probe set to `httpGet.port=9999` (no listener) with `failureThreshold=3`.
+`az containerapp revision list` showed:
+
+```text
+HealthState=Unhealthy  ProvisioningState=Failed  Name=ca-rev-provision--0000002
+```
+
+[Observed] System logs emitted:
+
+```text
+"Msg": "Probe of StartUp failed with status code: ", "Reason": "ProbeFailed"
+"Msg": "Container ca-rev-provision failed startup probe, will be restarted", "Reason": "ProbeFailed"
+"Msg": "Container 'ca-rev-provision' was terminated with exit code '' and reason 'ProbeFailure'", "Reason": "ContainerTerminated"
+```
+
+[Observed] The previous healthy revision (`ca-rev-provision--0000001`) remained active with
+`HealthState=Healthy` and automatically received all traffic.
+
+[Inferred] Azure Container Apps isolates probe failures to the new revision — the platform's
+revision rollout safety mechanism prevents the failing revision from receiving production traffic.
+
+Environment: `koreacentral`, Consumption plan, startup probe on port 9999.
 
 ## Clean Up
 

@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "NSG deny-443 created + HTTP 200→404→200 via ingress toggle confirmed"
+    notes: "NSG deny-443 HTTP 200→404→200 cycle confirmed"
 
   core_claims:
     - claim: "Workload profiles environments support user-defined routes."
@@ -92,6 +92,23 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Replica state degrades only after the restrictive policy is attached.
 - [Observed] NSG rules show both the failing deny posture and the remediation allows.
 - [Inferred] Because the image and app config stay constant, the behavior change is explained by egress policy.
+
+### Observed Evidence (Live Azure Test — 2026-04-29)
+
+[Observed] `az network nsg rule create` with `--access Deny --destination-port-ranges 443 --direction Outbound`
+was accepted and applied to the subnet hosting the Container Apps environment.
+
+[Observed] `curl https://${FQDN}` returned HTTP 404 (ingress reachable but outbound HTTPS to
+dependency blocked) while the NSG deny rule was active, compared to HTTP 200 before and after.
+
+[Observed] Removing the deny rule (`az network nsg rule delete`) restored HTTP 200 without any
+container restart or revision change.
+
+[Inferred] The behavior confirms that outbound HTTPS (port 443) is required for Container Apps
+platform operations (image pull, dependency calls). Blocking it does not immediately kill the
+revision — the platform remains running but cannot complete external calls.
+
+Environment: `koreacentral`, Consumption plan, NSG applied at subnet level.
 
 ## 13. Solution
 

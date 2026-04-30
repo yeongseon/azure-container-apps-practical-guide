@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "D4 profile added to consumption env (operation accepted, mismatch noted)"
+    notes: "ContainerAppContainersInvalidCpu: 8 vCPU rejected, 2 vCPU accepted on D4 profile"
 
   core_claims:
     - claim: "Azure Container Apps environments can contain workload profiles that are managed through Azure CLI."
@@ -97,6 +97,31 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | Profile update and app update output | [Observed] A constraint error such as `WorkloadProfileMaximumCoresConstraint` appears, or the update stalls during provisioning. |
 | App configuration | [Measured] The requested CPU and replica count exceed the deliberately constrained profile envelope. |
 | Control profile expansion | [Correlated] Increasing `max-nodes` allows the same or a smaller request to succeed. |
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+[Observed] `az containerapp create --cpu 8 --memory 16Gi --workload-profile-name d4-profile`
+against a Dedicated environment with a D4 profile returned:
+
+```text
+ERROR: (ContainerAppContainersInvalidCpu) Invalid 8.0 cores for workloadprofile type D4.
+Please keep total CPU cores below 4.
+```
+
+[Observed] `az containerapp create --cpu 2 --memory 4Gi --workload-profile-name d4-profile`
+succeeded immediately with HTTP 200 from the deployed app's FQDN.
+
+[Observed] `az containerapp env workload-profile list` showed the D4 profile:
+
+```text
+Name         ResourceGroup
+d4-profile   rg-aca-lab-test
+```
+
+[Inferred] The D4 workload profile enforces a per-container CPU cap (`< 4 vCPU`), not a per-node
+cap. The error is synchronous at deployment time — no revision is created for over-limit requests.
+
+Environment: `koreacentral`, Dedicated environment `cae-dedicated-lab`, D4 workload profile.
 
 ## 13. Solution
 

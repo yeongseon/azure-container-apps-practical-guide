@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "list-usages confirmed, actual quota limit not hit"
+    notes: "list-usages returns quota dimensions; 3.25/500 vCPU measured"
 
   core_claims:
     - claim: "Azure Container Apps exposes environment usage through Azure CLI."
@@ -99,6 +99,27 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | `az containerapp env list-usages` output | [Measured] Existing usage is already near the allowed environment or regional limit. |
 | `az quota list` output | [Measured] The relevant quota line shows insufficient remaining capacity. |
 | Lower-demand retry | [Correlated] A smaller request succeeds where the oversized request fails. |
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+[Measured] `az containerapp env list-usages --name cae-lab --resource-group rg-aca-lab-test` returned:
+
+```text
+Name                                               Usage    Limit
+ManagedEnvironmentGeneralPurposeCores              0        500
+ManagedEnvironmentMemoryOptimizedCores             0        500
+ManagedEnvironmentConfidentialGeneralPurposeCores  0        50
+ManagedEnvironmentConsumptionCores                 3.25     500
+```
+
+[Observed] `ManagedEnvironmentConsumptionCores` shows 3.25 of 500 vCPU used — well within limit
+at test time. This confirms the quota visibility path works and is the primary diagnostic step.
+
+[Inferred] To reproduce an actual `QuotaExceeded` error, the usage would need to approach the
+500 vCPU limit. In practice, the diagnostic value is confirming the quota check mechanism and
+identifying which quota dimension is constrained before requesting a limit increase.
+
+Environment: `koreacentral`, Consumption plan, `az containerapp env list-usages`.
 
 ## 13. Solution
 

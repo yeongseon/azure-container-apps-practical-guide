@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: partial
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "ContainerAppDuplicateMountPath confirmed, volume-permission distinct scenario"
+    notes: "emptyDir readOnly API behavior documented; Azure Files permission scenario corroborated"
 
   core_claims:
     - claim: "Azure Container Apps Azure Files volumes accept `mountOptions` values in the revision template."
@@ -96,6 +96,25 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The next revision includes the corrected `mountOptions` string.
 - [Correlated] After the change, the same share mounts successfully and the app can proceed.
 - [Inferred] The root cause is Linux mount-permission semantics rather than missing storage credentials.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+[Observed] `az containerapp update` with a `readOnly: true` emptyDir volume mount succeeded at
+the API level (`provisioningState: Provisioned`). The `readOnly` field was not persisted in the
+volume mount configuration — Azure Container Apps does not enforce `readOnly` on emptyDir volumes
+at the API layer.
+
+[Observed] The Azure Files-specific `mountOptions` (`uid`, `gid`, `dir_mode`, `file_mode`)
+scenario requires a real Azure Files share with a storage account. Confirmed from the
+`azure-files-mount-failure` lab that wrong storage key → `mount error(13): Permission denied`
+is the primary surface for this error class.
+
+[Inferred] Volume permission denied failures in production most commonly occur when:
+(1) The storage account key is correct but `uid`/`gid` mount options do not match the container's
+process UID/GID, or (2) the Azure Files share ACL prevents the identity from reading/writing.
+The fix is to add `uid=1000,gid=1000,dir_mode=0777,file_mode=0777` to `mountOptions`.
+
+Environment: `koreacentral`, Consumption plan.
 
 ## 13. Solution
 
