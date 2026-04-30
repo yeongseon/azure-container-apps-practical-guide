@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Secondary env created in eastus, AFD setup requires custom domain"
+    notes: "primary ingress disabled → HTTP 404; secondary HTTP 200 (failover); primary restored → HTTP 200"
 
   core_claims:
     - claim: "Container Apps reliability guidance recommends planning for regional resilience when business requirements demand it."
@@ -104,6 +104,31 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Front Door origin-group settings.
 - Timestamps showing the interval between injected failure and observed traffic shift.
 - Direct backend checks proving the secondary region was actually ready to serve traffic.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Both regions healthy (baseline)
+curl -s -o /dev/null -w '%{http_code}' https://ca-primary.<koreacentral-env>/
+→ 200
+curl -s -o /dev/null -w '%{http_code}' https://ca-secondary.<eastus-env>/
+→ 200
+
+# Simulate primary failure: disable ingress
+az containerapp ingress disable --name ca-primary --resource-group rg-aca-lab-test2
+→ Primary: 404 (ingress disabled)
+   Secondary: 200 (failover target serving traffic)
+
+# Restore primary
+az containerapp ingress enable --name ca-primary --resource-group rg-aca-lab-test2 \
+  --type external --target-port 80 --transport auto
+→ Primary: 200 (restored)
+```
+
+- `[Observed]` Both regions (koreacentral + eastus) serving HTTP 200 at baseline.
+- `[Observed]` Primary ingress disabled → HTTP 404; secondary remains HTTP 200.
+- `[Observed]` Primary restored → HTTP 200 confirmed.
+- `[Inferred]` Multi-region failover requires external traffic routing (AFD/Traffic Manager) to detect primary failure and shift traffic; without it, clients must manually switch endpoints.
 
 ## 13. Solution
 

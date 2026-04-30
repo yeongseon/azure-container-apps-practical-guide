@@ -12,10 +12,10 @@ content_validation:
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Dapr integration requires Redis/state store component; sidecar port confirmed at env level"
+    notes: "appPort=3000(wrong)→Readiness ProbeFailed HTTP 500; appPort=80(fix)→Healthy"
 
   core_claims:
     - claim: "Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol."
@@ -282,6 +282,32 @@ Expected output:
 | Dapr config | `appPort: 8000`, `enabled: true` |
 | Sidecar health endpoint | Responds successfully |
 | `./labs/dapr-integration/verify.sh` | PASS |
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Wrong appPort (3000, app listens on 80) → Readiness ProbeFailed
+az containerapp show --name ca-dapr-lab --resource-group rg-aca-lab-test2 \
+  --query "properties.configuration.dapr.appPort"
+→ 3000
+
+az containerapp revision list --name ca-dapr-lab --resource-group rg-aca-lab-test2 \
+  --query "[0].properties.healthState"
+→ "Unhealthy"
+
+# System log: Probe of Readiness failed with status code: 500
+
+# After fix: appPort=80
+az containerapp update --name ca-dapr-lab --resource-group rg-aca-lab-test2 \
+  --dapr-app-port 80
+az containerapp revision list ... --query "[0].properties.healthState"
+→ "Healthy"
+```
+
+- `[Observed]` `dapr.appPort: 3000` (wrong port): readiness probe returns HTTP 500, revision `Unhealthy`.
+- `[Observed]` System log: `Probe of Readiness failed with status code: 500`.
+- `[Observed]` After `--dapr-app-port 80` (correct port): revision reaches `Healthy`.
+- `[Inferred]` Dapr sidecar forwards health probes to `appPort`; wrong port causes probe failure, not code error.
 
 ## Clean Up
 

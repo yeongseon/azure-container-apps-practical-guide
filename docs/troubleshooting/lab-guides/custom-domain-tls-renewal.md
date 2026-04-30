@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Custom domain TLS renewal requires registered domain + managed cert; infra-only confirmation"
+    notes: "InvalidCustomHostNameValidation: asuid TXT record required with domain verification ID"
 
   core_claims:
     - claim: "Managed certificates continue to renew automatically only while the app keeps meeting the documented requirements."
@@ -92,6 +92,28 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The verification ID from the app matches the `asuid` TXT record only in the healthy state.
 - [Observed] Binding status changes after DNS corruption without any app revision change.
 - [Inferred] Because only DNS prerequisites changed, certificate validation or renewal eligibility is the controlling variable.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Attempt to add custom hostname without DNS TXT record
+az containerapp hostname add \
+  --name ca-easyauth --resource-group rg-aca-lab-test2 \
+  --hostname "test.example-lab.invalid"
+→ ERROR: (InvalidCustomHostNameValidation)
+  A TXT record pointing from asuid.test.example-lab.invalid to
+  5F4D40324651269FDA2F10E03050A49ECBA6A88B93D95EA7E223D34005F9E7DE
+  was not found.
+
+# Domain verification ID
+az containerapp show --name ca-easyauth --resource-group rg-aca-lab-test2 \
+  --query "properties.customDomainVerificationId"
+→ "5F4D40324651269FDA2F10E03050A49ECBA6A88B93D95EA7E223D34005F9E7DE"
+```
+
+- `[Observed]` `InvalidCustomHostNameValidation`: platform requires `asuid.<hostname>` TXT record pointing to the domain verification ID.
+- `[Observed]` Domain verification ID confirmed via `az containerapp show --query "properties.customDomainVerificationId"`.
+- `[Inferred]` Fix: add `asuid.<hostname>` TXT record in DNS provider, then re-run `hostname add` and bind managed certificate.
 
 ## 13. Solution
 

@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "WebSocket/gRPC requires specific client tooling to reproduce"
+    notes: "transport Http(broken)→Auto(WS fix)→Http2(gRPC) toggled and verified via ingress show"
 
   core_claims:
     - claim: "Container Apps supports `http2` transport for gRPC workloads."
@@ -92,6 +92,28 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Initial ingress output lacks the desired `http2` and/or sticky-session settings.
 - [Observed] Two replicas are active during the failing reconnect test.
 - [Inferred] When the path stabilizes after ingress correction, the root cause is ingress configuration rather than general app reachability.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Default transport
+az containerapp ingress show --name ca-ws-lab --resource-group rg-aca-lab-test2 \
+  --query "transport"
+→ "Http"
+
+# Fix for WebSocket
+az containerapp ingress update ... --transport Auto
+→ "Auto"
+
+# Fix for gRPC
+az containerapp ingress update ... --transport Http2
+→ "Http2"
+```
+
+- `[Observed]` Default `transport: Http` confirmed via `az containerapp ingress show`.
+- `[Observed]` `transport: Auto` confirmed after update (WebSocket fix path).
+- `[Observed]` `transport: Http2` confirmed after update (gRPC fix path).
+- `[Inferred]` WebSocket requires `Auto`; gRPC requires `Http2`. `Http` for either protocol causes connection failures.
 
 ## 13. Solution
 

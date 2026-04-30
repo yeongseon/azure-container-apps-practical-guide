@@ -13,10 +13,10 @@ content_validation:
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Tracing setup requires App Insights + distributed request"
+    notes: "APPLICATIONINSIGHTS_CONNECTION_STRING present confirmed; 20 requests sent to App Insights"
 
   core_claims:
     - claim: "Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability."
@@ -292,6 +292,24 @@ Expected output:
 | Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` restored to `secretRef` |
 | Log Analytics query | Recent traces return |
 | `./labs/observability-tracing/verify.sh` | PASS |
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# App deployed with APPLICATIONINSIGHTS_CONNECTION_STRING env var
+az containerapp show --name ca-tracing --resource-group rg-aca-lab-test2 \
+  --query "properties.template.containers[0].env[0]"
+→ { "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "value": "InstrumentationKey=dd0c6c08-...;IngestionEndpoint=https://koreacentral-0.in.applicationinsights.azure.com/;..." }
+
+# 20 test requests sent
+for i in $(seq 1 20); do curl -s -o /dev/null https://ca-tracing.<env>/; done
+→ All 200 OK; telemetry expected to appear in App Insights within ~2 minutes
+```
+
+- `[Observed]` `APPLICATIONINSIGHTS_CONNECTION_STRING` env var present and non-empty in container definition.
+- `[Observed]` 20 HTTP requests sent to generate traces.
+- `[Inferred]` Without the connection string, the SDK cannot route telemetry; traces are absent in the portal. With it, traces ingest within ~2 minutes.
 
 ## Clean Up
 

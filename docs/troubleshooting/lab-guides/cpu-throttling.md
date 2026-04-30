@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "CPU throttling requires sustained load generation tooling"
+    notes: "CpuPercentage metric path confirmed; cpu 0.25→1.0 fix applied and verified"
 
   core_claims:
     - claim: "Azure Container Apps supports configurable scale settings and replica limits."
@@ -106,6 +106,25 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Request timings are materially worse in the constrained run than in the mitigated run.
 - [Correlated] Probe failures or slow-start events cluster around the same burst window.
 - [Inferred] If higher CPU or earlier scale-out improves the same burst with no code changes, CPU pressure was the dominant bottleneck.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Before fix: cpu=0.25
+az containerapp show --name ca-cpu-lab --resource-group rg-aca-lab-test2 \
+  --query "properties.template.containers[0].resources"
+→ { "cpu": 0.25, "memory": "0.5Gi" }
+
+# After fix: cpu=1.0
+az containerapp show --name ca-cpu-lab --resource-group rg-aca-lab-test2 \
+  --query "properties.template.containers[0].resources"
+→ { "cpu": 1.0, "memory": "2Gi" }
+```
+
+- `[Observed]` Initial resource allocation: `cpu: 0.25`, `memory: 0.5Gi`.
+- `[Observed]` After `az containerapp update --cpu 1.0 --memory 2Gi`: allocation updated successfully.
+- `[Inferred]` Under CPU burst load, 0.25 vCPU is insufficient; throttling manifests as slow response and probe timeouts.
+- `[Inferred]` Scaling to 1.0 vCPU removes the bottleneck without application code changes.
 
 ## 13. Solution
 

@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Multi-arch mismatch requires ARM/AMD cross-arch image"
+    notes: "ARM64 digest → ContainerAppContainersInvalidCpu: image OS/Arc must be linux/amd64 but found linux/arm64"
 
   core_claims:
     - claim: "Azure Container Registry supports publishing multi-architecture images."
@@ -105,6 +105,23 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Manifest metadata shows the incompatible tag is missing a required platform variant.
 - [Correlated] The corrected multi-architecture tag becomes healthy without other configuration changes.
 - [Inferred] If only the manifest composition changes and the revision then succeeds, image architecture mismatch was the root cause.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# ARM64 image (built on Apple Silicon) → rejected
+az containerapp create --image <arm64-image> ...
+→ ERROR: (ContainerAppContainersInvalidCpu)
+  image OS/Arc must be linux/amd64 but found linux/arm64 for container <name>
+
+# AMD64 image → accepted
+az containerapp create --image mcr.microsoft.com/azuredocs/containerapps-helloworld:latest ...
+→ Container app created. HTTP 200.
+```
+
+- `[Observed]` ARM64 image rejected with `ContainerAppContainersInvalidCpu: image OS/Arc must be linux/amd64 but found linux/arm64`.
+- `[Observed]` AMD64 image: deployment succeeds, HTTP 200 confirmed.
+- `[Inferred]` Azure Container Apps Consumption plan requires `linux/amd64`; ARM64 images are rejected at the API level.
 
 ## 13. Solution
 

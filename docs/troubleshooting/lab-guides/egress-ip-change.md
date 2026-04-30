@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Egress IP change requires NAT gateway or VNet-integrated env"
+    notes: "outbound IP 20.196.243.56 confirmed via ifconfig.me job; differs from inbound staticIp 20.249.149.1"
 
   core_claims:
     - claim: "NAT Gateway egress is supported for workload profiles environments."
@@ -92,6 +92,23 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Measured] Baseline and post-cutover public IP outputs can be compared directly.
 - [Observed] No application code change is required to reproduce the allow-list problem.
 - [Inferred] If the IP changes and downstream access breaks, allow-list drift is the immediate root cause.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Environment inbound static IP
+az containerapp env show --name cae-lab2 --resource-group rg-aca-lab-test2 \
+  --query "properties.staticIp"
+→ "20.249.149.1"
+
+# Actual outbound egress IP (measured via job running curl ifconfig.me)
+az containerapp job start --name job-egress-ip --resource-group rg-aca-lab-test2
+→ job stdout: 20.196.243.56
+```
+
+- `[Observed]` Environment `staticIp` (inbound): `20.249.149.1`.
+- `[Observed]` Actual outbound egress IP: `20.196.243.56` — distinct from `staticIp`.
+- `[Inferred]` Firewall rules that allowlist only the `staticIp` will block outbound traffic; the egress IP must be allowlisted separately.
 
 ## 13. Solution
 

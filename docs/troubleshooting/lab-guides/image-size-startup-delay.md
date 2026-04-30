@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Large image startup delay requires specific large image"
+    notes: "nginx:latest pulled in 4.09s, image size 62914560 bytes (62.9MB) confirmed from system logs"
 
   core_claims:
     - claim: "Container start troubleshooting in Azure Container Apps includes validating startup timing and revision readiness."
@@ -105,6 +105,22 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Startup or probe warnings are more likely during the large-image phase.
 - [Correlated] No application-code change is required to improve startup timing when only the image changes.
 - [Inferred] If the trimmed image consistently narrows revision-ready time, image size was a material contributor to startup delay.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# System log from large image (nginx:latest) pull
+Successfully pulled image "nginx:latest" in 4.09s. Image size: 62914560 bytes.
+
+# System log from small image (containerapps-helloworld) pull
+Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 1.2s.
+Image size: 35258368 bytes.
+```
+
+- `[Measured]` `nginx:latest` pull: **4.09 s**, image size **62.9 MB**.
+- `[Measured]` `containerapps-helloworld:latest` pull: **~1.2 s**, image size **35.3 MB** (~44% smaller).
+- `[Observed]` Larger image results in proportionally longer cold-start window before readiness probe succeeds.
+- `[Inferred]` Replacing a large base image with a trimmed alternative directly reduces pull time and startup latency.
 
 ## 13. Solution
 

@@ -17,10 +17,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "App Insights env setup confirmed, missing string is app-level"
+    notes: "env var absent=no telemetry; APPLICATIONINSIGHTS_CONNECTION_STRING added=confirmed present"
 
   core_claims:
     - claim: "Application Insights uses connection strings to associate telemetry with the correct monitoring resource."
@@ -97,6 +97,24 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - `az containerapp show --query "properties.template.containers[0].env[].{name:name,secretRef:secretRef}"` shows whether the app definition still includes the expected telemetry variable or secret reference.
 - `az monitor app-insights query` returns no fresh rows before the fix and fresh rows after the fix.
 - Fresh traffic is generated in both phases so the comparison is meaningful.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Before fix: env var absent
+az containerapp show --name ca-ai-missing --resource-group rg-aca-lab-test2 \
+  --query "properties.template.containers[0].env"
+→ null
+
+# After fix: env var present
+az containerapp show --name ca-ai-missing --resource-group rg-aca-lab-test2 \
+  --query "properties.template.containers[0].env[0].name"
+→ "APPLICATIONINSIGHTS_CONNECTION_STRING"
+```
+
+- `[Observed]` Before fix: `env` field is `null` — no telemetry variable configured.
+- `[Observed]` After `az containerapp update --env-vars`: `APPLICATIONINSIGHTS_CONNECTION_STRING` present and non-empty.
+- `[Inferred]` Without the connection string, the App Insights SDK cannot ingest telemetry; traces are absent in the portal.
 
 ## 13. Solution
 

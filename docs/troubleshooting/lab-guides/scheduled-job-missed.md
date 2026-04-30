@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "CRON schedule miss requires time-based observation window"
+    notes: "Succeeded every minute; cron 0 0 31 2 * stops executions; restored * * * * * resumes Succeeded"
 
   core_claims:
     - claim: "Scheduled Container Apps jobs evaluate cron schedules in UTC."
@@ -104,6 +104,30 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - A before-and-after record of the cron expression.
 - Execution history showing no run during the mistaken window and a run after correction.
 - Optional portal validation evidence if the original schedule was malformed.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Working schedule: every minute → executions succeed
+az containerapp job show --name job-cron-lab --resource-group rg-aca-lab-test2 \
+  --query "properties.configuration.scheduleTriggerConfig.cronExpression"
+→ "* * * * *"
+az containerapp job execution list ... --query "[].properties.status"
+→ ["Succeeded", "Succeeded", "Succeeded"]
+
+# Broken schedule: Feb 31 (impossible — never fires)
+az containerapp job update ... --cron-expression "0 0 31 2 *"
+→ No new executions observed
+
+# Restored: every minute → executions resume
+az containerapp job update ... --cron-expression "* * * * *"
+→ ["Succeeded", "Succeeded", ...]
+```
+
+- `[Observed]` `* * * * *`: executions fire every minute, all `Succeeded`.
+- `[Observed]` `0 0 31 2 *` (Feb 31 — impossible date): zero new executions; no error surfaced.
+- `[Observed]` After restoring `* * * * *`: `Succeeded` executions resume immediately.
+- `[Inferred]` An impossible cron date silently suppresses job execution with no platform error.
 
 ## 13. Solution
 

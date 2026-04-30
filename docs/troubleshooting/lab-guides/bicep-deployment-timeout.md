@@ -16,10 +16,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Bicep deployment timeout requires slow-provisioning resource; startup probe timeout scenario noted"
+    notes: "startup probe port 9999 → revision Unhealthy/Failed in 45s; fix Bicep → Healthy/Provisioned"
 
   core_claims:
     - claim: "A revision-scope update creates a new revision and that revision must become healthy for a successful rollout."
@@ -96,6 +96,26 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The bad revision remains in a failed or processing state while system logs show readiness or startup failure symptoms.
 - [Observed] After the probe is fixed, a new revision becomes healthy and the deployment completes.
 - [Inferred] The deployment delay came from revision readiness, not from Bicep syntax or resource-group provisioning alone.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Broken Bicep: startup probe port 9999 (app listens on 80)
+az containerapp revision show --revision ca-timeout-lab--<rev> \
+  --query "properties.healthState"
+→ "Unhealthy"   (failed ~45s after deploy)
+
+# Fixed Bicep: startup probe removed
+az containerapp show --name ca-timeout-fix \
+  --query "properties.provisioningState"
+→ "Succeeded"
+az containerapp revision show ... --query "properties.healthState"
+→ "Healthy"
+```
+
+- `[Observed]` Startup probe on port 9999 (wrong port): revision reaches `Unhealthy` within 45 s.
+- `[Observed]` Fixed Bicep (probe removed): `provisioningState: Succeeded`, `healthState: Healthy`.
+- `[Inferred]` A misconfigured startup probe port causes the platform to time out waiting for readiness.
 
 ## 13. Solution
 

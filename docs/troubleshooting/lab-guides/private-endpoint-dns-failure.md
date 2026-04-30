@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Private DNS zone created without VNet link - runtime failure requires VNet-integrated env"
+    notes: "DNS zone without VNet link (empty link list); VNet link created → LinkState=Completed"
 
   core_claims:
     - claim: "Private endpoint scenarios require service-specific private DNS zone mapping."
@@ -92,6 +92,30 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Private endpoint inventory remains constant throughout the lab.
 - [Observed] The failing state shows no private DNS VNet link for the zone.
 - [Inferred] Because only the VNet link changed, DNS linkage explains the behavior shift.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Private DNS zone without VNet link (failure condition)
+az network private-dns link vnet list \
+  --resource-group rg-aca-lab-test2 --zone-name "privatelink.azurecr.io"
+→ (empty — no links)
+
+# Fix: create VNet link
+az network private-dns link vnet create \
+  --resource-group rg-aca-lab-test2 --zone-name "privatelink.azurecr.io" \
+  --name vnet-pe-link --virtual-network vnet-pe-lab --registration-enabled false
+
+# Verify fix
+az network private-dns link vnet list \
+  --resource-group rg-aca-lab-test2 --zone-name "privatelink.azurecr.io" \
+  --query "[0].linkState"
+→ "Completed"
+```
+
+- `[Observed]` Private DNS zone `privatelink.azurecr.io` with **no VNet links** (failure condition confirmed: empty link list).
+- `[Observed]` After `az network private-dns link vnet create`: `linkState: Completed`, `provisioningState: Succeeded`.
+- `[Inferred]` Without a VNet link, VMs/container apps in the VNet cannot resolve private endpoint DNS records.
 
 ## 13. Solution
 

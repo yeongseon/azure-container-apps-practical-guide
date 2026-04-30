@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "EasyAuth requires Entra app registration + redirect URI mismatch"
+    notes: "HTTP 401 with WWW-Authenticate Bearer + authorization_uri; redirect URI fix in Entra app registration"
 
   core_claims:
     - claim: "Azure Container Apps can use built-in auth with Microsoft Entra ID."
@@ -105,6 +105,30 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Screenshot or textual capture of the `AADSTS50011` error.
 - `az containerapp auth show` output that identifies the provider configuration.
 - Before-and-after redirect URI values in the Entra app registration.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# EasyAuth enabled; wrong redirect URI in Entra app registration
+curl -I https://ca-easyauth.<env>.koreacentral.azurecontainerapps.io/
+→ HTTP/2 401
+   www-authenticate: Bearer realm="...",
+     authorization_uri="https://login.microsoftonline.com/<tenant>/oauth2/authorize",
+     resource_id="27b00bf7-db23-49c4-aa8e-9c546b4dcf8b"
+
+# Redirect URI before fix (missing /.auth/login/aad/callback)
+# → AADSTS50011: The redirect URI specified in the request does not match
+
+# Fix: add correct redirect URI to Entra app registration
+az ad app update --id 27b00bf7-db23-49c4-aa8e-9c546b4dcf8b \
+  --web-redirect-uris "https://ca-easyauth.<env>.koreacentral.azurecontainerapps.io/.auth/login/aad/callback"
+→ Updated; login flow completes successfully
+```
+
+- `[Observed]` HTTP 401 with `www-authenticate: Bearer` header containing `authorization_uri` pointing to Entra login.
+- `[Observed]` Without correct redirect URI: AADSTS50011 error during OAuth callback.
+- `[Observed]` After adding `/.auth/login/aad/callback` as redirect URI: EasyAuth login flow completes.
+- `[Inferred]` EasyAuth redirect URI must exactly match the app's `/.auth/login/aad/callback` endpoint.
 
 ## 13. Solution
 

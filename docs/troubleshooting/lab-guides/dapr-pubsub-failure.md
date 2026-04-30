@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "PubSub failure requires Service Bus + Dapr component setup"
+    notes: "pubsub.azure.servicebus.queues component with fake connectionString accepted by API; removed to fix"
 
   core_claims:
     - claim: "Azure Container Apps supports Dapr pub/sub building blocks through components."
@@ -104,6 +104,28 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Before-and-after pub/sub component YAML.
 - Publisher-side and subscriber-side timestamps for the test message.
 - Scope evidence showing that both apps were included after remediation.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Bad component: pubsub.azure.servicebus.queues with invalid connectionString
+az containerapp env dapr-component set --name cae-lab2 --resource-group rg-aca-lab-test2 \
+  --dapr-component-name pubsub-bad --yaml /tmp/dapr-pubsub-bad.yaml
+→ Component accepted by API (no immediate error)
+
+# Failure manifests at sidecar init / publish attempt
+# System logs: Failed to init pub sub pubsub-bad, error: ...
+
+# Fix: remove bad component
+az containerapp env dapr-component delete --name cae-lab2 --resource-group rg-aca-lab-test2 \
+  --dapr-component-name pubsub-bad
+→ Component deleted; pub/sub failures cease
+```
+
+- `[Observed]` Dapr pub/sub component with invalid `connectionString` accepted by API without error.
+- `[Observed]` Failure occurs at Dapr sidecar init or first publish, not at component registration time.
+- `[Observed]` Deleting the bad component removes the failure.
+- `[Inferred]` Dapr validates component credentials lazily (at runtime, not at registration); invalid credentials cause silent component load failure.
 
 ## 13. Solution
 

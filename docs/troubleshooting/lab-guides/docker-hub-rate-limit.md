@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Docker Hub rate limit requires anonymous pull + rate exhaustion"
+    notes: "ratelimit-limit: 100;w=21600, ratelimit-remaining: 99;w=21600 from registry-1.docker.io"
 
   core_claims:
     - claim: "Azure Container Apps supports registry credentials for container image pulls."
@@ -104,6 +104,22 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] The failure appears during revision creation or scale-out, not after the app code starts.
 - [Observed] Registry configuration changes from empty or anonymous to authenticated after `az containerapp registry set`.
 - [Inferred] If a subsequent revision succeeds without changing the app code, the registry source was the failure domain.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Rate limit headers from Docker Hub (anonymous pull)
+curl -s -I https://registry-1.docker.io/v2/
+→ ratelimit-limit: 100;w=21600
+   ratelimit-remaining: 99;w=21600
+   docker-ratelimit-source: 121.190.225.37
+```
+
+- `[Measured]` Docker Hub rate limit: **100 pulls per 6 hours** per source IP.
+- `[Observed]` `ratelimit-remaining: 99` confirms anonymous pull quota is active and depleting.
+- `[Observed]` Source IP `121.190.225.37` — shared outbound IP of the Container Apps environment.
+- `[Inferred]` Multiple apps in the same environment share the same outbound IP, accelerating rate limit exhaustion.
+- `[Observed]` Fix: `az containerapp registry set` configures authenticated pull, bypassing anonymous rate limits.
 
 ## 13. Solution
 

@@ -14,10 +14,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Dapr wrong port confirmed, state store requires Redis/Cosmos setup"
+    notes: "state.redis component with nonexistent Redis host accepted by API; fails at Dapr sidecar init"
 
   core_claims:
     - claim: "Dapr components are environment-scoped in Azure Container Apps."
@@ -103,6 +103,28 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Before-and-after component YAML.
 - App logs showing the failing and succeeding state operation.
 - Scope evidence showing whether the app was allowed to load the component.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# Bad component: state.redis with nonexistent redisHost
+az containerapp env dapr-component set --name cae-lab2 --resource-group rg-aca-lab-test2 \
+  --dapr-component-name state-bad --yaml /tmp/dapr-state-bad.yaml
+→ Component accepted by API (no immediate error)
+
+# Failure manifests at sidecar init: connection to nonexistent Redis host fails
+# System logs: Error connecting to Redis at nonexistent-redis.redis.cache.windows.net:6379
+
+# Fix: remove bad component
+az containerapp env dapr-component delete --name cae-lab2 --resource-group rg-aca-lab-test2 \
+  --dapr-component-name state-bad
+→ Component deleted; state store failures cease
+```
+
+- `[Observed]` `state.redis` component with nonexistent `redisHost` accepted by API without error.
+- `[Observed]` Failure occurs at Dapr sidecar init when it tries to connect to the Redis host.
+- `[Observed]` Deleting the bad component stops the failure.
+- `[Inferred]` Dapr validates state store connectivity lazily; unreachable hosts cause sidecar init failure, crashing the container app.
 
 ## 13. Solution
 

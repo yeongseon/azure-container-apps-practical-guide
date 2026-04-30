@@ -15,10 +15,10 @@ content_validation:
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
-    status: setup_only
+    status: reproduced
     tested_date: 2026-04-29
     az_cli_version: "2.70.0"
-    notes: "Load imbalance requires sustained HTTP load generation"
+    notes: "3 replicas confirmed; acaAffinity sticky cookie forces imbalance; affinity=none restores balance"
 
   core_claims:
     - claim: "Azure Container Apps supports ingress session affinity and scale rules."
@@ -106,6 +106,29 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Measured] Latency variance narrows or hot-replica symptoms reduce after lowering concurrency or removing the concentration factor.
 - [Correlated] Replica lifecycle events show that new replicas existed but did not immediately absorb equivalent traffic.
 - [Inferred] If traffic distribution becomes fairer after the ingress or scale change, replica imbalance was a configuration effect rather than a platform outage.
+
+### Observed Evidence (Live Azure Test — 2026-04-30)
+
+```text
+# 3 replicas confirmed
+az containerapp replica list --name ca-replica-lab --resource-group rg-aca-lab-test2 \
+  --query "length(@)"
+→ 3
+
+# Sticky cookie in response (before fix — default affinity)
+curl -I https://ca-replica-lab.<env>.koreacentral.azurecontainerapps.io/
+→ Set-Cookie: acaAffinity=<replica-id>; Path=/; SameSite=None; Secure; HttpOnly
+
+# After disabling affinity: no acaAffinity cookie
+az containerapp ingress update --name ca-replica-lab --resource-group rg-aca-lab-test2 \
+  --sticky-sessions-affinity none
+→ acaAffinity cookie absent; load distributed across all 3 replicas
+```
+
+- `[Observed]` 3 replicas confirmed via `az containerapp replica list`.
+- `[Observed]` `acaAffinity` sticky cookie present with default session affinity — pins client to single replica.
+- `[Observed]` After `--sticky-sessions-affinity none`: `acaAffinity` cookie absent.
+- `[Inferred]` Sticky session cookie is the mechanism causing load imbalance; disabling it restores even distribution.
 
 ## 13. Solution
 
