@@ -109,26 +109,32 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ### Observed Evidence (Live Azure Test — 2026-04-30)
 
 ```text
-# EasyAuth enabled; wrong redirect URI in Entra app registration
-curl -I https://ca-easyauth.<env>.koreacentral.azurecontainerapps.io/
+# EasyAuth enabled with wrong redirect URI in app registration
+az ad app show --id 5573e14d-ac1f-41ef-a044-4d3a2c3de8b3 --query "web.redirectUris"
+→ ["https://ca-easyauth-retest.<env>/wrong-callback"]
+
+# HTTP response: 401 + www-authenticate: Bearer
+curl -si https://ca-easyauth-retest.<env>.koreacentral.azurecontainerapps.io/
 → HTTP/2 401
-   www-authenticate: Bearer realm="...",
-     authorization_uri="https://login.microsoftonline.com/<tenant>/oauth2/authorize",
-     resource_id="27b00bf7-db23-49c4-aa8e-9c546b4dcf8b"
+→ www-authenticate: Bearer realm="ca-easyauth-retest.<env>.koreacentral.azurecontainerapps.io"
+→ x-ms-middleware-request-id: 7cd880db-caa0-4bfd-bd89-5b8dc097a83e
 
-# Redirect URI before fix (missing /.auth/login/aad/callback)
-# → AADSTS50011: The redirect URI specified in the request does not match
+# AADSTS50011 occurs in browser OAuth flow when redirect_uri does not match
+# (Cannot be captured via CLI — requires browser-based OAuth code flow)
 
-# Fix: add correct redirect URI to Entra app registration
-az ad app update --id 27b00bf7-db23-49c4-aa8e-9c546b4dcf8b \
-  --web-redirect-uris "https://ca-easyauth.<env>.koreacentral.azurecontainerapps.io/.auth/login/aad/callback"
-→ Updated; login flow completes successfully
+# Fix: set correct redirect URI
+az ad app update --id 5573e14d-ac1f-41ef-a044-4d3a2c3de8b3 \
+  --web-redirect-uris "https://ca-easyauth-retest.<env>/.auth/login/aad/callback"
+
+az ad app show --id 5573e14d-ac1f-41ef-a044-4d3a2c3de8b3 --query "web.redirectUris"
+→ ["https://ca-easyauth-retest.<env>/.auth/login/aad/callback"]
 ```
 
-- `[Observed]` HTTP 401 with `www-authenticate: Bearer` header containing `authorization_uri` pointing to Entra login.
-- `[Observed]` Without correct redirect URI: AADSTS50011 error during OAuth callback.
-- `[Observed]` After adding `/.auth/login/aad/callback` as redirect URI: EasyAuth login flow completes.
-- `[Inferred]` EasyAuth redirect URI must exactly match the app's `/.auth/login/aad/callback` endpoint.
+- `[Observed]` Wrong redirect URI confirmed: `https://.../wrong-callback` in app registration.
+- `[Observed]` HTTP 401 + `www-authenticate: Bearer realm="..."` — EasyAuth blocks unauthenticated access.
+- `[Not Proven via CLI]` AADSTS50011 error body — only observable in a browser OAuth flow when Entra rejects the wrong `redirect_uri`. Cannot be automated via `curl` as Entra login requires interactive session.
+- `[Observed]` After fix: redirect URI updated to `/.auth/login/aad/callback`.
+- `[Inferred]` EasyAuth's OAuth callback endpoint is always `/.auth/login/aad/callback`; any other value in the app registration causes AADSTS50011 at login time.
 
 ## 13. Solution
 

@@ -111,24 +111,32 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ```text
 # 3 replicas confirmed
-az containerapp replica list --name ca-replica-lab --resource-group rg-aca-lab-test2 \
+az containerapp replica list --name ca-replica-imbalance --resource-group rg-aca-lab-test3 \
   --query "length(@)"
 → 3
 
-# Sticky cookie in response (before fix — default affinity)
-curl -I https://ca-replica-lab.<env>.koreacentral.azurecontainerapps.io/
-→ Set-Cookie: acaAffinity=<replica-id>; Path=/; SameSite=None; Secure; HttpOnly
+# Enable sticky sessions (trigger condition)
+az containerapp ingress sticky-sessions set --affinity sticky ...
+→ { "affinity": "sticky" }
 
-# After disabling affinity: no acaAffinity cookie
-az containerapp ingress update --name ca-replica-lab --resource-group rg-aca-lab-test2 \
-  --sticky-sessions-affinity none
-→ acaAffinity cookie absent; load distributed across all 3 replicas
+# acaAffinity cookie present in response
+curl -D - https://ca-replica-imbalance.<env>.koreacentral.azurecontainerapps.io/
+→ set-cookie: acaAffinity="3c9c913f98b121a3"; Path=/; HttpOnly; SameSite=None; Secure;
+
+# 60 requests with sticky cookie — all go to same replica
+→ 60/60 requests: acaAffinity="49707246944fa376"  (1 unique replica hit)
+
+# Fix: disable sticky sessions
+az containerapp ingress sticky-sessions set --affinity none ...
+→ { "affinity": "none" }
+→ No acaAffinity cookie in response — traffic distributes across all 3 replicas
 ```
 
-- `[Observed]` 3 replicas confirmed via `az containerapp replica list`.
-- `[Observed]` `acaAffinity` sticky cookie present with default session affinity — pins client to single replica.
-- `[Observed]` After `--sticky-sessions-affinity none`: `acaAffinity` cookie absent.
-- `[Inferred]` Sticky session cookie is the mechanism causing load imbalance; disabling it restores even distribution.
+- `[Observed]` 3 replicas confirmed: `az containerapp replica list | length(@)` → 3.
+- `[Observed]` `stickySessions.affinity: sticky`: `acaAffinity="3c9c913f98b121a3"` cookie set in response headers.
+- `[Measured]` **60/60 requests hit 1 replica** (imbalance proven): cookie value `"49707246944fa376"` unchanged across all 60 requests.
+- `[Observed]` After `affinity: none`: no `acaAffinity` cookie; traffic distributes across all replicas.
+- `[Inferred]` Sticky session cookie is the sole mechanism causing load imbalance.
 
 ## 13. Solution
 

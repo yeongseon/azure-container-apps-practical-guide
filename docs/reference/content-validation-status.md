@@ -4,7 +4,7 @@ content_sources:
     justification: Auto-generated dashboard tracking content validation status
 content_validation:
   status: verified
-  last_reviewed: "2026-04-30"
+  last_reviewed: "2026-05-01"
   reviewer: ai-agent
   core_claims:
     - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
@@ -21,7 +21,7 @@ This page tracks the source validation status of all documentation content. All 
 
 ## Summary
 
-*Generated: 2026-04-30*
+*Generated: 2026-05-01*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|

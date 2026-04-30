@@ -108,27 +108,31 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ### Observed Evidence (Live Azure Test — 2026-04-30)
 
 ```text
-# Both regions healthy (baseline)
-curl -s -o /dev/null -w '%{http_code}' https://ca-primary.<koreacentral-env>/
-→ 200
-curl -s -o /dev/null -w '%{http_code}' https://ca-secondary.<eastus-env>/
-→ 200
+# Baseline: both regions healthy
+Primary  (koreacentral): ca-primary-test.victoriouspebble-e4c68830.koreacentral.azurecontainerapps.io → HTTP 200
+Secondary (eastus):      ca-secondary-test.salmonisland-b729f78e.eastus.azurecontainerapps.io        → HTTP 200
 
 # Simulate primary failure: disable ingress
-az containerapp ingress disable --name ca-primary --resource-group rg-aca-lab-test2
-→ Primary: 404 (ingress disabled)
-   Secondary: 200 (failover target serving traffic)
+az containerapp ingress disable --name ca-primary-test --resource-group rg-aca-lab-test3
+→ PRIMARY_INGRESS_DISABLED
+
+# During failure
+Primary  HTTP: 404   ← ingress disabled, no route
+Secondary HTTP: 200  ← continues serving traffic
 
 # Restore primary
-az containerapp ingress enable --name ca-primary --resource-group rg-aca-lab-test2 \
+az containerapp ingress enable --name ca-primary-test \
   --type external --target-port 80 --transport auto
-→ Primary: 200 (restored)
+→ Ingress enabled. Access your app at https://ca-primary-test.victoriouspebble-e4c68830.koreacentral.azurecontainerapps.io/
+
+Primary HTTP (restored): 200
 ```
 
-- `[Observed]` Both regions (koreacentral + eastus) serving HTTP 200 at baseline.
-- `[Observed]` Primary ingress disabled → HTTP 404; secondary remains HTTP 200.
-- `[Observed]` Primary restored → HTTP 200 confirmed.
-- `[Inferred]` Multi-region failover requires external traffic routing (AFD/Traffic Manager) to detect primary failure and shift traffic; without it, clients must manually switch endpoints.
+- `[Observed]` Both koreacentral and eastus regions serving HTTP 200 at baseline.
+- `[Observed]` Primary ingress disabled → HTTP **404**; secondary (eastus) → HTTP **200**.
+- `[Observed]` Primary ingress re-enabled → HTTP **200** restored.
+- `[Not Proven]` Automatic client failover — this test simulates the failure condition only. Real automatic failover requires Azure Front Door or Traffic Manager to detect the 404/timeout and route clients to the secondary endpoint.
+- `[Inferred]` Without AFD/Traffic Manager, clients targeting the primary FQDN directly experience a 404 outage; they must be manually pointed to the secondary.
 
 ## 13. Solution
 

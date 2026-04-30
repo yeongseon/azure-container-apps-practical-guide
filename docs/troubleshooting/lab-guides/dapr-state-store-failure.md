@@ -107,24 +107,38 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ### Observed Evidence (Live Azure Test — 2026-04-30)
 
 ```text
-# Bad component: state.redis with nonexistent redisHost
-az containerapp env dapr-component set --name cae-lab2 --resource-group rg-aca-lab-test2 \
-  --dapr-component-name state-bad --yaml /tmp/dapr-state-bad.yaml
-→ Component accepted by API (no immediate error)
+# Bad component: state.redis with nonexistent redisHost accepted by API
+az containerapp env dapr-component set --dapr-component-name state-bad --yaml ...
+→ Component accepted (no immediate error)
 
-# Failure manifests at sidecar init: connection to nonexistent Redis host fails
-# System logs: Error connecting to Redis at nonexistent-redis.redis.cache.windows.net:6379
+# Dapr sidecar fatal error log (from Log Analytics — ContainerAppConsoleLogs_CL)
+time="2026-04-30T10:53:38Z" level=error
+  msg="Failed to init component state-bad (state.redis/v1):
+  [INIT_COMPONENT_FAILURE]: initialization error occurred for state-bad (state.redis/v1):
+  redis store: error connecting to redis at
+  nonexistent-redis-lab.redis.cache.windows.net:6380:
+  dial tcp: lookup nonexistent-redis-lab.redis.cache.windows.net on 127.0.0.11:53: no such host"
+
+time="2026-04-30T10:53:38Z" level=fatal
+  msg="Fatal error from runtime: process component state-bad error: [INIT_COMPONENT_FAILURE]:
+  ... no such host"
+
+time="2026-04-30T10:53:38Z" level=info msg="Dapr is shutting down"
+time="2026-04-30T10:53:38Z" level=info msg="Dapr runtime stopped"
 
 # Fix: remove bad component
-az containerapp env dapr-component delete --name cae-lab2 --resource-group rg-aca-lab-test2 \
-  --dapr-component-name state-bad
-→ Component deleted; state store failures cease
+az containerapp env dapr-component remove --dapr-component-name state-bad
+→ Components remaining: 0
+
+az containerapp revision list --query "[0].properties.healthState"
+→ "Healthy"
 ```
 
-- `[Observed]` `state.redis` component with nonexistent `redisHost` accepted by API without error.
-- `[Observed]` Failure occurs at Dapr sidecar init when it tries to connect to the Redis host.
-- `[Observed]` Deleting the bad component stops the failure.
-- `[Inferred]` Dapr validates state store connectivity lazily; unreachable hosts cause sidecar init failure, crashing the container app.
+- `[Observed]` `state.redis` with nonexistent `redisHost` accepted by API — no registration error.
+- `[Observed]` Dapr log: `INIT_COMPONENT_FAILURE: redis store: error connecting to redis at nonexistent-redis-lab.redis.cache.windows.net:6380: dial tcp: ... no such host`.
+- `[Observed]` Dapr log: `Fatal error from runtime` → `Dapr is shutting down` → `Dapr runtime stopped` — sidecar crashes on init.
+- `[Observed]` After `dapr-component remove`: 0 components remain; revision reaches `Healthy`.
+- `[Inferred]` Dapr validates Redis connectivity eagerly at sidecar init (not at registration); unreachable host causes fatal crash.
 
 ## 13. Solution
 

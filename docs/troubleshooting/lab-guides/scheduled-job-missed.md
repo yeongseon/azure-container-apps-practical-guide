@@ -108,26 +108,33 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ### Observed Evidence (Live Azure Test — 2026-04-30)
 
 ```text
-# Working schedule: every minute → executions succeed
-az containerapp job show --name job-cron-lab --resource-group rg-aca-lab-test2 \
-  --query "properties.configuration.scheduleTriggerConfig.cronExpression"
-→ "* * * * *"
-az containerapp job execution list ... --query "[].properties.status"
-→ ["Succeeded", "Succeeded", "Succeeded"]
+# Baseline: * * * * * — executions succeed every minute
+az containerapp job execution list --name job-cron-verify ...
+→ Status=Succeeded  StartTime=2026-04-30T10:41:00+00:00
+→ Status=Succeeded  StartTime=2026-04-30T10:40:00+00:00
 
-# Broken schedule: Feb 31 (impossible — never fires)
-az containerapp job update ... --cron-expression "0 0 31 2 *"
-→ No new executions observed
+# Execution count before impossible schedule: 4
 
-# Restored: every minute → executions resume
-az containerapp job update ... --cron-expression "* * * * *"
-→ ["Succeeded", "Succeeded", ...]
+# Trigger: switch to 0 0 31 2 * (Feb 31 — impossible date)
+az containerapp job update --cron-expression "0 0 31 2 *"
+
+# Wait 3 minutes
+Execution count after 3 min: 4   ← unchanged
+New executions during impossible schedule: 0
+
+# Fix: restore * * * * *
+az containerapp job update --cron-expression "* * * * *"
+
+# 70 seconds later
+Execution count: 6   ← 2 new executions
+→ Status=Succeeded  StartTime=2026-04-30T10:46:00+00:00
+→ Status=Succeeded  StartTime=2026-04-30T10:47:00+00:00
 ```
 
-- `[Observed]` `* * * * *`: executions fire every minute, all `Succeeded`.
-- `[Observed]` `0 0 31 2 *` (Feb 31 — impossible date): zero new executions; no error surfaced.
-- `[Observed]` After restoring `* * * * *`: `Succeeded` executions resume immediately.
-- `[Inferred]` An impossible cron date silently suppresses job execution with no platform error.
+- `[Observed]` `* * * * *`: `Succeeded` every minute (confirmed from job execution list).
+- `[Measured]` `0 0 31 2 *` (Feb 31): **0 new executions in 3 minutes** (count: 4 → 4). No error surfaced.
+- `[Observed]` After restoring `* * * * *`: 2 new `Succeeded` executions within 70 seconds.
+- `[Inferred]` An impossible cron date silently suppresses job execution with no platform-level alert or error message.
 
 ## 13. Solution
 

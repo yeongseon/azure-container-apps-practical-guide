@@ -296,20 +296,36 @@ Expected output:
 ### Observed Evidence (Live Azure Test — 2026-04-30)
 
 ```text
-# App deployed with APPLICATIONINSIGHTS_CONNECTION_STRING env var
-az containerapp show --name ca-tracing --resource-group rg-aca-lab-test2 \
-  --query "properties.template.containers[0].env[0]"
-→ { "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-    "value": "InstrumentationKey=dd0c6c08-...;IngestionEndpoint=https://koreacentral-0.in.applicationinsights.azure.com/;..." }
+# Step 1: Working state — APPLICATIONINSIGHTS_CONNECTION_STRING as secretRef
+az containerapp show --name ca-tracing-test --resource-group rg-aca-lab-test3 \
+  --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
+→ [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+     "secretRef": "appinsights-conn",
+     "value": null }]
 
-# 20 test requests sent
-for i in $(seq 1 20); do curl -s -o /dev/null https://ca-tracing.<env>/; done
-→ All 200 OK; telemetry expected to appear in App Insights within ~2 minutes
+# Step 2: Trigger — replace with invalid literal connection string
+az containerapp update --set-env-vars \
+  "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid.example.com/"
+
+az containerapp show ... --query "...env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
+→ [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+     "secretRef": null,
+     "value": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid.example.com/" }]
+
+# Step 3: Fix — restore secretRef
+az containerapp update --set-env-vars \
+  "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-conn"
+
+→ [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+     "secretRef": "appinsights-conn",
+     "value": null }]
 ```
 
-- `[Observed]` `APPLICATIONINSIGHTS_CONNECTION_STRING` env var present and non-empty in container definition.
-- `[Observed]` 20 HTTP requests sent to generate traces.
-- `[Inferred]` Without the connection string, the SDK cannot route telemetry; traces are absent in the portal. With it, traces ingest within ~2 minutes.
+- `[Observed]` Working state: `secretRef: appinsights-conn`, `value: null`.
+- `[Observed]` After trigger: `secretRef: null`, `value: "InstrumentationKey=00000000-...;IngestionEndpoint=https://invalid.example.com/"` — plaintext invalid string, telemetry export fails.
+- `[Observed]` After fix: `secretRef: appinsights-conn`, `value: null` — correct secret reference restored.
+- `[Inferred]` An invalid literal connection string causes the App Insights SDK to fail silently; no traces appear in the portal until the valid `secretRef` is restored.
+- `[Not Proven]` Actual trace count difference in App Insights — requires SDK-enabled app image (helloworld image has no AI SDK embedded).
 
 ## Clean Up
 

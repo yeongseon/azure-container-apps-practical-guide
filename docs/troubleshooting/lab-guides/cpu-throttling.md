@@ -110,21 +110,26 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ### Observed Evidence (Live Azure Test — 2026-04-30)
 
 ```text
-# Before fix: cpu=0.25
-az containerapp show --name ca-cpu-lab --resource-group rg-aca-lab-test2 \
+# Resource allocation before fix
+az containerapp show --name ca-cpu-throttle --resource-group rg-aca-lab-test3 \
   --query "properties.template.containers[0].resources"
-→ { "cpu": 0.25, "memory": "0.5Gi" }
+→ { "cpu": 0.25, "ephemeralStorage": "1Gi", "memory": "0.5Gi" }
+
+# Latency under 200 concurrent requests — cpu=0.25
+n=200  p50=1.395s  p95=1.790s  max=1.993s  avg=1.384s
 
 # After fix: cpu=1.0
-az containerapp show --name ca-cpu-lab --resource-group rg-aca-lab-test2 \
-  --query "properties.template.containers[0].resources"
-→ { "cpu": 1.0, "memory": "2Gi" }
+az containerapp update --name ca-cpu-throttle --cpu 1.0 --memory 2.0Gi ...
+→ { "cpu": 1.0, "ephemeralStorage": "4Gi", "memory": "2Gi" }
+
+# Latency under 200 concurrent requests — cpu=1.0
+n=200  p50=0.274s  p95=0.425s  max=1.084s  avg=0.288s
 ```
 
-- `[Observed]` Initial resource allocation: `cpu: 0.25`, `memory: 0.5Gi`.
-- `[Observed]` After `az containerapp update --cpu 1.0 --memory 2Gi`: allocation updated successfully.
-- `[Inferred]` Under CPU burst load, 0.25 vCPU is insufficient; throttling manifests as slow response and probe timeouts.
-- `[Inferred]` Scaling to 1.0 vCPU removes the bottleneck without application code changes.
+- `[Measured]` cpu=0.25: p50 **1.40s**, p95 **1.79s** under 200 concurrent requests.
+- `[Measured]` cpu=1.0: p50 **0.27s**, p95 **0.42s** — **5× improvement**.
+- `[Observed]` Resource allocation confirmed via `az containerapp show` before and after fix.
+- `[Inferred]` CPU throttling at 0.25 vCPU causes severe latency degradation under concurrent load; scaling to 1.0 vCPU resolves it.
 
 ## 13. Solution
 

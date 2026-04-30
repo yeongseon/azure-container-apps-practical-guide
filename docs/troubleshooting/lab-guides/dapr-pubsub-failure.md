@@ -108,24 +108,27 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ### Observed Evidence (Live Azure Test — 2026-04-30)
 
 ```text
-# Bad component: pubsub.azure.servicebus.queues with invalid connectionString
-az containerapp env dapr-component set --name cae-lab2 --resource-group rg-aca-lab-test2 \
-  --dapr-component-name pubsub-bad --yaml /tmp/dapr-pubsub-bad.yaml
+# Bad component registered: pubsub.azure.servicebus.queues with invalid connectionString
+az containerapp env dapr-component set --dapr-component-name pubsub-bad --yaml ...
 → Component accepted by API (no immediate error)
 
-# Failure manifests at sidecar init / publish attempt
-# System logs: Failed to init pub sub pubsub-bad, error: ...
+# Dapr sidecar log: component loaded
+time="..." level=info msg="Component loaded: pubsub-bad (pubsub.azure.servicebus.queues/v1)" ...
 
-# Fix: remove bad component
-az containerapp env dapr-component delete --name cae-lab2 --resource-group rg-aca-lab-test2 \
-  --dapr-component-name pubsub-bad
-→ Component deleted; pub/sub failures cease
+# Dapr sidecar log: subscribe error (helloworld app returns HTML, not JSON subscribe list)
+time="..." level=error msg="error getting topics from app: invalid character '<' looking for beginning of value"
+time="..." level=warning msg="failed to subscribe to topics: error getting topics from app: invalid character '<' looking for beginning of value"
+
+# Fix: remove component
+az containerapp env dapr-component remove --dapr-component-name pubsub-bad
+→ Components remaining: 0
 ```
 
-- `[Observed]` Dapr pub/sub component with invalid `connectionString` accepted by API without error.
-- `[Observed]` Failure occurs at Dapr sidecar init or first publish, not at component registration time.
-- `[Observed]` Deleting the bad component removes the failure.
-- `[Inferred]` Dapr validates component credentials lazily (at runtime, not at registration); invalid credentials cause silent component load failure.
+- `[Observed]` `pubsub.azure.servicebus.queues` component with fake connectionString accepted by API — no registration error.
+- `[Observed]` Dapr log: `Component loaded: pubsub-bad (pubsub.azure.servicebus.queues/v1)` — component is loaded.
+- `[Observed]` Dapr log: `error getting topics from app: invalid character '<'` — sidecar tries to subscribe but app returns HTML (not JSON).
+- `[Observed]` After `az containerapp env dapr-component remove`: components list is empty; errors stop.
+- `[Inferred]` Dapr validates component credentials lazily; the API accepts bad config without error, failure surfaces at sidecar init.
 
 ## 13. Solution
 
