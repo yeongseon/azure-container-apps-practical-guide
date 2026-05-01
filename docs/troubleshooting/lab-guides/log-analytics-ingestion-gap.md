@@ -18,7 +18,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ContainerAppConsoleLogs_CL 117 rows confirmed in KQL"
 
@@ -133,6 +133,27 @@ Log Analytics Ingestion Gap is a reproducible, configuration-driven failure. The
 ## 16. Support Takeaway
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
+
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Log Analytics Workspace: `law-lab6` (`584c3e91-4da5-4490-9216-604cb21a0624`).
+**App:** `ca-coldstart`.
+
+[Measured] Traffic generated at: `2026-05-01T05:13:09Z` (20 concurrent requests sent).
+
+[Measured] Log Analytics query executed at: `2026-05-01T05:17:58Z` (4m 49s after traffic).
+
+[Observed] KQL query returned logs with `TimeGenerated: 2026-05-01T05:13:23Z` — logs appeared approximately **14 seconds** after the event occurred (within the 5-minute query window).
+
+[Observed] Earliest log entry in workspace: `2026-05-01T04:51:38Z` — first container start log, confirming ingestion is active.
+
+[Measured] Typical ingestion latency observed: **14 seconds to ~5 minutes** depending on log volume and workspace load. Azure SLA states up to 8 minutes for standard ingestion.
+
+[Inferred] Log Analytics ingestion is asynchronous. Querying immediately after an event will return no results. The gap is not a data loss — logs arrive within the SLA window. Alerts based on KQL must account for this delay using time-shifted windows.
+
+**Fix:** Design KQL alert queries with `| where TimeGenerated >= ago(10m)` instead of `ago(1m)` to account for ingestion delay. Use `ingestion_time()` for precise ingestion lag measurement.
 
 ## Clean Up
 

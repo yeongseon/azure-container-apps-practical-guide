@@ -16,7 +16,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "OIDC federated credential misconfiguration confirmed, fix=correct subject"
 
@@ -111,6 +111,27 @@ Github Actions Oidc Failure is a reproducible, configuration-driven failure. The
 ## 16. Support Takeaway
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
+
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6`, `koreacentral`.
+**App Registration:** `aca-ghactions-lab6` (appId: `d4979983-3ded-4876-8381-4a9f3b80de41`).
+
+[Observed] Trigger state: Federated credential created with `subject: "repo:yeongseon/azure-container-apps-practical-guide:ref:refs/heads/wrong-branch"`.
+
+[Observed] `az ad app federated-credential list --id "d4979983-3ded-4876-8381-4a9f3b80de41"` showed `{"name": "gh-oidc-wrong", "subject": "repo:yeongseon/azure-container-apps-practical-guide:ref:refs/heads/wrong-branch"}`.
+
+[Inferred] When a GitHub Actions workflow runs on the `main` branch, the OIDC token contains `sub: repo:yeongseon/azure-container-apps-practical-guide:ref:refs/heads/main`. Azure AD matches this against all federated credentials — no match with `wrong-branch` → `AADSTS70021: No matching federated identity record found`.
+
+[Observed] Fix applied: Deleted `gh-oidc-wrong` credential, created `gh-oidc-main` with `subject: "repo:yeongseon/azure-container-apps-practical-guide:ref:refs/heads/main"`.
+
+[Observed] After fix: `az ad app federated-credential list` returned `{"name": "gh-oidc-main", "subject": "repo:...refs/heads/main"}` — subject now matches the GitHub Actions OIDC token for `main` branch deployments.
+
+[Inferred] OIDC failure is always a subject claim mismatch. The subject must exactly match the workflow trigger context (branch, environment, PR, tag).
+
+**Fix:** Delete the incorrect federated credential and recreate with the exact `subject` matching the GitHub Actions workflow context.
 
 ## Clean Up
 

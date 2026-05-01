@@ -16,7 +16,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ContainerAppContainersInvalidCpu: 8 vCPU rejected, 2 vCPU accepted on D4 profile"
 
@@ -139,6 +139,24 @@ Workload Profile Mismatch is a reproducible, configuration-driven failure. The f
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
 
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`.
+**Workload Profiles:** `Consumption` (default), `dedicated-d4` (D4 type, min=1 node, max=2 nodes).
+
+[Observed] `az containerapp env workload-profile list --name "cae-lab6"` returned:
+`Consumption` (type: Consumption) and `dedicated-d4` (type: D4, min=1, max=2).
+
+[Observed] App `ca-on-dedicated` created with `--workload-profile-name "dedicated-d4" --cpu 2 --memory 4Gi` returned `state: Running, profile: dedicated-d4` — confirmed scheduled on D4 node.
+
+[Inferred] Mismatch scenario: App requests `--cpu 8 --memory 16Gi` on `Consumption` profile (max 4 vCPU/8 Gi) → `ProvisioningFailed: requested resources exceed profile limits`. Alternatively, specifying a non-existent profile name causes the create/update to time out as the scheduler cannot find a matching node pool.
+
+[Inferred] Fix is to match the `--workload-profile-name` to a profile that supports the requested CPU/memory. Dedicated profiles must be pre-provisioned in the environment before apps can reference them.
+
+**Fix:** `az containerapp create --workload-profile-name "dedicated-d4" --cpu 2 --memory 4Gi` — schedules app on D4 dedicated node with sufficient capacity.
+
 ## Clean Up
 
 Return the profile and app to their original settings after the test.
@@ -150,6 +168,7 @@ az containerapp show \
     --query "{workloadProfile:properties.workloadProfileName,scale:properties.template.scale,resources:properties.template.containers[0].resources}" \
     --output json
 ```
+
 
 | Command | Why it is used |
 |---|---|

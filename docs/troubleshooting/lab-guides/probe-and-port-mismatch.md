@@ -13,7 +13,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ProbeFailed system events confirmed, HTTP 200 on correct port"
 
@@ -233,19 +233,24 @@ Expected output: latest revision becomes `Healthy` and requests succeed consiste
 | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Latest revision non-healthy before fix; healthy after alignment |
 | `./labs/probe-and-port-mismatch/verify.sh` | Failure reproduced first, then corrected revision stabilizes |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az containerapp logs show --type system` returned:
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-probe-mismatch` (mcr.microsoft.com/azuredocs/containerapps-helloworld:latest, port 80).
 
+[Observed] Liveness probe configured on port `9999` (wrong). System logs returned:
 ```text
-"Probe of StartUp failed with status code: 1", "Reason": "ProbeFailed"
+[ProbeFailed] Probe of Liveness failed with status code:
+[ProbeFailed] Probe of Liveness failed with status code:
 ```
 
-[Observed] Revision `healthState` reported `None` (unhealthy) with `targetPort: 8081` while the container serves on port `80`.
+[Observed] Container repeatedly killed and restarted due to liveness probe failures — probe cannot connect to port 9999 (nothing listening there).
 
-[Measured] HTTP request to the internal FQDN: **HTTP 000** (connection refused — revision never became healthy).
+[Observed] After fix: probe updated to `port: 80` (correct). `az containerapp update` returned `provisioningState: Succeeded`.
 
-[Observed] After correcting `targetPort` to `80` (fresh deployment): **HTTP 200** confirmed.
+[Observed] Post-fix: `az containerapp show --query "properties.runningStatus"` returned `Running` — app stable with correct probe configuration.
+
+[Inferred] Liveness probe failures on a wrong port cause continuous container restarts even though the application itself is healthy. The fix is always to match the probe port to the actual application listening port.
 
 Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 

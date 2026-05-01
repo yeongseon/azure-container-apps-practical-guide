@@ -12,7 +12,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ContainerAppInvalidHttpScaleRule confirmed, fixed concurrency=100"
 
@@ -248,15 +248,24 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 | `./labs/scale-rule-mismatch/verify.sh` before fix | Replica count stays at or below 1 |
 | `./labs/scale-rule-mismatch/verify.sh` after fix | Replica count increases above 1 |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az containerapp update` with `--scale-rule-http-concurrency 0` returned:
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-scale-mismatch` (minReplicas=0, maxReplicas=10, HTTP scale rule, concurrentRequests=10).
 
+[Observed] System logs returned immediately after creation:
 ```text
-(ContainerAppInvalidHttpScaleRule) The http scale rule must have a non-empty metadata collection.
+[ScaledObjectCheckFailed] ScaledObject doesn't have correct triggers specification: no triggers defined in the ScaledObject/ScaledJob
 ```
 
-[Observed] Setting `--scale-rule-http-concurrency 100` on the same app succeeded with HTTP 200 and the rule appeared in `az containerapp show`.
+[Observed] After enabling ingress (`az containerapp ingress enable --type external --target-port 80`) and re-applying the HTTP scale rule, logs showed `[ContainerAppReady] Successfully updated containerApp: ca-scale-mismatch`.
+
+[Observed] `az containerapp show --query "properties.template.scale.rules"` returned:
+```json
+[{"name": "http-rule", "type": {"metadata": {"concurrentRequests": "10"}}}]
+```
+
+[Inferred] HTTP scale rules require ingress to be enabled (the KEDA HTTP add-on needs to intercept requests). Without ingress, the ScaledObject has no trigger source and reports `no triggers defined`.
 
 Environment: `koreacentral`, Consumption plan.
 

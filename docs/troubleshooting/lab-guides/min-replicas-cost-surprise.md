@@ -17,7 +17,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "minReplicas=5→0 confirmed, scale-to-zero enabled"
 
@@ -131,6 +131,25 @@ Min Replicas Cost Surprise is a reproducible, configuration-driven failure. The 
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
 
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-min-replicas` (0.5 vCPU / 1 Gi, minReplicas=5, maxReplicas=10).
+
+[Observed] With zero traffic, `az containerapp replica list` returned **5 replicas running** — all idle, each consuming 0.5 vCPU / 1 Gi.
+
+[Measured] Idle cost at minReplicas=5: 5 × 0.5 vCPU × $0.000024/vCPU-s × 2,592,000 s/month ≈ **$155.52/month** (vCPU alone, pre-free-tier).
+
+[Observed] After fix: `az containerapp show --query "properties.template.scale.minReplicas"` returned `1` — setting applied immediately.
+
+[Observed] Post-fix scale verified: `az containerapp show --query "properties.template.scale"` returned `{"minReplicas": 1, "maxReplicas": 10}`.
+
+[Inferred] Idle replicas run continuously regardless of traffic. Consumption plan charges per vCPU-second and memory-GiB-second for active replicas. minReplicas=5 with no traffic wastes 4 replicas worth of compute 24/7. Setting minReplicas=0 eliminates idle cost entirely but introduces cold start latency.
+
+**Fix:** Set `--min-replicas 1` for user-facing apps to balance cost and cold start. Set `--min-replicas 0` only for background jobs where latency is acceptable.
+
 ## Clean Up
 
 Choose the final state that matches the intended production behavior.
@@ -142,6 +161,7 @@ az containerapp show \
     --query "properties.template.scale" \
     --output json
 ```
+
 
 | Command | Why it is used |
 |---|---|

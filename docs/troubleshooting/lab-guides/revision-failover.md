@@ -13,7 +13,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "traffic→0 + deactivate = HTTP 000, reactivate recovers"
 
@@ -232,22 +232,22 @@ ContainerAppReady     → Running state reached
 | `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"` | Traffic can be restored to a healthy revision without rebuilding first |
 | `./labs/revision-failover/verify.sh` | Rollback path succeeds and latest post-fix revision health improves |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az containerapp revision deactivate` alone does **not** block traffic. HTTP 200 continued
-after deactivation when the revision still held a non-zero traffic weight.
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-rev-failover` (multiple revisions: v1, v2, stable).
 
-[Observed] Only the combination of `az containerapp ingress traffic set --revision-weight <rev>=0`
-followed by `az containerapp revision deactivate` caused traffic to stop (HTTP 000 / connection
-refused from external `curl`).
+[Observed] `ca-rev-failover--v1` deployed Running/Healthy. `ca-rev-failover--v2` deployed and went to `Deprovisioning` when replaced by `stable`.
 
-[Observed] `az containerapp logs show --type system` emitted a `ProbeFailed` event when
-`--target-port 9999` was set on a container listening on port 80.
+[Observed] `az containerapp ingress traffic set --revision-weight "ca-rev-failover--stable=100"` executed successfully — failover to stable revision complete.
 
-[Inferred] The failover recovery path — traffic-weight=0 then deactivate — is the controlling
-variable. Deactivation without traffic reassignment is a no-op from a client perspective.
+[Observed] After failover: `az containerapp revision list` returned `ca-rev-failover--stable Running` (active), `ca-rev-failover--v2 Deprovisioning` (being removed).
 
-Environment: `koreacentral`, Consumption plan, multiple-revision mode.
+[Observed] `az containerapp revision activate --revision "ca-rev-failover--v1"` returned `"Activate succeeded"` — confirms previous revision can be reactivated for rollback.
+
+[Inferred] In Single revision mode, traffic always follows the active revision. Failover = activate the target revision (old stable). In Multiple revision mode, failover = set `--revision-weight <target>=100 <bad>=0`.
+
+Environment: `koreacentral`, Consumption plan.
 
 ## Clean Up
 

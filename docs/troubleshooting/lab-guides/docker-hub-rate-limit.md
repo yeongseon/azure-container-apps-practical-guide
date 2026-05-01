@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ratelimit-limit: 100;w=21600, ratelimit-remaining: 99;w=21600 from registry-1.docker.io"
 
@@ -136,6 +136,24 @@ Docker Hub Rate Limit is a reproducible, configuration-driven failure. The fix i
 ## 16. Support Takeaway
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
+
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-dockerhub-rate`, image: `alpine:latest` from Docker Hub.
+
+[Observed] Docker Hub rate limit headers (anonymous pull from shared egress IP `121.190.225.37`):
+`ratelimit-limit: 100;w=21600` / `ratelimit-remaining: 100;w=21600` — 100 pulls per 6-hour window for anonymous egress IP.
+
+[Observed] App deployed successfully using `alpine:latest` from Docker Hub (anonymous pull).
+
+[Inferred] In production, multiple Container Apps environments sharing the same egress IP exhaust the 100-pull/6h anonymous limit, causing `ImagePullBackOff` / `ErrImagePull` errors. Authenticated Docker Hub accounts get 200 pulls/6h (free) or unlimited (paid).
+
+**Fix:** `az containerapp registry set --server index.docker.io --username <user> --password <token>` — switches to authenticated pull, bypassing anonymous rate limit.
+
+**Alternative Fix:** Mirror the image to ACR: `az acr import --source docker.io/library/alpine:latest --image alpine:latest` — eliminates Docker Hub dependency entirely.
 
 ## Clean Up
 

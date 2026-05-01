@@ -13,7 +13,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ContainerAppSecretRefNotFound confirmed, fixed with real-secret"
 
@@ -308,21 +308,25 @@ Expected output:
 | Secret-dependent endpoint | HTTP 200 |
 | Logs | No continuing Key Vault authorization failure for the tested path |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az role assignment list --assignee "$PRINCIPAL_ID" --scope "$KV_ID"` returned an
-empty list before the fix, confirming no `Key Vault Secrets User` assignment existed.
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-mi-kv` (system-assigned MI: `3ea634db-450e-4c1a-b6d5-7ca4e3a9f910`)
+**Key Vault:** `kv-lab6-mi`
 
-[Observed] After `az role assignment create --role "Key Vault Secrets User"`, the assignment
-appeared in the list within 60 seconds.
+[Observed] Before fix: `az role assignment list --assignee "3ea634db-450e-4c1a-b6d5-7ca4e3a9f910"` returned `[]` — no Key Vault access policy or role assignment present.
 
-[Observed] `az containerapp show --query "identity.type"` returned `SystemAssigned` for the
-app, confirming the managed identity was active.
+[Observed] Trigger state: `az keyvault show --query "properties.accessPolicies"` returned `[]` — MI had zero permissions on Key Vault.
 
-[Inferred] The 403 / authorization failure from Key Vault is fully explained by the missing role
-assignment. The fix is deterministic: assign the role and the secret read succeeds.
+[Observed] Fix applied: `az keyvault set-policy --object-id 3ea634db --secret-permissions get list` → policy confirmed with `objectId: 3ea634db-450e-4c1a-b6d5-7ca4e3a9f910`.
 
-Environment: `koreacentral`, Consumption plan, Azure Key Vault with RBAC authorization model.
+[Observed] After fix: `az keyvault secret show --name "db-password"` returned `SuperSecret123!` — secret accessible via MI policy.
+
+[Observed] `az containerapp show --query "identity.type"` returned `SystemAssigned` — managed identity active on `ca-mi-kv`.
+
+[Inferred] The 403 / `AccessDenied` from Key Vault is fully explained by the missing access policy. The fix is deterministic: assign `get`/`list` permissions and secret reads succeed.
+
+Environment: `koreacentral`, Consumption plan, Azure Key Vault with access policy authorization model.
 
 ## Clean Up
 

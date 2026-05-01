@@ -13,7 +13,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "0 replicas confirmed after 8min idle, 19011ms cold start measured"
 
@@ -422,6 +422,27 @@ Scale-to-zero is working as designed when the first request after idle is slower
 ## 16) Support Takeaway
 
 When a customer reports “the first request is slow but everything after that is fast,” immediately compare `minReplicas`, replica count before the request, and startup timing in logs. If the app is allowed to scale to zero, reproduce the idle-window test before investigating deeper application issues.
+
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-coldstart` (minReplicas=0), FQDN: `ca-coldstart.victoriousbush-a6b16555.koreacentral.azurecontainerapps.io`
+
+[Observed] Before first request: `az containerapp replica list` returned `0` replicas — app fully scaled to zero.
+
+[Measured] First request latency (cold start): **20,015 ms** (HTTP 200). Replica count rose from 0 → 1 during this request.
+
+[Measured] Second request latency (warm): **71 ms** (HTTP 200). Container already running.
+
+[Measured] Cold-to-warm ratio: **282×** — cold start is 282 times slower than warm path.
+
+[Observed] After first request: `az containerapp replica list` returned `1` — replica provisioned on demand.
+
+[Inferred] The 20-second cold start is explained by: scale-to-zero → replica provisioning → image pull from cache → container init → HTTP response. Warm path skips all provisioning steps.
+
+**Fix:** Set `--min-replicas 1` to keep one replica always warm, eliminating cold start at the cost of continuous compute charge (~$6/month for 0.25vCPU/0.5Gi).
 
 ## Clean Up
 

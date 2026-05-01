@@ -18,7 +18,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "Bad Request on invalid metric namespace, ReplicaCount valid"
 
@@ -113,6 +113,20 @@ Diagnostic Settings Missing is a reproducible, configuration-driven failure. The
 ## 16. Support Takeaway
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
+
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-nodiag-lab6`, `koreacentral`, Consumption plan.
+
+[Observed] Before fix: `az containerapp env show --query "properties.appLogsConfiguration"` returned `{"destination": null, "logAnalyticsConfiguration": null}` — no Log Analytics connected.
+
+[Observed] Reference env with Log Analytics: `az containerapp env show --name "cae-lab6" --query "properties.appLogsConfiguration"` returned `{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "584c3e91-4da5-4490-9216-604cb21a0624"}}`.
+
+[Inferred] Without Log Analytics, all container console logs and system events are silently dropped. KQL queries against `ContainerAppConsoleLogs_CL` return no results.
+
+**Fix:** `az containerapp env update --logs-workspace-id <LAW_CUSTOMER_ID> --logs-workspace-key <KEY>` — connects Log Analytics and begins log ingestion within ~2 minutes.
 
 ## Clean Up
 

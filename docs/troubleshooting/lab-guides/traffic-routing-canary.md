@@ -14,7 +14,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "single-revision-mode error confirmed, fixed with multiple mode"
 
@@ -273,20 +273,22 @@ Expected: All requests return HTTP 200.
 | Request loop | 100% HTTP 200 |
 | Bad revision | Deactivated (optional) |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az containerapp ingress traffic set` on a single-revision-mode app returned:
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-canary` (multiple-revision mode), FQDN: `ca-canary.victoriousbush-a6b16555.koreacentral.azurecontainerapps.io`.
 
-```text
-Containerapp 'ca-f3' is configured for single revision.
-Set revision mode to multiple in order to set ingress traffic.
-```
+[Observed] Switched to multiple-revision mode: `az containerapp revision set-mode --mode multiple`.
 
-[Observed] After `az containerapp revision set-mode --mode multiple`, traffic split commands succeeded.
+[Observed] Two revisions deployed: `ca-canary--stable` (Running) and `ca-canary--canary` (Running, VERSION=canary).
 
-[Observed] Deactivating the only active revision with 100% traffic weight while keeping traffic weight non-zero did **not** immediately drop traffic — HTTP 200 continued. Traffic only dropped to HTTP 000 after setting `traffic-weight=0` AND deactivating.
+[Observed] Traffic split applied: `az containerapp ingress traffic set --revision-weight "ca-canary--stable=90" "ca-canary--canary=10"`.
 
-[Measured] 20 requests during 50/50 split between `v1good` and `v2bad` (both healthy): 20/20 HTTP 200 (both revisions served the same image; failure requires a genuinely broken revision on the bad side).
+[Observed] `az containerapp revision list` returned: `ca-canary--stable weight=90`, `ca-canary--canary weight=10` — both Running.
+
+[Measured] HTTP request to FQDN: `curl https://ca-canary.victoriousbush-a6b16555.koreacentral.azurecontainerapps.io/` → **HTTP 200**.
+
+[Inferred] 90/10 traffic split routes approximately 1 in 10 requests to the canary revision. Both revisions serve the same image (different env var), so all requests return HTTP 200. A real canary with a broken image would show HTTP 5xx from the 10% canary traffic.
 
 Environment: `koreacentral`, Consumption plan, multiple-revision mode.
 

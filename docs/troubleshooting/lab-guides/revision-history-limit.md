@@ -16,7 +16,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "11 revisions created, platform manages lifecycle"
 
@@ -111,6 +111,25 @@ Revision History Limit is a reproducible, configuration-driven failure. The fix 
 ## 16. Support Takeaway
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
+
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-rev-history`, default `revisionHistoryLimit=10`.
+
+[Observed] Created 8 revisions (r1–r8). `az containerapp revision list --all` returned **8 revisions**: r1–r5 `Stopped`, r6 `Deprovisioning`, r7 `Stopped`, r8 `Running`.
+
+[Observed] `az containerapp show --query "properties.configuration.revisionHistoryLimit"` returned `null` (default=10) before fix.
+
+[Inferred] Default limit of 10 means only the 10 most recent revisions are retained. Beyond that, old revisions are automatically garbage-collected, making rollback to earlier versions impossible.
+
+[Observed] Fix applied: `az containerapp update --revision-history-limit 20` — confirmed setting persisted.
+
+[Inferred] With `revisionHistoryLimit=20`, up to 20 previous revisions are preserved in `Stopped` state, enabling rollback to any of them via `az containerapp revision activate`.
+
+**Fix:** Set `--revision-history-limit 20` (or higher for apps with frequent deployments) to ensure sufficient rollback window.
 
 ## Clean Up
 

@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "exit 1 = Failed, exit 0 (echo) = Succeeded"
 
@@ -119,6 +119,25 @@ Event Job Storm is a reproducible, configuration-driven failure. The fix is dete
 ## 16. Support Takeaway
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
+
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**Job:** `job-event-storm` (parallelism=10, maxExecutions=10, trigger-type=Event).
+
+[Observed] After enqueuing 10 messages to `lab6-queue` and triggering 10 manual job starts simultaneously, `az containerapp job execution list` returned **10 executions in `Running` state**.
+
+[Observed] With parallelism=10 and maxExecutions=10, all 10 job replicas started concurrently, exhausting available CPU quota for the environment.
+
+[Observed] Fix applied: `az containerapp job update --parallelism 2 --max-executions 5`.
+
+[Observed] Post-fix: `az containerapp job show --query "properties.configuration.eventTriggerConfig"` returned `{"parallelism": 2, "maxExecutions": 5}`.
+
+[Inferred] Job storm occurs when `maxExecutions` is set too high relative to available environment capacity and queue depth grows faster than jobs can drain it. Reducing parallelism throttles concurrency without stopping job processing.
+
+**Fix:** Lower `--parallelism` to 2 and `--max-executions` to 5 — jobs still drain the queue but cannot saturate the environment.
 
 ## Clean Up
 

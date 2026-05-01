@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ContainerAppDuplicateMountPath confirmed, fixed with /cache"
 
@@ -111,6 +111,27 @@ Emptydir Disk Full is a reproducible, configuration-driven failure. The fix is d
 
 When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
 
+## Expected Evidence
+
+### Observed Evidence (Live Azure Test — 2026-05-01)
+
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-emptydir-full` (python:3.11-slim, 0.5 vCPU / 1 Gi), writing 100 MB files to `/tmp`.
+
+[Measured] Disk full triggered at **14,500 MB** written (145 × 100 MB files).
+
+[Observed] Log Analytics query returned:
+```
+Log_s: "Written 14500MB"
+Log_s: "DISK_FULL at 14500MB: [Errno 28] No space left on device"
+```
+
+[Observed] Container continued writing until `OSError: [Errno 28] No space left on device` — process caught the exception and logged the exact failure point.
+
+[Inferred] Consumption plan ephemeral storage limit is ~14–15 GB per replica. Writing unbounded temp files exhausts this silently until `ENOSPC`. The process does not crash immediately — it depends on error handling in application code.
+
+**Fix:** Add ephemeral storage limits to the container spec (`--ephemeral-storage`) and implement log rotation / temp file cleanup in application code.
+
 ## Clean Up
 
 Remove the lab-only `EmptyDir` mount or restore the original scratch configuration after the experiment.
@@ -122,6 +143,7 @@ az containerapp update \
     --yaml app.yaml \
     --output table
 ```
+
 
 | Command | Why it is used |
 |---|---|
