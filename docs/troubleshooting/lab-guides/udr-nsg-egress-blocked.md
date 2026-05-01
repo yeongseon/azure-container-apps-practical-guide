@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "NSG deny-443 HTTP 200→404→200 cycle confirmed"
 
@@ -108,7 +108,7 @@ container restart or revision change.
 platform operations (image pull, dependency calls). Blocking it does not immediately kill the
 revision — the platform remains running but cannot complete external calls.
 
-Environment: `koreacentral`, Consumption plan, NSG applied at subnet level.
+Environment: `rg-aca-lab-test4` / `cae-lab-test4`, `koreacentral`, Consumption plan. NSG applied at subnet level with outbound Deny rule on port 443.
 
 ## 13. Solution
 

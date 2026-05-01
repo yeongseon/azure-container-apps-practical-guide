@@ -118,15 +118,26 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
-**Environment:** `rg-aca-lab-test6` / `cae-nodiag-lab6`, `koreacentral`, Consumption plan.
+**Environment:** `rg-aca-lab-test7` / `cae-nodiag-lab7`, `koreacentral`, Consumption plan.
+**App:** `ca-nodiag`, Log Analytics Workspace: `law-lab7` (`3a34bbaf-aab2-4312-8428-15ccb79af140`).
 
-[Observed] Before fix: `az containerapp env show --query "properties.appLogsConfiguration"` returned `{"destination": null, "logAnalyticsConfiguration": null}` — no Log Analytics connected.
+[Observed] BEFORE fix: `az containerapp env show --query "properties.appLogsConfiguration"` returned:
+```json
+{"destination": null, "logAnalyticsConfiguration": null}
+```
 
-[Observed] Reference env with Log Analytics: `az containerapp env show --name "cae-lab6" --query "properties.appLogsConfiguration"` returned `{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "584c3e91-4da5-4490-9216-604cb21a0624"}}`.
+[Observed] BEFORE fix: 10 HTTP requests sent to app → `ContainerAppConsoleLogs_CL` KQL query returned **0 rows** — logs silently discarded with no diagnostic setting.
 
-[Inferred] Without Log Analytics, all container console logs and system events are silently dropped. KQL queries against `ContainerAppConsoleLogs_CL` return no results.
+[Observed] AFTER fix: `az containerapp env update --logs-destination "log-analytics" --logs-workspace-id "3a34bbaf..." --logs-workspace-key "<KEY>"` applied. Config changed to:
+```json
+{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "3a34bbaf-aab2-4312-8428-15ccb79af140"}}
+```
 
-**Fix:** `az containerapp env update --logs-workspace-id <LAW_CUSTOMER_ID> --logs-workspace-key <KEY>` — connects Log Analytics and begins log ingestion within ~2 minutes.
+[Observed] AFTER fix: `ContainerAppSystemLogs_CL` returned 5 rows for `ca-nodiag` including `RevisionReady: Successfully provisioned revision 'ca-nodiag--own2pel'` at `2026-05-01T06:18:19Z`.
+
+[Inferred] Without `--logs-destination log-analytics`, the `az containerapp env update` command silently fails to connect Log Analytics (requires explicit destination flag). The API accepts the call without error but does not apply the workspace.
+
+**Fix:** Always specify `--logs-destination log-analytics` alongside `--logs-workspace-id` and `--logs-workspace-key` when connecting Log Analytics to an environment.
 
 ## Clean Up
 

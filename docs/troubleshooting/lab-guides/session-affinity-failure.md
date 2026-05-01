@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "acaAffinity cookie present/absent confirmed with sticky/none toggle"
 
@@ -113,7 +113,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 send this cookie will be load-balanced across all replicas, potentially breaking session state
 stored in-process.
 
-Environment: `koreacentral`, Consumption plan, 3 replicas, external ingress.
+Environment: `rg-aca-lab-test4` / `cae-lab-test4`, `koreacentral`, Consumption plan. App: `ca-session-affinity` (3 replicas), external ingress.
 
 ## 13. Solution
 

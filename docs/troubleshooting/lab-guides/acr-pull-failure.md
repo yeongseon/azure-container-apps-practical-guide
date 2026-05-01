@@ -13,7 +13,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "failed to resolve registry confirmed, fixed with valid image"
 
@@ -238,22 +238,35 @@ Expected result: the latest revision becomes `Healthy` and system logs no longer
 | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "$ACR_NAME.azurecr.io/labacr:v1"` | Update succeeds and creates a recoverable revision |
 | `./labs/acr-pull-failure/verify.sh` | Failure reproduced first, then post-fix health improves |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az containerapp create` with `--image nonexistent.azurecr.io/fake/image:notexist` returned:
+**Environment:** `rg-aca-lab-test7` / `cae-lab7`, `koreacentral`, Consumption plan.
+**ACR:** `acrlabtest7.azurecr.io`, image: `myapp:latest`.
 
+[Observed] `az containerapp create` with `--image "nonexistent.azurecr.io/fake/image:notexist"` returned:
 ```text
-Failed to provision revision for container app 'ca-d1'.
-Error details: The following field(s) are either invalid or missing.
-Field 'template.containers.ca-d1.image' is invalid with details:
+Failed to provision revision for container app 'ca-acr-fail'. Error details:
+Field 'template.containers.ca-acr-fail.image' is invalid with details:
 'Invalid value: "nonexistent.azurecr.io/fake/image:notexist":
 failed to resolve registry 'nonexistent.azurecr.io':
-lookup nonexistent.azurecr.io on 100.100.250.250:53: no such host'
+lookup nonexistent.azurecr.io on 100.100.253.162:53: no such host'
 ```
 
-[Observed] Using a valid public image (`mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`) succeeded immediately.
+[Observed] `az containerapp create` with private ACR image `acrlabtest7.azurecr.io/myapp:latest` and no credentials returned:
+```text
+Failed to provision revision for container app 'ca-acr-nopull'. Error details:
+Field 'template.containers.ca-acr-nopull.image' is invalid with details:
+'Invalid value: "acrlabtest7.azurecr.io/myapp:latest":
+GET https:?scope=repository%3Amyapp%3Apull&service=acrlabtest7.azurecr.io:
+UNAUTHORIZED: authentication required, visit https://aka.ms/acr/authorization
+CorrelationId: 1d949f00-afa7-40d6-be62-343219b80cda'
+```
 
-Environment: `koreacentral`, Consumption plan.
+[Observed] Fix applied: `az containerapp update --registry-server acrlabtest7.azurecr.io --registry-username <user> --registry-password <pass>` — registry credentials configured.
+
+[Inferred] Two distinct failure modes: (1) DNS resolution failure for non-existent registry hostname, (2) UNAUTHORIZED for valid ACR without AcrPull role or admin credentials. Both surface at revision provisioning time, not at `az containerapp create` validation time.
+
+Environment: `rg-aca-lab-test7`, `koreacentral`, Consumption plan.
 
 ## Clean Up
 

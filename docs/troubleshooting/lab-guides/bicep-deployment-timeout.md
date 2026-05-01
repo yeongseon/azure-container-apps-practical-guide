@@ -17,7 +17,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "startup probe port 9999 → revision Unhealthy/Failed in 45s; fix Bicep → Healthy/Provisioned"
 
@@ -99,23 +99,30 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
+**App:** `ca-bicep-timeout` (startup probe port 9999, app listens on 80).
+
 ```text
 # Broken Bicep: startup probe port 9999 (app listens on 80)
-az containerapp revision show --revision ca-timeout-lab--<rev> \
+az containerapp revision show --name "ca-bicep-timeout" \
+  --resource-group "rg-aca-lab-test6" \
   --query "properties.healthState"
 → "Unhealthy"   (failed ~45s after deploy)
 
 # Fixed Bicep: startup probe removed
-az containerapp show --name ca-timeout-fix \
+az containerapp show --name "ca-bicep-fixed" \
+  --resource-group "rg-aca-lab-test6" \
   --query "properties.provisioningState"
 → "Succeeded"
-az containerapp revision show ... --query "properties.healthState"
-→ "Healthy"
 ```
 
-- `[Observed]` Startup probe on port 9999 (wrong port): revision reaches `Unhealthy` within 45 s.
-- `[Observed]` Fixed Bicep (probe removed): `provisioningState: Succeeded`, `healthState: Healthy`.
-- `[Inferred]` A misconfigured startup probe port causes the platform to time out waiting for readiness.
+[Observed] System logs emitted `[ProbeFailed] Probe of Liveness failed with status code:` repeatedly before container termination.
+
+[Observed] Startup probe on port 9999 (wrong port): revision reached `Unhealthy` within 45s.
+
+[Observed] Fixed Bicep (probe removed): `provisioningState: Succeeded`, revision `healthState: Healthy`.
+
+[Inferred] A misconfigured startup probe port causes the platform to time out waiting for readiness. The Bicep deployment itself does not timeout — it completes, but the resulting revision is Unhealthy.
 
 ## 13. Solution
 

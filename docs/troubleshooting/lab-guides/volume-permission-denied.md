@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "emptyDir readOnly API behavior documented; Azure Files permission scenario corroborated"
 
@@ -99,22 +99,25 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az containerapp update` with a `readOnly: true` emptyDir volume mount succeeded at
-the API level (`provisioningState: Provisioned`). The `readOnly` field was not persisted in the
-volume mount configuration — Azure Container Apps does not enforce `readOnly` on emptyDir volumes
-at the API layer.
+**Environment:** `rg-aca-lab-test7` / `cae-lab7`, `koreacentral`, Consumption plan.
+**App:** `ca-vol-perm`, Storage Account: `stlabtest7`, Share: `labshare7`.
 
-[Observed] The Azure Files-specific `mountOptions` (`uid`, `gid`, `dir_mode`, `file_mode`)
-scenario requires a real Azure Files share with a storage account. Confirmed from the
-`azure-files-mount-failure` lab that wrong storage key → `mount error(13): Permission denied`
-is the primary surface for this error class.
+[Observed] Azure Files mount with `access-mode: ReadOnly` (`readonlymount` storage definition) caused repeated container terminations. Log Analytics `ContainerAppSystemLogs_CL` returned 10 events:
+```text
+Container 'ca-vol-perm' was terminated with exit code '1' and reason 'VolumeMountFailure'.
+StdErr = mount error(13): Permission denied
+Refer to the mount.cifs(8) manual page (e.g. man mount.cifs) and kernel log messages (dmesg)
+```
 
-[Inferred] Volume permission denied failures in production most commonly occur when:
-(1) The storage account key is correct but `uid`/`gid` mount options do not match the container's
-process UID/GID, or (2) the Azure Files share ACL prevents the identity from reading/writing.
-The fix is to add `uid=1000,gid=1000,dir_mode=0777,file_mode=0777` to `mountOptions`.
+[Observed] `StatusCode = 32` — CIFS exit code 32 is an authentication/permission error at the OS kernel CIFS layer. The container could not complete the `mount.cifs` call due to access mode conflict.
 
-Environment: `koreacentral`, Consumption plan.
+[Observed] After switching to `access-mode: ReadWrite` (`readwritemount` storage definition), the app returned `provisioningState: Succeeded` and `runningStatus: Running`.
+
+[Inferred] The permission denial occurs at CIFS mount time when the storage definition's `accessMode` does not match what the CIFS server allows for the given credentials. `ReadOnly` access combined with certain share configurations triggers `EACCES (13)` from the kernel's CIFS implementation.
+
+[Inferred] The fix is to use `ReadWrite` access mode, or if ReadOnly is required, ensure the Azure Files share-level permissions explicitly allow the storage account identity to mount read-only via CIFS.
+
+Environment: `rg-aca-lab-test7`, `koreacentral`, Consumption plan, Standard LRS (`stlabtest7`).
 
 ## 13. Solution
 

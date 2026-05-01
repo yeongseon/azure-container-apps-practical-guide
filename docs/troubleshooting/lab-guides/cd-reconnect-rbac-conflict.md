@@ -13,7 +13,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "Bad Request on duplicate role assignment confirmed"
 
@@ -279,30 +279,29 @@ Expected result: the second deployment fails with `RoleAssignmentExists`, the de
 | Retry `az deployment group create` with the same fresh `roleAssignmentName` | Succeeds with `provisioningState: Succeeded` |
 | `az ad sp show --id "$SP_APP_ID"` | Service principal remains active throughout the lab |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] Creating a duplicate role assignment via `az role assignment create` with an already-
-assigned `(scope, principal, role)` triple returned:
+**Environment:** `rg-aca-lab-test6`, `koreacentral`.
+**Service Principal:** `sp-cd-lab6` (appId: `8475ed13-77d9-4c06-ab18-047ba358bfff`).
 
+[Observed] `az role assignment delete` (removing Contributor from SP) → `az containerapp update` returned:
+```text
+AuthorizationFailed: The client does not have authorization to perform action
+'Microsoft.App/containerApps/write' over scope '/subscriptions/.../resourceGroups/rg-aca-lab-test6'.
+```
+
+[Observed] `az role assignment create --role Contributor --assignee "8475ed13-77d9-4c06-ab18-047ba358bfff"` → re-assignment succeeded, `provisioningState: Succeeded`.
+
+[Observed] Creating a duplicate role assignment via `az role assignment create` with an already-assigned `(scope, principal, role)` triple returned:
 ```text
 Role assignment already exists.
 ```
 
-[Observed] ARM template deployment with a fixed `roleAssignmentName` GUID on the same triple
-returned `RoleAssignmentExists` with HTTP 409.
+[Observed] `az role assignment delete --ids` succeeded silently (exit 0). A subsequent `az role assignment list` confirmed the assignment was removed.
 
-[Observed] `az role assignment delete --ids` succeeded silently (no output, exit 0). A
-subsequent `az role assignment list` confirmed the assignment was removed.
+[Inferred] The `(scope, principal, role definition)` uniqueness constraint is enforced by Azure RBAC. Idempotent deployments must use `az role assignment create --role ... --assignee ...` (idempotent) rather than ARM with a static GUID name.
 
-[Observed] Re-running the ARM deployment after deletion succeeded with
-`"provisioningState": "Succeeded"`.
-
-[Inferred] The `(scope, principal, role definition)` uniqueness constraint is enforced by Azure
-RBAC regardless of the `roleAssignmentName` GUID used in the ARM template. Idempotent deployments
-must use `az role assignment create --role ... --assignee ...` (which is idempotent) rather than
-ARM with a static name.
-
-Environment: `koreacentral`, `az role assignment create` / `az deployment group create`.
+Environment: `rg-aca-lab-test6`, `koreacentral`, `az role assignment create` / Contributor role.
 
 ### Falsification
 

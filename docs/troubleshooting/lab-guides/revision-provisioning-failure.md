@@ -13,7 +13,7 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "ProbeFailed + ContainerTerminated(ProbeFailure) + revision Failed confirmed"
 
@@ -287,7 +287,7 @@ HealthState=Unhealthy  ProvisioningState=Failed  Name=ca-rev-provision--0000002
 [Inferred] Azure Container Apps isolates probe failures to the new revision — the platform's
 revision rollout safety mechanism prevents the failing revision from receiving production traffic.
 
-Environment: `koreacentral`, Consumption plan, startup probe on port 9999.
+Environment: `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan. App: `ca-rev-provision`, startup probe on port 9999 (app listens on 80).
 
 ## Clean Up
 

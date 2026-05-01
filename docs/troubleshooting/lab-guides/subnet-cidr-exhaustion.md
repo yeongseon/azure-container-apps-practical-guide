@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "NetcfgSubnetRangesOverlap confirmed, fixed with /24 non-overlap"
 
@@ -93,19 +93,29 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The corrected subnet shows `/27` and `Microsoft.App/environments` delegation.
 - [Inferred] Because only subnet size changed between runs, the deployment outcome difference is explained by CIDR compliance.
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] Creating an overlapping subnet (`10.0.1.0/24` inside `10.0.0.0/23`) returned:
+**Environment:** `rg-aca-lab-test7`, `koreacentral`.
+**VNet:** `vnet-cidr-lab7` (`10.7.0.0/23`), existing subnet: `subnet-aca` (`10.7.0.0/27`).
 
+[Observed] Creating overlapping subnet `10.7.0.16/28` (inside `10.7.0.0/27`) returned:
 ```text
+ERROR: (NetcfgSubnetRangesOverlap) Subnet 'subnet-overlap' is not valid because its IP address
+range overlaps with that of an existing subnet in virtual network 'vnet-cidr-lab7'.
 Code: NetcfgSubnetRangesOverlap
-Message: Subnet 'subnet-b' is not valid because its IP address range overlaps
-         with that of an existing subnet in virtual network 'vnet-cidr-test'.
 ```
 
-[Observed] Creating a non-overlapping subnet (`10.0.2.0/24`) returned `provisioningState: Succeeded`.
+[Observed] Attempting to create Container Apps Environment on `/27` subnet (30 usable IPs) returned:
+```text
+ERROR: (ManagedEnvironmentInvalidNetworkConfiguration) The environment network configuration is
+invalid: The subnet or its addressPrefix could not be found, or it has multiple addressPrefixes.
+```
 
-Environment: `koreacentral`, `az network vnet subnet create`.
+[Observed] Creating non-overlapping subnet `10.7.1.0/24` (256 IPs) returned `name: subnet-aca-good` — `provisioningState: Succeeded`.
+
+[Inferred] Azure Container Apps Consumption environments require a minimum `/27` subnet (30 IPs). Dedicated workload profile environments require `/27` per node pool. CIDR overlap is detected at the ARM VNet layer before any ACA provisioning begins.
+
+Environment: `rg-aca-lab-test7`, `koreacentral`, `az network vnet subnet create`.
 
 ## 13. Solution
 

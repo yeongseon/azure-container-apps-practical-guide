@@ -15,7 +15,7 @@ content_validation:
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
+    tested_date: 2026-05-01
     az_cli_version: "2.70.0"
     notes: "mount error + Permission denied system events, fixed with correct key"
 
@@ -97,19 +97,27 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] After correcting the environment storage definition and redeploying, the new revision starts successfully.
 - [Inferred] The root cause is storage-definition mismatch rather than image, ingress, or probe configuration.
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
-[Observed] `az containerapp logs show --type system` returned the following events after mounting with a wrong storage key:
+**Environment:** `rg-aca-lab-test7` / `cae-lab7`, `koreacentral`, Consumption plan.
+**App:** `ca-azfiles-bad`, Storage Account: `stlabtest7`, Share: `labshare7`.
 
+[Observed] `az containerapp env storage set` with a wrong base64-encoded key accepted the storage definition at the API layer without error — failure only surfaces at container start (mount time).
+
+[Observed] System logs returned (repeated on each restart):
 ```text
-Failed, Permission denied, mount error
+Container 'ca-azfiles-bad' was terminated with exit code '1' and reason 'VolumeMountFailure'.
+StdErr = mount error(13): Permission denied
+Refer to the mount.cifs(8) manual page (e.g. man mount.cifs)
 ```
 
-[Observed] `az containerapp env storage set` with an incorrect account key accepted the definition without error at the API layer — the failure surface is at mount time inside the container.
+[Observed] `StatusCode = 32` — CIFS mount exit code 32 indicates authentication failure (wrong storage account key → SMB negotiation rejected).
 
-[Observed] After replacing the environment storage definition with the correct key, a new revision started successfully.
+[Observed] After `az containerapp env storage set` with the correct key (`goodmount`), the app revision updated with `provisioningState: Succeeded` and `runningStatus: Running`.
 
-Environment: `koreacentral`, Consumption plan, Standard LRS storage account.
+[Inferred] The storage key is validated only at CIFS mount time inside the container, not at the ARM API layer. This means misconfigured storage definitions pass `az containerapp env storage set` silently and only fail when the container starts.
+
+Environment: `koreacentral`, Consumption plan, Standard LRS storage account (`stlabtest7`).
 
 ## 13. Solution
 
