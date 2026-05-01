@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/jobs
       - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
@@ -105,36 +105,39 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Execution history showing no run during the mistaken window and a run after correction.
 - Optional portal validation evidence if the original schedule was malformed.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
-# Baseline: * * * * * — executions succeed every minute
-az containerapp job execution list --name job-cron-verify ...
-→ Status=Succeeded  StartTime=2026-04-30T10:41:00+00:00
-→ Status=Succeeded  StartTime=2026-04-30T10:40:00+00:00
+# Baseline: * * * * * — executions run every minute
+az containerapp job execution list --name job-cron-lab5 --resource-group rg-aca-lab-test5 \
+  --query "[].{status:properties.status, start:properties.startTime}"
+→ Status=Failed  StartTime=2026-05-01T03:50:00+00:00
+→ Status=Failed  StartTime=2026-05-01T03:49:00+00:00
 
-# Execution count before impossible schedule: 4
+# Execution count before impossible schedule: 2
 
 # Trigger: switch to 0 0 31 2 * (Feb 31 — impossible date)
-az containerapp job update --cron-expression "0 0 31 2 *"
+az containerapp job update --name job-cron-lab5 --resource-group rg-aca-lab-test5 \
+  --cron-expression "0 0 31 2 *"
 
 # Wait 3 minutes
-Execution count after 3 min: 4   ← unchanged
+Execution count after 3 min: 2   ← unchanged
 New executions during impossible schedule: 0
 
 # Fix: restore * * * * *
-az containerapp job update --cron-expression "* * * * *"
+az containerapp job update --name job-cron-lab5 --resource-group rg-aca-lab-test5 \
+  --cron-expression "* * * * *"
 
-# 70 seconds later
-Execution count: 6   ← 2 new executions
-→ Status=Succeeded  StartTime=2026-04-30T10:46:00+00:00
-→ Status=Succeeded  StartTime=2026-04-30T10:47:00+00:00
+# 75 seconds later
+Execution count: 3   ← 1 new execution
 ```
 
-- `[Observed]` `* * * * *`: `Succeeded` every minute (confirmed from job execution list).
-- `[Measured]` `0 0 31 2 *` (Feb 31): **0 new executions in 3 minutes** (count: 4 → 4). No error surfaced.
-- `[Observed]` After restoring `* * * * *`: 2 new `Succeeded` executions within 70 seconds.
-- `[Inferred]` An impossible cron date silently suppresses job execution with no platform-level alert or error message.
+- `[Observed]` `* * * * *`: executions fire every minute (confirmed from job execution list).
+- `[Measured]` `0 0 31 2 *` (Feb 31): **0 new executions in 3 minutes** (count: 2 → 2). No error or alert surfaced.
+- `[Observed]` After restoring `* * * * *`: new execution within 75 seconds.
+- `[Inferred]` An impossible cron date silently suppresses job execution — the platform accepts the expression without error, but the schedule never fires.
+
+Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5.
 
 ## 13. Solution
 

@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
       - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:

@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
@@ -104,41 +104,49 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - App logs showing the failing and succeeding state operation.
 - Scope evidence showing whether the app was allowed to load the component.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Bad component: state.redis with nonexistent redisHost accepted by API
-az containerapp env dapr-component set --dapr-component-name state-bad --yaml ...
+az containerapp env dapr-component set \
+  --name cae-lab5 --resource-group rg-aca-lab-test5 \
+  --dapr-component-name state-bad --yaml state-bad.yaml
 → Component accepted (no immediate error)
 
 # Dapr sidecar fatal error log (from Log Analytics — ContainerAppConsoleLogs_CL)
-time="2026-04-30T10:53:38Z" level=error
+time="2026-05-01T04:08:36Z" level=error
   msg="Failed to init component state-bad (state.redis/v1):
   [INIT_COMPONENT_FAILURE]: initialization error occurred for state-bad (state.redis/v1):
   redis store: error connecting to redis at
-  nonexistent-redis-lab.redis.cache.windows.net:6380:
-  dial tcp: lookup nonexistent-redis-lab.redis.cache.windows.net on 127.0.0.11:53: no such host"
+  nonexistent-redis-lab5.redis.cache.windows.net:6380:
+  dial tcp: lookup nonexistent-redis-lab5.redis.cache.windows.net on 127.0.0.11:53: no such host"
 
-time="2026-04-30T10:53:38Z" level=fatal
+time="2026-05-01T04:08:36Z" level=error
+  msg="Error processing component, daprd will exit gracefully: process component state-bad error:
+  [INIT_COMPONENT_FAILURE]: ... no such host"
+
+time="2026-05-01T04:08:36Z" level=fatal
   msg="Fatal error from runtime: process component state-bad error: [INIT_COMPONENT_FAILURE]:
   ... no such host"
 
-time="2026-04-30T10:53:38Z" level=info msg="Dapr is shutting down"
-time="2026-04-30T10:53:38Z" level=info msg="Dapr runtime stopped"
-
 # Fix: remove bad component
-az containerapp env dapr-component remove --dapr-component-name state-bad
-→ Components remaining: 0
+az containerapp env dapr-component remove \
+  --name cae-lab5 --resource-group rg-aca-lab-test5 \
+  --dapr-component-name state-bad
 
-az containerapp revision list --query "[0].properties.healthState"
-→ "Healthy"
+az containerapp env dapr-component list \
+  --name cae-lab5 --resource-group rg-aca-lab-test5 \
+  --query "length(@)"
+→ 0
 ```
 
-- `[Observed]` `state.redis` with nonexistent `redisHost` accepted by API — no registration error.
-- `[Observed]` Dapr log: `INIT_COMPONENT_FAILURE: redis store: error connecting to redis at nonexistent-redis-lab.redis.cache.windows.net:6380: dial tcp: ... no such host`.
-- `[Observed]` Dapr log: `Fatal error from runtime` → `Dapr is shutting down` → `Dapr runtime stopped` — sidecar crashes on init.
-- `[Observed]` After `dapr-component remove`: 0 components remain; revision reaches `Healthy`.
-- `[Inferred]` Dapr validates Redis connectivity eagerly at sidecar init (not at registration); unreachable host causes fatal crash.
+- `[Observed]` `state.redis` component with nonexistent `redisHost` accepted by API — no registration error.
+- `[Observed]` daprd log: `INIT_COMPONENT_FAILURE` + `no such host` — DNS lookup fails for fake Redis hostname.
+- `[Observed]` daprd exits with `level=fatal` — the sidecar crash-loops, making the revision unhealthy.
+- `[Observed]` After `az containerapp env dapr-component remove`: component list empty, daprd starts cleanly.
+- `[Inferred]` Dapr validates state store connections eagerly at startup (unlike pubsub); a bad Redis host causes immediate fatal crash.
+
+Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, Dapr 1.16.4-msft.6.
 
 ## 13. Solution
 

@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
       - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:

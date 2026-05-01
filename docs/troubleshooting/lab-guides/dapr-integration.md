@@ -283,31 +283,37 @@ Expected output:
 | Sidecar health endpoint | Responds successfully |
 | `./labs/dapr-integration/verify.sh` | PASS |
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Wrong appPort (3000, app listens on 80) → Readiness ProbeFailed
-az containerapp show --name ca-dapr-lab --resource-group rg-aca-lab-test2 \
+az containerapp show --name ca-dapr-int --resource-group rg-aca-lab-test5 \
   --query "properties.configuration.dapr.appPort"
 → 3000
 
-az containerapp revision list --name ca-dapr-lab --resource-group rg-aca-lab-test2 \
-  --query "[0].properties.healthState"
-→ "Unhealthy"
-
-# System log: Probe of Readiness failed with status code: 500
+# System logs: daprd readiness probe failures
+[ProbeFailed] Probe of Readiness failed with status code:
+[ProbeFailed] Probe of Liveness failed with status code: 1
+[ProbeFailed] Probe of Readiness failed with status code: 500
+[ProbeFailed] Container daprd failed readiness probe
+[ProbeFailed] Readiness Probe of Readiness reached failure threshold 3, changing status to Failure.
+[ProbeFailed] Probe of Readiness failed with status code: 500
 
 # After fix: appPort=80
-az containerapp update --name ca-dapr-lab --resource-group rg-aca-lab-test2 \
-  --dapr-app-port 80
-az containerapp revision list ... --query "[0].properties.healthState"
+az containerapp dapr enable --name ca-dapr-int --resource-group rg-aca-lab-test5 \
+  --dapr-app-id dapr-int-lab --dapr-app-port 80
+
+az containerapp revision list --name ca-dapr-int --resource-group rg-aca-lab-test5 \
+  --query "[0].properties.healthState"
 → "Healthy"
 ```
 
-- `[Observed]` `dapr.appPort: 3000` (wrong port): readiness probe returns HTTP 500, revision `Unhealthy`.
-- `[Observed]` System log: `Probe of Readiness failed with status code: 500`.
+- `[Observed]` `dapr.appPort: 3000` (wrong port): readiness probe fails repeatedly — `status code: 500`, `status code: 1`.
+- `[Observed]` System log: `Readiness Probe of Readiness reached failure threshold 3, changing status to Failure`.
 - `[Observed]` After `--dapr-app-port 80` (correct port): revision reaches `Healthy`.
-- `[Inferred]` Dapr sidecar forwards health probes to `appPort`; wrong port causes probe failure, not code error.
+- `[Inferred]` Dapr sidecar forwards health probes to `appPort`; wrong port causes daprd readiness failure, not an app code error.
+
+Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, Dapr 1.16.4-msft.6.
 
 ## Clean Up
 

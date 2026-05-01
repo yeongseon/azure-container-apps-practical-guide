@@ -12,7 +12,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/revisions
       - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:

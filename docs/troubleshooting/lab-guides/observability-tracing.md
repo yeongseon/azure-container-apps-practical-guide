@@ -9,7 +9,7 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/observability
       - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
   lab_validation:
@@ -293,39 +293,39 @@ Expected output:
 | Log Analytics query | Recent traces return |
 | `./labs/observability-tracing/verify.sh` | PASS |
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Step 1: Working state — APPLICATIONINSIGHTS_CONNECTION_STRING as secretRef
-az containerapp show --name ca-tracing-test --resource-group rg-aca-lab-test3 \
+az containerapp show --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
   --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
 → [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-     "secretRef": "appinsights-conn",
-     "value": null }]
+     "secretRef": "appinsights-conn" }]
 
 # Step 2: Trigger — replace with invalid literal connection string
-az containerapp update --set-env-vars \
-  "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid.example.com/"
+az containerapp update --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
+  --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid.example.com/"
 
-az containerapp show ... --query "...env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
+az containerapp show --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
+  --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
 → [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-     "secretRef": null,
      "value": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid.example.com/" }]
 
 # Step 3: Fix — restore secretRef
-az containerapp update --set-env-vars \
-  "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-conn"
+az containerapp update --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
+  --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-conn"
 
 → [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-     "secretRef": "appinsights-conn",
-     "value": null }]
+     "secretRef": "appinsights-conn" }]
 ```
 
-- `[Observed]` Working state: `secretRef: appinsights-conn`, `value: null`.
-- `[Observed]` After trigger: `secretRef: null`, `value: "InstrumentationKey=00000000-...;IngestionEndpoint=https://invalid.example.com/"` — plaintext invalid string, telemetry export fails.
-- `[Observed]` After fix: `secretRef: appinsights-conn`, `value: null` — correct secret reference restored.
-- `[Inferred]` An invalid literal connection string causes the App Insights SDK to fail silently; no traces appear in the portal until the valid `secretRef` is restored.
-- `[Not Proven]` Actual trace count difference in App Insights — requires SDK-enabled app image (helloworld image has no AI SDK embedded).
+- `[Observed]` Working state: `secretRef: appinsights-conn` — env var sourced from secret.
+- `[Observed]` After trigger: `value: "InstrumentationKey=00000000-...;IngestionEndpoint=https://invalid.example.com/"` — plaintext invalid string replaces secret reference.
+- `[Observed]` After fix: `secretRef: appinsights-conn` restored.
+- `[Inferred]` Invalid literal connection string causes the App Insights SDK to fail silently; no traces appear in the portal until the valid `secretRef` is restored.
+- `[Not Proven]` Actual trace count difference in App Insights — requires SDK-enabled app (helloworld image has no AI SDK).
+
+Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5.
 
 ## Clean Up
 

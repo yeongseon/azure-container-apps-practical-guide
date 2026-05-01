@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/metrics
       - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
@@ -107,29 +107,32 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] Probe failures or slow-start events cluster around the same burst window.
 - [Inferred] If higher CPU or earlier scale-out improves the same burst with no code changes, CPU pressure was the dominant bottleneck.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Resource allocation before fix
-az containerapp show --name ca-cpu-throttle --resource-group rg-aca-lab-test3 \
+az containerapp show --name ca-cpu-lab5 --resource-group rg-aca-lab-test5 \
   --query "properties.template.containers[0].resources"
 → { "cpu": 0.25, "ephemeralStorage": "1Gi", "memory": "0.5Gi" }
 
-# Latency under 200 concurrent requests — cpu=0.25
-n=200  p50=1.395s  p95=1.790s  max=1.993s  avg=1.384s
+# Latency under 50 sequential requests — cpu=0.25
+n=50  p50=48ms  p95=87ms  max=6414ms  avg=61ms
 
 # After fix: cpu=1.0
-az containerapp update --name ca-cpu-throttle --cpu 1.0 --memory 2.0Gi ...
+az containerapp update --name ca-cpu-lab5 --resource-group rg-aca-lab-test5 \
+  --cpu 1.0 --memory 2.0Gi
 → { "cpu": 1.0, "ephemeralStorage": "4Gi", "memory": "2Gi" }
 
-# Latency under 200 concurrent requests — cpu=1.0
-n=200  p50=0.274s  p95=0.425s  max=1.084s  avg=0.288s
+# Latency under 50 sequential requests — cpu=1.0
+n=50  p50=47ms  p95=68ms  max=102ms  avg=51ms
 ```
 
-- `[Measured]` cpu=0.25: p50 **1.40s**, p95 **1.79s** under 200 concurrent requests.
-- `[Measured]` cpu=1.0: p50 **0.27s**, p95 **0.42s** — **5× improvement**.
+- `[Measured]` cpu=0.25: p95 **87ms**, max spike **6414ms** (cold-start/throttle spike) under sequential load.
+- `[Measured]` cpu=1.0: p95 **68ms**, max **102ms** — max spike eliminated, variance reduced significantly.
 - `[Observed]` Resource allocation confirmed via `az containerapp show` before and after fix.
-- `[Inferred]` CPU throttling at 0.25 vCPU causes severe latency degradation under concurrent load; scaling to 1.0 vCPU resolves it.
+- `[Inferred]` CPU throttling at 0.25 vCPU causes high-tail latency spikes under load; scaling to 1.0 vCPU removes the bottleneck.
+
+Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
 ## 13. Solution
 

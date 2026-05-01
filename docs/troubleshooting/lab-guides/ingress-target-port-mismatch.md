@@ -8,7 +8,7 @@ diagrams:
       - https://learn.microsoft.com/azure/container-apps/ingress-overview
       - https://learn.microsoft.com/azure/container-apps/ingress-how-to
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: "2026-04-29"
   reviewer: ai-agent
   lab_validation:

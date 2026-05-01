@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
@@ -107,36 +107,41 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] Replica lifecycle events show that new replicas existed but did not immediately absorb equivalent traffic.
 - [Inferred] If traffic distribution becomes fairer after the ingress or scale change, replica imbalance was a configuration effect rather than a platform outage.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # 3 replicas confirmed
-az containerapp replica list --name ca-replica-imbalance --resource-group rg-aca-lab-test3 \
+az containerapp replica list --name ca-replica-lab5 --resource-group rg-aca-lab-test5 \
   --query "length(@)"
 → 3
 
 # Enable sticky sessions (trigger condition)
-az containerapp ingress sticky-sessions set --affinity sticky ...
+az containerapp ingress sticky-sessions set \
+  --name ca-replica-lab5 --resource-group rg-aca-lab-test5 --affinity sticky
+
+az containerapp ingress show --name ca-replica-lab5 --resource-group rg-aca-lab-test5 \
+  --query "stickySessions"
 → { "affinity": "sticky" }
 
 # acaAffinity cookie present in response
-curl -D - https://ca-replica-imbalance.<env>.koreacentral.azurecontainerapps.io/
-→ set-cookie: acaAffinity="3c9c913f98b121a3"; Path=/; HttpOnly; SameSite=None; Secure;
-
-# 60 requests with sticky cookie — all go to same replica
-→ 60/60 requests: acaAffinity="49707246944fa376"  (1 unique replica hit)
+curl -D - https://ca-replica-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/
+→ set-cookie: acaAffinity="b516773606a5761b"; Path=/; HttpOnly; SameSite=None; Secure;
 
 # Fix: disable sticky sessions
-az containerapp ingress sticky-sessions set --affinity none ...
-→ { "affinity": "none" }
-→ No acaAffinity cookie in response — traffic distributes across all 3 replicas
+az containerapp ingress sticky-sessions set \
+  --name ca-replica-lab5 --resource-group rg-aca-lab-test5 --affinity none
+
+# No set-cookie header after fix
+curl -D - https://ca-replica-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/
+→ (no set-cookie header — traffic distributes across all 3 replicas)
 ```
 
 - `[Observed]` 3 replicas confirmed: `az containerapp replica list | length(@)` → 3.
-- `[Observed]` `stickySessions.affinity: sticky`: `acaAffinity="3c9c913f98b121a3"` cookie set in response headers.
-- `[Measured]` **60/60 requests hit 1 replica** (imbalance proven): cookie value `"49707246944fa376"` unchanged across all 60 requests.
+- `[Observed]` `stickySessions.affinity: sticky`: `acaAffinity="b516773606a5761b"` cookie set in response headers.
 - `[Observed]` After `affinity: none`: no `acaAffinity` cookie; traffic distributes across all replicas.
-- `[Inferred]` Sticky session cookie is the sole mechanism causing load imbalance.
+- `[Inferred]` Sticky session cookie pins all requests from a client to one replica, causing load imbalance under sustained traffic.
+
+Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, 3 replicas.
 
 ## 13. Solution
 

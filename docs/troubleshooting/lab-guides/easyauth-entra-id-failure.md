@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
       - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
@@ -106,35 +106,42 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - `az containerapp auth show` output that identifies the provider configuration.
 - Before-and-after redirect URI values in the Entra app registration.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
-# EasyAuth enabled with wrong redirect URI in app registration
-az ad app show --id 5573e14d-ac1f-41ef-a044-4d3a2c3de8b3 --query "web.redirectUris"
-→ ["https://ca-easyauth-retest.<env>/wrong-callback"]
-
-# HTTP response: 401 + www-authenticate: Bearer
-curl -si https://ca-easyauth-retest.<env>.koreacentral.azurecontainerapps.io/
+# EasyAuth enabled — unauthenticated access returns 401
+curl -si https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/
 → HTTP/2 401
-→ www-authenticate: Bearer realm="ca-easyauth-retest.<env>.koreacentral.azurecontainerapps.io"
-→ x-ms-middleware-request-id: 7cd880db-caa0-4bfd-bd89-5b8dc097a83e
+→ www-authenticate: Bearer realm="ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io"
+     authorization_uri="https://login.windows.net/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/authorize"
+     resource_id="86fe9442-4d6c-4f83-840b-f18d5c71def9"
+→ x-ms-middleware-request-id: 42966e8e-22db-420d-8d30-a67080ab6548
+
+# Trigger: set wrong redirect URI in Entra app registration
+az ad app update --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 \
+  --web-redirect-uris "https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/wrong-callback"
+
+az ad app show --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 --query "web.redirectUris"
+→ ["https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/wrong-callback"]
 
 # AADSTS50011 occurs in browser OAuth flow when redirect_uri does not match
 # (Cannot be captured via CLI — requires browser-based OAuth code flow)
 
-# Fix: set correct redirect URI
-az ad app update --id 5573e14d-ac1f-41ef-a044-4d3a2c3de8b3 \
-  --web-redirect-uris "https://ca-easyauth-retest.<env>/.auth/login/aad/callback"
+# Fix: restore correct redirect URI
+az ad app update --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 \
+  --web-redirect-uris "https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/.auth/login/aad/callback"
 
-az ad app show --id 5573e14d-ac1f-41ef-a044-4d3a2c3de8b3 --query "web.redirectUris"
-→ ["https://ca-easyauth-retest.<env>/.auth/login/aad/callback"]
+az ad app show --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 --query "web.redirectUris"
+→ ["https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/.auth/login/aad/callback"]
 ```
 
-- `[Observed]` Wrong redirect URI confirmed: `https://.../wrong-callback` in app registration.
-- `[Observed]` HTTP 401 + `www-authenticate: Bearer realm="..."` — EasyAuth blocks unauthenticated access.
-- `[Not Proven via CLI]` AADSTS50011 error body — only observable in a browser OAuth flow when Entra rejects the wrong `redirect_uri`. Cannot be automated via `curl` as Entra login requires interactive session.
+- `[Observed]` HTTP **401** + `www-authenticate: Bearer realm="..."` — EasyAuth blocks unauthenticated access.
+- `[Observed]` Wrong redirect URI set: `.../wrong-callback` in app registration.
+- `[Not Proven via CLI]` AADSTS50011 error — only observable in a browser OAuth flow when Entra rejects the wrong `redirect_uri`.
 - `[Observed]` After fix: redirect URI updated to `/.auth/login/aad/callback`.
-- `[Inferred]` EasyAuth's OAuth callback endpoint is always `/.auth/login/aad/callback`; any other value in the app registration causes AADSTS50011 at login time.
+- `[Inferred]` EasyAuth's OAuth callback is always `/.auth/login/aad/callback`; any other value causes AADSTS50011 at browser login.
+
+Environment: `koreacentral`, rg-aca-lab-test5, App ID `86fe9442-4d6c-4f83-840b-f18d5c71def9`.
 
 ## 13. Solution
 

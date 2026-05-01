@@ -11,7 +11,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
       - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:

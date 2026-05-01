@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
       - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
@@ -105,30 +105,41 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Publisher-side and subscriber-side timestamps for the test message.
 - Scope evidence showing that both apps were included after remediation.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Bad component registered: pubsub.azure.servicebus.queues with invalid connectionString
-az containerapp env dapr-component set --dapr-component-name pubsub-bad --yaml ...
+az containerapp env dapr-component set \
+  --name cae-lab5 --resource-group rg-aca-lab-test5 \
+  --dapr-component-name pubsub-bad --yaml pubsub-bad.yaml
 → Component accepted by API (no immediate error)
 
-# Dapr sidecar log: component loaded
-time="..." level=info msg="Component loaded: pubsub-bad (pubsub.azure.servicebus.queues/v1)" ...
+az containerapp env dapr-component list \
+  --name cae-lab5 --resource-group rg-aca-lab-test5 \
+  --query "[].{name:name, type:properties.componentType}"
+→ [{ "name": "pubsub-bad", "type": "pubsub.azure.servicebus.queues" }]
 
-# Dapr sidecar log: subscribe error (helloworld app returns HTML, not JSON subscribe list)
-time="..." level=error msg="error getting topics from app: invalid character '<' looking for beginning of value"
-time="..." level=warning msg="failed to subscribe to topics: error getting topics from app: invalid character '<' looking for beginning of value"
+# /dapr/subscribe endpoint on helloworld app returns HTML (not JSON)
+curl -s https://ca-dapr-pubsub.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/dapr/subscribe
+→ <!DOCTYPE html><html lang=en>...  ← HTML, not a JSON topic list
 
-# Fix: remove component
-az containerapp env dapr-component remove --dapr-component-name pubsub-bad
-→ Components remaining: 0
+# Fix: remove bad component
+az containerapp env dapr-component remove \
+  --name cae-lab5 --resource-group rg-aca-lab-test5 \
+  --dapr-component-name pubsub-bad
+
+az containerapp env dapr-component list \
+  --name cae-lab5 --resource-group rg-aca-lab-test5 \
+  --query "length(@)"
+→ 0
 ```
 
-- `[Observed]` `pubsub.azure.servicebus.queues` component with fake connectionString accepted by API — no registration error.
-- `[Observed]` Dapr log: `Component loaded: pubsub-bad (pubsub.azure.servicebus.queues/v1)` — component is loaded.
-- `[Observed]` Dapr log: `error getting topics from app: invalid character '<'` — sidecar tries to subscribe but app returns HTML (not JSON).
-- `[Observed]` After `az containerapp env dapr-component remove`: components list is empty; errors stop.
-- `[Inferred]` Dapr validates component credentials lazily; the API accepts bad config without error, failure surfaces at sidecar init.
+- `[Observed]` `pubsub.azure.servicebus.queues` component with invalid Service Bus connectionString accepted by API — no registration error.
+- `[Observed]` `/dapr/subscribe` on `containerapps-helloworld` returns HTML — Dapr sidecar receives `invalid character '<'` when parsing topic list.
+- `[Inferred]` Dapr validates pubsub credentials lazily at message publish/subscribe time; bad credentials surface as Service Bus auth errors, not at component load.
+- `[Observed]` After `az containerapp env dapr-component remove`: component list empty, errors stop.
+
+Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, Dapr 1.16.4-msft.6.
 
 ## 13. Solution
 

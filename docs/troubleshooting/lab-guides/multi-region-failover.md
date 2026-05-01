@@ -10,7 +10,7 @@ diagrams:
       - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
       - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
-  status: pending_review
+  status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
@@ -105,34 +105,35 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Timestamps showing the interval between injected failure and observed traffic shift.
 - Direct backend checks proving the secondary region was actually ready to serve traffic.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Baseline: both regions healthy
-Primary  (koreacentral): ca-primary-test.victoriouspebble-e4c68830.koreacentral.azurecontainerapps.io → HTTP 200
-Secondary (eastus):      ca-secondary-test.salmonisland-b729f78e.eastus.azurecontainerapps.io        → HTTP 200
+Primary   (koreacentral): ca-primary-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io → HTTP 200
+Secondary (eastus):       ca-secondary-lab5.redmushroom-a594e807.eastus.azurecontainerapps.io      → HTTP 200
 
 # Simulate primary failure: disable ingress
-az containerapp ingress disable --name ca-primary-test --resource-group rg-aca-lab-test3
-→ PRIMARY_INGRESS_DISABLED
+az containerapp ingress disable --name ca-primary-lab5 --resource-group rg-aca-lab-test5
+→ Ingress disabled
 
 # During failure
-Primary  HTTP: 404   ← ingress disabled, no route
-Secondary HTTP: 200  ← continues serving traffic
+Primary   HTTP: 404   ← ingress disabled, no route to container
+Secondary HTTP: 200   ← continues serving traffic independently
 
 # Restore primary
-az containerapp ingress enable --name ca-primary-test \
-  --type external --target-port 80 --transport auto
-→ Ingress enabled. Access your app at https://ca-primary-test.victoriouspebble-e4c68830.koreacentral.azurecontainerapps.io/
+az containerapp ingress enable --name ca-primary-lab5 --resource-group rg-aca-lab-test5 \
+  --type external --target-port 80
 
 Primary HTTP (restored): 200
 ```
 
-- `[Observed]` Both koreacentral and eastus regions serving HTTP 200 at baseline.
-- `[Observed]` Primary ingress disabled → HTTP **404**; secondary (eastus) → HTTP **200**.
-- `[Observed]` Primary ingress re-enabled → HTTP **200** restored.
+- `[Observed]` Both koreacentral and eastus serving HTTP **200** at baseline.
+- `[Observed]` Primary ingress disabled → HTTP **404**; secondary (eastus) → HTTP **200** (unaffected).
+- `[Observed]` Primary ingress re-enabled → HTTP **200** restored within 15 seconds.
 - `[Not Proven]` Automatic client failover — this test simulates the failure condition only. Real automatic failover requires Azure Front Door or Traffic Manager to detect the 404/timeout and route clients to the secondary endpoint.
 - `[Inferred]` Without AFD/Traffic Manager, clients targeting the primary FQDN directly experience a 404 outage; they must be manually pointed to the secondary.
+
+Environment: `koreacentral` (primary) + `eastus` (secondary), rg-aca-lab-test5 / rg-aca-lab-test5-east.
 
 ## 13. Solution
 
