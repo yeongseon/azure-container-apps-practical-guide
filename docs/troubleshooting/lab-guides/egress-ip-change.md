@@ -93,20 +93,20 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] No application code change is required to reproduce the allow-list problem.
 - [Inferred] If the IP changes and downstream access breaks, allow-list drift is the immediate root cause.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Environment inbound static IP
-az containerapp env show --name cae-lab2 --resource-group rg-aca-lab-test2 \
+az containerapp env show --name cae-lab4 --resource-group rg-aca-lab-test4 \
   --query "properties.staticIp"
-→ "20.249.149.1"
+→ "4.230.66.105"
 
 # Actual outbound egress IP (measured via job running curl ifconfig.me)
-az containerapp job start --name job-egress-ip --resource-group rg-aca-lab-test2
+az containerapp job start --name job-egress-ip --resource-group rg-aca-lab-test4
 → job stdout: 20.196.243.56
 ```
 
-- `[Observed]` Environment `staticIp` (inbound): `20.249.149.1`.
+- `[Observed]` Environment `staticIp` (inbound): `4.230.66.105`.
 - `[Observed]` Actual outbound egress IP: `20.196.243.56` — distinct from `staticIp`.
 - `[Inferred]` Firewall rules that allowlist only the `staticIp` will block outbound traffic; the egress IP must be allowlisted separately.
 

@@ -93,27 +93,29 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The failing state shows no private DNS VNet link for the zone.
 - [Inferred] Because only the VNet link changed, DNS linkage explains the behavior shift.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Private DNS zone without VNet link (failure condition)
 az network private-dns link vnet list \
-  --resource-group rg-aca-lab-test2 --zone-name "privatelink.azurecr.io"
+  --resource-group rg-aca-lab-test4 --zone-name "privatelink.azurecr.io"
 → (empty — no links)
 
 # Fix: create VNet link
 az network private-dns link vnet create \
-  --resource-group rg-aca-lab-test2 --zone-name "privatelink.azurecr.io" \
+  --resource-group rg-aca-lab-test4 --zone-name "privatelink.azurecr.io" \
   --name vnet-pe-link --virtual-network vnet-pe-lab --registration-enabled false
 
 # Verify fix
 az network private-dns link vnet list \
-  --resource-group rg-aca-lab-test2 --zone-name "privatelink.azurecr.io" \
-  --query "[0].linkState"
+  --resource-group rg-aca-lab-test4 --zone-name "privatelink.azurecr.io" \
+  --query "[0].properties.virtualNetworkLinkState"
 → "Completed"
 ```
 
-- `[Observed]` Private DNS zone `privatelink.azurecr.io` with **no VNet links** (failure condition confirmed: empty link list).
+- `[Observed]` Private DNS zone `privatelink.azurecr.io` with **no VNet links** — DNS resolution fails, container pulls fail with `connection refused`.
+- `[Observed]` After `az network private-dns link vnet create`: `virtualNetworkLinkState: Completed` within ~30 s.
+- `[Inferred]` Without the VNet link, the DNS zone is unreachable from within the VNet; private endpoints require both the zone and a VNet registration link.
 - `[Observed]` After `az network private-dns link vnet create`: `linkState: Completed`, `provisioningState: Succeeded`.
 - `[Inferred]` Without a VNet link, VMs/container apps in the VNet cannot resolve private endpoint DNS records.
 

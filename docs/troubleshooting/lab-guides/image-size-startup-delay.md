@@ -106,19 +106,19 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] No application-code change is required to improve startup timing when only the image changes.
 - [Inferred] If the trimmed image consistently narrows revision-ready time, image size was a material contributor to startup delay.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
-# System log from large image (nginx:latest) pull
-Successfully pulled image "nginx:latest" in 4.09s. Image size: 62914560 bytes.
+# System log from large image (python:3.11) pull — rg-aca-lab-test4, 2026-05-01
+Successfully pulled image "python:3.11" in 12.29s. Image size: 407.9 MB.
 
 # System log from small image (containerapps-helloworld) pull
-Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 1.2s.
-Image size: 35258368 bytes.
+Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 3.33s.
+Image size: 33.6 MB.
 ```
 
-- `[Measured]` `nginx:latest` pull: **4.09 s**, image size **62.9 MB**.
-- `[Measured]` `containerapps-helloworld:latest` pull: **~1.2 s**, image size **35.3 MB** (~44% smaller).
+- `[Measured]` `python:3.11` pull: **12.29 s**, image size **407.9 MB**.
+- `[Measured]` `containerapps-helloworld:latest` pull: **3.33 s**, image size **33.6 MB** — **3.7× faster, 12× smaller**.
 - `[Observed]` Larger image results in proportionally longer cold-start window before readiness probe succeeds.
 - `[Inferred]` Replacing a large base image with a trimmed alternative directly reduces pull time and startup latency.
 

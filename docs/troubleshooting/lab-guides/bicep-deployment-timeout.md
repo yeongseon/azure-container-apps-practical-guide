@@ -97,7 +97,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] After the probe is fixed, a new revision becomes healthy and the deployment completes.
 - [Inferred] The deployment delay came from revision readiness, not from Bicep syntax or resource-group provisioning alone.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Broken Bicep: startup probe port 9999 (app listens on 80)

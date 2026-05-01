@@ -100,7 +100,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | `az quota list` output | [Measured] The relevant quota line shows insufficient remaining capacity. |
 | Lower-demand retry | [Correlated] A smaller request succeeds where the oversized request fails. |
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 [Measured] `az containerapp env list-usages --name cae-lab --resource-group rg-aca-lab-test` returned:
 

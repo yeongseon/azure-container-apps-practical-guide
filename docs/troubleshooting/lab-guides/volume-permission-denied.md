@@ -97,7 +97,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] After the change, the same share mounts successfully and the app can proceed.
 - [Inferred] The root cause is Linux mount-permission semantics rather than missing storage credentials.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 [Observed] `az containerapp update` with a `readOnly: true` emptyDir volume mount succeeded at
 the API level (`provisioningState: Provisioned`). The `readOnly` field was not persisted in the

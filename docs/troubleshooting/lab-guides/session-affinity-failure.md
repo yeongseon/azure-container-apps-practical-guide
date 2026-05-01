@@ -93,7 +93,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Ingress output differs before and after the sticky-session update.
 - [Inferred] When continuity returns without changing application code, affinity explains the behavior change.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 [Observed] App deployed with `minReplicas=3`. `az containerapp ingress show` confirmed
 `stickySessions: null` by default (affinity disabled).

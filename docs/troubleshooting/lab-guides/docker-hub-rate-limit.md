@@ -105,7 +105,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Registry configuration changes from empty or anonymous to authenticated after `az containerapp registry set`.
 - [Inferred] If a subsequent revision succeeds without changing the app code, the registry source was the failure domain.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Rate limit headers from Docker Hub (anonymous pull)

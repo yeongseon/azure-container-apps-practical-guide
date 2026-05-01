@@ -98,7 +98,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | App configuration | [Measured] The requested CPU and replica count exceed the deliberately constrained profile envelope. |
 | Control profile expansion | [Correlated] Increasing `max-nodes` allows the same or a smaller request to succeed. |
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 [Observed] `az containerapp create --cpu 8 --memory 16Gi --workload-profile-name d4-profile`
 against a Dedicated environment with a D4 profile returned:

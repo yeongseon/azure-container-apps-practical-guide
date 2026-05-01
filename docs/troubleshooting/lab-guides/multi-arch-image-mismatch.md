@@ -106,22 +106,27 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] The corrected multi-architecture tag becomes healthy without other configuration changes.
 - [Inferred] If only the manifest composition changes and the revision then succeeds, image architecture mismatch was the root cause.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
-# ARM64 image (built on Apple Silicon) → rejected
-az containerapp create --image <arm64-image> ...
+# ARM64 image (arm64v8/alpine) → rejected with platform error
+az containerapp create --name ca-arch-lab --resource-group rg-aca-lab-test4 \
+  --environment cae-lab4 --image arm64v8/alpine \
+  --command '["sleep","3600"]' --cpu 0.25 --memory 0.5Gi
 → ERROR: (ContainerAppContainersInvalidCpu)
-  image OS/Arc must be linux/amd64 but found linux/arm64 for container <name>
+  no child with platform linux/amd64 found in manifest list for arm64v8/alpine
 
 # AMD64 image → accepted
-az containerapp create --image mcr.microsoft.com/azuredocs/containerapps-helloworld:latest ...
+az containerapp create --name ca-arch-lab --resource-group rg-aca-lab-test4 \
+  --environment cae-lab4 \
+  --image mcr.microsoft.com/azuredocs/containerapps-helloworld:latest \
+  --cpu 0.25 --memory 0.5Gi
 → Container app created. HTTP 200.
 ```
 
-- `[Observed]` ARM64 image rejected with `ContainerAppContainersInvalidCpu: image OS/Arc must be linux/amd64 but found linux/arm64`.
-- `[Observed]` AMD64 image: deployment succeeds, HTTP 200 confirmed.
-- `[Inferred]` Azure Container Apps Consumption plan requires `linux/amd64`; ARM64 images are rejected at the API level.
+- `[Observed]` `arm64v8/alpine` rejected: `no child with platform linux/amd64 found in manifest list`.
+- `[Observed]` AMD64 image (`containerapps-helloworld:latest`): deployment succeeds, HTTP 200 confirmed.
+- `[Inferred]` Azure Container Apps Consumption plan requires `linux/amd64`; ARM64-only images are rejected at the API level during image pull.
 
 ## 13. Solution
 

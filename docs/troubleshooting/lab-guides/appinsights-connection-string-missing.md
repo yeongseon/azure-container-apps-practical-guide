@@ -98,21 +98,24 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - `az monitor app-insights query` returns no fresh rows before the fix and fresh rows after the fix.
 - Fresh traffic is generated in both phases so the comparison is meaningful.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Before fix: env var absent
-az containerapp show --name ca-ai-missing --resource-group rg-aca-lab-test2 \
+az containerapp show --name ca-ai-lab --resource-group rg-aca-lab-test4 \
   --query "properties.template.containers[0].env"
-→ null
+→ []
 
 # After fix: env var present
-az containerapp show --name ca-ai-missing --resource-group rg-aca-lab-test2 \
+az containerapp update --name ca-ai-lab --resource-group rg-aca-lab-test4 \
+  --env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=aaaabbbb-0000-1111-2222-ccccddddeeee;IngestionEndpoint=https://koreacentral-0.in.applicationinsights.azure.com/"
+
+az containerapp show --name ca-ai-lab --resource-group rg-aca-lab-test4 \
   --query "properties.template.containers[0].env[0].name"
 → "APPLICATIONINSIGHTS_CONNECTION_STRING"
 ```
 
-- `[Observed]` Before fix: `env` field is `null` — no telemetry variable configured.
+- `[Observed]` Before fix: `env` field is `[]` — no telemetry variable configured.
 - `[Observed]` After `az containerapp update --env-vars`: `APPLICATIONINSIGHTS_CONNECTION_STRING` present and non-empty.
 - `[Inferred]` Without the connection string, the App Insights SDK cannot ingest telemetry; traces are absent in the portal.
 

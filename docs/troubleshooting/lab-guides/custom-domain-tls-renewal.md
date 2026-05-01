@@ -93,7 +93,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Binding status changes after DNS corruption without any app revision change.
 - [Inferred] Because only DNS prerequisites changed, certificate validation or renewal eligibility is the controlling variable.
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
 # Attempt to add custom hostname without DNS TXT record

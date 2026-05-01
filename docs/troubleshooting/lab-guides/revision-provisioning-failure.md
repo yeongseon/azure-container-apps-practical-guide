@@ -264,7 +264,7 @@ Healthy        Provisioned
 | System logs | Normal startup events |
 | `./verify.sh` | PASS |
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 [Observed] Startup probe set to `httpGet.port=9999` (no listener) with `failureThreshold=3`.
 `az containerapp revision list` showed:

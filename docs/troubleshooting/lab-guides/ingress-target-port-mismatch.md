@@ -239,24 +239,36 @@ The verify script confirms:
 | `curl https://${APP_FQDN}` | HTTP 200 |
 | `./verify.sh` | PASS |
 
-### Observed Evidence (Live Azure Test — 2026-04-30)
-
-[Observed] `az containerapp ingress update --target-port 9999` succeeded and created a new revision.
-The FQDN immediately returned HTTP 503.
-
-[Observed] System logs (`az containerapp logs show --type system`) emitted:
+### Observed Evidence (Live Azure Test — 2026-05-01)
 
 ```text
-"Msg": "The TargetPort 9999 does not match the listening port 80.", "Reason": "Pending:PortMismatch"
-"Msg": "Probe of StartUp failed with status code: 1", "Reason": "ProbeFailed"
+# Baseline: targetPort=80, app listens on 80 → HTTP 200
+curl -s -o /dev/null -w "HTTP %{http_code}" https://ca-labingress-mdsbya.ashymushroom-358fd64a.koreacentral.azurecontainerapps.io/
+→ HTTP 200
+
+# TRIGGER: set wrong targetPort 9999
+az containerapp ingress update --name ca-labingress-mdsbya --resource-group rg-aca-lab-test4 \
+  --target-port 9999
+→ TargetPort: 9999
+
+curl -s -o /dev/null -w "HTTP %{http_code}" https://ca-labingress-mdsbya.ashymushroom-358fd64a.koreacentral.azurecontainerapps.io/
+→ HTTP 503
+
+# FIX: restore correct targetPort 80
+az containerapp ingress update --name ca-labingress-mdsbya --resource-group rg-aca-lab-test4 \
+  --target-port 80
+→ TargetPort: 80
+
+curl -s -o /dev/null -w "HTTP %{http_code}" https://ca-labingress-mdsbya.ashymushroom-358fd64a.koreacentral.azurecontainerapps.io/
+→ HTTP 200
 ```
 
-[Observed] `az containerapp ingress update --target-port 80` (fix) restored HTTP 200 within 15 seconds.
+- `[Observed]` Baseline: targetPort=80 → HTTP 200.
+- `[Observed]` After `--target-port 9999`: HTTP 503 immediately (app listens on 80, ingress routes to 9999).
+- `[Observed]` After `--target-port 80` (fix): HTTP 200 within 10 seconds.
+- `[Inferred]` ACA ingress proxy cannot connect to the container on the wrong port; returns 503 to all clients.
 
-[Inferred] The `PortMismatch` event is the platform's detection layer — the startup probe fails because
-the specified target port has no listener, and the revision never enters a healthy state.
-
-Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
+Environment: `koreacentral`, rg-aca-lab-test4, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
 ## Clean Up
 
