@@ -131,6 +131,8 @@ nav:
       - Private Endpoints: platform/networking/private-endpoints.md
       - Egress Control: platform/networking/egress-control.md
       - Service-to-Service: platform/networking/service-to-service.md
+    - Storage:
+      - Overview: platform/storage/index.md
     - Jobs:
       - platform/jobs/index.md
       - Manual Jobs: platform/jobs/manual-jobs.md
