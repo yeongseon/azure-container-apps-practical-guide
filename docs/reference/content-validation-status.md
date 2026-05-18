@@ -4,7 +4,7 @@ content_sources:
     justification: Auto-generated dashboard tracking content validation status
 content_validation:
   status: verified
-  last_reviewed: "2026-05-01"
+  last_reviewed: "2026-05-18"
   reviewer: ai-agent
   core_claims:
     - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
@@ -21,12 +21,12 @@ This page tracks the source validation status of all documentation content. All 
 
 ## Summary
 
-*Generated: 2026-05-01*
+*Generated: 2026-05-18*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 208 | 170 | 37 | 0 | 1 |
+| Text Documents | 210 | 172 | 37 | 0 | 1 |
 
 !!! warning "Validation In Progress"
     1 documents need `content_validation` metadata added.
@@ -34,7 +34,7 @@ This page tracks the source validation status of all documentation content. All 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 170
+    "Verified" : 172
     "Pending Review" : 37
     "No Metadata" : 1
 ```
@@ -113,6 +113,7 @@ pie title Document Validation Status
 |---|---|---|---|---|
 | [Byo Certificates](../operations/custom-domains/byo-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Diagnostic Settings](../operations/logging/diagnostic-settings.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
+| [Internal Ingress On Prem Dns](../operations/deployment/internal-ingress-on-prem-dns.md) | ✅ | ✅ Verified | 5/5 | 2026-05-18 |
 | [Log Analytics Queries](../operations/logging/log-analytics-queries.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Log Streaming](../operations/logging/log-streaming.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
 | [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
@@ -120,6 +121,7 @@ pie title Document Validation Status
 | [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Use Uami For Acr And Reconnect Cd](../operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md) | ✅ | ✅ Verified | 3/3 | 2026-05-06 |
 | [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 
 ### Troubleshooting

@@ -569,6 +569,22 @@ az containerapp show --name <app-name> --resource-group <resource-group> --query
 | `az containerapp show` | Displays the Container App resource definition. |
 | `--query 'identity'` | Filters the output to the managed identity configuration. |
 
+## Private DNS Resolver Placement in Hub-Spoke Topologies
+
+When connecting on-premises networks to ACA Private Endpoints via Site-to-Site VPN, a Private DNS Resolver is required to forward DNS queries from on-premises to Azure Private DNS Zones.
+
+### Resolver in Hub vs Spoke
+
+The standard placement is in the Hub VNet, but if the Hub lacks address space for the required `/28` subnet, deploying the resolver in a Spoke VNet is a supported alternative.
+
+| Placement | When to Use | Consideration |
+|---|---|---|
+| Hub VNet | Hub has available `/28` subnet | Simplest routing — on-prem traffic stays in Hub for DNS |
+| Spoke VNet | Hub address space exhausted | Requires UDR for return traffic via Hub Firewall |
+
+!!! note "Validated Pattern"
+    Deploying Private DNS Resolver in Spoke VNet with on-premises Conditional Forwarder pointing to the Inbound Endpoint IP has been validated to work correctly. See [On-Premises DNS to ACA Internal Environment](../../operations/deployment/internal-ingress-on-prem-dns.md) for the full procedure.
+
 ## Clean Up
 
 ```bash

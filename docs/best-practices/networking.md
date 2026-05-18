@@ -466,6 +466,17 @@ az containerapp revision list \
   --output table
 ```
 
+!!! tip "Pattern: Use Custom Internal Domains for On-Premises DNS Integration"
+    When on-premises DNS policy prohibits Conditional Forwarders for external domains (e.g., `*.azurecontainerapps.io`), bind a custom internal domain (e.g., `app.nhinvest.local`) to your ACA app and create the corresponding Private DNS Zone A record pointing to the ACA environment's static IP. This lets on-prem DNS forward only internal domains to Azure Private DNS Resolver.
+
+    **Requirements:**
+
+    - ACA ingress must be `external: true` (in Internal Environment, this means VNet-accessible, not internet-exposed)
+    - Private DNS Resolver Inbound Endpoint reachable from on-prem via VPN/ExpressRoute
+    - BYO certificate for HTTPS (managed certificates require public DNS validation)
+
+    See: [On-Premises DNS to ACA Internal Environment](../operations/deployment/internal-ingress-on-prem-dns.md)
+
 ## See Also
 
 - [Environment Design](environment-design.md)

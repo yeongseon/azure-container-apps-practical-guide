@@ -292,6 +292,7 @@ nav:
     - Deployment:
       - operations/deployment/index.md
       - Networking: operations/deployment/networking.md
+      - On-Premises DNS to Internal ACA: operations/deployment/internal-ingress-on-prem-dns.md
     - Disaster Recovery:
       - operations/disaster-recovery/index.md
       - Multi-Region Deployment: operations/disaster-recovery/multi-region-deployment.md
@@ -299,7 +300,9 @@ nav:
     - Health Probes:
       - operations/health-probes/index.md
       - Probe Tuning: operations/health-probes/probe-tuning.md
-    - Image Pull and Registry: operations/image-pull-and-registry/index.md
+    - Image Pull and Registry:
+      - operations/image-pull-and-registry/index.md
+      - Use UAMI for ACR Pull: operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md
     - Jobs:
       - operations/jobs/index.md
       - Troubleshooting: operations/jobs/troubleshooting.md
