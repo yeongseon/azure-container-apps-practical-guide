@@ -314,7 +314,9 @@ nav:
     - Revision Management: operations/revision-management/index.md
     - Monitoring: operations/monitoring/index.md
     - Recovery: operations/recovery/index.md
-    - Scaling: operations/scaling/index.md
+    - Scaling:
+      - operations/scaling/index.md
+      - Min Replica Change Impact: operations/scaling/min-replica-change-impact.md
     - Secret Rotation: operations/secret-rotation/index.md
   - Troubleshooting:
     - troubleshooting/index.md

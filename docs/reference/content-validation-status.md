@@ -26,7 +26,7 @@ This page tracks the source validation status of all documentation content. All 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 210 | 172 | 37 | 0 | 1 |
+| Text Documents | 211 | 173 | 37 | 0 | 1 |
 
 !!! warning "Validation In Progress"
     1 documents need `content_validation` metadata added.
@@ -34,7 +34,7 @@ This page tracks the source validation status of all documentation content. All 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 172
+    "Verified" : 173
     "Pending Review" : 37
     "No Metadata" : 1
 ```
@@ -117,6 +117,7 @@ pie title Document Validation Status
 | [Log Analytics Queries](../operations/logging/log-analytics-queries.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Log Streaming](../operations/logging/log-streaming.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
 | [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
+| [Min Replica Change Impact](../operations/scaling/min-replica-change-impact.md) | ✅ | ✅ Verified | 3/3 | 2026-05-18 |
 | [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
