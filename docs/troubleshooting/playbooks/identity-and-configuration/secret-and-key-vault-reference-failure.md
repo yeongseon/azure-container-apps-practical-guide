@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/manage-secrets
-      - https://learn.microsoft.com/azure/container-apps/manage-secrets#reference-secret-from-key-vault
-      - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets#reference-secret-from-key-vault
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "Each revision in Azure Container Apps is an immutable snapshot of a container app version."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
 ---
-
 # Secret and Key Vault Reference Failure
 
 ## 1. Summary
@@ -113,6 +112,10 @@ $ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisi
 "Succeeded"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ## 6. Validation and Disproof by Hypothesis
 
 ### H1: Missing secret or wrong `secretRef`
@@ -134,6 +137,10 @@ $ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisi
 az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 **Disproof logic:**
 
@@ -160,6 +167,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 az keyvault secret show --vault-name "my-kv" --name "my-secret" --query "attributes.enabled" --output tsv
 az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ```kusto
 let AppName = "ca-myapp";

@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
-        - https://learn.microsoft.com/azure/redis/nodejs-get-started
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+    - https://learn.microsoft.com/azure/redis/nodejs-get-started
 ---
-
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 
 Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Microsoft Entra authentication first and access keys only as a fallback.
@@ -49,6 +48,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ## Step 2: Assign Redis data access
 
 ```bash
@@ -60,6 +63,10 @@ az redis access-policy-assignment create \
   --object-id-alias "$APP_NAME"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+
 ## Step 3: Configure non-secret Redis settings
 
 Azure Container Apps does **not** inject Redis host names, usernames, or tokens automatically.
@@ -70,6 +77,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars REDIS_HOST="$REDIS_NAME.redis.cache.windows.net" REDIS_PORT="6380" REDIS_USERNAME="$PRINCIPAL_ID"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Step 4: Node.js code (Microsoft Entra token authentication)
 
@@ -143,6 +154,10 @@ az containerapp update \
   --set-env-vars REDIS_HOST="$REDIS_NAME.redis.cache.windows.net" REDIS_PORT="6380" REDIS_ACCESS_KEY=secretref:redis-access-key
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 ## Verification
 
 1. Confirm the access policy assignment exists:
@@ -154,6 +169,10 @@ az redis access-policy-assignment list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+
 2. Confirm app logs show successful Redis `SET` and `GET` operations:
 
 ```bash
@@ -162,6 +181,10 @@ az containerapp logs show \
   --resource-group "$RG" \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 3. Confirm clients are using TLS on port `6380`.
 

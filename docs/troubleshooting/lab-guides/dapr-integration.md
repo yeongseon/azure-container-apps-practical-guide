@@ -1,31 +1,38 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/dapr-overview
-      - https://learn.microsoft.com/azure/container-apps/dapr-components
+    - https://learn.microsoft.com/azure/container-apps/dapr-overview
+    - https://learn.microsoft.com/azure/container-apps/dapr-components
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "appPort=3000(wrong)→Readiness ProbeFailed HTTP 500; appPort=80(fix)→Healthy"
-
+    az_cli_version: 2.70.0
+    notes: appPort=3000(wrong)→Readiness ProbeFailed HTTP 500; appPort=80(fix)→Healthy
   core_claims:
-    - claim: "Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol."
-      source: "https://learn.microsoft.com/azure/container-apps/dapr-overview"
-      verified: true
-    - claim: "Dapr components in Azure Container Apps are defined at the Container Apps environment scope and can be used by apps in that environment."
-      source: "https://learn.microsoft.com/azure/container-apps/dapr-components"
-      verified: true
+  - claim: Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol.
+    source: https://learn.microsoft.com/azure/container-apps/dapr-overview
+    verified: true
+  - claim: Dapr components in Azure Container Apps are defined at the Container Apps environment scope and can be used by
+      apps in that environment.
+    source: https://learn.microsoft.com/azure/container-apps/dapr-components
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Dapr Integration Troubleshooting Lab
 
 Diagnose and fix Dapr sidecar port misconfiguration issues in Azure Container Apps.
@@ -103,6 +110,10 @@ az deployment group create \
     --parameters baseName="labdapr"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output:
 
 - Resource group creation succeeds.
@@ -139,6 +150,10 @@ az containerapp show \
     --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Expected output:
 
 ```json
@@ -165,6 +180,10 @@ az containerapp update \
     --dapr-app-port 8081
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Expected output:
 
 - The script prints `Changed Dapr appPort to 8081 to break service invocation.`
@@ -185,6 +204,10 @@ az containerapp logs show \
     --type system \
     --tail 50
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output:
 
@@ -219,6 +242,10 @@ az containerapp update \
     --resource-group "$RG" \
     --dapr-app-port 8000
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Useful debugging commands:
 
@@ -320,6 +347,10 @@ Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, Dapr 1.16.4-msft.6.
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

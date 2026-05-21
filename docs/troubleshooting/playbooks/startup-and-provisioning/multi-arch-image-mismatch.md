@@ -1,28 +1,28 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-diagrams:
+  diagrams:
   - id: multi-arch-image-mismatch-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-      - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Registry supports publishing multi-architecture images by using manifest lists."
-      source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-      verified: false
-    - claim: "Azure Container Apps uses the configured container image reference when creating revisions."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      verified: false
+  - claim: Azure Container Registry supports publishing multi-architecture images by using manifest lists.
+    source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+    verified: false
+  - claim: Azure Container Apps uses the configured container image reference when creating revisions.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    verified: false
 ---
-
 # Multi-Arch Image Mismatch
 
 Use this playbook when a revision pulls successfully but the container fails immediately with architecture errors such as `exec format error` or `no matching manifest`.
@@ -71,6 +71,10 @@ flowchart TD
         --resource-group "$RG" \
         --type system
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 2. Inspect the registry tag and available manifests.
 

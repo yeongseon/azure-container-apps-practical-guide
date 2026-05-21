@@ -1,27 +1,27 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-diagrams:
+  diagrams:
   - id: scheduled-job-missed-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps jobs support manual, schedule-based, and event-driven trigger types."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
-    - claim: "Scheduled jobs use cron expressions evaluated in UTC."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
+  - claim: Azure Container Apps jobs support manual, schedule-based, and event-driven trigger types.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    verified: false
+  - claim: Scheduled jobs use cron expressions evaluated in UTC.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    verified: false
 ---
-
 # Scheduled Job Missed
 
 Use this playbook when a scheduled Container Apps job does not run at the expected time or appears to skip executions.

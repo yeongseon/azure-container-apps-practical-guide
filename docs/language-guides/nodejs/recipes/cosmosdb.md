@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
-        - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-nodejs
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
+    - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-nodejs
 ---
-
 # Cosmos DB Integration (Managed Identity)
 
 Use this recipe to connect a Node.js Container App to Azure Cosmos DB for NoSQL with managed identity first and a connection string fallback only when you cannot use RBAC yet.
@@ -39,6 +38,10 @@ az extension add --name containerapp --upgrade
 az extension add --name cosmosdb-preview --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Step 1: Enable managed identity on the Container App
 
 ```bash
@@ -53,6 +56,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --query "identity.principalId" \
   --output tsv)
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## Step 2: Grant Cosmos DB data-plane access
 
@@ -70,6 +77,10 @@ az role assignment create \
   --scope "$COSMOS_ACCOUNT_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az cosmosdb show ...` | Creates or inspects Cosmos DB resources used by the sample app. |
+
 ## Step 3: Configure non-secret settings in Container Apps
 
 Azure Container Apps does **not** inject Cosmos DB connection settings automatically. Store non-secret values as environment variables, and store fallback secrets in `secrets[]` with `secretref:`.
@@ -80,6 +91,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars COSMOS_ENDPOINT="https://$COSMOS_ACCOUNT.documents.azure.com:443/" COSMOS_DATABASE="$COSMOS_DATABASE" COSMOS_CONTAINER="$COSMOS_CONTAINER"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Step 4: Node.js code (managed identity)
 
@@ -147,6 +162,10 @@ az containerapp update \
   --set-env-vars COSMOS_CONNECTION_STRING=secretref:cosmos-connection-string COSMOS_DATABASE="$COSMOS_DATABASE" COSMOS_CONTAINER="$COSMOS_CONTAINER"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 ## Verification
 
 1. Confirm identity assignment:
@@ -159,6 +178,10 @@ az containerapp show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Confirm role assignment exists:
 
 ```bash
@@ -168,6 +191,10 @@ az role assignment list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+
 3. Check app logs for successful upsert and read operations:
 
 ```bash
@@ -176,6 +203,10 @@ az containerapp logs show \
   --resource-group "$RG" \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## See Also
 

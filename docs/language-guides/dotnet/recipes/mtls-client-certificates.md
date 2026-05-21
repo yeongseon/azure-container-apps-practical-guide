@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-    - id: aspnetcore-xfcc-validation-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+  - id: aspnetcore-xfcc-validation-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 ---
-
 # Recipe: mTLS Client Certificates in .NET Apps on Azure Container Apps
 
 Use ASP.NET Core middleware to parse `X-Forwarded-Client-Cert`, validate the leaf certificate with `X509Certificate2`, and compare Dapr SDK invocation with direct `HttpClient` calls.
@@ -135,6 +134,10 @@ az containerapp update \
     DIRECT_BACKEND_URL="http://ca-backend" \
     DAPR_TARGET_APP_ID="backend"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### 3. Test with curl
 

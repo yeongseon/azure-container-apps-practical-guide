@@ -1,20 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
-        - https://learn.microsoft.com/azure/container-apps/monitor
-    - id: monitoring-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
-        - https://learn.microsoft.com/azure/container-apps/monitor
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
+    - https://learn.microsoft.com/azure/container-apps/monitor
+  - id: monitoring-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
+    - https://learn.microsoft.com/azure/container-apps/monitor
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 04 - Logging and Monitoring
 
 Azure Container Apps provides native support for observability through Azure Monitor, Log Analytics, and Application Insights. This guide covers how to configure structured logging and monitor your Spring Boot application in production.
@@ -119,6 +126,10 @@ az containerapp logs show \
   --tail 100
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 ???+ example "Expected output"
     ```text
     {"timestamp":"2026-04-05T10:00:00.000Z","level":"INFO","logger":"com.example.demo.DemoApplication","message":"Started DemoApplication in 8.67 seconds","containerApp":"<your-app-name>","revision":"<your-app-name>--xxxxxxx"}
@@ -141,6 +152,10 @@ az containerapp update \
   --name $APP_NAME \
   --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=$INSTRUMENTATION_KEY"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor app-insights ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 ### 2. Spring Boot Actuator
 
@@ -181,6 +196,10 @@ az monitor log-analytics query \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ???+ example "Expected output"
     ```text
     ContainerAppName_s    Log_s                                      TimeGenerated
@@ -199,6 +218,10 @@ az monitor log-analytics query \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ### Query System Logs (Startup Events)
 
 ```bash
@@ -207,6 +230,10 @@ az monitor log-analytics query \
   --analytics-query "ContainerAppSystemLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, Reason_s, Log_s | take 5" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 ???+ example "Expected output"
     ```text

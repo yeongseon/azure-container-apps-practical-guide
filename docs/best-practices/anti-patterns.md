@@ -1,39 +1,44 @@
 ---
 content_sources:
   diagrams:
-    - id: anti-pattern-relationship-map
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/best-practices
-        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+  - id: anti-pattern-relationship-map
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "A revision is an immutable snapshot of your container app."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Single revision mode automatically diverts traffic from the old revision to the new one after the new revision is ready."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to 1 or higher."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "You can use managed identity to authenticate with a private Azure Container Registry without a username and password."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
+  - claim: A revision is an immutable snapshot of your container app.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Single revision mode automatically diverts traffic from the old revision to the new one after the new revision
+      is ready.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to
+      1 or higher.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Common Anti-Patterns
 
 This quick-reference guide lists frequent Azure Container Apps anti-patterns seen in production, why they fail, and what to do instead. Use it as a pre-deployment review checklist and incident prevention reference.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -52,7 +57,7 @@ az extension add --name "containerapp" --upgrade
 az account show --output table
 ```
 
-## Main Content
+## Recommended Practices
 
 ### Anti-pattern quick reference table
 
@@ -87,6 +92,10 @@ az containerapp update \
   --image "$ACR_NAME.azurecr.io/orders-api:latest"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Better pattern:
 
 ```bash
@@ -95,6 +104,10 @@ az containerapp update \
   --resource-group "$RG" \
   --image "$ACR_NAME.azurecr.io/orders-api:v1.9.4"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### 2) Fat container images larger than 1 GB
 
@@ -132,6 +145,10 @@ az containerapp update \
         "properties.template.containers[0].probes[0].httpGet.port=8000"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 !!! note "Probe design"
     Readiness should represent dependency readiness for serving traffic. Liveness should represent process health, not external dependency state.
 
@@ -148,6 +165,10 @@ az containerapp update \
   --set-env-vars "DATABASE_URL=Server=tcp:db.example;User Id=admin;Password=<plaintext>"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Better pattern using platform secret abstraction:
 
 ```bash
@@ -161,6 +182,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars "DATABASE_URL=secretref:db-connection"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 ### 5) Using ACR admin credentials instead of managed identity
 
@@ -181,6 +206,10 @@ az containerapp identity assign \
   --system-assigned
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ### 6) `minReplicas=0` on latency-sensitive APIs
 
 For strict SLO APIs, scale-to-zero introduces predictable cold-start delay.
@@ -194,6 +223,10 @@ az containerapp update \
   --min-replicas 0
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Better pattern:
 
 ```bash
@@ -203,6 +236,10 @@ az containerapp update \
   --min-replicas 1 \
   --max-replicas 20
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### 7) Single revision mode in production
 
@@ -268,6 +305,10 @@ az containerapp create \
   --target-port 8000
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 Validate ingress state:
 
 ```bash
@@ -277,6 +318,10 @@ az containerapp show \
   --query "properties.configuration.ingress" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### 11) Using Container Apps for persistent local-state workloads
 
@@ -306,6 +351,10 @@ az containerapp show \
   --query "properties.template.containers[0].resources" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Better approach:
 
@@ -357,6 +406,10 @@ az containerapp job create \
   --replica-retry-limit 0 \
   --image "$ACR_NAME.azurecr.io/orders-migration:v1.9.4"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 ### 15) Ignoring scale rule interaction and precedence
 
@@ -458,6 +511,18 @@ graph TD
 - Combine platform diagnostics and KQL dashboards to detect anti-pattern drift (for example sudden increase in image pull failures or cold-start latency).
 - Establish a quarterly architecture review to identify workloads that should move to jobs, managed services, or AKS based on state and performance requirements.
 
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Best Practices - Revision Strategy](revision-strategy.md)
@@ -465,3 +530,14 @@ graph TD
 - [Best Practices - Identity and Secrets](identity-and-secrets.md)
 - [Best Practices - Reliability](reliability.md)
 - [Platform - Reliability](../platform/reliability/health-recovery.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Microsoft Learn source 5](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Microsoft Learn source 6](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Microsoft Learn source 7](https://learn.microsoft.com/azure/container-apps/networking)
+- [Microsoft Learn source 8](https://learn.microsoft.com/azure/container-apps/managed-identity)

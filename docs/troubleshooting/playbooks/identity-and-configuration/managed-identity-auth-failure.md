@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/managed-identity
-      - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
-      - https://learn.microsoft.com/azure/key-vault/general/authentication
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
+    - https://learn.microsoft.com/azure/key-vault/general/authentication
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "Managed identities let applications authenticate to Azure services without managing credentials in code."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
+  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: Managed identities let applications authenticate to Azure services without managing credentials in code.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Managed Identity Auth Failure
 
 ## 1. Summary
@@ -137,6 +136,10 @@ az role assignment list --assignee "$PRINCIPAL_ID" --all --output json
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'python -c "from azure.identity import ManagedIdentityCredential; token = ManagedIdentityCredential().get_token(\"https://vault.azure.net/.default\"); print(token.expires_on)"'
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ## 6. Validation and Disproof by Hypothesis
 
 ### H1: Identity not assigned
@@ -158,6 +161,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'python
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity.principalId" --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 If the app is supposed to use a user-assigned identity, confirm the identity resource is attached to the app and selected by the SDK.
 
@@ -182,6 +189,10 @@ az role assignment list --assignee "$PRINCIPAL_ID" --scope "/subscriptions/<subs
 az role assignment list --assignee "$PRINCIPAL_ID" --scope "/subscriptions/<subscription-id>/resourceGroups/$RG" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Check whether the service expects a data-plane role, not a management-plane role. Key Vault, Storage, and Service Bus often require service-specific data roles.
 
 ### H3: Wrong token audience/scope
@@ -202,6 +213,10 @@ Check whether the service expects a data-plane role, not a management-plane role
 ```bash
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'python -c "from azure.identity import ManagedIdentityCredential; token = ManagedIdentityCredential().get_token(\"https://vault.azure.net/.default\"); print(token.token[:20] + \"...\")"'
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
 
 Use service-specific audiences such as `https://vault.azure.net/.default`, `https://storage.azure.com/.default`, or the documented resource URI for the target service.
 
@@ -224,6 +239,10 @@ Use service-specific audiences such as `https://vault.azure.net/.default`, `http
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --revision "$REVISION_NAME" --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 If you are using a user-assigned identity, confirm the app is not caching a token from a stale identity selection or stale environment variable.
 
@@ -266,6 +285,10 @@ If this fails before token issuance, inspect container runtime constraints, netw
     az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity --output json
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Grant the minimal required role at the exact resource scope.
 
     ```bash
@@ -275,11 +298,19 @@ If this fails before token issuance, inspect container runtime constraints, netw
         --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KV_NAME"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az role assignment create ...` | Grants the required Azure RBAC role at the documented scope. |
+
 3. Restart the replica or deploy a new revision to clear stale token state.
 
     ```bash
     az containerapp revision restart --name "$APP_NAME" --resource-group "$RG" --revision "$REVISION_NAME"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp revision restart ...` | Restarts the selected revision when validating runtime recovery. |
 
 4. Confirm the SDK requests the correct token audience for the target service.
 
@@ -296,6 +327,10 @@ If this fails before token issuance, inspect container runtime constraints, netw
     ```bash
     az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'curl -i https://$TARGET_HOST/health'
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
 
 6. If the app uses multiple identities, explicitly select the intended user-assigned identity in code and configuration.
 

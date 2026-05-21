@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: revision-promotion-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+  - id: revision-promotion-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
 ---
-
 # Revision Operations
 
 This guide focuses on operating revisions in production: activating/deactivating revisions, splitting traffic safely, and performing fast rollbacks.
@@ -35,6 +34,10 @@ az containerapp revision set-mode \
   --mode multiple
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+
 Review revisions and health state:
 
 ```bash
@@ -43,6 +46,10 @@ az containerapp revision list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Use Activity Log for deployment event timeline:
 
@@ -54,6 +61,10 @@ az monitor activity-log list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor activity-log ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ## Traffic Splitting
 
 Shift a small percentage to the candidate revision first.
@@ -64,6 +75,10 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --revision-weight "${APP_NAME}--stable=90" "${APP_NAME}--candidate=10"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 Gradually increase traffic only when SLOs remain healthy.
 
@@ -78,6 +93,10 @@ az containerapp ingress traffic set \
   --revision-weight "${APP_NAME}--stable=100"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 Deactivate failed revision:
 
 ```bash
@@ -87,6 +106,10 @@ az containerapp revision deactivate \
   --revision "${APP_NAME}--candidate"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision deactivate ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Verification Steps
 
 ```bash
@@ -95,6 +118,10 @@ az containerapp ingress traffic show \
   --resource-group "$RG" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 Example output (PII masked):
 
@@ -163,6 +190,10 @@ az containerapp ingress traffic show \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 ## Advanced Topics
 

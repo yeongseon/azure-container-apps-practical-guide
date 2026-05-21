@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: azure-container-apps-aca-provides-native
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/dapr-overview
-        - https://learn.microsoft.com/azure/container-apps/dapr-component-schema
+  - id: azure-container-apps-aca-provides-native
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/dapr-overview
+    - https://learn.microsoft.com/azure/container-apps/dapr-components
 ---
-
 # Dapr Integration (Distributed Application Runtime)
 
 Azure Container Apps (ACA) provides native Dapr integration, allowing your Python application to easily interact with other services and manage state, publish/subscribe messaging, and secrets.
@@ -35,6 +34,10 @@ az containerapp dapr enable \
   --dapr-app-id my-python-service \
   --dapr-app-port 8000
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
 
 ## How Dapr Works
 
@@ -80,7 +83,7 @@ Configure Dapr components (like state stores or pub/sub brokers) as separate res
 ## Why use Dapr?
 
 - **Abstracted Infrastructure:** Switch from Redis to Service Bus without changing your application code.
-- **Improved Resiliency:** Dapr provides built-in retries and circuit breakers for service-to-service calls.
+- **Configurable resiliency:** Dapr service invocation can use explicit resiliency policies for retries, timeouts, and circuit breakers. Circuit breakers are not automatic; define and test the policy before relying on it in production.
 - **Enhanced Observability:** Dapr automatically collects telemetry for all cross-service communication.
 
 ## See Also
@@ -90,4 +93,4 @@ Configure Dapr components (like state stores or pub/sub brokers) as separate res
 
 ## Sources
 - [Dapr overview for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-overview)
-- [Dapr component schema in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-component-schema)
+- [Dapr component schema in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-components)

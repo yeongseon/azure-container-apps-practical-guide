@@ -1,29 +1,28 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+  diagrams:
+  - id: emptydir-disk-full-flow
+    type: flowchart
+    source: self-generated
+    justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps supports temporary `EmptyDir` storage mounts for replica-scoped temporary storage."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: false
-    - claim: "Temporary storage in Azure Container Apps is ephemeral and should not be used for persistent data."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: false
-    - claim: "When persistent data is required, Azure Files is the supported storage-mount option for Azure Container Apps."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: false
-diagrams:
-  - id: emptydir-disk-full-flow
-    type: flowchart
-    source: self-generated
-    justification: "Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation"
-
+  - claim: Azure Container Apps supports temporary `EmptyDir` storage mounts for replica-scoped temporary storage.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: false
+  - claim: Temporary storage in Azure Container Apps is ephemeral and should not be used for persistent data.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: false
+  - claim: When persistent data is required, Azure Files is the supported storage-mount option for Azure Container Apps.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: false
 ---
-
 # EmptyDir Disk Full
 
 <!-- diagram-id: emptydir-disk-full-flow -->

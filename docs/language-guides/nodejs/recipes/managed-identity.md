@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-    - id: use-managed-identity-and-defaultazurecredential-so
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
-        - https://learn.microsoft.com/javascript/api/overview/azure/storage-blob-readme
+  - id: use-managed-identity-and-defaultazurecredential-so
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
+    - https://learn.microsoft.com/javascript/api/overview/azure/storage-blob-readme
 ---
-
 # Recipe: Managed Identity in Node.js Apps on Azure Container Apps
 
 Use managed identity and `DefaultAzureCredential` so your Express app can call Azure services without storing secrets.
@@ -35,6 +34,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Enable managed identity and RBAC
 
 ```bash
@@ -55,6 +58,10 @@ az role assignment create \
   --role "Storage Blob Data Reader" \
   --scope "$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RG" --query id --output tsv)"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## Use `DefaultAzureCredential` in Express
 
@@ -89,6 +96,10 @@ az containerapp update \
     STORAGE_ACCOUNT_URL="https://$STORAGE_ACCOUNT.blob.core.windows.net" \
     STORAGE_CONTAINER="$STORAGE_CONTAINER"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Advanced Topics
 

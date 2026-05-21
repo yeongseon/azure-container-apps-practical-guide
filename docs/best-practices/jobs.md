@@ -1,45 +1,49 @@
 ---
 content_sources:
   diagrams:
-    - id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
-    - id: final-status-published-to-dashboard-alert-channel
-      type: state
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+  - id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/overview
+  - id: final-status-published-to-dashboard-alert-channel
+    type: state
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps jobs run containerized tasks for a finite duration and then stop."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Job executions can start manually, on a schedule, or in response to events."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Container apps and jobs run in the same environment and can share capabilities such as networking and logging."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "The execution history for scheduled and event-based jobs is limited to the most recent 100 successful and failed job executions."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Ingress and related features such as custom domains and SSL certificates aren't supported for jobs."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
+  - claim: Azure Container Apps jobs run containerized tasks for a finite duration and then stop.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Job executions can start manually, on a schedule, or in response to events.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Container apps and jobs run in the same environment and can share capabilities such as networking and logging.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: The execution history for scheduled and event-based jobs is limited to the most recent 100 successful and failed
+      job executions.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Ingress and related features such as custom domains and SSL certificates aren't supported for jobs.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
-
 # Jobs Best Practices
 
 Azure Container Apps Jobs are built for bounded background execution, not permanently running processes. This guide covers design patterns that keep job workloads reliable, observable, and cost-efficient in production.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -60,7 +64,7 @@ az extension add --name "containerapp" --upgrade
 az account show --output table
 ```
 
-## Main Content
+## Recommended Practices
 
 ### Decide correctly: Job vs App
 
@@ -113,6 +117,10 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 Start execution on demand:
 
 ```bash
@@ -120,6 +128,10 @@ az containerapp job start \
   --name "$JOB_NAME" \
   --resource-group "$RG"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job start ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 #### Scheduled trigger (predictable recurring runs)
 
@@ -145,6 +157,10 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 !!! note "Cron timezone"
     Store and document cron expectations in UTC to avoid daylight saving ambiguity. Add business-local translation in your runbook.
 
@@ -168,6 +184,10 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 ### Tune timeout and retry limits as SLO controls
 
 `--replica-timeout` and `--replica-retry-limit` define both recovery behavior and spend profile.
@@ -188,6 +208,10 @@ az containerapp job update \
   --replica-timeout 1500 \
   --replica-retry-limit 2
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job update ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 Failure-classification pattern:
 
@@ -282,6 +306,10 @@ az containerapp job show \
   --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job show ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 !!! tip "Startup budget"
     If job average runtime is short, image pull and startup can dominate total execution time. A 30-second startup penalty on a 60-second job can increase cost and delay by 50 percent or more.
 
@@ -342,6 +370,10 @@ az containerapp job execution list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 Show execution logs:
 
 ```bash
@@ -349,6 +381,10 @@ az containerapp job logs show \
   --name "$JOB_NAME" \
   --resource-group "$RG"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job logs ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 KQL: success/failure trend by job over 24 hours:
 
@@ -452,6 +488,18 @@ stateDiagram-v2
 - Use separate job definitions for fast and slow paths to avoid one timeout/retry policy for incompatible workloads.
 - Integrate job execution status with deployment gates so critical release steps are blocked on failed prerequisite jobs.
 
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Platform - Jobs](../platform/jobs/index.md)
@@ -461,3 +509,10 @@ stateDiagram-v2
 - [Best Practices - Reliability](reliability.md)
 - [Best Practices - Identity and Secrets](identity-and-secrets.md)
 - [Operations - Monitoring](../operations/monitoring/index.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/jobs)

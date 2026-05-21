@@ -1,33 +1,40 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-diagrams:
+  diagrams:
   - id: scheduled-job-missed-lab-diagram
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "Succeeded every minute; cron 0 0 31 2 * stops executions; restored * * * * * resumes Succeeded"
-
+    az_cli_version: 2.70.0
+    notes: Succeeded every minute; cron 0 0 31 2 * stops executions; restored * * * * * resumes Succeeded
   core_claims:
-    - claim: "Scheduled Container Apps jobs evaluate cron schedules in UTC."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
-    - claim: "Container Apps jobs can be started manually for troubleshooting."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
+  - claim: Scheduled Container Apps jobs evaluate cron schedules in UTC.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    verified: false
+  - claim: Container Apps jobs can be started manually for troubleshooting.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Scheduled Job Missed Lab
 
 Reproduce a missed scheduled execution by using the wrong timezone assumption, then validate the fix by correcting the UTC schedule.
@@ -61,9 +68,15 @@ Does scheduled job missed reproduce when the documented trigger condition is pre
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -73,6 +86,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -80,6 +96,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -132,6 +151,10 @@ az containerapp job update --name job-cron-lab5 --resource-group rg-aca-lab-test
 Execution count: 3   ← 1 new execution
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 - `[Observed]` `* * * * *`: executions fire every minute (confirmed from job execution list).
 - `[Measured]` `0 0 31 2 *` (Feb 31): **0 new executions in 3 minutes** (count: 2 → 2). No error or alert surfaced.
 - `[Observed]` After restoring `* * * * *`: new execution within 75 seconds.
@@ -141,7 +164,7 @@ Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 

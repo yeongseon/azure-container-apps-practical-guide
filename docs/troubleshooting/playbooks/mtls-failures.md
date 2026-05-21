@@ -1,30 +1,30 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: aca-mtls-troubleshooting-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-      - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-      - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
-      - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Ingress forwards the client certificate in X-Forwarded-Client-Cert when clientCertificateMode is set to require or accept."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview"
-      verified: true
-    - claim: "Azure Container Apps supports peer-to-peer TLS encryption within the environment."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration"
-      verified: true
-    - claim: "Dapr service invocation in Azure Container Apps includes built-in mutual TLS."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/connect-apps"
-      verified: true
+  - claim: Ingress forwards the client certificate in X-Forwarded-Client-Cert when clientCertificateMode is set to require
+      or accept.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    verified: true
+  - claim: Azure Container Apps supports peer-to-peer TLS encryption within the environment.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+    verified: true
+  - claim: Dapr service invocation in Azure Container Apps includes built-in mutual TLS.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+    verified: true
 ---
-
 # mTLS Failures
 
 ## Symptom
@@ -71,6 +71,10 @@ az containerapp show \
   --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 If the value is `ignore`, the absence of the header is expected.
 
 ### 2. `403` from ingress with `clientCertificateMode=require`
@@ -114,6 +118,10 @@ az containerapp logs show \
   --type system
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Confirm that:
 
 - Dapr is enabled on both caller and callee.
@@ -131,6 +139,10 @@ az containerapp env show \
   --query "properties.peerTrafficConfiguration" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 If the property is empty or encryption is disabled, peer encryption was never turned on for that environment.
 

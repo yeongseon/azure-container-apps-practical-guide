@@ -1,25 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/health-probes
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports startup, readiness, and liveness probes."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "If you don't define custom probes for the main app container when ingress is enabled, Azure Container Apps adds default probes automatically."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
+  - claim: Azure Container Apps supports startup, readiness, and liveness probes.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: If you don't define custom probes for the main app container when ingress is enabled, Azure Container Apps adds
+      default probes automatically.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
 ---
-
 # Probe Failure and Slow Start
 
 ## 1. Summary
@@ -149,6 +149,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" \
   --command "curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ```kusto
 // Find specific probe errors
 let AppName = "ca-myapp";
@@ -180,6 +184,10 @@ EOF
 az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml probe-config.yaml
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### H2: Startup probe too aggressive
 
 **Signals that support:**
@@ -205,6 +213,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 # Calculate effective probe budget
 # Budget = initialDelaySeconds + (periodSeconds × failureThreshold)
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ```kusto
 // Check probe failure timing relative to container start
@@ -262,6 +274,10 @@ EOF
 az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml startup-probe.yaml
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### H3: Liveness probe fails due to app hang
 
 **Signals that support:**
@@ -298,6 +314,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers[0].resources" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 **Fix:**
 
@@ -363,6 +383,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
      --yaml no-probes.yaml
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
 
 2. **Increase startup tolerance:**
    ```bash

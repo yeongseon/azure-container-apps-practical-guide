@@ -141,10 +141,11 @@ def generate_dashboard(documents: list[dict[str, Any]], today: date) -> str:
     lines: list[str] = []
     lines.append("---")
     lines.append("content_sources:")
-    lines.append("  - type: self-generated")
-    lines.append(
-        "    justification: Auto-generated dashboard tracking content validation status"
-    )
+    lines.append("  diagrams:")
+    lines.append("    - id: content-validation-status-pie")
+    lines.append("      type: pie")
+    lines.append("      source: self-generated")
+    lines.append("      justification: Auto-generated dashboard tracking content validation status.")
     lines.append("content_validation:")
     lines.append("  status: verified")
     lines.append(f'  last_reviewed: "{today.isoformat()}"')

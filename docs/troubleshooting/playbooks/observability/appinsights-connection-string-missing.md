@@ -1,30 +1,29 @@
 ---
 content_sources:
   documents:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
-diagrams:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+  diagrams:
   - id: appinsights-connection-string-missing-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-      - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps can send OpenTelemetry data to Application Insights when telemetry destinations are configured."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-      verified: false
-    - claim: "Application Insights uses connection strings to associate telemetry with a specific resource."
-      source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
-      verified: false
+  - claim: Azure Container Apps can send OpenTelemetry data to Application Insights when telemetry destinations are configured.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    verified: false
+  - claim: Application Insights uses connection strings to associate telemetry with a specific resource.
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+    verified: false
 ---
-
 # Application Insights Connection String Missing
 
 Use this playbook when traffic reaches the app but expected traces, requests, or logs do not appear in Application Insights.
@@ -67,6 +66,10 @@ flowchart TD
        --output json
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp env telemetry ...` | Runs the Azure CLI operation required by the documented step. |
+
 2. Inspect the container app environment variable definitions and secret references.
 
    ```bash
@@ -77,6 +80,10 @@ flowchart TD
        --output json
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 3. Verify that you are querying the intended Application Insights component.
 
    ```bash
@@ -86,6 +93,10 @@ flowchart TD
        --query "{appId:appId,name:name,location:location}" \
        --output json
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az monitor app-insights ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 4. Generate fresh traffic after configuration changes.
 

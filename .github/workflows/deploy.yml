@@ -3,6 +3,9 @@ name: Deploy to Azure Container Apps
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/python/**'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 env:

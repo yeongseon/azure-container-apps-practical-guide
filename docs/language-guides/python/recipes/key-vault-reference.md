@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: use-managed-identity-and-key-vault
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+  - id: use-managed-identity-and-key-vault
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
-
 # Recipe: Key Vault Secret References in Azure Container Apps
 
 Use managed identity and Key Vault references so your Python app receives secrets as environment variables without embedding secret values in deployment manifests.
@@ -35,6 +34,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Create Key Vault and add secrets
 
 ```bash
@@ -48,6 +51,10 @@ az keyvault secret set \
   --name "db-password" \
   --value "replace-with-real-value"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az keyvault create ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
 
 ## Configure managed identity for Key Vault access
 
@@ -70,6 +77,10 @@ az role assignment create \
   --scope "$(az keyvault show --name "$KEYVAULT_NAME" --query id --output tsv)"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ## Add a Container Apps secret with Key Vault reference
 
 Key Vault reference syntax:
@@ -91,6 +102,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars "DB_PASSWORD=secretref:db-password"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 ## Access referenced secrets in Python
 
@@ -163,6 +178,10 @@ az containerapp logs show \
   --follow false
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Advanced Topics
 
 - Use user-assigned identities for shared access policies across multiple apps.
@@ -175,3 +194,8 @@ az containerapp logs show \
 - [Revision Validation](revision-validation.md)
 - [Key Vault](../../../platform/identity-and-secrets/key-vault.md)
 - [Microsoft Learn: Manage secrets in Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

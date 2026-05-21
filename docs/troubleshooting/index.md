@@ -1,18 +1,17 @@
 ---
 content_sources:
   diagrams:
-    - id: how-it-works
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-    - id: quick-decision-tree
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
+  - id: how-it-works
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+  - id: quick-decision-tree
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
 ---
-
 # Container Apps Troubleshooting
 
 This section is a practical field guide for troubleshooting real-world issues on Azure Container Apps. Use it to quickly narrow symptoms, validate hypotheses, and apply targeted mitigation.

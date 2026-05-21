@@ -1,14 +1,21 @@
 ---
 content_sources:
   diagrams:
-    - id: tutorial-progression
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/dotnet-overview
+  - id: tutorial-progression
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/dotnet-overview
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # .NET Tutorial Index
 
 This tutorial path walks you from local development to safe production rollout for .NET apps on Azure Container Apps.
@@ -51,3 +58,13 @@ flowchart TD
 - [.NET guide overview](../index.md)
 - [.NET runtime reference](../dotnet-runtime.md)
 - [.NET recipes index](../recipes/index.md)
+
+## See Also
+
+- [Tutorial index](index.md)
+- [Language guides](../../index.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/azure/container-apps/)
+- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/dotnet-overview)

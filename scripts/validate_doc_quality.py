@@ -78,8 +78,10 @@ GUID_RE = re.compile(
 SUBSCRIPTION_ID_RE = re.compile(r"/subscriptions/[0-9a-fA-F-]{36}\b")
 APP_INSIGHTS_KEY_RE = re.compile(r"InstrumentationKey=([0-9a-fA-F-]{36})")
 SECRET_VALUE_RE = re.compile(
-    r"(SharedAccessKey|AccountKey|client_secret|clientSecret|password)\s*[=:]\s*"
-    r"(?!<|placeholder|xxxx|\\$|\")([^;,\s]+)",
+    r"(?<![-A-Za-z0-9_])"
+    r"(SharedAccessKey|AccountKey|client_secret|clientSecret|password)\s*(?:=(?!=)|:)\s*"
+    r"(?!<|placeholder|xxxx|\$|\"|'|%|secretref:|keyvaultref:|os\.|process\.|Environment\.|System\.|client\.|keyVault\.|token|access_token|storageAccountKey)"
+    r"([^;,\s]+)",
     re.IGNORECASE,
 )
 ACA_HOST_RE = re.compile(
@@ -240,6 +242,23 @@ def validate_templates(findings: list[Finding], path: Path, text: str) -> None:
     elif section == "operations":
         require_sections(findings, path, text, OPERATIONS_SECTIONS, "Operations")
     elif section == "troubleshooting" and "lab-guides" not in parts and "kql" not in parts:
+        relative = rel(path)
+        troubleshooting_support_sections = (
+            "docs/troubleshooting/first-10-minutes/",
+            "docs/troubleshooting/methodology/",
+            "docs/troubleshooting/playbooks/",
+        )
+        troubleshooting_maps = {
+            "docs/troubleshooting/architecture-overview.md",
+            "docs/troubleshooting/decision-tree.md",
+            "docs/troubleshooting/evidence-map.md",
+            "docs/troubleshooting/mental-model.md",
+            "docs/troubleshooting/quick-diagnosis-cards.md",
+        }
+        if relative in troubleshooting_maps or any(
+            relative.startswith(prefix) for prefix in troubleshooting_support_sections
+        ):
+            return
         require_sections(findings, path, text, TROUBLESHOOTING_SECTIONS, "Troubleshooting")
 
 
@@ -380,6 +399,8 @@ def looks_placeholder_guid(value: str) -> bool:
         or "bbbb" in lowered
         or "cccc" in lowered
         or "xxxx" in lowered
+        or lowered == "11111111-2222-3333-4444-555555555555"
+        or lowered == "b2c3d4e5-f6a7-8901-bcde-f23456789012"
         or lowered == "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
     )
 

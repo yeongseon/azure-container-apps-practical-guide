@@ -1,34 +1,35 @@
 ---
 content_sources:
   diagrams:
-    - id: enable-system-assigned-managed-identity
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
+  - id: enable-system-assigned-managed-identity
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "When a managed identity is added, deleted, or modified on a running container app, the app does not automatically restart and a new revision is not created."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "The authentication and authorization middleware runs as a sidecar container on each replica in the application."
-      source: "https://learn.microsoft.com/azure/container-apps/authentication"
-      verified: true
-    - claim: "When authentication is enabled, the platform middleware injects identity information into HTTP request headers."
-      source: "https://learn.microsoft.com/azure/container-apps/authentication"
-      verified: true
-    - claim: "Require authentication can reject unauthenticated traffic by redirecting to a configured identity provider or by returning HTTP 401 or HTTP 403 responses."
-      source: "https://learn.microsoft.com/azure/container-apps/authentication"
-      verified: true
+  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: When a managed identity is added, deleted, or modified on a running container app, the app does not automatically
+      restart and a new revision is not created.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: The authentication and authorization middleware runs as a sidecar container on each replica in the application.
+    source: https://learn.microsoft.com/azure/container-apps/authentication
+    verified: true
+  - claim: When authentication is enabled, the platform middleware injects identity information into HTTP request headers.
+    source: https://learn.microsoft.com/azure/container-apps/authentication
+    verified: true
+  - claim: Require authentication can reject unauthenticated traffic by redirecting to a configured identity provider or by
+      returning HTTP 401 or HTTP 403 responses.
+    source: https://learn.microsoft.com/azure/container-apps/authentication
+    verified: true
 ---
-
 # Security Operations
 
 This guide covers daily and periodic security operations: managed identity lifecycle, secret rotation, and Easy Auth policy management.
@@ -68,6 +69,10 @@ az containerapp identity assign \
   --system-assigned
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 Check principal details:
 
 ```bash
@@ -76,6 +81,10 @@ az containerapp identity show \
   --resource-group "$RG" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity show ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 Example output (PII masked):
 
@@ -133,6 +142,10 @@ az containerapp auth show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth show ...` | Runs the Azure CLI operation required by the documented step. |
+
 Update auth to require login by default:
 
 ```bash
@@ -143,6 +156,10 @@ az containerapp auth update \
   --unauthenticated-client-action Return401
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Verification Steps
 
 ```bash
@@ -152,6 +169,10 @@ az containerapp show \
   --query "{identity:identity,auth:properties.configuration.auth}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Example output (PII masked):
 

@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-    - id: custom-domain-request-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
+  - id: custom-domain-request-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps supports custom domains with managed certificates and uploaded certificates."
-      source: "https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates"
-      verified: true
-    - claim: "Custom domain binding is tied to TLS certificate binding on the container app."
-      source: "https://learn.microsoft.com/azure/container-apps/custom-domains-certificates"
-      verified: true
+  - claim: Azure Container Apps supports custom domains with managed certificates and uploaded certificates.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    verified: true
+  - claim: Custom domain binding is tied to TLS certificate binding on the container app.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
+    verified: true
 ---
-
 # Custom Domains and TLS
 
 This runbook covers the operational steps for binding custom hostnames and TLS certificates to Azure Container Apps.
@@ -76,6 +75,10 @@ az containerapp hostname list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
 
 Validate that the expected hostname serves TLS:
 

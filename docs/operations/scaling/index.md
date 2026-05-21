@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: scaling-decision-framework
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/scale-app
-        - https://learn.microsoft.com/azure/container-apps/scale-app#scale-triggers
+  - id: scaling-decision-framework
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/scale-app#scale-triggers
 ---
-
 # Scaling Operations
 
 This guide explains how to operate scaling in production, including manual replica control, KEDA-based autoscaling, and scale-to-zero behavior.
@@ -36,6 +35,10 @@ az containerapp update \
   --max-replicas 10
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Check current replica settings:
 
 ```bash
@@ -45,6 +48,10 @@ az containerapp show \
   --query "properties.template.scale" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ## KEDA Rule Operations
 
@@ -61,6 +68,10 @@ az containerapp update \
   --max-replicas 20
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Example queue scaler operation (Azure Service Bus):
 
 ```bash
@@ -72,6 +83,10 @@ az containerapp update \
   --scale-rule-metadata "queueName=orders" "messageCount=50" "namespace=<servicebus-namespace>.servicebus.windows.net"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Use Azure Monitor metrics to tune thresholds:
 
 ```bash
@@ -81,6 +96,10 @@ az monitor metrics list \
   --interval "PT1M" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 ## Scale-to-Zero Operations
 
@@ -94,6 +113,10 @@ az containerapp update \
   --max-replicas 10
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Use this mode only when cold start impact is acceptable.
 
 ## Verification Steps
@@ -105,6 +128,10 @@ az containerapp replica list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+
 ```bash
 az containerapp show \
   --name "$APP_NAME" \
@@ -112,6 +139,10 @@ az containerapp show \
   --query "{minReplicas:properties.template.scale.minReplicas,maxReplicas:properties.template.scale.maxReplicas,rules:properties.template.scale.rules}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Example output (PII masked):
 
@@ -175,6 +206,10 @@ az containerapp logs show \
   --type system \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Advanced Topics
 

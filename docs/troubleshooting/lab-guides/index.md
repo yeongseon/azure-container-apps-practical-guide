@@ -1,32 +1,40 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/azure/container-apps/troubleshooting
   - type: mslearn-adapted
     url: https://learn.microsoft.com/azure/container-apps/revisions
   - type: mslearn-adapted
     url: https://learn.microsoft.com/azure/container-apps/scale-app
+  diagrams:
+  - id: use-this-section-when-you-want
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps supports log streaming and console access for live troubleshooting."
-      source: https://learn.microsoft.com/azure/container-apps/troubleshooting
-      verified: true
-    - claim: "Revisions allow traffic splitting and rollback to a previous known-good state."
-      source: https://learn.microsoft.com/azure/container-apps/revisions
-      verified: true
-diagrams:
-  - id: use-this-section-when-you-want
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
-      - https://learn.microsoft.com/azure/container-apps/revisions
-      - https://learn.microsoft.com/azure/container-apps/scale-app
+  - claim: Azure Container Apps supports log streaming and console access for live troubleshooting.
+    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
+    verified: true
+  - claim: Revisions allow traffic splitting and rollback to a previous known-good state.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Lab Guides
 
 Hands-on troubleshooting labs for Azure Container Apps with deployable infrastructure and scripted failure/recovery flows.
@@ -152,6 +160,10 @@ flowchart TD
     az extension add --name containerapp --upgrade
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az account show ...` | Confirms the active Azure subscription context before changes are made. |
+
     Expected output: active subscription metadata and extension upgrade confirmation.
 
 3. **Deploy the chosen lab infrastructure**
@@ -163,6 +175,10 @@ flowchart TD
       --template-file "./labs/<lab-name>/infra/main.bicep" \
       --parameters baseName="labrun"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
 
     Expected output pattern:
 

@@ -1,25 +1,24 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/scale-app
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can scale based on HTTP traffic, CPU, memory, and custom scale rules."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Scale rules define the conditions under which a container app scales."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: Azure Container Apps can scale based on HTTP traffic, CPU, memory, and custom scale rules.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Scale rules define the conditions under which a container app scales.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # HTTP Scaling Not Triggering
 
 ## 1. Summary
@@ -192,6 +191,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --max-replicas 20
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### H2: No HTTP scale rule configured
 
 **Signals that support:**
@@ -264,6 +267,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --scale-rule-type "http" \
   --scale-rule-http-concurrency 10
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### H3: Test traffic bypassing app
 
@@ -347,6 +354,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 # Example: 75 concurrent / 10 threshold = 8 replicas needed
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 **Fix:**
 
 ```bash
@@ -356,6 +367,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --scale-rule-type "http" \
   --scale-rule-http-concurrency 5  # Lower = more aggressive scaling
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### H5: Stabilization window delay
 
@@ -422,6 +437,10 @@ This is expected behavior, not a bug.
      --min-replicas 5  # Force minimum higher
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 2. **Lower threshold for faster response:**
    ```bash
    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
@@ -430,11 +449,19 @@ This is expected behavior, not a bug.
      --scale-rule-http-concurrency 5
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 3. **Increase max if capped:**
    ```bash
    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
      --max-replicas 30
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
 
 4. **Add HTTP rule if missing:**
    ```bash

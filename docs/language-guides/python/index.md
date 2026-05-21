@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: ideal-for-development-testing-and-public-facing
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/python-overview
-    - id: for-production-environments-requiring-network-isolation
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/python-overview
-    - id: end-to-end-learning-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/python-overview
+  - id: ideal-for-development-testing-and-public-facing
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+  - id: for-production-environments-requiring-network-isolation
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+  - id: end-to-end-learning-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
 ---
-
 # Python on Azure Container Apps
 
 This guide provides a comprehensive reference implementation for running Python applications on Azure Container Apps (ACA). We use a production-ready Flask application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.
@@ -185,4 +184,4 @@ By completing this guide, you will gain the following capabilities:
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Python on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/python-overview)
+- [Python on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)

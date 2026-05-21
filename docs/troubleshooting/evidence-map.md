@@ -1,34 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: use-it-when-you-know-what
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/observability
-        - https://learn.microsoft.com/azure/container-apps/log-options
-        - https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics
-        - https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - id: use-it-when-you-know-what
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/observability
+    - https://learn.microsoft.com/azure/container-apps/log-options
+    - https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics
+    - https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can send application console logs and system logs to Azure Monitor Log Analytics."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
-    - claim: "Azure Activity Log records subscription-level events for Azure resources."
-      source: "https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log"
-      verified: true
-    - claim: "Azure Monitor metrics stores numeric time-series data from monitored resources."
-      source: "https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics"
-      verified: true
-    - claim: "Azure Container Apps troubleshooting guidance uses logs and events as key evidence sources."
-      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
-      verified: true
+  - claim: Azure Container Apps can send application console logs and system logs to Azure Monitor Log Analytics.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
+  - claim: Azure Activity Log records subscription-level events for Azure resources.
+    source: https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log
+    verified: true
+  - claim: Azure Monitor metrics stores numeric time-series data from monitored resources.
+    source: https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics
+    verified: true
+  - claim: Azure Container Apps troubleshooting guidance uses logs and events as key evidence sources.
+    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
+    verified: true
 ---
-
 # Evidence Map for Container Apps Troubleshooting
 
 This page maps common investigation questions to the best evidence source, the CLI command to run, and the KQL table/query to use.
@@ -91,6 +90,10 @@ az containerapp revision list --name $APP_NAME --resource-group $RG --output tab
 az monitor activity-log list --resource-group $RG --offset 24h
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 ### KQL
 
 ```kusto
@@ -109,6 +112,10 @@ ContainerAppSystemLogs_CL
 ```bash
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### KQL
 
@@ -129,6 +136,10 @@ ContainerAppSystemLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type console --tail 100
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### KQL
 
 ```kusto
@@ -147,6 +158,10 @@ ContainerAppConsoleLogs_CL
 ```bash
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### KQL
 
@@ -168,6 +183,10 @@ az containerapp revision list --name $APP_NAME --resource-group $RG --output tab
 az containerapp show --name $APP_NAME --resource-group $RG --query "properties.template.scale"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 ### KQL
 
 ```kusto
@@ -188,6 +207,10 @@ az monitor activity-log list --resource-group $RG --offset 24h --status Succeede
 az containerapp revision list --name $APP_NAME --resource-group $RG --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor activity-log ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ### KQL
 
 ```kusto
@@ -206,6 +229,10 @@ ContainerAppSystemLogs_CL
 ```bash
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### KQL
 
@@ -227,6 +254,10 @@ ContainerAppSystemLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type console --tail 100
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### KQL
 
 ```kusto
@@ -246,6 +277,10 @@ ContainerAppConsoleLogs_CL
 az containerapp show --name $APP_NAME --resource-group $RG --query "properties.configuration.ingress" --output json
 az containerapp show --name $APP_NAME --resource-group $RG --query "properties.configuration.ingress.fqdn" --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### KQL
 
@@ -267,6 +302,10 @@ az containerapp logs show --name $APP_NAME --resource-group $RG --type console -
 az containerapp identity show --name $APP_NAME --resource-group $RG
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### KQL
 
 ```kusto
@@ -287,6 +326,10 @@ az containerapp logs show --name $APP_NAME --resource-group $RG --type system --
 az containerapp secret list --name $APP_NAME --resource-group $RG --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### KQL
 
 ```kusto
@@ -306,6 +349,10 @@ ContainerAppSystemLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
 az containerapp dapr show --name $APP_NAME --resource-group $RG
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### KQL
 

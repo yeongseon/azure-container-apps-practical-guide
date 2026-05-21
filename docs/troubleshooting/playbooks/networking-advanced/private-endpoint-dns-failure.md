@@ -1,26 +1,26 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+  diagrams:
+  - id: private-endpoint-dns-failure-flow
+    type: flowchart
+    source: self-generated
+    justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Private endpoint connectivity depends on correct private DNS zone configuration for the target service."
-      source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-      verified: false
-    - claim: "Using an existing virtual network allows Azure Container Apps to access resources behind private endpoints in the virtual network."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-      verified: false
-diagrams:
-  - id: private-endpoint-dns-failure-flow
-    type: flowchart
-    source: self-generated
-    justification: "Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation"
-
+  - claim: Private endpoint connectivity depends on correct private DNS zone configuration for the target service.
+    source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+    verified: false
+  - claim: Using an existing virtual network allows Azure Container Apps to access resources behind private endpoints in the
+      virtual network.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    verified: false
 ---
-
 # Private Endpoint DNS Failure
 
 <!-- diagram-id: private-endpoint-dns-failure-flow -->

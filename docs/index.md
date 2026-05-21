@@ -1,13 +1,12 @@
 ---
 content_sources:
   diagrams:
-    - id: learning-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/overview
+  - id: learning-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
 ---
-
 # Azure Container Apps Practical Guide
 
 Comprehensive, practical documentation for designing, deploying, operating, and troubleshooting containerized applications on Azure Container Apps.

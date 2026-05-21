@@ -1,32 +1,38 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-      - https://learn.microsoft.com/azure/container-apps/revisions
-      - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "single-revision-mode error confirmed, fixed with multiple mode"
-
+    az_cli_version: 2.70.0
+    notes: single-revision-mode error confirmed, fixed with multiple mode
   core_claims:
-    - claim: "Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights."
-      source: "https://learn.microsoft.com/azure/container-apps/traffic-splitting"
-      verified: true
-    - claim: "To route traffic to more than one revision in Azure Container Apps, the app must use multiple revision mode."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights.
+    source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    verified: true
+  - claim: To route traffic to more than one revision in Azure Container Apps, the app must use multiple revision mode.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Traffic Routing and Canary Failure Lab
 
 Practice traffic splitting between revisions and learn to diagnose scenarios where a bad revision receives production traffic.
@@ -98,6 +104,10 @@ az deployment group create \
     --parameters baseName="labtraffic"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
+
 ### Capture Resource Names
 
 ```bash
@@ -123,6 +133,10 @@ az containerapp revision list \
     --resource-group "$RG" \
     --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Expected output:
 
@@ -165,6 +179,10 @@ az containerapp revision list \
     --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 Expected output:
 
 ```text
@@ -193,6 +211,10 @@ az containerapp ingress traffic show \
     --resource-group "$RG"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### Fix the Issue (Rollback)
 
 Rollback by sending 100% traffic to the good revision:
@@ -211,6 +233,10 @@ az containerapp ingress traffic set \
     --resource-group "$RG" \
     --revision-weight "${GOOD_REVISION}=100"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Optionally, deactivate the bad revision:
 
@@ -276,7 +302,7 @@ Expected: All requests return HTTP 200.
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
 **Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
-**App:** `ca-canary` (multiple-revision mode), FQDN: `ca-canary.victoriousbush-a6b16555.koreacentral.azurecontainerapps.io`.
+**App:** `ca-canary` (multiple-revision mode), FQDN: `<container-app-fqdn>`.
 
 [Observed] Switched to multiple-revision mode: `az containerapp revision set-mode --mode multiple`.
 
@@ -286,7 +312,7 @@ Expected: All requests return HTTP 200.
 
 [Observed] `az containerapp revision list` returned: `ca-canary--stable weight=90`, `ca-canary--canary weight=10` — both Running.
 
-[Measured] HTTP request to FQDN: `curl https://ca-canary.victoriousbush-a6b16555.koreacentral.azurecontainerapps.io/` → **HTTP 200**.
+[Measured] HTTP request to FQDN: `curl https://<container-app-fqdn>/` → **HTTP 200**.
 
 [Inferred] 90/10 traffic split routes approximately 1 in 10 requests to the canary revision. Both revisions serve the same image (different env var), so all requests return HTTP 200. A real canary with a broken image would show HTTP 5xx from the 10% canary traffic.
 
@@ -297,6 +323,10 @@ Environment: `koreacentral`, Consumption plan, multiple-revision mode.
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+  - id: query-pipeline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can send system logs that record platform events to a Log Analytics workspace."
-      source: "https://learn.microsoft.com/azure/container-apps/logging"
-      verified: true
-    - claim: "Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data."
-      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
-      verified: true
+  - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
+    source: https://learn.microsoft.com/azure/container-apps/logging
+    verified: true
+  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+    source: https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial
+    verified: true
 ---
-
 # Replica Crash Signals
 
 Use this query to identify restart-heavy replicas and crash-loop patterns by revision.
@@ -72,3 +71,11 @@ ContainerAppSystemLogs_CL
 
 - [Latest Errors and Exceptions](../console-and-runtime/latest-errors-and-exceptions.md)
 - [CrashLoop OOM and Resource Pressure Playbook](../../playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
+- [Microsoft Learn source 5](https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial)

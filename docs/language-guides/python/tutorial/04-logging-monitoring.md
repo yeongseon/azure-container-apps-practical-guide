@@ -1,26 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/observability
-    - id: how-observability-works-in-container-apps
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/observability
-    - id: distributed-tracing-with-dapr
-      type: sequence
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/observability
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/observability
+  - id: how-observability-works-in-container-apps
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/observability
+  - id: distributed-tracing-with-dapr
+    type: sequence
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/observability
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 04 - Logging, Monitoring, and Observability
 
 This tutorial step shows how to inspect console logs, query Log Analytics, and add OpenTelemetry-based observability for production operations.
@@ -155,6 +162,10 @@ sequenceDiagram
      --follow
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
    ???+ example "Expected output"
        ```json
        {"TimeStamp":"2024-01-15T10:30:01","Log":"Connecting to the container 'app'..."}
@@ -176,6 +187,10 @@ sequenceDiagram
      --resource-group "$RG" \
      --type system
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
    ???+ example "Expected output"
        ```json
@@ -203,6 +218,10 @@ sequenceDiagram
      --output table
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
    ???+ example "Expected output"
        ```text
        TableName      TimeGenerated                    ContainerAppName_s           Log_s
@@ -219,6 +238,10 @@ sequenceDiagram
      --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s has_any ('error', 'exception', 'traceback') | project TimeGenerated, Log_s | take 10" \
      --output table
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
    ???+ example "Expected output"
        ```text

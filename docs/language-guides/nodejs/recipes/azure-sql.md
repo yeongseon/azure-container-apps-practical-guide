@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
-        - https://learn.microsoft.com/sql/connect/node-js/step-3-proof-of-concept-connecting-to-sql-using-nodejs
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
+    - https://learn.microsoft.com/sql/connect/node-js/node-js-driver-for-sql-server
 ---
-
 # Azure SQL Integration (Managed Identity)
 
 Use this recipe to connect Azure Container Apps to Azure SQL Database with Microsoft Entra authentication first and SQL authentication only as a fallback.
@@ -44,6 +43,10 @@ az containerapp identity assign \
   --system-assigned
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ## Step 2: Grant SQL access to the app identity
 
 From a Microsoft Entra-authenticated SQL session, create a contained user for the managed identity.
@@ -65,6 +68,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars SQL_SERVER="$SQL_SERVER.database.windows.net" SQL_DATABASE="$SQL_DATABASE"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Step 4: Node.js code (Entra token authentication)
 
@@ -142,6 +149,10 @@ az containerapp update \
   --set-env-vars SQL_SERVER="$SQL_SERVER.database.windows.net" SQL_DATABASE="$SQL_DATABASE" SQL_USER="$SQL_USER" SQL_PASSWORD=secretref:sql-password
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 ## Verification
 
 1. Confirm identity is assigned to the app:
@@ -154,6 +165,10 @@ az containerapp show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Confirm runtime connectivity by checking application logs:
 
 ```bash
@@ -162,6 +177,10 @@ az containerapp logs show \
   --resource-group "$RG" \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 3. Confirm Azure SQL firewall or private endpoint connectivity before blaming authentication.
 
@@ -174,4 +193,4 @@ az containerapp logs show \
 ## Sources
 
 - [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview)
-- [Connect to Azure SQL Database using Node.js](https://learn.microsoft.com/sql/connect/node-js/step-3-proof-of-concept-connecting-to-sql-using-nodejs)
+- [Connect to Azure SQL Database using Node.js](https://learn.microsoft.com/sql/connect/node-js/node-js-driver-for-sql-server)

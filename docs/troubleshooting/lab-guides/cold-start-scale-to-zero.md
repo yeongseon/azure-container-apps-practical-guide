@@ -1,34 +1,41 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/scale-app
-      - https://learn.microsoft.com/azure/container-apps/plans
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/plans
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "0 replicas confirmed after 8min idle, 19011ms cold start measured"
-
+    az_cli_version: 2.70.0
+    notes: 0 replicas confirmed after 8min idle, 19011ms cold start measured
   core_claims:
-    - claim: "Azure Container Apps supports scale settings with a minimum replica count of 0, which allows a revision to scale to zero."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Setting the minimum number of replicas to 1 or higher ensures that an instance of the revision is always running."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Both the Consumption and Dedicated plan types support scale-to-zero in Azure Container Apps."
-      source: "https://learn.microsoft.com/azure/container-apps/plans"
-      verified: true
+  - claim: Azure Container Apps supports scale settings with a minimum replica count of 0, which allows a revision to scale
+      to zero.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Setting the minimum number of replicas to 1 or higher ensures that an instance of the revision is always running.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Both the Consumption and Dedicated plan types support scale-to-zero in Azure Container Apps.
+    source: https://learn.microsoft.com/azure/container-apps/plans
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Cold Start and Scale-to-Zero Lab
 
 Measure the latency impact of scale-to-zero, then compare it with a configuration that keeps a replica always ready.
@@ -86,6 +93,10 @@ az deployment group create \
     --template-file "./labs/scale-rule-mismatch/infra/main.bicep" \
     --parameters baseName="coldstartlab"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
 
 Capture outputs for later steps:
 
@@ -169,6 +180,10 @@ az containerapp update \
     --scale-rule-http-concurrency 10
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### Confirm the active scale settings
 
 ```bash
@@ -178,6 +193,10 @@ az containerapp show \
     --query "properties.template.scale" \
     --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### Wait for the revision to scale in
 
@@ -190,6 +209,10 @@ while true; do
     sleep 15
 done
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
 
 When no replicas remain, stop the loop with `Ctrl+C` and measure the first request:
 
@@ -264,6 +287,10 @@ az containerapp replica list \
     --resource-group "$RESOURCE_GROUP" \
     --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected experimental-state pattern:
 
@@ -428,7 +455,7 @@ When a customer reports “the first request is slow but everything after that i
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
 **Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
-**App:** `ca-coldstart` (minReplicas=0), FQDN: `ca-coldstart.victoriousbush-a6b16555.koreacentral.azurecontainerapps.io`
+**App:** `ca-coldstart` (minReplicas=0), FQDN: `<container-app-fqdn>`
 
 [Observed] Before first request: `az containerapp replica list` returned `0` replicas — app fully scaled to zero.
 
@@ -456,7 +483,9 @@ az group delete \
 | Command | Why it is used |
 |---|---|
 | `az group delete --name "$RESOURCE_GROUP" --yes --no-wait` | Removes all lab resources after evidence collection is complete. |
+## See Also
 
+- [Repository map](../../start-here/repository-map.md)
 ## Sources
 
 - [Scaling in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)

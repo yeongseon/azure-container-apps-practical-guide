@@ -1,20 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
-        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
-    - id: infrastructure-lifecycle
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
-        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
+    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+  - id: infrastructure-lifecycle
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
+    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 05 - Infrastructure as Code with Bicep
 
 Use Bicep to define your Azure Container Apps platform consistently across environments. This step focuses on repeatable provisioning and safe updates.
@@ -106,6 +113,10 @@ graph TD
       --parameters baseName="$BASE_NAME" location="$LOCATION"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az deployment group validate ...` | Runs the Azure CLI operation required by the documented step. |
+
     ???+ example "Expected output"
         ```json
         {
@@ -122,6 +133,10 @@ graph TD
       --template-file infra/main.bicep \
       --parameters baseName="$BASE_NAME" location="$LOCATION"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az deployment group what-if ...` | Previews resource changes before deployment. |
 
     ???+ example "Expected output"
         ```text
@@ -145,6 +160,10 @@ graph TD
       --template-file infra/main.bicep \
       --parameters baseName="$BASE_NAME" location="$LOCATION"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
 
     ???+ example "Expected output"
         ```json
@@ -174,6 +193,10 @@ graph TD
       --name "$DEPLOYMENT_NAME" \
       --query properties.outputs
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az deployment group show ...` | Reads deployment output and provisioning state for verification. |
 
     ???+ example "Expected output"
         ```json
@@ -273,6 +296,10 @@ az monitor log-analytics workspace create --resource-group "$RG" --workspace-nam
 LOG_ID=$(az monitor log-analytics workspace show --resource-group "$RG" --workspace-name "$LOG_NAME" --query customerId --output tsv)
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
+
 ???+ example "Expected output"
     ```json
     {
@@ -293,6 +320,10 @@ az containerapp env create --resource-group "$RG" --name "$ENVIRONMENT_NAME" --l
 az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/nodejs
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr create --resource-group ...` | Creates Azure Container Registry for container image storage. |
+
 ???+ example "Expected output"
     ```text
     ACR crexpressdemo created.
@@ -306,9 +337,13 @@ az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/nodejs
 az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ENVIRONMENT_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --env-vars NODE_ENV=production --query "properties.configuration.ingress.fqdn"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create --resource-group ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 ???+ example "Expected output"
     ```text
-    "ca-express-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    "<container-app-fqdn>"
     ```
 
 ### Step 5: Validate configuration
@@ -317,11 +352,15 @@ az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "
 az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "{state:properties.provisioningState,fqdn:properties.configuration.ingress.fqdn,env:properties.template.containers[0].env}"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --resource-group ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ???+ example "Expected output"
     ```json
     {
       "state": "Succeeded",
-      "fqdn": "ca-express-demo.gentlehill-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "fqdn": "<container-app-fqdn>",
       "env": [
         {
           "name": "NODE_ENV",

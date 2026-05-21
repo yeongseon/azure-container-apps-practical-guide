@@ -1,34 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: use-app-name-ca-myapp-for-troubleshooting-examples-in
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/cli/azure/containerapp
-        - https://learn.microsoft.com/azure/container-apps/overview
+  - id: use-app-name-ca-myapp-for-troubleshooting-examples-in
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/cli/azure/containerapp
+    - https://learn.microsoft.com/azure/container-apps/overview
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports revisions for deploying and managing application versions."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Azure Container Apps supports ingress configuration with a target port."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "Azure Container Apps supports minimum and maximum replica settings for scaling."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Azure Container Apps provides console logs and system logs for running apps."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
-    - claim: "Azure Container Apps supports splitting traffic between active revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: Azure Container Apps supports revisions for deploying and managing application versions.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Azure Container Apps supports ingress configuration with a target port.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: Azure Container Apps supports minimum and maximum replica settings for scaling.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Azure Container Apps provides console logs and system logs for running apps.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
+  - claim: Azure Container Apps supports splitting traffic between active revisions.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
 ---
-
 # CLI Cheatsheet
 
 Use shell variables in examples:
@@ -77,6 +76,10 @@ Name               Active    TrafficWeight    Replicas    HealthState    Running
 ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ## Deploy / Update
 
 ```bash
@@ -103,6 +106,10 @@ az containerapp update \
   --image "${ACR_NAME}.azurecr.io/aca-python-app:v2"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ## Configuration / Secrets
 
 ```bash
@@ -125,6 +132,10 @@ az containerapp update \
   --set-env-vars "DB_CONNECTION_STRING=secretref:db-connection"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ## Scale
 
 ```bash
@@ -144,6 +155,10 @@ az containerapp update \
   --resource-group "$RG" \
   --min-replicas 0
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Logs / Debugging
 
@@ -167,6 +182,10 @@ az containerapp exec \
   --resource-group "$RG" \
   --command "/bin/bash"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Observed runtime/system snippets:
 
@@ -207,12 +226,22 @@ az containerapp ingress traffic set \
   --revision-weight "${APP_NAME}--rev1=100"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Cleanup
 
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
+## See Also
+
+- [Repository map](../../start-here/repository-map.md)
 ## Sources
 - [Azure CLI containerapp reference (Microsoft Learn)](https://learn.microsoft.com/cli/azure/containerapp)
 - [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)

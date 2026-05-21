@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-    - id: validate-new-revisions-with-direct-testing
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+  - id: validate-new-revisions-with-direct-testing
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 ---
-
 # Recipe: Revision Validation Before Production Traffic
 
 Validate new revisions with direct testing and controlled traffic movement so you can release safely without impacting all users at once.
@@ -38,6 +37,10 @@ az containerapp revision set-mode \
   --mode multiple
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Deploy a new revision at 0% traffic
 
 ```bash
@@ -59,6 +62,10 @@ az containerapp ingress traffic set \
   --revision-weight "$NEW_REVISION=0"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ## Revision labels and direct URL testing
 
 Assign a label so testers can call the candidate revision directly.
@@ -79,6 +86,10 @@ export LABEL_URL=$(az containerapp show \
 curl --fail "https://canary---$LABEL_URL/health"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision label ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Health check validation before traffic shift
 
 Confirm:
@@ -94,6 +105,10 @@ az containerapp logs show \
   --revision "$NEW_REVISION" \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Weighted traffic splitting (canary)
 
@@ -118,6 +133,10 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --revision-weight "$NEW_REVISION=100"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 ## Automated revision validation script
 
@@ -156,6 +175,10 @@ az containerapp ingress traffic set \
   --revision-weight "$STABLE_REVISION=100" "$NEW_REVISION=0"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Advanced Topics
 
 - Integrate validation into CI/CD gates before promotion.
@@ -168,3 +191,9 @@ az containerapp ingress traffic set \
 - [Custom Container](custom-container.md)
 - [Revisions](../../../platform/revisions/index.md)
 - [Microsoft Learn: Revisions in Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)

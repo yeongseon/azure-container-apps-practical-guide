@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+  - id: query-pipeline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can send application console logs to a Log Analytics workspace for querying."
-      source: "https://learn.microsoft.com/azure/container-apps/logging"
-      verified: true
-    - claim: "Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data."
-      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
-      verified: true
+  - claim: Azure Container Apps can send application console logs to a Log Analytics workspace for querying.
+    source: https://learn.microsoft.com/azure/container-apps/logging
+    verified: true
+  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+    source: https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial
+    verified: true
 ---
-
 # TLS Handshake Errors
 
 Use this query to investigate ingress TLS configuration events such as certificate binding changes, SNI mismatch signals, and custom domain handshake failures.
@@ -73,3 +72,11 @@ ContainerAppSystemLogs_CL
 
 - [Ingress Error Analysis](ingress-error-analysis.md)
 - [DNS and Connectivity Failures](dns-and-connectivity-failures.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
+- [Microsoft Learn source 5](https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial)

@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/storage-mounts
-        - https://learn.microsoft.com/dotnet/api/overview/azure/storage.blobs-readme
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/storage-mounts
+    - https://learn.microsoft.com/dotnet/api/overview/azure/storage.blobs-readme
 ---
-
 # Blob Storage Integration (Managed Identity)
 
 Use this recipe to connect a .NET Container App to Azure Blob Storage with managed identity first and a connection string fallback when you still depend on shared keys.
@@ -38,6 +37,10 @@ Solid arrows show runtime data flow. Dashed arrows show identity and authenticat
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Step 1: Enable managed identity on the Container App
 
 ```bash
@@ -52,6 +55,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --query "identity.principalId" \
   --output tsv)
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## Step 2: Grant Blob data access
 
@@ -69,6 +76,10 @@ az role assignment create \
   --scope "$STORAGE_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az storage account ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+
 ## Step 3: Configure non-secret settings
 
 ```bash
@@ -77,6 +88,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars STORAGE_ACCOUNT_URL="https://$STORAGE_ACCOUNT.blob.core.windows.net" STORAGE_CONTAINER="$STORAGE_CONTAINER"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Step 4: .NET code (managed identity)
 
@@ -127,6 +142,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars AZURE_STORAGE_CONNECTION_STRING=secretref:storage-connection-string STORAGE_CONTAINER="$STORAGE_CONTAINER"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 ## Verification
 

@@ -1,22 +1,21 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/storage-mounts
-        - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
-        - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
-    - id: container-apps-containers-are-ephemeral-by
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/storage-mounts
-        - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
-        - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/storage-mounts
+    - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
+    - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
+  - id: container-apps-containers-are-ephemeral-by
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/storage-mounts
+    - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
+    - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
 ---
-
 # Storage: Volume Mounts and Blob Storage
 
 Connect your Container App to Azure Storage — either by mounting an Azure Files share directly into the container filesystem, or by accessing Blob Storage programmatically via the SDK with Managed Identity.
@@ -120,6 +119,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ### Step 2: Assign Storage Blob Data Contributor role
 
 ```bash
@@ -136,6 +139,10 @@ az role assignment create \
   --scope "$STORAGE_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az storage account ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+
 ### Step 3: Configure the Blob endpoint
 
 ```bash
@@ -144,6 +151,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars STORAGE_ACCOUNT_URL="https://$STORAGE_ACCOUNT.blob.core.windows.net"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### Step 4: Python code for Blob operations
 
@@ -189,6 +200,10 @@ az storage blob list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az storage blob ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+
 Check app logs:
 
 ```bash
@@ -197,6 +212,10 @@ az containerapp logs show \
   --resource-group "$RG" \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ---
 
@@ -215,6 +234,10 @@ az storage share-rm create \
   --resource-group "$RG" \
   --name "app-files"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az storage share-rm ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
 
 ### Step 2: Register storage in the Container Apps Environment
 
@@ -237,6 +260,10 @@ az containerapp env storage set \
   --access-mode ReadWrite
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az storage account ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+
 Verify the environment storage was registered:
 
 ```bash
@@ -245,6 +272,10 @@ az containerapp env storage show \
   --resource-group "$RG" \
   --storage-name "appfiles"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env storage ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected output:
 
@@ -295,6 +326,10 @@ az containerapp show \
   --output yaml > app-volume.yaml
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Edit `app-volume.yaml` to add volumes and volumeMounts under `template`:
 
 ```yaml
@@ -319,6 +354,10 @@ az containerapp update \
   --resource-group "$RG" \
   --yaml app-volume.yaml
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 This creates a **new revision**. Traffic will shift to the new revision automatically unless you are using manual revision mode.
 
@@ -390,6 +429,10 @@ az containerapp update \
   --set-env-vars FILES_MOUNT_PATH=/mnt/appfiles
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### Verification
 
 Verify the mount is active and accessible in a running replica:
@@ -400,6 +443,10 @@ az containerapp exec \
   --resource-group "$RG" \
   --command "ls -la /mnt/appfiles"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected output (if the share has files):
 
@@ -425,6 +472,10 @@ az storage file list \
   --share-name "app-files" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
 
 ---
 
@@ -467,6 +518,10 @@ az keyvault secret set \
   --name "storage-account-key" \
   --value "$STORAGE_KEY"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az keyvault secret ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
 
 ### Reference from Bicep (secure parameter)
 

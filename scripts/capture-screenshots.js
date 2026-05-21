@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const BASE_URL = process.env.APP_URL || 'https://ca-pycontainer-zxyaw4an5c742.agreeablestone-8721f020.koreacentral.azurecontainerapps.io';
+const BASE_URL = process.env.APP_URL || 'http://127.0.0.1:8000';
 const SCREENSHOTS_DIR = path.join(__dirname, '..', 'docs', 'screenshots');
 
 const endpoints = [

@@ -1,30 +1,29 @@
 ---
 content_sources:
   diagrams:
-    - id: aca-mtls-best-practice-pattern
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
-        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
-        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+  - id: aca-mtls-best-practice-pattern
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports peer-to-peer TLS encryption within the environment."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration"
-      verified: true
-    - claim: "Ingress passes the client certificate to the app when clientCertificateMode is set to require or accept."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization"
-      verified: true
-    - claim: "Dapr service invocation in Azure Container Apps provides built-in mutual TLS."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/connect-apps"
-      verified: true
+  - claim: Azure Container Apps supports peer-to-peer TLS encryption within the environment.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+    verified: true
+  - claim: Ingress passes the client certificate to the app when clientCertificateMode is set to require or accept.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    verified: true
+  - claim: Dapr service invocation in Azure Container Apps provides built-in mutual TLS.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+    verified: true
 ---
-
 # mTLS Best Practices
 
 Use mTLS in Azure Container Apps as a layered control: edge client authentication at ingress, peer encryption for direct environment traffic, and Dapr sidecar mTLS for service invocation.

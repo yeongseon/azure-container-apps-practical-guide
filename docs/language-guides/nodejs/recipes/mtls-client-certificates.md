@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-    - id: express-xfcc-validation-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+  - id: express-xfcc-validation-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 ---
-
 # Recipe: mTLS Client Certificates in Node.js Apps on Azure Container Apps
 
 Use Express middleware and the Node.js `X509Certificate` API to parse the forwarded client certificate and compare Dapr invocation with direct internal HTTP.
@@ -154,6 +153,10 @@ az containerapp update \
     DIRECT_BACKEND_URL="http://ca-backend" \
     DAPR_TARGET_APP_ID="backend"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### 3. Test with curl
 

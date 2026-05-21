@@ -1,32 +1,31 @@
 ---
 content_sources:
   diagrams:
-    - id: high-level-network-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/ingress-overview
-    - id: traffic-flow-external-vs-internal-ingress
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/ingress-overview
-    - id: vnet-integration-architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/ingress-overview
-    - id: ingress-routes-traffic-to-active-revisions
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/ingress-overview
+  - id: high-level-network-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+  - id: traffic-flow-external-vs-internal-ingress
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+  - id: vnet-integration-architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+  - id: ingress-routes-traffic-to-active-revisions
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
 ---
-
 # Networking in Azure Container Apps
 
 Networking in Azure Container Apps combines managed ingress with optional private networking controls. Understanding ingress mode, service discovery, and environment boundaries is key to secure and reliable architectures.

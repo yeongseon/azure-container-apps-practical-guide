@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: accelerate-your-development-process-with-these
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/developer/java/spring-framework/spring-cloud-azure
-        - https://learn.microsoft.com/azure/developer/java/sdk/overview
+  - id: accelerate-your-development-process-with-these
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/developer/java/spring-framework/spring-cloud-azure
+    - https://learn.microsoft.com/azure/developer/java/sdk/overview
 ---
-
 # Java Recipes Overview
 
 Accelerate your development process with these common integration patterns and production recipes for Java (Spring Boot) applications on Azure Container Apps.

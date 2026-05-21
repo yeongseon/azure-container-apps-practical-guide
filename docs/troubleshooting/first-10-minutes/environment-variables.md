@@ -1,28 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: environment-variables
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/environment-variables
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: environment-variables
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/environment-variables
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps lets you define environment variables for containers."
-      source: "https://learn.microsoft.com/azure/container-apps/environment-variables"
-      verified: true
-    - claim: "Azure Container Apps provides platform environment variables such as CONTAINER_APP_NAME and CONTAINER_APP_REVISION."
-      source: "https://learn.microsoft.com/azure/container-apps/environment-variables"
-      verified: true
-    - claim: "Secrets in Azure Container Apps can be referenced from environment variables by using the secretref: prefix."
-      source: "https://learn.microsoft.com/azure/container-apps/manage-secrets"
-      verified: true
+  - claim: Azure Container Apps lets you define environment variables for containers.
+    source: https://learn.microsoft.com/azure/container-apps/environment-variables
+    verified: true
+  - claim: Azure Container Apps provides platform environment variables such as CONTAINER_APP_NAME and CONTAINER_APP_REVISION.
+    source: https://learn.microsoft.com/azure/container-apps/environment-variables
+    verified: true
+  - claim: 'Secrets in Azure Container Apps can be referenced from environment variables by using the secretref: prefix.'
+    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
+    verified: true
 ---
-
 # Environment Variables
 
 <!-- diagram-id: environment-variables -->
@@ -107,7 +106,9 @@ PORT=8000
 | Use `secretref:` for sensitive values | Plain text passwords in `--set-env-vars` |
 | Keep optional defaults in code (`os.environ.get`) | Hardcoded environment-specific constants |
 | Redact connection strings in docs | PII, subscription IDs, keys/tokens |
+## See Also
 
+- [Repository map](../../start-here/repository-map.md)
 ## Sources
 - [Environment variables in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment-variables)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)

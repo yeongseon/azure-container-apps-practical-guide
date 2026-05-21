@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+  - id: query-pipeline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can send system logs that record platform events to a Log Analytics workspace."
-      source: "https://learn.microsoft.com/azure/container-apps/logging"
-      verified: true
-    - claim: "Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data."
-      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
-      verified: true
+  - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
+    source: https://learn.microsoft.com/azure/container-apps/logging
+    verified: true
+  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+    source: https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial
+    verified: true
 ---
-
 # Job Execution History
 
 Use this query to review Container Apps Job execution events, failures, retries, and timeout patterns.
@@ -75,3 +74,11 @@ ContainerAppSystemLogs_CL
 
 - [Scaling Events](../scaling-and-replicas/scaling-events.md)
 - [Container App Job Execution Failure Playbook](../../playbooks/platform-features/container-app-job-execution-failure.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/observability)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
+- [Microsoft Learn source 5](https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial)

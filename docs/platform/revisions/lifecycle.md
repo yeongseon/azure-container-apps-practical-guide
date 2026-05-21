@@ -1,31 +1,31 @@
 ---
 content_sources:
   diagrams:
-    - id: documented-revision-lifecycle
-      type: state
-      source: self-generated
-      justification: Synthesized from Microsoft Learn revision creation, activation, deactivation, and inactive-revision retention guidance.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/revisions-manage
-        - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
-        - https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps
+  - id: documented-revision-lifecycle
+    type: state
+    source: self-generated
+    justification: Synthesized from Microsoft Learn revision creation, activation, deactivation, and inactive-revision retention
+      guidance.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/revisions-manage
+    - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
+    - https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "A revision is an immutable snapshot, and revision-scope changes create a new revision."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Azure Container Apps keeps up to 100 inactive revisions by default and supports the maxInactiveRevisions property."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Azure Container Apps lets you manually activate and deactivate revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions-manage"
-      verified: true
+  - claim: A revision is an immutable snapshot, and revision-scope changes create a new revision.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Azure Container Apps keeps up to 100 inactive revisions by default and supports the maxInactiveRevisions property.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Azure Container Apps lets you manually activate and deactivate revisions.
+    source: https://learn.microsoft.com/azure/container-apps/revisions-manage
+    verified: true
 ---
-
 # Revision Lifecycle in Azure Container Apps
 
 Revision lifecycle explains what happens from revision creation through activation, deactivation, and inactive retention. This is the platform view you need before designing rollout or cleanup policies.
@@ -90,6 +90,10 @@ az containerapp revision deactivate \
   --revision "$APP_NAME--20260420-3"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision activate ...` | Runs the Azure CLI operation required by the documented step. |
+
 Manual deactivation is useful when:
 
 - a canary has failed
@@ -132,6 +136,10 @@ az containerapp revision list \
   --query "[].{name:name,active:properties.active,createdTime:properties.createdTime,healthState:properties.healthState,runningState:properties.runningState}" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 ## See Also
 

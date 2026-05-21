@@ -1,32 +1,31 @@
 ---
 content_sources:
   diagrams:
-    - id: quota-and-limit-scope-stack
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+  - id: quota-and-limit-scope-stack
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps applies quotas at region, environment, and application scopes."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/quotas"
-      verified: true
-    - claim: "The maximum configurable replicas per revision is 1,000."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/scale-app"
-      verified: true
-    - claim: "By default, you have access to 100 inactive revisions."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/revisions"
-      verified: true
-    - claim: "Default quotas depend on factors including the age and type of your subscription and service use."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/quotas"
-      verified: true
+  - claim: Azure Container Apps applies quotas at region, environment, and application scopes.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+    verified: true
+  - claim: The maximum configurable replicas per revision is 1,000.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    verified: true
+  - claim: By default, you have access to 100 inactive revisions.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    verified: true
+  - claim: Default quotas depend on factors including the age and type of your subscription and service use.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+    verified: true
 ---
-
 # Environment Limits and Quotas
 
 Azure Container Apps mixes fixed platform limits with quotas that vary by subscription, region, and environment. Use this page as a planning reference before you size environments or request production increases.

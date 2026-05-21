@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/jobs
-      - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps jobs support manual, schedule, and event triggers."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "A job execution in Azure Container Apps runs one or more replicas of a job template."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
+  - claim: Azure Container Apps jobs support manual, schedule, and event triggers.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: A job execution in Azure Container Apps runs one or more replicas of a job template.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
-
 # Container App Job Execution Failure
 
 ## 1. Summary
@@ -144,6 +143,10 @@ az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --o
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 **Disproof logic:** If executions are being created at the expected times and the same workload still fails after startup, the trigger configuration is not the primary fault domain.
 
 ### H2: Timeout too low
@@ -166,6 +169,10 @@ az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --job-execution-name "<execution-name>" --output json
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 ```kusto
 let AppName = "job-myapp";

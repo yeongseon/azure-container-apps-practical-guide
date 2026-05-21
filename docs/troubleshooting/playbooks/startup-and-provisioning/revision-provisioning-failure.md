@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/revisions
-      - https://learn.microsoft.com/azure/container-apps/health-probes
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Each revision in Azure Container Apps is an immutable snapshot of a container app version."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Azure Container Apps supports startup, readiness, and liveness probes."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
+  - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Azure Container Apps supports startup, readiness, and liveness probes.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
 ---
-
 # Revision Provisioning Failure
 
 ## 1. Summary
@@ -143,6 +142,10 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].resources" --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 **Disproof logic:**
 
 If the template matches a known-good revision and logs instead show later-stage probe or startup issues, template invalidity is less likely.
@@ -167,6 +170,10 @@ az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 **Disproof logic:**
 

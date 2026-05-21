@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/dapr-overview
-      - https://learn.microsoft.com/azure/container-apps/dapr-components
-      - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/dapr-overview
+    - https://learn.microsoft.com/azure/container-apps/dapr-components
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps has built-in support for Dapr."
-      source: "https://learn.microsoft.com/azure/container-apps/dapr-overview"
-      verified: true
-    - claim: "Dapr can be enabled for a container app with an app ID and app port configuration."
-      source: "https://learn.microsoft.com/azure/container-apps/dapr-overview"
-      verified: true
+  - claim: Azure Container Apps has built-in support for Dapr.
+    source: https://learn.microsoft.com/azure/container-apps/dapr-overview
+    verified: true
+  - claim: Dapr can be enabled for a container app with an app ID and app port configuration.
+    source: https://learn.microsoft.com/azure/container-apps/dapr-overview
+    verified: true
 ---
-
 # Dapr Sidecar or Component Failure
 
 ## 1. Summary
@@ -160,6 +159,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -i http://127.0.0.1:3500/v1.0/healthz"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ### H2: App port mismatch
 
 **Signals that support:**
@@ -179,6 +182,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr.appPort" --output tsv
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "sh -c 'printenv | sort | grep -E \"^(PORT|CONTAINER_APP_PORT|DAPR_)\"'"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### H3: Component metadata invalid
 
@@ -223,6 +230,10 @@ ContainerAppConsoleLogs_CL
 az containerapp secret list --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp identity show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -270,11 +281,19 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -
     az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr" --output yaml
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Check the sidecar health endpoint from inside the app container.
 
     ```bash
     az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -i http://127.0.0.1:3500/v1.0/healthz"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
 
 3. If the app port is wrong, update the revision with the real listener port and redeploy.
 
@@ -282,17 +301,29 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -
     az containerapp update --name "$APP_NAME" --resource-group "$RG" --set properties.configuration.dapr.appPort=8000
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 4. If a component is failing, temporarily remove or disable the broken component so the rest of the app can recover.
 
     ```bash
     az containerapp env dapr-component list --name "$ENVIRONMENT_NAME" --resource-group "$RG" --output table
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp env dapr-component ...` | Runs the Azure CLI operation required by the documented step. |
+
 5. If secret resolution is the blocker, restore the secret or identity path before retrying the component.
 
     ```bash
     az containerapp secret list --name "$APP_NAME" --resource-group "$RG" --output table
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 6. Re-test the exact Dapr operation that failed, not just the app homepage.
 

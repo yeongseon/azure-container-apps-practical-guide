@@ -1,32 +1,32 @@
 ---
 content_sources:
   diagrams:
-    - id: how-keda-based-scaling-works
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/scale-app
-    - id: practical-example-api-worker-pattern
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/scale-app
+  - id: how-keda-based-scaling-works
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+  - id: practical-example-api-worker-pattern
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps uses KEDA for scaling."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "The default minimum number of replicas per revision is 0 and the default maximum number is 10."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "If more than one scale rule is defined, the container app begins to scale once the first condition of any rule is met."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: Azure Container Apps uses KEDA for scaling.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: The default minimum number of replicas per revision is 0 and the default maximum number is 10.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: If more than one scale rule is defined, the container app begins to scale once the first condition of any rule
+      is met.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # Scaling in Azure Container Apps with KEDA
 
 Azure Container Apps uses **KEDA (Kubernetes Event-Driven Autoscaling)** to scale replicas based on demand signals such as HTTP requests, queue depth, and custom metrics.

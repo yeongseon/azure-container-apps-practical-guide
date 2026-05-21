@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-    - id: spring-xfcc-validation-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+  - id: spring-xfcc-validation-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 ---
-
 # Recipe: mTLS Client Certificates in Java Apps on Azure Container Apps
 
 Use a Spring Boot filter to decode the forwarded client certificate, apply a CN or thumbprint allowlist, and compare Dapr Java SDK invocation with direct `WebClient` calls.
@@ -187,6 +186,10 @@ az containerapp update \
     DIRECT_BACKEND_URL="http://ca-backend" \
     DAPR_TARGET_APP_ID="backend"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### 3. Test with curl
 

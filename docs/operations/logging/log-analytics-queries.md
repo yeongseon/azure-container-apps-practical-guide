@@ -1,29 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: log-analytics-query-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
-        - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
+  - id: log-analytics-query-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
+    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Container Apps logs can be queried in Log Analytics with KQL."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
-    - claim: "Azure Monitor publishes native table references for ContainerAppConsoleLogs and ContainerAppSystemLogs."
-      source: "https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs"
-      verified: true
-    - claim: "Microsoft Learn currently documents both `_CL` query examples and native table references for Container Apps logs."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
+  - claim: Container Apps logs can be queried in Log Analytics with KQL.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
+  - claim: Azure Monitor publishes native table references for ContainerAppConsoleLogs and ContainerAppSystemLogs.
+    source: https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
+    verified: true
+  - claim: Microsoft Learn currently documents both `_CL` query examples and native table references for Container Apps logs.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Log Analytics Queries
 
 Use Log Analytics queries when you need retained history, aggregation, or alert-friendly KQL rather than a live tail.

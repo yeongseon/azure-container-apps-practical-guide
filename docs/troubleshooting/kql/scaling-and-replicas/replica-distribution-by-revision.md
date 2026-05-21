@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+  - id: query-pipeline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "A revision is an immutable snapshot of a container app."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Azure Container Apps can run multiple revisions concurrently, and Log Analytics can compare log data across revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
+  - claim: A revision is an immutable snapshot of a container app.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Azure Container Apps can run multiple revisions concurrently, and Log Analytics can compare log data across revisions.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
 ---
-
 # Replica Distribution by Revision
 
 Use this query to show how active replicas are distributed across revisions so you can confirm multi-revision allocation during traffic splits or rollout validation.
@@ -78,3 +77,11 @@ RevisionReplicaCounts
 
 - [Replica Count Over Time](replica-count-over-time.md)
 - [Scaling Events](scaling-events.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/observability)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Microsoft Learn source 5](https://learn.microsoft.com/azure/container-apps/observability)

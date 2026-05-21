@@ -1,16 +1,15 @@
 ---
 content_sources:
   diagrams:
-    - id: java-jobs-recipe-flow
-      type: flowchart
-      source: self-generated
-      justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance and Java SDK usage patterns.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/java/api/overview/azure/identity-readme
-        - https://learn.microsoft.com/java/api/overview/azure/messaging-servicebus-readme
+  - id: java-jobs-recipe-flow
+    type: flowchart
+    source: self-generated
+    justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance and Java SDK usage patterns.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/java/api/overview/azure/identity-readme
+    - https://learn.microsoft.com/java/api/overview/azure/messaging-servicebus-readme
 ---
-
 # Recipe: Jobs in Java on Azure Container Apps
 
 Use this recipe to build a Spring Boot CLI runner for manual Jobs, adapt it to process one Service Bus message, and add a dedup-table pattern.
@@ -166,6 +165,10 @@ az containerapp job create \
   --replica-retry-limit 1
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ### 2. Receive one Service Bus message and exit
 
 Replace the runner bean with:
@@ -215,6 +218,10 @@ az containerapp job create \
   --env-vars SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ### 3. Add a dedup table
 
 For a runnable demo, use an embedded H2 table. In production, move the same insert-if-absent logic to a shared database.
@@ -251,6 +258,10 @@ az containerapp job execution list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 ## Next Steps / Clean Up
 

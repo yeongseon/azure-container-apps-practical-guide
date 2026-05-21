@@ -1,20 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - id: configuration-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: configuration-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 03 - Configuration, Secrets, and Dapr
 
 This step configures runtime settings in Azure Container Apps for your .NET application, including environment variables, secrets, KEDA scaling rules, and Dapr sidecar options.
@@ -113,6 +120,10 @@ graph TD
      --set-env-vars "Logging__LogLevel__Default=Information" "FeatureManagement__NewUI=true"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
    ???+ example "Expected output"
        ```json
        {
@@ -129,6 +140,10 @@ graph TD
      --resource-group "$RG" \
      --secrets "db-connection-string=Server=tcp:sql.database.windows.net;Database=mydb;"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
    ???+ example "Expected output"
        ```text
@@ -151,6 +166,10 @@ graph TD
      --set-env-vars "ConnectionStrings__DefaultConnection=secretref:db-connection-string"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 4. **Configure KEDA HTTP autoscaling**
 
    ```bash
@@ -163,6 +182,10 @@ graph TD
      --scale-rule-type "http" \
      --scale-rule-http-concurrency 50
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
    ???+ example "Expected output"
        ```json
@@ -181,6 +204,10 @@ graph TD
      --dapr-app-id "dotnet-api" \
      --dapr-app-port 8000
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
 
    ???+ example "Expected output"
        ```json

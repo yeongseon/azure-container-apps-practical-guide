@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: build-production-ready-python-container-images-that
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/containers
-        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+  - id: build-production-ready-python-container-images-that
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - https://learn.microsoft.com/en-us/azure/container-apps/get-started
 ---
-
 # Recipe: Custom Container Images for Python on Azure Container Apps
 
 Build production-ready Python container images that start quickly, stay small, and meet Azure Container Apps runtime expectations.
@@ -35,6 +34,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 az acr login --name "$ACR_NAME"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
 
 ## Multi-stage Docker builds for Python
 
@@ -158,3 +161,8 @@ If local probes fail, fix startup behavior before creating a new revision in Con
 - [Container Registry](container-registry.md)
 - [Revisions](../../../platform/revisions/index.md)
 - [Microsoft Learn: Container Apps containers](https://learn.microsoft.com/azure/container-apps/containers)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/get-started)

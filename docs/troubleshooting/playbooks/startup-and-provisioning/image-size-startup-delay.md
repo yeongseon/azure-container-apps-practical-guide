@@ -1,28 +1,28 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-diagrams:
+  diagrams:
   - id: image-size-startup-delay-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      - https://learn.microsoft.com/en-us/azure/container-apps/containers
-      - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "A revision can fail or start slowly when container startup conditions are not met in Azure Container Apps."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      verified: false
-    - claim: "Azure Container Apps revisions run the container image configured in the app template."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
-      verified: false
+  - claim: A revision can fail or start slowly when container startup conditions are not met in Azure Container Apps.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    verified: false
+  - claim: Azure Container Apps revisions run the container image configured in the app template.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+    verified: false
 ---
-
 # Image Size Startup Delay
 
 Use this playbook when new revisions eventually succeed but take far too long to become ready, especially after scale-from-zero or after an image update.
@@ -72,6 +72,10 @@ flowchart TD
         --output table
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Review system logs for slow provisioning or repeated startup attempts.
 
     ```bash
@@ -80,6 +84,10 @@ flowchart TD
         --resource-group "$RG" \
         --type system
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 3. Correlate revision creation and startup signals.
 

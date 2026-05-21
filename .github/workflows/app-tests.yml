@@ -1,0 +1,37 @@
+name: Application Tests
+
+on:
+  pull_request:
+    paths:
+      - 'apps/java-springboot/**'
+      - '.github/workflows/app-tests.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/java-springboot/**'
+      - '.github/workflows/app-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  java-springboot:
+    name: Java Spring Boot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Run Maven tests
+        working-directory: apps/java-springboot
+        run: mvn --batch-mode test

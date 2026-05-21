@@ -51,7 +51,6 @@ jobs:
       - name: Audit existing content sources
         run: |
           python scripts/validate_content_sources.py
-        continue-on-error: true
       
       - name: Audit existing diagram IDs
         run: |
@@ -71,7 +70,6 @@ jobs:
           fi
           
           echo "All mermaid blocks have diagram-id comments."
-        continue-on-error: true
       
       - name: Check for content_sources in new/modified files
         run: |
@@ -127,7 +125,6 @@ jobs:
       - name: Validate MSLearn URLs
         run: |
           python scripts/validate_mslearn_urls.py --verbose
-        continue-on-error: true  # Don't fail build on URL issues, just report
 
   build-docs:
     name: Build Documentation

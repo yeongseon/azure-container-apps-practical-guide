@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-    - id: use-this-section-as-a-query
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
-        - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
+  - id: use-this-section-as-a-query
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
+    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
 ---
-
 # KQL Queries
 
 Use this section as a query catalog. Each page includes scenario context, data-source notes, query pipeline, interpretation guidance, and limitations.

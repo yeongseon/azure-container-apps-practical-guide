@@ -1,32 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: one-environment-many-workload-profiles
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/structure
-        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+  - id: one-environment-many-workload-profiles
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/structure
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps features two different environment types: Workload profiles and Consumption-only."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/structure"
-      verified: true
-    - claim: "Workload profiles (v2) is the default environment type and Consumption-only (v1) is legacy."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/structure"
-      verified: true
-    - claim: "Workload profiles environments support UDR, NAT Gateway egress, and private endpoints on the environment, while Consumption-only environments do not."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/networking"
-      verified: true
-    - claim: "Each Container Apps environment includes a default Consumption profile, and Dedicated or Consumption GPU profiles can be added."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview"
-      verified: true
+  - claim: 'Azure Container Apps features two different environment types: Workload profiles and Consumption-only.'
+    source: https://learn.microsoft.com/en-us/azure/container-apps/structure
+    verified: true
+  - claim: Workload profiles (v2) is the default environment type and Consumption-only (v1) is legacy.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/structure
+    verified: true
+  - claim: Workload profiles environments support UDR, NAT Gateway egress, and private endpoints on the environment, while
+      Consumption-only environments do not.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    verified: true
+  - claim: Each Container Apps environment includes a default Consumption profile, and Dedicated or Consumption GPU profiles
+      can be added.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: true
 ---
-
 # Plans and Workload Profiles
 
 Azure Container Apps separates environment type, plan type, and workload profile. This page connects those terms so you can pick the right environment model before you design app placement, networking, and scaling.

@@ -1,34 +1,41 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-diagrams:
+  diagrams:
   - id: multi-arch-image-mismatch-lab-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-      - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "ARM64 digest → ContainerAppContainersInvalidCpu: image OS/Arc must be linux/amd64 but found linux/arm64"
-
+    az_cli_version: 2.70.0
+    notes: 'ARM64 digest → ContainerAppContainersInvalidCpu: image OS/Arc must be linux/amd64 but found linux/arm64'
   core_claims:
-    - claim: "Azure Container Registry supports publishing multi-architecture images."
-      source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-      verified: false
-    - claim: "Azure Container Apps revisions use the container image reference configured for the app."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      verified: false
+  - claim: Azure Container Registry supports publishing multi-architecture images.
+    source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+    verified: false
+  - claim: Azure Container Apps revisions use the container image reference configured for the app.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Multi-Arch Image Mismatch Lab
 
 Deploy an architecture-incompatible image to reproduce the failure, then replace it with a multi-architecture build and verify the revision becomes healthy.
@@ -60,9 +67,15 @@ Does multi arch image mismatch reproduce when the documented trigger condition i
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -72,6 +85,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -79,6 +95,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -124,13 +143,17 @@ az containerapp create --name ca-arch-lab --resource-group rg-aca-lab-test4 \
 → Container app created. HTTP 200.
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create --name ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 - `[Observed]` `arm64v8/alpine` rejected: `no child with platform linux/amd64 found in manifest list`.
 - `[Observed]` AMD64 image (`containerapps-helloworld:latest`): deployment succeeds, HTTP 200 confirmed.
 - `[Inferred]` Azure Container Apps Consumption plan requires `linux/amd64`; ARM64-only images are rejected at the API level during image pull.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -154,6 +177,10 @@ az containerapp update \
     --resource-group "$RG" \
     --image "$ACR_NAME.azurecr.io/myapp:multiarch"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Related Playbook
 

@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: event-driven-job-flow
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from repository event-driven job examples and Microsoft Learn Jobs/scale guidance while the exact scaler support matrix remained unconfirmed.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+  - id: event-driven-job-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from repository event-driven job examples and Microsoft Learn Jobs/scale guidance while the
+      exact scaler support matrix remained unconfirmed.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps Jobs support event-driven triggering."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Jobs can use scale-rule metadata and authentication patterns similar to other Container Apps scale integrations."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app#jobs"
-      verified: true
+  - claim: Azure Container Apps Jobs support event-driven triggering.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Jobs can use scale-rule metadata and authentication patterns similar to other Container Apps scale integrations.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+    verified: true
 ---
-
 # Event-Driven Jobs
 
 Event-Driven Jobs create discrete executions when an external event source indicates work is available. This model fits queue backlogs, asynchronous integration pipelines, and bursty background workloads.

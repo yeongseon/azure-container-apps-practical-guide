@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: pull-private-spring-boot-images-from
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-docker-cli
+  - id: pull-private-spring-boot-images-from
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-docker-cli
 ---
-
 # Recipe: Container Registry in Java Apps on Azure Container Apps
 
 Pull private Spring Boot images from Azure Container Registry using managed identity in Azure Container Apps.
@@ -53,6 +52,10 @@ az role assignment create \
   --scope "$ACR_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr create ...` | Creates Azure Container Registry for container image storage. |
+
 ## Multi-stage Dockerfile for Spring Boot
 
 ```dockerfile
@@ -75,6 +78,10 @@ docker build --file Dockerfile --tag "$ACR_NAME.azurecr.io/java-api:latest" .
 docker push "$ACR_NAME.azurecr.io/java-api:latest"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr login --name ...` | Authenticates Docker or the CLI to Azure Container Registry. |
+
 ## Configure registry access for the app
 
 ```bash
@@ -89,6 +96,10 @@ az containerapp create \
   --ingress external \
   --target-port 8080
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
 
 ## Advanced Topics
 

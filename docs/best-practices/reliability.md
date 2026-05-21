@@ -1,49 +1,54 @@
 ---
 content_sources:
   diagrams:
-    - id: do-not-reuse-one-endpoint-for
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    - id: for-high-availability-public-services-run-active-passive
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    - id: dapr-resiliency-high-level-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+  - id: do-not-reuse-one-endpoint-for
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+  - id: for-high-availability-public-services-run-active-passive
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+  - id: dapr-resiliency-high-level-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "When you deploy a container app for the first time, an initial revision is automatically created."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "If ingress is enabled in single revision mode, the existing revision continues to receive 100% of the traffic until the new revision is ready."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "A new revision is considered ready only after it provisions successfully, scales to match the previous revision's replica count, and all replicas pass startup and readiness probes."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "In single revision mode, if an update fails, traffic remains pointed to the old revision."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: When you deploy a container app for the first time, an initial revision is automatically created.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: If ingress is enabled in single revision mode, the existing revision continues to receive 100% of the traffic until
+      the new revision is ready.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: A new revision is considered ready only after it provisions successfully, scales to match the previous revision's
+      replica count, and all replicas pass startup and readiness probes.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: In single revision mode, if an update fails, traffic remains pointed to the old revision.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
 ---
-
 # Azure Container Apps Reliability Best Practices
 
 This guide covers production reliability patterns for Azure Container Apps, including probe design, graceful termination, revision rollback, and disaster recovery planning. Use it to run stable services under failure, scale transitions, and regional incidents.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -64,7 +69,7 @@ export ACR_NAME="acrprodshared"
 export LOCATION="koreacentral"
 ```
 
-## Main Content
+## Recommended Practices
 
 ### Design health probes as separate reliability signals
 
@@ -147,6 +152,10 @@ az containerapp update \
   --yaml "./infra/containerapp-reliability.yaml"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### Graceful shutdown with SIGTERM and termination grace
 
 Graceful termination prevents request loss during scale-in, rollout, and node maintenance.
@@ -175,6 +184,10 @@ az containerapp update \
   --yaml "./infra/containerapp-termination.yaml"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 !!! note "Coordinate grace period with upstream timeout"
     If load balancer, gateway, or client timeout is shorter than termination grace, requests may still fail despite clean SIGTERM handling.
 
@@ -201,6 +214,10 @@ az containerapp env show \
   --resource-group "$RG" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 ### Multi-region deployment pattern for critical APIs
 
@@ -275,6 +292,10 @@ az containerapp revision list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 Immediate rollback example:
 
 ```bash
@@ -283,6 +304,10 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --revision-weight "${APP_NAME}--stable=100"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 !!! warning "Do not deactivate stable revision too early"
     Keeping at least one proven revision active dramatically reduces mean time to recover during bad deployments.
@@ -329,6 +354,10 @@ az containerapp logs show \
   --type system \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### Disaster recovery considerations for Container Apps
 
@@ -409,6 +438,10 @@ az containerapp ingress traffic show \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ### Anti-patterns to avoid
 
 - One `/health` endpoint reused for all probe types without intent.
@@ -442,6 +475,22 @@ az monitor metrics list \
   --aggregation "Average"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Health and Recovery (Platform)](../platform/reliability/health-recovery.md)
@@ -451,3 +500,10 @@ az monitor metrics list \
 - [Operations Recovery](../operations/recovery/index.md)
 - [Networking Best Practices](./networking.md)
 - [Identity and Secrets Best Practices](./identity-and-secrets.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/revisions)

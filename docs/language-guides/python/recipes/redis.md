@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
-        - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-python-get-started
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+    - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-python-get-started
 ---
-
 # Azure Cache for Redis Integration (Managed Identity)
 
 Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Microsoft Entra authentication and managed identity.
@@ -49,6 +48,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ## Step 2: Assign Redis data access policy
 
 Get the object ID used as Redis username:
@@ -71,6 +74,10 @@ az redis access-policy-assignment create \
   --object-id-alias "$APP_NAME"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+
 ## Step 3: Configure Redis endpoint for the app
 
 ```bash
@@ -79,6 +86,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars REDIS_HOST="$REDIS_NAME.redis.cache.windows.net" REDIS_PORT="10000"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Step 4: Python code (Entra token auth)
 
@@ -126,6 +137,10 @@ az containerapp update \
   --set-env-vars REDIS_OBJECT_ID="$OBJECT_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ## Container Apps specifics
 
 - Keep Redis host, port, and object ID in environment variables.
@@ -143,6 +158,10 @@ az redis access-policy-assignment list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+
 2. Confirm app logs show successful Redis `SET`/`GET`:
 
 ```bash
@@ -151,6 +170,10 @@ az containerapp logs show \
   --resource-group "$RG" \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## See Also
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)

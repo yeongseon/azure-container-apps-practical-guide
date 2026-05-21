@@ -1,29 +1,29 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-diagrams:
+  diagrams:
   - id: cpu-throttling-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-      - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-      - https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+    - https://learn.microsoft.com/en-us/azure/container-apps/metrics
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps exposes CPU-related metrics that can be queried from Azure Monitor."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      verified: false
-    - claim: "Workload profile selection and environment quotas affect the CPU capacity available to Container Apps workloads."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-      verified: false
+  - claim: Azure Container Apps exposes CPU-related metrics that can be queried from Azure Monitor.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+    verified: false
+  - claim: Workload profile selection and environment quotas affect the CPU capacity available to Container Apps workloads.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: false
 ---
-
 # CPU Throttling
 
 Use this playbook when latency rises under burst traffic, startup becomes slow under load, or replicas stay healthy but CPU saturation prevents them from keeping up.
@@ -74,6 +74,10 @@ flowchart TD
         --name "$CONTAINER_ENV"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Check whether CPU usage is saturating while requests continue to rise.
 
     ```bash
@@ -83,6 +87,10 @@ flowchart TD
         --aggregation Average \
         --timespan PT1H
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 3. Correlate request pressure, replica count, and throttling symptoms in Log Analytics.
 
@@ -125,6 +133,10 @@ flowchart TD
         --cpu 1.0 \
         --memory 2.0Gi
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 2. Reduce HTTP concurrency or lower scale thresholds so new replicas arrive before each replica is overloaded.
 3. Increase `minReplicas` for known burst windows to avoid slow scale-out.

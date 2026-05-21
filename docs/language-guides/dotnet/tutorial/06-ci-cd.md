@@ -1,18 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions
-    - id: ci-cd-pipeline-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+  - id: ci-cd-pipeline-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 06 - CI/CD with GitHub Actions
 
 Automate the build and deployment of your .NET application so every commit produces a new Container App revision. This tutorial uses GitHub Actions, Azure Container Registry (ACR), and the Azure Container Apps deploy action.
@@ -171,6 +178,10 @@ graph TD
        --resource-group "$RESOURCE_GROUP" \
        --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,healthState:properties.healthState}"
      ```
+
+     | Command | Why it is used |
+     |---|---|
+     | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
      ???+ example "Expected output"
          ```json

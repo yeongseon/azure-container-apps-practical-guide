@@ -1,30 +1,37 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "ContainerAppInvalidHttpScaleRule confirmed, fixed concurrency=100"
-
+    az_cli_version: 2.70.0
+    notes: ContainerAppInvalidHttpScaleRule confirmed, fixed concurrency=100
   core_claims:
-    - claim: "Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "The minimum and maximum replica settings in Azure Container Apps define the lower and upper bounds for scaling behavior."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: The minimum and maximum replica settings in Azure Container Apps define the lower and upper bounds for scaling
+      behavior.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Scale Rule Mismatch Lab
 
 Diagnose non-scaling behavior caused by unrealistic HTTP concurrency thresholds, then tune scale settings.
@@ -90,6 +97,10 @@ az deployment group create \
     --parameters baseName="labscale"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output pattern: deployment `Succeeded`.
 
 ### Capture deployment outputs
@@ -121,6 +132,10 @@ Expected output: no output.
 ```bash
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected output pattern:
 
@@ -161,6 +176,10 @@ az containerapp update \
     --scale-rule-metadata "concurrentRequests=500"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+
 It then sends sustained traffic with either:
 
 ```bash
@@ -186,6 +205,10 @@ az containerapp logs show \
     --resource-group "$RG" \
     --type system
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected diagnostic output pattern:
 
@@ -274,6 +297,10 @@ Environment: `koreacentral`, Consumption plan.
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

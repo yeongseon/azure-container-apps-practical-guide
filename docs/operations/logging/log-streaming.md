@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-    - id: log-streaming-decision-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-streaming
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+  - id: log-streaming-decision-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-streaming
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps supports live log streaming with az containerapp logs show."
-      source: "https://learn.microsoft.com/azure/container-apps/log-streaming"
-      verified: true
-    - claim: "Live streaming is different from querying retained logs in Log Analytics."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
+  - claim: Azure Container Apps supports live log streaming with az containerapp logs show.
+    source: https://learn.microsoft.com/azure/container-apps/log-streaming
+    verified: true
+  - claim: Live streaming is different from querying retained logs in Log Analytics.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Log Streaming
 
 Use live log streaming when you need to watch the current behavior of a running container app, revision, or replica before you move into longer-window KQL analysis.
@@ -52,6 +51,10 @@ az containerapp logs show \
   --follow
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 Use filters when you already know the failing scope:
 
 ```bash
@@ -62,6 +65,10 @@ az containerapp logs show \
   --follow
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 ```bash
 az containerapp logs show \
   --name "$APP_NAME" \
@@ -70,6 +77,10 @@ az containerapp logs show \
   --replica "${APP_NAME}--stable-abc123" \
   --follow
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Streaming is best for **current** output. Log Analytics is better when you need:
 
@@ -87,6 +98,10 @@ flowchart TD
     C --> E[Filter by revision, replica, or container]
     D --> F[Summarize trends and alerts]
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show] ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Verification
 

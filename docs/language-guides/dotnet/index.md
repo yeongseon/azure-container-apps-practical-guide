@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: end-to-end-learning-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/dotnet-overview
+  - id: end-to-end-learning-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/dotnet-overview
 ---
-
 # .NET on Azure Container Apps
 
 This guide provides a comprehensive reference implementation for running .NET applications on Azure Container Apps (ACA). We use a production-ready ASP.NET Core application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.

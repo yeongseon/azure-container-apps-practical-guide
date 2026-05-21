@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: incident-recovery-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/health-probes
+  - id: incident-recovery-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/health-probes
 ---
-
 # Recovery and Incident Readiness
 
 Recovery readiness for Container Apps combines fast rollback, dependency recovery, and clear incident operations. This document provides baseline procedures for service restoration.
@@ -33,12 +32,20 @@ az containerapp revision set-mode \
   --mode "multiple"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+
 ```bash
 az containerapp ingress traffic set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --revision-weight "$APP_NAME--rev-good=100"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Environment Recovery
 
@@ -147,6 +154,10 @@ az containerapp logs show \
   --type console \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 ### Recovery Exit Criteria
 

@@ -1,36 +1,42 @@
 ---
 content_sources:
   documents:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/observability
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/observability
 diagrams:
-  - id: log-analytics-ingestion-gap-lab
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      - https://learn.microsoft.com/en-us/azure/container-apps/observability
+- id: log-analytics-ingestion-gap-lab
+  type: flowchart
+  source: mslearn-adapted
+  based_on:
+  - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+  - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "ContainerAppConsoleLogs_CL 117 rows confirmed in KQL"
-
+    az_cli_version: 2.70.0
+    notes: ContainerAppConsoleLogs_CL 117 rows confirmed in KQL
   core_claims:
-    - claim: "Azure Container Apps logs can be queried in Log Analytics after they are ingested into Azure Monitor Logs."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      verified: false
-    - claim: "Observability for Azure Container Apps includes logs that can be reviewed for operational troubleshooting."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
-      verified: false
+  - claim: Azure Container Apps logs can be queried in Log Analytics after they are ingested into Azure Monitor Logs.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    verified: false
+  - claim: Observability for Azure Container Apps includes logs that can be reviewed for operational troubleshooting.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Log Analytics Ingestion Gap Lab
 
 Measure the difference between a fresh Azure Container Apps system event and the moment that same event becomes queryable in Log Analytics.
@@ -52,9 +58,15 @@ Does log analytics ingestion gap reproduce when the documented trigger condition
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -64,6 +76,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -71,6 +86,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -120,7 +138,7 @@ Environment: `koreacentral`, Log Analytics workspace `law-aca-lab`.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -138,7 +156,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
-**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Log Analytics Workspace: `law-lab6` (`584c3e91-4da5-4490-9216-604cb21a0624`).
+**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Log Analytics Workspace: `law-lab6` (`<workspace-id>`).
 **App:** `ca-coldstart`.
 
 [Measured] Traffic generated at: `2026-05-01T05:13:09Z` (20 concurrent requests sent).

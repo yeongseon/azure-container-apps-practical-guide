@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: mount-azure-files-into-your-python
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+  - id: mount-azure-files-into-your-python
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers
 ---
-
 # Recipe: Bring Your Own Storage with Azure Files Mounts
 
 Mount Azure Files into your Python Container App when you need shared, persistent filesystem access across replicas.
@@ -34,6 +33,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Create an Azure Files share
 
 ```bash
@@ -48,6 +51,10 @@ export STORAGE_KEY=$(az storage account keys list \
   --query "[0].value" \
   --output tsv)
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az storage share-rm ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
 
 ## Configure the storage mount in Container Apps
 
@@ -64,6 +71,10 @@ az containerapp env storage set \
   --access-mode ReadWrite
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env storage ...` | Runs the Azure CLI operation required by the documented step. |
+
 Attach it to the app.
 
 ```bash
@@ -72,6 +83,10 @@ az containerapp update \
   --resource-group "$RG" \
   --yaml "containerapp-with-volume.yaml"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Example YAML fragment:
 
@@ -163,3 +178,8 @@ resource storage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
 - [Key Vault Reference](key-vault-reference.md)
 - [Environments](../../../platform/environments/index.md)
 - [Microsoft Learn: Use Azure Files in Container Apps](https://learn.microsoft.com/azure/container-apps/storage-mounts)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/containers)

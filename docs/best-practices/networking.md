@@ -1,59 +1,62 @@
 ---
 content_sources:
   diagrams:
-    - id: use-one-entry-app-for-public
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
-    - id: traffic-weights-are-applied-at-ingress
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
-    - id: choose-vnet-integration-when-private-networking
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
-    - id: a-common-enterprise-pattern-is-controlled
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+  - id: use-one-entry-app-for-public
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+  - id: traffic-weights-are-applied-at-ingress
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+  - id: choose-vnet-integration-when-private-networking
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+  - id: a-common-enterprise-pattern-is-controlled
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "The network type of a Container Apps environment can't be changed after the environment is created."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "In workload profiles environments, the minimum required subnet size is /27."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "In consumption-only environments, the minimum required subnet size is /23."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "Traffic splitting rules can define how incoming traffic is split between different revisions of an application."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
+  - claim: The network type of a Container Apps environment can't be changed after the environment is created.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: In workload profiles environments, the minimum required subnet size is /27.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: In consumption-only environments, the minimum required subnet size is /23.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: Traffic splitting rules can define how incoming traffic is split between different revisions of an application.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
 ---
-
 # Azure Container Apps Networking Best Practices
 
 This guide focuses on operating Azure Container Apps networking safely and predictably in production. Read this after the platform networking concepts so you can apply concrete patterns, guardrails, and rollout steps.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -75,7 +78,7 @@ export ACR_NAME="acrprodshared"
 export LOCATION="koreacentral"
 ```
 
-## Main Content
+## Recommended Practices
 
 ### Start with an ingress posture decision, not a command
 
@@ -127,6 +130,10 @@ az containerapp create \
   --max-replicas 10
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 Operational notes:
 
 1. Keep public app stateless and narrow in scope.
@@ -149,6 +156,10 @@ az containerapp create \
   --max-replicas 20
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 Validate ingress exposure:
 
 ```bash
@@ -158,6 +169,10 @@ az containerapp show \
   --query "properties.configuration.ingress.external" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output:
 
@@ -181,7 +196,7 @@ Operational implications:
 
 - Weight is probabilistic over many requests, not strict per minute.
 - During low traffic, observed percentages can be noisy.
-- Session affinity can skew effective split because sticky sessions pin users.
+- Session affinity is replica-level stickiness for HTTP ingress. It can skew per-replica load observations for sticky clients, but it is not a control for revision-level weighted traffic split or canary routing.
 
 Set weighted traffic intentionally:
 
@@ -191,6 +206,10 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --revision-weight "${APP_NAME}--rev-a=90" "${APP_NAME}--rev-b=10"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 Best practice rollout sequence:
 
@@ -246,6 +265,10 @@ az containerapp env show \
   --query "properties.vnetConfiguration.internal" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 ### Egress control with UDR and firewall patterns
 
@@ -331,6 +354,10 @@ az containerapp update \
   --dapr-app-port 8000
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### CORS configuration without accidental overexposure
 
 CORS should be restrictive and environment-specific.
@@ -352,6 +379,10 @@ az containerapp ingress cors enable \
   --allowed-headers "authorization" "content-type" \
   --allow-credentials true
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress cors ...` | Runs the Azure CLI operation required by the documented step. |
 
 !!! warning "CORS is not authentication"
     CORS controls browser behavior, not API authorization. Keep identity checks in the app or gateway.
@@ -377,6 +408,10 @@ az containerapp hostname add \
   --hostname "api.contoso.com"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname add ...` | Manages custom hostname bindings for ingress. |
+
 Create and bind managed certificate:
 
 ```bash
@@ -387,6 +422,10 @@ az containerapp env certificate create \
   --validation-method "CNAME"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env certificate ...` | Manages certificates bound to Container Apps environment or hostnames. |
+
 Verify hostname binding state:
 
 ```bash
@@ -395,6 +434,10 @@ az containerapp hostname list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
 
 ### Session affinity considerations with revisions and scaling
 
@@ -408,7 +451,7 @@ Use session affinity only when all are true:
 
 Operational risks:
 
-- Canary traffic measurements become biased.
+- Replica-level measurements for sticky clients become biased; revision-level canary traffic still follows configured weighted routing across request populations.
 - Uneven replica utilization increases tail latency.
 - Failover can disrupt sticky clients abruptly.
 
@@ -466,6 +509,10 @@ az containerapp revision list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 !!! tip "Pattern: Use Custom Internal Domains for On-Premises DNS Integration"
     When on-premises DNS policy prohibits Conditional Forwarders for external domains (e.g., `*.azurecontainerapps.io`), bind a custom internal domain (e.g., `app.nhinvest.local`) to your ACA app and create the corresponding Private DNS Zone A record pointing to the ACA environment's static IP. This lets on-prem DNS forward only internal domains to Azure Private DNS Resolver.
 
@@ -477,6 +524,18 @@ az containerapp revision list \
 
     See: [On-Premises DNS to ACA Internal Environment](../operations/deployment/internal-ingress-on-prem-dns.md)
 
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Environment Design](environment-design.md)
@@ -486,3 +545,10 @@ az containerapp revision list \
 - [Managed Identity](../platform/identity-and-secrets/managed-identity.md)
 - [Health and Recovery](../platform/reliability/health-recovery.md)
 - [Operations Monitoring](../operations/monitoring/index.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/networking)

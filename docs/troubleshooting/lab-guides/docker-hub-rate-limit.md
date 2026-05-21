@@ -1,33 +1,40 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-diagrams:
+  diagrams:
   - id: docker-hub-rate-limit-lab-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "ratelimit-limit: 100;w=21600, ratelimit-remaining: 99;w=21600 from registry-1.docker.io"
-
+    az_cli_version: 2.70.0
+    notes: 'ratelimit-limit: 100;w=21600, ratelimit-remaining: 99;w=21600 from registry-1.docker.io'
   core_claims:
-    - claim: "Azure Container Apps supports registry credentials for container image pulls."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      verified: false
-    - claim: "Image-pull configuration is a common factor in container start troubleshooting."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      verified: false
+  - claim: Azure Container Apps supports registry credentials for container image pulls.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    verified: false
+  - claim: Image-pull configuration is a common factor in container start troubleshooting.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Docker Hub Rate Limit Lab
 
 Reproduce a public-registry pull-rate failure pattern, then prove that authenticated pulls or a controlled registry source remove the issue.
@@ -59,9 +66,15 @@ Does docker hub rate limit reproduce when the documented trigger condition is pr
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -71,6 +84,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -78,6 +94,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -123,7 +142,7 @@ curl -s -I https://registry-1.docker.io/v2/
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -165,6 +184,10 @@ az containerapp update \
     --resource-group "$RG" \
     --image "$ACR_NAME.azurecr.io/myapp:stable"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Related Playbook
 

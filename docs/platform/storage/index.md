@@ -1,44 +1,46 @@
 ---
 content_sources:
   diagrams:
-    - id: storage-types-overview
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-    - id: ephemeral-storage-scope
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-    - id: storage-decision-guide
-      type: flowchart
-      source: self-generated
-      justification: "Decision tree synthesized from MSLearn storage-mounts article"
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+  - id: storage-types-overview
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+  - id: ephemeral-storage-scope
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+  - id: storage-decision-guide
+    type: flowchart
+    source: self-generated
+    justification: Decision tree synthesized from MSLearn storage-mounts article
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
 content_validation:
   status: verified
-  last_reviewed: "2026-05-01"
+  last_reviewed: '2026-05-01'
   reviewer: agent
   core_claims:
-    - claim: "Container Apps supports three storage types: container-scoped ephemeral, replica-scoped EmptyDir, and persistent Azure Files."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: true
-    - claim: "Total ephemeral storage per replica is determined by the number of vCPUs allocated: 0.25 vCPU → 1 GiB, 0.5 vCPU → 2 GiB, 1 vCPU → 4 GiB, over 1 vCPU → 8 GiB."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: true
-    - claim: "EmptyDir volumes persist for the lifetime of the replica. If a container restarts, files in the EmptyDir volume remain."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: true
-    - claim: "Azure Container Apps does not support mounting file shares from Azure NetApp Files or Azure Blob Storage."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: true
-    - claim: "Azure Files supports both SMB and NFS protocols for persistent volume mounts."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: true
+  - claim: 'Container Apps supports three storage types: container-scoped ephemeral, replica-scoped EmptyDir, and persistent
+      Azure Files.'
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: true
+  - claim: 'Total ephemeral storage per replica is determined by the number of vCPUs allocated: 0.25 vCPU → 1 GiB, 0.5 vCPU
+      → 2 GiB, 1 vCPU → 4 GiB, over 1 vCPU → 8 GiB.'
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: true
+  - claim: EmptyDir volumes persist for the lifetime of the replica. If a container restarts, files in the EmptyDir volume
+      remain.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: true
+  - claim: Azure Container Apps does not support mounting file shares from Azure NetApp Files or Azure Blob Storage.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: true
+  - claim: Azure Files supports both SMB and NFS protocols for persistent volume mounts.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: true
 ---
-
 # Storage in Azure Container Apps
 
 Azure Container Apps supports three storage types for different lifecycle and sharing needs. Choosing the right type prevents data loss, reduces cost, and avoids common configuration errors such as writing persistent data to ephemeral volumes.

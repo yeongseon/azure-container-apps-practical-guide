@@ -1,20 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-acr
-    - id: deployment-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-acr
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+  - id: deployment-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 02 - First Deploy to Azure
 
 This guide walks you through the initial deployment of your Spring Boot application to Azure Container Apps. We'll use the Azure CLI to create a Container Registry, build the image in the cloud, and provision a Container App environment.
@@ -103,17 +110,29 @@ APP_NAME="ca-java-guide"
     az group create --name $RG --location $LOCATION
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az group create ...` | Creates the isolated resource group used by the example. |
+
 2. **Create a Container Registry (ACR)**
 
     ```bash
     az acr create --resource-group $RG --name $ACR_NAME --sku Basic
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az acr create --resource-group ...` | Creates Azure Container Registry for container image storage. |
+
 3. **Create a Container Apps Environment**
 
     ```bash
     az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp env create ...` | Creates the managed Container Apps environment that hosts the app replicas. |
 
 ## Step 3: Build and Push Image
 
@@ -123,6 +142,10 @@ Instead of building locally and pushing, use ACR Tasks to build the image direct
 cd apps/java-springboot
 az acr build --registry $ACR_NAME --image java-guide:latest .
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
 
 ???+ example "Expected output"
     ```text
@@ -149,6 +172,10 @@ az containerapp create \
   --ingress external \
   --query "properties.configuration.ingress.fqdn"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
 
 ???+ example "Expected output"
     ```text
@@ -221,6 +248,10 @@ LOG_NAME="log-springboot-demo"
 az group create --name $RG --location $LOCATION
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
+
 ???+ example "Expected output"
     ```json
     {
@@ -239,6 +270,10 @@ az group create --name $RG --location $LOCATION
 az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ???+ example "Expected output"
     ```json
     {
@@ -255,6 +290,10 @@ az monitor log-analytics workspace create --resource-group $RG --workspace-name 
 ```bash
 az acr create --resource-group $RG --name $ACR_NAME --sku Basic
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr create --resource-group ...` | Creates Azure Container Registry for container image storage. |
 
 ???+ example "Expected output"
     ```json
@@ -277,6 +316,10 @@ LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $R
 az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ???+ example "Expected output"
     ```json
     {
@@ -293,6 +336,10 @@ az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --locat
 az acr build --registry $ACR_NAME --image $BASE_NAME:v1 ./apps/java-springboot
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ???+ example "Expected output"
     ```text
     Packing source code into tar to upload...
@@ -307,9 +354,13 @@ az acr build --registry $ACR_NAME --image $BASE_NAME:v1 ./apps/java-springboot
 az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create --resource-group ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 ???+ example "Expected output"
     ```text
-    "ca-springboot-demo.gentlewave-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    "<container-app-fqdn>"
     ```
 
 ### Step 8: Verify deployment
@@ -331,4 +382,4 @@ curl https://$FQDN/health
 
 ## Sources
 - [Quickstart: Build and deploy from source to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
-- [Manage ACR from Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-acr)
+- [Manage ACR from Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)

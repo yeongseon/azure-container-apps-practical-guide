@@ -1,33 +1,39 @@
 ---
 content_sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+- type: mslearn-adapted
+  url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
 diagrams:
-  - id: emptydir-disk-full-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+- id: emptydir-disk-full-flow
+  type: flowchart
+  source: mslearn-adapted
+  based_on:
+  - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+  - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "ContainerAppDuplicateMountPath confirmed, fixed with /cache"
-
+    az_cli_version: 2.70.0
+    notes: ContainerAppDuplicateMountPath confirmed, fixed with /cache
   core_claims:
-    - claim: "Azure Container Apps supports `EmptyDir` volumes for temporary storage."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: false
-    - claim: "Ephemeral storage settings can be defined in the container resources section of a Container Apps revision template."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-      verified: false
+  - claim: Azure Container Apps supports `EmptyDir` volumes for temporary storage.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: false
+  - claim: Ephemeral storage settings can be defined in the container resources section of a Container Apps revision template.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # EmptyDir Disk Full Lab
 
 
@@ -49,9 +55,15 @@ Does emptydir disk full reproduce when the documented trigger condition is prese
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -61,6 +73,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -68,6 +83,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -97,7 +115,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 

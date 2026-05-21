@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: manual-job-trigger-to-completion
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from Microsoft Learn Jobs guidance and existing repository job examples while exact schema quotes remained pending.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+  - id: manual-job-trigger-to-completion
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from Microsoft Learn Jobs guidance and existing repository job examples while exact schema
+      quotes remained pending.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps Jobs can be started manually."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Job executions can run multiple replicas and use retry and timeout settings."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
+  - claim: Azure Container Apps Jobs can be started manually.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Job executions can run multiple replicas and use retry and timeout settings.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
-
 # Manual Jobs
 
 Manual Jobs are best for ad-hoc execution: data repair, one-time backfills, controlled maintenance windows, and manual replay after a failed run.
@@ -118,6 +118,10 @@ flowchart TD
     G --> D
     E -->|No and retries exhausted| H[Execution fails]
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job start] ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 ## See Also
 

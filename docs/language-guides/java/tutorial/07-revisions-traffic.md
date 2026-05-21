@@ -1,20 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
-    - id: revision-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
+  - id: revision-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/azure/container-apps/application-lifecycle-management
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 07 - Revisions and Traffic
 
 Azure Container Apps supports multiple revisions, allowing you to run multiple versions of your Spring Boot application simultaneously. This guide covers how to manage revisions and split traffic between them for zero-downtime releases and safe rollouts.
@@ -92,6 +99,10 @@ az containerapp revision set-mode \
   --mode multiple
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+
 ???+ example "Expected output"
     ```text
     Setting multiple revision mode...
@@ -108,6 +119,10 @@ az containerapp update \
   --name $APP_NAME \
   --image $ACR_NAME.azurecr.io/java-guide:v2
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ???+ example "Expected output"
     ```text
@@ -128,6 +143,10 @@ az containerapp ingress traffic set \
   --traffic-weight "$APP_NAME--0000001=50" "$APP_NAME--0000002=50"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 ???+ example "Expected output"
     ```text
     Traffic weight updated.
@@ -144,6 +163,10 @@ az containerapp ingress traffic set \
   --traffic-weight "latest=100"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### 3. Canary Deployment (10% to New)
 
 ```bash
@@ -152,6 +175,10 @@ az containerapp ingress traffic set \
   --name $APP_NAME \
   --traffic-weight "$APP_NAME--0000001=90" "$APP_NAME--0000002=10"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Cleaning Up Old Revisions
 
@@ -163,6 +190,10 @@ az containerapp revision deactivate \
   --name $APP_NAME \
   --revision $APP_NAME--0000001
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision deactivate ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Revision Checklist
 

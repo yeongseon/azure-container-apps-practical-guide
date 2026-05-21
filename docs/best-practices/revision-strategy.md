@@ -1,54 +1,57 @@
 ---
 content_sources:
   diagrams:
-    - id: shift-traffic-only-when-release-criteria
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
-    - id: when-slo-and-dependency-metrics
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
-    - id: deactivate-stale-revisions-after-confidence-window
-      type: sequenceDiagram
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+  - id: shift-traffic-only-when-release-criteria
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+  - id: when-slo-and-dependency-metrics
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+  - id: deactivate-stale-revisions-after-confidence-window
+    type: sequenceDiagram
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Revisions are immutable snapshots of each version of a container app."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Azure Container Apps supports single and multiple revision modes."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "In multiple revision mode, you can have multiple active revisions and split traffic between revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Labels provide unique URLs that route traffic to specific revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Container Apps doesn't charge for inactive revisions, and by default it keeps up to 100 inactive revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: Revisions are immutable snapshots of each version of a container app.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Azure Container Apps supports single and multiple revision modes.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: In multiple revision mode, you can have multiple active revisions and split traffic between revisions.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Labels provide unique URLs that route traffic to specific revisions.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Container Apps doesn't charge for inactive revisions, and by default it keeps up to 100 inactive revisions.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
 ---
-
 # Revision Strategy Best Practices for Azure Container Apps
 
 This guide explains how to operate revisions as a controlled release mechanism in Azure Container Apps, including rollout safety, rollback speed, and lifecycle hygiene. It focuses on practical decision patterns you can apply in production pipelines.
 
 Use this page for the decision framework, then go deeper with the dedicated [Blue/Green Deployment](blue-green-deployment.md) and [Canary Deployment](canary-deployment.md) playbooks.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -63,7 +66,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-## Main Content
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
+## Recommended Practices
 
 ### Treat revisions as the unit of release risk
 
@@ -115,6 +122,10 @@ az containerapp revision set-mode \
   --resource-group "$RG" \
   --mode multiple
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
 
 !!! warning "Switching revision mode changes release behavior"
     In single mode, old revisions are automatically deactivated after successful replacement. In multiple mode, you must manage deactivation and traffic intentionally to avoid drift and unnecessary cost.
@@ -175,6 +186,10 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--20260404-1=10" "$APP_NAME--20260403-4=90"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### Apply repeatable traffic splitting patterns
 
 #### Canary rollout pattern
@@ -221,6 +236,10 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--green=100" "$APP_NAME--blue=0"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 #### A/B pattern
 
 Use A/B when comparing behavior across revision variants.
@@ -248,6 +267,10 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --revision-weight "$APP_NAME--20260403-4=100" "$APP_NAME--20260404-1=0"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 !!! warning "Do not rollback by rebuilding old image"
     Rebuild-based rollback is slower and may not reproduce the same artifact. Route traffic back to an existing known-good revision whenever possible.
@@ -304,6 +327,10 @@ az containerapp revision deactivate \
   --revision "$APP_NAME--20260328-2"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 ### Avoid schema-coupled rollouts without compatibility windows
 
 Multiple revisions can run concurrently against shared dependencies.
@@ -342,6 +369,10 @@ az containerapp update \
   --image "$ACR_NAME.azurecr.io/$APP_NAME:$IMAGE_TAG" \
   --revision-suffix "$IMAGE_TAG"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### Operational checklist for every release
 
@@ -386,6 +417,18 @@ Correlate errors, latency spikes, and dependency failures by revision name to is
 
 For distributed systems, sequence rollouts by dependency direction and maintain compatibility windows so mixed-revision states remain safe.
 
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Platform: Revisions](../platform/revisions/index.md)
@@ -396,3 +439,10 @@ For distributed systems, sequence rollouts by dependency direction and maintain 
 - [Operations: Deployment](../operations/deployment/index.md)
 - [Python Guide: Revisions and Traffic](../language-guides/python/tutorial/07-revisions-traffic.md)
 - [Microsoft Learn: Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/revisions)

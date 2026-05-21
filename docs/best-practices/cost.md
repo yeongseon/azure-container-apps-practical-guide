@@ -1,42 +1,46 @@
 ---
 content_sources:
   diagrams:
-    - id: if-you-optimize-only-one-meter
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/billing
-        - https://learn.microsoft.com/en-us/azure/container-apps/environment
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-    - id: choose-profile-type-by-workload-shape
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/billing
-        - https://learn.microsoft.com/en-us/azure/container-apps/environment
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+  - id: if-you-optimize-only-one-meter
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/billing
+    - https://learn.microsoft.com/en-us/azure/container-apps/environment
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+  - id: choose-profile-type-by-workload-shape
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/billing
+    - https://learn.microsoft.com/en-us/azure/container-apps/environment
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "You aren't billed usage charges if your container app scales to zero."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Replicas that aren't processing but remain in memory might be billed at a lower idle rate."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Azure Container Apps uses minimum and maximum replica limits per revision as part of scale definition."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to 1 or higher."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: You aren't billed usage charges if your container app scales to zero.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Replicas that aren't processing but remain in memory might be billed at a lower idle rate.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Azure Container Apps uses minimum and maximum replica limits per revision as part of scale definition.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to
+      1 or higher.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # Cost-Aware Best Practices
 
 Cost optimization in Azure Container Apps is an operational design activity, not a one-time tuning task. This guide explains how to reduce spend without sacrificing reliability by using the platform's scaling, profile, registry, and observability features intentionally.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -56,7 +60,11 @@ az extension add --name "containerapp" --upgrade
 az account show --output table
 ```
 
-## Main Content
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
+## Recommended Practices
 
 ### Understand the billing model before tuning
 
@@ -132,6 +140,10 @@ az containerapp env show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 Inspect an app's active profile and requested resources:
 
 ```bash
@@ -141,6 +153,10 @@ az containerapp show \
   --query "{workloadProfile:properties.workloadProfileName,cpu:properties.template.containers[0].resources.cpu,memory:properties.template.containers[0].resources.memory,minReplicas:properties.template.scale.minReplicas,maxReplicas:properties.template.scale.maxReplicas}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Practical decision pattern:
 
@@ -161,6 +177,10 @@ az containerapp update \
   --max-replicas 5
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 When min replicas are zero:
 
 - You avoid always-on runtime cost during idle periods.
@@ -176,6 +196,10 @@ az containerapp update \
   --min-replicas 1 \
   --max-replicas 10
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 !!! warning "Do not optimize cost by breaking SLO"
     If your API has hard latency objectives, forcing `--min-replicas 0` can make tail latency unacceptable. Optimize elsewhere first (resource sizing, image startup, scaling thresholds).
@@ -205,6 +229,10 @@ az containerapp show \
   --query "properties.template.scale.minReplicas" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### Right-size CPU and memory intentionally
 
@@ -275,6 +303,10 @@ az acr repository show-tags \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr repository show-tags ...` | Inspects or manages repositories and tags inside Azure Container Registry. |
+
 ### Reduce log ingestion cost without losing diagnostic value
 
 Log Analytics can become a dominant cost driver if you emit verbose logs at high request volume.
@@ -295,6 +327,10 @@ az containerapp env show \
   --query "properties.appLogsConfiguration" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 Example KQL to estimate noisy categories:
 
@@ -332,6 +368,10 @@ az containerapp list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp list ...` | Lists Container Apps in the selected resource group for inventory or verification. |
+
 ### Understand idle environment cost
 
 A common misconception is that "no running app" equals "zero platform cost".
@@ -351,6 +391,10 @@ az containerapp env show \
   --query "{name:name,location:location,provisioningState:properties.provisioningState,zoneRedundant:properties.zoneRedundant}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 ### Budget guardrails with Azure Cost Management
 
@@ -411,6 +455,10 @@ az containerapp show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ### Cost anti-patterns to avoid during optimization
 
 - Forcing scale-to-zero on user-facing critical APIs
@@ -426,6 +474,18 @@ az containerapp show \
 - Build automated policy checks for `minReplicas`, image tag format, and maximum resource requests before deployment.
 - Use KQL-based spend proxies (for example billed log volume and replica-hours approximations) as early warning signals between official billing cycles.
 
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Best Practices - Scaling](scaling.md)
@@ -433,3 +493,10 @@ az containerapp show \
 - [Best Practices - Identity and Secrets](identity-and-secrets.md)
 - [Platform - Reliability Cost Optimization](../platform/reliability/cost-optimization.md)
 - [Operations - Monitoring](../operations/monitoring/index.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/billing)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/environment)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/scale-app)

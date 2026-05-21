@@ -1,29 +1,29 @@
 ---
 content_sources:
   diagrams:
-    - id: logging-architecture-overview
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
-        - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
+  - id: logging-architecture-overview
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
+    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps exposes console logs and system logs for operations workflows."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
-    - claim: "Azure Monitor publishes table references for ContainerAppConsoleLogs and ContainerAppSystemLogs."
-      source: "https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs"
-      verified: true
-    - claim: "Microsoft Learn currently documents `_CL` query examples in the Container Apps log monitoring article and native table references in Azure Monitor table reference pages."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
+  - claim: Azure Container Apps exposes console logs and system logs for operations workflows.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
+  - claim: Azure Monitor publishes table references for ContainerAppConsoleLogs and ContainerAppSystemLogs.
+    source: https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
+    verified: true
+  - claim: Microsoft Learn currently documents `_CL` query examples in the Container Apps log monitoring article and native
+      table references in Azure Monitor table reference pages.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Logging Operations
 
 Azure Container Apps logging operations start with separating application console output from platform system events, then deciding where those streams should be retained, queried, and exported.
@@ -41,6 +41,10 @@ export ENVIRONMENT_NAME="aca-env-prod"
 
 az extension add --name containerapp --upgrade
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
 
 ## When to Use
 
@@ -95,6 +99,10 @@ az containerapp env show \
   --query "properties.appLogsConfiguration" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 Validate that the expected tables exist by running a short query against your workspace and testing both native and legacy names if needed.
 

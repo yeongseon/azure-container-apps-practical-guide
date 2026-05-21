@@ -1,36 +1,43 @@
 ---
 content_sources:
   documents:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/log-options
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/log-options
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
 diagrams:
-  - id: diagnostic-settings-missing-lab
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/log-options
-      - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+- id: diagnostic-settings-missing-lab
+  type: flowchart
+  source: mslearn-adapted
+  based_on:
+  - https://learn.microsoft.com/en-us/azure/container-apps/log-options
+  - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "Bad Request on invalid metric namespace, ReplicaCount valid"
-
+    az_cli_version: 2.70.0
+    notes: Bad Request on invalid metric namespace, ReplicaCount valid
   core_claims:
-    - claim: "Azure Container Apps supports Azure Monitor as a log destination, and diagnostic settings complete routing to downstream stores such as Log Analytics."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
-      verified: false
-    - claim: "Container app logs can be queried in Log Analytics after monitoring configuration is completed correctly."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      verified: false
+  - claim: Azure Container Apps supports Azure Monitor as a log destination, and diagnostic settings complete routing to downstream
+      stores such as Log Analytics.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
+    verified: false
+  - claim: Container app logs can be queried in Log Analytics after monitoring configuration is completed correctly.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Diagnostic Settings Missing Lab
 
 Show that Azure Monitor routing alone is not enough when diagnostic settings are absent, then verify that logs appear after the diagnostic setting is created.
@@ -52,9 +59,15 @@ Does diagnostic settings missing reproduce when the documented trigger condition
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -64,6 +77,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -71,6 +87,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -100,7 +119,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -119,7 +138,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
 **Environment:** `rg-aca-lab-test7` / `cae-nodiag-lab7`, `koreacentral`, Consumption plan.
-**App:** `ca-nodiag`, Log Analytics Workspace: `law-lab7` (`3a34bbaf-aab2-4312-8428-15ccb79af140`).
+**App:** `ca-nodiag`, Log Analytics Workspace: `law-lab7` (`<workspace-id>`).
 
 [Observed] BEFORE fix: `az containerapp env show --query "properties.appLogsConfiguration"` returned:
 ```json
@@ -130,7 +149,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 [Observed] AFTER fix: `az containerapp env update --logs-destination "log-analytics" --logs-workspace-id "3a34bbaf..." --logs-workspace-key "<KEY>"` applied. Config changed to:
 ```json
-{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "3a34bbaf-aab2-4312-8428-15ccb79af140"}}
+{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "<workspace-id>"}}
 ```
 
 [Observed] AFTER fix: `ContainerAppSystemLogs_CL` returned 5 rows for `ca-nodiag` including `RevisionReady: Successfully provisioned revision 'ca-nodiag--own2pel'` at `2026-05-01T06:18:19Z`.

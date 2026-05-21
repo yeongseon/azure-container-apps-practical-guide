@@ -1,24 +1,23 @@
 ---
 content_sources:
   diagrams:
-    - id: byo-certificate-rotation-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
+  - id: byo-certificate-rotation-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps documents uploading certificates to the managed environment."
-      source: "https://learn.microsoft.com/azure/container-apps/custom-domains-certificates"
-      verified: true
-    - claim: "A hostname can be bound to a specific uploaded certificate."
-      source: "https://learn.microsoft.com/azure/container-apps/custom-domains-certificates"
-      verified: true
+  - claim: Azure Container Apps documents uploading certificates to the managed environment.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
+    verified: true
+  - claim: A hostname can be bound to a specific uploaded certificate.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
+    verified: true
 ---
-
 # Bring Your Own Certificates
 
 Use your own certificate when managed certificates do not fit your hostname, CA, or organizational certificate process.
@@ -55,6 +54,10 @@ az containerapp env certificate upload \
   --certificate-password "$CERTIFICATE_PASSWORD"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env certificate ...` | Manages certificates bound to Container Apps environment or hostnames. |
+
 Bind the uploaded certificate to the hostname:
 
 ```bash
@@ -64,6 +67,10 @@ az containerapp hostname bind \
   --hostname "$HOSTNAME" \
   --certificate "api-contoso-com"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname bind ...` | Manages custom hostname bindings for ingress. |
 
 Rotation pattern:
 

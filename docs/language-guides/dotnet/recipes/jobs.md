@@ -1,16 +1,15 @@
 ---
 content_sources:
   diagrams:
-    - id: dotnet-jobs-recipe-flow
-      type: flowchart
-      source: self-generated
-      justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance and .NET SDK usage patterns.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme
-        - https://learn.microsoft.com/dotnet/api/overview/azure/messaging.servicebus-readme
+  - id: dotnet-jobs-recipe-flow
+    type: flowchart
+    source: self-generated
+    justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance and .NET SDK usage patterns.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme
+    - https://learn.microsoft.com/dotnet/api/overview/azure/messaging.servicebus-readme
 ---
-
 # Recipe: Jobs in .NET on Azure Container Apps
 
 Use this recipe to build a .NET console Job, adapt it to process one Service Bus message, and add a dedup-table pattern for safe replay.
@@ -114,6 +113,10 @@ az containerapp job create \
   --replica-retry-limit 1
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ### 2. Process one Service Bus message and exit
 
 Replace `Program.cs` with:
@@ -163,6 +166,10 @@ az containerapp job create \
   --scale-rule-metadata "queueName=$SERVICEBUS_QUEUE" "messageCount=1" "namespace=$SERVICEBUS_NAMESPACE.servicebus.windows.net" \
   --env-vars SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
 
 ### 3. Add a dedup table
 
@@ -215,6 +222,10 @@ az containerapp job execution list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 ## Next Steps / Clean Up
 

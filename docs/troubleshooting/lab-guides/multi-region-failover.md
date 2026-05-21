@@ -1,33 +1,41 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-diagrams:
+  diagrams:
   - id: multi-region-failover-lab-diagram
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-      - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+    - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "primary ingress disabled → HTTP 404; secondary HTTP 200 (failover); primary restored → HTTP 200"
-
+    az_cli_version: 2.70.0
+    notes: primary ingress disabled → HTTP 404; secondary HTTP 200 (failover); primary restored → HTTP 200
   core_claims:
-    - claim: "Container Apps reliability guidance recommends planning for regional resilience when business requirements demand it."
-      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-      verified: false
-    - claim: "Azure Front Door origin groups use health probes to make traffic steering decisions."
-      source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
-      verified: false
+  - claim: Container Apps reliability guidance recommends planning for regional resilience when business requirements demand
+      it.
+    source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+    verified: false
+  - claim: Azure Front Door origin groups use health probes to make traffic steering decisions.
+    source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Multi-Region Failover Lab
 
 Validate a two-region Container Apps failover design by breaking the primary path, observing Front Door steering, and then confirming controlled recovery.
@@ -61,9 +69,15 @@ Does multi region failover reproduce when the documented trigger condition is pr
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -73,6 +87,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -80,6 +97,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -109,7 +129,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ```text
 # Baseline: both regions healthy
-Primary   (koreacentral): ca-primary-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io → HTTP 200
+Primary   (koreacentral): <container-app-fqdn> → HTTP 200
 Secondary (eastus):       ca-secondary-lab5.redmushroom-a594e807.eastus.azurecontainerapps.io      → HTTP 200
 
 # Simulate primary failure: disable ingress
@@ -127,6 +147,10 @@ az containerapp ingress enable --name ca-primary-lab5 --resource-group rg-aca-la
 Primary HTTP (restored): 200
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress disable ...` | Disables inbound access for workloads that should not expose an endpoint. |
+
 - `[Observed]` Both koreacentral and eastus serving HTTP **200** at baseline.
 - `[Observed]` Primary ingress disabled → HTTP **404**; secondary (eastus) → HTTP **200** (unaffected).
 - `[Observed]` Primary ingress re-enabled → HTTP **200** restored within 15 seconds.
@@ -137,7 +161,7 @@ Environment: `koreacentral` (primary) + `eastus` (secondary), rg-aca-lab-test5 /
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 

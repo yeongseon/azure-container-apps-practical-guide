@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: integration-dependency-map
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
+  - id: integration-dependency-map
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
 ---
-
 # Recipes: Integration Patterns for Azure Container Apps (Node.js)
 
 Use these practical recipes to implement common production patterns for Node.js apps running on Azure Container Apps.
@@ -108,6 +107,10 @@ az containerapp show \
   --query "{name:name,provisioningState:properties.provisioningState,runningStatus:properties.runningStatus}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ## See Also
 

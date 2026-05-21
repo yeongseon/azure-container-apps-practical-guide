@@ -1,29 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: aca-client-cert-ingress-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
+  - id: aca-client-cert-ingress-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Ingress passes the client certificate to the container app if clientCertificateMode is set to require or accept."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization"
-      verified: true
-    - claim: "Azure Container Apps uses the X-Forwarded-Client-Cert header to forward client certificate information to the application."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview"
-      verified: true
-    - claim: "The ARM template schema for container app ingress includes clientCertificateMode values accept, ignore, and require."
-      source: "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps"
-      verified: true
+  - claim: Ingress passes the client certificate to the container app if clientCertificateMode is set to require or accept.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    verified: true
+  - claim: Azure Container Apps uses the X-Forwarded-Client-Cert header to forward client certificate information to the application.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    verified: true
+  - claim: The ARM template schema for container app ingress includes clientCertificateMode values accept, ignore, and require.
+    source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
+    verified: true
 ---
-
 # Ingress Client Certificates
 
 Use ingress client certificate authentication when Azure Container Apps should require or accept a caller certificate at the edge and forward certificate details to your application for authorization decisions.
@@ -74,6 +73,10 @@ az containerapp ingress enable \
   --target-port 8000
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
+
 ### 2. Require client certificates
 
 Microsoft Learn currently documents client certificate mode through the container app template or an ARM-style PATCH. Use `require` for strict enforcement.
@@ -98,6 +101,10 @@ az rest \
     }
   }'
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### 3. Use ARM or Bicep for repeatable configuration
 
@@ -163,6 +170,10 @@ az containerapp ingress cors enable \
   --allow-credentials true
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress cors ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Verification
 
 ### Check ingress configuration
@@ -174,6 +185,10 @@ az containerapp show \
   --query "properties.configuration.ingress.clientCertificateMode" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output:
 
@@ -224,6 +239,10 @@ az rest \
     }
   }'
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az rest ...` | Calls an Azure Resource Manager endpoint that is not covered by a higher-level CLI command. |
 
 Troubleshooting checklist:
 

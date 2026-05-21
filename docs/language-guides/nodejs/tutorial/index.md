@@ -1,15 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: tutorial-progression
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-        - https://learn.microsoft.com/azure/container-apps/containers#configuration
-        - https://learn.microsoft.com/azure/container-apps/revisions
+  - id: tutorial-progression
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - https://learn.microsoft.com/azure/container-apps/containers#configuration
+    - https://learn.microsoft.com/azure/container-apps/revisions
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Node.js Tutorial Index
 
 This tutorial path walks you from local development to safe traffic shifting for Node.js apps on Azure Container Apps.
@@ -52,3 +59,14 @@ flowchart TD
 - [Node.js guide overview](../index.md)
 - [Node.js runtime reference](../nodejs-runtime.md)
 - [Node.js recipes index](../recipes/index.md)
+
+## See Also
+
+- [Tutorial index](index.md)
+- [Language guides](../../index.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
+- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/containers#configuration)
+- [Microsoft Learn source 3](https://learn.microsoft.com/azure/container-apps/revisions)

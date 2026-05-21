@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: use-easy-auth-to-handle-identity
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/container-apps/authentication-identity-providers
+  - id: use-easy-auth-to-handle-identity
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/container-apps/authentication
 ---
-
 # Recipe: Easy Auth in .NET Apps on Azure Container Apps
 
 Use Easy Auth to handle identity at the edge, then map claims inside ASP.NET Core middleware.
@@ -39,6 +38,10 @@ az containerapp auth update \
   --platform runtimeVersion "~1" \
   --global-validation unauthenticatedClientAction RedirectToLoginPage
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## ASP.NET Core middleware for claims mapping
 
@@ -96,4 +99,4 @@ app.Run();
 ## Sources
 
 - [Authentication in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/azure/container-apps/authentication-identity-providers)
+- [Container Apps identity providers](https://learn.microsoft.com/azure/container-apps/authentication)

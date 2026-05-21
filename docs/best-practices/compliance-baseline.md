@@ -1,35 +1,35 @@
 ---
 content_sources:
   diagrams:
-    - id: production-security-baseline-control-stack
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/security/benchmark/azure/baselines/azure-container-apps-security-baseline
-        - https://learn.microsoft.com/azure/container-apps/security
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
+  - id: production-security-baseline-control-stack
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/security/benchmark/azure/baselines/azure-container-apps-security-baseline
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Microsoft publishes an Azure security baseline for Azure Container Apps that maps benchmark controls to the service."
-      source: "https://learn.microsoft.com/security/benchmark/azure/baselines/azure-container-apps-security-baseline"
-      verified: true
-    - claim: "Azure Container Apps supports managed identity, Key Vault-backed secrets, and revision-based configuration updates."
-      source: "https://learn.microsoft.com/azure/container-apps/manage-secrets"
-      verified: true
-    - claim: "Container Apps networking documentation supports internal environments, custom VNets, private endpoints, and supported egress control patterns."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "Container Apps policy reference documents built-in Azure Policy coverage for the service."
-      source: "https://learn.microsoft.com/azure/container-apps/policy-reference"
-      verified: true
+  - claim: Microsoft publishes an Azure security baseline for Azure Container Apps that maps benchmark controls to the service.
+    source: https://learn.microsoft.com/security/benchmark/azure/baselines/azure-container-apps-security-baseline
+    verified: true
+  - claim: Azure Container Apps supports managed identity, Key Vault-backed secrets, and revision-based configuration updates.
+    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
+    verified: true
+  - claim: Container Apps networking documentation supports internal environments, custom VNets, private endpoints, and supported
+      egress control patterns.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: Container Apps policy reference documents built-in Azure Policy coverage for the service.
+    source: https://learn.microsoft.com/azure/container-apps/policy-reference
+    verified: true
 ---
-
 # Azure Container Apps Compliance Baseline
 
 This baseline turns Microsoft Learn security guidance into a practical production checklist for Azure Container Apps. Use it to validate a workload before promotion, while keeping a clear distinction between verified service features and governance controls that must be enforced outside the app resource.
@@ -87,6 +87,10 @@ az role assignment list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity show ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 #### Network
 
 Mapped benchmark themes: **NS-1**, **NS-2**
@@ -111,6 +115,10 @@ az containerapp show \
   --query "properties.configuration.ingress.external" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 #### Data and secrets
 
@@ -138,6 +146,10 @@ az containerapp show \
   --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 #### Image
 
 Mapped benchmark themes: **PV-3**
@@ -162,6 +174,10 @@ az containerapp show \
   --query "properties.template.containers[].image" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp registry show ...` | Runs the Azure CLI operation required by the documented step. |
 
 #### Logging and audit
 

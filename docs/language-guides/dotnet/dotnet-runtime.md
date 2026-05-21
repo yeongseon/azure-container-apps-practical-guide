@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-    - id: runtime-execution-model
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/dotnet-overview
-        - https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints
-        - https://learn.microsoft.com/dotnet/core/tools/sdk-errors/gc-heap-hard-limit
+  - id: runtime-execution-model
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/dotnet-overview
+    - https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints
+    - https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector
 ---
-
 # .NET Runtime Reference
 
 This reference summarizes practical runtime defaults for .NET workloads on Azure Container Apps so you can keep startup behavior, probe health, and logging predictable across revisions.
@@ -130,4 +129,4 @@ ps aux
 ## Sources
 - [ASP.NET Core on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dotnet-overview)
 - [Configure Kestrel (Microsoft Learn)](https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints)
-- [.NET Garbage Collection in Containers (Microsoft Learn)](https://learn.microsoft.com/dotnet/core/tools/sdk-errors/gc-heap-hard-limit)
+- [.NET Garbage Collection in Containers (Microsoft Learn)](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector)

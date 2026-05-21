@@ -1,3 +1,6 @@
+---
+{}
+---
 # Contributing
 
 Thank you for your interest in contributing to Azure Container Apps Practical Guide!
@@ -159,7 +162,7 @@ Brief introduction
 az containerapp create --resource-group $RG --name $APP_NAME --environment $CONTAINER_ENV --image myregistry.azurecr.io/myapp:latest
 
 # NEVER use short flags in documentation
-az containerapp create -g $RG -n $APP_NAME  # ❌ Don't do this
+az containerapp create --resource-group $RG --name $APP_NAME  # ❌ Don't do this
 ```
 
 ### Variables

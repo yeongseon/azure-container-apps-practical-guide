@@ -1,36 +1,43 @@
 ---
 content_sources:
   documents:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
 diagrams:
-  - id: appinsights-connection-string-missing-lab
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-      - https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+- id: appinsights-connection-string-missing-lab
+  type: flowchart
+  source: mslearn-adapted
+  based_on:
+  - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+  - https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "env var absent=no telemetry; APPLICATIONINSIGHTS_CONNECTION_STRING added=confirmed present"
-
+    az_cli_version: 2.70.0
+    notes: env var absent=no telemetry; APPLICATIONINSIGHTS_CONNECTION_STRING added=confirmed present
   core_claims:
-    - claim: "Application Insights uses connection strings to associate telemetry with the correct monitoring resource."
-      source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
-      verified: false
-    - claim: "Azure Container Apps supports sending OpenTelemetry data to Application Insights when the telemetry destination is configured."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-      verified: false
+  - claim: Application Insights uses connection strings to associate telemetry with the correct monitoring resource.
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+    verified: false
+  - claim: Azure Container Apps supports sending OpenTelemetry data to Application Insights when the telemetry destination
+      is configured.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Application Insights Connection String Missing Lab
 
 Demonstrate that successful requests can still produce no Application Insights data when the expected connection string path is absent or incomplete.
@@ -52,9 +59,15 @@ Does appinsights connection string missing reproduce when the documented trigger
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -64,6 +77,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -71,6 +87,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -115,13 +134,17 @@ az containerapp show --name ca-ai-lab --resource-group rg-aca-lab-test4 \
 → "APPLICATIONINSIGHTS_CONNECTION_STRING"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 - `[Observed]` Before fix: `env` field is `[]` — no telemetry variable configured.
 - `[Observed]` After `az containerapp update --env-vars`: `APPLICATIONINSIGHTS_CONNECTION_STRING` present and non-empty.
 - `[Inferred]` Without the connection string, the App Insights SDK cannot ingest telemetry; traces are absent in the portal.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 

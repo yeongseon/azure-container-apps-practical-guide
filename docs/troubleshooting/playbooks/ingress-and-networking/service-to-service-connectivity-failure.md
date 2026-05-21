@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/ingress-overview
-      - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports both external and internal ingress modes."
-      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
-      verified: true
-    - claim: "Azure Container Apps environments support networking features that depend on the environment type and network configuration."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
+  - claim: Azure Container Apps supports both external and internal ingress modes.
+    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
+    verified: true
+  - claim: Azure Container Apps environments support networking features that depend on the environment type and network configuration.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
 ---
-
 # Service-to-Service Connectivity Failure
 
 ## 1. Summary
@@ -139,6 +138,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
+
 **Disproof logic:** If the target hostname resolves and the HTTPS check succeeds from the same caller context, the endpoint definition is not the primary issue.
 
 ### H2: Egress network policy blocks traffic
@@ -162,6 +165,10 @@ az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --que
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -229,5 +236,5 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 ## Sources
 
 - [Ingress overview in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
-- [Container Apps environment custom DNS](https://learn.microsoft.com/azure/container-apps/environment-custom-dns)
+- [Container Apps environment custom DNS](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)

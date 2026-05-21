@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/health-probes
-      - https://learn.microsoft.com/azure/container-apps/ingress-overview
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports startup, readiness, and liveness probes."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "Ingress must be enabled on a container app before it can accept HTTP or TCP traffic."
-      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
-      verified: true
+  - claim: Azure Container Apps supports startup, readiness, and liveness probes.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: Ingress must be enabled on a container app before it can accept HTTP or TCP traffic.
+    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
+    verified: true
 ---
-
 # Container Start Failure
 
 ## 1. Summary
@@ -143,6 +142,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].args" --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+
 ```kusto
 let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
@@ -176,6 +179,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import os; print(os.environ.get(\"CONTAINER_APP_PORT\", \"8000\"))'"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 **Disproof logic:**
 

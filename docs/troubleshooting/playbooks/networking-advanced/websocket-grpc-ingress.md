@@ -1,26 +1,26 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+  diagrams:
+  - id: websocket-grpc-ingress-flow
+    type: flowchart
+    source: self-generated
+    justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps supports ingress transport values auto, http, http2, and tcp."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-      verified: false
-    - claim: "Built-in HTTP features such as session affinity are supported on the main HTTP ingress port, not on extra TCP ports used as additional port mappings."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-      verified: false
-diagrams:
-  - id: websocket-grpc-ingress-flow
-    type: flowchart
-    source: self-generated
-    justification: "Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation"
-
+  - claim: Azure Container Apps supports ingress transport values auto, http, http2, and tcp.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    verified: false
+  - claim: Built-in HTTP features such as session affinity are supported on the main HTTP ingress port, not on extra TCP ports
+      used as additional port mappings.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    verified: false
 ---
-
 # WebSocket and gRPC Ingress
 
 <!-- diagram-id: websocket-grpc-ingress-flow -->

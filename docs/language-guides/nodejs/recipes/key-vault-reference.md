@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: use-key-vault-references-and-managed
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/javascript/api/overview/azure/keyvault-secrets-readme
+  - id: use-key-vault-references-and-managed
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/javascript/api/overview/azure/keyvault-secrets-readme
 ---
-
 # Recipe: Key Vault Reference in Node.js Apps on Azure Container Apps
 
 Use Key Vault references and managed identity so Express workloads can consume secrets without embedding values in code or deployment files.
@@ -33,6 +32,10 @@ flowchart TD
 ```bash
 az extension add --name containerapp --upgrade
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
 
 ## Configure identity and Key Vault reference
 
@@ -64,6 +67,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars "API_KEY=secretref:api-key"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## Express route using Key Vault SDK
 

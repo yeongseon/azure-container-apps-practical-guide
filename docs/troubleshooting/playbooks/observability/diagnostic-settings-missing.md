@@ -1,30 +1,31 @@
 ---
 content_sources:
   documents:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/log-options
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-diagrams:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/log-options
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+  diagrams:
   - id: diagnostic-settings-missing-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/log-options
-      - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-options
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "When Azure Container Apps uses Azure Monitor as the log destination, diagnostic settings complete the routing to downstream destinations such as Log Analytics."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
-      verified: false
-    - claim: "Azure Container Apps logs can be queried in Log Analytics after the destination and monitoring configuration are set correctly."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      verified: false
+  - claim: When Azure Container Apps uses Azure Monitor as the log destination, diagnostic settings complete the routing to
+      downstream destinations such as Log Analytics.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
+    verified: false
+  - claim: Azure Container Apps logs can be queried in Log Analytics after the destination and monitoring configuration are
+      set correctly.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    verified: false
 ---
-
 # Diagnostic Settings Missing
 
 Use this playbook when the environment is configured for Azure Monitor log routing, but no container app logs arrive in the target Log Analytics workspace.
@@ -69,6 +70,10 @@ flowchart TD
        --output tsv
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 2. Capture the environment and workspace resource IDs you will use for diagnostic-setting checks.
 
    ```bash
@@ -78,6 +83,10 @@ flowchart TD
        --query "id" \
        --output tsv
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 3. List diagnostic settings on the environment resource.
 

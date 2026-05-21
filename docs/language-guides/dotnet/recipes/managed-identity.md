@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: use-defaultazurecredential-and-asp-net-core-dependency
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme
+  - id: use-defaultazurecredential-and-asp-net-core-dependency
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme
 ---
-
 # Recipe: Managed Identity in .NET Apps on Azure Container Apps
 
 Use `DefaultAzureCredential` and ASP.NET Core dependency injection to access Azure resources without connection secrets.
@@ -49,6 +48,10 @@ az role assignment create \
   --role "Storage Blob Data Reader" \
   --scope "$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RG" --query id --output tsv)"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## ASP.NET Core 8 DI pattern
 

@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: use-managed-identity-with-spring-boot
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/java/api/overview/azure/identity-readme
+  - id: use-managed-identity-with-spring-boot
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/java/api/overview/azure/identity-readme
 ---
-
 # Recipe: Managed Identity in Java Apps on Azure Container Apps
 
 Use managed identity with Spring Boot so Java applications can access Azure services without client secrets.
@@ -33,6 +32,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Enable managed identity and role assignment
 
 ```bash
@@ -53,6 +56,10 @@ az role assignment create \
   --role "Storage Blob Data Reader" \
   --scope "$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RG" --query id --output tsv)"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## Spring Boot configuration
 

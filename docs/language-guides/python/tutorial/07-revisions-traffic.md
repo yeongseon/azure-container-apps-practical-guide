@@ -1,20 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    - id: revision-traffic-splitting
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+  - id: revision-traffic-splitting
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 07 - Revisions and Traffic Splitting
 
 Azure Container Apps revisions provide immutable deployment snapshots. Use them for safe releases, canary traffic, and quick rollback.
@@ -124,6 +131,10 @@ graph TD
      --mode multiple
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+
    ???+ example "Expected output"
        ```
        "Multiple"
@@ -139,6 +150,10 @@ graph TD
      --resource-group "$RG" \
      --image "$ACR_LOGIN_SERVER/$BASE_NAME:v3"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
 
    ???+ example "Expected output"
        `az acr build` takes 1-2 minutes. The `az containerapp update` returns:
@@ -159,6 +174,10 @@ graph TD
      --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}" \
      --output table
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
    ???+ example "Expected output"
         ```text
@@ -193,6 +212,10 @@ graph TD
      --revision-weight "<stable-revision>=90" "<canary-revision>=10"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
    ???+ example "Expected output"
         ```json
         [
@@ -214,6 +237,10 @@ graph TD
      --name "$APP_NAME" \
      --resource-group "$RG"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress show ...` | Reads ingress configuration such as exposure, target port, transport, and affinity. |
 
    ???+ example "Expected output"
         ```json
@@ -245,6 +272,10 @@ graph TD
      --revision-weight "<stable-revision>=100"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
    ???+ example "Expected output"
        ```json
        [
@@ -263,6 +294,10 @@ graph TD
      --resource-group "$RG" \
      --revision "<canary-revision>"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision deactivate ...` | Runs the Azure CLI operation required by the documented step. |
 
    ???+ example "Expected output"
        ```

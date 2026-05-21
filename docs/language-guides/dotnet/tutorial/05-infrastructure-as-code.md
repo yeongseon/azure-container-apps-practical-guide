@@ -1,20 +1,27 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
-        - https://learn.microsoft.com/azure/container-apps/bicep-infrastructure
-    - id: infrastructure-lifecycle
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
-        - https://learn.microsoft.com/azure/container-apps/bicep-infrastructure
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
+  - id: infrastructure-lifecycle
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # 05 - Infrastructure as Code with Bicep
 
 Use Bicep to define your .NET application infrastructure consistently across environments. This step focuses on repeatable provisioning and safe updates of Azure Container Apps resources.
@@ -107,6 +114,10 @@ graph TD
       --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az deployment group validate ...` | Runs the Azure CLI operation required by the documented step. |
+
    ???+ example "Expected output"
        ```json
        {
@@ -123,6 +134,10 @@ graph TD
       --template-file infra/main.bicep \
       --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az deployment group what-if ...` | Previews resource changes before deployment. |
 
    ???+ example "Expected output"
        ```text
@@ -146,6 +161,10 @@ graph TD
       --template-file infra/main.bicep \
       --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
 
    ???+ example "Expected output"
        ```json
@@ -173,6 +192,10 @@ graph TD
       --name "$DEPLOYMENT_NAME" \
       --query properties.outputs
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az deployment group show ...` | Reads deployment output and provisioning state for verification. |
 
    ???+ example "Expected output"
        ```json
@@ -279,6 +302,10 @@ az group create --name $RG --location $LOCATION
 az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
+
 ???+ example "Expected output"
     ```text
     {
@@ -303,6 +330,10 @@ LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $R
 az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr create --resource-group ...` | Creates Azure Container Registry for container image storage. |
+
 ???+ example "Expected output"
     ```text
     {
@@ -323,9 +354,13 @@ az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --locat
 az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --env-vars ASPNETCORE_ENVIRONMENT=Production --query "properties.configuration.ingress.fqdn"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create --resource-group ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 ???+ example "Expected output"
     ```text
-    "ca-dotnet-demo.mistyfield-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    "<container-app-fqdn>"
     ```
 
 ### Step 5: Validate configuration
@@ -333,6 +368,10 @@ az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVI
 ```bash
 az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:properties.configuration.ingress.fqdn,targetPort:properties.configuration.ingress.targetPort,environmentVariables:properties.template.containers[0].env}"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --resource-group ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ???+ example "Expected output"
     ```json
@@ -343,7 +382,7 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:proper
           "value": "Production"
         }
       ],
-      "fqdn": "ca-dotnet-demo.mistyfield-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "fqdn": "<container-app-fqdn>",
       "targetPort": 8000
     }
     ```
@@ -355,4 +394,4 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:proper
 
 ## Sources
 - [Bicep resource definition: Microsoft.App/containerApps (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/containerapps)
-- [Bicep and Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/bicep-infrastructure)
+- [Bicep and Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec)

@@ -1,28 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: resilient-job-design-loop
-      type: flowchart
-      source: self-generated
-      justification: Synthesized best-practice flow based on Microsoft Learn Jobs, logging, OpenTelemetry, and workload profile guidance.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+  - id: resilient-job-design-loop
+    type: flowchart
+    source: self-generated
+    justification: Synthesized best-practice flow based on Microsoft Learn Jobs, logging, OpenTelemetry, and workload profile
+      guidance.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+    - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Jobs are intended for finite background execution."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Container Apps supports log monitoring and OpenTelemetry-based observability patterns."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
+  - claim: Jobs are intended for finite background execution.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Container Apps supports log monitoring and OpenTelemetry-based observability patterns.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Job Design
 
 Good Job design is mostly about safe replay, clear telemetry, and predictable failure boundaries. A fast job that cannot be retried safely is still a production risk.

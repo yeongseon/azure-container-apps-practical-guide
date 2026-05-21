@@ -1,30 +1,29 @@
 ---
 content_sources:
   documents:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
-diagrams:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
+  diagrams:
   - id: log-analytics-ingestion-gap-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps can send console and system logs to Log Analytics for query-based troubleshooting."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      verified: false
-    - claim: "Container app console logs are stored in the ContainerAppConsoleLogs table in Azure Monitor Logs."
-      source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
-      verified: false
+  - claim: Azure Container Apps can send console and system logs to Log Analytics for query-based troubleshooting.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    verified: false
+  - claim: Container app console logs are stored in the ContainerAppConsoleLogs table in Azure Monitor Logs.
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
+    verified: false
 ---
-
 # Log Analytics Ingestion Gap
 
 Use this playbook when Azure Container Apps is healthy enough to emit logs, but the expected entries are delayed or absent in Log Analytics queries.
@@ -67,6 +66,10 @@ flowchart TD
        --tail 30
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 2. Verify that the environment is configured to send logs to Log Analytics.
 
    ```bash
@@ -77,6 +80,10 @@ flowchart TD
        --output tsv
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 3. Confirm that you are querying the intended workspace.
 
    ```bash
@@ -86,6 +93,10 @@ flowchart TD
        --query "{customerId:customerId,id:id}" \
        --output json
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 4. Identify your workspace schema type, then query the correct table names.
 

@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: enable-easy-auth-in-azure-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/container-apps/authentication-identity-providers
+  - id: enable-easy-auth-in-azure-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/container-apps/authentication
 ---
-
 # Recipe: Easy Auth in Java Apps on Azure Container Apps
 
 Enable Easy Auth in Azure Container Apps and parse authenticated principal claims in a Spring Boot filter.
@@ -39,6 +38,10 @@ az containerapp auth update \
   --platform runtimeVersion "~1" \
   --global-validation unauthenticatedClientAction RedirectToLoginPage
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Spring Boot filter for principal headers
 
@@ -91,4 +94,4 @@ public class ClientPrincipalFilter extends OncePerRequestFilter {
 ## Sources
 
 - [Authentication in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/azure/container-apps/authentication-identity-providers)
+- [Container Apps identity providers](https://learn.microsoft.com/azure/container-apps/authentication)

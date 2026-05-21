@@ -1,14 +1,13 @@
 ---
 content_sources:
   diagrams:
-    - id: secret-rotation-lifecycle
-      type: sequence
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
+  - id: secret-rotation-lifecycle
+    type: sequence
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
 ---
-
 # Secret Rotation
 
 Secret rotation in Container Apps should be planned as an operational routine, not an emergency-only action. This guide outlines secure rotation patterns with minimal downtime.
@@ -65,12 +64,20 @@ az containerapp secret set \
   --secrets "db-conn=<new-connection-string>"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 ```bash
 az containerapp update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --set-env-vars "DB_CONNECTION=secretref:db-conn"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Then shift traffic gradually to the new healthy revision.
 

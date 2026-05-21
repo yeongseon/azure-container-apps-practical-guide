@@ -1,28 +1,28 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-diagrams:
+  diagrams:
   - id: docker-hub-rate-limit-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps can pull images from public and private container registries."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      verified: false
-    - claim: "Registry authentication configuration is part of troubleshooting container start failures in Azure Container Apps."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      verified: false
+  - claim: Azure Container Apps can pull images from public and private container registries.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    verified: false
+  - claim: Registry authentication configuration is part of troubleshooting container start failures in Azure Container Apps.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    verified: false
 ---
-
 # Docker Hub Rate Limit
 
 Use this playbook when new revisions fail to start or scale-out events fail intermittently because Docker Hub anonymous pull limits are exhausted.
@@ -116,6 +116,10 @@ flowchart TD
         --username "<docker-hub-username>" \
         --password "<docker-hub-access-token>"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp registry set ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Prevention
 
