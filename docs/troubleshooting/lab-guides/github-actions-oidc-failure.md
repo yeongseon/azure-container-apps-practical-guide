@@ -3,13 +3,20 @@ content_sources:
   references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-diagrams:
-- id: github-actions-oidc-failure-lab
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-  - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
+  diagrams:
+  - id: github-actions-oidc-failure-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+  - id: github-actions-oidc-failure-lab
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+    - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -23,7 +30,8 @@ content_validation:
   - claim: GitHub Actions OIDC to Azure depends on a matching federated identity credential.
     source: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
     verified: false
-  - claim: Workload identity federation compares incoming token claims with the configured federated identity credential.
+  - claim: Workload identity federation compares incoming token claims with the configured
+      federated identity credential.
     source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
     verified: false
 validation:
@@ -165,6 +173,22 @@ az ad app federated-credential list \
 ## Related Playbook
 
 - [GitHub Actions OIDC Failure](../playbooks/deployment-and-cicd/github-actions-oidc-failure.md)
+
+## Page Flow
+
+<!-- diagram-id: github-actions-oidc-failure-page-flow -->
+```mermaid
+flowchart TD
+    A["GitHub Actions OIDC Failure Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

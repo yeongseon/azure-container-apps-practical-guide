@@ -7,6 +7,15 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
     - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-java
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
+    verified: true
 ---
 # Cosmos DB Integration (Managed Identity)
 

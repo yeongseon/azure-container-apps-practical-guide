@@ -89,6 +89,14 @@ flowchart TD
 - If failover does not occur, inspect the health probe path and routing policy.
 - If DNS was changed manually, wait for TTL before declaring the cutover failed.
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Multi-Region Deployment. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [Disaster Recovery](index.md)

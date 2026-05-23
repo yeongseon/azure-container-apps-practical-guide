@@ -5,13 +5,20 @@ content_sources:
     url: https://learn.microsoft.com/en-us/azure/container-apps/log-options
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-diagrams:
-- id: diagnostic-settings-missing-lab
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/log-options
-  - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+  diagrams:
+  - id: diagnostic-settings-missing-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-options
+  - id: diagnostic-settings-missing-lab
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-options
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -22,11 +29,12 @@ content_validation:
     az_cli_version: 2.70.0
     notes: Bad Request on invalid metric namespace, ReplicaCount valid
   core_claims:
-  - claim: Azure Container Apps supports Azure Monitor as a log destination, and diagnostic settings complete routing to downstream
-      stores such as Log Analytics.
+  - claim: Azure Container Apps supports Azure Monitor as a log destination, and diagnostic
+      settings complete routing to downstream stores such as Log Analytics.
     source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
     verified: false
-  - claim: Container app logs can be queried in Log Analytics after monitoring configuration is completed correctly.
+  - claim: Container app logs can be queried in Log Analytics after monitoring configuration
+      is completed correctly.
     source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
     verified: false
 validation:
@@ -165,6 +173,22 @@ If the diagnostic setting was created to repair production observability, keep i
 ## Related Playbook
 
 - [Diagnostic Settings Missing](../playbooks/observability/diagnostic-settings-missing.md)
+
+## Page Flow
+
+<!-- diagram-id: diagnostic-settings-missing-page-flow -->
+```mermaid
+flowchart TD
+    A["Diagnostic Settings Missing Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

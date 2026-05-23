@@ -3,13 +3,20 @@ content_sources:
   references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-diagrams:
-- id: revision-history-limit-lab
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-  - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
+  diagrams:
+  - id: revision-history-limit-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+  - id: revision-history-limit-lab
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,10 +27,12 @@ content_validation:
     az_cli_version: 2.70.0
     notes: 11 revisions created, platform manages lifecycle
   core_claims:
-  - claim: Inactive revisions are retained up to the configured limit rather than forever.
+  - claim: Inactive revisions are retained up to the configured limit rather than
+      forever.
     source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
     verified: false
-  - claim: Older inactive revisions are purged when the inactive revision retention limit is exceeded.
+  - claim: Older inactive revisions are purged when the inactive revision retention
+      limit is exceeded.
     source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
     verified: false
 validation:
@@ -165,6 +174,22 @@ az group delete \
 ## Related Playbook
 
 - [Revision History Limit](../playbooks/deployment-and-cicd/revision-history-limit.md)
+
+## Page Flow
+
+<!-- diagram-id: revision-history-limit-page-flow -->
+```mermaid
+flowchart TD
+    A["Revision History Limit Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

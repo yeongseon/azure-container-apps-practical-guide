@@ -19,6 +19,15 @@ validation:
   bicep:
     last_tested: null
     result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/containers#configuration
+    verified: true
 ---
 # 01 - Run Locally with Docker
 
@@ -187,6 +196,14 @@ graph TD
 - **Actuator Health**: Configure `management.endpoint.health.show-details=always` for more detailed local health diagnostics.
 - **Remote Debugging**: Attach your IDE to the local container using JVM debug flags (`-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005`).
 - **Memory Limits**: Test how the JVM responds to container memory limits by adding `--memory="512m"` to `docker run`.
+
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to 01 - Run Locally with Docker. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
 
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)

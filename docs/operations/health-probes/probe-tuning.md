@@ -77,6 +77,14 @@ flowchart TD
 - If readiness depends on unavailable downstream services, separate dependency checks from basic process readiness.
 - If failures persist, inspect image startup, secret loading, and dependency latency before widening thresholds further.
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Probe Tuning. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [Health Probes](index.md)

@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-diagrams:
-- id: private-endpoint-dns-failure-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-  - https://learn.microsoft.com/en-us/azure/container-apps/networking
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+  diagrams:
+  - id: private-endpoint-dns-failure-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+  - id: private-endpoint-dns-failure-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -17,12 +25,14 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: DNS zone without VNet link (empty link list); VNet link created → LinkState=Completed
+    notes: "DNS zone without VNet link (empty link list); VNet link created \u2192\
+      \ LinkState=Completed"
   core_claims:
   - claim: Private endpoint scenarios require service-specific private DNS zone mapping.
     source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
     verified: false
-  - claim: Container Apps in a custom VNet can access private endpoints in that virtual network.
+  - claim: Container Apps in a custom VNet can access private endpoints in that virtual
+      network.
     source: https://learn.microsoft.com/en-us/azure/container-apps/networking
     verified: false
 validation:
@@ -175,6 +185,22 @@ az group delete \
 ## Related Playbook
 
 - [Private Endpoint DNS Failure](../playbooks/networking-advanced/private-endpoint-dns-failure.md)
+
+## Page Flow
+
+<!-- diagram-id: private-endpoint-dns-failure-page-flow -->
+```mermaid
+flowchart TD
+    A["Private Endpoint DNS Failure Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

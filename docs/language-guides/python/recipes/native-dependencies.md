@@ -7,6 +7,15 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/en-us/azure/container-apps/containers
     - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+    verified: true
 ---
 # Recipe: Python Native Dependencies on Azure Container Apps
 
@@ -137,7 +146,7 @@ docker run --rm "$ACR_NAME.azurecr.io/$APP_NAME:native-test" \
 - [Custom Container](custom-container.md)
 - [Container Registry](container-registry.md)
 - [Revisions](../../../platform/revisions/index.md)
-- [Microsoft Learn: Build images for Container Apps](https://learn.microsoft.com/azure/container-apps/tutorial-build-deploy-image)
+- [Microsoft Learn: Build images for Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/get-started)
 
 ## Sources
 

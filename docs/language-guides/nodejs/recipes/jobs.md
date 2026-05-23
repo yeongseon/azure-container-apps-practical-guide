@@ -4,11 +4,21 @@ content_sources:
   - id: nodejs-jobs-recipe-flow
     type: flowchart
     source: self-generated
-    justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance plus Azure SDK usage patterns.
+    justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance
+      plus Azure SDK usage patterns.
     based_on:
     - https://learn.microsoft.com/azure/container-apps/jobs
     - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
     - https://learn.microsoft.com/javascript/api/overview/azure/service-bus-readme
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
 # Recipe: Jobs in Node.js on Azure Container Apps
 

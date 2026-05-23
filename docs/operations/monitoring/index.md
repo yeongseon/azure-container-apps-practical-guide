@@ -13,6 +13,15 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/azure/container-apps/log-monitoring
     - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
 # Observability Operations
 
@@ -275,6 +284,6 @@ sequenceDiagram
 
 ## Sources
 - [Azure Monitor for Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
-- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappconsolelogs)
+- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappsystemlogs)
 - [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)

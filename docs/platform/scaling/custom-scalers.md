@@ -97,6 +97,14 @@ A safe operating pattern is:
 3. validate scaling in a non-production environment
 4. keep `maxReplicas` conservative until observed behavior is understood
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Custom Scalers in Azure Container Apps. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [Scaling Overview](index.md)

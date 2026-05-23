@@ -19,6 +19,15 @@ validation:
   bicep:
     last_tested: null
     result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/github-actions
+    verified: true
 ---
 # 06 - CI/CD with GitHub Actions
 
@@ -207,7 +216,7 @@ graph TD
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
-- [GitHub Actions for Azure (Microsoft Learn)](https://learn.microsoft.com/azure/developer/github/github-actions-for-azure)
+- [GitHub Actions for Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/github/github-actions)
 
 ## Sources
 - [GitHub Actions for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)

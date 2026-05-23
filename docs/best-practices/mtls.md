@@ -118,6 +118,14 @@ Microsoft Learn explicitly notes that enabling environment peer encryption can i
 - External certificate material is stored outside source code, ideally in Key Vault or enterprise PKI tooling.
 - Load testing covers the latency impact of peer encryption or edge certificate validation.
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to mTLS Best Practices. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [mTLS Architecture in Azure Container Apps](../platform/security/mtls.md)

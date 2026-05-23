@@ -3,14 +3,21 @@ content_sources:
   references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-diagrams:
-- id: bicep-deployment-timeout-lab
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-  - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-  - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+  diagrams:
+  - id: bicep-deployment-timeout-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+  - id: bicep-deployment-timeout-lab
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -19,12 +26,15 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: startup probe port 9999 → revision Unhealthy/Failed in 45s; fix Bicep → Healthy/Provisioned
+    notes: "startup probe port 9999 \u2192 revision Unhealthy/Failed in 45s; fix Bicep\
+      \ \u2192 Healthy/Provisioned"
   core_claims:
-  - claim: A revision-scope update creates a new revision and that revision must become healthy for a successful rollout.
+  - claim: A revision-scope update creates a new revision and that revision must become
+      healthy for a successful rollout.
     source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
     verified: false
-  - claim: Application lifecycle management behavior affects how deployment cutover and revision readiness interact.
+  - claim: Application lifecycle management behavior affects how deployment cutover
+      and revision readiness interact.
     source: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
     verified: false
 validation:
@@ -178,6 +188,22 @@ az group delete \
 ## Related Playbook
 
 - [Bicep Deployment Timeout](../playbooks/deployment-and-cicd/bicep-deployment-timeout.md)
+
+## Page Flow
+
+<!-- diagram-id: bicep-deployment-timeout-page-flow -->
+```mermaid
+flowchart TD
+    A["Bicep Deployment Timeout Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

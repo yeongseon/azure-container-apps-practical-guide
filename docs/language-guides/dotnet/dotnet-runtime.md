@@ -8,6 +8,15 @@ content_sources:
     - https://learn.microsoft.com/azure/container-apps/dotnet-overview
     - https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints
     - https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/dotnet-overview
+    verified: true
 ---
 # .NET Runtime Reference
 

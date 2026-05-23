@@ -1,30 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: content-validation-status-pie
-      type: pie
-      source: self-generated
-      justification: Auto-generated dashboard tracking content validation status.
+  - id: content-validation-status-pie
+    type: pie
+    source: self-generated
+    justification: Auto-generated dashboard tracking content validation status.
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
   status: verified
-  last_reviewed: "2026-05-22"
+  last_reviewed: '2026-05-23'
   reviewer: ai-agent
   core_claims:
-    - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
-      source: "https://learn.microsoft.com/azure/container-apps/overview"
-      verified: true
-    - claim: "Azure Container Apps troubleshooting guidance includes diagnostic and logging workflows."
-      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
-      verified: true
+  - claim: Microsoft Learn provides official documentation for Azure Container Apps.
+    source: https://learn.microsoft.com/azure/container-apps/overview
+    verified: true
+  - claim: Azure Container Apps troubleshooting guidance includes diagnostic and logging
+      workflows.
+    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
+    verified: true
 ---
-
 # Content Validation Status
 
 This page tracks the source validation status of all documentation content. All content must be traceable to official Microsoft Learn documentation.
 
 ## Summary
 
-*Generated: 2026-05-22*
+*Generated: 2026-05-23*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
@@ -333,3 +336,6 @@ python3 scripts/generate_content_validation_status.py
 - [CLI Reference](cli-reference.md)
 - [Platform Limits](platform-limits.md)
 
+## Sources
+
+- [Microsoft Learn overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)

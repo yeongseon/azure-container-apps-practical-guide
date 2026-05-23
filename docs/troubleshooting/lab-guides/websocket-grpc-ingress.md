@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-diagrams:
-- id: websocket-grpc-ingress-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-  - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+  diagrams:
+  - id: websocket-grpc-ingress-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+  - id: websocket-grpc-ingress-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -17,12 +25,14 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: transport Http(broken)→Auto(WS fix)→Http2(gRPC) toggled and verified via ingress show
+    notes: "transport Http(broken)\u2192Auto(WS fix)\u2192Http2(gRPC) toggled and\
+      \ verified via ingress show"
   core_claims:
   - claim: Container Apps supports `http2` transport for gRPC workloads.
     source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
     verified: false
-  - claim: Session affinity is an HTTP ingress feature and is relevant when multiple replicas can serve the same client.
+  - claim: Session affinity is an HTTP ingress feature and is relevant when multiple
+      replicas can serve the same client.
     source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
     verified: false
 validation:
@@ -171,6 +181,22 @@ az group delete \
 ## Related Playbook
 
 - [WebSocket and gRPC Ingress](../playbooks/networking-advanced/websocket-grpc-ingress.md)
+
+## Page Flow
+
+<!-- diagram-id: websocket-grpc-ingress-page-flow -->
+```mermaid
+flowchart TD
+    A["WebSocket and gRPC Ingress Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/container-apps/networking
-diagrams:
-- id: egress-ip-change-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/networking
-  - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/networking
+  diagrams:
+  - id: egress-ip-change-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+  - id: egress-ip-change-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -17,12 +25,14 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: outbound IP 20.196.243.56 confirmed via ifconfig.me job; differs from inbound staticIp 20.249.149.1
+    notes: outbound IP 20.196.243.56 confirmed via ifconfig.me job; differs from inbound
+      staticIp 20.249.149.1
   core_claims:
   - claim: NAT Gateway egress is supported for workload profiles environments.
     source: https://learn.microsoft.com/en-us/azure/container-apps/networking
     verified: false
-  - claim: Workload profiles environments support user-defined routes and controlled outbound traffic designs.
+  - claim: Workload profiles environments support user-defined routes and controlled
+      outbound traffic designs.
     source: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
     verified: false
 validation:
@@ -166,6 +176,22 @@ az group delete \
 ## Related Playbook
 
 - [Egress IP Change](../playbooks/networking-advanced/egress-ip-change.md)
+
+## Page Flow
+
+<!-- diagram-id: egress-ip-change-page-flow -->
+```mermaid
+flowchart TD
+    A["Egress IP Change Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

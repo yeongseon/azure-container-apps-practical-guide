@@ -3,13 +3,20 @@ content_sources:
   text:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-diagrams:
-- id: workload-profile-mismatch-lab-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-  - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+  diagrams:
+  - id: workload-profile-mismatch-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+  - id: workload-profile-mismatch-lab-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
 content_validation:
   status: verified
   last_reviewed: 2026-04-29
@@ -18,9 +25,11 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: 'ContainerAppContainersInvalidCpu: 8 vCPU rejected, 2 vCPU accepted on D4 profile'
+    notes: 'ContainerAppContainersInvalidCpu: 8 vCPU rejected, 2 vCPU accepted on
+      D4 profile'
   core_claims:
-  - claim: Azure Container Apps environments can contain workload profiles that are managed through Azure CLI.
+  - claim: Azure Container Apps environments can contain workload profiles that are
+      managed through Azure CLI.
     source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
     verified: true
   - claim: Workload profile sizing determines where dedicated replicas can be placed.
@@ -195,6 +204,22 @@ az containerapp show \
 ## Related Playbook
 
 - [Workload Profile Mismatch](../playbooks/cost-and-quota/workload-profile-mismatch.md)
+
+## Page Flow
+
+<!-- diagram-id: workload-profile-mismatch-page-flow -->
+```mermaid
+flowchart TD
+    A["Workload Profile Mismatch Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

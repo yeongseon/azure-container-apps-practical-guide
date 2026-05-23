@@ -113,6 +113,14 @@ For event-driven Jobs:
 - [ ] Event-driven workloads have a dead-letter or quarantine path.
 - [ ] Long-running continuous consumers have been challenged against [Jobs vs Apps](../platform/jobs/jobs-vs-apps.md).
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Job Design. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [Jobs Best Practices](jobs.md)

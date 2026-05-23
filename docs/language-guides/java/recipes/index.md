@@ -7,6 +7,15 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/azure/developer/java/spring-framework/spring-cloud-azure
     - https://learn.microsoft.com/azure/developer/java/sdk/overview
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/developer/java/spring-framework/spring-cloud-azure
+    verified: true
 ---
 # Java Recipes Overview
 

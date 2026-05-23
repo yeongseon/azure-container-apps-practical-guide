@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/container-apps/networking
-diagrams:
-- id: subnet-cidr-exhaustion-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/networking
-  - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/networking
+  diagrams:
+  - id: subnet-cidr-exhaustion-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+  - id: subnet-cidr-exhaustion-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -167,6 +175,22 @@ az group delete \
 ## Related Playbook
 
 - [Subnet CIDR Exhaustion](../playbooks/networking-advanced/subnet-cidr-exhaustion.md)
+
+## Page Flow
+
+<!-- diagram-id: subnet-cidr-exhaustion-page-flow -->
+```mermaid
+flowchart TD
+    A["Subnet CIDR Exhaustion Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

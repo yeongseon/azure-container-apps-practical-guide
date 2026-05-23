@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
-diagrams:
-- id: azure-files-mount-failure-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
-  - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+  diagrams:
+  - id: azure-files-mount-failure-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+  - id: azure-files-mount-failure-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -19,10 +27,12 @@ content_validation:
     az_cli_version: 2.70.0
     notes: mount error + Permission denied system events, fixed with correct key
   core_claims:
-  - claim: Azure Container Apps uses environment-level storage definitions to mount Azure Files shares into revisions.
+  - claim: Azure Container Apps uses environment-level storage definitions to mount
+      Azure Files shares into revisions.
     source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
     verified: false
-  - claim: The Azure portal includes a Storage Mount Failures detector for Azure Container Apps troubleshooting.
+  - claim: The Azure portal includes a Storage Mount Failures detector for Azure Container
+      Apps troubleshooting.
     source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
     verified: false
 validation:
@@ -178,6 +188,22 @@ az containerapp env storage remove \
 ## Related Playbook
 
 - [Azure Files Mount Failure](../playbooks/storage-and-volumes/azure-files-mount-failure.md)
+
+## Page Flow
+
+<!-- diagram-id: azure-files-mount-failure-page-flow -->
+```mermaid
+flowchart TD
+    A["Azure Files Mount Failure Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

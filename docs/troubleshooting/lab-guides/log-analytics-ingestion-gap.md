@@ -5,13 +5,20 @@ content_sources:
     url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/observability
-diagrams:
-- id: log-analytics-ingestion-gap-lab
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-  - https://learn.microsoft.com/en-us/azure/container-apps/observability
+  diagrams:
+  - id: log-analytics-ingestion-gap-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+  - id: log-analytics-ingestion-gap-lab
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -22,10 +29,12 @@ content_validation:
     az_cli_version: 2.70.0
     notes: ContainerAppConsoleLogs_CL 117 rows confirmed in KQL
   core_claims:
-  - claim: Azure Container Apps logs can be queried in Log Analytics after they are ingested into Azure Monitor Logs.
+  - claim: Azure Container Apps logs can be queried in Log Analytics after they are
+      ingested into Azure Monitor Logs.
     source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
     verified: false
-  - claim: Observability for Azure Container Apps includes logs that can be reviewed for operational troubleshooting.
+  - claim: Observability for Azure Container Apps includes logs that can be reviewed
+      for operational troubleshooting.
     source: https://learn.microsoft.com/en-us/azure/container-apps/observability
     verified: false
 validation:
@@ -180,6 +189,22 @@ No infrastructure cleanup is required. The lab only restarts an existing revisio
 ## Related Playbook
 
 - [Log Analytics Ingestion Gap](../playbooks/observability/log-analytics-ingestion-gap.md)
+
+## Page Flow
+
+<!-- diagram-id: log-analytics-ingestion-gap-page-flow -->
+```mermaid
+flowchart TD
+    A["Log Analytics Ingestion Gap Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

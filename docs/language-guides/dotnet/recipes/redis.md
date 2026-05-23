@@ -7,6 +7,15 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
     - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-dotnet-how-to-use-azure-redis-cache
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+    verified: true
 ---
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 

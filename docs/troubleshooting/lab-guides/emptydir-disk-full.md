@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-diagrams:
-- id: emptydir-disk-full-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-  - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+  diagrams:
+  - id: emptydir-disk-full-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+  - id: emptydir-disk-full-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -22,7 +30,8 @@ content_validation:
   - claim: Azure Container Apps supports `EmptyDir` volumes for temporary storage.
     source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
     verified: false
-  - claim: Ephemeral storage settings can be defined in the container resources section of a Container Apps revision template.
+  - claim: Ephemeral storage settings can be defined in the container resources section
+      of a Container Apps revision template.
     source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
     verified: false
 validation:
@@ -170,6 +179,22 @@ az containerapp update \
 ## Related Playbook
 
 - [EmptyDir Disk Full](../playbooks/storage-and-volumes/emptydir-disk-full.md)
+
+## Page Flow
+
+<!-- diagram-id: emptydir-disk-full-page-flow -->
+```mermaid
+flowchart TD
+    A["EmptyDir Disk Full Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

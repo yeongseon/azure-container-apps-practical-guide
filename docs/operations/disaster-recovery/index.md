@@ -83,6 +83,14 @@ flowchart TD
 - If a failed region remains in rotation, inspect global health probe and origin status.
 - If backend state diverges, delay failback until data is reconciled.
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Disaster Recovery. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [Multi-Region Deployment](multi-region-deployment.md)

@@ -1,27 +1,31 @@
 ---
 content_sources:
   diagrams:
-    - id: tutorial-validation-status-pie
-      type: pie
-      source: self-generated
-      justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
+  - id: tutorial-validation-status-pie
+    type: pie
+    source: self-generated
+    justification: Auto-generated from tutorial and lab validation frontmatter in
+      this repository.
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
   status: verified
-  last_reviewed: "2026-05-22"
+  last_reviewed: '2026-05-23'
   reviewer: ai-agent
   core_claims:
-    - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
-      source: scripts/generate_validation_status.py
-      verified: true
+  - claim: The dashboard is generated from validation frontmatter in repository Markdown
+      files.
+    source: scripts/generate_validation_status.py
+    verified: true
 ---
-
 # Tutorial Validation Status
 
 This page tracks which tutorials have been validated against real Azure deployments. It scans language tutorial pages and troubleshooting lab guides. Each page can be tested via **az-cli** (manual CLI commands) or **Bicep** (infrastructure as code). Tutorials not tested within 90 days are marked as stale.
 
 ## Summary
 
-*Generated: 2026-05-22*
+*Generated: 2026-05-23*
 
 | Metric | Count |
 |---|---:|
@@ -174,3 +178,6 @@ python3 scripts/generate_validation_status.py
 - [Environment Variables](environment-variables.md)
 - [Platform Limits](platform-limits.md)
 
+## Sources
+
+- [Microsoft Learn overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)

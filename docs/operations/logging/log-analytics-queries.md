@@ -6,8 +6,8 @@ content_sources:
     source: mslearn-adapted
     based_on:
     - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs
-    - https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
+    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappconsolelogs
+    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappsystemlogs
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
@@ -17,7 +17,7 @@ content_validation:
     source: https://learn.microsoft.com/azure/container-apps/log-monitoring
     verified: true
   - claim: Azure Monitor publishes native table references for ContainerAppConsoleLogs and ContainerAppSystemLogs.
-    source: https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappsystemlogs
     verified: true
   - claim: Microsoft Learn currently documents both `_CL` query examples and native table references for Container Apps logs.
     source: https://learn.microsoft.com/azure/container-apps/log-monitoring
@@ -120,6 +120,14 @@ flowchart TD
 - If a copied query fails, adapt the columns to the workspace schema before debugging the app.
 - If alerts are noisy, narrow the time window or raise the threshold.
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Log Analytics Queries. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [Logging Operations](index.md)
@@ -134,5 +142,5 @@ flowchart TD
 ## Sources
 
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
-- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappconsolelogs)
+- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappsystemlogs)

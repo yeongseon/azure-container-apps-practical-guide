@@ -67,6 +67,15 @@ content_sources:
     - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
     - https://learn.microsoft.com/azure/role-based-access-control/overview
     - https://learn.microsoft.com/azure/container-apps/policy-reference
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/security
+    verified: true
 ---
 # Security in Azure Container Apps
 

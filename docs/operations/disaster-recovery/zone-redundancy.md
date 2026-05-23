@@ -84,6 +84,14 @@ flowchart TD
 - If the region does not support the setting, move to a supported region or a multi-region pattern.
 - If RTO or RPO targets exceed a single region, use multi-region instead.
 
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Zone Redundancy. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
+
 ## See Also
 
 - [Disaster Recovery](index.md)

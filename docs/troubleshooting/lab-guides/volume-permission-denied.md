@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-diagrams:
-- id: volume-permission-denied-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-  - https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+  diagrams:
+  - id: volume-permission-denied-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+  - id: volume-permission-denied-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+    - https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -17,13 +25,15 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: emptyDir readOnly API behavior documented; Azure Files permission scenario corroborated
+    notes: emptyDir readOnly API behavior documented; Azure Files permission scenario
+      corroborated
   core_claims:
-  - claim: Azure Container Apps Azure Files volumes accept `mountOptions` values in the revision template.
+  - claim: Azure Container Apps Azure Files volumes accept `mountOptions` values in
+      the revision template.
     source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
     verified: false
-  - claim: Azure Files SMB permission behavior can be influenced by Linux mount options such as `uid`, `gid`, `dir_mode`,
-      and `file_mode`.
+  - claim: Azure Files SMB permission behavior can be influenced by Linux mount options
+      such as `uid`, `gid`, `dir_mode`, and `file_mode`.
     source: https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
     verified: false
 validation:
@@ -173,6 +183,22 @@ az containerapp update \
 ## Related Playbook
 
 - [Volume Permission Denied](../playbooks/storage-and-volumes/volume-permission-denied.md)
+
+## Page Flow
+
+<!-- diagram-id: volume-permission-denied-page-flow -->
+```mermaid
+flowchart TD
+    A["Volume Permission Denied Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

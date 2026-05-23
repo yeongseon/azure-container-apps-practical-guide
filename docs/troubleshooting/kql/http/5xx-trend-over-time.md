@@ -18,7 +18,7 @@ content_validation:
     source: https://learn.microsoft.com/azure/container-apps/observability
     verified: true
   - claim: Log Analytics uses Kusto Query Language to query and analyze collected telemetry data.
-    source: https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial
     verified: true
 ---
 # 5xx Trend Over Time

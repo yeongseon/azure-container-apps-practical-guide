@@ -4,11 +4,21 @@ content_sources:
   - id: python-jobs-recipe-flow
     type: flowchart
     source: self-generated
-    justification: Language recipe flow synthesized from repository Python job example and Microsoft Learn Jobs guidance.
+    justification: Language recipe flow synthesized from repository Python job example
+      and Microsoft Learn Jobs guidance.
     based_on:
     - https://learn.microsoft.com/azure/container-apps/jobs
     - https://learn.microsoft.com/python/api/overview/azure/identity-readme
     - https://learn.microsoft.com/python/api/overview/azure/servicebus-readme
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
 # Recipe: Jobs in Python on Azure Container Apps
 

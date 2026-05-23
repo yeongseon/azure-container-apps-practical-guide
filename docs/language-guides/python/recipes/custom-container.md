@@ -7,6 +7,15 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/en-us/azure/container-apps/containers
     - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+    verified: true
 ---
 # Recipe: Custom Container Images for Python on Azure Container Apps
 

@@ -1,14 +1,22 @@
 ---
 content_sources:
-- type: mslearn-adapted
-  url: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-diagrams:
-- id: custom-domain-tls-renewal-flow
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-  - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+  sources:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+  diagrams:
+  - id: custom-domain-tls-renewal-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+  - id: custom-domain-tls-renewal-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+    - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -17,12 +25,15 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: 'InvalidCustomHostNameValidation: asuid TXT record required with domain verification ID'
+    notes: 'InvalidCustomHostNameValidation: asuid TXT record required with domain
+      verification ID'
   core_claims:
-  - claim: Managed certificates continue to renew automatically only while the app keeps meeting the documented requirements.
+  - claim: Managed certificates continue to renew automatically only while the app
+      keeps meeting the documented requirements.
     source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
     verified: false
-  - claim: Customer-managed certificates are the fallback when managed certificate requirements are not met or supported.
+  - claim: Customer-managed certificates are the fallback when managed certificate
+      requirements are not met or supported.
     source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
     verified: false
 validation:
@@ -171,6 +182,22 @@ az group delete \
 ## Related Playbook
 
 - [Custom Domain TLS Renewal](../playbooks/networking-advanced/custom-domain-tls-renewal.md)
+
+## Page Flow
+
+<!-- diagram-id: custom-domain-tls-renewal-page-flow -->
+```mermaid
+flowchart TD
+    A["Custom Domain TLS Renewal Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

@@ -17,7 +17,7 @@ content_validation:
     source: https://learn.microsoft.com/azure/container-apps/scale-app
     verified: true
   - claim: Azure Monitor Log Analytics lets you use Kusto Query Language to analyze collected log data.
-    source: https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial
     verified: true
 ---
 # KEDA Scaler Metrics
@@ -81,4 +81,4 @@ ContainerAppSystemLogs_CL
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/observability)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial)
 - [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Microsoft Learn source 5](https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial)
+- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial)

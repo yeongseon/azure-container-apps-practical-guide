@@ -5,13 +5,20 @@ content_sources:
     url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
-diagrams:
-- id: appinsights-connection-string-missing-lab
-  type: flowchart
-  source: mslearn-adapted
-  based_on:
-  - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-  - https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+  diagrams:
+  - id: appinsights-connection-string-missing-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+  - id: appinsights-connection-string-missing-lab
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    - https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,13 +27,15 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: env var absent=no telemetry; APPLICATIONINSIGHTS_CONNECTION_STRING added=confirmed present
+    notes: env var absent=no telemetry; APPLICATIONINSIGHTS_CONNECTION_STRING added=confirmed
+      present
   core_claims:
-  - claim: Application Insights uses connection strings to associate telemetry with the correct monitoring resource.
+  - claim: Application Insights uses connection strings to associate telemetry with
+      the correct monitoring resource.
     source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
     verified: false
-  - claim: Azure Container Apps supports sending OpenTelemetry data to Application Insights when the telemetry destination
-      is configured.
+  - claim: Azure Container Apps supports sending OpenTelemetry data to Application
+      Insights when the telemetry destination is configured.
     source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
     verified: false
 validation:
@@ -165,6 +174,22 @@ If this lab was run only to validate the fix, keep the corrected telemetry confi
 ## Related Playbook
 
 - [Application Insights Connection String Missing](../playbooks/observability/appinsights-connection-string-missing.md)
+
+## Page Flow
+
+<!-- diagram-id: appinsights-connection-string-missing-page-flow -->
+```mermaid
+flowchart TD
+    A["Application Insights Connection String Missing Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

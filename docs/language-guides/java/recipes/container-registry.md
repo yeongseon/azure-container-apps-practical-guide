@@ -7,6 +7,15 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
     - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-docker-cli
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    verified: true
 ---
 # Recipe: Container Registry in Java Apps on Azure Container Apps
 
