@@ -17,7 +17,7 @@ content_validation:
     source: https://learn.microsoft.com/azure/container-apps/logging
     verified: true
   - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
     verified: true
 ---
 # Restart Timing Correlation

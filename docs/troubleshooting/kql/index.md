@@ -6,8 +6,8 @@ content_sources:
     source: mslearn-adapted
     based_on:
     - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappconsolelogs
-    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappsystemlogs
+    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
+    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
   status: verified
   last_reviewed: '2026-05-23'
@@ -158,5 +158,5 @@ Real lifecycle summary from a deployed Container Apps environment (`ca-cakqltest
 
 ## Sources
 - [Log monitoring in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [ContainerAppConsoleLogs table reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappconsolelogs)
-- [ContainerAppSystemLogs table reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappsystemlogs)
+- [ContainerAppConsoleLogs table reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
+- [ContainerAppSystemLogs table reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs)

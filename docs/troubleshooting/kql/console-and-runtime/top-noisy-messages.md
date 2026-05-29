@@ -17,7 +17,7 @@ content_validation:
     source: https://learn.microsoft.com/azure/container-apps/logging
     verified: true
   - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
     verified: true
 ---
 # Top Noisy Messages
@@ -81,4 +81,4 @@ ContainerAppConsoleLogs_CL
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
-- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial)
+- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial)
