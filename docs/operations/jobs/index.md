@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: jobs-day-2-operations-flow
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from repository job runbooks and Microsoft Learn Jobs guidance while exact CLI/log-schema quotes remained pending.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+  - id: jobs-day-2-operations-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from repository job runbooks and Microsoft Learn Jobs guidance while exact CLI/log-schema quotes
+      remained pending.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Job executions can be listed and inspected after they run."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Container Apps can send job-related logs to Log Analytics."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
+  - claim: Job executions can be listed and inspected after they run.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Container Apps can send job-related logs to Log Analytics.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Jobs Operations
 
 This guide covers day-2 operations for Container Apps Jobs: listing executions, drilling into failures, replaying work, and tracking job health over time.
@@ -58,6 +58,10 @@ az containerapp job execution list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 ### 2. Inspect a specific execution
 
 ```bash
@@ -68,6 +72,10 @@ az containerapp job execution show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 ### 3. Stop an in-flight execution when needed
 
 ```bash
@@ -76,6 +84,10 @@ az containerapp job execution stop \
   --resource-group "$RG" \
   --job-execution-name "$EXECUTION_NAME"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 !!! warning "Confirm CLI command availability against your installed extension"
     The `execution list`, `show`, and `stop` patterns above reflect the expected long-form command group for current Container Apps Jobs operations.
@@ -90,6 +102,10 @@ az containerapp job start \
   --name "$JOB_NAME" \
   --resource-group "$RG"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job start ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 Before replaying, confirm whether you also need to:
 
@@ -179,6 +195,10 @@ az containerapp job execution list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 ## Rollback / Troubleshooting
 

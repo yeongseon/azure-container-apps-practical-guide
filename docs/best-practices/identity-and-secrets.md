@@ -1,45 +1,49 @@
 ---
 content_sources:
   diagrams:
-    - id: if-you-use-dapr-centralize-runtime
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-    - id: use-managed-identity-entra-authentication
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+  - id: if-you-use-dapr-centralize-runtime
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+  - id: use-managed-identity-entra-authentication
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "A system-assigned identity is tied to the container app and is deleted when the container app is deleted."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "A user-assigned identity is a standalone Azure resource that you can assign to a container app and other resources."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "A container app can have multiple user-assigned identities."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "Managed identities let a container app authenticate to Microsoft Entra protected resources without managing credentials in the app."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "You can use managed identity to authenticate with a private Azure Container Registry without a username and password."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
+  - claim: A system-assigned identity is tied to the container app and is deleted when the container app is deleted.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: A user-assigned identity is a standalone Azure resource that you can assign to a container app and other resources.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: A container app can have multiple user-assigned identities.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: Managed identities let a container app authenticate to Microsoft Entra protected resources without managing credentials
+      in the app.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Azure Container Apps Identity and Secret Management Best Practices
 
 This guide explains how to run Azure Container Apps with passwordless access, least privilege, and controlled secret lifecycle operations. It focuses on practical decisions for production, not conceptual identity internals.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -60,7 +64,7 @@ export ACR_NAME="<acr-name>"
 export LOCATION="koreacentral"
 ```
 
-## Main Content
+## Recommended Practices
 
 ### Use a managed identity decision matrix first
 
@@ -90,6 +94,10 @@ az containerapp identity assign \
   --system-assigned
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 Verify principal creation:
 
 ```bash
@@ -99,6 +107,10 @@ az containerapp show \
   --query "identity.principalId" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output format:
 
@@ -117,6 +129,10 @@ az identity create \
   --location "$LOCATION"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+
 Attach to app:
 
 ```bash
@@ -125,6 +141,10 @@ az containerapp identity assign \
   --resource-group "$RG" \
   --user-assigned "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aca-shared-pull"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 Governance pattern:
 
@@ -165,6 +185,10 @@ az role assignment create \
   --role "AcrPull" \
   --scope "$ACR_ID"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az role assignment create ...` | Grants the required Azure RBAC role at the documented scope. |
 
 Update app registry auth mode:
 
@@ -219,6 +243,10 @@ az containerapp secret set \
   --secrets "db-password=keyvaultref:https://<key-vault-name>.vault.azure.net/secrets/sql-admin-password,identityref:system"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 Map secret to environment variable:
 
 ```bash
@@ -227,6 +255,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars "DB_PASSWORD=secretref:db-password"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### Separate secret and config data clearly
 
@@ -257,6 +289,10 @@ az containerapp update \
   "STORAGE_ACCOUNT_URL=https://<storage-account>.blob.core.windows.net" \
   "STORAGE_TOKEN=secretref:storage-token"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### Scope identities per app unless sharing is required
 
@@ -405,6 +441,10 @@ az role assignment list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+
 List app secrets metadata (names only):
 
 ```bash
@@ -413,6 +453,10 @@ az containerapp secret list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 ### Anti-patterns to avoid
 
@@ -446,6 +490,22 @@ az role assignment list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Managed Identity (Platform)](../platform/identity-and-secrets/managed-identity.md)
@@ -454,3 +514,10 @@ az role assignment list \
 - [Operations: Secret Rotation](../operations/secret-rotation/index.md)
 - [Operations: Image Pull and Registry](../operations/image-pull-and-registry/index.md)
 - [Reliability Best Practices](./reliability.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/managed-identity)

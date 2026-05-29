@@ -1,18 +1,34 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions-repo-auth
-    - id: ci-cd-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions-repo-auth
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+  - id: ci-cd-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/github-actions
+    verified: true
 ---
-
 # 06 - CI/CD with GitHub Actions
 
 Automating the build and deployment of your Spring Boot application ensures consistent, repeatable releases to Azure Container Apps. This guide covers how to set up a GitHub Actions workflow to build, push, and deploy your Java app on every commit.
@@ -94,6 +110,10 @@ To allow GitHub Actions to authenticate with Azure, you must store credentials a
       --json-auth
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az ad sp create-for-rbac ...` | Creates or inspects service principal settings for automation identity. |
+
 2. **Add Secrets to GitHub**
 
     Add the following secrets in your GitHub repository's `Settings > Secrets and variables > Actions`:
@@ -157,6 +177,10 @@ jobs:
             --image ${{ secrets.ACR_NAME }}.azurecr.io/java-guide:${{ github.sha }}
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ## Verifying the Deployment
 
 1. **Check the GitHub Actions tab**
@@ -171,6 +195,10 @@ jobs:
       --name $APP_NAME \
       --query "[0].name" --output tsv
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
     ???+ example "Expected output"
         ```text
@@ -197,8 +225,8 @@ jobs:
 ## See Also
 - [07 - Revisions and Traffic](07-revisions-traffic.md)
 - [02 - First Deploy to Azure](02-first-deploy.md)
-- [GitHub Actions for Azure (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions-repo-auth)
+- [GitHub Actions for Azure (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
 
 ## Sources
-- [Deploy to Azure Container Apps with GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions-repo-auth)
+- [Deploy to Azure Container Apps with GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
 - [Setup Java Action (GitHub Marketplace)](https://github.com/marketplace/actions/setup-java-jdk-binaries)

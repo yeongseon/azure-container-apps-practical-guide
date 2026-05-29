@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-        - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    verified: true
 ---
-
 # Custom Domains and Certificates
 
 Azure Container Apps supports custom hostnames and TLS certificates so you can serve Express applications on your own domain instead of the default `azurecontainerapps.io` address.
@@ -36,6 +44,10 @@ flowchart TD
 ```bash
 az extension add --name containerapp --upgrade
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
 
 ## Step 1: Get the app and environment values
 
@@ -75,6 +87,10 @@ az network dns record-set txt add-record \
   --value "$CUSTOM_DOMAIN_VERIFICATION_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network dns record-set ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 For apex domains, point an `A` record to `$ENV_STATIC_IP` instead of using a `CNAME`.
 
 ## Step 3: Add the hostname to the Container App
@@ -85,6 +101,10 @@ az containerapp hostname add \
   --resource-group "$RG" \
   --hostname "www.contoso.com"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname add ...` | Manages custom hostname bindings for ingress. |
 
 ## Step 4: Bind a certificate
 
@@ -98,6 +118,10 @@ az containerapp hostname bind \
   --environment "$ENVIRONMENT_NAME" \
   --validation-method CNAME
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname bind ...` | Manages custom hostname bindings for ingress. |
 
 Use a bring-your-own certificate when you already manage certificate lifecycle outside Container Apps:
 
@@ -115,6 +139,10 @@ az containerapp hostname bind \
   --environment "$ENVIRONMENT_NAME" \
   --certificate "www-contoso-com"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env certificate ...` | Manages certificates bound to Container Apps environment or hostnames. |
 
 ## Step 5: Configure Express for forwarded headers
 
@@ -151,6 +179,10 @@ az containerapp env certificate list \
 curl --verbose https://www.contoso.com/
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
+
 ## See Also
 
 - [Easy Auth](easy-auth.md)
@@ -160,4 +192,4 @@ curl --verbose https://www.contoso.com/
 ## Sources
 
 - [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
-- [Configure custom DNS suffix for Azure Container Apps environment](https://learn.microsoft.com/azure/container-apps/environment-custom-dns)
+- [Configure custom DNS suffix for Azure Container Apps environment](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)

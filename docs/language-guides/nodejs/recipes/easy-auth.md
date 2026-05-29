@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: use-container-apps-built-in-authentication-easy
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/container-apps/authentication-identity-providers
+  - id: use-container-apps-built-in-authentication-easy
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/container-apps/authentication
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/authentication
+    verified: true
 ---
-
 # Recipe: Easy Auth in Node.js Apps on Azure Container Apps
 
 Use Container Apps built-in authentication (Easy Auth) and parse the authenticated principal inside Express middleware.
@@ -33,6 +41,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Enable Easy Auth
 
 ```bash
@@ -43,6 +55,10 @@ az containerapp auth update \
   --platform runtimeVersion "~1" \
   --global-validation unauthenticatedClientAction RedirectToLoginPage
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Express middleware for principal parsing
 
@@ -102,4 +118,4 @@ app.get("/me", (req, res) => {
 ## Sources
 
 - [Authentication in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
-- [Configure authentication providers in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication-identity-providers)
+- [Configure authentication providers in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)

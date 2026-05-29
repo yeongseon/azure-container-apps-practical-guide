@@ -1,34 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: workload-profiles-best-for-predictable-baseline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
-        - https://learn.microsoft.com/azure/container-apps/billing
+  - id: workload-profiles-best-for-predictable-baseline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+    - https://learn.microsoft.com/azure/container-apps/billing
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps manages automatic horizontal scaling through declarative scaling rules."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Azure Container Apps does not bill usage charges when a container app scales to zero."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "To ensure an instance of a revision is always running, the minimum number of replicas must be set to 1 or higher."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Workload profiles environments support both Consumption and Dedicated plan types."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "The maximum number of replicas per revision can be configured up to 1,000."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: Azure Container Apps manages automatic horizontal scaling through declarative scaling rules.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Azure Container Apps does not bill usage charges when a container app scales to zero.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: To ensure an instance of a revision is always running, the minimum number of replicas must be set to 1 or higher.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Workload profiles environments support both Consumption and Dedicated plan types.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: The maximum number of replicas per revision can be configured up to 1,000.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # Cost Optimization Operations
 
 This guide describes production cost operations for Azure Container Apps, including profile selection, scale-to-zero strategy, and spend governance.
@@ -92,6 +91,10 @@ az containerapp show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ## Scale-to-Zero for Intermittent Workloads
 
 ```bash
@@ -101,6 +104,10 @@ az containerapp update \
   --min-replicas 0 \
   --max-replicas 5
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Set conservative max replicas for non-critical services to cap runaway spend.
 
@@ -117,6 +124,10 @@ az consumption usage list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az consumption usage ...` | Runs the Azure CLI operation required by the documented step. |
+
 Track request and replica trends with metrics to identify over-provisioning:
 
 ```bash
@@ -127,6 +138,10 @@ az monitor metrics list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ## Verification Steps
 
 ```bash
@@ -136,6 +151,10 @@ az containerapp show \
   --query "{minReplicas:properties.template.scale.minReplicas,maxReplicas:properties.template.scale.maxReplicas,resources:properties.template.containers[].resources}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Example output (PII masked):
 

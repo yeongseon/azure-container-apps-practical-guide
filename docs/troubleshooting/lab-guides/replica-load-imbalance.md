@@ -1,34 +1,41 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-diagrams:
+  diagrams:
   - id: replica-load-imbalance-lab-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-      - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-      - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "3 replicas confirmed; acaAffinity sticky cookie forces imbalance; affinity=none restores balance"
-
+    az_cli_version: 2.70.0
+    notes: 3 replicas confirmed; acaAffinity sticky cookie forces imbalance; affinity=none restores balance
   core_claims:
-    - claim: "Azure Container Apps supports ingress session affinity and scale rules."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-      verified: false
-    - claim: "Azure Container Apps supports configurable replica scaling behavior."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-      verified: false
+  - claim: Azure Container Apps supports ingress session affinity and scale rules.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    verified: false
+  - claim: Azure Container Apps supports configurable replica scaling behavior.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Replica Load Imbalance Lab
 
 Demonstrate how sticky sessions or overly permissive concurrency can create uneven replica utilization even when the app appears healthy at a revision level.
@@ -61,9 +68,15 @@ Does replica load imbalance reproduce when the documented trigger condition is p
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -73,6 +86,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -80,6 +96,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -124,7 +143,7 @@ az containerapp ingress show --name ca-replica-lab5 --resource-group rg-aca-lab-
 → { "affinity": "sticky" }
 
 # acaAffinity cookie present in response
-curl -D - https://ca-replica-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/
+curl -D - https://<container-app-fqdn>/
 → set-cookie: acaAffinity="b516773606a5761b"; Path=/; HttpOnly; SameSite=None; Secure;
 
 # Fix: disable sticky sessions
@@ -132,9 +151,13 @@ az containerapp ingress sticky-sessions set \
   --name ca-replica-lab5 --resource-group rg-aca-lab-test5 --affinity none
 
 # No set-cookie header after fix
-curl -D - https://ca-replica-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/
+curl -D - https://<container-app-fqdn>/
 → (no set-cookie header — traffic distributes across all 3 replicas)
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
 
 - `[Observed]` 3 replicas confirmed: `az containerapp replica list | length(@)` → 3.
 - `[Observed]` `stickySessions.affinity: sticky`: `acaAffinity="b516773606a5761b"` cookie set in response headers.
@@ -145,7 +168,7 @@ Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, 3 replicas.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -175,6 +198,10 @@ az containerapp update \
     --scale-rule-type "http" \
     --scale-rule-http-concurrency 20
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Related Playbook
 

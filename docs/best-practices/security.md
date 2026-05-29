@@ -1,64 +1,63 @@
 ---
 content_sources:
   diagrams:
-    - id: create-environments-with-no-public-endpoint
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - id: enable-vulnerability-scanning
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - id: apply-least-privilege-role-assignments
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: create-environments-with-no-public-endpoint
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: enable-vulnerability-scanning
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: apply-least-privilege-role-assignments
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "To create private endpoints on an Azure Container Apps environment, public network access must be set to Disabled."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "A managed identity allows a container app to access other Microsoft Entra protected resources."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "You can use managed identity to authenticate with a private Azure Container Registry without a username and password."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "You can use role-based access control to grant specific permissions to a managed identity."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
+  - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: To create private endpoints on an Azure Container Apps environment, public network access must be set to Disabled.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: A managed identity allows a container app to access other Microsoft Entra protected resources.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: You can use role-based access control to grant specific permissions to a managed identity.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Azure Container Apps Security Best Practices
 
 This guide provides actionable security hardening patterns for Azure Container Apps production workloads. It consolidates network, identity, image, and access control practices into a single operational checklist with CLI commands.
@@ -143,6 +142,10 @@ az containerapp env show \
   --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 Expected output:
 
 ```text
@@ -158,6 +161,10 @@ az containerapp update \
   --ingress internal
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Verify ingress mode:
 
 ```bash
@@ -167,6 +174,10 @@ az containerapp show \
   --query "properties.configuration.ingress.external" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output:
 
@@ -188,6 +199,10 @@ az network private-endpoint create \
   --connection-name "kv-connection"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network private-endpoint create ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 #### Configure egress filtering
 
 Route outbound traffic through Azure Firewall and allow-list only required FQDNs:
@@ -200,6 +215,10 @@ az network vnet subnet update \
   --resource-group "$RG" \
   --route-table "rt-cae-egress"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az network vnet subnet ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
 
 !!! warning "Validate platform dependencies before enforcing egress rules"
     Overly restrictive egress breaks image pulls, telemetry, and control-plane communication. Test with a canary app first.
@@ -217,6 +236,10 @@ az containerapp identity assign \
   --resource-group "$RG" \
   --system-assigned
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 #### Grant least-privilege role assignments
 
@@ -236,6 +259,10 @@ az role assignment create \
   --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/<keyvault-name>"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity show ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 !!! tip "Avoid Contributor role for managed identities"
     Managed identities should have the narrowest role possible. Use data-plane roles like "Key Vault Secrets User", "Storage Blob Data Reader", or "Azure SQL Database Contributor" instead of broad Contributor.
 
@@ -250,6 +277,10 @@ az containerapp registry set \
   --identity system
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp registry set ...` | Runs the Azure CLI operation required by the documented step. |
+
 Verify ACR authentication method:
 
 ```bash
@@ -260,6 +291,10 @@ az containerapp registry show \
   --query "identity" \
   --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp registry show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected output:
 
@@ -279,6 +314,10 @@ az containerapp update \
   --resource-group "$RG" \
   --image "$ACR_NAME.azurecr.io/api:2026-04-09-sha-abc1234"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 #### Enable vulnerability scanning
 
@@ -300,6 +339,10 @@ az security pricing create \
   --tier Standard
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az security pricing ...` | Runs the Azure CLI operation required by the documented step. |
+
 #### Restrict ACR network access
 
 ```bash
@@ -309,6 +352,10 @@ az acr update \
   --resource-group "$RG" \
   --public-network-enabled false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr update ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### Authentication Hardening
 
@@ -322,6 +369,10 @@ az containerapp auth update \
   --unauthenticated-client-action Return401
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+
 Verify auth configuration:
 
 ```bash
@@ -331,6 +382,10 @@ az containerapp auth show \
   --query "{enabled:platform.enabled,unauthenticatedAction:globalValidation.unauthenticatedClientAction}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected output:
 
@@ -351,6 +406,10 @@ az containerapp update \
   --dapr-app-id "api-service" \
   --dapr-app-port 8000
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 !!! note "mTLS requires Dapr on both sides"
     Both the caller and callee apps must have Dapr enabled for mTLS to be effective. Direct HTTP calls bypass Dapr encryption.
@@ -381,6 +440,10 @@ az ad sp create-for-rbac \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az ad sp create-for-rbac ...` | Creates or inspects service principal settings for automation identity. |
+
 !!! warning "Rotate service principal credentials"
     If using service principal for CI/CD, rotate credentials on a regular schedule (90 days recommended). Prefer workload identity federation (OIDC) with GitHub Actions to eliminate credential management entirely.
 
@@ -391,6 +454,10 @@ az role assignment list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
 
 Review for:
 
@@ -410,6 +477,10 @@ az containerapp secret set \
   --secrets "db-password=keyvaultref:/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/<keyvault-name>/secrets/db-password,identityref:/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 #### Enable Key Vault audit logging
 
 ```bash
@@ -419,6 +490,10 @@ az monitor diagnostic-settings create \
   --workspace "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>" \
   --logs '[{"category":"AuditEvent","enabled":true}]'
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor diagnostic-settings ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 ### Monitoring for Security Events
 
@@ -504,7 +579,7 @@ Use this checklist before promoting to production:
 
 ## Sources
 
-- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/security-concept)
+- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/security)
 - [Authentication and Authorization in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/authentication)
 - [Managed Identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)

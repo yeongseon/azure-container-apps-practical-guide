@@ -1,31 +1,37 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/health-probes
-      - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "ProbeFailed + ContainerTerminated(ProbeFailure) + revision Failed confirmed"
-
+    az_cli_version: 2.70.0
+    notes: ProbeFailed + ContainerTerminated(ProbeFailure) + revision Failed confirmed
   core_claims:
-    - claim: "Azure Container Apps supports startup probes to check whether a containerized app has started successfully."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "In Azure Container Apps, revisions are immutable snapshots of a container app version."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: Azure Container Apps supports startup probes to check whether a containerized app has started successfully.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: In Azure Container Apps, revisions are immutable snapshots of a container app version.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Revision Provisioning Failure Lab
 
 Reproduce a revision that is created but never becomes ready due to startup probe misconfiguration.
@@ -103,6 +109,10 @@ az deployment group create \
     --parameters baseName="labrevprov"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output:
 
 - Resource group creation succeeds.
@@ -133,6 +143,10 @@ az containerapp revision list \
     --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 Expected output:
 
 ```text
@@ -161,6 +175,10 @@ az containerapp update \
     --startup-probe-period-seconds 5
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### Observe the failure
 
 ```bash
@@ -169,6 +187,10 @@ az containerapp revision list \
     --resource-group "$RG" \
     --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Expected output shows the new revision in a non-Healthy state:
 
@@ -188,6 +210,10 @@ az containerapp logs show \
     --type system \
     --tail 30
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected log evidence:
 
@@ -294,6 +320,10 @@ Environment: `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan. 
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

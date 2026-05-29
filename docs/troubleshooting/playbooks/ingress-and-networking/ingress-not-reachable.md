@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/ingress-overview
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
-      - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/health-probes
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Ingress must be enabled on a container app before it can accept HTTP or TCP traffic."
-      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
-      verified: true
-    - claim: "Azure Container Apps supports both external and internal ingress modes."
-      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
-      verified: true
+  - claim: Ingress must be enabled on a container app before it can accept HTTP or TCP traffic.
+    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
+    verified: true
+  - claim: Azure Container Apps supports both external and internal ingress modes.
+    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
+    verified: true
 ---
-
 # Ingress Not Reachable
 
 ## 1. Summary
@@ -151,6 +150,10 @@ az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" \
   --query "properties.defaultDomain" --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ### H2: Ingress mode mismatch
 
 **Signals that support:**
@@ -173,6 +176,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 
 # Expected: true for public access, false for VNet-only
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### H3: No healthy backend replicas
 
@@ -199,6 +206,10 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
 # Check replica status
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 KQL for probe failures:
 
@@ -237,6 +248,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers[0].env[?name=='PORT' || name=='CONTAINER_APP_PORT']" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### H5: Firewall/NSG blocking
 
@@ -279,11 +294,19 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
      --revision-weight "<previous-healthy-revision>=100"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 2. **If target port mismatch:** Update ingress target port
    ```bash
    az containerapp ingress update --name "$APP_NAME" --resource-group "$RG" \
      --target-port 8000
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress update ...` | Updates ingress settings on an existing Container App. |
 
 3. **If probe too aggressive:** Relax probe settings temporarily
    ```bash
@@ -291,11 +314,19 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
      --set-env-vars "PROBE_INITIAL_DELAY=30"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 4. **If ingress disabled:** Enable ingress
    ```bash
    az containerapp ingress enable --name "$APP_NAME" --resource-group "$RG" \
      --type external --target-port 8000 --transport http
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
 
 ## 9. Prevention
 

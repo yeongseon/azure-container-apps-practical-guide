@@ -1,25 +1,34 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/azure/container-apps/scale-app
   - type: mslearn-adapted
     url: https://learn.microsoft.com/azure/container-apps/revisions
+  diagrams:
+  - id: min-replica-change-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the Microsoft Learn sources cited by this page.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: 2026-05-18
   reviewer: agent
   core_claims:
-    - claim: "Reducing minReplicas does not cause downtime — existing replicas continue serving until the autoscaler decides to terminate them."
-      source: https://learn.microsoft.com/azure/container-apps/scale-app
-      verified: true
-    - claim: "KEDA applies a cooldown period (default 300s) before scaling down replicas."
-      source: https://learn.microsoft.com/azure/container-apps/scale-app
-      verified: true
-    - claim: "Changing minReplicas creates a new revision in single-revision mode, but does not restart existing replicas."
-      source: https://learn.microsoft.com/azure/container-apps/revisions
-      verified: true
+  - claim: Reducing minReplicas does not cause downtime — existing replicas continue serving until the autoscaler decides
+      to terminate them.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: KEDA applies a cooldown period (default 300s) before scaling down replicas.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Changing minReplicas creates a new revision in single-revision mode, but does not restart existing replicas.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
 ---
-
 # Min Replica Change Impact
 
 Reducing `minReplicas` (e.g., 100 → 50) is a common Day-2 operation for cost optimization. This page documents the actual runtime behavior, verified with a live Azure deployment.
@@ -140,7 +149,19 @@ az containerapp update \
     --min-replicas 5
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Scale-up to the previous minimum is immediate — new replicas start within ~30 seconds.
+
+## Verification
+
+Confirm the target app, revision, job, logs, or metric state matches the expected result before closing the task.
+
+## Rollback / Troubleshooting
+
+If verification fails, revert only the last configuration change, capture the failing output, and use the linked troubleshooting guide before retrying.
 
 ## See Also
 

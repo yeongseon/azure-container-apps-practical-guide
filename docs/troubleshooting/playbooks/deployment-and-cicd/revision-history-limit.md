@@ -1,32 +1,31 @@
 ---
 content_sources:
   references:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-diagrams:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+  diagrams:
   - id: revision-history-limit-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
-      - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
+    - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps keeps up to 100 inactive revisions by default."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
-    - claim: "The maxInactiveRevisions property controls inactive revision retention."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
-    - claim: "Azure Container Apps supports manual revision activation and deactivation."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
-      verified: false
+  - claim: Azure Container Apps keeps up to 100 inactive revisions by default.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    verified: false
+  - claim: The maxInactiveRevisions property controls inactive revision retention.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    verified: false
+  - claim: Azure Container Apps supports manual revision activation and deactivation.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
+    verified: false
 ---
-
 # Revision History Limit
 
 ## Symptom

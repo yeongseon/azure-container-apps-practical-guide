@@ -1,32 +1,31 @@
 ---
 content_sources:
   diagrams:
-    - id: card-1-image-pull-failure
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/logging
+  - id: card-1-image-pull-failure
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/en-us/azure/container-apps/logging
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps provides system logs and console logs for diagnosis and troubleshooting."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
-    - claim: "Azure Container Apps health probes include startup, liveness, and readiness probes."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "Azure Container Apps supports automatic scaling based on HTTP traffic and events."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Managed identities can be used by Azure Container Apps to access Azure services."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
+  - claim: Azure Container Apps provides system logs and console logs for diagnosis and troubleshooting.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
+  - claim: Azure Container Apps health probes include startup, liveness, and readiness probes.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: Azure Container Apps supports automatic scaling based on HTTP traffic and events.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Managed identities can be used by Azure Container Apps to access Azure services.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Quick Diagnosis Cards
 
 One-page reference cards for rapid incident triage. Each card maps: **Symptom → First Query → Platform Segment → Playbook**.
@@ -222,6 +221,10 @@ az containerapp identity show --resource-group $RG --name $APP_NAME
 ```bash
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.secrets"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --resource-group ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ---
 

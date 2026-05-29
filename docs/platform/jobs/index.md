@@ -1,29 +1,29 @@
 ---
 content_sources:
   diagrams:
-    - id: jobs-document-map
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from existing repository Jobs content and Microsoft Learn Jobs/scale guidance while quote collection remained incomplete.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+  - id: jobs-document-map
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from existing repository Jobs content and Microsoft Learn Jobs/scale guidance while quote collection
+      remained incomplete.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps Jobs are designed for finite background execution rather than continuously serving traffic."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Azure Container Apps Jobs support manual, schedule, and event triggers."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Scheduled and event-driven job history is retained only for a limited number of recent executions."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
+  - claim: Azure Container Apps Jobs are designed for finite background execution rather than continuously serving traffic.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Azure Container Apps Jobs support manual, schedule, and event triggers.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Scheduled and event-driven job history is retained only for a limited number of recent executions.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
-
 # Container Apps Jobs
 
 Azure Container Apps Jobs run bounded background work with a defined start and finish. Use this section to choose a trigger model, understand execution fan-out, and operate jobs safely in production.
@@ -79,6 +79,14 @@ flowchart TD
     H --> I[Troubleshooting]
     F --> J[Language Recipes]
 ```
+
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Container Apps Jobs. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
 
 ## See Also
 

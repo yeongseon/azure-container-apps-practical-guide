@@ -1,29 +1,29 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-diagrams:
+  diagrams:
   - id: memory-leak-oomkilled-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      - https://learn.microsoft.com/en-us/azure/container-apps/containers
-      - https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - https://learn.microsoft.com/en-us/azure/container-apps/metrics
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps can terminate a container that exceeds its memory limit."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      verified: false
-    - claim: "Azure Monitor exposes memory-related metrics for Azure Container Apps."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      verified: false
+  - claim: Azure Container Apps can terminate a container that exceeds its memory limit.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    verified: false
+  - claim: Azure Monitor exposes memory-related metrics for Azure Container Apps.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+    verified: false
 ---
-
 # Memory Leak OOMKilled
 
 Use this playbook when replicas restart with `OOMKilled`, exit code `137`, or repeated memory-pressure symptoms that briefly improve after a restart and then return.
@@ -74,6 +74,10 @@ flowchart TD
         --output table
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Pull memory metrics for the incident window.
 
     ```bash
@@ -83,6 +87,10 @@ flowchart TD
         --aggregation Average \
         --timespan PT1H
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 3. Collect system and console logs to distinguish hard OOM from application exceptions.
 
@@ -134,6 +142,10 @@ flowchart TD
         --memory 2.0Gi \
         --cpu 1.0
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 3. Scale out earlier so each replica handles less concurrent state.
 4. Add or tune readiness and liveness probes so restart behavior is easier to interpret.

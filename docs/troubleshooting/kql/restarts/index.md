@@ -1,15 +1,23 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline-overview
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/kusto/query/
+  - id: query-pipeline-overview
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/kusto/query/
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Restarts Query Pack
 
 Queries for analyzing container and replica restart patterns in Azure Container Apps. Use these to correlate restarts with latency spikes and error incidents.

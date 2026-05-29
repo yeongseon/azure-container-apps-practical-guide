@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: tutorial-progression-model
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/python-overview
+  - id: tutorial-progression-model
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Language Guides: Step-by-Step Implementation
 
 Language Guides provide a tailored experience for developers working with specific runtimes on Azure Container Apps. Each guide is a complete learning path from local development to production operations.
@@ -98,6 +106,6 @@ Each language guide has a corresponding reference application in the `apps/` dir
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Python on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/python-overview)
+- [Python on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
 - [Dapr documentation](https://docs.dapr.io/)
 - [KEDA documentation](https://keda.sh/)

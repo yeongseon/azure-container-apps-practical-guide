@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: runtime-execution-model
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/containers
-        - https://learn.microsoft.com/azure/container-apps/connect-apps
+  - id: runtime-execution-model
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/containers
+    - https://learn.microsoft.com/azure/container-apps/connect-apps
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
 ---
-
 # Python Runtime
 
 This reference summarizes practical runtime defaults for Python workloads on Azure Container Apps so you can keep startup behavior, probe health, and logging predictable across revisions.

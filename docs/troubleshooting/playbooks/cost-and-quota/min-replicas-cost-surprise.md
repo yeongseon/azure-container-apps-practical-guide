@@ -1,32 +1,31 @@
 ---
 content_sources:
   text:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/billing
-diagrams:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/billing
+  diagrams:
   - id: min-replicas-cost-surprise-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/billing
-      - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-      - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/billing
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps uses per-revision scale settings including minimum replica count."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-      verified: true
-    - claim: "Scale-to-zero affects Azure Container Apps billing behavior."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/billing
-      verified: true
-    - claim: "Workload profiles change the cost model because dedicated capacity is reserved at the profile level."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-      verified: true
+  - claim: Azure Container Apps uses per-revision scale settings including minimum replica count.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    verified: true
+  - claim: Scale-to-zero affects Azure Container Apps billing behavior.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/billing
+    verified: true
+  - claim: Workload profiles change the cost model because dedicated capacity is reserved at the profile level.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: true
 ---
-
 # Min Replicas Cost Surprise
 
 ## Symptom

@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: use-container-apps-authentication-easy-auth
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-identity-providers
+  - id: use-container-apps-authentication-easy-auth
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/container-apps/authentication
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    verified: true
 ---
-
 # Recipe: Easy Auth (Built-in Authentication) for Python Apps
 
 Use Container Apps authentication (Easy Auth) to offload sign-in and token handling, then apply app-level authorization in Flask.
@@ -33,6 +41,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Supported identity providers
 
 Container Apps authentication supports providers such as:
@@ -55,6 +67,10 @@ az containerapp auth update \
   --global-validation unauthenticatedClientAction RedirectToLoginPage
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+
 Provider configuration can then be added with provider-specific settings:
 
 ```bash
@@ -65,6 +81,10 @@ az containerapp auth microsoft update \
   --registration-client-secret-setting-name "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" \
   --login-scopes "openid profile email"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp auth microsoft ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Enable Easy Auth via Bicep
 
@@ -171,3 +191,8 @@ def require_role(required_role: str):
 - [Key Vault Reference](key-vault-reference.md)
 - [Identity and Secrets](../../../platform/identity-and-secrets/managed-identity.md)
 - [Microsoft Learn: Authentication in Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/authentication)

@@ -1,20 +1,36 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    - id: revision-traffic-splitting
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+  - id: revision-traffic-splitting
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
 ---
-
 # 07 - Revisions and Traffic Splitting
 
 Azure Container Apps revisions provide immutable deployment snapshots of your .NET application. Use them for safe releases, canary traffic, and quick rollback to a known-good state.
@@ -121,6 +137,10 @@ graph TD
      --mode multiple
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+
    ???+ example "Expected output"
        ```
        "Multiple"
@@ -136,6 +156,10 @@ graph TD
      --resource-group "$RG" \
      --image "$ACR_LOGIN_SERVER/$BASE_NAME:v3"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
 
    ???+ example "Expected output"
        ```json
@@ -155,6 +179,10 @@ graph TD
      --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}" \
      --output table
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
    ???+ example "Expected output"
         ```text
@@ -179,6 +207,10 @@ graph TD
      --revision-weight "$OLD_REV=90" "$NEW_REV=10"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
    ???+ example "Expected output"
         ```json
         [
@@ -200,6 +232,10 @@ graph TD
      --name "$APP_NAME" \
      --resource-group "$RG"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress show ...` | Reads ingress configuration such as exposure, target port, transport, and affinity. |
 
    ???+ example "Expected output"
         ```json
@@ -223,6 +259,10 @@ graph TD
      --revision-weight "$OLD_REV=100"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 8. **Deactivate the bad revision**
 
    ```bash
@@ -232,11 +272,15 @@ graph TD
      --revision "$NEW_REV"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision deactivate ...` | Runs the Azure CLI operation required by the documented step. |
+
 ## Operational Guidance for .NET
 
 - **Health Probes**: Ensure your liveness and readiness probes (`/health`) are correctly configured so Container Apps doesn't route traffic to a revision that hasn't finished its .NET runtime startup.
 - **Graceful Shutdown**: ASP.NET Core handles `SIGTERM` signals. When you shift traffic away from a revision, the platform waits for active connections to finish (up to the termination grace period) before stopping the container.
-- **Sticky Sessions**: If your .NET app uses in-memory sessions (not recommended), traffic splitting will break session state unless you use an external provider like Redis.
+- **Session state**: If your .NET app uses in-memory sessions, revision changes and replica movement can disrupt state. Use an external provider such as Redis instead of relying on revision traffic splitting or sticky sessions as the state boundary.
 
 ## Advanced Topics
 

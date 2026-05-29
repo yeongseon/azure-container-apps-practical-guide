@@ -1,20 +1,36 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/observability
-    - id: how-observability-works-in-container-apps
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/observability
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/observability
+  - id: how-observability-works-in-container-apps
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/observability
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # 04 - Logging, Monitoring, and Observability
 
 This tutorial step shows how to inspect console logs, query Log Analytics, and add Application Insights-based observability for production operations.
@@ -101,6 +117,10 @@ flowchart TD
       --follow
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
     ???+ example "Expected output"
         ```json
         {"timestamp":"2026-04-05T11:00:00.000Z","level":"INFO","message":"Server started on port 8000"}
@@ -118,6 +138,10 @@ flowchart TD
       --resource-group "$RG" \
       --type system
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
     ???+ example "Expected output"
         ```json
@@ -142,6 +166,10 @@ flowchart TD
       --output table
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
     ???+ example "Expected output"
         ```text
         ContainerAppName_s    Log_s                                                                                          TimeGenerated
@@ -158,6 +186,10 @@ flowchart TD
       --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s has_any ('error', 'exception', 'failed') | project TimeGenerated, Log_s | take 10" \
       --output table
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
     ???+ example "Expected output"
         If no errors exist, the query returns an empty result set:
@@ -189,6 +221,10 @@ flowchart TD
       --resource-group "$RG" \
       --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=$CONNECTION_STRING"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
     The app will automatically start collecting:
     - HTTP request metrics (latency, throughput)

@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: jobs-troubleshooting-path
-      type: flowchart
-      source: self-generated
-      justification: Symptom-driven troubleshooting flow synthesized from repository job playbooks and Microsoft Learn Jobs guidance.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - id: jobs-troubleshooting-path
+    type: flowchart
+    source: self-generated
+    justification: Symptom-driven troubleshooting flow synthesized from repository job playbooks and Microsoft Learn Jobs
+      guidance.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Job executions can fail because of startup, configuration, runtime, or timeout problems."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Container Apps troubleshooting relies on execution inspection and log analysis."
-      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
-      verified: true
+  - claim: Job executions can fail because of startup, configuration, runtime, or timeout problems.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Container Apps troubleshooting relies on execution inspection and log analysis.
+    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
+    verified: true
 ---
-
 # Jobs Troubleshooting
 
 Use this page when a Container Apps Job fails, hangs, misses a schedule, or does not fan out the way you expected.
@@ -82,6 +82,10 @@ az containerapp job execution show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 ### Job runs but never completes
 
 1. Compare observed runtime with `replicaTimeout`.
@@ -130,6 +134,26 @@ az containerapp job execution show \
 - validate scaler config in a lower environment before production
 - keep retries low until idempotency is proven
 - separate input repair, replay, and dead-letter procedures in the runbook
+
+## Prerequisites
+
+Azure CLI, access to the target resource group, and permission to read or update the Container Apps resources described by this page.
+
+## When to Use
+
+Use this procedure when the operational symptom or maintenance task matches the scenario described above.
+
+## Procedure
+
+Follow the commands and checks in this page in order, recording the before-and-after configuration for the incident or change record.
+
+## Verification
+
+Confirm the target app, revision, job, logs, or metric state matches the expected result before closing the task.
+
+## Rollback / Troubleshooting
+
+If verification fails, revert only the last configuration change, capture the failing output, and use the linked troubleshooting guide before retrying.
 
 ## See Also
 

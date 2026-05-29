@@ -1,20 +1,36 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/containers
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - id: configuration-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/containers
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/containers
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: configuration-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/containers
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
 ---
-
 # 03 - Configuration, Secrets, and Dapr
 
 This step configures runtime settings in Azure Container Apps, including environment variables, secrets, KEDA scaling rules, and Dapr sidecar options.
@@ -132,6 +148,10 @@ graph TD
       --set-env-vars "LOG_LEVEL=INFO" "FEATURE_FLAG=true"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
    ???+ example "Expected output"
        ```json
        {
@@ -148,6 +168,10 @@ graph TD
      --resource-group "$RG" \
       --secrets "db-password=<secret-value>"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
    ???+ example "Expected output"
        ```text
@@ -174,6 +198,10 @@ graph TD
      --set-env-vars "DB_PASSWORD=secretref:db-password"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
    ???+ example "Expected output"
        ```json
        {
@@ -194,6 +222,10 @@ graph TD
      --scale-rule-type "http" \
       --scale-rule-http-concurrency 50
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
    ???+ example "Expected output"
        ```json
@@ -218,6 +250,10 @@ graph TD
      --scale-rule-auth "connection=servicebus-connection"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
    ???+ example "Expected output"
        ```json
        {
@@ -234,6 +270,10 @@ graph TD
      --output json
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az acr repository list ...` | Inspects or manages repositories and tags inside Azure Container Registry. |
+
    ???+ example "Expected output"
        ```json
        ["myapp", "myapp-job"]
@@ -248,6 +288,10 @@ graph TD
      --dapr-app-id "$APP_NAME" \
      --dapr-app-port 8000
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
 
    ???+ example "Expected output"
        ```json

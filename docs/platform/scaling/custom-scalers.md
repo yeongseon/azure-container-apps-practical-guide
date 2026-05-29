@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: custom-scaler-extension-path
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from Microsoft Learn documentation describing custom scale rules based on KEDA ScaledObject scalers.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/scale-app
+  - id: custom-scaler-extension-path
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from Microsoft Learn documentation describing custom scale rules based on KEDA ScaledObject
+      scalers.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports custom scale rules based on KEDA ScaledObject scalers."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Custom scale rules use a type plus metadata, and authentication can use secretRef or managed identity."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: Azure Container Apps supports custom scale rules based on KEDA ScaledObject scalers.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Custom scale rules use a type plus metadata, and authentication can use secretRef or managed identity.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # Custom Scalers in Azure Container Apps
 
 Custom scalers let you bring KEDA-backed trigger types into Azure Container Apps when HTTP, CPU, memory, or the common event examples are not enough. The Container Apps platform documents this as custom scaling based on ScaledObject scalers.
@@ -96,6 +96,14 @@ A safe operating pattern is:
 2. wire secrets or identity explicitly
 3. validate scaling in a non-production environment
 4. keep `maxReplicas` conservative until observed behavior is understood
+
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Custom Scalers in Azure Container Apps. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
 
 ## See Also
 

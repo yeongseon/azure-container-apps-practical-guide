@@ -1,33 +1,49 @@
 ---
 content_sources:
+  sources:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/networking
-diagrams:
+  diagrams:
+  - id: egress-ip-change-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
   - id: egress-ip-change-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/networking
-      - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "outbound IP 20.196.243.56 confirmed via ifconfig.me job; differs from inbound staticIp 20.249.149.1"
-
+    az_cli_version: 2.70.0
+    notes: outbound IP 20.196.243.56 confirmed via ifconfig.me job; differs from inbound
+      staticIp 20.249.149.1
   core_claims:
-    - claim: "NAT Gateway egress is supported for workload profiles environments."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-      verified: false
-    - claim: "Workload profiles environments support user-defined routes and controlled outbound traffic designs."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
-      verified: false
+  - claim: NAT Gateway egress is supported for workload profiles environments.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    verified: false
+  - claim: Workload profiles environments support user-defined routes and controlled
+      outbound traffic designs.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Egress IP Change Lab
 
 Measure outbound identity from a running replica, recreate the environment to simulate egress drift, then compare the post-cutover IP and document the remediation path for partner allow-lists.
@@ -49,9 +65,15 @@ Does egress ip change reproduce when the documented trigger condition is present
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -61,6 +83,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -68,6 +93,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -106,13 +134,17 @@ az containerapp job start --name job-egress-ip --resource-group rg-aca-lab-test4
 → job stdout: 20.196.243.56
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 - `[Observed]` Environment `staticIp` (inbound): `4.230.66.105`.
 - `[Observed]` Actual outbound egress IP: `20.196.243.56` — distinct from `staticIp`.
 - `[Inferred]` Firewall rules that allowlist only the `staticIp` will block outbound traffic; the egress IP must be allowlisted separately.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -144,6 +176,22 @@ az group delete \
 ## Related Playbook
 
 - [Egress IP Change](../playbooks/networking-advanced/egress-ip-change.md)
+
+## Page Flow
+
+<!-- diagram-id: egress-ip-change-page-flow -->
+```mermaid
+flowchart TD
+    A["Egress IP Change Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

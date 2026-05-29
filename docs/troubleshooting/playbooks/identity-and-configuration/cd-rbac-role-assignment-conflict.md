@@ -1,76 +1,83 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/github-actions
-      - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
-      - https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
-      - https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
-      - https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+    - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
+    - https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
+    - https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
+    - https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
 content_validation:
   status: verified
-  last_reviewed: "2026-04-23"
+  last_reviewed: '2026-04-23'
   reviewer: ai-agent
   validation_environment:
-    subscription: "<subscription-id>"
-    resource_group: "rg-aca-cd-rbac-validate"
-    container_app: "ca-cdrbac-dtyz5d"
-    acr: "acrcdrbacdtyz5d"
-    github_repo: "https://github.com/<owner>/lab-aca-cd-rbac-temp"
-    cli_version: "2.70.0"
-    containerapp_extension: "1.2.0b4"
-    tested_date: "2026-04-22"
+    subscription: <subscription-id>
+    resource_group: rg-aca-cd-rbac-validate
+    container_app: ca-cdrbac-dtyz5d
+    acr: acrcdrbacdtyz5d
+    github_repo: https://github.com/<owner>/lab-aca-cd-rbac-temp
+    cli_version: 2.70.0
+    containerapp_extension: 1.2.0b4
+    tested_date: '2026-04-22'
     outcomes:
-      - step: "First connect"
-        result: "Workflow + 3 secrets created; manual SP with Contributor (RG) + AcrPush (ACR) required"
-      - step: "Disconnect"
-        result: "Workflow file deleted; secrets, SP, and role assignments left behind"
-      - step: "Reproduce conflict"
-        result: "PUT new role assignment with same (scope, principal, role) returned RoleAssignmentExists"
-      - step: "4-step cleanup + reconnect"
-        result: "All artifacts cleaned and CD reconnected with fresh SP"
+    - step: First connect
+      result: Workflow + 3 secrets created; manual SP with Contributor (RG) + AcrPush (ACR) required
+    - step: Disconnect
+      result: Workflow file deleted; secrets, SP, and role assignments left behind
+    - step: Reproduce conflict
+      result: PUT new role assignment with same (scope, principal, role) returned RoleAssignmentExists
+    - step: 4-step cleanup + reconnect
+      result: All artifacts cleaned and CD reconnected with fresh SP
   additional_validation_environment:
-    subscription: "<subscription-id>"
-    resource_group: "rg-aca-orphan-ra-732926 / rg-rbac-cmd-verify-e727e8"
-    region: "koreacentral"
-    cli_version: "2.70.0"
-    resource_graph_extension: "2.1.1"
-    tested_date: "2026-04-23"
-    scenario: "Orphaned role-assignment lookup + diagnostic command-pattern verification"
+    subscription: <subscription-id>
+    resource_group: rg-aca-orphan-ra-732926 / rg-rbac-cmd-verify-e727e8
+    region: koreacentral
+    cli_version: 2.70.0
+    resource_graph_extension: 2.1.1
+    tested_date: '2026-04-23'
+    scenario: Orphaned role-assignment lookup + diagnostic command-pattern verification
     outcomes:
-      - step: "Resource Graph AuthorizationResources query (single-GUID lookup)"
-        result: "Returns row with full ARM `id`, `properties.scope/principalId/principalType/roleDefinitionId/createdOn` populated; works for orphan principals"
-      - step: "Resource Graph per-principal sweep (properties.principalId == ...)"
-        result: "Returns all assignments held by the orphan SP; works after the principal is deleted"
-      - step: "az role assignment list --include-inherited at RG scope"
-        result: "Without flag: 0 rows; with flag: 18 inherited rows (flag is essential)"
-      - step: "az rest --method DELETE on full ARM `id` (api-version=2022-04-01)"
-        result: "200 with deleted resource body; follow-up GET returns 404 RoleAssignmentNotFound"
-      - step: "az rest --method GET on full ARM `id` (api-version=2022-04-01)"
-        result: "200 for assignment at the queried scope; 404 RoleAssignmentNotFound for a sub-scope URL when the assignment lives at RG scope (URL is scope-aware)"
-      - step: "az role assignment show subcommand"
-        result: "Does not exist on CLI 2.70 (`'show' is misspelled or not recognized`); subcommands are create/delete/list/list-changelogs/update only"
-      - step: "az role assignment list --assignee <orphan-principalId>"
-        result: "Fails with `Cannot find user or service principal in graph database for '<id>'` because --assignee performs a Microsoft Entra ID lookup; use Resource Graph instead"
-      - step: "Per-scope az role assignment list visibility for orphan RA"
-        result: "Row remains visible with `principalName` empty (not hidden); orphan signal is the empty principalName, not a NotFound"
-      - step: "az ad sp create-for-rbac --years 1"
-        result: "Rejected by tenant credential lifetime policy (policy ID redacted); default (no --years) succeeded in 1st validation environment"
+    - step: Resource Graph AuthorizationResources query (single-GUID lookup)
+      result: Returns row with full ARM `id`, `properties.scope/principalId/principalType/roleDefinitionId/createdOn` populated;
+        works for orphan principals
+    - step: Resource Graph per-principal sweep (properties.principalId == ...)
+      result: Returns all assignments held by the orphan SP; works after the principal is deleted
+    - step: az role assignment list --include-inherited at RG scope
+      result: 'Without flag: 0 rows; with flag: 18 inherited rows (flag is essential)'
+    - step: az rest --method DELETE on full ARM `id` (api-version=2022-04-01)
+      result: 200 with deleted resource body; follow-up GET returns 404 RoleAssignmentNotFound
+    - step: az rest --method GET on full ARM `id` (api-version=2022-04-01)
+      result: 200 for assignment at the queried scope; 404 RoleAssignmentNotFound for a sub-scope URL when the assignment
+        lives at RG scope (URL is scope-aware)
+    - step: az role assignment show subcommand
+      result: Does not exist on CLI 2.70 (`'show' is misspelled or not recognized`); subcommands are create/delete/list/list-changelogs/update
+        only
+    - step: az role assignment list --assignee <orphan-principalId>
+      result: Fails with `Cannot find user or service principal in graph database for '<id>'` because --assignee performs
+        a Microsoft Entra ID lookup; use Resource Graph instead
+    - step: Per-scope az role assignment list visibility for orphan RA
+      result: Row remains visible with `principalName` empty (not hidden); orphan signal is the empty principalName, not a
+        NotFound
+    - step: az ad sp create-for-rbac --years 1
+      result: Rejected by tenant credential lifetime policy (policy ID redacted); default (no --years) succeeded in 1st validation
+        environment
   core_claims:
-    - claim: "Azure RBAC enforces a unique constraint on the combination of scope, principal, and role definition for role assignments."
-      source: "https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli"
-      verified: true
-    - claim: "Container Apps GitHub Actions continuous deployment provisions a service principal or managed identity and grants it AcrPush and Contributor roles on the registry and Container App."
-      source: "https://learn.microsoft.com/azure/container-apps/github-actions"
-      verified: true
-    - claim: "Disconnecting GitHub Actions continuous deployment removes the workflow file but does not remove GitHub secrets, the underlying service principal, or its role assignments."
-      source: "https://learn.microsoft.com/azure/container-apps/github-actions"
-      verified: true
+  - claim: Azure RBAC enforces a unique constraint on the combination of scope, principal, and role definition for role assignments.
+    source: https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
+    verified: true
+  - claim: Container Apps GitHub Actions continuous deployment provisions a service principal or managed identity and grants
+      it AcrPush and Contributor roles on the registry and Container App.
+    source: https://learn.microsoft.com/azure/container-apps/github-actions
+    verified: true
+  - claim: Disconnecting GitHub Actions continuous deployment removes the workflow file but does not remove GitHub secrets,
+      the underlying service principal, or its role assignments.
+    source: https://learn.microsoft.com/azure/container-apps/github-actions
+    verified: true
 ---
-
 # Continuous Deployment RBAC Role Assignment Conflict
 
 ## 1. Summary
@@ -198,6 +205,10 @@ az rest --method GET \
     --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+
 The output reveals the principal ID (`properties.principalId`), role definition ID (`properties.roleDefinitionId`), and scope (`properties.scope`) of the conflicting assignment, which is enough to confirm hypothesis H1 once you cross-reference the role definition ID against `az role definition list --query "[?id=='<roleDefinitionId>'].roleName" --output tsv` to recover the human-readable role name.
 
 ### When the assignment ID returns nothing
@@ -232,6 +243,10 @@ AuthorizationResources
 "
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 If the query returns a row, capture the **`id`** field verbatim — that is the full ARM resource ID (`…/providers/Microsoft.Authorization/roleAssignments/<guid>`) you must pass to the deletion step. The `scope` field tells you *where* the assignment lives, but it is not by itself a valid target for `az role assignment delete` or `az rest --method DELETE`. If `principalType` is empty or `principalId` does not resolve via `az ad sp show --id <principalId>`, the row matches H6 (orphaned principal).
 
 If the query returns no row, broaden it to inspect all assignments held by the suspected principal across the tenant. This catches H7 cases where the assignment lives at a scope you did not query, and H9 cases at Management Group scope:
@@ -246,6 +261,10 @@ AuthorizationResources
 | project name, scope = tostring(properties.scope), role = tostring(properties.roleDefinitionId)
 "
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az graph query ...` | Runs the Azure CLI operation required by the documented step. |
 
 If even this returns nothing and you have read permission across the tenant, the assignment is owned by a different tenant (H9) — escalate to whoever administers that tenant.
 
@@ -271,6 +290,10 @@ for SCOPE in "$SUB_ID" "$RG_ID" "$ACR_ID" "$APP_ID"; do
 done
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr show --name ...` | Reads registry configuration such as login server, identity, or admin status. |
+
 `--include-inherited` is essential: without it, an assignment inherited from the subscription onto the resource group is invisible from the resource group scope.
 
 If H7 is still in play after sweeping the four CD-relevant scopes above, list every role assignment held by the suspected principal across the entire tenant — this enumerates all scopes regardless of resource type, so it catches assignments at scopes the CD setup is not expected to touch.
@@ -288,11 +311,19 @@ If H7 is still in play after sweeping the four CD-relevant scopes above, list ev
     "
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az graph query ...` | Runs the Azure CLI operation required by the documented step. |
+
 If — and only if — the principal still resolves in Microsoft Entra ID, the `--assignee` form is also valid:
 
 ```bash
 az role assignment list --assignee "$SP_OBJECT_ID" --all --include-inherited --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
 
 #### Step C — Delete by full resource ID with the REST API
 
@@ -431,6 +462,10 @@ az rest --method GET \
     --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az graph query ...` | Runs the Azure CLI operation required by the documented step. |
+
 If the Resource Graph query returns no row, the assignment may live at Management Group scope or in another tenant — see §4 → "When the assignment ID returns nothing" → Step B for the per-scope sweep fallback.
 
 ### H2: Service principal still exists and still holds CD-related roles
@@ -452,6 +487,10 @@ SP_APP_ID="<appId-from-previous-step>"
 az role assignment list --assignee "$SP_APP_ID" --all --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+
 ### H3: Stale role assignment created manually for testing
 
 **Signals that support:**
@@ -471,6 +510,10 @@ az rest --method GET \
     --query "properties.principalType" \
     --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az rest --method ...` | Calls an Azure Resource Manager endpoint that is not covered by a higher-level CLI command. |
 
 (If the GET returns `RoleAssignmentNotFound`, resolve the assignment's full ARM `id` first — see §4 → "When the assignment ID returns nothing" → Step A — then GET that full URL.)
 
@@ -493,6 +536,10 @@ PRINCIPAL_ID=$(az rest --method GET \
     --query "properties.principalId" --output tsv)
 az ad sp show --id "$PRINCIPAL_ID" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az rest --method ...` | Calls an Azure Resource Manager endpoint that is not covered by a higher-level CLI command. |
 
 (If the GET returns `RoleAssignmentNotFound`, resolve the assignment's full ARM `id` first — see §4 → "When the assignment ID returns nothing" → Step A — then GET that full URL to capture `properties.principalId`.)
 
@@ -535,6 +582,10 @@ AuthorizationResources
 az ad sp show --id "$PRINCIPAL_ID" 2>&1 | head -3
 az ad user show --id "$PRINCIPAL_ID" 2>&1 | head -3
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az graph query ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### H7: Assignment exists at a different scope than the one you are searching
 
@@ -656,6 +707,10 @@ AuthorizationResources
 echo "Conflicting assignment full ID: $FULL_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 If `FULL_ID` is empty, fall back to §4 → "When the assignment ID returns nothing" → Step B (per-scope sweep with `--include-inherited`) before continuing.
 
 #### Step 1b — Inspect the assignment by its full ARM `id`
@@ -666,6 +721,10 @@ az rest --method GET \
     --query "{principalId:properties.principalId, principalType:properties.principalType, role:properties.roleDefinitionId, scope:properties.scope, created:properties.createdOn}" \
     --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az rest --method ...` | Calls an Azure Resource Manager endpoint that is not covered by a higher-level CLI command. |
 
 The output gives you `properties.principalId` (cross-reference with `az ad sp show --id <principalId>` — `Resource not found` confirms H6, an orphaned principal) and `properties.scope` (the actual scope to use in Step 1c). To recover the human-readable role name, look up `properties.roleDefinitionId` with `az role definition list --query "[?id=='<roleDefinitionId>']" --output table`.
 
@@ -682,6 +741,10 @@ az role assignment delete --ids "$FULL_ID"
 # az rest --method DELETE \
 #     --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az role assignment delete ...` | Removes the Azure RBAC assignment used only for the scenario. |
 
 !!! warning "If Step 1a returns nothing for the GUID"
     Resource Graph cannot see the assignment when it is indexed in a tenant where Resource Graph is disabled, when it has not yet propagated, or when you lack `Microsoft.Authorization/roleAssignments/read` at every scope it could be inherited from. The Portal IAM blade and per-scope `az role assignment list` are subject to the same read-permission constraint and additionally hide rows whose principal has been deleted in some configurations. Fall back to §4 → "When the assignment ID returns nothing" → Step B and sweep every scope (`subscription`, `resourceGroup`, ACR, Container App, child resources) with `az role assignment list --scope <SCOPE> --include-inherited --query "[?name=='$ROLE_ASSIGNMENT_ID']"`. Once you recover the full ARM `id` from any of those scopes, delete it via the REST API: `az rest --method DELETE --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"`.
@@ -706,6 +769,10 @@ az role assignment list --scope "$RG_ID"  --query "[?scope=='$RG_ID']"  --output
 az role assignment list --scope "$ACR_ID" --query "[?scope=='$ACR_ID']" --output table
 az role assignment list --scope "$APP_ID" --query "[?scope=='$APP_ID']" --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr show --name ...` | Reads registry configuration such as login server, identity, or admin status. |
 
 Delete each sibling assignment that belongs to the previous CD identity using `az role assignment delete --ids <full-resource-id>`.
 
@@ -740,6 +807,10 @@ gh api "repos/${GH_REPO}/contents/.github/workflows" 2>/dev/null | head -3
 gh secret list --repo "$GH_REPO"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp github-action delete ...` | Runs the Azure CLI operation required by the documented step. |
+
 If you skip this step, the next reconnect will overwrite the workflow file but the stale `*_AZURE_CREDENTIALS` secret will still authenticate as the **old** service principal, which is exactly what step 3 below is going to delete — leading to authentication failures in the very first deployment.
 
 ### Step 3 — Remove leftover service principal and app registration
@@ -772,6 +843,10 @@ az ad app delete --id "$SP_APP_ID"
 az ad sp show  --id "$SP_APP_ID" 2>&1 | head -3
 az ad app show --id "$SP_APP_ID" 2>&1 | head -3
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az ad sp show ...` | Creates or inspects service principal settings for automation identity. |
 
 Skip this step **only** if you intend to reuse the same service principal for the new CD link (in which case keep its credentials and supply them to step 4).
 
@@ -833,6 +908,10 @@ az containerapp github-action show \
     --resource-group "$RG" \
     --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az ad sp create-for-rbac ...` | Creates or inspects service principal settings for automation identity. |
 
 Confirm success on three dimensions: (1) `az containerapp github-action show` returns a `sourcecontrols/current` resource with the new branch and a fresh `workflowName`; (2) the GitHub repository contains a new `<APP_NAME>-AutoDeployTrigger-<guid>.yml` and three `<APP_UPPER_NO_HYPHEN>_*` secrets; (3) the first GitHub Actions run completes a build-push-deploy cycle without authentication errors.
 

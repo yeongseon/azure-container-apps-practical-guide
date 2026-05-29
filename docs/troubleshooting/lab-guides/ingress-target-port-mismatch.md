@@ -1,31 +1,38 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/ingress-overview
-      - https://learn.microsoft.com/azure/container-apps/ingress-how-to
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "HTTP 503 + PortMismatch + ProbeFailed confirmed; fix restored HTTP 200 in 15s"
-
+    az_cli_version: 2.70.0
+    notes: HTTP 503 + PortMismatch + ProbeFailed confirmed; fix restored HTTP 200 in 15s
   core_claims:
-    - claim: "Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app."
-      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
-      verified: true
-    - claim: "When external ingress is enabled for a Container App, Azure assigns the app a publicly reachable fully qualified domain name."
-      source: "https://learn.microsoft.com/azure/container-apps/ingress-overview"
-      verified: true
+  - claim: Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app.
+    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
+    verified: true
+  - claim: When external ingress is enabled for a Container App, Azure assigns the app a publicly reachable fully qualified
+      domain name.
+    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Ingress Target Port Mismatch Lab
 
 Diagnose and fix ingress failures caused by target port misconfiguration where the ingress routes traffic to the wrong port.
@@ -90,6 +97,10 @@ az deployment group create \
     --parameters baseName="labingress"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
+
 ### Capture Resource Names
 
 ```bash
@@ -123,6 +134,10 @@ az containerapp show \
     --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Expected output:
 
 ```text
@@ -152,6 +167,10 @@ az containerapp update \
     --target-port 8081
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### Observe the Failure
 
 ```bash
@@ -162,6 +181,10 @@ az containerapp show \
     --query "properties.configuration.ingress.targetPort" \
     --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected: `8081`
 
@@ -184,6 +207,10 @@ az containerapp replica list \
     --query "[].{name:name,runningState:properties.runningState}" \
     --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected: Replicas show `Running` state—the container is healthy, just unreachable via ingress.
 
@@ -243,7 +270,7 @@ The verify script confirms:
 
 ```text
 # Baseline: targetPort=80, app listens on 80 → HTTP 200
-curl -s -o /dev/null -w "HTTP %{http_code}" https://ca-labingress-mdsbya.ashymushroom-358fd64a.koreacentral.azurecontainerapps.io/
+curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/
 → HTTP 200
 
 # TRIGGER: set wrong targetPort 9999
@@ -251,7 +278,7 @@ az containerapp ingress update --name ca-labingress-mdsbya --resource-group rg-a
   --target-port 9999
 → TargetPort: 9999
 
-curl -s -o /dev/null -w "HTTP %{http_code}" https://ca-labingress-mdsbya.ashymushroom-358fd64a.koreacentral.azurecontainerapps.io/
+curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/
 → HTTP 503
 
 # FIX: restore correct targetPort 80
@@ -259,7 +286,7 @@ az containerapp ingress update --name ca-labingress-mdsbya --resource-group rg-a
   --target-port 80
 → TargetPort: 80
 
-curl -s -o /dev/null -w "HTTP %{http_code}" https://ca-labingress-mdsbya.ashymushroom-358fd64a.koreacentral.azurecontainerapps.io/
+curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/
 → HTTP 200
 ```
 
@@ -275,6 +302,10 @@ Environment: `koreacentral`, rg-aca-lab-test4, `mcr.microsoft.com/azuredocs/cont
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

@@ -1,31 +1,37 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/health-probes
-      - https://learn.microsoft.com/azure/container-apps/ingress-how-to
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "ProbeFailed system events confirmed, HTTP 200 on correct port"
-
+    az_cli_version: 2.70.0
+    notes: ProbeFailed system events confirmed, HTTP 200 on correct port
   core_claims:
-    - claim: "Azure Container Apps supports startup, readiness, and liveness probes for containers."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "Ingress in Azure Container Apps routes incoming requests to the app's target port inside the container."
-      source: "https://learn.microsoft.com/azure/container-apps/ingress-how-to"
-      verified: true
+  - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: Ingress in Azure Container Apps routes incoming requests to the app's target port inside the container.
+    source: https://learn.microsoft.com/azure/container-apps/ingress-how-to
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Probe and Port Mismatch Lab
 
 Reproduce probe failures when the container process listens on one port while ingress and probes target a different port.
@@ -90,6 +96,10 @@ az deployment group create \
     --parameters baseName="labport"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output pattern: deployment shows `Succeeded`.
 
 ### Capture deployment outputs
@@ -149,6 +159,10 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+
 Expected output: the latest revision is not healthy or repeatedly restarting.
 
 ### Inspect probe/system logs
@@ -159,6 +173,10 @@ az containerapp logs show \
     --resource-group "$RG" \
     --type system
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected diagnostic output pattern:
 
@@ -181,6 +199,10 @@ az containerapp show \
     --query "properties.configuration.ingress.targetPort" \
     --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output: `8000`, which does not match the application bind port `3000`.
 
@@ -259,6 +281,10 @@ Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/cont
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

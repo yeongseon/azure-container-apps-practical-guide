@@ -1,43 +1,44 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: sequence
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/github-actions
-      - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+    - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "Bad Request on duplicate role assignment confirmed"
-
+    az_cli_version: 2.70.0
+    notes: Bad Request on duplicate role assignment confirmed
   core_claims:
-    - claim: "Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition."
-      source: "https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli"
-      verified: true
-    - claim: "Container Apps GitHub Actions continuous deployment provisions role assignments for the deployment identity on the Azure Container Registry and the Container App."
-      source: "https://learn.microsoft.com/azure/container-apps/github-actions"
-      verified: true
-    - claim: "ARM deployments that create Microsoft.Authorization/roleAssignments fail with RoleAssignmentExists when a different assignment name targets the same scope, principal, and role."
-      source: "https://learn.microsoft.com/azure/role-based-access-control/troubleshooting"
-      verified: true
+  - claim: Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition.
+    source: https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
+    verified: true
+  - claim: Container Apps GitHub Actions continuous deployment provisions role assignments for the deployment identity on
+      the Azure Container Registry and the Container App.
+    source: https://learn.microsoft.com/azure/container-apps/github-actions
+    verified: true
+  - claim: ARM deployments that create Microsoft.Authorization/roleAssignments fail with RoleAssignmentExists when a different
+      assignment name targets the same scope, principal, and role.
+    source: https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
+    verified: true
 validation:
   az_cli:
-    last_tested: "2026-04-21"
-    cli_version: "2.70.0"
+    last_tested: '2026-04-21'
+    cli_version: 2.70.0
     result: pass
-    notes: "Reproduced the exact 'RoleAssignmentExists' error with the existing role assignment ID returned by the second ARM deployment. Recovery (delete + redeploy) succeeded."
+    notes: Reproduced the exact 'RoleAssignmentExists' error with the existing role assignment ID returned by the second ARM
+      deployment. Recovery (delete + redeploy) succeeded.
   bicep:
-    last_tested: "2026-04-21"
+    last_tested: '2026-04-21'
     result: pass
 ---
-
 # CD Reconnect RBAC Conflict Lab
 
 Reproduce the `AppRbacDeployment: The role assignment already exists` error that occurs when GitHub Actions continuous deployment is reconnected to a Container App after a previous disconnect that left RBAC role assignments behind.
@@ -115,6 +116,10 @@ az extension add --name containerapp --upgrade
 az account show --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az login ...` | Authenticates the CLI session before Azure resource operations. |
+
 Expected output: active subscription metadata.
 
 ### Deploy baseline infrastructure
@@ -131,6 +136,10 @@ az deployment group create \
     --template-file "./labs/cd-reconnect-rbac-conflict/infra/main.bicep" \
     --parameters baseName="labcdrbac"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
 
 Expected output pattern:
 
@@ -190,6 +199,10 @@ az deployment group create \
                  roleAssignmentName="$NEW_NAME"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
+
 The `infra/role-assignment.bicep` template creates a single `Microsoft.Authorization/roleAssignments@2022-04-01` resource on the registry scope with `roleDefinitionId` set to the `AcrPush` built-in role.
 
 Expected error output pattern from the second deployment:
@@ -213,6 +226,10 @@ az role assignment list \
     --query "[].{name:name, role:roleDefinitionName, scope:scope, principalType:principalType}" \
     --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
 
 Expected output pattern:
 
@@ -282,7 +299,7 @@ Expected result: the second deployment fails with `RoleAssignmentExists`, the de
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
 **Environment:** `rg-aca-lab-test6`, `koreacentral`.
-**Service Principal:** `sp-cd-lab6` (appId: `8475ed13-77d9-4c06-ab18-047ba358bfff`).
+**Service Principal:** `sp-cd-lab6` (appId: `<app-id>`).
 
 [Observed] `az role assignment delete` (removing Contributor from SP) → `az containerapp update` returned:
 ```text
@@ -290,7 +307,7 @@ AuthorizationFailed: The client does not have authorization to perform action
 'Microsoft.App/containerApps/write' over scope '/subscriptions/.../resourceGroups/rg-aca-lab-test6'.
 ```
 
-[Observed] `az role assignment create --role Contributor --assignee "8475ed13-77d9-4c06-ab18-047ba358bfff"` → re-assignment succeeded, `provisioningState: Succeeded`.
+[Observed] `az role assignment create --role Contributor --assignee "<app-id>"` → re-assignment succeeded, `provisioningState: Succeeded`.
 
 [Observed] Creating a duplicate role assignment via `az role assignment create` with an already-assigned `(scope, principal, role)` triple returned:
 ```text
@@ -329,14 +346,18 @@ if [ -n "$SP_APP_ID" ] && [ "$SP_APP_ID" != "null" ]; then
     SP_OBJECT_ID=$(az ad sp show --id "$SP_APP_ID" --query id --output tsv | tr -d '\r')
     az role assignment list --assignee "$SP_OBJECT_ID" --all --query "[].id" --output tsv \
         | tr -d '\r' \
-        | xargs -r -n 1 az role assignment delete --ids
+        | xargs -r --name 1 az role assignment delete --ids
     az ad sp delete --id "$SP_APP_ID"
     APP_OBJECT_ID=$(az ad app list --display-name "${APP_NAME}-github-actions-lab" \
         --query "[0].id" --output tsv | tr -d '\r')
-    [ -n "$APP_OBJECT_ID" ] && az ad app delete --id "$APP_OBJECT_ID"
+    [ --name "$APP_OBJECT_ID" ] && az ad app delete --id "$APP_OBJECT_ID"
 fi
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az ad sp list ...` | Creates or inspects service principal settings for automation identity. |
 
 ## Related Playbook
 

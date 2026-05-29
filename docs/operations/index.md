@@ -1,21 +1,20 @@
 ---
 content_sources:
   diagrams:
-    - id: use-a-repeatable-control-loop-so
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
+  - id: use-a-repeatable-control-loop-so
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps operations include monitoring, scaling, deployment, and recovery tasks."
-      source: "https://learn.microsoft.com/azure/container-apps/"
-      verified: true
+  - claim: Azure Container Apps operations include monitoring, scaling, deployment, and recovery tasks.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Operations
 
 This section covers production operations for Azure Container Apps. It is language-agnostic and focuses on platform behavior, reliability, and cost control in running systems.
@@ -68,6 +67,10 @@ az containerapp revision list --resource-group $RG --name $APP_NAME --output tab
 az containerapp logs show --resource-group $RG --name $APP_NAME --type system --follow
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --resource-group ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ### Verification Steps
 
 Validate that the operations baseline is healthy before changing configuration.
@@ -79,6 +82,10 @@ az containerapp show \
   --query "{name:name,environmentId:properties.managedEnvironmentId,provisioningState:properties.provisioningState,runningStatus:properties.runningStatus}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Example output (PII masked):
 

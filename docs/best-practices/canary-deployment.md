@@ -1,30 +1,30 @@
 ---
 content_sources:
   diagrams:
-    - id: staged-canary-promotion
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from Microsoft Learn guidance on revisions, traffic splitting, and revision-based deployment strategies.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
+  - id: staged-canary-promotion
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from Microsoft Learn guidance on revisions, traffic splitting, and revision-based deployment
+      strategies.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports weighted traffic splitting between revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/traffic-splitting"
-      verified: true
-    - claim: "Multiple revision mode lets you keep more than one revision active during a rollout."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Revision-based deployment strategies in Azure Container Apps can support canary-style release workflows."
-      source: "https://learn.microsoft.com/azure/container-apps/blue-green-deployment"
-      verified: true
+  - claim: Azure Container Apps supports weighted traffic splitting between revisions.
+    source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    verified: true
+  - claim: Multiple revision mode lets you keep more than one revision active during a rollout.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Revision-based deployment strategies in Azure Container Apps can support canary-style release workflows.
+    source: https://learn.microsoft.com/azure/container-apps/blue-green-deployment
+    verified: true
 ---
-
 # Canary Deployment for Azure Container Apps
 
 Canary deployment exposes a small slice of production traffic to a new revision, validates real behavior, and then increases weight in controlled steps. In Azure Container Apps, the platform primitive is weighted traffic split in multiple revision mode.
@@ -69,6 +69,10 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--stable=95" "$APP_NAME--canary=5"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### 2. Put metric gates between increments
 
 Do not promote on elapsed time alone. Use gates such as:
@@ -101,6 +105,10 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --revision-weight "$APP_NAME--stable=0" "$APP_NAME--canary=100"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
 
 ### 5. Use infrastructure code for the baseline, not each promotion step
 

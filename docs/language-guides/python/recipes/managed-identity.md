@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: use-managed-identity-and-defaultazurecredential-to
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-acr
+  - id: use-managed-identity-and-defaultazurecredential-to
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Recipe: Managed Identity in Python Apps on Azure Container Apps
 
 Use managed identity and `DefaultAzureCredential` to access Azure services from Python without storing credentials in code or configuration.
@@ -73,6 +81,10 @@ az containerapp identity assign \
   --user-assigned "$UAMI_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+
 ## Enable identity via Bicep
 
 ```bicep
@@ -113,6 +125,10 @@ az role assignment create \
   --role "Storage Blob Data Reader" \
   --scope "$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RG" --query id --output tsv)"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ## Use `DefaultAzureCredential` in Python
 
@@ -157,6 +173,10 @@ az containerapp update \
     STORAGE_CONTAINER="app-data"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ## Common service patterns
 
 - **Storage**: `Storage Blob Data Reader/Contributor`
@@ -172,6 +192,10 @@ az account set --subscription "<subscription-id>"
 python -m flask --app src.app run --port 8000
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az login ...` | Authenticates the CLI session before Azure resource operations. |
+
 `DefaultAzureCredential` will use Azure CLI token locally and managed identity in Container Apps.
 
 ## Advanced Topics
@@ -186,3 +210,8 @@ python -m flask --app src.app run --port 8000
 - [Storage](storage.md)
 - [Managed Identity Platform Guide](../../../platform/identity-and-secrets/managed-identity.md)
 - [Microsoft Learn: Managed identities in Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)

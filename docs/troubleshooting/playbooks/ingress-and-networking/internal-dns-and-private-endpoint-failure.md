@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
-      - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps environments support networking features that depend on the environment type and network configuration."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "Azure Container Apps supports private networking capabilities through environment networking configuration."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
+  - claim: Azure Container Apps environments support networking features that depend on the environment type and network configuration.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: Azure Container Apps supports private networking capabilities through environment networking configuration.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
 ---
-
 # Internal DNS and Private Endpoint Failure
 
 ## 1. Summary
@@ -145,6 +144,10 @@ az network private-dns zone list --resource-group "$RG" --output table
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network private-dns link ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 **Disproof logic:** If the container consistently resolves the hostname to the correct private IP and required DNS zone links exist, the missing-link hypothesis is disproved.
 
 ### H2: DNS forwarder misconfiguration
@@ -167,6 +170,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -248,6 +255,6 @@ For the full validated procedure, see: [On-Premises DNS to ACA Internal Environm
 
 ## Sources
 
-- [Container Apps environment custom DNS](https://learn.microsoft.com/azure/container-apps/environment-custom-dns)
+- [Container Apps environment custom DNS](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
 - [Private endpoints in Azure Container Apps environments](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)

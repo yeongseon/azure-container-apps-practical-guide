@@ -1,31 +1,38 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: sequence
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures
-      - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures
+    - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "failed to resolve registry confirmed, fixed with valid image"
-
+    az_cli_version: 2.70.0
+    notes: failed to resolve registry confirmed, fixed with valid image
   core_claims:
-    - claim: "A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure Container Registry."
-      source: "https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures"
-      verified: true
-    - claim: "In Azure Container Apps, revisions are immutable snapshots of a container app version."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure
+      Container Registry.
+    source: https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures
+    verified: true
+  - claim: In Azure Container Apps, revisions are immutable snapshots of a container app version.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # ACR Image Pull Failure Lab
 
 Reproduce and resolve container startup failure caused by referencing a non-existent image tag in Azure Container Registry (ACR).
@@ -94,6 +101,10 @@ az deployment group create \
     --parameters baseName="labacr"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output pattern:
 
 ```text
@@ -146,6 +157,10 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 Expected revision output pattern:
 
 ```text
@@ -175,6 +190,10 @@ az containerapp logs show \
     --type system
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 Expected output: image pull errors, manifest not found, or unauthorized pull messages.
 
 ### Apply the recovery path
@@ -191,6 +210,10 @@ az containerapp update \
     --resource-group "$RG" \
     --image "$ACR_NAME.azurecr.io/labacr:v1"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr login --name ...` | Authenticates Docker or the CLI to Azure Container Registry. |
 
 Expected output pattern:
 
@@ -273,6 +296,10 @@ Environment: `rg-aca-lab-test7`, `koreacentral`, Consumption plan.
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

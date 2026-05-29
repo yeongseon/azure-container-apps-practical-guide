@@ -1,15 +1,23 @@
 ---
 content_sources:
   diagrams:
-    - id: azure-container-apps-uses-the-eclipse
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/developer/java/fundamentals/java-on-azure-container-apps
-        - https://learn.microsoft.com/en-us/azure/container-apps/containers
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+  - id: azure-container-apps-uses-the-eclipse
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    verified: true
 ---
-
 # Java Runtime Reference
 
 This guide provides technical details on the Java runtime environment and optimization strategies for running Spring Boot applications on Azure Container Apps.
@@ -53,6 +61,10 @@ az containerapp update \
   --name $APP_NAME \
   --set-env-vars "JAVA_TOOL_OPTIONS=-Xms512m -Xmx1024m"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Multi-stage Docker Build Optimization
 

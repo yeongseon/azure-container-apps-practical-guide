@@ -1,20 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-        - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
-    - id: digi-cert-managed-certificate-issued
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-        - https://learn.microsoft.com/azure/container-apps/environment-custom-dns
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+  - id: digi-cert-managed-certificate-issued
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    verified: true
 ---
-
 # Custom Domains and Certificates
 
 Azure Container Apps supports custom hostnames and TLS certificates so you can serve production traffic on your own domain instead of the default `azurecontainerapps.io` endpoint. Managed certificates are validated through DigiCert and require public DNS reachability during issuance.
@@ -50,6 +58,10 @@ flowchart TD
 ```bash
 az extension add --name containerapp --upgrade
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
 
 ## Configure Custom Domain
 
@@ -104,6 +116,10 @@ az network dns record-set txt add-record \
   --value "$CUSTOM_DOMAIN_VERIFICATION_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network dns record-set ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 4. Add hostname to the Container App:
 
 ```bash
@@ -112,6 +128,10 @@ az containerapp hostname add \
   --resource-group "$RG" \
   --hostname "www.contoso.com"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname add ...` | Manages custom hostname bindings for ingress. |
 
 ## Create Managed Certificate
 
@@ -125,6 +145,10 @@ az containerapp hostname bind \
   --environment "$ENVIRONMENT_NAME" \
   --validation-method CNAME
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname bind ...` | Manages custom hostname bindings for ingress. |
 
 If you bring your own certificate instead of managed issuance, upload it to the environment with `az containerapp env certificate upload` and then bind it with `az containerapp hostname bind --certificate <cert-name>`.
 
@@ -140,6 +164,10 @@ az containerapp ingress update \
   --allow-insecure false
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress update ...` | Updates ingress settings on an existing Container App. |
+
 ## Verification
 
 ```bash
@@ -153,6 +181,10 @@ az containerapp env certificate list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
 
 Then verify HTTPS from a client:
 
@@ -178,4 +210,4 @@ curl --verbose https://www.contoso.com/
 
 ## Sources
 - [Container Apps custom domains and managed certificates (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
-- [Container Apps environment custom DNS (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment-custom-dns)
+- [Container Apps environment custom DNS (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)

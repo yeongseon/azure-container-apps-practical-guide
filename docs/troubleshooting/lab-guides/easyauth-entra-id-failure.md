@@ -1,34 +1,41 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/authentication
-diagrams:
+  diagrams:
   - id: easyauth-entra-id-failure-lab-diagram
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-      - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
-      - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
+    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
+    - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "HTTP 401 with WWW-Authenticate Bearer + authorization_uri; redirect URI fix in Entra app registration"
-
+    az_cli_version: 2.70.0
+    notes: HTTP 401 with WWW-Authenticate Bearer + authorization_uri; redirect URI fix in Entra app registration
   core_claims:
-    - claim: "Azure Container Apps can use built-in auth with Microsoft Entra ID."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
-      verified: false
-    - claim: "AADSTS50011 indicates a redirect URI or reply URL mismatch."
-      source: https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
-      verified: false
+  - claim: Azure Container Apps can use built-in auth with Microsoft Entra ID.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
+    verified: false
+  - claim: AADSTS50011 indicates a redirect URI or reply URL mismatch.
+    source: https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # EasyAuth Entra ID Failure Lab
 
 Trigger an Entra ID redirect URI mismatch for Container Apps built-in auth, then fix the callback alignment and validate successful sign-in.
@@ -62,9 +69,15 @@ Does easyauth entra id failure reproduce when the documented trigger condition i
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -74,6 +87,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -81,6 +97,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -110,30 +129,34 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ```text
 # EasyAuth enabled — unauthenticated access returns 401
-curl -si https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/
+curl -si https://<container-app-fqdn>/
 → HTTP/2 401
-→ www-authenticate: Bearer realm="ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io"
-     authorization_uri="https://login.windows.net/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/authorize"
-     resource_id="86fe9442-4d6c-4f83-840b-f18d5c71def9"
+→ www-authenticate: Bearer realm="<container-app-fqdn>"
+     authorization_uri="https://login.windows.net/<tenant-id>/oauth2/authorize"
+     resource_id="<app-id>"
 → x-ms-middleware-request-id: 42966e8e-22db-420d-8d30-a67080ab6548
 
 # Trigger: set wrong redirect URI in Entra app registration
-az ad app update --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 \
-  --web-redirect-uris "https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/wrong-callback"
+az ad app update --id <app-id> \
+  --web-redirect-uris "https://<container-app-fqdn>/wrong-callback"
 
-az ad app show --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 --query "web.redirectUris"
-→ ["https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/wrong-callback"]
+az ad app show --id <app-id> --query "web.redirectUris"
+→ ["https://<container-app-fqdn>/wrong-callback"]
 
 # AADSTS50011 occurs in browser OAuth flow when redirect_uri does not match
 # (Cannot be captured via CLI — requires browser-based OAuth code flow)
 
 # Fix: restore correct redirect URI
-az ad app update --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 \
-  --web-redirect-uris "https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/.auth/login/aad/callback"
+az ad app update --id <app-id> \
+  --web-redirect-uris "https://<container-app-fqdn>/.auth/login/aad/callback"
 
-az ad app show --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 --query "web.redirectUris"
-→ ["https://ca-easyauth-lab5.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/.auth/login/aad/callback"]
+az ad app show --id <app-id> --query "web.redirectUris"
+→ ["https://<container-app-fqdn>/.auth/login/aad/callback"]
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az ad app update ...` | Creates or inspects Microsoft Entra application registration settings. |
 
 - `[Observed]` HTTP **401** + `www-authenticate: Bearer realm="..."` — EasyAuth blocks unauthenticated access.
 - `[Observed]` Wrong redirect URI set: `.../wrong-callback` in app registration.
@@ -141,11 +164,11 @@ az ad app show --id 86fe9442-4d6c-4f83-840b-f18d5c71def9 --query "web.redirectUr
 - `[Observed]` After fix: redirect URI updated to `/.auth/login/aad/callback`.
 - `[Inferred]` EasyAuth's OAuth callback is always `/.auth/login/aad/callback`; any other value causes AADSTS50011 at browser login.
 
-Environment: `koreacentral`, rg-aca-lab-test5, App ID `86fe9442-4d6c-4f83-840b-f18d5c71def9`.
+Environment: `koreacentral`, rg-aca-lab-test5, App ID `<app-id>`.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 

@@ -1,32 +1,32 @@
 ---
 content_sources:
   diagrams:
-    - id: revision-mode-comparison
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from Microsoft Learn guidance on single and multiple revision modes.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/revisions-manage
+  - id: revision-mode-comparison
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from Microsoft Learn guidance on single and multiple revision modes.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/revisions-manage
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports single and multiple revision modes, and single revision mode is the default."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "In single revision mode, Container Apps provisions and activates the new revision and diverts traffic to it after it is ready."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "In multiple revision mode, you can keep more than one revision active and split traffic between revisions."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "The container app configuration property for revision mode is activeRevisionsMode."
-      source: "https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps"
-      verified: true
+  - claim: Azure Container Apps supports single and multiple revision modes, and single revision mode is the default.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: In single revision mode, Container Apps provisions and activates the new revision and diverts traffic to it after
+      it is ready.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: In multiple revision mode, you can keep more than one revision active and split traffic between revisions.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: The container app configuration property for revision mode is activeRevisionsMode.
+    source: https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps
+    verified: true
 ---
-
 # Revision Modes in Azure Container Apps
 
 Revision mode decides whether Azure Container Apps keeps one active revision or several active revisions at the same time. It changes how deployment promotion, rollback, and traffic management work.

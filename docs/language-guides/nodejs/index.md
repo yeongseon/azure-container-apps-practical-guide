@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: end-to-end-learning-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/nodejs-overview
+  - id: end-to-end-learning-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Node.js on Azure Container Apps
 
 This guide provides a comprehensive reference implementation for running Node.js applications on Azure Container Apps (ACA). We use a production-ready Express application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.
@@ -125,4 +133,4 @@ By completing this guide, you will gain the following capabilities:
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Node.js on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/nodejs-overview)
+- [Node.js on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)

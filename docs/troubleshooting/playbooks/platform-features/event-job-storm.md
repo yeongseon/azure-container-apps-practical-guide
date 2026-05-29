@@ -1,27 +1,27 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-diagrams:
+  diagrams:
   - id: event-job-storm-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps jobs support event-driven execution patterns."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
-    - claim: "Job execution history can be reviewed with Azure CLI commands for Container Apps jobs."
-      source: https://learn.microsoft.com/en-us/cli/azure/containerapp/job
-      verified: false
+  - claim: Azure Container Apps jobs support event-driven execution patterns.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    verified: false
+  - claim: Job execution history can be reviewed with Azure CLI commands for Container Apps jobs.
+    source: https://learn.microsoft.com/en-us/cli/azure/containerapp/job
+    verified: false
 ---
-
 # Event Job Storm
 
 Use this playbook when an event-driven job creates too many executions, drains a queue unexpectedly fast, or amplifies downstream failures.

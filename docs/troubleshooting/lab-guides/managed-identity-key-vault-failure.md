@@ -1,31 +1,37 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: sequence
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/managed-identity
-      - https://learn.microsoft.com/azure/key-vault/general/rbac-guide
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/key-vault/general/rbac-guide
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "ContainerAppSecretRefNotFound confirmed, fixed with real-secret"
-
+    az_cli_version: 2.70.0
+    notes: ContainerAppSecretRefNotFound confirmed, fixed with real-secret
   core_claims:
-    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "The Key Vault Secrets User built-in role permits reading secret values from Azure Key Vault."
-      source: "https://learn.microsoft.com/azure/key-vault/general/rbac-guide"
-      verified: true
+  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: The Key Vault Secrets User built-in role permits reading secret values from Azure Key Vault.
+    source: https://learn.microsoft.com/azure/key-vault/general/rbac-guide
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Managed Identity Key Vault Failure Lab
 
 Reproduce Key Vault access denial by running a managed-identity-enabled app without the required RBAC role assignment.
@@ -108,6 +114,10 @@ az deployment group create \
     --parameters baseName="labkv"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output:
 
 - Resource group creation succeeds.
@@ -166,6 +176,10 @@ az containerapp update \
     --registry-password "$ACR_PASSWORD"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+
 Expected output:
 
 - The app is updated to an image that reads Key Vault at runtime.
@@ -210,6 +224,10 @@ az containerapp logs show \
     --tail 20
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Expected output:
 
 - `identity.principalId` is present.
@@ -242,6 +260,10 @@ az role assignment create \
     --scope "$KV_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az keyvault show ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+
 The verification script then rolls a new revision with:
 
 ```bash
@@ -250,6 +272,10 @@ az containerapp update \
     --resource-group "$RG" \
     --set-env-vars "RESTART_TOKEN=$(date +%s)"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Expected output:
 
@@ -311,14 +337,14 @@ Expected output:
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
 **Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
-**App:** `ca-mi-kv` (system-assigned MI: `3ea634db-450e-4c1a-b6d5-7ca4e3a9f910`)
+**App:** `ca-mi-kv` (system-assigned MI: `<object-id>`)
 **Key Vault:** `kv-lab6-mi`
 
-[Observed] Before fix: `az role assignment list --assignee "3ea634db-450e-4c1a-b6d5-7ca4e3a9f910"` returned `[]` — no Key Vault access policy or role assignment present.
+[Observed] Before fix: `az role assignment list --assignee "<object-id>"` returned `[]` — no Key Vault access policy or role assignment present.
 
 [Observed] Trigger state: `az keyvault show --query "properties.accessPolicies"` returned `[]` — MI had zero permissions on Key Vault.
 
-[Observed] Fix applied: `az keyvault set-policy --object-id 3ea634db --secret-permissions get list` → policy confirmed with `objectId: 3ea634db-450e-4c1a-b6d5-7ca4e3a9f910`.
+[Observed] Fix applied: `az keyvault set-policy --object-id <object-id> --secret-permissions get list` → policy confirmed with `objectId: <object-id>`.
 
 [Observed] After fix: `az keyvault secret show --name "db-password"` returned `SuperSecret123!` — secret accessible via MI policy.
 
@@ -333,6 +359,10 @@ Environment: `koreacentral`, Consumption plan, Azure Key Vault with access polic
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

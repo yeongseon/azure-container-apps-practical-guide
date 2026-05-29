@@ -1,65 +1,64 @@
 ---
 content_sources:
   diagrams:
-    - id: 1-request-path-architecture-where-5xx-can-originate
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/overview
-        - https://learn.microsoft.com/azure/container-apps/observability
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - id: 2-runtime-replica-model-memory-pressure-oom-timeout
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/overview
-        - https://learn.microsoft.com/azure/container-apps/observability
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - id: 3-deployment-path-revision-failures-and-config-drift
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/overview
-        - https://learn.microsoft.com/azure/container-apps/observability
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - id: 4-outbound-network-path-dns-private-endpoints
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/overview
-        - https://learn.microsoft.com/azure/container-apps/observability
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - id: 5-observability-coverage-map
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/overview
-        - https://learn.microsoft.com/azure/container-apps/observability
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - id: 1-request-path-architecture-where-5xx-can-originate
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
+    - https://learn.microsoft.com/azure/container-apps/observability
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - id: 2-runtime-replica-model-memory-pressure-oom-timeout
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
+    - https://learn.microsoft.com/azure/container-apps/observability
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - id: 3-deployment-path-revision-failures-and-config-drift
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
+    - https://learn.microsoft.com/azure/container-apps/observability
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - id: 4-outbound-network-path-dns-private-endpoints
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
+    - https://learn.microsoft.com/azure/container-apps/observability
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+  - id: 5-observability-coverage-map
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
+    - https://learn.microsoft.com/azure/container-apps/observability
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps revisions are immutable snapshots of a container app version."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Azure Container Apps supports startup, liveness, and readiness probes for containers."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "Azure Container Apps can send system logs and console logs to a Log Analytics workspace."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
-    - claim: "Azure Container Apps supports ingress for HTTP and TCP traffic to applications."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
+  - claim: Azure Container Apps revisions are immutable snapshots of a container app version.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Azure Container Apps supports startup, liveness, and readiness probes for containers.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: Azure Container Apps can send system logs and console logs to a Log Analytics workspace.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
+  - claim: Azure Container Apps supports ingress for HTTP and TCP traffic to applications.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
 ---
-
 # Troubleshooting Architecture Overview
 
 This page answers one practical question first: **where can this fail?**
@@ -216,6 +215,10 @@ az monitor activity-log list --resource-group $RG --offset 24h
 az containerapp revision list --name $APP_NAME --resource-group $RG --output table
 az containerapp show --name $APP_NAME --resource-group $RG --query "properties.configuration.ingress"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ```kusto
 ContainerAppConsoleLogs_CL

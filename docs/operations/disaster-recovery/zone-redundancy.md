@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-    - id: zone-redundancy-vs-multi-region
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
+  - id: zone-redundancy-vs-multi-region
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure reliability guidance for Container Apps should be used when evaluating zone redundancy."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps"
-      verified: true
-    - claim: "Zone redundancy is available to all Container Apps plans, must be enabled during environment creation, and can't be changed afterward."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-container-apps"
-      verified: true
+  - claim: Azure reliability guidance for Container Apps should be used when evaluating zone redundancy.
+    source: https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
+    verified: true
+  - claim: Zone redundancy is available to all Container Apps plans, must be enabled during environment creation, and can't
+      be changed afterward.
+    source: https://learn.microsoft.com/azure/reliability/reliability-container-apps
+    verified: true
 ---
-
 # Zone Redundancy
 
 Zone redundancy improves resilience within a single region, but it is not a substitute for full multi-region disaster recovery.
@@ -83,6 +83,14 @@ flowchart TD
 - If the setting is immutable, recreate the environment instead of editing in place.
 - If the region does not support the setting, move to a supported region or a multi-region pattern.
 - If RTO or RPO targets exceed a single region, use multi-region instead.
+
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Zone Redundancy. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
 
 ## See Also
 

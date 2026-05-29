@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+  - id: query-pipeline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/en-us/azure/container-apps/environment
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can send application console logs to a Log Analytics workspace for querying."
-      source: "https://learn.microsoft.com/azure/container-apps/logging"
-      verified: true
-    - claim: "Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data."
-      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
-      verified: true
+  - claim: Azure Container Apps can send application console logs to a Log Analytics workspace for querying.
+    source: https://learn.microsoft.com/azure/container-apps/logging
+    verified: true
+  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial
+    verified: true
 ---
-
 # DNS and Connectivity Failures
 
 Use this query when dependency calls fail due to DNS lookup errors, timeouts, or transport connectivity issues.
@@ -73,3 +72,11 @@ ContainerAppConsoleLogs_CL
 
 - [Ingress Error Analysis](ingress-error-analysis.md)
 - [Internal DNS and Private Endpoint Failure Playbook](../../playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/environment)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
+- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial)

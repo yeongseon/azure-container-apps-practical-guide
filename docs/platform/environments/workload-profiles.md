@@ -1,33 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: environment-to-profiles-to-apps
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
-        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
-        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
+  - id: environment-to-profiles-to-apps
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+    - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
+    - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
 content_validation:
   status: verified
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports Consumption, Dedicated, and Flex workload profile types, and each environment includes a default Consumption profile."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview"
-      verified: true
-    - claim: "Current Dedicated profile names include D4/D8/D16/D32, E4/E8/E16/E32, and NC24-A100/NC48-A100/NC96-A100."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview"
-      verified: true
-    - claim: "The CLI uses --workload-profile-type, --workload-profile-name, --min-nodes, and --max-nodes to add workload profiles."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli"
-      verified: true
-    - claim: "The container app resource exposes workloadProfileName to pin execution to a workload profile."
-      source: "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps"
-      verified: true
+  - claim: Azure Container Apps supports Consumption, Dedicated, and Flex workload profile types, and each environment includes
+      a default Consumption profile.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: true
+  - claim: Current Dedicated profile names include D4/D8/D16/D32, E4/E8/E16/E32, and NC24-A100/NC48-A100/NC96-A100.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: true
+  - claim: The CLI uses --workload-profile-type, --workload-profile-name, --min-nodes, and --max-nodes to add workload profiles.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+    verified: true
+  - claim: The container app resource exposes workloadProfileName to pin execution to a workload profile.
+    source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
+    verified: true
 ---
-
 # Workload Profiles
 
 Workload profiles let one Azure Container Apps environment host different compute shapes at the same time. This is the core reason Workload profiles (v2) is the default environment type for new deployments.

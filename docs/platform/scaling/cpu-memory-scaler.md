@@ -1,30 +1,30 @@
 ---
 content_sources:
   diagrams:
-    - id: cpu-memory-scaler-positioning
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from Microsoft Learn CPU and memory scaling guidance and workload profile overview.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/tutorial-scaling
-        - https://learn.microsoft.com/azure/container-apps/scale-app
-        - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+  - id: cpu-memory-scaler-positioning
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from Microsoft Learn CPU and memory scaling guidance and workload profile overview.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/tutorial-scaling
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports CPU and memory scale rules."
-      source: "https://learn.microsoft.com/azure/container-apps/tutorial-scaling"
-      verified: true
-    - claim: "CPU and memory scaling do not allow a container app to scale to zero."
-      source: "https://learn.microsoft.com/azure/container-apps/tutorial-scaling"
-      verified: true
-    - claim: "Workload profiles in Azure Container Apps define available compute and billing models, including Consumption, Dedicated, and Flex."
-      source: "https://learn.microsoft.com/azure/container-apps/workload-profiles-overview"
-      verified: true
+  - claim: Azure Container Apps supports CPU and memory scale rules.
+    source: https://learn.microsoft.com/azure/container-apps/tutorial-scaling
+    verified: true
+  - claim: CPU and memory scaling do not allow a container app to scale to zero.
+    source: https://learn.microsoft.com/azure/container-apps/tutorial-scaling
+    verified: true
+  - claim: Workload profiles in Azure Container Apps define available compute and billing models, including Consumption, Dedicated,
+      and Flex.
+    source: https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+    verified: true
 ---
-
 # CPU and Memory Scalers in Azure Container Apps
 
 CPU and memory scalers protect a revision when the real bottleneck is sustained resource pressure. They are useful, but they should rarely be your only scaling signal for user-facing traffic.
@@ -109,6 +109,10 @@ az containerapp update \
   --scale-rule-type cpu \
   --scale-rule-metadata "type=Utilization" "value=70"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## See Also
 

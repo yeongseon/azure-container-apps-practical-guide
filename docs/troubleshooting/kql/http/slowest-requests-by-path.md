@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: purpose-ranks-request-paths-by-p95
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/kusto/query/
+  - id: purpose-ranks-request-paths-by-p95
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/kusto/query/
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps observability supports integration with Azure Monitor and Application Insights for telemetry analysis."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
-    - claim: "Log Analytics uses Kusto Query Language to query and analyze collected telemetry data."
-      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
-      verified: true
+  - claim: Azure Container Apps observability supports integration with Azure Monitor and Application Insights for telemetry
+      analysis.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
+  - claim: Log Analytics uses Kusto Query Language to query and analyze collected telemetry data.
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial
+    verified: true
 ---
-
 # Slowest Requests by Path
 
 **Scenario**: Need to identify which API endpoints or pages are causing the worst user experience.

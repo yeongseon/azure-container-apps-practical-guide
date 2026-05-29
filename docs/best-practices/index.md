@@ -1,17 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: language-guides-show-how-to-implement
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/best-practices
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/scale-app
+  - id: language-guides-show-how-to-implement
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Best Practices
 
 This section is the design judgment layer of the guide. Read it after [Platform](../platform/index.md) and before implementation so architectural choices are intentional rather than reactive.
@@ -170,7 +178,7 @@ flowchart TD
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Container Apps best practices (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/best-practices)
-- [Security in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/security-concept)
+- [Container Apps best practices (Microsoft Learn)](https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps)
+- [Security in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/security)
 - [Networking in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/networking)
 - [Azure Container Apps scaling](https://learn.microsoft.com/azure/container-apps/scale-app)

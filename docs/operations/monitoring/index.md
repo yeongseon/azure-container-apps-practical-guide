@@ -1,20 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: signals-and-alerting-architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-    - id: telemetry-freshness-workflow
-      type: sequence
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-        - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+  - id: signals-and-alerting-architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+  - id: telemetry-freshness-workflow
+    type: sequence
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Observability Operations
 
 This guide covers production observability operations for Container Apps using metrics, Log Analytics, Application Insights, and distributed tracing. Logging-specific runbooks now live in the dedicated [Logging](../logging/index.md) section.
@@ -56,6 +64,10 @@ az containerapp env show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 Example output (PII scrubbed):
 
 ```json
@@ -75,6 +87,10 @@ az monitor log-analytics query \
   --analytics-query "ContainerAppConsoleLogs | where ContainerAppName == '$APP_NAME' | where Log contains 'ERROR' | limit 50" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 Microsoft Learn currently documents both schema patterns for Container Apps logs: the Container Apps log-monitoring article queries `ContainerAppConsoleLogs_CL`, while Azure Monitor table references document the native `ContainerAppConsoleLogs` table. Check your workspace schema first, then match the table and column names to that shape.
 
@@ -96,6 +112,10 @@ az monitor app-insights query \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor app-insights ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 Use container logs directly during active incidents:
 
 ```bash
@@ -105,6 +125,10 @@ az containerapp logs show \
   --type console \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Example output from the running revision:
 
@@ -126,6 +150,10 @@ az containerapp replica list \
   --revision "ca-myapp--0000001" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Example output (PII scrubbed):
 
@@ -172,6 +200,10 @@ az monitor app-insights query \
   --analytics-query "dependencies | where cloud_RoleName == '$APP_NAME' | project timestamp, operation_Id, target, resultCode | limit 20" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor app-insights ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 ## Verification Steps
 
@@ -252,6 +284,6 @@ sequenceDiagram
 
 ## Sources
 - [Azure Monitor for Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappconsolelogs)
-- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/azure/azure-monitor/reference/tables/containerappsystemlogs)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappconsolelogs)
+- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/containerappsystemlogs)
 - [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)

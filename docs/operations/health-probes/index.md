@@ -1,28 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: probe-lifecycle-during-revision-activation
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/health-probes
-        - https://learn.microsoft.com/azure/container-apps/revisions
+  - id: probe-lifecycle-during-revision-activation
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps documents startup, readiness, and liveness probes."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "Revisions are considered ready only after successful provisioning, scale, and readiness behavior."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Azure Container Apps health probes support startup, readiness, and liveness probes over HTTP(S) or TCP, and exec probes aren't supported."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
+  - claim: Azure Container Apps documents startup, readiness, and liveness probes.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: Revisions are considered ready only after successful provisioning, scale, and readiness behavior.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Azure Container Apps health probes support startup, readiness, and liveness probes over HTTP(S) or TCP, and exec
+      probes aren't supported.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
 ---
-
 # Health Probes
 
 Health probes determine whether a revision can become ready, continue serving traffic, or be restarted when the workload is unhealthy.
@@ -72,6 +72,10 @@ az containerapp update \
   --yaml "./infra/containerapp-health.yaml"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 Microsoft Learn now documents the current probe behavior: Container Apps supports **startup**, **liveness**, and **readiness** probes; probes use **HTTP(S)** or **TCP** only; `exec` probes aren't supported; and the portal automatically adds default TCP probes to the main app container when ingress is enabled and you don't define that probe type yourself.
 
 <!-- diagram-id: probe-lifecycle-during-revision-activation -->
@@ -95,6 +99,10 @@ az containerapp revision list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 Review system logs for probe failures:
 
 ```bash
@@ -104,6 +112,10 @@ az containerapp logs show \
   --type system \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Rollback / Troubleshooting
 

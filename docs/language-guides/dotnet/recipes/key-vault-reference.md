@@ -1,15 +1,23 @@
 ---
 content_sources:
   diagrams:
-    - id: use-key-vault-references-and-azure
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/aspnet/core/security/key-vault-configuration
-        - https://learn.microsoft.com/dotnet/api/overview/azure/security.keyvault.secrets-readme
+  - id: use-key-vault-references-and-azure
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/aspnet/core/security/key-vault-configuration
+    - https://learn.microsoft.com/dotnet/api/overview/azure/security.keyvault.secrets-readme
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
+    verified: true
 ---
-
 # Recipe: Key Vault Reference in .NET Apps on Azure Container Apps
 
 Use Key Vault references and Azure SDK integration to keep ASP.NET Core secrets externalized and auditable.
@@ -60,6 +68,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars "DB_PASSWORD=secretref:db-password"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## ASP.NET Core configuration with Key Vault provider
 

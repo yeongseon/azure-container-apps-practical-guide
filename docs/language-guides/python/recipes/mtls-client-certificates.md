@@ -1,15 +1,23 @@
 ---
 content_sources:
   diagrams:
-    - id: flask-xfcc-validation-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+  - id: flask-xfcc-validation-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+    verified: true
 ---
-
 # Recipe: mTLS Client Certificates in Python Apps on Azure Container Apps
 
 Use Flask middleware to parse `X-Forwarded-Client-Cert`, validate the forwarded leaf certificate, and compare direct internal calls with Dapr service invocation.
@@ -159,6 +167,10 @@ az containerapp update \
     DIRECT_BACKEND_URL="http://ca-backend" \
     DAPR_TARGET_APP_ID="backend"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ### 3. Test from outside the app
 

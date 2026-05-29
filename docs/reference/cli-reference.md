@@ -1,24 +1,23 @@
 ---
 content_sources:
   diagrams:
-    - id: cli-workflow-map
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/cli/azure/containerapp
+  - id: cli-workflow-map
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/cli/azure/containerapp
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure CLI provides the containerapp command group for managing Container Apps resources."
-      source: "https://learn.microsoft.com/cli/azure/containerapp"
-      verified: true
-    - claim: "The Container Apps CLI extension must be installed separately from the base Azure CLI."
-      source: "https://learn.microsoft.com/azure/container-apps/get-started"
-      verified: true
+  - claim: Azure CLI provides the containerapp command group for managing Container Apps resources.
+    source: https://learn.microsoft.com/cli/azure/containerapp
+    verified: true
+  - claim: The Container Apps CLI extension must be installed separately from the base Azure CLI.
+    source: https://learn.microsoft.com/azure/container-apps/get-started
+    verified: true
 ---
-
 # Azure Container Apps CLI Reference
 
 This reference summarizes commonly used Azure Container Apps CLI command groups with production-friendly examples that use long flags.
@@ -31,6 +30,10 @@ This reference summarizes commonly used Azure Container Apps CLI command groups 
 ```bash
 az extension add --name containerapp --upgrade
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
 
 !!! warning "Destructive commands require explicit target verification"
     Commands such as `az containerapp delete` and revision deactivation can immediately impact availability. Validate `$RG`, `$APP_NAME`, and `$REVISION_NAME` before execution, and confirm intended scope with `az containerapp show` first.
@@ -77,6 +80,10 @@ az containerapp create \
   --max-replicas 5
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 Example output (PII scrubbed):
 
 ```json
@@ -100,6 +107,10 @@ az containerapp update \
   --memory 1.0Gi \
   --set-env-vars "ENV=prod" "LOG_LEVEL=info"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Example output (PII scrubbed):
 
@@ -135,6 +146,10 @@ az containerapp show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Example output (PII scrubbed):
 
 ```json
@@ -164,6 +179,10 @@ az containerapp list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp list ...` | Lists Container Apps in the selected resource group for inventory or verification. |
+
 Example output (PII scrubbed):
 
 ```text
@@ -180,6 +199,10 @@ az containerapp delete \
   --resource-group "$RG" \
   --yes
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp delete ...` | Runs the Azure CLI operation required by the documented step. |
 
 Example output:
 
@@ -211,6 +234,10 @@ az containerapp revision restart \
   --resource-group "$RG" \
   --revision "$REVISION_NAME"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Example output for `az containerapp revision list` (PII scrubbed):
 
@@ -264,6 +291,10 @@ az containerapp replica show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+
 Example output for `az containerapp replica list` (PII scrubbed):
 
 ```json
@@ -311,6 +342,10 @@ az containerapp logs show \
   --tail 200
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 Example output:
 
 ```text
@@ -334,6 +369,10 @@ az containerapp env list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env create ...` | Creates the managed Container Apps environment that hosts the app replicas. |
 
 Example output for `az containerapp env show` (PII scrubbed):
 
@@ -384,6 +423,10 @@ az containerapp job execution list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+
 Example output for `az containerapp job show` (PII scrubbed):
 
 ```json
@@ -432,6 +475,10 @@ az containerapp ingress show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
+
 Example output for `az containerapp ingress show` (PII scrubbed):
 
 ```json
@@ -468,6 +515,10 @@ az containerapp secret remove \
   --resource-group "$RG" \
   --secret-names "api-key"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 Example output for `az containerapp secret list`:
 

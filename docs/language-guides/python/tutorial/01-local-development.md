@@ -1,20 +1,36 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-        - https://learn.microsoft.com/azure/container-apps/containers#configuration
-    - id: local-development-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-        - https://learn.microsoft.com/azure/container-apps/containers#configuration
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - https://learn.microsoft.com/azure/container-apps/containers#configuration
+  - id: local-development-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - https://learn.microsoft.com/azure/container-apps/containers#configuration
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    verified: true
 ---
-
 # 01 - Run Locally with Docker
 
 Before deploying to Azure Container Apps, validate your Python app in a container locally. This catches image, dependency, and port issues early.
@@ -171,6 +187,14 @@ graph TD
 - Add local Redis or PostgreSQL via `docker network` and separate containers to mimic service dependencies.
 - Use OpenTelemetry locally to validate logs and traces before cloud deployment.
 - Add a Dapr sidecar for local service invocation testing.
+
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to 01 - Run Locally with Docker. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
 
 ## See Also
 - [02 - First Deploy to Azure Container Apps](02-first-deploy.md)

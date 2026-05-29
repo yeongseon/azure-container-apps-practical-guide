@@ -1,31 +1,39 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
+  - id: rbac-structure
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the Microsoft Learn sources cited by this page.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "A system-assigned identity is tied to the container app and is deleted when the container app is deleted."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "A user-assigned identity is a standalone Azure resource that can be assigned to a container app and other resources."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "Managed identities let a container app connect to Microsoft Entra protected resources without managing credentials in the app."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "When a managed identity is added, deleted, or modified on a running container app, the app does not automatically restart and a new revision is not created."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
+  - claim: A system-assigned identity is tied to the container app and is deleted when the container app is deleted.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: A user-assigned identity is a standalone Azure resource that can be assigned to a container app and other resources.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: Managed identities let a container app connect to Microsoft Entra protected resources without managing credentials
+      in the app.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: When a managed identity is added, deleted, or modified on a running container app, the app does not automatically
+      restart and a new revision is not created.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Passwordless Access with Managed Identity
 
 Azure Container Apps (ACA) supports managed identities, allowing your Python application to securely access other Azure services without managing credentials like connection strings or API keys.
@@ -102,13 +110,17 @@ az containerapp identity assign \
   --system-assigned
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ## Assigning Roles
 
 Assign roles to the managed identity to grant access to other resources (e.g., Azure SQL, Blob Storage, Key Vault).
 
 ```bash
 # Get the principal ID of the system-assigned identity
-principalId=$(az containerapp show --name my-python-app --resource-group my-aca-rg --query identity.principalId -o tsv)
+principalId=$(az containerapp show --name my-python-app --resource-group my-aca-rg --query identity.principalId --output tsv)
 
 # Assign the 'Storage Blob Data Reader' role
 az role assignment create \
@@ -116,6 +128,10 @@ az role assignment create \
   --role "Storage Blob Data Reader" \
   --scope /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/my-aca-rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ## Python Implementation
 

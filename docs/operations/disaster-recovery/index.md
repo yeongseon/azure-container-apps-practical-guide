@@ -1,28 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: multi-region-front-door-topology
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
-        - https://learn.microsoft.com/azure/frontdoor/front-door-overview
+  - id: multi-region-front-door-topology
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
+    - https://learn.microsoft.com/azure/frontdoor/front-door-overview
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Reliability guidance for Azure Container Apps should be used when planning zonal or regional resilience."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps"
-      verified: true
-    - claim: "Azure Front Door provides a global entry point that can be used in front of regional origins."
-      source: "https://learn.microsoft.com/azure/frontdoor/front-door-overview"
-      verified: true
-    - claim: "Container Apps is a single-region service, so multi-region resiliency requires separate regional deployments plus an external load-balancing or failover service."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-container-apps"
-      verified: true
+  - claim: Reliability guidance for Azure Container Apps should be used when planning zonal or regional resilience.
+    source: https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
+    verified: true
+  - claim: Azure Front Door provides a global entry point that can be used in front of regional origins.
+    source: https://learn.microsoft.com/azure/frontdoor/front-door-overview
+    verified: true
+  - claim: Container Apps is a single-region service, so multi-region resiliency requires separate regional deployments plus
+      an external load-balancing or failover service.
+    source: https://learn.microsoft.com/azure/reliability/reliability-container-apps
+    verified: true
 ---
-
 # Disaster Recovery
 
 Azure Container Apps disaster recovery is an architecture decision rather than a single platform toggle: you must decide whether zonal resilience, multi-region deployment, or both are required for the workload.
@@ -82,6 +82,14 @@ flowchart TD
 - If failover is manual, document exact operator actions and DNS impact.
 - If a failed region remains in rotation, inspect global health probe and origin status.
 - If backend state diverges, delay failback until data is reconciled.
+
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Disaster Recovery. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
 
 ## See Also
 

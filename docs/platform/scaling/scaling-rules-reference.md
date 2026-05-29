@@ -1,32 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: scale-rule-evaluation-reference
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from Microsoft Learn scaling-rule defaults and multiple-rule evaluation guidance.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/scale-app
-        - https://learn.microsoft.com/azure/container-apps/tutorial-scaling
+  - id: scale-rule-evaluation-reference
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from Microsoft Learn scaling-rule defaults and multiple-rule evaluation guidance.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/tutorial-scaling
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "The default minReplicas value is 0 and the default maxReplicas value is 10."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "The documented maximum configurable replicas is 1000."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "If more than one scale rule is defined, the container app begins to scale once the first condition of any rule is met."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "The documented default polling interval is 30 seconds and default cooldown period is 300 seconds for custom scale rules."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: The default minReplicas value is 0 and the default maxReplicas value is 10.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: The documented maximum configurable replicas is 1000.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: If more than one scale rule is defined, the container app begins to scale once the first condition of any rule
+      is met.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: The documented default polling interval is 30 seconds and default cooldown period is 300 seconds for custom scale
+      rules.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # Scaling Rules Reference in Azure Container Apps
 
 This page is a compact reference for the properties and default behaviors that matter across all Azure Container Apps scaling rules.

@@ -1,36 +1,37 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/containers#container-registries
-      - https://learn.microsoft.com/azure/container-apps/managed-identity
-      - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-      - https://learn.microsoft.com/azure/container-apps/firewall-integration
-      - https://learn.microsoft.com/azure/container-apps/user-defined-routes
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
-      - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
+    - https://learn.microsoft.com/azure/container-apps/containers#container-registries
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - https://learn.microsoft.com/azure/container-apps/firewall-integration
+    - https://learn.microsoft.com/azure/container-apps/user-defined-routes
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can pull container images from public and private registries, including Azure Container Registry."
-      source: "https://learn.microsoft.com/azure/container-apps/containers"
-      verified: true
-    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "In workload profiles environments with restricted egress, outbound access to the AzureActiveDirectory service tag on port 443 is required when using managed identity."
-      source: "https://learn.microsoft.com/azure/container-apps/firewall-integration"
-      verified: true
-    - claim: "Azure Container Apps can authenticate Azure Container Registry image pulls with managed identity instead of registry admin credentials."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull"
-      verified: true
+  - claim: Azure Container Apps can pull container images from public and private registries, including Azure Container Registry.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
+  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: In workload profiles environments with restricted egress, outbound access to the AzureActiveDirectory service tag
+      on port 443 is required when using managed identity.
+    source: https://learn.microsoft.com/azure/container-apps/firewall-integration
+    verified: true
+  - claim: Azure Container Apps can authenticate Azure Container Registry image pulls with managed identity instead of registry
+      admin credentials.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    verified: true
 ---
-
 # Image Pull Failure
 
 ## 1. Summary
@@ -167,6 +168,10 @@ ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query "id" --ou
 az role assignment list --scope "$ACR_ID" --assignee "$PRINCIPAL_ID" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ```kusto
 // Find auth errors
 let AppName = "ca-myapp";
@@ -195,6 +200,10 @@ az containerapp registry set \
   --identity system
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az role assignment create ...` | Grants the required Azure RBAC role at the documented scope. |
+
 ### H2: Image tag doesn't exist
 
 **Signals that support:**
@@ -222,6 +231,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers[0].image" --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr repository show-tags ...` | Inspects or manages repositories and tags inside Azure Container Registry. |
+
 ```kusto
 // Find manifest errors
 let AppName = "ca-myapp";
@@ -242,6 +255,10 @@ az acr build --registry "$ACR_NAME" --image "myapp:v1.0.0" .
 az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --image "$ACR_NAME.azurecr.io/myapp:existing-tag"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
 
 ### H3: Network path blocked
 
@@ -272,6 +289,10 @@ az network private-endpoint list --resource-group "$RG" \
   --query "[?contains(name, 'acr')]" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr show --name ...` | Reads registry configuration such as login server, identity, or admin status. |
+
 **Fix:**
 
 ```bash
@@ -281,6 +302,10 @@ az network private-dns zone list --resource-group "$RG" --output table
 # Or allow Container Apps environment subnet in ACR firewall
 az acr network-rule add --name "$ACR_NAME" --subnet "<subnet-id>"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az network private-dns zone ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
 
 ### H4: Malformed image reference
 

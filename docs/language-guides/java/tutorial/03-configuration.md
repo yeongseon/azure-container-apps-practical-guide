@@ -1,18 +1,34 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - id: configuration-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+  - id: configuration-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
+    verified: true
 ---
-
 # 03 - Configuration and Secrets
 
 Spring Boot applications on Azure Container Apps use environment variables, secrets, and Azure Key Vault for flexible, secure configuration management. This guide covers the essential patterns for configuring your Java application in production.
@@ -101,6 +117,10 @@ az containerapp update \
   --set-env-vars "APP_VERSION=1.0.0" "RUNTIME_MODE=production"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ???+ example "Expected output"
     ```text
     Updating container app...
@@ -117,8 +137,12 @@ Container Apps Secrets are encrypted and stored at the application level. They a
 az containerapp secret set \
   --resource-group $RG \
   --name $APP_NAME \
-  --secrets "db-password=super-secret-password"
+  --secrets "db-password=<secret-value>"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 ### 2. Map Secret to Environment Variable
 
@@ -131,6 +155,10 @@ az containerapp update \
   --set-env-vars "SPRING_DATASOURCE_PASSWORD=secretref:db-password"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ## Azure Key Vault Integration
 
 For production, store your secrets in Azure Key Vault and reference them from Container Apps.
@@ -141,6 +169,10 @@ For production, store your secrets in Azure Key Vault and reference them from Co
 KV_NAME="kv-java-$(date +%s)"
 az keyvault create --resource-group $RG --name $KV_NAME --location $LOCATION
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az keyvault create ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
 
 ### 2. Configure Managed Identity
 
@@ -161,11 +193,15 @@ az role assignment create \
   --scope /subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KV_NAME
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ### 3. Reference Key Vault Secrets
 
 ```bash
 # Add a secret to Key Vault
-az keyvault secret set --vault-name $KV_NAME --name "db-password" --value "kv-stored-password"
+az keyvault secret set --vault-name $KV_NAME --name "db-password" --value "<secret-value>"
 
 # Update ACA to reference Key Vault
 az containerapp secret set \
@@ -173,6 +209,10 @@ az containerapp secret set \
   --name $APP_NAME \
   --secrets "db-password=keyvaultref:https://$KV_NAME.vault.azure.net/secrets/db-password"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az keyvault secret ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
 
 ## Best Practices for Java Apps
 

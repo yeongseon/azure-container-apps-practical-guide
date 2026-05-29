@@ -1,27 +1,27 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-diagrams:
+  diagrams:
   - id: multi-region-failover-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-      - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+    - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+    - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Azure reliability guidance for Container Apps recommends multi-region planning for higher resilience requirements."
-      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-      verified: false
-    - claim: "Azure Front Door can use health probes and origin groups to steer traffic."
-      source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
-      verified: false
+  - claim: Azure reliability guidance for Container Apps recommends multi-region planning for higher resilience requirements.
+    source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+    verified: false
+  - claim: Azure Front Door can use health probes and origin groups to steer traffic.
+    source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+    verified: false
 ---
-
 # Multi-Region Failover
 
 Use this playbook when traffic does not fail over away from an unhealthy Azure Container Apps region or when failback behavior is inconsistent.

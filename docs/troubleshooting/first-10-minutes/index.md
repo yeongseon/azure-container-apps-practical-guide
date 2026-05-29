@@ -1,13 +1,21 @@
 ---
 content_sources:
   diagrams:
-    - id: use-this-ordered-checklist-when-a
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
+  - id: use-this-ordered-checklist-when-a
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # First 10 Minutes: Quick Triage Checklist
 
 Use this ordered checklist when a Container App is down, unhealthy, or unreachable. Run each step in sequence and stop when you find the first confirmed failure.
@@ -43,6 +51,10 @@ flowchart TD
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.provisioningState" --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Expected baseline from a healthy deployment:
 
 ```text
@@ -52,6 +64,10 @@ Succeeded
 ```bash
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,health:properties.healthState,running:properties.runningState,created:properties.createdTime}" --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Observed output pattern:
 
@@ -71,6 +87,10 @@ ca-myapp--0000001  True      Healthy   Running    2026-04-04T11:30:41+00:00
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "[].{replica:name,runningState:properties.runningState,created:properties.createdTime}" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+
 Observed output pattern:
 
 ```text
@@ -88,6 +108,10 @@ ca-myapp--0000001-646779b4c5-bhc2v     Running         2026-04-04T11:30:52+00:00
 ```bash
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --tail 50
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 For continuous streaming, add `--follow` and press Ctrl+C to exit.
 
@@ -114,6 +138,10 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 az acr repository show-tags --name "$ACR_NAME" --repository "$APP_NAME" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 Observed pull success pattern:
 
 ```text
@@ -133,6 +161,10 @@ TimeGenerated              Reason_s      Log_s
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 - Confirm `external` setting matches your access model and `targetPort` matches app listening port.
 - Failure patterns: ingress disabled, wrong `targetPort`, internal app tested from public internet.
 - If failed → go to [Ingress Not Reachable](../playbooks/ingress-and-networking/ingress-not-reachable.md).
@@ -142,6 +174,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 ```bash
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 - Confirm liveness/readiness probe paths and ports are valid; startup probe timeout fits app boot time.
 - Failure patterns: probe path returns 404/500, startup timeout too short, wrong probe port.
@@ -157,6 +193,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 az role assignment list --scope "$(az acr show --name "$ACR_NAME" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 - Confirm managed identity exists and has `AcrPull` role on the registry scope.
 - Failure patterns: no principal ID, missing `AcrPull`, ACR firewall blocks environment egress.
 - If failed → go to [Managed Identity Auth Failure](../playbooks/identity-and-configuration/managed-identity-auth-failure.md) and [Image Pull Failure](../playbooks/startup-and-provisioning/image-pull-failure.md).
@@ -167,6 +207,10 @@ az role assignment list --scope "$(az acr show --name "$ACR_NAME" --query id --o
 az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 - Confirm secret references exist and expected environment variables are present.
 - Failure patterns: `secretRef` points to missing secret, null env var values, stale revision after secret update.
@@ -179,6 +223,10 @@ az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --out
 az network private-endpoint list --resource-group "$RG" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 - Confirm environment is healthy and network dependencies (private DNS/private endpoints) are correctly configured.
 - Failure patterns: DNS resolution failures, blocked NSG outbound rules, missing private DNS link.
 - If failed → go to [Internal DNS and Private Endpoint Failure](../playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md).
@@ -188,6 +236,10 @@ az network private-endpoint list --resource-group "$RG" --output table
 ```bash
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.gethostbyname(\"example.database.windows.net\"))'"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
 
 - Confirm the app can resolve and reach critical services (database, storage, API endpoints).
 - Failure patterns: DNS timeout, TLS handshake errors, outbound firewall denials.

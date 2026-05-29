@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: handle-python-packages-with-compiled-native-components
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/containers
-        - https://learn.microsoft.com/en-us/azure/container-apps/python-overview
+  - id: handle-python-packages-with-compiled-native-components
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+    verified: true
 ---
-
 # Recipe: Python Native Dependencies on Azure Container Apps
 
 Handle Python packages with compiled/native components by installing required system libraries and using build strategies that keep runtime images lean.
@@ -138,4 +146,9 @@ docker run --rm "$ACR_NAME.azurecr.io/$APP_NAME:native-test" \
 - [Custom Container](custom-container.md)
 - [Container Registry](container-registry.md)
 - [Revisions](../../../platform/revisions/index.md)
-- [Microsoft Learn: Build images for Container Apps](https://learn.microsoft.com/azure/container-apps/tutorial-build-deploy-image)
+- [Microsoft Learn: Build images for Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/get-started)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)

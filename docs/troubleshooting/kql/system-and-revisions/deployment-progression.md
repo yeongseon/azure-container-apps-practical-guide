@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+  - id: query-pipeline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Each revision in Azure Container Apps represents an immutable snapshot of an app version and configuration."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "Troubleshooting Container Apps commonly relies on Log Analytics system logs that capture deployment and platform lifecycle events."
-      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
-      verified: true
+  - claim: Each revision in Azure Container Apps represents an immutable snapshot of an app version and configuration.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: Troubleshooting Container Apps commonly relies on Log Analytics system logs that capture deployment and platform
+      lifecycle events.
+    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
+    verified: true
 ---
-
 # Deployment Progression
 
 Use this query to follow a revision from initial configuration change through provisioning, health evaluation, and active state signals.
@@ -83,3 +83,11 @@ ContainerAppSystemLogs_CL
 
 - [Revision Failures and Startup](revision-failures-and-startup.md)
 - [Image Pull and Auth Errors](image-pull-and-auth-errors.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Microsoft Learn source 5](https://learn.microsoft.com/azure/container-apps/troubleshooting)

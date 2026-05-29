@@ -1,34 +1,33 @@
 ---
 content_sources:
   diagrams:
-    - id: classification-flowchart
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+  - id: classification-flowchart
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps provides observability through logs and monitoring integration."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
-    - claim: "Azure Container Apps supports startup, liveness, and readiness probes to monitor container health."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "Azure Container Apps supports automatic scaling for HTTP traffic and event-driven workloads."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Azure Container Apps supports both system-assigned and user-assigned managed identities."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
+  - claim: Azure Container Apps provides observability through logs and monitoring integration.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
+  - claim: Azure Container Apps supports startup, liveness, and readiness probes to monitor container health.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: Azure Container Apps supports automatic scaling for HTTP traffic and event-driven workloads.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
 ---
-
 # Troubleshooting Mental Model
 
 This page provides a classification model for Azure Container Apps incidents so you can start with the correct evidence source instead of guessing.

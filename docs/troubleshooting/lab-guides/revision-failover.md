@@ -1,31 +1,38 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/revisions-manage
-      - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - https://learn.microsoft.com/azure/container-apps/revisions-manage
+    - https://learn.microsoft.com/azure/container-apps/ingress-overview
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "traffic→0 + deactivate = HTTP 000, reactivate recovers"
-
+    az_cli_version: 2.70.0
+    notes: traffic→0 + deactivate = HTTP 000, reactivate recovers
   core_claims:
-    - claim: "Azure Container Apps lets you activate, deactivate, and manage revisions for a container app."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions-manage"
-      verified: true
-    - claim: "Azure Container Apps supports traffic splitting so requests can be distributed across multiple active revisions by percentage."
-      source: "https://learn.microsoft.com/azure/container-apps/traffic-splitting"
-      verified: true
+  - claim: Azure Container Apps lets you activate, deactivate, and manage revisions for a container app.
+    source: https://learn.microsoft.com/azure/container-apps/revisions-manage
+    verified: true
+  - claim: Azure Container Apps supports traffic splitting so requests can be distributed across multiple active revisions
+      by percentage.
+    source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Revision Failover and Rollback Lab
 
 Practice safe rollback by intentionally creating an unhealthy revision and routing traffic back to a healthy one.
@@ -89,6 +96,10 @@ az deployment group create \
     --parameters baseName="labrevision"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output pattern: deployment shows `Succeeded`.
 
 ### Capture deployment outputs
@@ -120,6 +131,10 @@ Expected output: no output; variables are set.
 ```bash
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Expected output pattern:
 
@@ -158,6 +173,10 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+
 Expected output: a new revision appears with unhealthy status and system logs show probe or connection failures related to the wrong target port.
 
 ### Investigate the failure signal
@@ -168,6 +187,10 @@ az containerapp logs show \
     --resource-group "$RG" \
     --type system
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected evidence: probe failure or connection failure associated with the port change.
 
@@ -185,6 +208,10 @@ az containerapp ingress traffic set \
     --resource-group "$RG" \
     --revision-weight "${HEALTHY_REVISION}=100"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Expected output: traffic update succeeds and the healthy revision handles requests.
 
@@ -254,6 +281,10 @@ Environment: `koreacentral`, Consumption plan.
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

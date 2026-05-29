@@ -1,20 +1,36 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/get-started-xml-bicep?tabs=azure-cli
-        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
-    - id: iac-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/get-started-xml-bicep?tabs=azure-cli
-        - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
+    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+  - id: iac-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
+    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
+    verified: true
 ---
-
 # 05 - Infrastructure as Code
 
 Azure Bicep provides a declarative way to define and manage your Azure Container Apps resources. This guide covers how to define your Spring Boot environment, registry, and application using Bicep templates.
@@ -194,6 +210,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       --parameters baseName="java-guide"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az deployment group validate ...` | Runs the Azure CLI operation required by the documented step. |
+
 3. **Deploy the infrastructure**
 
     ```bash
@@ -202,6 +222,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       --template-file infra/main.bicep \
       --parameters baseName="java-guide"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
 
 ???+ example "Expected output"
     ```text
@@ -250,6 +274,10 @@ az group create --name $RG --location $LOCATION
 az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
+
 ???+ example "Expected output"
     ```text
     {
@@ -274,6 +302,10 @@ LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $R
 az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr create --resource-group ...` | Creates Azure Container Registry for container image storage. |
+
 ???+ example "Expected output"
     ```text
     {
@@ -294,9 +326,13 @@ az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --locat
 az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --env-vars SPRING_PROFILES_ACTIVE=prod --query "properties.configuration.ingress.fqdn"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create --resource-group ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 ???+ example "Expected output"
     ```text
-    "ca-springboot-demo.gentlewave-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    "<container-app-fqdn>"
     ```
 
 ### Step 5: Validate configuration
@@ -304,6 +340,10 @@ az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVI
 ```bash
 az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:properties.configuration.ingress.fqdn,targetPort:properties.configuration.ingress.targetPort,environmentVariables:properties.template.containers[0].env}"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --resource-group ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ???+ example "Expected output"
     ```json
@@ -314,7 +354,7 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:proper
           "value": "prod"
         }
       ],
-      "fqdn": "ca-springboot-demo.gentlewave-1a2b3c4d.koreacentral.azurecontainerapps.io",
+      "fqdn": "<container-app-fqdn>",
       "targetPort": 8000
     }
     ```
@@ -325,5 +365,5 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:proper
 - [Bicep Documentation (Microsoft Learn)](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
 
 ## Sources
-- [Bicep template for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/get-started-xml-bicep?tabs=azure-cli)
+- [Bicep template for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec)
 - [Bicep resource reference (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/containerapps)

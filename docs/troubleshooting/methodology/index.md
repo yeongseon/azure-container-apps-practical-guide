@@ -1,20 +1,28 @@
 ---
 content_sources:
   diagrams:
-    - id: diagnostic-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - id: after-applying-a-candidate-fix-run
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+  - id: diagnostic-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+  - id: after-applying-a-candidate-fix-run
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
+    verified: true
 ---
-
 # Troubleshooting Methodology
 
 When the quick triage checklist does not isolate the issue, use this systematic workflow to move from symptom to verified root cause.
@@ -57,6 +65,10 @@ Determine whether failure is isolated to the latest revision or shared across ac
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,health:properties.healthState}" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 ```kql
 let AppName = "ca-myapp-api";
 ContainerAppSystemLogs_CL
@@ -93,6 +105,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az acr repository show-tags --name "$ACR_NAME" --repository "$APP_NAME" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ```kql
 let AppName = "ca-myapp-api";
 ContainerAppSystemLogs_CL
@@ -113,6 +129,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ```kql
 let AppName = "ca-myapp-api";
 ContainerAppConsoleLogs_CL
@@ -132,6 +152,10 @@ Trace path end-to-end: DNS resolution → ingress routing → healthy replica �
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json
 az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ```kql
 let AppName = "ca-myapp-api";

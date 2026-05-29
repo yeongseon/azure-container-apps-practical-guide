@@ -1,32 +1,34 @@
 ---
 content_sources:
   diagrams:
-    - id: secretref-resolution-path
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/azure/container-apps/environment-variables
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
+  - id: secretref-resolution-path
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/azure/container-apps/environment-variables
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-    - claim: "Container Apps secrets are application-scoped, outside any specific revision, and changing a secret does not create a new revision."
-      source: "https://learn.microsoft.com/azure/container-apps/manage-secrets"
-      verified: true
-    - claim: "Container Apps supports inline secrets with a value field and Key Vault-backed secrets with keyVaultUrl and identity fields."
-      source: "https://learn.microsoft.com/azure/container-apps/manage-secrets"
-      verified: true
-    - claim: "Environment variables can reference a secret by using the secretRef field."
-      source: "https://learn.microsoft.com/azure/container-apps/environment-variables"
-      verified: true
-    - claim: "If a Key Vault URI omits the secret version, Container Apps retrieves the latest version within 30 minutes and restarts active revisions that reference the secret in an environment variable."
-      source: "https://learn.microsoft.com/azure/container-apps/manage-secrets"
-      verified: true
+  - claim: Container Apps secrets are application-scoped, outside any specific revision, and changing a secret does not create
+      a new revision.
+    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
+    verified: true
+  - claim: Container Apps supports inline secrets with a value field and Key Vault-backed secrets with keyVaultUrl and identity
+      fields.
+    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
+    verified: true
+  - claim: Environment variables can reference a secret by using the secretRef field.
+    source: https://learn.microsoft.com/azure/container-apps/environment-variables
+    verified: true
+  - claim: If a Key Vault URI omits the secret version, Container Apps retrieves the latest version within 30 minutes and
+      restarts active revisions that reference the secret in an environment variable.
+    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
+    verified: true
 ---
-
 # Secrets in Azure Container Apps
 
 Azure Container Apps supports application-scoped secrets stored directly in the app definition or referenced from Azure Key Vault. This page focuses on how those secret mechanisms work inside Container Apps and when secret changes actually reach running revisions.
@@ -161,6 +163,10 @@ az containerapp update \
   --set-env-vars "API_KEY=secretref:api-key"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+
 ### Pattern 2: Key Vault-backed secret with managed identity
 
 Use this when you want centralized secret lifecycle management and auditability.
@@ -176,6 +182,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars "DB_PASSWORD=secretref:db-password"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 !!! tip "Use Key Vault references for production defaults"
     Key Vault references reduce secret sprawl inside app configuration and align better with centralized rotation, RBAC, and audit requirements.

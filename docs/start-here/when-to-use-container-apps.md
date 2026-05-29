@@ -1,39 +1,38 @@
 ---
 content_sources:
   diagrams:
-    - id: visual-positioning
-      type: quadrantChart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/compare-options
-        - https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service
-        - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
-        - https://learn.microsoft.com/azure/app-service/overview
-        - https://learn.microsoft.com/azure/aks/
-        - https://learn.microsoft.com/azure/azure-functions/
-    - id: decision-tree-which-service-should-you-choose
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/compare-options
-        - https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service
-        - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
-        - https://learn.microsoft.com/azure/app-service/overview
-        - https://learn.microsoft.com/azure/aks/
-        - https://learn.microsoft.com/azure/azure-functions/
+  - id: visual-positioning
+    type: quadrantChart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/compare-options
+    - https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service
+    - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+    - https://learn.microsoft.com/azure/app-service/overview
+    - https://learn.microsoft.com/azure/aks/
+    - https://learn.microsoft.com/azure/azure-functions/
+  - id: decision-tree-which-service-should-you-choose
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/compare-options
+    - https://learn.microsoft.com/azure/architecture/guide/choose-azure-container-service
+    - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
+    - https://learn.microsoft.com/azure/app-service/overview
+    - https://learn.microsoft.com/azure/aks/
+    - https://learn.microsoft.com/azure/azure-functions/
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps abstracts away Kubernetes complexity while providing container-native capabilities."
-      source: "https://learn.microsoft.com/azure/container-apps/compare-options"
-      verified: true
-    - claim: "Container Apps is ideal for microservices, APIs, and event-driven workloads that benefit from automatic scaling."
-      source: "https://learn.microsoft.com/azure/container-apps/overview"
-      verified: true
+  - claim: Azure Container Apps abstracts away Kubernetes complexity while providing container-native capabilities.
+    source: https://learn.microsoft.com/azure/container-apps/compare-options
+    verified: true
+  - claim: Container Apps is ideal for microservices, APIs, and event-driven workloads that benefit from automatic scaling.
+    source: https://learn.microsoft.com/azure/container-apps/overview
+    verified: true
 ---
-
 # Azure Container Apps vs Other Azure Compute Options
 
 Azure offers multiple ways to run apps. This guide compares Container Apps with AKS, App Service, ACI, and Functions so you can choose based on operational model, scaling behavior, and control requirements.

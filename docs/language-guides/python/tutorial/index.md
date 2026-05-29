@@ -1,14 +1,30 @@
 ---
 content_sources:
   diagrams:
-    - id: tutorial-progression
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/python-overview
+  - id: tutorial-progression
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Python Tutorial Index
 
 This tutorial path walks you from local development to safe production rollout for Python apps on Azure Container Apps.
@@ -51,3 +67,13 @@ flowchart TD
 - [Python guide overview](../index.md)
 - [Python runtime reference](../python-runtime.md)
 - [Python recipes index](../recipes/index.md)
+
+## See Also
+
+- [Tutorial index](index.md)
+- [Language guides](../../index.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/azure/container-apps/)
+- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)

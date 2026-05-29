@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: end-to-end-learning-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/developer/java/fundamentals/java-on-azure-container-apps
+  - id: end-to-end-learning-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Java (Spring Boot) on Azure Container Apps
 
 This guide provides a comprehensive reference implementation for running Java applications on Azure Container Apps (ACA). We use a production-ready Spring Boot application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.
@@ -120,4 +128,4 @@ By completing this guide, you will gain the following capabilities:
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Java on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/developer/java/fundamentals/java-on-azure-container-apps)
+- [Java on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)

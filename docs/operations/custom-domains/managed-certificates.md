@@ -1,24 +1,23 @@
 ---
 content_sources:
   diagrams:
-    - id: managed-certificate-lifecycle
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+  - id: managed-certificate-lifecycle
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure Container Apps documents a managed certificate workflow for custom domains."
-      source: "https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates"
-      verified: true
-    - claim: "Hostname add and bind commands are part of the CLI-based custom domain workflow."
-      source: "https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates"
-      verified: true
+  - claim: Azure Container Apps documents a managed certificate workflow for custom domains.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    verified: true
+  - claim: Hostname add and bind commands are part of the CLI-based custom domain workflow.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    verified: true
 ---
-
 # Managed Certificates
 
 Managed certificates reduce certificate-handling work when the target hostname fits the current Azure Container Apps managed-certificate support rules.
@@ -52,6 +51,10 @@ az containerapp hostname add \
   --hostname "$HOSTNAME"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname add ...` | Manages custom hostname bindings for ingress. |
+
 Bind the managed certificate:
 
 ```bash
@@ -61,6 +64,10 @@ az containerapp hostname bind \
   --hostname "$HOSTNAME" \
   --validation-method CNAME
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp hostname bind ...` | Manages custom hostname bindings for ingress. |
 
 Validate the result:
 

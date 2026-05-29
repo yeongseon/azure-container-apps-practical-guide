@@ -1,58 +1,59 @@
 ---
 content_sources:
   text:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
   diagrams:
-    - id: dns-resolution-flow
-      type: flowchart
-      source: self-generated
-      justification: "Synthesized from MSLearn articles on Private DNS Resolver, ACA custom domains, and hub-spoke networking"
-      based_on:
-        - https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
-        - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-        - https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
-    - id: network-topology
-      type: flowchart
-      source: self-generated
-      justification: "Synthesized from MSLearn hub-spoke reference architecture and Private DNS Resolver placement guidance"
-      based_on:
-        - https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
-        - https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
+  - id: dns-resolution-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from MSLearn articles on Private DNS Resolver, ACA custom domains, and hub-spoke networking
+    based_on:
+    - https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
+    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    - https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
+  - id: network-topology
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from MSLearn hub-spoke reference architecture and Private DNS Resolver placement guidance
+    based_on:
+    - https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
+    - https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
 content_validation:
   status: verified
-  last_reviewed: "2026-05-18"
+  last_reviewed: '2026-05-18'
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: "2026-05-18"
-    az_cli_version: "2.x"
+    tested_date: '2026-05-18'
+    az_cli_version: 2.x
     region: koreacentral
-    notes: "Custom Domain (.local) + Private DNS Resolver in Spoke VNet + Firewall DNS flow verified with logs + UDR effective routes confirmed + VNet-internal HTTP 200. Ingress external:true required."
+    notes: Custom Domain (.local) + Private DNS Resolver in Spoke VNet + Firewall DNS flow verified with logs + UDR effective
+      routes confirmed + VNet-internal HTTP 200. Ingress external:true required.
   core_claims:
-    - claim: "Azure Container Apps Internal Environment supports custom domain binding with internal DNS resolution."
-      source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-      verified: true
-    - claim: "Azure Private DNS Resolver can be deployed in any VNet peered to the hub, not only the hub itself."
-      source: https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
-      verified: true
-    - claim: "Private DNS Resolver inbound endpoint requires a dedicated subnet of /28 or larger."
-      source: https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
-      verified: true
-    - claim: "Azure Firewall network rules are required to allow DNS and HTTPS traffic from on-premises to Spoke resources."
-      source: https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
-      verified: true
-      note: "Both DNS (port 53) and HTTPS (port 443) flow verified with firewall diagnostic logs."
-    - claim: "UDR is needed on Spoke subnets to route return traffic through Hub Firewall to on-premises."
-      source: https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
-      verified: true
-      note: "Verified: without UDR on ACA subnet, HTTPS fails due to asymmetric routing. Firewall logs showed DNS return denied without UDR."
+  - claim: Azure Container Apps Internal Environment supports custom domain binding with internal DNS resolution.
+    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    verified: true
+  - claim: Azure Private DNS Resolver can be deployed in any VNet peered to the hub, not only the hub itself.
+    source: https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
+    verified: true
+  - claim: Private DNS Resolver inbound endpoint requires a dedicated subnet of /28 or larger.
+    source: https://learn.microsoft.com/azure/dns/dns-private-resolver-overview
+    verified: true
+  - claim: Azure Firewall network rules are required to allow DNS and HTTPS traffic from on-premises to Spoke resources.
+    source: https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
+    verified: true
+    note: Both DNS (port 53) and HTTPS (port 443) flow verified with firewall diagnostic logs.
+  - claim: UDR is needed on Spoke subnets to route return traffic through Hub Firewall to on-premises.
+    source: https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke
+    verified: true
+    note: 'Verified: without UDR on ACA subnet, HTTPS fails due to asymmetric routing. Firewall logs showed DNS return denied
+      without UDR.'
 ---
-
 # On-Premises DNS to ACA Internal Environment via Custom Domain
 
 Configure on-premises name resolution to reach Azure Container Apps (ACA) running in an Internal Environment using a custom internal domain, when corporate DNS policy prohibits forwarding Azure-managed domains. The ACA Internal Environment exposes apps via a static private IP on the environment's internal load balancer.

@@ -1,27 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: the-following-flow-helps-teams-move
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/overview
-        - https://learn.microsoft.com/azure/container-apps/get-started
-        - https://learn.microsoft.com/azure/container-apps/revisions
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+  - id: the-following-flow-helps-teams-move
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
+    - https://learn.microsoft.com/azure/container-apps/get-started
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps provides quickstart tutorials for deploying containerized applications."
-      source: "https://learn.microsoft.com/azure/container-apps/get-started"
-      verified: true
-    - claim: "Container Apps integrates with Azure Monitor for logging and monitoring."
-      source: "https://learn.microsoft.com/azure/container-apps/log-monitoring"
-      verified: true
+  - claim: Azure Container Apps provides quickstart tutorials for deploying containerized applications.
+    source: https://learn.microsoft.com/azure/container-apps/get-started
+    verified: true
+  - claim: Container Apps integrates with Azure Monitor for logging and monitoring.
+    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
+    verified: true
 ---
-
 # Tutorial: Azure Container Apps for Python
 
 Follow this tutorial sequence to containerize a Python app, deploy it to Azure Container Apps, configure runtime settings, and operate it with production-ready practices.

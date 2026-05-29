@@ -1,41 +1,44 @@
 ---
 content_sources:
   diagrams:
-    - id: bad-container-defaults-slow-startup-missing
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/containers
-    - id: probe-design-in-container-apps-should
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/containers
+  - id: bad-container-defaults-slow-startup-missing
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/containers
+  - id: probe-design-in-container-apps-should
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/containers
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Changes to the template configuration section trigger a new container app revision."
-      source: "https://learn.microsoft.com/azure/container-apps/containers"
-      verified: true
-    - claim: "Azure Container Apps supports startup, readiness, and liveness probes for containers."
-      source: "https://learn.microsoft.com/azure/container-apps/containers"
-      verified: true
-    - claim: "Most container apps have a single container, but Azure Container Apps also supports sidecar and init containers."
-      source: "https://learn.microsoft.com/azure/container-apps/containers"
-      verified: true
-    - claim: "If a container crashes, it automatically restarts."
-      source: "https://learn.microsoft.com/azure/container-apps/containers"
-      verified: true
-    - claim: "Using static image tags like latest can lead to caching problems and can make an app difficult to troubleshoot."
-      source: "https://learn.microsoft.com/azure/container-apps/containers"
-      verified: true
+  - claim: Changes to the template configuration section trigger a new container app revision.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
+  - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
+  - claim: Most container apps have a single container, but Azure Container Apps also supports sidecar and init containers.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
+  - claim: If a container crashes, it automatically restarts.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
+  - claim: Using static image tags like latest can lead to caching problems and can make an app difficult to troubleshoot.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
 ---
-
 # Container Design Best Practices for Azure Container Apps
 
 This guide focuses on container-level operational decisions that improve startup reliability, revision stability, observability quality, and cost control in Azure Container Apps. It complements the platform architecture pages by translating core runtime behaviors into repeatable container design standards.
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -51,7 +54,11 @@ az acr show --name "$ACR_NAME" --resource-group "$RG" --output table
 az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --output table
 ```
 
-## Main Content
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
+## Recommended Practices
 
 ### Design for the Azure Container Apps execution model
 
@@ -247,6 +254,10 @@ az containerapp update \
   --yaml "probes.yaml"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 Probe tuning guidance:
 
 1. Set startup probe window to worst-case cold start plus dependency initialization.
@@ -290,6 +301,10 @@ az containerapp revision list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### Implement SIGTERM-aware graceful shutdown
 
@@ -478,6 +493,18 @@ Migrate from `slim` to `distroless` only after:
 ### Structured logging schema governance
 
 Treat log schema as a versioned contract. Breaking schema changes should go through review, with KQL dashboard compatibility checks.
+
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
 
 ## See Also
 

@@ -1,43 +1,42 @@
 ---
 content_sources:
   diagrams:
-    - id: ingress-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
-    - id: vnet-setup-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
-    - id: diagnostic-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+  - id: ingress-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+  - id: vnet-setup-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+  - id: diagnostic-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports both external and internal ingress."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
-    - claim: "Internal ingress FQDNs for Azure Container Apps resolve only from within the environment virtual network."
-      source: "https://learn.microsoft.com/azure/container-apps/vnet-custom-internal"
-      verified: true
-    - claim: "A subnet used for an Azure Container Apps environment must be delegated to Microsoft.App/environments."
-      source: "https://learn.microsoft.com/azure/container-apps/vnet-custom-internal"
-      verified: true
-    - claim: "Container apps in the same environment can communicate by using their ingress FQDNs."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
+  - claim: Azure Container Apps supports both external and internal ingress.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
+  - claim: Internal ingress FQDNs for Azure Container Apps resolve only from within the environment virtual network.
+    source: https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+    verified: true
+  - claim: A subnet used for an Azure Container Apps environment must be delegated to Microsoft.App/environments.
+    source: https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
+    verified: true
+  - claim: Container apps in the same environment can communicate by using their ingress FQDNs.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
 ---
-
 # Networking Operations
 
 This guide covers networking operations for Container Apps: ingress updates, VNet-related checks, and service discovery between apps.
@@ -65,6 +64,10 @@ az containerapp ingress enable \
   --target-port 8000
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
+
 ### Ingress Flow
 
 <!-- diagram-id: ingress-flow -->
@@ -85,6 +88,10 @@ flowchart TD
     ENV -- Route Traffic --> POD
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress enable] ...` | Enables ingress for workloads that must receive inbound traffic. |
+
 Switch to internal ingress for private-only access:
 
 ```bash
@@ -93,6 +100,10 @@ az containerapp ingress disable \
   --resource-group "$RG"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress disable ...` | Disables inbound access for workloads that should not expose an endpoint. |
+
 ```bash
 az containerapp ingress enable \
   --name "$APP_NAME" \
@@ -100,6 +111,10 @@ az containerapp ingress enable \
   --type internal \
   --target-port 8000
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
 
 ### Verify Ingress Configuration
 
@@ -117,6 +132,10 @@ az containerapp ingress show \
   --resource-group "$RG" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output (PII masked):
 
@@ -187,6 +206,10 @@ az containerapp env show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+
 Validate subnet details (Azure CLI network command):
 
 ```bash
@@ -196,6 +219,10 @@ az network vnet subnet show \
   --name "snet-containerapps" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az network vnet subnet ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
 
 ### Verify VNet Integration
 
@@ -208,6 +235,10 @@ az containerapp env show \
   --query "{vnetConfig: properties.vnetConfiguration, staticIp: properties.staticIp}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 Expected output (PII masked):
 
@@ -229,6 +260,10 @@ az network vnet subnet show \
   --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network vnet subnet ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 Expected result: `Microsoft.App/environments`
 
 ## Service Discovery Operations
@@ -243,6 +278,10 @@ az containerapp show \
   --output tsv
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ### Verify Service Discovery
 
 **Control-plane check** — retrieve the internal FQDN of the target app:
@@ -254,6 +293,10 @@ az containerapp show \
   --query "properties.configuration.ingress.{fqdn: fqdn, external: external}" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 Expected output (internal app):
 
@@ -308,6 +351,10 @@ az containerapp exec \
 # In the container shell
 nslookup your-private-resource.database.windows.net
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected: private hostname resolves to a private IP.
 
@@ -403,11 +450,31 @@ az network watcher test-connectivity \
   --dest-port 443
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network watcher test-connectivity ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 ## Advanced Topics
 
 - Use internal ingress plus Application Gateway for centralized WAF.
 - Define egress allow-list controls with Azure Firewall or NVA.
 - Standardize DNS and naming for service-to-service resilience.
+
+## When to Use
+
+Use this procedure when the operational symptom or maintenance task matches the scenario described above.
+
+## Procedure
+
+Follow the commands and checks in this page in order, recording the before-and-after configuration for the incident or change record.
+
+## Verification
+
+Confirm the target app, revision, job, logs, or metric state matches the expected result before closing the task.
+
+## Rollback / Troubleshooting
+
+If verification fails, revert only the last configuration change, capture the failing output, and use the linked troubleshooting guide before retrying.
 
 ## See Also
 - [Security](../../platform/identity-and-secrets/security-operations.md)

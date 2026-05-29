@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/revisions
-      - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Each revision in Azure Container Apps is an immutable snapshot of a container app version."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "In multiple revision mode, Azure Container Apps can run multiple active revisions at the same time."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
+  - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: In multiple revision mode, Azure Container Apps can run multiple active revisions at the same time.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
 ---
-
 # Bad Revision Rollout and Rollback
 
 ## 1. Summary
@@ -136,6 +135,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
 ```kusto
 let AppName = "ca-myapp";
 ContainerAppConsoleLogs_CL
@@ -167,6 +170,10 @@ ContainerAppConsoleLogs_CL
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 **Disproof logic:** If the stable revision also fails under the same dependency path, focus on shared infrastructure or dependency health instead of revision-specific drift.
 

@@ -1,31 +1,32 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/azure/app-service/app-service-key-vault-references
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/azure/app-service/app-service-key-vault-references
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "A managed identity from Microsoft Entra ID allows a container app to access other Microsoft Entra protected resources."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "Calls from a container app to services such as Azure Key Vault can be rejected without the required role assignments even when the app uses a valid token for its managed identity."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "A container app with a managed identity exposes a local identity endpoint that the app can use to request tokens."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "Using an existing virtual network allows Container Apps to access resources behind private endpoints in the virtual network."
-      source: "https://learn.microsoft.com/azure/container-apps/networking"
-      verified: true
+  - claim: A managed identity from Microsoft Entra ID allows a container app to access other Microsoft Entra protected resources.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: Calls from a container app to services such as Azure Key Vault can be rejected without the required role assignments
+      even when the app uses a valid token for its managed identity.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: A container app with a managed identity exposes a local identity endpoint that the app can use to request tokens.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: Using an existing virtual network allows Container Apps to access resources behind private endpoints in the virtual
+      network.
+    source: https://learn.microsoft.com/azure/container-apps/networking
+    verified: true
 ---
-
 # Key Vault Secrets Management (Managed Identity)
 
 Use this recipe to access Key Vault secrets from a Python Container App without embedding secrets in code or images.
@@ -67,6 +68,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ## Step 2: Grant Key Vault secret permissions via RBAC
 
 ```bash
@@ -83,6 +88,10 @@ az role assignment create \
   --scope "$KEY_VAULT_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az keyvault show ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+
 ## Step 3: Add secret and app configuration
 
 Set a sample secret in Key Vault:
@@ -94,6 +103,10 @@ az keyvault secret set \
   --value "https://example.internal"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az keyvault secret ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+
 Store Key Vault URL in Container Apps settings:
 
 ```bash
@@ -102,6 +115,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars KEY_VAULT_URL="https://$KEY_VAULT_NAME.vault.azure.net/"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 !!! warning "Key Vault references still require correct RBAC and network path"
     Secret resolution fails when identity permissions, private DNS linkage, or endpoint connectivity are incomplete.
@@ -158,6 +175,10 @@ az role assignment list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+
 2. Verify secret read in app logs:
 
 ```bash
@@ -167,6 +188,10 @@ az containerapp logs show \
   --follow false
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+
 3. Validate secret metadata (without exposing secret values):
 
 ```bash
@@ -175,6 +200,10 @@ az keyvault secret show \
   --name "api-base-url" \
   --query "{name:name,enabled:attributes.enabled,updated:attributes.updated}"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az keyvault secret ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
 
 ## See Also
 - [Managed Identity](managed-identity.md)

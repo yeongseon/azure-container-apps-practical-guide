@@ -1,33 +1,49 @@
 ---
 content_sources:
+  sources:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-diagrams:
+  diagrams:
+  - id: private-endpoint-dns-failure-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
   - id: private-endpoint-dns-failure-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-      - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+    - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "DNS zone without VNet link (empty link list); VNet link created → LinkState=Completed"
-
+    az_cli_version: 2.70.0
+    notes: "DNS zone without VNet link (empty link list); VNet link created \u2192\
+      \ LinkState=Completed"
   core_claims:
-    - claim: "Private endpoint scenarios require service-specific private DNS zone mapping."
-      source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-      verified: false
-    - claim: "Container Apps in a custom VNet can access private endpoints in that virtual network."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-      verified: false
+  - claim: Private endpoint scenarios require service-specific private DNS zone mapping.
+    source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+    verified: false
+  - claim: Container Apps in a custom VNet can access private endpoints in that virtual
+      network.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Private Endpoint DNS Failure Lab
 
 Break private endpoint name resolution by omitting the VNet link for the private DNS zone, then restore that link and verify that the app resolves the dependency to a private IP.
@@ -49,9 +65,15 @@ Does private endpoint dns failure reproduce when the documented trigger conditio
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -61,6 +83,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -68,6 +93,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -113,6 +141,10 @@ az network private-dns link vnet list \
 → "Completed"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network private-dns link ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 - `[Observed]` Private DNS zone `privatelink.azurecr.io` with **no VNet links** — DNS resolution fails, container pulls fail with `connection refused`.
 - `[Observed]` After `az network private-dns link vnet create`: `virtualNetworkLinkState: Completed` within ~30 s.
 - `[Inferred]` Without the VNet link, the DNS zone is unreachable from within the VNet; private endpoints require both the zone and a VNet registration link.
@@ -121,7 +153,7 @@ az network private-dns link vnet list \
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -153,6 +185,22 @@ az group delete \
 ## Related Playbook
 
 - [Private Endpoint DNS Failure](../playbooks/networking-advanced/private-endpoint-dns-failure.md)
+
+## Page Flow
+
+<!-- diagram-id: private-endpoint-dns-failure-page-flow -->
+```mermaid
+flowchart TD
+    A["Private Endpoint DNS Failure Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

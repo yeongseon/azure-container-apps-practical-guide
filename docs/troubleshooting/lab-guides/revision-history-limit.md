@@ -1,34 +1,49 @@
 ---
 content_sources:
   references:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-diagrams:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+  diagrams:
+  - id: revision-history-limit-page-flow
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from the page structure and Microsoft Learn sources
+      listed in this document.
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
   - id: revision-history-limit-lab
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
-    az_cli_version: "2.70.0"
-    notes: "11 revisions created, platform manages lifecycle"
-
+    az_cli_version: 2.70.0
+    notes: 11 revisions created, platform manages lifecycle
   core_claims:
-    - claim: "Inactive revisions are retained up to the configured limit rather than forever."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
-    - claim: "Older inactive revisions are purged when the inactive revision retention limit is exceeded."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
+  - claim: Inactive revisions are retained up to the configured limit rather than
+      forever.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    verified: false
+  - claim: Older inactive revisions are purged when the inactive revision retention
+      limit is exceeded.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Revision History Limit Lab
 
 
@@ -50,9 +65,15 @@ Does revision history limit reproduce when the documented trigger condition is p
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -62,6 +83,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -69,6 +93,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -98,7 +125,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 
@@ -147,6 +174,22 @@ az group delete \
 ## Related Playbook
 
 - [Revision History Limit](../playbooks/deployment-and-cicd/revision-history-limit.md)
+
+## Page Flow
+
+<!-- diagram-id: revision-history-limit-page-flow -->
+```mermaid
+flowchart TD
+    A["Revision History Limit Lab"]
+    B["Lab Metadata"]
+    C["1. Question"]
+    D["2. Setup"]
+    E["3. Hypothesis"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+```
 
 ## See Also
 

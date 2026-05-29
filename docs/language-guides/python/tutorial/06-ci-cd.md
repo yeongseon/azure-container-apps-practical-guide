@@ -1,20 +1,36 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions
-        - https://learn.microsoft.com/azure/developer/github/connect-from-azure
-    - id: ci-cd-pipeline-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/github-actions
-        - https://learn.microsoft.com/azure/developer/github/connect-from-azure
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+    - https://learn.microsoft.com/azure/developer/github/connect-from-azure
+  - id: ci-cd-pipeline-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/github-actions
+    - https://learn.microsoft.com/azure/developer/github/connect-from-azure
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/github-actions
+    verified: true
 ---
-
 # 06 - CI/CD with GitHub Actions
 
 Automate build and deployment so every commit can produce a new Container App revision. This tutorial uses GitHub Actions, ACR, and Azure Container Apps deploy actions.
@@ -167,6 +183,10 @@ graph TD
       --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,replicas:properties.replicas,healthState:properties.healthState,runningState:properties.runningState}"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+
     ???+ example "Expected output"
         ```json
         [
@@ -186,6 +206,10 @@ graph TD
       --name "$APP_NAME" \
       --resource-group "$RG"
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp ingress show ...` | Reads ingress configuration such as exposure, target port, transport, and affinity. |
 
     ???+ example "Expected output"
         ```json

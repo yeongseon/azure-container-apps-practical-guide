@@ -1,32 +1,38 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: architecture
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-      - https://learn.microsoft.com/azure/container-apps/observability
-      - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
+    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+    - https://learn.microsoft.com/azure/container-apps/observability
+    - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
 content_validation:
   status: verified
-  last_reviewed: "2026-04-29"
+  last_reviewed: '2026-04-29'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "APPLICATIONINSIGHTS_CONNECTION_STRING present confirmed; 20 requests sent to App Insights"
-
+    az_cli_version: 2.70.0
+    notes: APPLICATIONINSIGHTS_CONNECTION_STRING present confirmed; 20 requests sent to App Insights
   core_claims:
-    - claim: "Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability."
-      source: "https://learn.microsoft.com/azure/container-apps/observability"
-      verified: true
-    - claim: "Application Insights uses a connection string to send telemetry to the correct monitoring resource."
-      source: "https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable"
-      verified: true
+  - claim: Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability.
+    source: https://learn.microsoft.com/azure/container-apps/observability
+    verified: true
+  - claim: Application Insights uses a connection string to send telemetry to the correct monitoring resource.
+    source: https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
+    verified: true
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Observability and Distributed Tracing Lab
 
 Troubleshoot Application Insights connectivity issues by simulating a misconfigured telemetry connection string.
@@ -105,6 +111,10 @@ az deployment group create \
     --parameters baseName="labobs"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 Expected output:
 
 - Resource group creation succeeds.
@@ -153,6 +163,10 @@ az containerapp show \
     --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Expected output:
 
 - The app shows `secretRef: appinsights-connection-string` for `APPLICATIONINSIGHTS_CONNECTION_STRING`.
@@ -171,6 +185,10 @@ az containerapp update \
     --name "$APP_NAME" \
     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Expected output:
 
@@ -197,6 +215,10 @@ az monitor app-insights query \
     --analytics-query "requests | where timestamp > ago(5m) | count"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 Expected output:
 
 - The env var now shows a literal invalid value instead of a secret reference.
@@ -220,6 +242,10 @@ az monitor log-analytics query \
     --workspace "$WORKSPACE_ID" \
     --analytics-query "union isfuzzy=true AppTraces, traces | where TimeGenerated > ago(15m) | summarize count()"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 Restore the valid connection string using the original secret reference:
 
@@ -332,6 +358,10 @@ Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5.
 ```bash
 az group delete --name "$RG" --yes --no-wait
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group delete ...` | Removes the lab resource group and its contained resources. |
 
 ## Related Playbook
 

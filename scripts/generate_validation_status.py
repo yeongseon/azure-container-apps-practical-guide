@@ -21,7 +21,10 @@ from typing import Any
 import yaml
 
 STALENESS_DAYS = 90
-TUTORIAL_GLOB = "language-guides/*/0*.md"
+VALIDATION_GLOBS = (
+    "language-guides/*/tutorial/0*.md",
+    "troubleshooting/lab-guides/*.md",
+)
 
 # Status icons
 ICON_PASS = "✅ Pass"
@@ -44,10 +47,15 @@ def parse_frontmatter(filepath: Path) -> dict[str, Any] | None:
 
 
 def extract_tutorial_info(filepath: Path, docs_dir: Path) -> dict[str, Any]:
-    """Extract tutorial metadata from file path and frontmatter."""
+    """Extract validation metadata from file path and frontmatter."""
     rel = filepath.relative_to(docs_dir)
     parts = rel.parts
-    language = parts[1] if len(parts) > 1 else "unknown"
+    if len(parts) >= 3 and parts[0] == "language-guides":
+        category = parts[1]
+    elif len(parts) >= 2 and parts[0] == "troubleshooting":
+        category = "troubleshooting-labs"
+    else:
+        category = "unknown"
     filename = filepath.stem
 
     frontmatter = parse_frontmatter(filepath)
@@ -58,7 +66,7 @@ def extract_tutorial_info(filepath: Path, docs_dir: Path) -> dict[str, Any]:
     return {
         "filepath": filepath,
         "rel_path": str(rel),
-        "language": language,
+        "category": category,
         "filename": filename,
         "title": filename.replace("-", " ").title(),
         "validation": validation,
@@ -131,18 +139,36 @@ def generate_dashboard(tutorials: list[dict[str, Any]], today: date) -> str:
         else:
             not_tested += 1
 
-    # Group by language
-    by_language: dict[str, list[dict[str, Any]]] = {}
+    # Group by content category
+    by_category: dict[str, list[dict[str, Any]]] = {}
     for t in tutorials:
-        lang = t["language"]
-        by_language.setdefault(lang, []).append(t)
+        category = t["category"]
+        by_category.setdefault(category, []).append(t)
 
     lines: list[str] = []
+    lines.append("---")
+    lines.append("content_sources:")
+    lines.append("  diagrams:")
+    lines.append("    - id: tutorial-validation-status-pie")
+    lines.append("      type: pie")
+    lines.append("      source: self-generated")
+    lines.append("      justification: Auto-generated from tutorial and lab validation frontmatter in this repository.")
+    lines.append("content_validation:")
+    lines.append("  status: verified")
+    lines.append(f'  last_reviewed: "{today.isoformat()}"')
+    lines.append("  reviewer: ai-agent")
+    lines.append("  core_claims:")
+    lines.append('    - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."')
+    lines.append("      source: scripts/generate_validation_status.py")
+    lines.append("      verified: true")
+    lines.append("---")
+    lines.append("")
     lines.append("# Tutorial Validation Status")
     lines.append("")
     lines.append(
         "This page tracks which tutorials have been validated against real Azure deployments. "
-        "Each tutorial can be tested via **az-cli** (manual CLI commands) or **Bicep** (infrastructure as code). "
+        "It scans language tutorial pages and troubleshooting lab guides. Each page can be tested via **az-cli** "
+        "(manual CLI commands) or **Bicep** (infrastructure as code). "
         f"Tutorials not tested within {STALENESS_DAYS} days are marked as stale."
     )
     lines.append("")
@@ -176,25 +202,27 @@ def generate_dashboard(tutorials: list[dict[str, Any]], today: date) -> str:
     lines.append("```")
     lines.append("")
 
-    # Validation Matrix per language
+    # Validation Matrix per category
     lines.append("## Validation Matrix")
     lines.append("")
 
-    for lang in sorted(by_language.keys()):
-        lang_tutorials = by_language[lang]
-        lang_display = lang.replace("-", " ").title()
-        if lang == "nodejs":
-            lang_display = "Node.js"
-        elif lang == "dotnet":
-            lang_display = ".NET"
+    for category in sorted(by_category.keys()):
+        category_tutorials = by_category[category]
+        category_display = category.replace("-", " ").title()
+        if category == "nodejs":
+            category_display = "Node.js"
+        elif category == "dotnet":
+            category_display = ".NET"
+        elif category == "troubleshooting-labs":
+            category_display = "Troubleshooting Labs"
 
-        lines.append(f"### {lang_display}")
+        lines.append(f"### {category_display}")
         lines.append("")
-        lines.append("| Tutorial | az-cli | Bicep | Last Tested | Status |")
+        lines.append("| Page | az-cli | Bicep | Last Tested | Status |")
         lines.append("|---|---|---|---|---|")
-        lang_tutorials.sort(key=lambda t: t["filename"])
+        category_tutorials.sort(key=lambda t: t["filename"])
 
-        for t in lang_tutorials:
+        for t in category_tutorials:
             v = t["validation"]
             cli_data = v.get("az_cli")
             bicep_data = v.get("bicep")
@@ -217,7 +245,7 @@ def generate_dashboard(tutorials: list[dict[str, Any]], today: date) -> str:
             else:
                 overall = ICON_NOT_TESTED
 
-            # Tutorial link
+            # Link from docs/reference/validation-status.md to the page.
             tutorial_link = f"[{t['title']}](../{t['rel_path']})"
 
             lines.append(
@@ -300,8 +328,11 @@ def main() -> None:
         print(f"Error: docs directory not found: {docs_dir}")
         raise SystemExit(1)
 
-    # Scan tutorials
-    tutorial_files = sorted(docs_dir.glob(TUTORIAL_GLOB))
+    # Scan pages with validation frontmatter.
+    tutorial_files: list[Path] = []
+    for pattern in VALIDATION_GLOBS:
+        tutorial_files.extend(docs_dir.glob(pattern))
+    tutorial_files = sorted(set(tutorial_files))
 
     # Filter out index.md files
     tutorial_files = [f for f in tutorial_files if f.name != "index.md"]

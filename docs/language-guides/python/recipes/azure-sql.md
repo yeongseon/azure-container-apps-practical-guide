@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
-        - https://learn.microsoft.com/azure/azure-sql/database/connect-query-python
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
+    - https://learn.microsoft.com/azure/azure-sql/database/connect-query-python
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
+    verified: true
 ---
-
 # Azure SQL Integration (Managed Identity)
 
 Use this recipe to connect Azure Container Apps to Azure SQL Database with Microsoft Entra authentication and no SQL passwords.
@@ -50,6 +58,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+
 ## Step 2: Grant SQL database access to the app identity
 
 From a Microsoft Entra-authenticated SQL session, create a contained user for the app identity.
@@ -68,6 +80,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars SQL_SERVER="$SQL_SERVER.database.windows.net" SQL_DATABASE="$SQL_DATABASE"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Step 4: Python code (token-based SQL connection)
 
@@ -127,6 +143,10 @@ az containerapp show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 2. Verify runtime connectivity by checking application logs:
 
 ```bash
@@ -135,6 +155,10 @@ az containerapp logs show \
   --resource-group "$RG" \
   --follow false
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 3. Confirm SQL sign-ins in Azure SQL auditing/logs.
 

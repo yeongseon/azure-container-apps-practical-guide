@@ -1,31 +1,31 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/architecture
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/overview
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps uses revisions to manage different versions of a container app."
-      source: "https://learn.microsoft.com/azure/container-apps/revisions"
-      verified: true
-    - claim: "A managed identity from Microsoft Entra ID allows a container app to access other Microsoft Entra protected resources."
-      source: "https://learn.microsoft.com/azure/container-apps/managed-identity"
-      verified: true
-    - claim: "Azure Container Apps supports internal ingress and service discovery for secure internal-only endpoints with built-in DNS-based service discovery."
-      source: "https://learn.microsoft.com/azure/container-apps/overview"
-      verified: true
-    - claim: "Azure Container Apps can run containers from public or private registries, including Azure Container Registry."
-      source: "https://learn.microsoft.com/azure/container-apps/overview"
-      verified: true
+  - claim: Azure Container Apps uses revisions to manage different versions of a container app.
+    source: https://learn.microsoft.com/azure/container-apps/revisions
+    verified: true
+  - claim: A managed identity from Microsoft Entra ID allows a container app to access other Microsoft Entra protected resources.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity
+    verified: true
+  - claim: Azure Container Apps supports internal ingress and service discovery for secure internal-only endpoints with built-in
+      DNS-based service discovery.
+    source: https://learn.microsoft.com/azure/container-apps/overview
+    verified: true
+  - claim: Azure Container Apps can run containers from public or private registries, including Azure Container Registry.
+    source: https://learn.microsoft.com/azure/container-apps/overview
+    verified: true
 ---
-
 # Resource Relationships
 
 This overview maps how Azure Container Apps runtime components, identities, and dependent Azure services interact in a typical production deployment.
@@ -101,5 +101,5 @@ Solid arrows show runtime data flow. Dashed arrows show identity, authentication
 - [Networking](../networking/index.md)
 
 ## Sources
-- [Azure Container Apps architecture (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/architecture)
+- [Azure Container Apps architecture (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
 - [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)

@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/health-probes
-      - https://learn.microsoft.com/azure/container-apps/containers
-      - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - https://learn.microsoft.com/azure/container-apps/containers
+    - https://learn.microsoft.com/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps supports startup, readiness, and liveness probes."
-      source: "https://learn.microsoft.com/azure/container-apps/health-probes"
-      verified: true
-    - claim: "A container app template defines one or more containers."
-      source: "https://learn.microsoft.com/azure/container-apps/containers"
-      verified: true
+  - claim: Azure Container Apps supports startup, readiness, and liveness probes.
+    source: https://learn.microsoft.com/azure/container-apps/health-probes
+    verified: true
+  - claim: A container app template defines one or more containers.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
 ---
-
 # CrashLoop OOM and Resource Pressure
 
 ## 1. Summary
@@ -162,6 +161,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --memory "1.0Gi" --cpu "0.5"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ### H2: CPU throttling delays startup
 
 **Signals that support:**
@@ -188,6 +191,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers[0].resources.cpu" --output tsv
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ```kusto
 // Find probe failures
@@ -233,6 +240,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers[0].env[?contains(name, 'MEMORY') || contains(name, 'HEAP')]" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### H4: Application startup crash
 
@@ -286,11 +297,19 @@ ContainerAppConsoleLogs_CL
      --memory "2.0Gi" --cpu "1.0"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+
 2. **If probe timeout:** Relax probe settings
    ```bash
    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
      --yaml probe-config.yaml  # With increased initialDelaySeconds
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
 
 3. **If startup crash:** Roll back to known good revision
    ```bash
@@ -298,11 +317,19 @@ ContainerAppConsoleLogs_CL
      --revision-weight "<previous-revision>=100"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+
 4. **If memory leak:** Restart replicas while investigating
    ```bash
    az containerapp revision restart --name "$APP_NAME" --resource-group "$RG" \
      --revision "<current-revision>"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision restart ...` | Restarts the selected revision when validating runtime recovery. |
 
 ## 9. Prevention
 

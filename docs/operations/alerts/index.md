@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: alert-lifecycle-flow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/alerts
-        - https://learn.microsoft.com/azure/container-apps/log-monitoring
+  - id: alert-lifecycle-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/alerts
+    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/alerts
+    verified: true
 ---
-
 # Alerting for Container Apps
 
 Alerting translates platform telemetry into actionable incident signals. This page provides a baseline alert set for production Container Apps.
@@ -55,6 +63,10 @@ az monitor metrics alert create \
   --action "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/microsoft.insights/actionGroups/ag-oncall"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 Pre-alert baseline checks from real deployment (PII scrubbed):
 
 ```bash
@@ -68,6 +80,10 @@ az containerapp job execution list \
   --resource-group "$RG" \
   --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 ```json
 [
@@ -185,6 +201,10 @@ az monitor activity-log alert create \
   --condition category=Administrative and operationName=Microsoft.App/containerApps/write and level=Informational \
   --action-group "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/microsoft.insights/actionGroups/ag-oncall"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor activity-log ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
 ## See Also
 

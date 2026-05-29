@@ -1,47 +1,51 @@
 ---
 content_sources:
   diagrams:
-    - id: without-explicit-objectives-scaling-rules-become
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-    - id: scale-to-zero-is-ideal-for-intermittent-workloads
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+  - id: without-explicit-objectives-scaling-rules-become
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+  - id: scale-to-zero-is-ideal-for-intermittent-workloads
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps manages automatic horizontal scaling through declarative scaling rules."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Azure Container Apps is powered by KEDA for scaling."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "If you define more than one scale rule, the container app begins to scale once the first condition of any rule is met."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "HTTP scale rules use the number of concurrent HTTP requests to determine when a revision scales."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "The default minimum number of replicas per revision is 0 and the default maximum number is 10."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: Azure Container Apps manages automatic horizontal scaling through declarative scaling rules.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Azure Container Apps is powered by KEDA for scaling.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: If you define more than one scale rule, the container app begins to scale once the first condition of any rule
+      is met.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: HTTP scale rules use the number of concurrent HTTP requests to determine when a revision scales.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: The default minimum number of replicas per revision is 0 and the default maximum number is 10.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # Scaling Best Practices for Azure Container Apps
 
 This guide provides practical scaling patterns for Azure Container Apps using KEDA-backed rules, replica boundaries, and production validation techniques. It focuses on tuning decisions that balance latency, reliability, and cost under real workload variability.
 
 Use this page for operational strategy and tuning heuristics, then use the platform deep dives for rule shapes and documented defaults: [HTTP Scaler](../platform/scaling/http-scaler.md), [CPU & Memory Scalers](../platform/scaling/cpu-memory-scaler.md), [Event Scalers](../platform/scaling/event-scalers.md), [Custom Scalers](../platform/scaling/custom-scalers.md), and [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md).
+
+## Why This Matters
+
+Production Container Apps behavior depends on explicit platform choices for ingress, scale, identity, observability, and release safety. This page turns the cited Microsoft Learn guidance into reviewable practices that can be checked before promotion.
 
 ## Prerequisites
 
@@ -56,7 +60,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-## Main Content
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
+## Recommended Practices
 
 ### Start with scaling objectives, not scaler defaults
 
@@ -100,6 +108,10 @@ az containerapp update \
   --scale-rule-type http \
   --scale-rule-metadata "concurrentRequests=50"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 HTTP tuning guidance:
 
@@ -152,6 +164,10 @@ az containerapp update \
   --scale-rule-metadata "queueName=orders" "namespace=$SERVICEBUS_NAMESPACE" "messageCount=25" \
   --scale-rule-auth "connection=servicebus-connection"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Threshold planning example:
 
@@ -239,6 +255,10 @@ az containerapp update \
   --max-replicas 15
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### Mitigate cold starts for user-facing services
 
 Cold start mitigation techniques:
@@ -266,6 +286,10 @@ az containerapp update \
   --scale-rule-type cpu \
   --scale-rule-metadata "type=Utilization" "value=70"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 !!! warning "Resource-only scaling can miss incoming bursts"
     CPU and memory often rise after queues or request concurrency already spike. Pair them with demand-proximate scalers for faster response.
@@ -383,6 +407,10 @@ az containerapp update \
   --max-replicas 5
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
 ### Scaling governance checklist
 
 Use this checklist for recurring scale reviews:
@@ -411,6 +439,18 @@ Run controlled synthetic bursts in non-production environments after significant
 
 Model safe replica ranges from downstream dependency limits (database connections, API rate limits, cache throughput), then derive max replicas and scaler thresholds from those budgets.
 
+## Common Mistakes / Anti-Patterns
+
+- Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
+- Applying a configuration change without verifying the resulting revision, logs, and metrics.
+- Leaving ownership for certificates, private DNS, secrets, or rollout decisions undocumented.
+
+## Validation Checklist
+
+- [ ] Required Container Apps settings are represented in infrastructure as code.
+- [ ] The active revision, ingress, scale, identity, and monitoring state match the intended design.
+- [ ] Rollback or cleanup commands have been tested in a non-production environment.
+
 ## See Also
 
 - [Platform: Scaling](../platform/scaling/index.md)
@@ -424,3 +464,10 @@ Model safe replica ranges from downstream dependency limits (database connection
 - [Operations: Alerts](../operations/alerts/index.md)
 - [Troubleshooting: Playbooks](../troubleshooting/playbooks/index.md)
 - [Microsoft Learn: Set scaling rules in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/scale-app)

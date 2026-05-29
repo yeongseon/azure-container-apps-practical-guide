@@ -1,74 +1,82 @@
 ---
 content_sources:
   diagrams:
-    - id: security-architecture-overview
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - id: no-ingress-not-http-addressable-event-driven
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - id: container-apps-provides-a-built-in-authentication
-      type: sequence
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - id: dapr-sidecar-enables-automatic-mtls-for
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - id: microsoft-defender-for-containers-provides-continuous
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - id: least-privilege-assignment-pattern
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/security-concept
-        - https://learn.microsoft.com/azure/container-apps/networking
-        - https://learn.microsoft.com/azure/container-apps/managed-identity
-        - https://learn.microsoft.com/azure/container-apps/authentication
-        - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-        - https://learn.microsoft.com/azure/role-based-access-control/overview
-        - https://learn.microsoft.com/azure/container-apps/policy-reference
+  - id: security-architecture-overview
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+  - id: no-ingress-not-http-addressable-event-driven
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+  - id: container-apps-provides-a-built-in-authentication
+    type: sequence
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+  - id: dapr-sidecar-enables-automatic-mtls-for
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+  - id: microsoft-defender-for-containers-provides-continuous
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+  - id: least-privilege-assignment-pattern
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/security
+    - https://learn.microsoft.com/azure/container-apps/networking
+    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - https://learn.microsoft.com/azure/container-apps/authentication
+    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
+    - https://learn.microsoft.com/azure/role-based-access-control/overview
+    - https://learn.microsoft.com/azure/container-apps/policy-reference
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/security
+    verified: true
 ---
-
 # Security in Azure Container Apps
 
 Azure Container Apps provides multiple layers of security — from network isolation and identity-based access to image integrity and data protection. This page consolidates the security architecture into a single reference, connecting the topics covered in networking, identity, and operations sections.
@@ -426,7 +434,7 @@ Security-relevant events are captured in:
 
 ## Sources
 
-- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/security-concept)
+- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/security)
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
 - [Managed Identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
 - [Authentication and Authorization in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/authentication)

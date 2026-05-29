@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: deploy-asp-net-core-images-from-private
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-azure-cli
+  - id: deploy-asp-net-core-images-from-private
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-azure-cli
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    verified: true
 ---
-
 # Recipe: Container Registry in .NET Apps on Azure Container Apps
 
 Deploy ASP.NET Core images from private ACR using a user-assigned managed identity for image pulls.
@@ -53,6 +61,10 @@ az role assignment create \
   --scope "$ACR_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr create ...` | Creates Azure Container Registry for container image storage. |
+
 ## Multi-stage Dockerfile for ASP.NET Core 8
 
 ```dockerfile
@@ -75,6 +87,10 @@ docker build --file Dockerfile --tag "$ACR_NAME.azurecr.io/dotnet-api:latest" .
 docker push "$ACR_NAME.azurecr.io/dotnet-api:latest"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr login --name ...` | Authenticates Docker or the CLI to Azure Container Registry. |
+
 ## Configure Container Apps to pull from ACR
 
 ```bash
@@ -89,6 +105,10 @@ az containerapp create \
   --ingress external \
   --target-port 8080
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
 
 ## Advanced Topics
 

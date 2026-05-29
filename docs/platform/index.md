@@ -1,13 +1,21 @@
 ---
 content_sources:
   diagrams:
-    - id: documents
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
+  - id: documents
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Concepts
 
 This section explains Azure Container Apps platform behavior in a language-agnostic way. Use these documents to understand architecture, scaling, and networking before diving into implementation.

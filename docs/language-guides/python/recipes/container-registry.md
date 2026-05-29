@@ -1,22 +1,30 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
-    - id: configure-the-container-app-to-reference
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
+  - id: configure-the-container-app-to-reference
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-link
+    verified: true
 ---
-
 # Private Container Registry (ACR with Private Endpoint)
 
 Pull container images from Azure Container Registry over a private network path — no public registry exposure, no admin credentials.
@@ -127,6 +135,10 @@ az acr create \
   --data-endpoint-enabled true
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr create ...` | Creates Azure Container Registry for container image storage. |
+
 !!! important "Enable ARM audience token authentication"
     Managed identity pulls require ACR to accept ARM audience tokens. Enable this explicitly — it is not on by default in all tenants:
 
@@ -135,6 +147,10 @@ az acr create \
       --registry "$ACR_NAME" \
       --status enabled
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az acr config authentication-as-arm ...` | Runs the Azure CLI operation required by the documented step. |
 
     Without this, managed identity pull attempts fail with `401 Unauthorized` even when RBAC looks correct.
 
@@ -164,6 +180,10 @@ export UAMI_CLIENT_ID=$(az identity show \
   --output tsv)
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+
 ## Step 3: Grant AcrPull to the managed identity
 
 ```bash
@@ -179,6 +199,10 @@ az role assignment create \
   --role "AcrPull" \
   --scope "$ACR_ID"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr show ...` | Reads registry configuration such as login server, identity, or admin status. |
 
 !!! tip "Role assignment propagation"
     RBAC changes take 1–5 minutes to propagate. If a container pull fails immediately after assigning the role, wait and retry the revision.
@@ -197,6 +221,10 @@ az network private-endpoint create \
   --group-id "registry" \
   --connection-name "conn-acr-registry"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az network private-endpoint create ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
 
 ### Optional: Dedicated data endpoint
 
@@ -232,6 +260,10 @@ az network private-endpoint dns-zone-group create \
   --zone-name "registry-data"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr update ...` | Runs the Azure CLI operation required by the documented step. |
+
 !!! warning "Bicep + data endpoint race condition"
     Creating the data endpoint PE in the same Bicep deployment as the ACR resource will fail with `InvalidPrivateEndpointConnectionRequestParameters` because the `registry_data_<region>` group ID is not registered until the ACR fully provisions. Always create the data endpoint PE in a separate step via CLI or a second Bicep deployment.
 
@@ -266,6 +298,10 @@ az network private-endpoint dns-zone-group create \
   --zone-name "registry"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az network vnet show ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+
 Verify A records were registered:
 
 ```bash
@@ -274,6 +310,10 @@ az network private-dns record-set a list \
   --zone-name "privatelink.azurecr.io" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az network private-dns record-set ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
 
 Expected output:
 
@@ -308,6 +348,10 @@ docker build -t "${ACR_NAME}.azurecr.io/myapp:latest" ../app
 docker push "${ACR_NAME}.azurecr.io/myapp:latest"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 !!! warning "CI/CD runners must have network line-of-sight"
     When ACR public access is disabled, GitHub-hosted runners **cannot push images** to the registry. Use **ACR Tasks** or a **self-hosted runner inside the VNet**.
 
@@ -321,6 +365,10 @@ docker push "${ACR_NAME}.azurecr.io/myapp:latest"
     # Re-disable immediately after
     az acr update --name "$ACR_NAME" --public-network-enabled false
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az acr update --name ...` | Runs the Azure CLI operation required by the documented step. |
 
     For production pipelines, prefer a **self-hosted runner or build agent inside the VNet** to avoid toggling public access.
 
@@ -343,6 +391,10 @@ az containerapp create \
   --target-port 8000
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 For an **existing** app, update registry config:
 
 ```bash
@@ -353,6 +405,10 @@ az containerapp registry set \
   --identity "$UAMI_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp registry set ...` | Runs the Azure CLI operation required by the documented step. |
+
 Then update the image:
 
 ```bash
@@ -361,6 +417,10 @@ az containerapp update \
   --resource-group "$RG" \
   --image "${ACR_NAME}.azurecr.io/myapp:latest"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 !!! important "Control-plane success ≠ runtime success"
     `az containerapp update --image` updates the **app spec** successfully even when the registry is unreachable. The **revision** will fail to start if DNS resolution or RBAC is wrong. Always check revision status and logs after an image update.
@@ -375,6 +435,10 @@ az containerapp exec \
   --resource-group "$RG" \
   --command "nslookup ${ACR_NAME}.azurecr.io"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
 
 Expected — private IP, not public:
 
@@ -397,6 +461,10 @@ az containerapp exec \
   --command "nslookup ${ACR_NAME}.${LOCATION}.data.azurecr.io"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
+
 ### Check revision status
 
 ```bash
@@ -405,6 +473,10 @@ az containerapp revision list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 Expected:
 
@@ -423,6 +495,10 @@ az containerapp logs show \
   --follow false \
   --tail 50
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ---
 

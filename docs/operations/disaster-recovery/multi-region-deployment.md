@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: multi-region-deployment-steps
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/frontdoor/front-door-overview
-        - https://learn.microsoft.com/azure/traffic-manager/traffic-manager-overview
-        - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
+  - id: multi-region-deployment-steps
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/frontdoor/front-door-overview
+    - https://learn.microsoft.com/azure/traffic-manager/traffic-manager-overview
+    - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
 content_validation:
   status: verified
-  last_reviewed: "2026-04-25"
+  last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-    - claim: "Azure Front Door and Traffic Manager are Microsoft routing services commonly used for multi-region entry points."
-      source: "https://learn.microsoft.com/azure/frontdoor/front-door-overview"
-      verified: true
-    - claim: "Multi-region Container Apps resiliency uses separate regional environments plus an external routing layer such as Azure Front Door or Azure Traffic Manager."
-      source: "https://learn.microsoft.com/azure/reliability/reliability-container-apps"
-      verified: true
+  - claim: Azure Front Door and Traffic Manager are Microsoft routing services commonly used for multi-region entry points.
+    source: https://learn.microsoft.com/azure/frontdoor/front-door-overview
+    verified: true
+  - claim: Multi-region Container Apps resiliency uses separate regional environments plus an external routing layer such
+      as Azure Front Door or Azure Traffic Manager.
+    source: https://learn.microsoft.com/azure/reliability/reliability-container-apps
+    verified: true
 ---
-
 # Multi-Region Deployment
 
 Use this runbook when the workload needs a cross-region pattern rather than a single regional environment.
@@ -88,6 +88,14 @@ flowchart TD
 - If regions drift, compare environment settings, secrets, and revision config side by side.
 - If failover does not occur, inspect the health probe path and routing policy.
 - If DNS was changed manually, wait for TTL before declaring the cutover failed.
+
+## Review Matrix
+
+| Review area | Page-specific check |
+|---|---|
+| Scope | Confirm the guidance applies to Multi-Region Deployment. |
+| Source basis | Validate the recommendation against the Microsoft Learn sources in this page. |
+| Evidence | Capture command output, portal state, metrics, logs, or screenshots before treating the result as proven. |
 
 ## See Also
 

@@ -1,32 +1,31 @@
 ---
 content_sources:
   diagrams:
-    - id: gpu-profile-placement
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/billing
-        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+  - id: gpu-profile-placement
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/billing
+    - https://learn.microsoft.com/en-us/azure/container-apps/quotas
 content_validation:
   status: verified
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Current Dedicated GPU profile names are NC24-A100, NC48-A100, and NC96-A100."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview"
-      verified: true
-    - claim: "GPU-enabled Dedicated profiles are available in select regions only."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview"
-      verified: true
-    - claim: "GPU-enabled Dedicated profiles require capacity allocation on a per-case basis through a support ticket."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview"
-      verified: true
-    - claim: "Dedicated plan billing is based on workload profile instances, not individual applications."
-      source: "https://learn.microsoft.com/en-us/azure/container-apps/billing"
-      verified: true
+  - claim: Current Dedicated GPU profile names are NC24-A100, NC48-A100, and NC96-A100.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: true
+  - claim: GPU-enabled Dedicated profiles are available in select regions only.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: true
+  - claim: GPU-enabled Dedicated profiles require capacity allocation on a per-case basis through a support ticket.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    verified: true
+  - claim: Dedicated plan billing is based on workload profile instances, not individual applications.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/billing
+    verified: true
 ---
-
 # Dedicated GPU Profiles
 
 Dedicated GPU profiles are the Azure Container Apps option for GPU-backed workloads that need reserved hardware instead of serverless GPU allocation. Microsoft Learn does not label these dedicated GPU profiles as preview, but it does document important region and capacity limits.

@@ -1,33 +1,40 @@
 ---
 content_sources:
+  references:
   - type: mslearn-adapted
     url: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-diagrams:
+  diagrams:
   - id: dapr-pubsub-failure-lab-diagram
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-      - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 content_validation:
-  status: verified
+  status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
-    az_cli_version: "2.70.0"
-    notes: "pubsub.azure.servicebus.queues component with fake connectionString accepted by API; removed to fix"
-
+    az_cli_version: 2.70.0
+    notes: pubsub.azure.servicebus.queues component with fake connectionString accepted by API; removed to fix
   core_claims:
-    - claim: "Azure Container Apps supports Dapr pub/sub building blocks through components."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
-      verified: false
-    - claim: "Dapr component scopes can restrict which apps load a pub/sub component."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-      verified: false
+  - claim: Azure Container Apps supports Dapr pub/sub building blocks through components.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    verified: false
+  - claim: Dapr component scopes can restrict which apps load a pub/sub component.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+    verified: false
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
 ---
-
 # Dapr Pub/Sub Failure Lab
 
 Reproduce a message-flow failure by breaking the Dapr pub/sub component or its scopes, then restore end-to-end publish and subscribe behavior.
@@ -61,9 +68,15 @@ Does dapr pubsub failure reproduce when the documented trigger condition is pres
 
 
 
+
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+
 ## 3. Hypothesis
 
 
+
+
+The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
 
 ## 4. Prediction
 
@@ -73,6 +86,9 @@ If the trigger condition is present, the failure symptom will appear. Correcting
 
 
 
+
+Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+
 ## 6. Execution
 
 Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
@@ -80,6 +96,9 @@ Run the commands in the **Experiment** section sequentially in a shell with the 
 ## 7. Observation
 
 
+
+
+Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
 
 ## 8. Measurement
 
@@ -120,7 +139,7 @@ az containerapp env dapr-component list \
 → [{ "name": "pubsub-bad", "type": "pubsub.azure.servicebus.queues" }]
 
 # /dapr/subscribe endpoint on helloworld app returns HTML (not JSON)
-curl -s https://ca-dapr-pubsub.thankfulmoss-23d78046.koreacentral.azurecontainerapps.io/dapr/subscribe
+curl -s https://<container-app-fqdn>/dapr/subscribe
 → <!DOCTYPE html><html lang=en>...  ← HTML, not a JSON topic list
 
 # Fix: remove bad component
@@ -134,6 +153,10 @@ az containerapp env dapr-component list \
 → 0
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp env dapr-component ...` | Runs the Azure CLI operation required by the documented step. |
+
 - `[Observed]` `pubsub.azure.servicebus.queues` component with invalid Service Bus connectionString accepted by API — no registration error.
 - `[Observed]` `/dapr/subscribe` on `containerapps-helloworld` returns HTML — Dapr sidecar receives `invalid character '<'` when parsing topic list.
 - `[Inferred]` Dapr validates pubsub credentials lazily at message publish/subscribe time; bad credentials surface as Service Bus auth errors, not at component load.
@@ -143,7 +166,7 @@ Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, Dapr 1.16.4-msft.6.
 
 ## 13. Solution
 
-Apply the corrective configuration change described in the Runbook section. Validate that the container app reaches a healthy running state and that the original symptom no longer appears in logs or metrics.
+Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
 
 ## 14. Prevention
 

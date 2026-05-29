@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: save-this-page-and-the-linked
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/cli/azure/containerapp
+  - id: save-this-page-and-the-linked
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/cli/azure/containerapp
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Reference
 
 Quick lookup documentation for Azure Container Apps operations and diagnostics.

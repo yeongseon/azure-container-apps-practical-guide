@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: image-pull-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/containers
-        - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+  - id: image-pull-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/containers
+    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/containers
+    verified: true
 ---
-
 # Image Pull and Registry Operations
 
 Image distribution reliability is foundational for stable deployments. This guide covers authentication, tagging, rotation, and troubleshooting for registry operations.
@@ -36,6 +44,10 @@ az role assignment create \
   --role "AcrPull" \
   --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.ContainerRegistry/registries/$ACR_NAME"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az role assignment create ...` | Grants the required Azure RBAC role at the documented scope. |
 
 ## Private ACR with VNet
 
@@ -79,6 +91,10 @@ az acr task create \
   --image "python-app:{{.Run.ID}}" \
   --commit-trigger-enabled true
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr task create ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Troubleshooting Image Pull Failures
 

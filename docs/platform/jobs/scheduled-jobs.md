@@ -1,26 +1,26 @@
 ---
 content_sources:
   diagrams:
-    - id: scheduled-job-run-window
-      type: flowchart
-      source: self-generated
-      justification: Synthesized from Microsoft Learn Jobs guidance and repository schedule examples while exact cron/TZ semantics were not re-quoted successfully.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+  - id: scheduled-job-run-window
+    type: flowchart
+    source: self-generated
+    justification: Synthesized from Microsoft Learn Jobs guidance and repository schedule examples while exact cron/TZ semantics
+      were not re-quoted successfully.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
 content_validation:
   status: pending_review
-  last_reviewed: "2026-04-26"
+  last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps Jobs can run on a schedule."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
-    - claim: "Scheduled job executions should use timeout and retry settings that fit the expected runtime."
-      source: "https://learn.microsoft.com/azure/container-apps/jobs"
-      verified: true
+  - claim: Azure Container Apps Jobs can run on a schedule.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
+  - claim: Scheduled job executions should use timeout and retry settings that fit the expected runtime.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
-
 # Scheduled Jobs
 
 Scheduled Jobs run at recurring times and are a good fit for nightly cleanup, hourly materialization, and business-window batch work.

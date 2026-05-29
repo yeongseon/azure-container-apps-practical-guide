@@ -1,32 +1,32 @@
 ---
 content_sources:
   references:
-    - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-diagrams:
+  - type: mslearn-adapted
+    url: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+  diagrams:
   - id: bicep-deployment-timeout-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-      - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-    - claim: "Revision-scope changes create a new revision in Azure Container Apps."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
-    - claim: "Azure Container Apps uses revision lifecycle behavior during deployments and cutovers."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-      verified: false
-    - claim: "Troubleshooting guidance for Container Apps includes checking provisioning, configuration, and runtime signals when deployments do not complete successfully."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-      verified: false
+  - claim: Revision-scope changes create a new revision in Azure Container Apps.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    verified: false
+  - claim: Azure Container Apps uses revision lifecycle behavior during deployments and cutovers.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+    verified: false
+  - claim: Troubleshooting guidance for Container Apps includes checking provisioning, configuration, and runtime signals
+      when deployments do not complete successfully.
+    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    verified: false
 ---
-
 # Bicep Deployment Timeout
 
 ## Symptom

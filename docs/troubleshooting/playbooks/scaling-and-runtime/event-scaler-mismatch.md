@@ -1,26 +1,25 @@
 ---
 content_sources:
-diagrams:
+  diagrams:
   - id: troubleshooting-decision-flow
     type: flowchart
     source: mslearn-adapted
     based_on:
-      - https://learn.microsoft.com/azure/container-apps/scale-app
-      - https://learn.microsoft.com/azure/container-apps/scale-app#scale-rules
-      - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://learn.microsoft.com/azure/container-apps/scale-app#scale-rules
+    - https://learn.microsoft.com/azure/container-apps/jobs
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can scale based on HTTP traffic, CPU, memory, and custom scale rules."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
-    - claim: "Scale rules define the conditions under which a container app scales."
-      source: "https://learn.microsoft.com/azure/container-apps/scale-app"
-      verified: true
+  - claim: Azure Container Apps can scale based on HTTP traffic, CPU, memory, and custom scale rules.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
+  - claim: Scale rules define the conditions under which a container app scales.
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
+    verified: true
 ---
-
 # Event Scaler Mismatch
 
 ## 1. Summary
@@ -134,6 +133,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ```kusto
 let AppName = "ca-myapp";
 ContainerAppSystemLogs_CL
@@ -167,6 +170,10 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 **Disproof logic:**
 

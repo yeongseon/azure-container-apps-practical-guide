@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: architecture
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
-        - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-dotnet
+  - id: architecture
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
+    - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-dotnet
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
+    verified: true
 ---
-
 # Cosmos DB Integration (Managed Identity)
 
 Use this recipe to connect a .NET Container App to Azure Cosmos DB for NoSQL with managed identity first and a connection string fallback only when you cannot use RBAC yet.
@@ -39,6 +47,10 @@ az extension add --name containerapp --upgrade
 az extension add --name cosmosdb-preview --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+
 ## Step 1: Enable managed identity on the Container App
 
 ```bash
@@ -53,6 +65,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --query "identity.principalId" \
   --output tsv)
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
 ## Step 2: Grant Cosmos DB data-plane access
 
@@ -70,6 +86,10 @@ az role assignment create \
   --scope "$COSMOS_ACCOUNT_ID"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az cosmosdb show ...` | Creates or inspects Cosmos DB resources used by the sample app. |
+
 ## Step 3: Configure non-secret settings in Container Apps
 
 Azure Container Apps does **not** inject Cosmos DB connection settings automatically. Store non-secret values as environment variables, and store fallback secrets in `secrets[]` with `secretref:`.
@@ -80,6 +100,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars COSMOS_ENDPOINT="https://$COSMOS_ACCOUNT.documents.azure.com:443/" COSMOS_DATABASE="$COSMOS_DATABASE" COSMOS_CONTAINER="$COSMOS_CONTAINER"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Step 4: .NET code (managed identity)
 
@@ -137,6 +161,10 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars COSMOS_CONNECTION_STRING=secretref:cosmos-connection-string COSMOS_DATABASE="$COSMOS_DATABASE" COSMOS_CONTAINER="$COSMOS_CONTAINER"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
 
 ## Verification
 

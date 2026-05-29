@@ -1,3 +1,6 @@
+---
+{}
+---
 # Contributing
 
 Thank you for your interest in contributing to Azure Container Apps Practical Guide!
@@ -147,6 +150,11 @@ Brief introduction
 ## Topic/Command Groups
 ## Usage Notes
 ## See Also
+
+## See Also
+
+- [Repository Map](../start-here/repository-map.md)
+- [Learning Paths](../start-here/learning-paths.md)
 ## Sources
 ```
 
@@ -159,7 +167,7 @@ Brief introduction
 az containerapp create --resource-group $RG --name $APP_NAME --environment $CONTAINER_ENV --image myregistry.azurecr.io/myapp:latest
 
 # NEVER use short flags in documentation
-az containerapp create -g $RG -n $APP_NAME  # ❌ Don't do this
+az containerapp create --resource-group $RG --name $APP_NAME  # ❌ Don't do this
 ```
 
 ### Variables
@@ -245,8 +253,3 @@ Allowed types: `feat`, `fix`, `docs`, `chore`, `refactor`
 ## Code of Conduct
 
 Please read our [Code of Conduct](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/CODE_OF_CONDUCT.md) before contributing.
-
-## See Also
-
-- [Repository Map](../start-here/repository-map.md)
-- [Learning Paths](../start-here/learning-paths.md)

@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: integration-dependency-map
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/dotnet/azure/sdk/azure-sdk-for-dotnet-overview
+  - id: integration-dependency-map
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/dotnet/azure/sdk/azure-sdk-for-dotnet
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Recipes: Integration Patterns for Azure Container Apps (.NET)
 
 Use these practical recipes to implement common production patterns for .NET applications running on Azure Container Apps.
@@ -112,6 +120,10 @@ az containerapp show \
   --output json
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+
 ## See Also
 
 - [.NET Tutorials](../index.md)
@@ -121,5 +133,5 @@ az containerapp show \
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Azure SDK for .NET Documentation](https://learn.microsoft.com/dotnet/azure/sdk/azure-sdk-for-dotnet-overview)
+- [Azure SDK for .NET Documentation](https://learn.microsoft.com/dotnet/azure/sdk/azure-sdk-for-dotnet)
 - [Dapr documentation](https://docs.dapr.io/)

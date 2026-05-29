@@ -1,16 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: python-jobs-recipe-flow
-      type: flowchart
-      source: self-generated
-      justification: Language recipe flow synthesized from repository Python job example and Microsoft Learn Jobs guidance.
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/jobs
-        - https://learn.microsoft.com/python/api/overview/azure/identity-readme
-        - https://learn.microsoft.com/python/api/overview/azure/servicebus-readme
+  - id: python-jobs-recipe-flow
+    type: flowchart
+    source: self-generated
+    justification: Language recipe flow synthesized from repository Python job example
+      and Microsoft Learn Jobs guidance.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/jobs
+    - https://learn.microsoft.com/python/api/overview/azure/identity-readme
+    - https://learn.microsoft.com/python/api/overview/azure/servicebus-readme
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/jobs
+    verified: true
 ---
-
 # Recipe: Jobs in Python on Azure Container Apps
 
 Use this recipe to package a Python script as a manual Job, adapt it to a one-message Service Bus consumer, and add a dedup table pattern for safe replay.
@@ -124,6 +133,10 @@ az containerapp job start \
   --resource-group "$RG"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ### 2. Adapt the container to an event-driven Service Bus consumer
 
 Replace `job.py` with:
@@ -177,6 +190,10 @@ az containerapp job create \
   --env-vars SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ### 3. Add an idempotency guard with a dedup table
 
 For a runnable local example, add a SQLite-backed dedup table. In production, move the same pattern to Azure SQL, PostgreSQL, or another shared durable store.
@@ -221,6 +238,10 @@ az containerapp job execution list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
 ## Next Steps / Clean Up
 

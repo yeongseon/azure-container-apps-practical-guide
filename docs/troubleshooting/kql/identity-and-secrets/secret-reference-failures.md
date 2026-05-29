@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-    - id: query-pipeline
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+  - id: query-pipeline
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: "2026-04-12"
+  last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-    - claim: "Azure Container Apps can send system logs that record platform events to a Log Analytics workspace."
-      source: "https://learn.microsoft.com/azure/container-apps/logging"
-      verified: true
-    - claim: "Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data."
-      source: "https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-tutorial"
-      verified: true
+  - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
+    source: https://learn.microsoft.com/azure/container-apps/logging
+    verified: true
+  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial
+    verified: true
 ---
-
 # Secret Reference Failures
 
 Use this query to identify failures caused by missing secrets, invalid secret references, or Key Vault access problems.
@@ -73,3 +72,11 @@ ContainerAppSystemLogs_CL
 
 - [Managed Identity Token Errors](managed-identity-token-errors.md)
 - [Secret and Key Vault Reference Failure Playbook](../../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md)
+
+## Sources
+
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
+- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overviewlog-analytics-tutorial)

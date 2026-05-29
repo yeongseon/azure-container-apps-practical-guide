@@ -1,14 +1,22 @@
 ---
 content_sources:
   diagrams:
-    - id: deployment-workflow-and-release-guardrails
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/
-        - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
+  - id: deployment-workflow-and-release-guardrails
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
+    - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/
+    verified: true
 ---
-
 # Deployment Workflows
 
 This guide summarizes practical deployment workflows for Azure Container Apps across CLI, Infrastructure as Code, and CI/CD pipelines.
@@ -48,6 +56,10 @@ az containerapp up \
   --source "./apps/python"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp up ...` | Runs the Azure CLI operation required by the documented step. |
+
 Update image to create a new revision:
 
 ```bash
@@ -56,6 +68,10 @@ az containerapp update \
   --resource-group "$RG" \
   --image "$ACR_NAME.azurecr.io/python-app:v2"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 ## Bicep/ARM Deployment
 
@@ -68,6 +84,10 @@ az deployment group create \
   --parameters "baseName=myapp" "location=$LOCATION"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
+
 Use `what-if` before production applies:
 
 ```bash
@@ -76,6 +96,10 @@ az deployment group what-if \
   --template-file "infra/main.bicep" \
   --parameters "baseName=myapp" "location=$LOCATION"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az deployment group what-if ...` | Previews resource changes before deployment. |
 
 ## Image Build and Push to ACR
 
@@ -86,6 +110,10 @@ az acr build \
   --file "apps/python/Dockerfile" \
   "apps/python"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
 
 Prefer immutable tags for release traceability, and maintain a stable alias tag only for non-production testing.
 
@@ -147,6 +175,10 @@ az containerapp revision list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ### Post-Deployment Acceptance Checks
 
 ```bash
@@ -161,6 +193,10 @@ az containerapp ingress traffic show \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## See Also
 

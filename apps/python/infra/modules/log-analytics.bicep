@@ -37,5 +37,6 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = if (enableObse
 output id string = logAnalytics.id
 output name string = logAnalytics.name
 output customerId string = logAnalytics.properties.customerId
+@secure()
 output sharedKey string = logAnalytics.listKeys().primarySharedKey
 output appInsightsConnectionString string = enableObservability ? appInsights!.properties.ConnectionString : ''

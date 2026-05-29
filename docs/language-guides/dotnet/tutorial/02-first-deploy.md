@@ -1,20 +1,36 @@
 ---
 content_sources:
   diagrams:
-    - id: this-tutorial-assumes-a-production-ready-container
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/get-started
-        - https://learn.microsoft.com/azure/container-registry/container-registry-tutorial-quick-task
-    - id: deployment-workflow
-      type: flowchart
-      source: mslearn-adapted
-      based_on:
-        - https://learn.microsoft.com/azure/container-apps/get-started
-        - https://learn.microsoft.com/azure/container-registry/container-registry-tutorial-quick-task
+  - id: this-tutorial-assumes-a-production-ready-container
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/get-started
+    - https://learn.microsoft.com/azure/container-registry/container-registry-tutorial-quick-task
+  - id: deployment-workflow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/get-started
+    - https://learn.microsoft.com/azure/container-registry/container-registry-tutorial-quick-task
+validation:
+  az_cli:
+    last_tested: null
+    cli_version: null
+    result: not_tested
+  bicep:
+    last_tested: null
+    result: not_tested
+content_validation:
+  status: verified
+  last_reviewed: '2026-05-23'
+  reviewer: agent
+  core_claims:
+  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
+      guidance.
+    source: https://learn.microsoft.com/azure/container-apps/get-started
+    verified: true
 ---
-
 # 02 - First Deploy to Azure Container Apps
 
 In this step, you provision the core Azure resources, build your image in Azure Container Registry, and deploy your first revision to Azure Container Apps.
@@ -97,6 +113,10 @@ graph TD
    az group create --name "$RG" --location "$LOCATION"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az group create ...` | Creates the isolated resource group used by the example. |
+
    ???+ example "Expected output"
         ```json
         {
@@ -118,6 +138,10 @@ graph TD
       --template-file infra/main.bicep \
       --parameters baseName="$BASE_NAME" location="$LOCATION"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
 
    ???+ example "Expected output"
        This command takes 2-3 minutes to complete. When successful, it returns a JSON object containing the deployment details.
@@ -205,6 +229,10 @@ graph TD
       ./apps/dotnet-aspnetcore
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
    ???+ example "Expected output (az acr build)"
        The build output shows the multi-stage Docker build progress. The last few lines should look like this:
 
@@ -225,6 +253,10 @@ graph TD
       --image "$ACR_LOGIN_SERVER/dotnet-guide:latest"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+
    ???+ example "Expected output (az containerapp update)"
        ```json
        {
@@ -242,6 +274,10 @@ graph TD
       --resource-group "$RG" \
       --query "{state:properties.provisioningState,url:properties.configuration.ingress.fqdn}"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
    ???+ example "Expected output"
        ```json
@@ -272,6 +308,10 @@ graph TD
       --image "$ACR_LOGIN_SERVER/dotnet-guide:v2"
    ```
 
+   | Command | Why it is used |
+   |---|---|
+   | `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+
     ???+ example "Expected output"
         ```json
         {
@@ -289,6 +329,10 @@ graph TD
       --resource-group "$RG" \
       --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,healthState:properties.healthState,runningState:properties.runningState}"
    ```
+
+   | Command | Why it is used |
+   |---|---|
+   | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
    ???+ example "Expected output (revision list)"
         ```json
@@ -350,6 +394,10 @@ LOG_NAME="log-dotnet-demo"
 az group create --name $RG --location $LOCATION
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az group create ...` | Creates the isolated resource group used by the example. |
+
 ???+ example "Expected output"
     ```json
     {
@@ -368,6 +416,10 @@ az group create --name $RG --location $LOCATION
 az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_NAME --location $LOCATION
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ???+ example "Expected output"
     ```json
     {
@@ -383,6 +435,10 @@ az monitor log-analytics workspace create --resource-group $RG --workspace-name 
 ```bash
 az acr create --resource-group $RG --name $ACR_NAME --sku Basic
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az acr create --resource-group ...` | Creates Azure Container Registry for container image storage. |
 
 ???+ example "Expected output"
     ```json
@@ -402,6 +458,10 @@ LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $R
 az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+
 ???+ example "Expected output"
     ```json
     {
@@ -417,6 +477,10 @@ az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --locat
 az acr build --registry $ACR_NAME --image $BASE_NAME:v1 ./apps/dotnet-aspnetcore
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+
 ???+ example "Expected output"
     ```text
     Packing source code into tar to upload...
@@ -430,9 +494,13 @@ az acr build --registry $ACR_NAME --image $BASE_NAME:v1 ./apps/dotnet-aspnetcore
 az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp create --resource-group ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+
 ???+ example "Expected output"
     ```text
-    "ca-dotnet-demo.mistyfield-1a2b3c4d.koreacentral.azurecontainerapps.io"
+    "<container-app-fqdn>"
     ```
 
 ### Step 8: Verify deployment
