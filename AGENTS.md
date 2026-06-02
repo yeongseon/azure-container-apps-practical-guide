@@ -164,9 +164,9 @@ The helper applies replacements to text nodes **and** `aria-label` attributes ac
 | GUID (subscription, tenant, object, resource ID) | `00000000-0000-0000-0000-000000000000` | Zero-GUID is the documented Azure placeholder convention. Boundary-anchored to avoid eating GUID-shaped substrings inside longer hex tokens. |
 | `MCAPS-*` / `MCAPS*` subscription names | `Visual Studio Enterprise Subscription` | MCAPS prefixes leak internal subscription naming. Word-bounded so identifiers like `XMCAPSinternal` are not partially rewritten. |
 | `Microsoft Non-Production` tenant badge | `Contoso` | Tenant display name visible in the top-right Account button leaks the internal environment. |
-| `*@microsoft.com` | `user@example.com` | Employee emails. Word-bounded and case-insensitive. |
-| `*@*.onmicrosoft.com` | `user@example.com` | Tenant-scoped user emails. Word-bounded and case-insensitive. |
-| `*.onmicrosoft.com` (bare domain) | `contoso.onmicrosoft.com` | Tenant domains. Word-bounded so they do not partially rewrite longer hostnames. |
+| `*@microsoft.com` | `user@example.com` | Employee emails. Case-insensitive; trailing negative lookahead prevents `user@microsoft.com.uk`-style partial rewrites. |
+| `*@*.onmicrosoft.com` | `user@example.com` | Tenant-scoped user emails. Case-insensitive; trailing negative lookahead prevents partial rewrites of longer hostnames. |
+| `*.onmicrosoft.com` (bare domain) | `contoso.onmicrosoft.com` | Tenant domains. Trailing negative lookahead prevents partial rewrites of longer hostnames such as `tenant.onmicrosoft.com.uk`. |
 | `ychoe` (employee alias) | `demouser` | Author alias, word-bounded so unrelated tokens are not touched. |
 | `Yeongseon Choe` (display name) | `Demo User` | Author display name. |
 | Account-menu avatar (cannot be rewritten) | Native Playwright mask, `maskColor='#0078d4'` | Blends with Portal command bar. The helper throws if the avatar selector matches nothing. |
