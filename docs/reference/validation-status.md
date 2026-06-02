@@ -1,36 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: tutorial-validation-status-pie
-    type: pie
-    source: self-generated
-    justification: Auto-generated from tutorial and lab validation frontmatter in
-      this repository.
-  sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/overview
+    - id: tutorial-validation-status-pie
+      type: pie
+      source: self-generated
+      justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: '2026-05-23'
+  last_reviewed: "2026-06-02"
   reviewer: ai-agent
   core_claims:
-  - claim: The dashboard is generated from validation frontmatter in repository Markdown
-      files.
-    source: scripts/generate_validation_status.py
-    verified: true
+    - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
+      source: scripts/generate_validation_status.py
+      verified: true
 ---
+
 # Tutorial Validation Status
 
 This page tracks which tutorials have been validated against real Azure deployments. It scans language tutorial pages and troubleshooting lab guides. Each page can be tested via **az-cli** (manual CLI commands) or **Bicep** (infrastructure as code). Tutorials not tested within 90 days are marked as stale.
 
 ## Summary
 
-*Generated: 2026-05-23*
+*Generated: 2026-06-02*
 
 | Metric | Count |
 |---|---:|
-| Total tutorials | 71 |
-| ✅ Validated | 1 |
+| Total tutorials | 72 |
+| ✅ Validated | 2 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
 | ➖ Not tested | 70 |
@@ -38,7 +34,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 1
+    "Validated" : 2
     "Not Tested" : 70
 ```
 
@@ -119,6 +115,7 @@ pie title Tutorial Validation Status
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ Pass | ✅ Pass | 2026-06-02 | ✅ Pass |
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Multi Arch Image Mismatch](../troubleshooting/lab-guides/multi-arch-image-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
@@ -178,6 +175,3 @@ python3 scripts/generate_validation_status.py
 - [Environment Variables](environment-variables.md)
 - [Platform Limits](platform-limits.md)
 
-## Sources
-
-- [Microsoft Learn overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)

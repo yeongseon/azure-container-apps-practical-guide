@@ -1,44 +1,41 @@
 ---
 content_sources:
   diagrams:
-  - id: content-validation-status-pie
-    type: pie
-    source: self-generated
-    justification: Auto-generated dashboard tracking content validation status.
-  sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/overview
+    - id: content-validation-status-pie
+      type: pie
+      source: self-generated
+      justification: Auto-generated dashboard tracking content validation status.
 content_validation:
   status: verified
-  last_reviewed: '2026-05-23'
+  last_reviewed: "2026-06-02"
   reviewer: ai-agent
   core_claims:
-  - claim: Microsoft Learn provides official documentation for Azure Container Apps.
-    source: https://learn.microsoft.com/azure/container-apps/overview
-    verified: true
-  - claim: Azure Container Apps troubleshooting guidance includes diagnostic and logging
-      workflows.
-    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
-    verified: true
+    - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
+      source: "https://learn.microsoft.com/azure/container-apps/overview"
+      verified: true
+    - claim: "Azure Container Apps troubleshooting guidance includes diagnostic and logging workflows."
+      source: "https://learn.microsoft.com/azure/container-apps/troubleshooting"
+      verified: true
 ---
+
 # Content Validation Status
 
 This page tracks the source validation status of all documentation content. All content must be traceable to official Microsoft Learn documentation.
 
 ## Summary
 
-*Generated: 2026-05-23*
+*Generated: 2026-06-02*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 211 | 146 | 65 | 0 | 0 |
+| Text Documents | 213 | 148 | 65 | 0 | 0 |
 
 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 146
+    "Verified" : 148
     "Pending Review" : 65
 ```
 
@@ -207,6 +204,8 @@ pie title Document Validation Status
 | [Managed Identity Token Errors](../troubleshooting/kql/identity-and-secrets/managed-identity-token-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Memory Leak Oomkilled](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ | ✅ Verified | 2/2 | 2026-06-02 |
+| [Memory Percentage Vs Keda Utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) | ✅ | ✅ Verified | 3/3 | 2026-06-02 |
 | [Memory Usage Patterns](../troubleshooting/kql/console-and-runtime/memory-usage-patterns.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Mental Model](../troubleshooting/mental-model.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ✅ | ✅ Verified | 2/2 | 2026-04-29 |
@@ -283,7 +282,7 @@ pie title Document Validation Status
 | [Cli Reference](../reference/cli-reference.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Environment Variables](../reference/environment-variables.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Platform Limits](../reference/platform-limits.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Validation Status](../reference/validation-status.md) | ✅ | ✅ Verified | 1/1 | 2026-05-22 |
+| [Validation Status](../reference/validation-status.md) | ✅ | ✅ Verified | 1/1 | 2026-05-23 |
 
 ## Validation Categories
 
@@ -336,6 +335,3 @@ python3 scripts/generate_content_validation_status.py
 - [CLI Reference](cli-reference.md)
 - [Platform Limits](platform-limits.md)
 
-## Sources
-
-- [Microsoft Learn overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)

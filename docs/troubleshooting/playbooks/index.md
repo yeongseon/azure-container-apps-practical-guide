@@ -106,6 +106,7 @@ Use the category that best matches your first confirmed symptom.
 - [HTTP Scaling Not Triggering](scaling-and-runtime/http-scaling-not-triggering.md)
 - [Event Scaler Mismatch](scaling-and-runtime/event-scaler-mismatch.md)
 - [CrashLoop OOM and Resource Pressure](scaling-and-runtime/crashloop-oom-and-resource-pressure.md)
+- [Memory Percentage vs KEDA Utilization](scaling-and-runtime/memory-percentage-vs-keda-utilization.md)
 
 ### Identity and Configuration
 
