@@ -322,6 +322,24 @@ Environment: `koreacentral`, Consumption plan.
 
 [Inferred] PR-A establishes the **pre-fix baseline** required for falsification (load is real and sustained, replica count stayed at 1, scale rule shows `concurrentRequests=500` / `maxReplicas=2`). PR-A alone does **not** rule out KEDA-side or ingress-side root causes during the load window. PR-B **completes** falsification by holding workload conditions constant and changing only the scale settings (`concurrentRequests=10`, `maxReplicas=10`); replicas climbing above 1 in PR-B is what falsifies the alternative theories.
 
+### Observed Evidence (Portal Captures — 2026-06-02, after fix)
+
+**Fix applied:** updating the scale rule via `az containerapp update --resource-group rg-aca-lab-scale-cap --name ca-labscalecap-hz3pt7 --min-replicas 1 --max-replicas 10 --scale-rule-name http-rule --scale-rule-type http --scale-rule-http-concurrency 10` created a new revision `ca-labscalecap-hz3pt7--0000002` (100% traffic, Healthy) — scale-rule flags on `update` always produce a new revision.
+**Load generator:** same as PR-A — `hey -z 8m -c 80 https://${FQDN}/load` (80 concurrent requests for 8 minutes), restarted at **13:25 UTC** against the new revision so workload conditions match the PR-A run.
+**Verification CLI:** `az containerapp replica list ... --query "length(@)"` returned `10` within ~2–3 minutes of load start.
+
+[Observed] Under the same 80-concurrent load against revision `--0000002`, Replica count (Max) over the last 30 minutes climbs from the idle baseline up to **10** and holds there for the remainder of the load window:
+
+![Replica count Max climbing to 10 after the fix](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-after-fix.png)
+
+[Observed] The Scale blade with the `http-rule` Edit pane open shows the post-fix values in one frame: `Min replicas=1`, `Max replicas=10`, `Concurrent requests=10`, `Current number of replicas=10`, based on revision `ca-labscalecap-hz3pt7--0000002`:
+
+![Scale blade showing Min=1, Max=10, http-rule with Concurrent requests=10, current replicas=10](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-config-after.png)
+
+[Inferred] Holding the load generator, container image, and ingress constant, and changing only `concurrentRequests` (500→10) and `maxReplicas` (2→10), produced horizontal scaling up to the new maximum. The alternative theories considered in PR-A that are global to the workload — "load not real," "ingress/load path not reaching the app," or "the platform cannot scale this workload at all" — are falsified: the same load against the same FQDN, with only the scale rule changed, now drives horizontal scale-out. Note that PR-B runs against a **new revision** (`--0000002`) created by the scale-rule update, so it does *not* strictly disprove a transient per-revision KEDA or watcher issue specific to PR-A's `--0000001`; what it does show is that with the corrected threshold and cap, the scaler on the post-fix revision behaved as expected.
+
+[Inferred] Reaching exactly `maxReplicas=10` and saturating there does not by itself prove `concurrentRequests=10` is the *optimal* threshold; it only proves the threshold and cap together are now permissive enough to scale under this specific 80-concurrent workload. Tuning the threshold for production traffic requires correlating concurrent in-flight requests against latency and replica cost over a representative window.
+
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [memory-percentage-vs-keda-utilization](./memory-percentage-vs-keda-utilization.md) template.
@@ -329,7 +347,7 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 ### Capture rules (apply to every screenshot)
 
 - **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+- **PII must be replaced before commit.** Use the shared helper at `scripts/portal-capture-helpers.js` to rewrite PII text (subscription IDs, tenant IDs, employee emails, real tenant domain, MCAPS subscription names) to documented placeholders, and mask the Account-menu avatar with Portal blue (`#0078d4`) using Playwright's native `mask`. Do **not** use solid black rectangles — they look like leaks and break visual continuity. See `scripts/portal-capture-helpers.md` and the PII rules table in `AGENTS.md`.
 
 ### PII masking checklist
 
