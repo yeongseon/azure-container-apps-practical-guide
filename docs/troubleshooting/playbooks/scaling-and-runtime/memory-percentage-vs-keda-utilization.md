@@ -29,6 +29,10 @@ content_validation:
       set as a percentage of the memory limit and may include page cache.
     source: https://learn.microsoft.com/azure/container-apps/metrics
     verified: true
+  - claim: The KEDA memory scaler evaluates `Utilization` as a percentage of the
+      container's requested memory, using the Kubernetes resource-memory metric.
+    source: https://keda.sh/docs/latest/scalers/memory/
+    verified: true
 ---
 # Memory Scale Rule Not Triggering Despite High Memory Percentage
 
@@ -42,6 +46,14 @@ memory scale rule configured with `Utilization=50` does not increase
 replicas above `minReplicas`. The customer concludes "the memory scale rule
 is broken".
 
+!!! tip "TL;DR"
+    The Portal `Memory Percentage (Preview)` chart answers *"How close
+    am I to the per-replica memory ceiling?"*, not *"What exact value
+    did KEDA use to decide whether to scale?"*. Those are two different
+    metrics from two different pipelines. Use the Portal value for OOM
+    risk; use per-replica splitting plus the HPA `ceil` formula to
+    reason about scaling.
+
 ### Why this scenario is confusing
 
 There are **two independent contributors** to the same surface symptom, and
@@ -49,19 +61,29 @@ they are easy to confuse:
 
 1. **HPA ceiling math.** KEDA uses the standard Kubernetes HPA formula
    `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`.
-   With `currentReplicas = 2` and `targetMetric = 50`, the result stays at
-   `2` for any `currentMetric` value less than approximately `26` (and
-   rounds up to `3` once it crosses about `26`). A 70% Portal reading does
-   not by itself say what KEDA sees.
+   With `currentReplicas = 2` and `targetMetric = 50`, the formula returns
+   `2` for any per-replica metric value at or below `50` and only rounds
+   up to `3` once the per-replica value strictly exceeds `50`. A 70%
+   Portal reading does not by itself say what KEDA sees per replica.
 2. **Metric source mismatch.** Portal `Memory Percentage (Preview)` comes
-   from Azure Monitor and is computed as working set divided by the memory
-   limit, which includes page cache. KEDA's memory scaler reads from the
-   Kubernetes metrics API (effectively container memory usage minus
-   inactive cache, divided by the memory request). For cache-heavy
+   from Azure Monitor and is reported as a percentage of the container
+   memory limit; it reflects the cgroup working set, which can include
+   reclaimable page cache. KEDA's memory scaler instead reads container
+   memory from the Kubernetes Metrics Server and evaluates `Utilization`
+   as a percentage of the container's requested memory. For cache-heavy
    workloads these two values can diverge by tens of percentage points.
 
 The Portal chart is intended for OOM-risk situational awareness, not as a
 ground-truth view of what KEDA evaluates.
+
+### What to look at for which question
+
+| Question you are answering | Trust this signal | Why |
+|---|---|---|
+| "Am I close to the memory ceiling / OOM risk?" | Portal `MemoryPercentage` (Avg/Max) at the revision level | Defined as percentage of the container memory limit; cache inclusion is intentional for OOM proximity. |
+| "Why did (or didn't) the memory scale rule fire?" | Portal `MemoryPercentage` **split by Replica** + HPA `ceil` math + `memory.stat` on a live replica | KEDA decides per-replica against `Utilization`; the unsplit average and the Portal numerator are not the scaler input. |
+| "How much memory do my replicas actually consume for capacity planning?" | `WorkingSetBytes` per replica trend, alongside the configured memory size | Bytes are unambiguous and independent of which percentage formula a tool uses. |
+| "What did the scaler decide, and when?" | Activity Log + `ContainerAppSystemLogs_CL` (when present), reconciled against the `Replicas` metric timeline | Portal Metrics shows replica outcomes and raw resource counters; it does not expose KEDA's internal evaluated value or the HPA `desiredReplicas` calculation. |
 
 ### Troubleshooting decision flow
 
@@ -139,14 +161,16 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" \
 ```
 
 If `file` is much larger than `anon`, the working set is dominated by page
-cache. Azure Monitor's `Memory Percentage` will read high; KEDA's view will
-read low.
+cache. In that situation Azure Monitor's `Memory Percentage` reads high
+while the Kubernetes resource-memory value KEDA evaluates often reads
+materially lower, because cgroup totals and the scaler input do not map
+one-to-one.
 
-| Field in `memory.stat` | Meaning | Inflates Portal? | Drives KEDA? |
+| Field in `memory.stat` | Meaning | Inflates Portal? | Likely impact on KEDA input |
 |---|---|---|---|
-| `anon` | Anonymous (process RSS) memory | Yes | Yes |
-| `file` | Reclaimable page cache | Yes | No (treated as inactive cache by the scaler) |
-| `kernel` | Kernel-side accounting | Yes (partly) | No |
+| `anon` | Anonymous (process RSS) memory | Yes | Counted by the scaler input |
+| `file` | Reclaimable page cache | Yes | Often materially less than its contribution to the Portal value; do not assume one-to-one |
+| `kernel` | Kernel-side accounting | Yes (partly) | Not a primary driver of the scaler input |
 
 ### KEDA polling and cooldown defaults
 
@@ -160,9 +184,9 @@ read low.
 | Hypothesis | Action |
 |---|---|
 | **H1** | Either lower `Utilization` target (e.g., 40), raise `minReplicas` so the ceiling threshold drops, or accept the behavior as designed. Show the customer the `ceil` math. |
-| **H2** | Confirm the event in Activity log (`Microsoft.App/containerApps/revisions/scale/action`) and the `Replicas` metric history. Educate on cooldown. |
-| **H3** | Either fix the workload (do not pin large files in page cache when not needed), or switch the scale dimension to CPU or a custom metric that better reflects pressure. The memory scaler will not react to page cache, by design. |
-| **H4** | Open a support case with the failed evaluation timestamp, the rule definition, and the `ContainerAppSystemLogs_CL` excerpt for the KEDA reconcile event. |
+| **H2** | Confirm the event in the Activity Log and the `Replicas` metric history. Educate on cooldown. |
+| **H3** | Either fix the workload (do not pin large files in page cache when not needed), or switch the scale dimension to CPU or a custom metric that better reflects pressure. For cache-heavy workloads the memory scaler input often stays below the threshold even when the Portal value is high. |
+| **H4** | Open a support case with the failed evaluation timestamp, the rule definition, and the relevant `ContainerAppSystemLogs_CL` excerpt (when present). |
 
 ## 6. Prevention
 
@@ -189,3 +213,4 @@ read low.
 - [Memory scale rule - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/memory-scale-rule)
 - [Available metrics - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/metrics)
 - [Horizontal Pod Autoscaler algorithm details - Kubernetes](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details)
+- [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)

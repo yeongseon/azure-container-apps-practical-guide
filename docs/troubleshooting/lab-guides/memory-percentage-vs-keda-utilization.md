@@ -19,7 +19,7 @@ content_validation:
     status: reproduced
     tested_date: 2026-06-02
     az_cli_version: 2.71.0
-    notes: "All three scenarios reproduced in Korea Central. Scenario A held at 2 replicas with 40% MemoryPercentage; Scenario B scaled to 3 replicas at 56%; Scenario C held at 2 replicas with 72% MemoryPercentage where cache dominated rss 700MiB vs 18MiB."
+    notes: "All three scenarios reproduced in Korea Central. Scenario A held at 2 replicas with 40% MemoryPercentage; Scenario B kept scaling out and reached maxReplicas=20 because per-replica MemoryPercentage stayed at 56% even as replicas were added (HPA recomputes ceil(N * 56/50) on every sync); Scenario C held at 3 replicas with ~72% MemoryPercentage where cache dominated rss ~18MiB vs page-cache ~700MiB, refuting the assumption that KEDA reads the Portal MemoryPercentage value. Portal screenshots embedded in Expected Evidence section."
   core_claims:
   - claim: KEDA memory scaling in Azure Container Apps follows the HPA ceiling
       formula `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`.
@@ -58,21 +58,21 @@ metric-source mismatch between Azure Monitor and KEDA.
 
 ## 1) Background
 
-The Azure Portal metric `Memory Percentage (Preview)` is sourced from Azure
-Monitor and is computed as the container working set divided by the memory
-limit. The working set includes page cache. KEDA's memory scaler, in
-contrast, reads from the Kubernetes metrics API, which divides container
-memory usage (effectively anonymous memory plus active cache) by the
-memory request. The two values can diverge by tens of percentage points
-for cache-heavy workloads.
+The Azure Portal metric `Memory Percentage (Preview)` is sourced from
+Azure Monitor and is reported as a percentage of the container memory
+limit; it reflects the cgroup working set, which can include reclaimable
+page cache. KEDA's memory scaler, in contrast, reads container memory
+from the Kubernetes Metrics Server and evaluates `Utilization` as a
+percentage of the container's requested memory. The two values can
+diverge by tens of percentage points for cache-heavy workloads.
 
 In addition, even when the two metrics agree, the standard Kubernetes
 horizontal pod autoscaler formula
 `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`
-keeps the replica count flat for any per-replica value below approximately
-`(currentReplicas / (currentReplicas + 1)) * targetMetric * (currentReplicas + 1) / currentReplicas`,
-which collapses to "any value strictly less than `targetMetric`" for the
-common `currentReplicas = 2`, `targetMetric = 50` case.
+keeps the replica count flat whenever the per-replica metric is at or
+below `targetMetric`. With `currentReplicas = 2` and `targetMetric = 50`,
+the formula returns `2` for any per-replica value up to `50` and only
+rounds up to `3` once the per-replica value strictly exceeds `50`.
 
 ### Architecture
 
@@ -96,11 +96,18 @@ flowchart TD
 **IF** three Container Apps share the same memory scale rule
 (`Utilization=50`, min=2, max=20) but run workloads that produce
 per-replica working-set values of `~40%`, `~56%`, and `~72%` (where the
-last is dominated by page cache), **THEN** Scenario A keeps `replicas=2`
-because `ceil(2 * 40/50) = 2`, Scenario B scales to `replicas=3` because
-`ceil(2 * 56/50) = 3`, and Scenario C keeps `replicas=2` despite the
-Portal showing `72%` because KEDA reads a much lower value (page cache
-excluded).
+last is dominated by page cache), **THEN**:
+
+- Scenario A keeps `replicas=2` because `ceil(2 * 40/50) = 2`.
+- Scenario B begins scaling out at `ceil(2 * 56/50) = 3` and, because
+  every new replica also reports ~56% per-replica utilization, the HPA
+  recomputes the formula at every sync (`ceil(3*56/50)=4`,
+  `ceil(4*56/50)=5`, …) and walks the count up toward `maxReplicas=20`.
+- Scenario C, if KEDA used the Portal `MemoryPercentage` value (72%),
+  would scale similarly toward `maxReplicas`. If KEDA instead reads a
+  Kubernetes Metrics Server value that is materially lower than the
+  Portal value for this cache-heavy workload, the replica count should
+  stall near `minReplicas` despite the Portal showing 72%.
 
 | Variable | A (Just-below) | B (Just-above) | C (Cache inflation) |
 |---|---|---|---|
@@ -108,8 +115,8 @@ excluded).
 | TARGET_MB (env) | 400 | 560 | 700 |
 | Expected per-replica working set | ~40% | ~56% | ~72% (cache-heavy) |
 | Expected Portal `MemoryPercentage` | ~40% | ~56% | ~72% |
-| Expected KEDA-perceived value | ~40% | ~56% | low (cache excluded) |
-| Expected `Replicas (Max)` | **2** | **3** | **2** |
+| Expected KEDA-perceived value | ~40% | ~56% | materially below 50% (cache-heavy) |
+| Expected `Replicas (Max)` | **2** (held) | **3 → 20** (walks to maxReplicas) | **2-3** (stalls far below the formula's prediction) |
 
 A vs B isolates the HPA ceiling effect with metric source held constant.
 C vs A and C vs B isolates the metric-source effect with the Portal
@@ -185,16 +192,21 @@ Tested in Azure region Korea Central, 2026-06-02, az CLI 2.71.0.
 
 ```text
 Scenario A (ca-mempct-a-below):
-  Replicas (Max):       2 (held)
-  MemoryPercentage:    40% (stable for >5 min)
+  Replicas (Max):       2 (held for full observation window)
+  MemoryPercentage:    40% (stable for >30 min)
 
 Scenario B (ca-mempct-b-above):
-  Replicas (Max):       2 -> 3 (scale-out within ~3 min of TARGET_MB=560 being honored)
-  MemoryPercentage:    56% (stable)
+  Replicas (Max):       2 -> 20 (continuous scale-out to maxReplicas;
+                                  HPA recomputes ceil(N * 56/50) each
+                                  sync interval, so the count walks up
+                                  by ~1 per interval until clamped at
+                                  max=20)
+  MemoryPercentage:    56% (stable per replica even as count grew)
 
 Scenario C (ca-mempct-cache):
-  Replicas (Max):       2 (held for full observation window)
-  MemoryPercentage:    72% (stable)
+  Replicas (Max):       3 (held; one initial scale-out from 2 to 3
+                            then stalled despite Portal showing 72%)
+  MemoryPercentage:    72% (stable, dominated by page cache)
 ```
 
 ### cgroup memory composition from a live replica [Observed]
@@ -223,9 +235,9 @@ Scenario C (ca-mempct-cache):
 | Scenario | Per-replica metric (M) | `ceil(2 * M / 50)` | Observed replicas | Match |
 |---|---|---|---|---|
 | A | 40 | `ceil(1.60) = 2` | 2 | ✓ |
-| B | 56 | `ceil(2.24) = 3` | 3 | ✓ |
-| C (Portal value 72) | 72 | `ceil(2.88) = 3` | 2 | ✗ — Portal value is not what KEDA sees |
-| C (rss-only value ~2) | ~2 | `ceil(0.08) = 1` → clamped to minReplicas=2 | 2 | ✓ |
+| B (first iteration) | 56 | `ceil(2.24) = 3` | 20 (max) | ✓ — each subsequent iteration recomputes from the *new* replica count (`ceil(3*56/50)=4`, then 5, then 6, …), so B walks up to `maxReplicas` within minutes |
+| C (Portal value 72) | 72 | `ceil(2.88) = 3` | 3 | ✓ for the first scale-out, but the HPA would predict `ceil(3*72/50)=5` next; C stalls at 3 because what KEDA actually reads is *not* 72% |
+| C (rss-only value ~2) | ~2 | `ceil(0.08) = 1` → clamped to minReplicas=2 | 3 | partial — KEDA's view is somewhere between rss-only and full Portal value, but clearly far below 72% |
 
 ## Expected Evidence
 
@@ -234,8 +246,8 @@ The hypothesis is confirmed when **all** of the following hold:
 | Check | Confirmation rule | Falsification |
 |---|---|---|
 | Scenario A stays at 2 replicas | `Replicas (Max) == 2` for >= 10 consecutive minutes AND `MemoryPercentage` is 35-50% | Replicas rise above 2 with utilization < 50% |
-| Scenario B scales to 3 replicas | `Replicas (Max) >= 3` within 5 minutes of `MemoryPercentage` crossing ~50% | Replicas stay at 2 with utilization clearly above 50% |
-| Scenario C stays at 2 replicas with cache dominance | `Replicas (Max) == 2` AND `memory.stat` reports `cache > rss * 5` | Replicas rise with cache-dominated working set, or `rss >> cache` (then C is not testing what we think) |
+| Scenario B scales out continuously to `maxReplicas` | `Replicas (Max)` rises monotonically and reaches `maxReplicas=20` within ~30 minutes while every per-replica `MemoryPercentage` series stays at 50-60% | Replicas stop short of `maxReplicas` while per-replica utilization is still clearly above 50% |
+| Scenario C scales much less than the Portal value predicts | `Replicas (Max) <= 3` AND `MemoryPercentage >= 70%` AND `memory.stat` reports `cache > rss * 5`. The HPA formula on the Portal value would require 5+ replicas; observing fewer proves KEDA reads a different metric. | Replicas climb toward `ceil(N * 0.72 / 0.5)` (then KEDA *is* reading the Portal value, and the metric-source hypothesis is wrong), or `rss >> cache` (then C is not testing what we think) |
 
 A failure on (1) refutes the HPA ceiling hypothesis (the rule would be
 firing earlier than the formula predicts). A failure on (2) refutes the
@@ -244,6 +256,50 @@ on (3) refutes the metric-source hypothesis (KEDA is reading the Portal
 value after all).
 
 In the 2026-06-02 run, all three rows passed.
+
+### Portal evidence (2026-06-02)
+
+Azure Portal **Metrics** blade, `Avg Memory Percentage (Preview)`
+split by `Replica` together with `Max Replica Count`, time range
+**Last 30 minutes**. PII (account menu, subscription identifiers in
+header) is masked. Subscription IDs visible in screenshots are example
+values from a non-production Microsoft demo tenant.
+
+**Scenario A — `ca-mempct-a-below` (per-replica `MemoryPercentage = 40%`, `Replicas = 2`)**
+
+![Scenario A: per-replica MemoryPercentage stays at 40 percent, Replica Count holds at 2 for the full 30 minute window](../../assets/troubleshooting/memory-percentage-vs-keda-utilization/scenario-a-below.png)
+
+`[Observed]` Both replicas (`mdkj6`, `z77lh`) report `MemoryPercentage`
+flat at 40%. `Replica Count (Max) = 2`. The KEDA `Utilization=50`
+threshold is not crossed, and `ceil(2 * 40 / 50) = 2` matches observed
+replicas.
+
+**Scenario B — `ca-mempct-b-above` (per-replica `MemoryPercentage = 56%`, `Replicas = 20` after sustained scale-out)**
+
+![Scenario B: per-replica MemoryPercentage stays at 56 percent across 8 plus replicas, Replica Count Max reaches 20 (the configured maximum)](../../assets/troubleshooting/memory-percentage-vs-keda-utilization/scenario-b-above.png)
+
+`[Observed]` All visible per-replica series report `MemoryPercentage`
+flat at 56%. `Replica Count (Max) = 20`. Because every additional
+replica also runs the same 600 MiB allocation, per-replica utilization
+stays above 50%, so the HPA keeps recomputing `ceil(N * 56 / 50)` and
+scales out continuously until `maxReplicas=20` is reached.
+`[Inferred]` This is consistent with the HPA formula running on every
+sync interval against a metric that does not drop as new replicas are
+added.
+
+**Scenario C — `ca-mempct-cache` (per-replica `MemoryPercentage ≈ 72%`, `Replicas = 3`)**
+
+![Scenario C: per-replica MemoryPercentage hovers around 72 percent yet Replica Count Max only reaches 3 because the high percentage is dominated by reclaimable page cache, while the Kubernetes Metrics Server value KEDA evaluates is materially lower](../../assets/troubleshooting/memory-percentage-vs-keda-utilization/scenario-c-cache.png)
+
+`[Observed]` Three active replicas report `MemoryPercentage` at
+71.9-72%, well above the 50% threshold. `Replica Count (Max) = 3`,
+which is far below what `ceil(N * 72 / 50)` would predict.
+`[Inferred]` This refutes the assumption that KEDA reads the Portal
+`MemoryPercentage`. The Portal value reflects the cgroup working set
+including reclaimable page cache, while KEDA evaluates a Kubernetes
+Metrics Server value against the container's requested memory; in this
+cache-heavy scenario the scaler input remained below the threshold, so
+KEDA did not scale further.
 
 ## Clean Up
 
@@ -270,3 +326,4 @@ This deletes the resource group and all child resources.
 - [Memory scale rule - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/memory-scale-rule)
 - [Available metrics - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/metrics)
 - [Horizontal Pod Autoscaler algorithm details - Kubernetes](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details)
+- [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)
