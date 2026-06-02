@@ -7,13 +7,17 @@ ACR_PASSWORD=$(az acr credential show --name "$ACR_NAME" --query "passwords[0].v
 
 az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
 
+az containerapp registry set \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --server "$ACR_LOGIN_SERVER" \
+  --username "$ACR_USERNAME" \
+  --password "$ACR_PASSWORD"
+
 az containerapp update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1" \
-  --registry-server "$ACR_LOGIN_SERVER" \
-  --registry-username "$ACR_USERNAME" \
-  --registry-password "$ACR_PASSWORD" \
   --min-replicas 1 \
   --max-replicas 2 \
   --scale-rule-name "http-rule" \
