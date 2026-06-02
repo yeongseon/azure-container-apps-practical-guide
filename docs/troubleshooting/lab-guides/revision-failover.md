@@ -276,6 +276,53 @@ ContainerAppReady     → Running state reached
 
 Environment: `koreacentral`, Consumption plan.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | After the bad rollout creates a new revision | Container App → Revisions | Full revisions list showing the previously healthy revision and the newest unhealthy revision side by side | `revision-failover-revisions-before-rollback.png` |
+| 2 | During diagnosis | Container App → Revisions → latest bad revision | Revision detail showing the unhealthy rollout state and the bad target port / startup signal | `revision-failover-bad-revision-detail.png` |
+| 3 | During rollback | Container App → Traffic splitting | Traffic panel showing 100% reassigned to the last healthy revision | `revision-failover-traffic-rollback.png` |
+| 4 | Immediately after rollback | Container App → Revisions | Revisions list showing the healthy revision still active while the bad revision has 0% traffic or is being deactivated | `revision-failover-revisions-after-rollback.png` |
+| 5 | After the configuration fix is deployed | Container App → Revisions | Newest post-fix revision shows `Healthy`, confirming service stabilization after rollback + repair | `revision-failover-after-fix.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/revision-failover/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] The latest rollout created a bad revision while an older healthy revision remained available for failover:
+
+![Healthy and unhealthy revisions before rollback](../../assets/troubleshooting/revision-failover/revision-failover-revisions-before-rollback.png)
+
+[Observed] Traffic was moved back to the healthy revision before the bad configuration was repaired:
+
+![Traffic rolled back to the healthy revision](../../assets/troubleshooting/revision-failover/revision-failover-traffic-rollback.png)
+```
+
 ## Clean Up
 
 ```bash

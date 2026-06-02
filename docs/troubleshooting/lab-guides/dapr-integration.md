@@ -342,6 +342,53 @@ az containerapp revision list --name ca-dapr-int --resource-group rg-aca-lab-tes
 
 Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5, Dapr 1.16.4-msft.6.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | Before remediation, after the trigger changes Dapr `appPort` | Container App → Dapr | Full Dapr settings panel showing `enabled`, `appId`, and the wrong `appPort` value | `dapr-integration-dapr-config-before.png` |
+| 2 | During the incident | Container App → Revisions | Latest revision detail showing the unhealthy state created by the Dapr/app port mismatch | `dapr-integration-revision-health.png` |
+| 3 | During the incident | Container App → Monitoring → Logs | KQL focused on Dapr sidecar readiness failures (for example `ContainerAppSystemLogs_CL | where Log_s contains "daprd" or Reason_s == "ProbeFailed"`) | `dapr-integration-dapr-logs.png` |
+| 4 | During diagnosis | Container Apps Environment → Dapr components | Component list confirming the environment-level Dapr component exists and the fault is app-specific | `dapr-integration-components.png` |
+| 5 | After the fix restores the correct Dapr port | Container App → Dapr | Full Dapr settings panel showing the corrected `appPort` and enabled state | `dapr-integration-dapr-config-after.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/dapr-integration/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] The app kept Dapr enabled, but the sidecar was pointed at the wrong application port, which made the latest revision unstable:
+
+![Wrong Dapr appPort before fix](../../assets/troubleshooting/dapr-integration/dapr-integration-dapr-config-before.png)
+
+[Observed] After restoring the correct `appPort`, the Dapr configuration matched the app listener again and the revision recovered:
+
+![Correct Dapr appPort after fix](../../assets/troubleshooting/dapr-integration/dapr-integration-dapr-config-after.png)
+```
+
 ## Clean Up
 
 ```bash

@@ -318,6 +318,53 @@ Expected: All requests return HTTP 200.
 
 Environment: `koreacentral`, Consumption plan, multiple-revision mode.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | After the bad canary revision is created | Container App → Revisions | Full revisions list showing both stable and canary revisions active | `traffic-routing-canary-revisions-before-rollback.png` |
+| 2 | During the incident | Container App → Traffic splitting | Traffic panel showing the canary split that sends production traffic to both revisions | `traffic-routing-canary-traffic-split.png` |
+| 3 | During the incident | Container App → Monitoring → Metrics | Metric `Requests`, split by `Revision name` or `Status code category`, time `Last 15 minutes`, showing the intermittent failure pattern | `traffic-routing-canary-requests-by-revision.png` |
+| 4 | During rollback | Container App → Traffic splitting | Traffic panel showing 100% restored to the stable revision | `traffic-routing-canary-traffic-after-rollback.png` |
+| 5 | After rollback validation | Container App → Revisions | Revisions list showing the bad canary at 0% traffic or deactivated while the stable revision remains active | `traffic-routing-canary-revisions-after-rollback.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/traffic-routing-canary/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] Production traffic was intentionally split across both the stable and canary revisions during the failure window:
+
+![Traffic split between stable and canary revisions](../../assets/troubleshooting/traffic-routing-canary/traffic-routing-canary-traffic-split.png)
+
+[Observed] Rollback completed when traffic was returned fully to the stable revision and the canary stopped receiving requests:
+
+![Traffic restored to the stable revision after rollback](../../assets/troubleshooting/traffic-routing-canary/traffic-routing-canary-traffic-after-rollback.png)
+```
+
 ## Clean Up
 
 ```bash

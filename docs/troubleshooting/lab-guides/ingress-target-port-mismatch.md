@@ -297,6 +297,53 @@ curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/
 
 Environment: `koreacentral`, rg-aca-lab-test4, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | Before the fix, after the target port is changed | Container App → Ingress | Full ingress panel showing external ingress enabled and the wrong `Target port` value | `ingress-target-port-mismatch-ingress-before.png` |
+| 2 | During the incident | Container App → Revisions and replicas | Replica / revision view showing the container still running so the failure is isolated to ingress routing | `ingress-target-port-mismatch-revision-running.png` |
+| 3 | During the incident | Container App → Monitoring → Metrics | Metric `Requests`, split by `Status code category`, time `Last 15 minutes`, showing 5xx or failed requests while the wrong port is active | `ingress-target-port-mismatch-requests-failed.png` |
+| 4 | After the fix restores the correct port | Container App → Ingress | Full ingress panel showing `Target port = 80` (or the app's actual listener) | `ingress-target-port-mismatch-ingress-after.png` |
+| 5 | After the fix | Container App → Monitoring → Metrics | Same `Requests` metric view showing successful requests returning after the ingress correction | `ingress-target-port-mismatch-requests-recovered.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/ingress-target-port-mismatch/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] Ingress was configured to forward traffic to the wrong container port even though the replica itself stayed running:
+
+![Wrong ingress target port before fix](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-target-port-mismatch-ingress-before.png)
+
+[Observed] After restoring the correct target port, the same endpoint started succeeding again in Portal metrics:
+
+![Recovered request success after ingress fix](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-target-port-mismatch-requests-recovered.png)
+```
+
 ## Clean Up
 
 ```bash
