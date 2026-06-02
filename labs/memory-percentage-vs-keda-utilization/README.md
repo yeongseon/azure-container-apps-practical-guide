@@ -10,21 +10,26 @@ side-by-side scenarios:
 1. **HPA ceiling math** — KEDA uses the standard HPA formula
    `desiredReplicas = ceil(currentReplicas × currentMetricValue / desiredMetricValue)`.
    With `currentReplicas = 2` and `desiredMetricValue = 50`, any
-   `currentMetricValue` strictly less than `25` keeps the result at `2`. Any
-   value at or above ~`26` rounds up to `3`. The customer-visible symptom
-   "Portal shows 70%, replicas stay at 2" can be a pure rounding artifact.
+   `currentMetricValue` at or below `50` keeps the result at `2`. The
+   formula only rounds up to `3` once the per-replica value strictly
+   exceeds `50`. The customer-visible symptom "Portal shows 70%, replicas
+   stay at 2" can be a pure rounding artifact when per-replica memory
+   stays at or below the target.
 2. **Metric source mismatch** — The Portal `MemoryPercentage (Preview)`
-   metric is sourced from Azure Monitor (working-set / limit, includes page
-   cache). KEDA's memory scaler is sourced from the Kubernetes metrics API
-   (effectively `container_memory_working_set_bytes` minus inactive cache,
-   divided by the resource request). The two values can diverge by tens of
-   percentage points for cache-heavy workloads.
+   metric is sourced from Azure Monitor and, based on the cgroup data this
+   lab observed, reflects the container working set including reclaimable
+   page cache. KEDA's memory scaler is sourced from the Kubernetes metrics
+   API (kubelet/metrics-server), which does **not** always report the same
+   numerator as the Azure Monitor metric. The two values can diverge by
+   tens of percentage points for cache-heavy workloads — this lab
+   demonstrates the divergence behaviorally rather than measuring the
+   exact metrics-server numerator.
 
-| Scenario | App name | Workload | TARGET_MB | Expected per-replica util | HPA calc | Expected replicas |
+| Scenario | App name | Workload | TARGET_MB | Per-replica Portal util | HPA on Portal value | Observed replicas |
 |---|---|---|---|---|---|---|
-| **A. Just-below** | `ca-mempct-a-below` | `MODE=rss` | 400 (~40% of 1024) | ~40% | `ceil(2 × 40/50) = 2` | **2 (no scale-out)** |
-| **B. Just-above** | `ca-mempct-b-above` | `MODE=rss` | 560 (~55% of 1024) | ~55% | `ceil(2 × 55/50) = 3` | **3 (scale-out)** |
-| **C. Cache inflation** | `ca-mempct-cache` | `MODE=cache` | 700 (~68% of 1024) | low (cache, see notes) | `ceil(2 × ~10/50) = 2` | **2 (no scale-out)** |
+| **A. Just-below** | `ca-mempct-a-below` | `MODE=rss` | 400 (~40% of 1024) | ~40% | `ceil(2 × 40/50) = 2` | **2 (held)** |
+| **B. Just-above** | `ca-mempct-b-above` | `MODE=rss` | 560 (~56% of 1024) | ~56% | `ceil(2 × 56/50) = 3`, then walks up | **2 → 20 (maxReplicas)** |
+| **C. Cache inflation** | `ca-mempct-cache` | `MODE=cache` | 700 (~68% of 1024) | ~72% (cache-heavy) | `ceil(2 × 72/50) = 3` predicts further scale-out | **3 (held; far below Portal-predicted)** |
 
 The behavioral diff between A and B isolates the **HPA ceiling effect** with
 the metric source held constant (both rss). The diff between C and B
@@ -60,10 +65,10 @@ az deployment group create \
   --template-file labs/memory-percentage-vs-keda-utilization/infra/main.bicep \
   --parameters baseName="$BASE_NAME"
 
-export ACR_NAME="$(az deployment group show -g "$RG" -n main \
-  --query properties.outputs.containerRegistryName.value -o tsv)"
-export ENV_NAME="$(az deployment group show -g "$RG" -n main \
-  --query properties.outputs.environmentName.value -o tsv)"
+export ACR_NAME="$(az deployment group show --resource-group "$RG" --name main \
+  --query properties.outputs.containerRegistryName.value --output tsv)"
+export ENV_NAME="$(az deployment group show --resource-group "$RG" --name main \
+  --query properties.outputs.environmentName.value --output tsv)"
 
 # Create all three scenarios in parallel; they observe the same 15-min window.
 bash labs/memory-percentage-vs-keda-utilization/trigger-scenario-a.sh
@@ -88,17 +93,21 @@ The lab is considered reproduced when **all** of the following hold over a
 window of at least 10 consecutive minutes:
 
 1. **Scenario A**: `MemoryPercentage (Avg)` is in the 35-50% range AND
-   `Replicas (Max)` stays at `2`. cgroup `memory.current / memory.max` is
-   roughly 35-45%.
-2. **Scenario B**: `MemoryPercentage (Avg)` is in the 50-70% range AND
-   `Replicas (Max)` rises to `3` (or higher).
-3. **Scenario C**: `MemoryPercentage (Avg)` is in the 60-80% range BUT
-   `Replicas (Max)` stays at `2`, AND `memory.stat` from the replica shows
-   `file >> anon` (page cache dominates).
+   `Replicas (Max)` stays at `2` for the observation window.
+2. **Scenario B**: `MemoryPercentage (Avg)` is in the 50-60% range AND
+   `Replicas (Max)` walks up toward `maxReplicas` because every new
+   replica also reports ~56% per-replica utilization, so the HPA formula
+   keeps recomputing `ceil(N × 56/50) = N+1`.
+3. **Scenario C**: `MemoryPercentage (Avg)` is in the 70-80% range BUT
+   `Replicas (Max)` plateaus far below what `ceil(N × 0.72 / 0.5)` would
+   predict (we observed 3, not 5+), AND `memory.stat` from the replica
+   shows `cache >> rss` (or `file >> anon` on cgroup v2). This proves the
+   Portal value is **not** the same input KEDA evaluated; it does **not**
+   directly measure the metrics-server value KEDA actually used.
 
 (1) and (2) together prove the HPA ceiling effect (same metric source,
-different headroom). (3) demonstrates the metric-source divergence (Portal
-high, KEDA low).
+different headroom). (3) demonstrates behavioral divergence between the
+Portal metric and the scaler input for cache-heavy workloads.
 
 ## Why this matters (operator takeaway)
 

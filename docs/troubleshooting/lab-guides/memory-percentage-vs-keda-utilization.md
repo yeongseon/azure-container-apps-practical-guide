@@ -178,11 +178,22 @@ done
 ```
 
 `verify.sh` queries the `Replicas`, `MemoryPercentage`, and
-`WorkingSetBytes` metrics over the last 30 minutes, lists the active
-revision, and runs `az containerapp exec` to read
-`/sys/fs/cgroup/memory/memory.usage_in_bytes`,
-`/sys/fs/cgroup/memory/memory.limit_in_bytes`, and the top of
+`WorkingSetBytes` metrics from Azure Monitor for the last 30 minutes, then
+opens an `az containerapp exec` session against a live replica and prints
+`/sys/fs/cgroup/memory.current` (or v1 `memory.usage_in_bytes`),
+`/sys/fs/cgroup/memory.max` (or v1 `memory.limit_in_bytes`), and the top of
 `memory.stat` from a live replica.
+
+Field naming in `memory.stat` differs by cgroup version:
+
+- **cgroup v1** reports `rss` (anonymous, process-backed) and `cache`
+  (file-backed page cache).
+- **cgroup v2** reports `anon` (≈ v1 `rss`) and `file` (≈ v1 `cache`),
+  with `file` split further into `inactive_file` / `active_file`.
+
+The interpretation in the rest of this lab uses cgroup v1 field names; on
+a cgroup v2 host, read `anon` wherever `rss` appears and `file` wherever
+`cache` appears.
 
 ## 4) Experiment Log
 

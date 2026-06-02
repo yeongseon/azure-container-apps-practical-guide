@@ -9,10 +9,12 @@ MODE=rss:
     Allocates a large anonymous bytearray and holds it in process memory.
     Both RSS and working set inflate together.
 
-The lab uses these two modes to demonstrate why Azure Monitor
-``Memory Percentage`` (working set / limit) can read high while KEDA's
-memory utilization (effectively anonymous + active usage / request) reads
-low - and therefore does not trigger scale-out.
+The lab uses these two modes to demonstrate that Azure Monitor
+``Memory Percentage`` (Portal value, includes reclaimable page cache for
+cache-heavy workloads in this lab's observations) can read materially
+higher than the value KEDA's memory scaler consumes from the Kubernetes
+metrics API. The exact metrics-server numerator is not measured directly;
+the lab demonstrates the divergence behaviorally via replica counts.
 """
 
 from __future__ import annotations

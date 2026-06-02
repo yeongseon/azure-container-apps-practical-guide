@@ -151,20 +151,27 @@ If the printed value equals `currentReplicas`, no scale-out is expected.
 APP_NAME="ca-myapp"
 RG="rg-myapp"
 ACTIVE_REV="$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
-  --query '[?properties.active]|[0].name' -o tsv)"
+  --query '[?properties.active]|[0].name' --output tsv)"
 REPLICA="$(az containerapp replica list --name "$APP_NAME" --resource-group "$RG" \
-  --revision "$ACTIVE_REV" --query '[0].name' -o tsv)"
+  --revision "$ACTIVE_REV" --query '[0].name' --output tsv)"
 
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" \
   --replica "$REPLICA" --container "$APP_NAME" \
-  --command "/bin/sh -c 'cat /sys/fs/cgroup/memory.stat | head -10'"
+  --command "/bin/sh -c '(cat /sys/fs/cgroup/memory.stat 2>/dev/null || cat /sys/fs/cgroup/memory/memory.stat) | head -10'"
 ```
 
-If `file` is much larger than `anon`, the working set is dominated by page
-cache. In that situation Azure Monitor's `Memory Percentage` reads high
-while the Kubernetes resource-memory value KEDA evaluates often reads
-materially lower, because cgroup totals and the scaler input do not map
-one-to-one.
+The path varies by cgroup version: cgroup v2 exposes
+`/sys/fs/cgroup/memory.stat`; cgroup v1 exposes
+`/sys/fs/cgroup/memory/memory.stat`. The field names also differ — cgroup
+v1 uses `rss` / `cache`, while cgroup v2 uses `anon` / `file` (and splits
+`file` further into `inactive_file` / `active_file`). Treat `rss` ≈ `anon`
+and `cache` ≈ `file` when comparing the two layouts.
+
+If `file` is much larger than `anon` (or `cache` ≫ `rss` on v1), the
+working set is dominated by page cache. In that situation Azure Monitor's
+`Memory Percentage` reads high while the Kubernetes resource-memory value
+KEDA evaluates often reads materially lower, because cgroup totals and the
+scaler input do not map one-to-one.
 
 | Field in `memory.stat` | Meaning | Inflates Portal? | Likely impact on KEDA input |
 |---|---|---|---|
@@ -200,14 +207,14 @@ one-to-one.
   > 60%` for more than 15 minutes; investigate per the decision flow above
   rather than assuming the scaler is broken.
 
-## 7. See Also
+## See Also
 
 - Lab guide: [Memory Percentage vs KEDA Utilization](../../lab-guides/memory-percentage-vs-keda-utilization.md)
 - Playbook: [HTTP Scaling Not Triggering](./http-scaling-not-triggering.md)
 - Playbook: [Replica Load Imbalance](./replica-load-imbalance.md)
 - Platform: [CPU and Memory Scaler](../../../platform/scaling/cpu-memory-scaler.md)
 
-## 8. Sources
+## Sources
 
 - [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
 - [Memory scale rule - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/memory-scale-rule)

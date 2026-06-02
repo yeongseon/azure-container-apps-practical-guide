@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Scenario C: Cache inflation.
 #   MODE=cache, TARGET_MB=700 (~68% of 1024Mi via page cache).
-#   Azure Monitor MemoryPercentage reads high because it includes page
-#   cache; KEDA's view (via the Kubernetes metrics API) reads much lower
-#   because inactive cache is excluded - so no scale-out.
+#   Azure Monitor MemoryPercentage reads high because the value reflects
+#   the cgroup working set including reclaimable page cache. KEDA reads
+#   from the Kubernetes metrics API (kubelet/metrics-server), which does
+#   not always report the same numerator - so for this cache-heavy
+#   workload the scaler input stays below the Utilization=50 target and
+#   replica count plateaus far below what the Portal value would predict.
 set -euo pipefail
 
 : "${RG:?RG (resource group) must be set}"
