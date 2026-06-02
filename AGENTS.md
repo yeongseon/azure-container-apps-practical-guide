@@ -147,6 +147,38 @@ az containerapp create -g $RG -n $APP_NAME  # ❌ Don't do this
 
 The goal is to prevent leaking **real Azure account information**, not to mask obviously-fake example values that aid readability.
 
+### Portal Screenshot Capture (PII Replacement Rules)
+
+Azure Portal screenshots in `docs/assets/troubleshooting/**/*.png` MUST use **text replacement** (not black-box redaction). Black rectangles look like leaks and break visual continuity; replaced placeholders read as documentation examples.
+
+#### Capture method
+
+Use the reusable helper at [`scripts/portal-capture-helpers.js`](scripts/portal-capture-helpers.js). Usage instructions for both standalone Playwright and MCP `browser_run_code_unsafe` are in [`scripts/portal-capture-helpers.md`](scripts/portal-capture-helpers.md).
+
+The helper applies replacements to text nodes **and** `aria-label` attributes across the main frame and every nested iframe (Portal blades render inside iframes), then masks only the Account-menu avatar using Playwright's native `mask` option with Portal blue (`#0078d4`) so the masked region blends into the UI.
+
+#### PII Replacement Rules
+
+| Pattern | Replacement | Rationale |
+|---|---|---|
+| GUID (subscription, tenant, object, resource ID) | `00000000-0000-0000-0000-000000000000` | Zero-GUID is the documented Azure placeholder convention. |
+| `MCAPS-*` / `MCAPS*` subscription names | `Visual Studio Enterprise Subscription` | MCAPS prefixes leak internal subscription naming. |
+| `*@microsoft.com` | `user@example.com` | Employee emails. |
+| `*@*.onmicrosoft.com` | `user@example.com` | Tenant-scoped user emails. |
+| `*.onmicrosoft.com` (bare domain) | `contoso.onmicrosoft.com` | Tenant domains. |
+| `ychoe` (employee alias) | `demouser` | Author alias. |
+| `Yeongseon Choe` (display name) | `Demo User` | Author display name. |
+| Account-menu avatar (cannot be rewritten) | Native Playwright mask, `maskColor='#0078d4'` | Blends with Portal command bar. |
+
+#### Capture workflow rules
+
+- **Re-navigate between captures.** Portal CSS is cumulative; leftover style injections from a previous capture leak into the next page (e.g. left-nav appearing as a black box). Always call `browser_navigate` to reload before applying the helper.
+- **Use the Portal MSIT URL with tenant hint.** `https://ms.portal.azure.com/#@<tenant>.onmicrosoft.com/resource/...`. Plain `portal.azure.com` triggers a login redirect.
+- **Viewport: 1600 x 1000.** Captures the standard blade layout without horizontal scrollbars.
+- **No black-box masking.** If a value cannot be rewritten and is not a known avatar/badge, fail the capture and update `PII_RULES` rather than fall back to a black rectangle.
+
+If `PII_RULES` in the helper is updated, this table MUST be updated in the same commit.
+
 ### Admonition Indentation Rule
 
 For MkDocs admonitions (`!!!` / `???`), every line in the body must be indented by **4 spaces**.
