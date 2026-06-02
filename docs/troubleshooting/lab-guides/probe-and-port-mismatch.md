@@ -276,52 +276,84 @@ Expected output: latest revision becomes `Healthy` and requests succeed consiste
 
 Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
-## Portal Evidence Capture Guide
+### Observed Evidence (Portal Captures — 2026-06-02, failure state)
 
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+**Environment:** `rg-aca-lab-probe` / `cae-labprobe-shes3s`, `koreacentral`, Consumption plan.
+**App:** `ca-labprobe-shes3s`. The Bicep template (`labs/probe-and-port-mismatch/infra/main.bicep`) deploys a baseline that is **already mismatched on first deploy**: the placeholder image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` (which listens on port `80`) is combined with ingress `targetPort: 8000`. This baseline revision in the captures is `ca-labprobe-shes3s--coxh910`.
+**Trigger applied for these captures:** ACR build of the workload in `labs/probe-and-port-mismatch/workload/` (Flask + Gunicorn, `CMD ["gunicorn", "--bind", "0.0.0.0:3000", ...]`) → `az containerapp registry set` → `az containerapp update --image .../ca-labprobe-shes3s:v1` → `az containerapp ingress update --target-port 8000`. The shipped `labs/probe-and-port-mismatch/trigger.sh` does this in a single `az containerapp update --image ... --target-port 8000 --registry-server ...` call; the capture-day sequence was split into the three commands above as a workaround for unrecognized-argument errors on the locally installed `containerapp` CLI extension. The image swap is a revision-template change and created a new revision `ca-labprobe-shes3s--0000001`, which took 100% of traffic.
 
-### Capture rules (apply to every screenshot)
+**Held constant vs. changed (baseline `--coxh910` → trigger `--0000001`):**
 
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+| Variable | Baseline `--coxh910` | Trigger `--0000001` | Controlled? |
+|---|---|---|---|
+| Container image | `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` (listens on port 80) | `acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s:v1` (gunicorn, listens on port 3000) | **changed (independent variable)** |
+| Ingress `targetPort` (application-scope) | `8000` | `8000` | held constant |
+| Ingress transport / external | `auto` / enabled | `auto` / enabled | held constant |
+| Application listener vs. `targetPort` | mismatched (80 vs 8000) | mismatched (3000 vs 8000) | **both states are mismatched** |
+| Revision name | `ca-labprobe-shes3s--coxh910` | `ca-labprobe-shes3s--0000001` | changed (consequence of the image swap) |
 
-### PII masking checklist
+[Inferred] Because the baseline `--coxh910` was also mismatched on first deploy, this PR-A subsection is **not** a healthy-vs-failed comparison. PR-A only establishes a single failure-state snapshot for the trigger revision; the controlled comparison to a healthy state is provided by PR-B, which holds the image (and therefore the listening port) constant on the trigger revision and changes only `targetPort` 8000 → 3000.
 
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+**Verification CLI (taken at the same time as the captures):**
 
-### Captures to take
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | During the incident | Container App → Revisions | Latest revision detail showing failed / non-healthy startup after the probe and port mismatch | `probe-and-port-mismatch-revision-failed.png` |
-| 2 | During the incident | Container App → Monitoring → Logs | KQL `ContainerAppSystemLogs_CL | where Reason_s == "ProbeFailed" | order by TimeGenerated desc` with startup or readiness probe failures visible | `probe-and-port-mismatch-probe-logs.png` |
-| 3 | During the incident | Container App → Ingress | Full ingress panel showing the mismatched `Target port` configuration | `probe-and-port-mismatch-ingress-before.png` |
-| 4 | After the fix aligns the ports | Container App → Ingress | Full ingress panel showing the corrected `Target port` value | `probe-and-port-mismatch-ingress-after.png` |
-| 5 | After the fix | Container App → Revisions | Latest revision shows `Healthy` / stable after the target port is corrected | `probe-and-port-mismatch-revision-after-fix.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/probe-and-port-mismatch/` (create the directory if it does not exist).
-
-### Reference captures in Observed Evidence
-
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
-
-```markdown
-[Observed] The new revision failed because the probe path and ingress configuration were pointed at the wrong port:
-
-![Failed revision caused by probe and port mismatch](../../assets/troubleshooting/probe-and-port-mismatch/probe-and-port-mismatch-revision-failed.png)
-
-[Observed] After aligning the target port with the actual listener, the next revision stabilized and became healthy:
-
-![Healthy revision after probe and port fix](../../assets/troubleshooting/probe-and-port-mismatch/probe-and-port-mismatch-revision-after-fix.png)
+```text
+Revision --0000001: Active=True, Health=Unhealthy, RunningStatus=Failed, Replicas=1, Traffic=100%
+Revision --coxh910: Active=True, RunningStatus=Activating/Degraded (observed flapping during the capture window), Replicas=2, Traffic=0%
+curl https://${FQDN}/ --write-out '%{http_code}' → 000 (5/5: no HTTP response; connection failed or timed out before headers)
+TargetPort: 8000
 ```
+
+[Observed] The Container App overview blade shows platform `Status: Running`, but the **Revisions with Issues** section displays the following message in the UI:
+
+> `The TargetPort 8000 does not match the listening port 3000. 1/1 Container crashing: app`
+
+![Container App overview blade — Status Running but Revisions with Issues section reports TargetPort 8000 does not match listening port 3000](../../assets/troubleshooting/probe-and-port-mismatch/01-overview-failed.png)
+
+[Inferred] The text of that message names both the configured `targetPort` (8000) and the workload's actual listening port (3000), which strongly suggests it is produced by Container Apps platform logic (rather than authored by the user). The capture itself only proves that the Portal renders the string; the source attribution is not directly observable from the screenshot.
+
+[Observed] The Revisions and replicas blade shows both revisions in the **Active revisions** tab: the new `--0000001` with `Running status: Failed` and `Traffic: 100`, and the prior baseline `--coxh910` with `Running status: Degraded` and `Traffic: 0`:
+
+![Revisions and replicas blade showing --0000001 Failed at 100% traffic and --coxh910 Degraded at 0%](../../assets/troubleshooting/probe-and-port-mismatch/02-revisions-failed.png)
+
+[Observed] Capture 06 below shows that `--coxh910` is also emitting `ProbeFailed` events during the capture window, consistent with its baseline mismatch (helloworld listener on 80, `targetPort` 8000). The baseline revision is therefore **not a healthy control**; it is included only to document the full active-revisions list visible in the Portal at capture time.
+
+[Observed] The Containers blade confirms the image swap: the active container `app` is configured with the custom-built image `acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s:v1`:
+
+![Containers blade showing the active container image set to acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s tag v1](../../assets/troubleshooting/probe-and-port-mismatch/03-containers-failed.png)
+
+[Observed] The Ingress blade shows `Target port: 8000`, which is the value the trigger wrote and the value the Overview blade's error message refers to:
+
+![Ingress blade showing Target port set to 8000 with external HTTP ingress enabled](../../assets/troubleshooting/probe-and-port-mismatch/04-ingress-failed.png)
+
+[Observed] The Log stream blade (Category: Application, Based on revision: `--0000001`) shows gunicorn started successfully and reports its actual listening port:
+
+```text
+[INFO] Starting gunicorn 22.0.0
+[INFO] Listening at: http://0.0.0.0:3000 (1)
+[INFO] Using worker: sync
+[INFO] Booting worker with pid: 7
+[INFO] Booting worker with pid: 8
+```
+
+![Log stream showing gunicorn Listening at http://0.0.0.0:3000 for revision --0000001](../../assets/troubleshooting/probe-and-port-mismatch/05-logstream-failed.png)
+
+[Correlated] This Application log shows the workload process bound to port `3000`, while the Ingress capture above shows the platform routing/probing port `8000`. The two captures together establish the mismatch from inside the container's own startup logs, not just from configuration.
+
+[Observed] The Log stream blade (Category: System) shows a continuous stream of `ProbeFailed` events for **both** revisions, with the `Count` field incrementing into the thousands:
+
+```text
+"Type":"Warning","ContainerAppName":"ca-labprobe-shes3s","RevisionName":"ca-labprobe-shes3s--0000001",
+"Msg":"Probe of StartUp failed with status code: 1","Reason":"ProbeFailed",
+"EventSource":"ContainerAppController","Count":955
+...
+"RevisionName":"ca-labprobe-shes3s--coxh910", "Reason":"ProbeFailed", "Count":1041
+...
+"Count":957, "Count":958, "Count":959, "Count":960  (incrementing in real time)
+```
+
+![Log stream System category showing repeated ProbeFailed events with Reason ProbeFailed and incrementing Count field](../../assets/troubleshooting/probe-and-port-mismatch/06-system-logs-failed.png)
+
+[Inferred] PR-A establishes the **failure-state snapshot** required for falsification: the trigger revision `--0000001` is using a custom image that demonstrably listens on port 3000 (capture 05), while ingress is configured for port 8000 (capture 04); the Portal surfaces the mismatch in the Overview blade (capture 01), drives the revision to `Failed` at 100% traffic (capture 02), and emits `ProbeFailed` System events continuously (capture 06). Because PR-A changes both the image and the listening port relative to baseline, PR-A alone does **not** rule out alternative theories (the new image itself being broken, an ACR pull failure, a probe-config bug, or the revision template introducing the failure). PR-B will hold image, revision template, and replica state constant on `--0000001` and change *only* `targetPort` from 8000 → 3000; recovery on the same revision is what falsifies those alternatives.
 
 ## Clean Up
 

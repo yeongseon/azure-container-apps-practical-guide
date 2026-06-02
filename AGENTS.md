@@ -185,6 +185,75 @@ The replacement scope covers text nodes, `aria-label`, `title`, and the visible 
 
 If `PII_RULES` in the helper is updated, this table MUST be updated in the same commit.
 
+#### Inline capture pattern (Playwright MCP `browser_run_code_unsafe`)
+
+When capturing via the Playwright MCP `browser_run_code_unsafe` tool (no `require()` access), the PII helper must be **inlined** in the snippet. The inline rules MUST match `scripts/portal-capture-helpers.js` exactly; do not omit or alter any rule.
+
+**Mandatory inline structure (per capture):**
+
+```javascript
+async (page) => {
+  const PII_SCRIPT = `(() => {
+    const subs = [
+      { re: /(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![0-9a-f])/gi, val: '00000000-0000-0000-0000-000000000000' },
+      { re: /\\bMCAPS[-A-Za-z0-9_]*\\b/g, val: 'Visual Studio Enterprise Subscription' },
+      { re: /Microsoft\\s+Non-Production/gi, val: 'Contoso' },
+      { re: /\\b[A-Za-z0-9._%+-]+@microsoft\\.com(?![A-Za-z0-9.-])/gi, val: 'user@example.com' },
+      { re: /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.onmicrosoft\\.com(?![A-Za-z0-9.-])/gi, val: 'user@example.com' },
+      { re: /\\b[A-Za-z0-9-]+\\.onmicrosoft\\.com(?![A-Za-z0-9.-])/gi, val: 'contoso.onmicrosoft.com' },
+      { re: /\\bychoe\\b/gi, val: 'demouser' },
+      { re: /Yeongseon\\s+Choe/g, val: 'Demo User' },
+    ];
+    const apply = (s) => { let o=s; for (const {re,val} of subs){ re.lastIndex=0; o=o.replace(re,val);} return o; };
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    const nodes=[]; let n; while ((n=w.nextNode())) nodes.push(n);
+    for (const node of nodes){ const o=node.textContent||''; const x=apply(o); if (x!==o) node.textContent=x; }
+    document.querySelectorAll('[aria-label]').forEach(el=>{const o=el.getAttribute('aria-label')||'';const x=apply(o);if(x!==o)el.setAttribute('aria-label',x);});
+    document.querySelectorAll('[title]').forEach(el=>{const o=el.getAttribute('title')||'';const x=apply(o);if(x!==o)el.setAttribute('title',x);});
+    document.querySelectorAll('input, textarea').forEach(el=>{const o=el.value||'';const x=apply(o);if(x!==o)el.value=x;});
+    return 'ok';
+  })()`;
+  const mf = page.mainFrame();
+  await mf.evaluate(PII_SCRIPT);
+  for (const f of page.frames()) { if (f===mf) continue; try { await f.evaluate(PII_SCRIPT); } catch(e){} }
+  await page.waitForTimeout(500);
+  const avatar = page.locator('button[aria-label*="Account menu"]').first();
+  await page.screenshot({
+    path: 'docs/assets/troubleshooting/<lab>/<NN>-<blade>-<state>.png',
+    fullPage: false,
+    mask: [avatar],
+    maskColor: '#0078d4',
+  });
+  return 'captured';
+}
+```
+
+**Backslash escaping rule (`browser_run_code_unsafe` JSON):**
+
+- Regex escapes (`\b`, `\s`, `\.`) must be written as `\\b`, `\\s`, `\\.` in the inline string literal.
+- The template literal itself goes inside the JSON `code` parameter, so the entire snippet is double-escaped one more level when passed as JSON.
+
+**Per-capture mandatory steps (in order):**
+
+1. **Navigate** to the target blade URL (`https://ms.portal.azure.com/#@<tenant>.onmicrosoft.com/resource/...`). Always re-navigate; never reuse a stale page.
+2. **Wait** for blade-specific text (`browser_wait_for` with stable text on the blade) before applying replacements. The 500 ms post-replacement pause inside the snippet is not a substitute.
+3. **Run the inline snippet** above via `browser_run_code_unsafe`. Replace `<lab>`, `<NN>`, `<blade>`, `<state>` in the screenshot path.
+4. **Verify** with the `read` tool on the PNG. Confirm visually:
+    - No `MICROSOFT NON-PRODUCTION` badge in top-right
+    - No `ychoe@microsoft.com` or `Yeongseon Choe` anywhere
+    - Subscription ID rendered as `00000000-0000-0000-0000-000000000000`
+    - Subscription name rendered as `Visual Studio Enterprise Subscription`
+    - Account avatar masked with solid Portal-blue (`#0078d4`), not a black rectangle
+5. **If verification fails** → fix the helper / inline snippet and re-capture. Never ship a capture with raw PII or a black-box mask.
+
+**What the helper does NOT mask (and why it is acceptable):**
+
+- URL bar / browser chrome — not part of the PNG output.
+- `href` attribute values in the DOM — not rendered visually.
+- Avatar image pixels — masked with solid Portal-blue rectangle (the only acceptable mask color).
+
+If any of the above ever becomes visible in a capture, treat it as a P0 issue: fail the capture, fix the helper, and re-shoot.
+
 ### Admonition Indentation Rule
 
 For MkDocs admonitions (`!!!` / `???`), every line in the body must be indented by **4 spaces**.
