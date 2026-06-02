@@ -341,6 +341,62 @@ TargetPort: 8081
 
 [Inferred] PR-A establishes the **pre-fix baseline** required for falsification: ingress `targetPort=8081`, application listener unchanged on 80, replicas Running, revision Unhealthy/Failed, edge returning 5xx at ~58:1 ratio against 2xx. PR-A alone does **not** rule out alternative theories (intermittent platform issue, the process no longer listening on port 80, transport mode). PR-B will hold image, revision template, and replica state constant and change *only* `targetPort` back to 80; recovery to HTTP 200 with the same revision is what falsifies those alternatives.
 
+### Observed Evidence (Portal Captures — 2026-06-02, after fix)
+
+**Trigger:** `az containerapp ingress update --name ca-labingress-pmdar7 --resource-group rg-aca-lab-ingress --target-port 80` — single-field ingress update. No revision-template fields (image, replicas, scale rules, env vars, command, args) were changed, and no new revision was created (ingress is application-scope).
+**Verification CLI (taken at the same time as the captures):**
+
+```text
+HTTP 200  (curl https://${FQDN}/, sampled 3 times in series)
+HTTP 200  (60/60 in a follow-up burst)
+TargetPort: 80
+LatestRevisionName: ca-labingress-pmdar7--26idn3d   (unchanged from PR-A)
+RunningStatus: Running   (PR-A: Failed)
+```
+
+**What was held constant vs. what changed (PR-A → PR-B):**
+
+| Variable | PR-A (failure state) | PR-B (after fix) | Controlled? |
+|---|---|---|---|
+| Revision name | `ca-labingress-pmdar7--26idn3d` | `ca-labingress-pmdar7--26idn3d` | held constant |
+| Container image | `azuredocs/containerapps-helloworld:latest` | same | held constant |
+| Revision template (env, command, args, scale rules) | unchanged | unchanged | held constant |
+| Ingress transport | `auto` | `auto` | held constant |
+| Ingress `targetPort` | `8081` | `80` | **changed (this is the independent variable)** |
+| Active replica count | 2 | 1 | **not controlled** (autoscaler adjusted after the revision returned to healthy) |
+| Revision `RunningStatus` | `Failed` | `Running` | dependent variable |
+| Edge HTTP response | 503 | 200 | dependent variable |
+
+[Observed] The Container App overview blade now shows `Status: Running`:
+
+![Container App overview blade after the fix, showing Status Running](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-port-mismatch-overview-fixed.png)
+
+[Correlated] The platform `Status: Running` in the overview blade corresponds in time with the revision-level `RunningStatus: Running` recorded in the CLI evidence above.
+
+[Observed] The Ingress blade now reads `Target port: 80`:
+
+![Ingress blade after the fix, Target port set to 80 with external HTTP ingress still enabled](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-port-mismatch-blade-80-fixed.png)
+
+[Inferred] The CLI trigger above changed only the `targetPort` field; no other ingress or revision-template field was modified between the PR-A and PR-B captures.
+
+[Observed] The Revisions and replicas blade shows the **same revision name** (`ca-labingress-pmdar7--26idn3d`) that was `Failed` in the PR-A capture, now with `Running status: Running` and `Traffic: 100%`:
+
+![Revisions and replicas blade after the fix, showing the same revision with Running status Running](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-port-mismatch-revisions-healthy-fixed.png)
+
+[Observed] The Metrics blade chart shows a fresh `Network In Bytes` (Sum) spike in the window following the fix:
+
+![Metrics blade showing Network In Bytes traffic spike following the fix](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-port-mismatch-metrics-traffic-fixed.png)
+
+[Correlated] The traffic spike in the chart lines up with the 60-request post-fix burst captured in the CLI notes (60/60 HTTP 200). The `Requests` metric split by `Status code category` would be the more direct counterpart to the PR-A `metrics-503` capture; `Network In Bytes` is included here because it confirms application-level traffic flow on the same chart axis while the CLI evidence (60/60 HTTP 200) provides the status-code breakdown.
+
+[Inferred] **Falsification result.** Holding the revision name, container image, revision template, and ingress transport constant (see table above), changing **only** ingress `targetPort` from `8081` → `80` flipped the same revision (`ca-labingress-pmdar7--26idn3d`) from `RunningStatus: Failed` to `Running` and the edge response from 503 → 200 within seconds. No new revision was created. This rules out the alternative theories enumerated at the end of PR-A:
+
+- *Intermittent platform issue* — falsified: recovery is deterministic on the ingress update, not on time elapsed.
+- *Process no longer listening on port 80* — falsified: the same image and same revision now serve 200 on the same listener.
+- *Transport mode regression* — falsified: transport (`auto`) is unchanged; only `targetPort` changed.
+
+[Inferred] The remaining causal chain consistent with both PR-A and PR-B observations is: ingress `targetPort` mismatch caused edge routing failures and, simultaneously, default TCP health probes targeting the wrong port marked the revision Unhealthy. Correcting `targetPort` resolves both at once on the same revision. (This causal chain combines the observed [Observed] revision-state and edge-response flip with documented Container Apps ingress and probe behavior; it is an inference, not a direct observation.)
+
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
