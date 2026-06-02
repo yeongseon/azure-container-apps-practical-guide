@@ -292,6 +292,54 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 
 Environment: `koreacentral`, Consumption plan.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [memory-percentage-vs-keda-utilization](./memory-percentage-vs-keda-utilization.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to `rg-aca-lab-scale` / `ca-scale-mismatch` / `cae-lab-scale` if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | After baseline deploy, before load | Container App → Monitoring → Metrics | Metric `Replica count`, Aggregation `Max`, Time `Last 5 minutes` | `scale-rule-mismatch-baseline.png` |
+| 2 | During sustained load with `concurrentRequests=500` | Container App → Monitoring → Metrics | Two charts pinned side-by-side: `Replica count` (Max) and `Requests` (Sum, split by Status code category), Time `Last 15 minutes` | `scale-rule-mismatch-load-stuck.png` |
+| 3 | During sustained load with `concurrentRequests=500` | Container App → Monitoring → Log stream (or Logs → KQL `ContainerAppSystemLogs_CL \| where Reason_s contains "KEDA"`) | Visible `KEDAScalersStarted` event | `scale-rule-mismatch-keda-logs.png` |
+| 4 | Before fix | Container App → Application → Scale and replicas | Full scale settings panel showing `Min=1`, `Max=2`, HTTP rule `concurrentRequests=500` | `scale-rule-mismatch-config-before.png` |
+| 5 | After fix (`concurrentRequests=10`, `maxReplicas=10`) | Container App → Monitoring → Metrics | `Replica count` (Max), Time `Last 15 minutes` showing scale-out above 1 | `scale-rule-mismatch-after-fix.png` |
+| 6 | After fix | Container App → Application → Scale and replicas | Full scale settings panel showing `Min=1`, `Max=10`, HTTP rule `concurrentRequests=10` | `scale-rule-mismatch-config-after.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/scale-rule-mismatch/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] Replica count held at 1 under sustained 80-concurrent load while `concurrentRequests=500`:
+
+![Replica count flat under load with concurrentRequests=500](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-load-stuck.png)
+
+[Observed] After applying `concurrentRequests=10` and `maxReplicas=10`, the same load drove replicas above 1:
+
+![Replica count scaling out after fix](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-after-fix.png)
+```
+
 ## Clean Up
 
 ```bash
