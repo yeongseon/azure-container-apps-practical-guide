@@ -331,6 +331,53 @@ The hypothesis is falsified if any of the following occur:
 
 If the trigger script does not produce `RoleAssignmentExists` on the second deployment, capture `/tmp/cd-rbac-conflict.log`, confirm the first deployment created the assignment (`az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID"`), and rerun after a 30-second wait to allow RBAC propagation.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | Immediately after the reconnect deployment fails | Resource Group → Deployments → `lab-ra-reconnect` | Deployment error details showing `RoleAssignmentExists` / `AppRbacDeployment` and the returned existing assignment ID | `cd-reconnect-rbac-conflict-deployment-failed.png` |
+| 2 | During diagnosis | Azure Container Registry → Access control (IAM) → Role assignments | Filter Role = `AcrPush`; filter principal to the simulated CD service principal so the orphaned assignment is visible | `cd-reconnect-rbac-conflict-role-assignment.png` |
+| 3 | During diagnosis | Azure Container Registry → Activity log | Time range `Last 1 hour`; operation filter around role assignment creation / authorization events associated with the failed reconnect | `cd-reconnect-rbac-conflict-activity-log.png` |
+| 4 | After cleanup of the orphaned assignment | Resource Group → Deployments → `lab-ra-verify-recovery` | Successful retry deployment after deleting the conflicting assignment | `cd-reconnect-rbac-conflict-deployment-recovered.png` |
+| 5 | After recovery | Azure Container Registry → Access control (IAM) → Role assignments | Same filter as above, showing exactly one active `AcrPush` assignment for the service principal | `cd-reconnect-rbac-conflict-role-assignment-after-fix.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/cd-reconnect-rbac-conflict/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] The reconnect deployment failed because ARM tried to create a role assignment that already existed on the ACR scope:
+
+![Failed reconnect deployment with RoleAssignmentExists](../../assets/troubleshooting/cd-reconnect-rbac-conflict/cd-reconnect-rbac-conflict-deployment-failed.png)
+
+[Observed] After deleting the orphaned `AcrPush` assignment, the retry deployment completed successfully and recreated the expected RBAC state:
+
+![Recovered reconnect deployment after orphaned assignment cleanup](../../assets/troubleshooting/cd-reconnect-rbac-conflict/cd-reconnect-rbac-conflict-deployment-recovered.png)
+```
+
 ## Clean Up
 
 ```bash

@@ -354,6 +354,53 @@ Expected output:
 
 Environment: `koreacentral`, Consumption plan, Azure Key Vault with access policy authorization model.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | During diagnosis, before RBAC is added | Container App → Identity | Full identity blade showing the system-assigned managed identity is enabled for the app | `managed-identity-key-vault-failure-identity.png` |
+| 2 | During diagnosis, before RBAC is added | Key Vault → Access control (IAM) → Role assignments | Filter by the Container App principal; show that `Key Vault Secrets User` is missing at the vault scope | `managed-identity-key-vault-failure-kv-rbac-missing.png` |
+| 3 | During the incident | Container App → Monitoring → Log stream (or Logs) | Application log view showing the 403 / authorization failure while the revision remains running | `managed-identity-key-vault-failure-app-logs-403.png` |
+| 4 | After the RBAC fix | Key Vault → Access control (IAM) → Role assignments | Same filter, now showing `Key Vault Secrets User` assigned to the app identity | `managed-identity-key-vault-failure-kv-rbac-added.png` |
+| 5 | After the fix | Container App → Monitoring → Log stream (or Logs) | Successful post-fix request or the absence of continuing Key Vault authorization errors after the new revision starts | `managed-identity-key-vault-failure-app-logs-after-fix.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/managed-identity-key-vault-failure/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] The Container App identity existed, but the vault had no effective secret-read RBAC assignment for that principal:
+
+![Missing Key Vault role assignment for the Container App identity](../../assets/troubleshooting/managed-identity-key-vault-failure/managed-identity-key-vault-failure-kv-rbac-missing.png)
+
+[Observed] After `Key Vault Secrets User` was assigned at the vault scope, the application logs stopped showing the authorization failure path:
+
+![Application logs after Key Vault RBAC fix](../../assets/troubleshooting/managed-identity-key-vault-failure/managed-identity-key-vault-failure-app-logs-after-fix.png)
+```
+
 ## Clean Up
 
 ```bash

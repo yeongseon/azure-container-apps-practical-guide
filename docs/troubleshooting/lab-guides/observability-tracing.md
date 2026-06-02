@@ -353,6 +353,54 @@ az containerapp update --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 
 
 Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | Before the trigger | Container App → Revisions and replicas → latest revision → Containers / Environment variables | Show `APPLICATIONINSIGHTS_CONNECTION_STRING` sourced from a secret reference | `observability-tracing-env-before.png` |
+| 2 | During the incident | Container App → Revisions and replicas → broken revision → Containers / Environment variables | Show that the secret reference was replaced with an invalid literal connection string value | `observability-tracing-env-broken.png` |
+| 3 | During the incident | Application Insights → Transaction search | Time range `Last 15 minutes`; show missing or stale requests/traces after the bad connection string is deployed | `observability-tracing-transaction-search.png` |
+| 4 | During the incident or immediately after fix validation | Application Insights → Application map / Dependency map | Same time range, showing no fresh telemetry path updates while the app is misconfigured | `observability-tracing-application-map.png` |
+| 5 | After the fix restores the secret-backed value | Container App → Revisions and replicas → latest revision → Containers / Environment variables | Show `APPLICATIONINSIGHTS_CONNECTION_STRING` back on `secretRef` | `observability-tracing-env-after.png` |
+| 6 | After the fix | Application Insights → Transaction search | Same filters, now showing fresh requests / traces again | `observability-tracing-transaction-search-after.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/observability-tracing/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] The broken revision replaced the Application Insights secret reference with a literal invalid connection string:
+
+![Broken Application Insights connection string in revision env vars](../../assets/troubleshooting/observability-tracing/observability-tracing-env-broken.png)
+
+[Observed] After restoring the secret-backed configuration, new telemetry began appearing again in Application Insights:
+
+![Application Insights transaction search after fix](../../assets/troubleshooting/observability-tracing/observability-tracing-transaction-search-after.png)
+```
+
 ## Clean Up
 
 ```bash

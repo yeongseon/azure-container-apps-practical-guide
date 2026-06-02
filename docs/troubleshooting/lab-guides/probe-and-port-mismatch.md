@@ -276,6 +276,53 @@ Expected output: latest revision becomes `Healthy` and requests succeed consiste
 
 Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | During the incident | Container App → Revisions | Latest revision detail showing failed / non-healthy startup after the probe and port mismatch | `probe-and-port-mismatch-revision-failed.png` |
+| 2 | During the incident | Container App → Monitoring → Logs | KQL `ContainerAppSystemLogs_CL | where Reason_s == "ProbeFailed" | order by TimeGenerated desc` with startup or readiness probe failures visible | `probe-and-port-mismatch-probe-logs.png` |
+| 3 | During the incident | Container App → Ingress | Full ingress panel showing the mismatched `Target port` configuration | `probe-and-port-mismatch-ingress-before.png` |
+| 4 | After the fix aligns the ports | Container App → Ingress | Full ingress panel showing the corrected `Target port` value | `probe-and-port-mismatch-ingress-after.png` |
+| 5 | After the fix | Container App → Revisions | Latest revision shows `Healthy` / stable after the target port is corrected | `probe-and-port-mismatch-revision-after-fix.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/probe-and-port-mismatch/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] The new revision failed because the probe path and ingress configuration were pointed at the wrong port:
+
+![Failed revision caused by probe and port mismatch](../../assets/troubleshooting/probe-and-port-mismatch/probe-and-port-mismatch-revision-failed.png)
+
+[Observed] After aligning the target port with the actual listener, the next revision stabilized and became healthy:
+
+![Healthy revision after probe and port fix](../../assets/troubleshooting/probe-and-port-mismatch/probe-and-port-mismatch-revision-after-fix.png)
+```
+
 ## Clean Up
 
 ```bash

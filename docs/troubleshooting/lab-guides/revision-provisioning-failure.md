@@ -315,6 +315,53 @@ revision rollout safety mechanism prevents the failing revision from receiving p
 
 Environment: `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan. App: `ca-rev-provision`, startup probe on port 9999 (app listens on 80).
 
+## Portal Evidence Capture Guide
+
+Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+### Capture rules (apply to every screenshot)
+
+- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
+- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+
+### PII masking checklist
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
+- [ ] Tenant ID (URL bar, account flyout)
+- [ ] Account menu top-right (display name, email, avatar initials)
+- [ ] Directory / tenant name in the top-right switcher
+- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
+- [ ] Email addresses in any Activity log, Access control, or Owner column
+- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+
+### Captures to take
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 1 | After the bad startup probe revision is created | Container App → Revisions | Full revisions list showing the newest revision in `Failed` / `Degraded` state | `revision-provisioning-failure-revisions-failed.png` |
+| 2 | During diagnosis | Container App → Revisions → latest failed revision | Revision detail showing status / events for the startup probe failure | `revision-provisioning-failure-revision-detail.png` |
+| 3 | During diagnosis | Container App → Monitoring → Logs | KQL `ContainerAppSystemLogs_CL | where Reason_s in ("ProbeFailed", "ContainerTerminated") | order by TimeGenerated desc` | `revision-provisioning-failure-system-logs.png` |
+| 4 | During diagnosis | Container App → Containers / Health probes | Full health probe configuration showing the bad startup probe path or port | `revision-provisioning-failure-probe-config.png` |
+| 5 | After the startup probe is removed or corrected | Container App → Revisions | Latest revision shows `Healthy` / `Provisioned` after the fix | `revision-provisioning-failure-after-fix.png` |
+
+### Asset path
+
+Save PNGs to `docs/assets/troubleshooting/revision-provisioning-failure/` (create the directory if it does not exist).
+
+### Reference captures in Observed Evidence
+
+Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+
+```markdown
+[Observed] The new revision was created, but it never became ready because the startup probe configuration kept failing:
+
+![Failed revision caused by startup probe misconfiguration](../../assets/troubleshooting/revision-provisioning-failure/revision-provisioning-failure-revisions-failed.png)
+
+[Observed] After the bad startup probe was removed, the next revision reached a healthy provisioned state:
+
+![Healthy revision after startup probe fix](../../assets/troubleshooting/revision-provisioning-failure/revision-provisioning-failure-after-fix.png)
+```
+
 ## Clean Up
 
 ```bash
