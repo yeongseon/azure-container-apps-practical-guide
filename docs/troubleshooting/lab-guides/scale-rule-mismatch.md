@@ -292,6 +292,36 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 
 Environment: `koreacentral`, Consumption plan.
 
+### Observed Evidence (Portal Captures — 2026-06-02, failure state)
+
+**Environment:** `rg-aca-lab-scale-cap` / `cae-labscalecap-hz3pt7`, `koreacentral`, Consumption plan.
+**App:** `ca-labscalecap-hz3pt7` (minReplicas=1, maxReplicas=2, HTTP scale rule, concurrentRequests=500).
+**Load generator:** `hey -z 8m -c 80 https://${FQDN}/load` (80 concurrent requests for 8 minutes).
+
+[Observed] Idle baseline before load — Replica count (Max) is flat at 1 over the last 30 minutes:
+
+![Replica count idle baseline at 1](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-baseline.png)
+
+[Observed] Under the 80-concurrent load run, request volume spiked to ~1k 2xx/minute while Replica count (Max) remained pinned at 1:
+
+![Replica count flat at 1 while requests spike under 80-concurrent load](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-load-stuck.png)
+
+[Inferred] The flat replica line under a real, sustained request spike is consistent with the HTTP scale threshold being set higher than the in-flight concurrency — the chart alone cannot prove the threshold is the cause, only that horizontal scaling did not occur during the load window.
+
+[Observed] `ContainerAppSystemLogs_CL` returned scaler-lifecycle entries for revision `ca-labscalecap-hz3pt7--0000001` at **11:39, 11:57, and 11:58 UTC** (`KEDAScalersStarted: Scaler external-push is built`, `KEDA is starting a watch for revision 'ca-labscalecap-hz3pt7--0000001' to monitor scale operations for this...`). These entries **predate the load window (12:55–13:03 UTC)** and capture KEDA setup against the current revision; the screenshot also shows benign teardown-related warnings (`ScaledObjectCheckFailed`, `FailedGetScale`) tied to a previous revision (`--wq8acpr`) being torn down:
+
+![KEDA scaler events from ContainerAppSystemLogs_CL showing KEDAScalersStarted](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-keda-logs.png)
+
+[Strongly Suggested] Together with the request-spike chart, the pre-load `KEDAScalersStarted` entries indicate the scaler was provisioned and watching the active revision before the load began, but they do not prove KEDA was actively evaluating during the load window itself. A load-window-aligned `KEDAScalerActivated` / metric-emit entry would be required for that claim and is intentionally deferred to PR-B.
+
+[Observed] The Scale blade with the `http-rule` Edit pane open shows the configured values in one frame: `Min replicas=1`, `Max replicas=2`, `Concurrent requests=500`:
+
+![Scale blade showing Min=1, Max=2, http-rule with Concurrent requests=500](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-config-before.png)
+
+[Inferred] At 80 in-flight requests against a single replica with `concurrentRequests=500`, KEDA's HTTP add-on would compute zero pending scale events; this matches the observed flat replica line, but the inference depends on the documented KEDA HTTP add-on semantics, not on a metric reading visible in this blade.
+
+[Inferred] PR-A establishes the **pre-fix baseline** required for falsification (load is real and sustained, replica count stayed at 1, scale rule shows `concurrentRequests=500` / `maxReplicas=2`). PR-A alone does **not** rule out KEDA-side or ingress-side root causes during the load window. PR-B **completes** falsification by holding workload conditions constant and changing only the scale settings (`concurrentRequests=10`, `maxReplicas=10`); replicas climbing above 1 in PR-B is what falsifies the alternative theories.
+
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [memory-percentage-vs-keda-utilization](./memory-percentage-vs-keda-utilization.md) template.
