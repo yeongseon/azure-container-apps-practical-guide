@@ -57,9 +57,9 @@ async (page) => {
       { re: /(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![0-9a-f])/gi, val: '00000000-0000-0000-0000-000000000000' },
       { re: /\\bMCAPS[-A-Za-z0-9_]*\\b/g, val: 'Visual Studio Enterprise Subscription' },
       { re: /Microsoft\\s+Non-Production/gi, val: 'Contoso' },
-      { re: /\\b[A-Za-z0-9._%+-]+@microsoft\\.com\\b/gi, val: 'user@example.com' },
-      { re: /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.onmicrosoft\\.com\\b/gi, val: 'user@example.com' },
-      { re: /\\b[A-Za-z0-9-]+\\.onmicrosoft\\.com\\b/gi, val: 'contoso.onmicrosoft.com' },
+      { re: /\\b[A-Za-z0-9._%+-]+@microsoft\\.com(?![A-Za-z0-9.-])/gi, val: 'user@example.com' },
+      { re: /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.onmicrosoft\\.com(?![A-Za-z0-9.-])/gi, val: 'user@example.com' },
+      { re: /\\b[A-Za-z0-9-]+\\.onmicrosoft\\.com(?![A-Za-z0-9.-])/gi, val: 'contoso.onmicrosoft.com' },
       { re: /\\bychoe\\b/gi, val: 'demouser' },
       { re: /Yeongseon\\s+Choe/g, val: 'Demo User' },
     ];
@@ -109,7 +109,7 @@ async (page) => {
     if ((await loc.count()) > 0) { avatar = loc.first(); break; }
   }
   if (!avatar) {
-    throw new Error('No Account-avatar element matched ' + JSON.stringify(selectors) + '. Portal UI must be in English and fully rendered before capture.');
+    throw new Error('No Account-avatar element matched ' + JSON.stringify(selectors) + '. Wait for the blade to settle before capture; non-English Portals may still match the fxs-menu-account fallback but that is best-effort, not guaranteed.');
   }
 
   await page.screenshot({
@@ -131,9 +131,11 @@ async (page) => {
 - **Use `ms.portal.azure.com` with the tenant hint fragment** (e.g.
   `#@fdpo.onmicrosoft.com/...`). Plain `portal.azure.com` triggers a login
   redirect.
-- **Run the Portal in English.** The avatar selector relies on the English
-  `aria-label` "Account menu". A non-English UI will fail loudly via the
-  built-in throw.
+- **Prefer the English-language Portal.** The primary avatar selector keys
+  off the English `aria-label` "Account menu". A localized Portal may still
+  match the `button.fxs-menu-account` fallback class, but that fallback is
+  best-effort and not a stable contract. The helper throws if neither
+  selector matches; non-English captures should be reviewed manually.
 - **Close every transient flyout, drawer, and command-bar dropdown** before
   capture. Account panel, Recent menu, notifications panel, and tenant
   switcher each surface PII the helper cannot fully rewrite (avatar

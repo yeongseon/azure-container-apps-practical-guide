@@ -14,15 +14,15 @@ const PII_RULES = [
     replacement: 'Contoso',
   },
   {
-    pattern: /\b[A-Za-z0-9._%+-]+@microsoft\.com\b/gi,
+    pattern: /\b[A-Za-z0-9._%+-]+@microsoft\.com(?![A-Za-z0-9.-])/gi,
     replacement: 'user@example.com',
   },
   {
-    pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.onmicrosoft\.com\b/gi,
+    pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.onmicrosoft\.com(?![A-Za-z0-9.-])/gi,
     replacement: 'user@example.com',
   },
   {
-    pattern: /\b[A-Za-z0-9-]+\.onmicrosoft\.com\b/gi,
+    pattern: /\b[A-Za-z0-9-]+\.onmicrosoft\.com(?![A-Za-z0-9.-])/gi,
     replacement: 'contoso.onmicrosoft.com',
   },
   {
@@ -129,8 +129,11 @@ async function capturePortalScreenshot(page, outputPath, options = {}) {
     const message =
       'capturePortalScreenshot: no Account-avatar element matched any of ' +
       JSON.stringify(ACCOUNT_AVATAR_SELECTORS) +
-      '. Portal UI must be in English and the page must be fully rendered before capture. ' +
-      'Pass { requireAvatarMask: false } to override.';
+      '. The English-language Portal exposes the primary `aria-label` selector; ' +
+      'a localized Portal may still match the `button.fxs-menu-account` fallback, ' +
+      'but neither is guaranteed if the page is not fully rendered. ' +
+      'Wait for the target blade to settle before capture, or pass ' +
+      '{ requireAvatarMask: false } to override.';
     throw new Error(message);
   }
 
