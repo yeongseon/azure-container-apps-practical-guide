@@ -60,6 +60,16 @@ graph TD
 
 Envoy acts as the managed ingress layer, handling routing into app revisions and enforcing transport behavior.
 
+### Portal view: environment Networking blade
+
+The **Networking** blade on a Container Apps environment is where the environment-wide network posture is configured. App-level ingress (the [Ingress](ingress.md) page) sits underneath whatever this environment-level blade exposes.
+
+![Azure Portal Networking blade for cae-basics-d38538 environment showing tabs General, Ingress settings, Request Routing, Encryption, Custom DNS Suffix, with Public Network Access set to Enable and Virtual network section reporting "This environment isn't integrated".](../../assets/platform/networking/02-environment-networking.png)
+
+- **[Observed]** The blade shows a tab strip with **General**, **Ingress settings**, **Request Routing**, **Encryption**, and **Custom DNS Suffix**. The General tab displays **Public Network Access** with two radios — `Enable: Allows incoming traffic from the public internet.` (selected) and `Disable: Block all incoming traffic from the public internet.` — and a **Virtual network** section reporting `This environment isn't integrated`. The left navigation under **Settings** lists Dapr components, Certificates, Quota, Workload profiles, **Networking** (selected), Volume mounts, Identity, Planned Maintenance, and Locks.
+- **[Inferred]** Two of the networking dimensions discussed on this page appear to map to controls on this blade. `Public Network Access` is consistent with the environment-level public entry point that the **Ingress Modes** table describes, and its `Disable` option is consistent with the description ("Block all incoming traffic from the public internet.") rendered next to that radio. The `Virtual network` row appears to reflect whether the environment is VNet-integrated as covered in **VNet Integration and Isolation**; this sample environment is not integrated, which is consistent with no subnet, peering, or DNS settings being shown.
+- **[Not Proven]** Many networking features that this guide covers are not visible in this capture. App-level ingress (external/internal, transport, IP restrictions, CORS, client certificates) and the per-app revision traffic split are not shown here. Workload profile placement, private endpoint configuration, custom DNS suffix details, and request-routing rules are not visible in the General tab captured above; whether they are reached through the other tabs visible here or through separate resources is not proven by this PNG alone.
+
 !!! warning "Ingress mode is a security boundary"
     Accidentally enabling external ingress for internal-only workloads exposes endpoints to the public internet.
     Validate ingress mode in deployment reviews and policy checks.
