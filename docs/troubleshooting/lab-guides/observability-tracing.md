@@ -277,10 +277,10 @@ Expected output:
 ./labs/observability-tracing/verify.sh
 ```
 
-Expected output:
+Expected output (with the baseline `azuredocs/containerapps-helloworld:latest` image):
 
-- `PASS: Application Insights connection string is configured on $APP_NAME.`
-- `PASS: Found <count> trace record(s) in Log Analytics.`
+- `PASS: Application Insights connection string is configured on $APP_NAME.` — this row is directly falsifiable from the Container App template and corresponds to the env-var half of the hypothesis.
+- The trace-record check is conditional: `PASS: Found <count> trace record(s) in Log Analytics.` is expected **only when the application image is SDK-instrumented**. With the baseline helloworld image (no Application Insights SDK), the trace count is zero in both the baseline and the misconfigured state, so this row may report zero records and the script may not reach `PASS` on it — see the `[Not Proven]` caveat in the Hypothesis.
 - `Verification complete.`
 
 ## 4) Experiment Log
@@ -291,9 +291,9 @@ Expected output:
 | 2 | Verify baseline env var | `APPLICATIONINSIGHTS_CONNECTION_STRING` uses secret reference | | |
 | 3 | Run `trigger.sh` | Invalid literal connection string applied | | |
 | 4 | Query current env config | Secret reference replaced by literal value | | |
-| 5 | Check Application Insights or Log Analytics | Recent traces are missing or stale | | |
+| 5 | Check Application Insights or Log Analytics | Recent traces are missing or stale **(SDK-instrumented image only; `[Not Proven]` with helloworld baseline)** | | |
 | 6 | Restore secret-backed configuration | App update succeeds | | |
-| 7 | Run `verify.sh` | Connection string and traces validated | | |
+| 7 | Run `verify.sh` | Connection-string check passes; trace-record check is **SDK-instrumented image only** (see `[Not Proven]` caveat in the Hypothesis) | | |
 
 ## Expected Evidence
 
@@ -406,7 +406,7 @@ Each Portal capture below documents one observable fact. `[Observed]` paragraphs
 
 #### Capture 6 — Restored environment variables (secret-backed)
 
-`[Observed]` The Containers → Environment variables tab, with the "Based on revision" selector now reading `ca-labobs-622oal--0000002`, shows the `APPLICATIONINSIGHTS_CONNECTION_STRING` row with **Source = "Reference a secret"** and **Value = "appinsights-connection-stri..."** again. A secondary `OTEL_SERVICE_NAME` row continues to display **Source = "Manual entry"** with **Value = "ca-labobs-622oal"**.
+`[Observed]` The Containers → Environment variables tab, with the "Based on revision" selector now reading `ca-labobs-622oal--0000002`, shows the `APPLICATIONINSIGHTS_CONNECTION_STRING` row with **Source = "Reference a secret"** and **Value = "appinsights-connection-stri..."**. A secondary `OTEL_SERVICE_NAME` row is also visible with **Source = "Manual entry"** and **Value = "ca-labobs-622oal"**.
 
 ![Restored env vars — secretRef on revision 0000002](../../assets/troubleshooting/observability-tracing/06-env-vars-restored-secretref.png)
 
@@ -446,11 +446,11 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
 | 1 | Steady state | Container App → Overview | Essentials panel with `Status: Running`, `Location: Korea Central`, `Environment type: Workload profiles`, and the `Application Url` link | `01-overview.png` |
-| 2 | Before the trigger | Container App → Containers → Environment variables (Based on revision `0m6ek7p`) | Shows `APPLICATIONINSIGHTS_CONNECTION_STRING` Source = "Reference a secret", Value = `appinsights-connection-stri...` | `02-env-vars-baseline-secretref.png` |
-| 3 | During the incident | Container App → Containers → Environment variables (Based on revision `0000001`) | Same env var, Source = "Manual entry", Value textarea showing the literal `InstrumentationKey=00000000-...;IngestionEndpoint` (suffix clipped by the textarea) | `03-env-vars-after-trigger-literal.png` |
+| 2 | Before the trigger | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0m6ek7p`) | Shows `APPLICATIONINSIGHTS_CONNECTION_STRING` Source = "Reference a secret", Value = `appinsights-connection-stri...` | `02-env-vars-baseline-secretref.png` |
+| 3 | During the incident | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000001`) | Same env var, Source = "Manual entry", Value textarea showing the literal `InstrumentationKey=00000000-...;IngestionEndpoint` (suffix clipped by the textarea) | `03-env-vars-after-trigger-literal.png` |
 | 4 | During the incident | Application Insights `appi-labobs-622oal` → Transaction search | Filter chips `Local Time: Last 24 hours (Automatic)`, `View as: Traces`, `Event types = All selected`; "See all data in the last 24 hours" prompt (no executed result table) | `04-appinsights-transaction-search.png` |
 | 5 | During the incident | Application Insights `appi-labobs-622oal` → Logs | KQL `traces \| count`; Time range `Last hour`; Results column header `Count` with single row `0` | `05-appinsights-logs-traces-count-zero.png` |
-| 6 | After the fix | Container App → Containers → Environment variables (Based on revision `0000002`) | Same env var, Source = "Reference a secret" again, Value = `appinsights-connection-stri...` | `06-env-vars-restored-secretref.png` |
+| 6 | After the fix | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000002`) | Same env var, Source = "Reference a secret" again, Value = `appinsights-connection-stri...` | `06-env-vars-restored-secretref.png` |
 
 ### Asset path
 
