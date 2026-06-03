@@ -325,7 +325,7 @@ Reproduced in `rg-aca-lab-rev-prov` / `cae-labrevprov-j2qmuu`, `koreacentral`, C
 !!! note "Traffic-state difference between the two reproductions"
     In the 2026-05-01 reproduction the previous healthy revision retained traffic (the standard single-revision-mode behavior when the new revision never reaches Healthy). In the 2026-06-03 reproduction, the **configured** traffic weight on the failed revision is 100% (visible in capture 02 / 03) — but with 0/1 replicas ready, no requests can actually be served. Both observations are valid: the routing layer reports configured intent independent of replica readiness, and the post-failure traffic split depends on the revision mode and the order in which configuration was applied.
 
-[Observed] The Container App **Overview** blade surfaces the failing revision under the **Revisions with Issues** tab. The revision `probefail1780455941` is listed with **Provisioning Status = Failed**.
+[Observed] The Container App **Overview** blade surfaces the failing revision under the **Revisions with Issues** tab. The revision `probefail1780455941` is listed with **Running status = Failed** and **Running status details = 1/1 Container crashing: app**.
 
 ![Container App Overview showing the failed revision under Revisions with Issues](../../assets/troubleshooting/revision-provisioning-failure/01-overview-revisions-with-issues.png)
 
@@ -360,7 +360,7 @@ Reason=ContainerTerminated Msg=Container 'app' was terminated with reason 'Probe
 
 [Inferred] The presence of `Succeeded` entries for `Create or Update Container App` shows the **control-plane** accepted the revision update — there is no API-validation rejection here. Combined with the `Failed` revision state in capture 03 and the `ProbeFailed` logs in capture 04, this isolates the failure to the **data-plane** (the container's startup probe response), not to API validation or RBAC.
 
-[Observed] The **Diagnose and solve problems** blade exposes the **Container Apps Diagnostics** entry point with categories including **Availability and Performance** (Health Probe Check, Ingress Settings Check), **Container Apps Environment**, **Configuration and Management**, **Deployment**, **SSL and Domains**, and **Networking**.
+[Observed] The **Diagnose and solve problems** blade exposes the **Container Apps Diagnostics** entry point with categories including **Availability and Performance** (Health Probe Check, Ingress Settings Check), **Container Apps Environment**, **Dapr Components Insights**, **Configuration and Management**, **Deployment**, **SSL and Domains**, and **Networking**.
 
 ![Diagnose and solve problems landing blade](../../assets/troubleshooting/revision-provisioning-failure/06-diagnose-and-solve-problems.png)
 
@@ -427,7 +427,7 @@ az group delete --name "$RG" --yes --no-wait
 
 ## See Also
 
-- [Probe and Port Mismatch Lab](./probe-and-port-mismatch.md) — covers port mismatch; this lab covers probe path mismatch
+- [Probe and Port Mismatch Lab](./probe-and-port-mismatch.md) — covers app-port mismatch; this lab covers startup-probe endpoint mismatch (bad path or bad port)
 - [Container Start Failure Playbook](../playbooks/startup-and-provisioning/container-start-failure.md)
 
 ## Sources
