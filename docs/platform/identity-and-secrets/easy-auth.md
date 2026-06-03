@@ -86,9 +86,9 @@ az containerapp auth microsoft update \
 
 **[Observed]** The Authentication blade for the `ca-sample-d38538` Container App is open. The command bar exposes **Refresh**, **Troubleshoot**, and **Send us your feedback** controls. The main content area shows an empty-state illustration above the heading **Add an identity provider**, followed by descriptive text reading "Choose an identity provider to manage the user identities and authentication flow for your application. Providers include Microsoft, Facebook, Google, and Twitter.", a **Learn more about identity providers** link, and a primary **Add identity provider** button.
 
-**[Inferred]** The presence of an "Add an identity provider" empty state is consistent with this Container App having no identity provider configured yet. The provider list mentioned in the description (Microsoft, Facebook, Google, Twitter) appears to map to the built-in providers documented for Easy Auth on this page. The single primary **Add identity provider** button appears to be the entry point for the provider-configuration flow that the CLI command `az containerapp auth microsoft update` performs non-interactively.
+**[Inferred]** The presence of an "Add an identity provider" empty state is consistent with this Container App having no identity provider configured yet. The provider list mentioned in the description (Microsoft, Facebook, Google, Twitter) appears to map to the built-in providers documented for Easy Auth on this page. The single primary **Add identity provider** button appears to be the starting point for provider configuration in the portal.
 
-**[Not Proven]** This PNG does not show the provider-selection wizard, the redirect URI configuration, the client-secret entry field, or any of the per-provider settings that appear after clicking **Add identity provider**. It does not establish what the Container App's request-handling behavior is when no provider is configured, nor whether saving a provider triggers a new revision.
+**[Not Proven]** This PNG does not show provider-selection UI, redirect URI values, client-secret fields, or configured provider settings. It does not establish what the Container App's request-handling behavior is when no provider is configured, nor whether saving a provider triggers a new revision.
 
 ## Accessing User Information
 
