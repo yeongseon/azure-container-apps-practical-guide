@@ -298,9 +298,9 @@ A second live reproduction was executed on **2026-06-03** with the lab Bicep tem
 - **Region**: `koreacentral`
 - **SKU / plan**: Consumption (workload profile not used)
 - **Container Apps environment**: dedicated to this lab (no co-tenant noise)
-- **Identity / registry auth**: system-assigned managed identity with `AcrPull` on the ACR (so the failure cannot be misread as an auth problem)
+- **Identity / registry auth**: ACR admin user enabled in Bicep; the Container App uses admin username + password (stored in the `registry-password` secret) for registry pulls. Auth was confirmed working by the v1 recovery pull on the same configuration, so the failure cannot be attributed to a registry credential issue.
 - **Network**: default (no VNet integration, no private endpoint)
-- **Ingress**: enabled in Bicep, but never materialized because no revision was created
+- **Ingress**: configured in Bicep (`external: true`, `targetPort: 8000`), but no FQDN was ever assigned because no revision reached an ingress-ready state
 
 **Environment**
 
@@ -324,7 +324,9 @@ GET https:: MANIFEST_UNKNOWN: manifest tagged by "does-not-exist" is not found;
 map[Tag:does-not-exist]'
 ```
 
-[Observed] Container App Overview blade: `Status = Unknown`, `Application Url = Ingress disabled`. The platform never assigned an FQDN because no revision reached an ingress-ready state.
+[Observed] Container App Overview blade: `Status = Unknown`, `Application Url = Ingress disabled`.
+
+[Inferred] The platform never assigned an FQDN because no revision reached an ingress-ready state, even though ingress is enabled in the Bicep template.
 
 ![Container App Overview showing Status Unknown and no Application URL](../../assets/troubleshooting/acr-pull-failure/01-overview-unknown.png)
 
@@ -340,10 +342,12 @@ map[Tag:does-not-exist]'
 
 ![Activity Log Summary tab for the failed Create or Update Container App operation](../../assets/troubleshooting/acr-pull-failure/04-activity-log-detail.png)
 
+[Observed] `az containerapp logs show --type system` fails with `KeyError: 'eventStreamEndpoint'` (Azure CLI 2.71.0). The `ContainerAppSystemLogs_CL` table is not present in the Log Analytics workspace during the failed-deployment window.
+
 [Inferred] Because no revision was created:
 
-- `az containerapp logs show --type system` fails with `KeyError: 'eventStreamEndpoint'` (Azure CLI 2.71.0). The log stream endpoint is a per-revision construct, so it does not exist when `latestRevisionName` is `null`.
-- The `ContainerAppSystemLogs_CL` table is never created in the Log Analytics workspace because no container ever started. Engineers searching Log Analytics for the failure will find an empty workspace and may incorrectly conclude that diagnostics are misconfigured.
+- The log stream endpoint is a per-revision construct, so it does not exist when `latestRevisionName` is `null`, which explains the `KeyError`.
+- No container ever started, so no rows are emitted to `ContainerAppSystemLogs_CL` and the custom table is not materialized in this workspace for this failure window. Engineers searching Log Analytics for the failure will find an empty workspace and may incorrectly conclude that diagnostics are misconfigured.
 
 [Observed] Recovery executed with `az acr build` (no local Docker daemon required) and `az containerapp update --image acrlabacrrnnljl.azurecr.io/labacr:v1`. The update reached `provisioningState = Succeeded` and the platform created revision `ca-labacr-rnnljl--at9gdr2`. The Overview blade then reflected `Status = Running` and a populated `Application Url`:
 
@@ -353,11 +357,14 @@ map[Tag:does-not-exist]'
 
 ![Revisions blade showing the recovered revision in Healthy state](../../assets/troubleshooting/acr-pull-failure/06-revisions-healthy.png)
 
-[Inferred] **Falsification logic.** All non-image variables (region, SKU, environment, managed-identity-based ACR auth, ingress configuration) were held constant between the failing run and the recovered run. The only change was the image tag (`:does-not-exist` → `:v1`). The transition from "no revision, Status Unknown, no FQDN" to "Healthy revision, Status Running, FQDN returning HTTP 200" therefore confirms that the missing ACR tag was the sole cause, and refutes alternative explanations (auth misconfiguration, environment-level failure, ingress misconfiguration, networking).
+[Inferred] **Falsification logic.** Region, SKU, environment, registry credential configuration (ACR admin user via `registry-password` secret), and ingress configuration were held constant between the failing run and the recovered run. The only change was the image tag (`:does-not-exist` → `:v1`). The transition from "no revision, Status Unknown, no FQDN" to "Healthy revision, Status Running, FQDN returning HTTP 200" is therefore strongly consistent with the missing ACR tag being the cause, and refutes alternative explanations (registry credential failure, environment-level failure, ingress misconfiguration, networking).
 
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
+
+!!! warning "Failure-mode-specific evidence surfaces"
+    The captures listed below assume the pull failure occurs **after** a revision has been created (for example, a tag that exists but cannot be pulled due to auth, or a registry network failure during pull). For the **manifest-missing-before-revision** case reproduced in the 2026-06-03 subsection — where the image tag does not exist in ACR — the platform never creates a revision and the system log table is never materialized. In that case, use the surfaces shown in that subsection instead: **Overview** (Status `Unknown`, `Application Url = Ingress disabled`), **Revisions and replicas** (empty Active and Inactive tabs), and **Activity Log → Create or Update Container App: Failed** (Summary tab only — the JSON tab is rendered by a Monaco editor that bypasses the standard PII replacement helper).
 
 ### Capture rules (apply to every screenshot)
 
