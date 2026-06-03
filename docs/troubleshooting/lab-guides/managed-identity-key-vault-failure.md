@@ -162,42 +162,32 @@ Expected output:
 ./labs/managed-identity-key-vault-failure/trigger.sh
 ```
 
-The trigger script runs these key actions:
+The trigger script runs these key actions (shown here as the Azure CLI 2.71.0-compatible two-step form — see the warning below for context):
 
 ```bash
 az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
 
+az containerapp registry set \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --server "$ACR_LOGIN_SERVER" \
+    --username "$ACR_USERNAME" \
+    --password "$ACR_PASSWORD"
+
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1" \
-    --registry-server "$ACR_LOGIN_SERVER" \
-    --registry-username "$ACR_USERNAME" \
-    --registry-password "$ACR_PASSWORD"
+    --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1"
 ```
 
 | Command | Why it is used |
 |---|---|
 | `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az containerapp registry set ...` | Configures registry credentials on the Container App (required as a separate step on `az` CLI 2.71.0 and later). |
 | `az containerapp update --image ...` | Rolls the Container App to the new image; this starts a new revision that reads the Key Vault secret on startup. |
-| `az containerapp registry set ...` | Configures registry credentials separately from the image update (required workaround on `az` CLI 2.71.0 and later). |
 
 !!! warning "Azure CLI 2.71.0+ rejects combined registry flags on `containerapp update`"
-    On `az` CLI 2.71.0 and later, passing `--registry-server`, `--registry-username`, and `--registry-password` together with `--image` to `az containerapp update` returns `unrecognized arguments`. Configure the registry separately, then update the image:
-
-    ```bash
-    az containerapp registry set \
-        --name "$APP_NAME" \
-        --resource-group "$RG" \
-        --server "$ACR_LOGIN_SERVER" \
-        --username "$ACR_USERNAME" \
-        --password "$ACR_PASSWORD"
-
-    az containerapp update \
-        --name "$APP_NAME" \
-        --resource-group "$RG" \
-        --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1"
-    ```
+    On `az` CLI 2.71.0 and later, passing `--registry-server`, `--registry-username`, and `--registry-password` together with `--image` to a single `az containerapp update` call returns `unrecognized arguments`. Older versions of `trigger.sh` and similar scripts that issue the combined form must be updated to the two-step `registry set` + `update --image` sequence shown above.
 
 Expected output:
 
@@ -366,7 +356,7 @@ Expected output:
 
 ![Container App Identity blade with system-assigned managed identity enabled](../../assets/troubleshooting/managed-identity-key-vault-failure/01-identity-blade-system-assigned-on.png)
 
-[Observed] The Key Vault's **Access control (IAM) → Role assignments** blade, filtered by the Container App principal name (`ca-labkv-gtlopy`), shows "No role assignments found for the applied filter." No `Key Vault Secrets User` (or any other) role exists at the vault scope for this principal:
+[Observed] The Key Vault's **Access control (IAM) → Role assignments** blade, filtered by the Container App principal name (`ca-labkv-gtlopy`), shows `All (0)` and `No results.` — confirming that no `Key Vault Secrets User` (or any other) role exists at the vault scope for this principal:
 
 ![Key Vault IAM blade showing no role assignment for the Container App principal](../../assets/troubleshooting/managed-identity-key-vault-failure/02-kv-iam-no-role-for-app-principal.png)
 
@@ -378,7 +368,23 @@ Expected output:
 
 ![Metrics blade showing 5xx-dominated request volume during the incident](../../assets/troubleshooting/managed-identity-key-vault-failure/04-metrics-requests-5xx-during-incident.png)
 
-[Observed] The HTTP 500 response body returned by the Flask handler at this point contained:
+[Not Proven from Portal] The 403 response from Key Vault itself is not directly visible in any Portal blade for this lab. Gunicorn is configured without access logs, and the Flask handler catches the exception and returns it as a JSON 500 — so the **Log stream** blade contains no useful application output. The `ForbiddenByRbac` evidence comes from the HTTP response body collected by the verification script (see **Verification script output** below). The Portal-side proof is the combination of (a) zero role assignments at the KV scope (capture #2) and (b) the 5xx-dominated request metric (capture #4).
+
+#### After fix
+
+[Observed] After running `az role assignment create --role "Key Vault Secrets User" --assignee-object-id <principal-id> --scope <kv-resource-id>`, the same Key Vault **Access control (IAM) → Role assignments** filter now shows exactly one result: `Key Vault Secrets User` assigned to `ca-labkv-gtlopy` at this vault's scope:
+
+![Key Vault IAM blade after fix showing Key Vault Secrets User assigned to the app principal](../../assets/troubleshooting/managed-identity-key-vault-failure/05-kv-iam-role-assigned-after-fix.png)
+
+[Observed] The Container App **Metrics** blade with the same `Requests` / `Status Code Category` split, extended to capture both the incident window and the post-fix traffic, shows 2xx responses (116) rising alongside the prior 5xx population (86) — visualizing the clean recovery after the role assignment:
+
+![Metrics blade after fix showing 2xx recovery alongside the earlier 5xx population](../../assets/troubleshooting/managed-identity-key-vault-failure/06-metrics-requests-2xx-after-fix.png)
+
+#### Verification script output (non-Portal evidence)
+
+The Portal captures above are paired with HTTP response bodies collected by `verify.sh` against the FQDN. These are CLI-side observations, not Portal evidence, and are recorded here separately so the Portal `[Observed]` bullets above remain strictly one-to-one with captures.
+
+Pre-fix response body (HTTP 500):
 
 ```text
 Access denied or Key Vault read failed: (Forbidden) Caller is not authorized
@@ -387,23 +393,13 @@ Action: 'Microsoft.KeyVault/vaults/secrets/getSecret/action'
 ... Assignment: (not found) ... Inner error: ForbiddenByRbac
 ```
 
-[Not Proven from Portal] The 403 response from Key Vault itself is not directly visible in any Portal blade for this lab. Gunicorn is configured without access logs, and the Flask handler catches the exception and returns it as a JSON 500 — so the **Log stream** blade contains no useful application output. The `ForbiddenByRbac` evidence comes from the HTTP response body collected by the verification script. The Portal-side proof is the combination of (a) zero role assignments at the KV scope (capture #2) and (b) the 5xx-dominated request metric (capture #4).
-
-#### After fix
-
-[Observed] After running `az role assignment create --role "Key Vault Secrets User" --assignee-object-id <principal-id> --scope <kv-resource-id>`, the same Key Vault **Access control (IAM) → Role assignments** filter now shows exactly one result: `Key Vault Secrets User` assigned to `ca-labkv-gtlopy` at this vault's scope:
-
-![Key Vault IAM blade after fix showing Key Vault Secrets User assigned to the app principal](../../assets/troubleshooting/managed-identity-key-vault-failure/05-kv-iam-role-assigned-after-fix.png)
-
-[Observed] After triggering a new revision with `az containerapp update --set-env-vars RESTART_TOKEN=...` and re-running the verification script, the app returned HTTP 200 with body:
+Post-fix response body (HTTP 200):
 
 ```text
 {"secretLength":"20","status":"ok"}
 ```
 
-[Observed] The Container App **Metrics** blade with the same `Requests` / `Status Code Category` split, extended to capture both the incident window and the post-fix traffic, shows 2xx responses (116) rising alongside the prior 5xx population (86) — visualizing the clean recovery after the role assignment:
-
-![Metrics blade after fix showing 2xx recovery alongside the earlier 5xx population](../../assets/troubleshooting/managed-identity-key-vault-failure/06-metrics-requests-2xx-after-fix.png)
+#### Causal analysis
 
 [Inferred] Because (a) no infrastructure change other than the role assignment + identity restart was applied between captures #4 and #6, and (b) the response body changed from `ForbiddenByRbac` to `{"status":"ok"}` over the same code path, the failure is fully explained by the missing `Key Vault Secrets User` assignment at the vault scope. The fix is deterministic: assign the role, restart the revision, secret reads succeed.
 
