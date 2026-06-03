@@ -71,9 +71,9 @@ az monitor metrics alert create \
 
 Open the Container App in the Azure Portal, then choose **Monitoring → Alerts** in the left navigation. This per-resource Alerts blade is scoped to a single Container App and lists fired alert instances (not the rule definitions themselves).
 
-![Container App Alerts blade scoped to ca-ops-cgedjv, showing the empty alert list with filters Subscription, Resource name, Time range Past 24 hours, Severity all, Alert state Fired](../../assets/operations/alerts/01-alerts-blade.png)
+![Container App Alerts blade scoped to ca-ops-cgedjv, showing pinned filters Resource name ca-ops-cgedjv, Time range Past 24 hours, Alert condition Fired, Severity all, with all severity tiles at zero and an empty grid showing the No alerts found empty state](../../assets/operations/alerts/01-alerts-blade.png)
 
-[Observed] The header row reads `ca-ops-cgedjv | Alerts`. The default filters are pinned at `Subscription : Visual Studio Enterprise Subscription`, `Resource name : ca-ops-cgedjv`, `Time range : Past 24 hours`, `Severity : all`, `Alert state : Fired`. The summary tiles read `Total alerts: 0` across Sev 0 through Sev 4, and the grid below shows the empty-state text `No alerts found in the last 24 hours`.
+[Observed] The header row reads `ca-ops-cgedjv | Alerts`. The pinned filter chips read `Resource name : ca-ops-cgedjv` (greyed out and pre-scoped to this Container App), `Time range : Past 24 hours`, `Alert condition : Fired`, and `Severity : all`. The summary tiles report `Total alerts: 0` with per-severity counters `Critical: 0`, `Error: 0`, `Warning: 0`, `Informational: 0`, `Verbose: 0`. The empty-state panel in the grid area shows the heading `No alerts found`, the body text `Try changing your search or choose a different scope level if you don't see what you're looking for`, and a `Clear filters` button.
 
 [Inferred] An empty Fired list with `Severity : all` means no alert rule scoped to this Container App has transitioned to the Fired state inside the 24-hour window. This view does not prove that no rules exist - it only proves that none of the existing rules have produced a firing instance. To verify rule definitions and their enabled state, the toolbar **Alert rules** button must be opened (next capture).
 
@@ -87,7 +87,7 @@ From the Alerts blade toolbar, choose **Alert rules**. The Alert rules blade lis
 
 [Observed] Exactly one row is rendered: `Name: alert-ca-5xx`, `Condition: Requests > 0`, `Severity: 2 - Warning`, `Target scope: ca-ops-cgedjv`, `Target resource type: Container App`, `Signal type: Metrics`, `Status: Enabled` with a green check icon. The filter chips show `Subscription : Visual Studio Enterprise Subscription`, `Target resource type : all`, `Target scope : ca-ops-cgedjv`, `Signal type : all`, `Severity : all`, `Status : Enabled`. The grid footer reads `Showing 1 - 1 of 1 results`.
 
-[Inferred] The `Status: Enabled` flag together with the green check confirms the rule is currently armed and will evaluate every aggregation window. Because `Signal type` reports `Metrics`, this is a metric alert rule and its evaluation cadence is governed by the rule's `evaluation-frequency` and `window-size` properties, not by log ingestion latency. The single-row result is consistent with the prior CLI-created `alert-ca-5xx` rule and rules out the existence of additional rules scoped to this Container App.
+[Inferred] The `Status: Enabled` flag together with the green check confirms the rule is currently armed and will evaluate every aggregation window. Because `Signal type` reports `Metrics`, this is a metric alert rule and its evaluation cadence is governed by the rule's `evaluation-frequency` and `window-size` properties, not by log ingestion latency. The single-row result is consistent with the prior CLI-created `alert-ca-5xx` rule; because the grid is filtered to `Status : Enabled`, this view confirms only that exactly one **enabled** metric alert rule is currently scoped to this Container App and does not rule out the existence of additional disabled rules.
 
 [Not Proven] This grid does not reveal the action group bound to the rule, the resolved condition expression (only the truncated summary `Requests > 0`), or the evaluation window. The rule detail blade must be opened to see scope hierarchy, condition aggregation, and the action group binding.
 
@@ -191,7 +191,7 @@ Keep ownership explicit by mapping each alert to an on-call team.
 
 ### Portal view: Action group overview
 
-The action group bound to an alert rule is itself an Azure resource. Opening it confirms the display name (used in notification payloads), the subscription, and the resource group, and acts as the entry point to inspect or edit notification channels (Settings → Notifications, Actions).
+From the alert rule overview, click **ag-ops-demo** in the **Actions** card to open the action group resource. The action group bound to an alert rule is itself an Azure resource. Opening it confirms the display name (used in notification payloads), the subscription, and the resource group, and acts as the entry point to inspect or edit notification channels (Settings → Notifications, Actions).
 
 ![ag-ops-demo Action group overview showing Resource group rg-aca-ops-cgedjv, Location Global, Subscription Visual Studio Enterprise Subscription, Subscription ID zero GUID, Display name OpsDemo](../../assets/operations/alerts/04-action-group.png)
 
