@@ -114,6 +114,16 @@ az containerapp identity assign \
 |---|---|
 | `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
 
+### Portal view: Identity blade
+
+![Identity blade for a Container App showing System assigned tab with Status Off toggle](../../assets/platform/identity-and-secrets/01-identity-blade.png)
+
+**[Observed]** The Identity blade for the `ca-sample-d38538` Container App is open. The content area shows two tabs labeled **System assigned** (selected) and **User assigned**. Below the description text, a command bar exposes **Save**, **Discard**, **Refresh**, and **Got feedback?** controls. A single form field labeled **Status** is rendered as an **Off / On** toggle, currently set to **Off**. The hostname placeholder `<your-app-name>.<env-suffix>.koreacentral.azurecontainerapps.io` is not relevant to this blade.
+
+**[Inferred]** The two-tab layout appears to map to the two identity types described in this page: **System assigned** for an identity whose lifecycle is tied to the Container App, and **User assigned** for a standalone Azure resource that can be attached to one or more apps. The presence of a single **Status** toggle on the System assigned tab is consistent with the documented constraint that a Container App can have at most one system-assigned identity. The **Save / Discard** command-bar pattern is consistent with the typical Portal edit-then-commit workflow for identity configuration.
+
+**[Not Proven]** This PNG does not show the principal ID, tenant ID, or any Azure RBAC role assignments that would appear after the toggle is set to **On** and saved. It also does not show the User assigned tab contents, so the controls for attaching an existing user-assigned identity are not proven by this capture. The PNG does not establish whether enabling the identity triggers a new revision — that behavior is documented in the linked Microsoft Learn source and is not visible here.
+
 ## Assigning Roles
 
 Assign roles to the managed identity to grant access to other resources (e.g., Azure SQL, Blob Storage, Key Vault).
