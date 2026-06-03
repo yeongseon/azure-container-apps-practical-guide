@@ -355,6 +355,65 @@ TargetPort: 8000
 
 [Inferred] PR-A establishes the **failure-state snapshot** required for falsification: the trigger revision `--0000001` is using a custom image that demonstrably listens on port 3000 (capture 05), while ingress is configured for port 8000 (capture 04); the Portal surfaces the mismatch in the Overview blade (capture 01), drives the revision to `Failed` at 100% traffic (capture 02), and emits `ProbeFailed` System events continuously (capture 06). Because PR-A changes both the image and the listening port relative to baseline, PR-A alone does **not** rule out alternative theories (the new image itself being broken, an ACR pull failure, a probe-config bug, or the revision template introducing the failure). PR-B will hold image, revision template, and replica state constant on `--0000001` and change *only* `targetPort` from 8000 → 3000; recovery on the same revision is what falsifies those alternatives.
 
+### Observed Evidence (Portal Captures — 2026-06-03, after-fix state)
+
+**Fix applied for these captures:** A single ingress-only edit on the same app, with no image change, no revision-template change, and no scaling change:
+
+```bash
+az containerapp ingress update --resource-group $RG --name $APP_NAME --target-port 3000
+```
+
+**Held constant vs. changed (PR-A failure-state `--0000001` → PR-B after-fix `--0000001`):**
+
+| Variable | PR-A (failure) | PR-B (after fix) | Controlled? |
+|---|---|---|---|
+| Revision name | `ca-labprobe-shes3s--0000001` | `ca-labprobe-shes3s--0000001` | **held constant (same revision)** |
+| Container image | `acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s:v1` | `acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s:v1` | held constant |
+| Application listening port | 3000 (gunicorn `--bind 0.0.0.0:3000`) | 3000 (gunicorn `--bind 0.0.0.0:3000`) | held constant |
+| Replica template | unchanged | unchanged | held constant |
+| Ingress `targetPort` (app-scope) | `8000` | `3000` | **changed (independent variable)** |
+| Revision health | `Unhealthy` / `Failed` | `Healthy` / `Running` | **changed (dependent variable)** |
+
+[Inferred] Because PR-B changes *only* `targetPort` on the same revision and the dependent variable (revision health) flips from `Failed` to `Running` while every other input is held constant, the alternative theories enumerated under PR-A (broken image, ACR pull failure, probe-config bug, revision-template defect) are falsified. The remaining cause consistent with all observations is the `targetPort` vs. application listening port mismatch.
+
+**Verification CLI (taken at the same time as the captures):**
+
+```text
+Revision --0000001: Active=True, Health=Healthy, RunningState=Running, Replicas=1, Traffic=100%
+Revision --coxh910: Active=True, RunningState=Deprovisioning, Traffic=0%
+curl https://${FQDN}/ --write-out '%{http_code}' → 200, 200, 200, 200, 200 (5/5)
+TargetPort: 3000
+```
+
+[Observed] The Overview blade now shows `Status: Running` and the `Revisions with Issues` banner that was present in capture 01 is gone:
+
+![Container App overview blade after fix — Status Running with no platform error banner](../../assets/troubleshooting/probe-and-port-mismatch/07-overview-recovered.png)
+
+[Observed] The Revisions and replicas blade shows the **same revision name** `ca-labprobe-shes3s--0000001` as the failure state (capture 02), now with `Running status: Running` and `Traffic: 100`. The baseline `--coxh910` is no longer present in **Active revisions**:
+
+![Revisions and replicas blade showing the same --0000001 revision now Running at 100% traffic with --coxh910 no longer active](../../assets/troubleshooting/probe-and-port-mismatch/08-revisions-recovered.png)
+
+[Observed] The Ingress blade shows `Target port: 3000`, matching the workload's actual listening port (compare to capture 04 which showed `8000`):
+
+![Ingress blade showing Target port set to 3000](../../assets/troubleshooting/probe-and-port-mismatch/09-ingress-recovered.png)
+
+[Observed] The Log stream blade (Category: Application) is still connected to revision `--0000001` and replica `--0000001-c6d7d6f44-bpkn6`, and shows the **same gunicorn startup output as capture 05** (`Starting gunicorn 22.0.0`, `Listening at: http://0.0.0.0:3000`). This confirms the image and listening port are unchanged from the failure state:
+
+![Log stream showing the same gunicorn startup output and listening port 3000 from the same revision as the failure state](../../assets/troubleshooting/probe-and-port-mismatch/10-logstream-recovered.png)
+
+[Observed] The Log stream blade (Category: System) shows the platform reaction to the ingress edit, with no further `ProbeFailed` events for `--0000001`:
+
+```text
+"Msg":"Setting traffic weight of '100%' for revision 'ca-labprobe-shes3s--0000001'","Reason":"RevisionUpdate"
+"Msg":"Deactivating old revisions for ContainerApp 'ca-labprobe-shes3s'","Reason":"RevisionDeactivating"
+"Msg":"No revision restart or provisioning was needed.","Reason":"ContainerAppReady"
+"Msg":"Successfully updated containerApp: ca-labprobe-shes3s","Reason":"ContainerAppReady"
+```
+
+![Log stream System category showing RevisionUpdate, RevisionDeactivating, and No revision restart or provisioning was needed events with no ProbeFailed entries](../../assets/troubleshooting/probe-and-port-mismatch/11-system-logs-recovered.png)
+
+[Observed] The `No revision restart or provisioning was needed.` event surfaced by the Container Apps controller confirms directly from the platform that the ingress edit did not mint a new revision and did not restart the existing replica. Combined with capture 08 showing the same revision name as the failure state, this anchors the **same-revision recovery** claim in platform-emitted evidence, not just naming conventions.
+
 ## Clean Up
 
 ```bash
