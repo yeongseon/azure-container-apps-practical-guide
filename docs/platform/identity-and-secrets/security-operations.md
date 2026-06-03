@@ -131,6 +131,16 @@ Reference the secret as an environment variable in app template updates.
 !!! tip "Rotate secrets with staged rollout"
     Introduce new values, validate app health, then retire old values to avoid abrupt runtime failures.
 
+### Portal view: Access control (IAM) blade
+
+![Access control (IAM) blade for a Container App showing the Check access tab](../../assets/platform/identity-and-secrets/04-iam-blade.png)
+
+[Observed] The blade header reads `ca-sample-d38538 | Access control (IAM)` with the subtitle `Container App`. The command bar exposes `+ Add`, `Download role assignments`, `Edit columns`, `Refresh`, `Delete`, and `Feedback` controls. Four tabs are rendered: `Check access` (selected), `Role assignments`, `Roles`, and `Deny assignments`. The selected tab shows a `My access` section with a `View my access` button, a `Check access` section with a `Check access` button, and three cards titled `Grant access to this resource` (with an `Add role assignment` button), `View access to this resource` (with a `View` button), and `View deny assignments` (with a `View` button). The left navigation lists `Overview`, `Activity log`, `Access control (IAM)` (highlighted), `Tags`, `Diagnose and solve problems`, `Resource visualizer`, and grouped sections for `Application`, `Settings`, `Networking`, `Security`, `Monitoring`, `Automation`, and `Help`.
+
+[Inferred] The four tabs (`Check access`, `Role assignments`, `Roles`, `Deny assignments`) and the three cards (`Grant access`, `View access`, `View deny assignments`) appear to map to the RBAC scope-audit cadence described in the table above, since the surface lets an operator inspect who has access at this resource scope without leaving the blade. The `+ Add` command and the `Add role assignment` card button are consistent with the role-creation surface invoked by `az role assignment create` shown in the Managed Identity Operations section.
+
+[Not Proven] The screenshot does not include any `Role assignments` tab content, so the captured surface does not reveal which principals or roles are bound to this Container App. The `Check access` and `View my access` buttons are present but their result panels are not visible in this capture, so the rendered shape of those panels is outside the scope of this image.
+
 ## Easy Auth Operations
 
 Review and enforce authentication settings:
