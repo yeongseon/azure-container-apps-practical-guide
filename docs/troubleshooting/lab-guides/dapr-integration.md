@@ -273,6 +273,20 @@ az containerapp update \
 |---|---|
 | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
+!!! warning "CLI 2.71.0 workaround (restore direction)"
+    On Azure CLI 2.71.0 the bundled `containerapp` extension rejects `--dapr-app-port` on `az containerapp update` in both the trigger and restore directions. Use `az containerapp dapr enable --dapr-app-port 8000` for the restore on this CLI version:
+
+    ```bash
+    az containerapp dapr enable \
+        --name "$APP_NAME" \
+        --resource-group "$RG" \
+        --dapr-app-port 8000
+    ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az containerapp dapr enable ...` | Re-applies Dapr on the app with `appPort` set back to 8000 in the same call. Works on CLI 2.71.0 where `az containerapp update --dapr-app-port` fails. |
+
 Useful debugging commands:
 
 ```bash
@@ -285,7 +299,7 @@ az containerapp env dapr-component list --name "$ENVIRONMENT_NAME" --resource-gr
 Expected output:
 
 - `appPort` returns to 8000.
-- Sidecar-to-app communication succeeds again.
+- Sidecar-to-app communication succeeds again, *provided the container image actually listens on port 8000*. With the bundled `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image (which listens on port 80), restoring `appPort: 8000` does **not** make the revision `Healthy` — this is `[Not Proven]` with the bundled image. See the Hypothesis scope caveat above.
 
 ### Verify recovery
 
@@ -341,50 +355,52 @@ Expected output (with an image that listens on port 8000):
 
 ### Observed Evidence (Live Azure Reproduction — 2026-06-03)
 
-Resource group `rg-aca-lab-dapr` in `koreacentral`, Container App `ca-labdapr-bh2uom`, Dapr `appId: dapr-labdapr-bh2uom`, active revision `ca-labdapr-bh2uom--xafdl2m`, single-revision mode. Azure CLI 2.71.0 with `containerapp` extension; the `az containerapp update --dapr-app-port` form rejected the flag, so the trigger was applied with `az containerapp dapr enable --dapr-app-port` (see CLI 2.71.0 workaround above).
+Resource group `rg-aca-lab-dapr` in `koreacentral`, Container App `ca-labdapr-bh2uom`, Dapr `appId: dapr-labdapr-bh2uom`, active revision `ca-labdapr-bh2uom--xafdl2m`, single-revision mode. Azure CLI 2.71.0 with `containerapp` extension; the `az containerapp update --dapr-app-port` form rejected the flag in both the trigger and restore directions, so both mutations were applied with `az containerapp dapr enable --dapr-app-port <PORT>` (see CLI 2.71.0 workaround above).
 
-**[Observed]** On the Container App **Overview** blade, the **Essentials** panel shows `Status: Running`, `Location: Korea Central`, `Environment type: Workload profiles`, `Resource group: rg-aca-lab-dapr`, and a populated `Application Url` field. The blade does not surface Dapr configuration on the Overview panel itself.
+The six PNGs below were captured in sequence during the reproduction. Each paragraph below describes only what is visible inside that single PNG, with no cross-capture comparison.
+
+**[Observed]** Container App **Overview** blade. The **Essentials** panel shows `Status: Running`, `Location: Korea Central`, `Environment type: Workload profiles`, `Resource group: rg-aca-lab-dapr`, and a populated `Application Url` field. Dapr configuration is not surfaced on the Overview panel.
 
 ![Container App Overview blade — Status Running, Korea Central, Workload profiles environment](../../assets/troubleshooting/dapr-integration/01-overview.png)
 
-**[Observed]** On the Container App **Dapr** blade at the start of the reproduction (before `trigger.sh`), the `Dapr` radio shows `Enabled`, the `App ID` field shows `dapr-labdapr-bh2uom`, the `App port` field shows `8000`, and the `App protocol` radio shows `HTTP`.
+**[Observed]** Container App **Dapr** blade. The `Dapr` radio shows `Enabled`, the `App ID` field shows `dapr-labdapr-bh2uom`, the `App port` field shows `8000`, and the `App protocol` radio shows `HTTP`.
 
 ![Dapr blade — Enabled, App ID dapr-labdapr-bh2uom, App port 8000, HTTP](../../assets/troubleshooting/dapr-integration/02-dapr-baseline-appport-8000.png)
 
-**[Observed]** On the Container App **Dapr** blade after running `az containerapp dapr enable --dapr-app-port 8081` and clicking **Refresh** inside the blade, the `App port` field shows `8081`. The `Dapr` radio still shows `Enabled` and `App ID` still shows `dapr-labdapr-bh2uom` on the same blade.
+**[Observed]** Container App **Dapr** blade. The `Dapr` radio shows `Enabled`, the `App ID` field shows `dapr-labdapr-bh2uom`, the `App port` field shows `8081`, and the `App protocol` radio shows `HTTP`.
 
-![Dapr blade — App port 8081 after trigger](../../assets/troubleshooting/dapr-integration/03-dapr-after-trigger-appport-8081.png)
+![Dapr blade — App port 8081](../../assets/troubleshooting/dapr-integration/03-dapr-after-trigger-appport-8081.png)
 
-**[Observed]** On the Container App **Revisions** blade, the row for `ca-labdapr-bh2uom--xafdl2m` shows `Active: True`, `Date created: 6/3/2026 3:46:22 PM`, `Running status: Degraded`, `Traffic: 100%`, and `Replicas: 2`.
+**[Observed]** Container App **Revisions** blade. A row for `ca-labdapr-bh2uom--xafdl2m` shows `Date created: 6/3/2026 3:46:22 PM`, `Running status: Degraded`, `Traffic: 100%`, and `Replicas: 2`.
 
 ![Revisions blade — ca-labdapr-bh2uom--xafdl2m Running status Degraded, Traffic 100%, Replicas 2](../../assets/troubleshooting/dapr-integration/04-revisions-degraded.png)
 
-**[Observed]** On the Container App **Containers** blade, the bound container shows `Name: app`, `Registry login server: mcr.microsoft.com`, `Image and tag: azuredocs/containerapps-helloworld:latest`, `CPU cores: 0.5`, `Memory (Gi): 1`. The startup, liveness, and readiness HTTP probes are all configured with port `8000` on this blade.
+**[Observed]** Container App **Containers** blade, **Properties** tab for the container named `app`. The fields show `Registry login server: mcr.microsoft.com`, `Image and tag: azuredocs/containerapps-helloworld:latest`, `CPU cores: 0.5`, and `Memory (Gi): 1`. Health-probe ports are not surfaced on this tab; they are on the separate **Health probes** tab and were not captured.
 
-![Containers blade — app container, mcr.microsoft.com/azuredocs/containerapps-helloworld:latest](../../assets/troubleshooting/dapr-integration/05-containers-helloworld-image.png)
+![Containers blade Properties tab — mcr.microsoft.com/azuredocs/containerapps-helloworld:latest, 0.5 CPU, 1 Gi](../../assets/troubleshooting/dapr-integration/05-containers-helloworld-image.png)
 
-**[Observed]** On the Container App **Dapr** blade after running `az containerapp dapr enable --dapr-app-port 8000` and clicking **Refresh** inside the blade, the `App port` field shows `8000`. The `Dapr` radio still shows `Enabled` and `App ID` still shows `dapr-labdapr-bh2uom`.
+**[Observed]** Container App **Revisions** blade. A row for `ca-labdapr-bh2uom--xafdl2m` shows `Running status: Degraded` and `Traffic: 100%`.
 
-![Dapr blade — App port 8000 restored](../../assets/troubleshooting/dapr-integration/06-dapr-restored-appport-8000.png)
+![Revisions blade — ca-labdapr-bh2uom--xafdl2m still Degraded after restore](../../assets/troubleshooting/dapr-integration/06-revisions-still-degraded-after-restore.png)
 
-**[Inferred]** The `App port` value flip from 8000 → 8081 → 8000 visible across captures #2, #3, and #6 is consistent with the `--dapr-app-port` flag mutating only the `properties.configuration.dapr.appPort` field on the Container App resource, while `App ID`, `Dapr enabled`, and `App protocol` on the same blade are left unchanged.
+**[Inferred]** Across captures #2 and #3, the only field that differs on the Dapr blade is `App port` (8000 vs 8081). This is consistent with `--dapr-app-port` mutating only `properties.configuration.dapr.appPort` on the Container App resource and leaving `App ID`, `Dapr enabled`, and `App protocol` unchanged.
 
-**[Not Proven]** That the `Running status: Degraded` observed in capture #4 was *caused by* the 8000 → 8081 flip. The bundled `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image (capture #5) listens on port 80, not 8000, so a Dapr sidecar→app health probe targeting either `appPort=8000` or `appPort=8081` would target a port the image does not listen on. The revision was not confirmed `Healthy` at any point during this reproduction at either `appPort` value, so the captures show *correlation* between the 8081 state and a Degraded revision, not causation. To prove causation, swap the image to one that actually binds to `0.0.0.0:8000` and re-run the trigger.
+**[Not Proven]** That the `Running status: Degraded` visible in captures #4 and #6 was *caused by* a Dapr `appPort` mismatch. The bundled `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image (capture #5) listens on port 80, not 8000, so a Dapr sidecar→app health probe targeting either `appPort=8000` or `appPort=8081` would target a port the image does not bind. The revision was not observed `Healthy` at any point during this reproduction, so the captures show only *correlation* between an `appPort` value and a Degraded revision, not causation. To make causation cleanly falsifiable, swap the bicep template's image for one that binds to `0.0.0.0:8000` and re-run the trigger.
 
 ### Portal capture reproduction guide
 
 Reproducing engineers should attach the same six Portal captures to the **Observed Evidence** subsection above. Save each PNG to `docs/assets/troubleshooting/dapr-integration/` and apply the PII helper described in [`AGENTS.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md) (text-replacement, **never** black-box masking; avatar masked with Portal-blue `#0078d4`).
 
-| # | When | Portal blade | What to verify on-screen | Filename |
+| # | When in the reproduction | Portal blade | What to verify on-screen | Filename |
 |---|---|---|---|---|
 | 1 | Baseline (before `trigger.sh`) | Container App → Overview | `Status: Running`, `Location: Korea Central`, `Resource group: rg-aca-lab-dapr`, `Application Url` populated | `01-overview.png` |
 | 2 | Baseline (before `trigger.sh`) | Container App → Dapr | `Dapr: Enabled`, `App ID: dapr-labdapr-bh2uom`, `App port: 8000`, `App protocol: HTTP` | `02-dapr-baseline-appport-8000.png` |
-| 3 | After trigger (CLI workaround applied) | Container App → Dapr (click **Refresh** in blade) | `App port: 8081`, Dapr still `Enabled`, `App ID` unchanged | `03-dapr-after-trigger-appport-8081.png` |
-| 4 | After trigger | Container App → Revisions | Active revision row: `Running status: Degraded`, `Traffic: 100%`, `Replicas: 2` | `04-revisions-degraded.png` |
-| 5 | After trigger | Container App → Containers | `Image and tag: azuredocs/containerapps-helloworld:latest`, probes target `8000` (anchors the `[Not Proven]` causation caveat) | `05-containers-helloworld-image.png` |
-| 6 | After restoring `--dapr-app-port 8000` | Container App → Dapr (click **Refresh** in blade) | `App port: 8000`, Dapr still `Enabled`, `App ID` unchanged | `06-dapr-restored-appport-8000.png` |
+| 3 | After trigger (CLI workaround applied) | Container App → Dapr (click **Refresh** in blade) | `App port: 8081`, `Dapr: Enabled`, `App ID: dapr-labdapr-bh2uom`, `App protocol: HTTP` | `03-dapr-after-trigger-appport-8081.png` |
+| 4 | After trigger | Container App → Revisions | Revision `ca-labdapr-bh2uom--xafdl2m` row: `Running status: Degraded`, `Traffic: 100%`, `Replicas: 2` | `04-revisions-degraded.png` |
+| 5 | After trigger | Container App → Containers (**Properties** tab) | `Image and tag: azuredocs/containerapps-helloworld:latest`, `Registry login server: mcr.microsoft.com` — anchors the `[Not Proven]` causation caveat | `05-containers-helloworld-image.png` |
+| 6 | After restoring `--dapr-app-port 8000` (CLI workaround applied) | Container App → Revisions | Revision `ca-labdapr-bh2uom--xafdl2m` still shows `Running status: Degraded` — directly demonstrates the `[Not Proven]` causation caveat | `06-revisions-still-degraded-after-restore.png` |
 
-The blade has a known stale-cache behavior: the inline **Refresh** button inside the Dapr blade iframe must be clicked after applying the CLI mutation, otherwise the previous value persists in the panel even though the underlying resource has changed.
+The Dapr blade has a known stale-cache behavior: the inline **Refresh** button inside the blade iframe must be clicked after applying a CLI mutation, otherwise the previous value persists in the panel even though the underlying resource has changed.
 
 ## Clean Up
 
