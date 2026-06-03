@@ -14,9 +14,16 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-05-01
-    az_cli_version: 2.70.0
-    notes: single-revision-mode error confirmed, fixed with multiple mode
+    tested_date: 2026-06-03
+    az_cli_version: 2.71.0
+    notes: 'Live 50/50 split reproduced via image-swap workaround. The original
+      trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected
+      by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to
+      reproduce per-revision failure because `targetPort` is an ingress-level
+      setting shared across all revisions. Replacement pattern: keep ingress
+      targetPort stable and deploy a new revision with an image whose listening
+      port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80).
+      Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50.'
   core_claims:
   - claim: Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights.
     source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
@@ -59,33 +66,34 @@ A common failure scenario occurs when:
 
 This lab simulates this scenario by:
 
-1. Deploying a healthy baseline revision
-2. Creating a bad revision with an incorrect target port (9999)
-3. Splitting traffic 50/50 between good and bad revisions
-4. Observing intermittent failures and practicing rollback
+1. Deploying a healthy baseline revision whose image listens on the same port as ingress `targetPort` (`:80`).
+2. Creating a bad revision by swapping the container image to one that listens on a different port (`:8080`) while leaving ingress `targetPort` unchanged at `80`. This isolates the failure to the bad revision only — ingress `targetPort` is a shared, ingress-level setting and cannot be flipped per revision.
+3. Splitting traffic 50/50 between good and bad revisions.
+4. Observing intermittent failures (curl status `000` timeouts from the bad-revision half) and practicing rollback.
 
 ### Architecture
 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[User Request] --> B[Ingress Controller]
+    A[User Request] --> B[Ingress Controller<br/>targetPort=80]
     B --> C{Traffic Split}
-    C -->|50%| D[Good Revision<br/>Port 80 ✓]
-    C -->|50%| E[Bad Revision<br/>Port 9999 ✗]
+    C -->|50%| D[Good Revision<br/>image listens on :80 ✓]
+    C -->|50%| E[Bad Revision<br/>image listens on :8080 ✗]
     D --> F[HTTP 200]
-    E --> G[HTTP 502]
+    E --> G[Probe fails → timeout / 5xx]
 ```
 
 ## 2) Hypothesis
 
-**IF** traffic is split 50/50 between a healthy revision and a revision with an incorrect target port, **THEN** approximately 50% of requests will fail with 502 errors.
+**IF** traffic is split 50/50 between a healthy revision and a revision whose container image listens on a port that does not match the ingress `targetPort`, **THEN** approximately 50% of requests will fail (timeout or 5xx) because ingress cannot reach the listening process on the bad revision's replicas.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
 | Revision Count | 1 (healthy) | 2 (healthy + bad) |
 | Traffic Split | 100% to healthy | 50% healthy, 50% bad |
-| Request Success Rate | ~100% | ~50% |
+| Bad Revision Listening Port | n/a | `:8080` (mismatched against ingress `targetPort=80`) |
+| Request Success Rate | ~100% | ~50% (the bad-revision half times out) |
 
 ## 3) Runbook
 
@@ -157,16 +165,54 @@ Expected: All 5 requests succeed.
 
 ### Trigger the Failure
 
+!!! warning "trigger.sh is broken with `az` CLI 2.71.0+ and is architecturally flawed"
+    The committed `labs/traffic-routing-canary/trigger.sh` runs `az containerapp update --target-port 9999`, which:
+
+    1. **Is rejected by CLI 2.71.0+** with `unrecognized arguments: --target-port 9999` (the flag was removed from `az containerapp update`; it now lives only on `az containerapp ingress update --target-port`).
+    2. **Cannot create per-revision failure even if it worked.** `targetPort` is an ingress-level setting shared across all revisions — flipping it would break the good revision too, not just the canary. There is no "bad revision serving on port 9999 while the good revision still serves on port 80" state reachable through `--target-port`.
+
+    Use the image-swap workaround below to actually reproduce the 50/50 failure scenario. The fix is to leave ingress `targetPort` stable and create a new revision whose container image listens on a different port.
+
 ```bash
-cd labs/traffic-routing-canary
-./trigger.sh
+# Record the current healthy revision name BEFORE creating the bad one
+GOOD_REVISION="$(az containerapp revision list \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query 'sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name' \
+    --output tsv)"
+
+# Create a bad revision by swapping the image to one that listens on a DIFFERENT
+# port than the ingress targetPort (kept at 80). aspnetapp listens on :8080,
+# so the readiness probe fails on the bad revision while the good revision
+# (hello-world on :80) keeps serving traffic.
+az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --image "mcr.microsoft.com/dotnet/samples:aspnetapp" \
+    --revision-suffix "badv2"
+
+# Wait for the new revision to finish provisioning + probe attempts
+sleep 60
+
+BAD_REVISION="$(az containerapp revision list \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query 'sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name' \
+    --output tsv)"
+
+# Split traffic 50/50
+az containerapp ingress traffic set \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --revision-weight "${GOOD_REVISION}=50" "${BAD_REVISION}=50"
 ```
 
-The trigger script:
-
-1. Records the current healthy revision name
-2. Creates a new revision with target port 9999 (no process listening)
-3. Splits traffic 50/50 between good and bad revisions
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ... created[-1]` | Captures the name of the most recently created (currently healthy) revision before introducing the bad one. |
+| `az containerapp update --image ... --revision-suffix badv2` | Creates a new revision whose container image listens on `:8080`, but ingress `targetPort` is still `80`. Probe failure isolates the bad behavior to this revision only. |
+| `sleep 60` | Allows the new revision to finish creation, replica scheduling, and the first round of probe attempts before traffic is split. |
+| `az containerapp ingress traffic set --revision-weight` | Splits ingress traffic 50/50 between the recorded good revision and the newly created bad revision. |
 
 ### Observe the Failure
 
@@ -189,20 +235,28 @@ Expected output:
 Name                          Active    Traffic    Health
 ----------------------------  --------  ---------  --------
 ca-labtraffic-xxxxxx--xxxxx   True      50         Healthy
-ca-labtraffic-xxxxxx--yyyyy   True      50         Healthy
+ca-labtraffic-xxxxxx--badv2   True      50         <Unhealthy or empty>
 ```
 
-Note: Both revisions may show "Healthy" because the health check might pass—the container is running, just on the wrong port.
+Note: The bad revision's `healthState` reflects probe failure caused by the listening-port mismatch (the container's listening port `:8080` does not match ingress `targetPort=80`). In the Azure Portal, the same revision is surfaced as `Failed` under "Revisions with Issues" with the verbatim error *"The TargetPort 80 does not match the listening port 8080. 1/1 Container crashing: app"* — see the Observed Evidence subsection below.
 
 ```bash
-# Test multiple requests - observe intermittent failures
-for i in {1..10}; do
-    STATUS=$(curl --silent --output /dev/null --write-out "%{http_code}" "https://${APP_FQDN}")
+# Test multiple requests - observe intermittent failures.
+# IMPORTANT: use --max-time. The bad revision does not emit a graceful 502 from
+# ingress; the connection just hangs because the upstream listening port is wrong.
+# Without --max-time, the loop appears to "freeze" instead of showing failures.
+for i in $(seq 1 30); do
+    STATUS=$(curl --silent --output /dev/null --max-time 10 --write-out "%{http_code}" "https://${APP_FQDN}/")
     echo "Request $i: HTTP $STATUS"
 done
 ```
 
-Expected: Approximately 50% return 200, 50% return 502 or timeout.
+Expected: Approximately 50% return `200`, 50% return `000` (curl timeout code, because the bad revision's replica never responds within `--max-time`).
+
+| Command | Why it is used |
+|---|---|
+| `curl --silent --output /dev/null --max-time 10 --write-out "%{http_code}" ...` | Sends one HTTP request and prints only the response status code. `--max-time 10` is mandatory: the bad revision does not emit a graceful 502, so without a timeout the loop appears to hang. With `--max-time 10`, hangs are converted into the measurable curl status `000`, which is what makes the ~50% failure rate visible. |
+| `for i in $(seq 1 30); do ... done` | Issues 30 requests so the 50/50 traffic split produces a statistically meaningful ratio (~15 success / ~15 timeout) rather than a 5-sample artifact. |
 
 ```bash
 # View current traffic distribution
@@ -276,8 +330,8 @@ Expected: All requests return HTTP 200.
 |---|---|---|---|---|
 | 1 | Deploy baseline | Single healthy revision | | |
 | 2 | Test baseline | 100% success rate | | |
-| 3 | Run trigger.sh | Two revisions at 50/50 | | |
-| 4 | Test requests | ~50% failure rate | | |
+| 3 | Run image-swap workaround (`az containerapp update --image ... --revision-suffix badv2` + `az containerapp ingress traffic set --revision-weight`) | Two revisions Active at 50/50; bad revision marked Failed in Portal with TargetPort/listening-port mismatch error | | |
+| 4 | Test requests (30-request curl loop with `--max-time 10`) | ~50% HTTP 200, ~50% curl status `000` (timeout) | | |
 | 5 | Rollback traffic | 100% to good revision | | |
 | 6 | Test after rollback | 100% success rate | | |
 
@@ -287,9 +341,10 @@ Expected: All requests return HTTP 200.
 
 | Evidence Source | Expected State |
 |---|---|
-| `az containerapp revision list` | 2 revisions, both Active |
+| `az containerapp revision list` | 2 revisions, both Active at 50/50; bad revision shows degraded/unhealthy `healthState` |
+| Container App → Overview ("Revisions with Issues" tab) | Bad revision listed with error *"The TargetPort 80 does not match the listening port 8080. 1/1 Container crashing: app"* |
 | `az containerapp ingress traffic show` | 50/50 split |
-| Request loop | ~50% HTTP 502 |
+| Request loop (`curl --max-time 10`) | ~50% HTTP `200`, ~50% curl status `000` (timeout — ingress upstream never responds) |
 
 ### After Rollback
 
@@ -299,24 +354,63 @@ Expected: All requests return HTTP 200.
 | Request loop | 100% HTTP 200 |
 | Bad revision | Deactivated (optional) |
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Reproduction — 2026-06-03)
 
-**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
-**App:** `ca-canary` (multiple-revision mode), FQDN: `<container-app-fqdn>`.
+**Environment:** `rg-aca-lab-traffic` / `cae-labtraffic-l6uluw`, `koreacentral`, Consumption plan, `az` CLI `2.71.0`.
+**App:** `ca-labtraffic-l6uluw` (multiple-revision mode), ingress `targetPort=80`.
+**Revisions:**
 
-[Observed] Switched to multiple-revision mode: `az containerapp revision set-mode --mode multiple`.
+- Good: `ca-labtraffic-l6uluw--pnjn5yn` — image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`, listens on `:80` — Running, 50% traffic.
+- Bad: `ca-labtraffic-l6uluw--badv2` — image `mcr.microsoft.com/dotnet/samples:aspnetapp`, listens on `:8080` — Failed, 50% traffic.
 
-[Observed] Two revisions deployed: `ca-canary--stable` (Running) and `ca-canary--canary` (Running, VERSION=canary).
+[Observed] The Container App Overview blade displayed the bad revision under the "Revisions with Issues" tab with the verbatim platform error text: **"The TargetPort 80 does not match the listening port 8080. 1/1 Container crashing: app"**.
 
-[Observed] Traffic split applied: `az containerapp ingress traffic set --revision-weight "ca-canary--stable=90" "ca-canary--canary=10"`.
+![Container App Overview blade showing the Revisions with Issues tab with the TargetPort/listening port mismatch error for badv2](../../assets/troubleshooting/traffic-routing-canary/01-overview-multi-revision-mode.png)
 
-[Observed] `az containerapp revision list` returned: `ca-canary--stable weight=90`, `ca-canary--canary weight=10` — both Running.
+[Inferred] The platform itself attributes the failure to a listening-port mismatch on this specific revision, not to ingress misconfiguration. The error is scoped to the bad revision because the Overview blade groups it under the per-revision "Revisions with Issues" view.
 
-[Measured] HTTP request to FQDN: `curl https://<container-app-fqdn>/` → **HTTP 200**.
+[Observed] The Revisions and replicas blade showed both revisions Active at 50/50, with the bad revision (`badv2`) marked `Failed` and the good revision (`pnjn5yn`) marked `Running`, each with one replica.
 
-[Inferred] 90/10 traffic split routes approximately 1 in 10 requests to the canary revision. Both revisions serve the same image (different env var), so all requests return HTTP 200. A real canary with a broken image would show HTTP 5xx from the 10% canary traffic.
+![Revisions and replicas blade showing badv2=Failed/50% and pnjn5yn=Running/50%, both Active, both with one replica](../../assets/troubleshooting/traffic-routing-canary/02-revisions-50-50-split.png)
 
-Environment: `koreacentral`, Consumption plan, multiple-revision mode.
+[Inferred] Half of production traffic is routed to a revision the platform has already marked Failed. This is the smoking gun for the canary-failure hypothesis: traffic weighting is independent of revision health, so a Failed revision can still receive its configured share of traffic.
+
+[Observed] The bad revision's "View details" flyout repeated the same TargetPort/listening-port mismatch text as a Revision status detail.
+
+![Revision status details flyout for badv2 showing TargetPort 80 does not match listening port 8080](../../assets/troubleshooting/traffic-routing-canary/03-bad-revision-status-details.png)
+
+[Inferred] Surfacing the same error at both the Overview blade and the revision-detail flyout (paired with capture 05 — empty status details on the good revision) isolates the failure to the bad revision only.
+
+[Observed] The Ingress blade showed `Target port = 80` at capture time.
+
+![Ingress blade showing Target port = 80 unchanged](../../assets/troubleshooting/traffic-routing-canary/04-ingress-target-port-80.png)
+
+[Inferred] Because the failure surfaces on `badv2` while `pnjn5yn` (whose image listens on `:80`) keeps serving traffic, the mismatch must come from the bad revision's image (listening on `:8080`), not from ingress configuration. This also explains why the original `trigger.sh` design (flipping ingress `targetPort`) cannot reproduce per-revision failure: ingress `targetPort` is a shared, ingress-level setting and would affect both revisions, not isolate the failure to one.
+
+[Observed] The good revision's "View details" flyout reported `Running status: Running` and `Status details: "There are no additional running status details at this time"`.
+
+![Revision status details flyout for pnjn5yn showing Running with empty Status details](../../assets/troubleshooting/traffic-routing-canary/05-good-revision-running-details.png)
+
+[Inferred] The Status details field is empty precisely because nothing is wrong with the good revision. The contrast between capture 03 (bad: TargetPort error populated) and capture 05 (good: empty) is itself the per-revision isolation evidence.
+
+[Observed] The Activity log showed three `Create or Update Container App` operations at relative times `16 minutes`, `17 minutes`, and `18 minutes` (Status: 2× `Accepted`, 1× `Succeeded`).
+
+![Activity log showing three Create or Update Container App operations within an 18-minute window](../../assets/troubleshooting/traffic-routing-canary/06-activity-log-update-operations.png)
+
+[Inferred] The three operations map to (a) the initial `az deployment group create`, (b) the `az containerapp update --image ... --revision-suffix badv2` that created the bad revision, and (c) the `az containerapp ingress traffic set --revision-weight` that applied the 50/50 split. The Accepted/Succeeded statuses confirm the control plane received each step.
+
+[Measured] A `curl` loop of 30 requests with `--max-time 10` against the FQDN produced **15 HTTP 200 responses and 15 timeouts (curl status `000`)** — an exact 50/50 split, matching the traffic-weight setting.
+
+```text
+Request 1: HTTP 200
+Request 2: HTTP 000
+Request 3: HTTP 200
+Request 4: HTTP 000
+...
+(Summary: success=15, timeout=15)
+```
+
+[Inferred] The bad-revision half did not return a graceful HTTP 502 because ingress simply does not get a response from the upstream replica (the image is not listening on the port ingress is dialing). This is why `--max-time` is mandatory in the reproduction loop above. The combination of (a) Portal's verbatim TargetPort/listening-port mismatch error, (b) the empty status details on the good revision, (c) ingress `targetPort` shown as `80`, and (d) the 15/15 split in the curl loop confirms the hypothesis: a per-revision listening-port mismatch on one of two revisions receiving 50% traffic produces a ~50% failure rate. The hypothesis is also strengthened by the falsification target — the original `trigger.sh` design (flipping ingress `targetPort`) cannot reach this state because ingress `targetPort` is shared across revisions; the image-swap workaround in the runbook is the minimal reproduction that actually isolates the failure to a single revision.
 
 ## Portal Evidence Capture Guide
 
@@ -325,7 +419,7 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 ### Capture rules (apply to every screenshot)
 
 - **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+- **PII must be replaced (not black-box masked) before commit.** Use the helper at [`scripts/portal-capture-helpers.js`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/scripts/portal-capture-helpers.js) (or the inline snippet documented in [`AGENTS.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules)) to substitute real GUIDs/emails/tenant names with documented placeholders. Black rectangles look like leaks and are disallowed; the only acceptable mask is the Portal-blue (`#0078d4`) avatar mask applied by the helper.
 
 ### PII masking checklist
 
@@ -339,13 +433,16 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 ### Captures to take
 
+The 6 captures committed under `docs/assets/troubleshooting/traffic-routing-canary/` and embedded in the **Observed Evidence (Live Azure Reproduction)** subsection above are the canonical set. Reproduce them at the equivalent points in your own run:
+
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
-| 1 | After the bad canary revision is created | Container App → Revisions | Full revisions list showing both stable and canary revisions active | `traffic-routing-canary-revisions-before-rollback.png` |
-| 2 | During the incident | Container App → Traffic splitting | Traffic panel showing the canary split that sends production traffic to both revisions | `traffic-routing-canary-traffic-split.png` |
-| 3 | During the incident | Container App → Monitoring → Metrics | Metric `Requests`, split by `Revision name` or `Status code category`, time `Last 15 minutes`, showing the intermittent failure pattern | `traffic-routing-canary-requests-by-revision.png` |
-| 4 | During rollback | Container App → Traffic splitting | Traffic panel showing 100% restored to the stable revision | `traffic-routing-canary-traffic-after-rollback.png` |
-| 5 | After rollback validation | Container App → Revisions | Revisions list showing the bad canary at 0% traffic or deactivated while the stable revision remains active | `traffic-routing-canary-revisions-after-rollback.png` |
+| 1 | After the bad revision is created and traffic split is applied | Container App → Overview | "Revisions with Issues" tab visible with the TargetPort/listening-port mismatch error | `01-overview-multi-revision-mode.png` |
+| 2 | During the incident | Container App → Revisions and replicas | Active revisions tab showing both revisions at 50/50 with the bad one marked Failed | `02-revisions-50-50-split.png` |
+| 3 | During the incident | Container App → Revisions and replicas → bad revision → View details | Revision status details flyout for the bad revision showing the TargetPort error | `03-bad-revision-status-details.png` |
+| 4 | During the incident | Container App → Ingress | Ingress blade showing `Target port = 80` (unchanged) to prove the failure is per-revision, not ingress-level | `04-ingress-target-port-80.png` |
+| 5 | During the incident | Container App → Revisions and replicas → good revision → View details | Revision status details flyout for the good revision showing `Running` with empty Status details (contrast against #3) | `05-good-revision-running-details.png` |
+| 6 | After the incident | Container App → Activity log | The three `Create or Update Container App` operations corresponding to deployment + image-swap + traffic-set | `06-activity-log-update-operations.png` |
 
 ### Asset path
 
@@ -353,16 +450,14 @@ Save PNGs to `docs/assets/troubleshooting/traffic-routing-canary/` (create the d
 
 ### Reference captures in Observed Evidence
 
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+Add image references inside the **Observed Evidence (Live Azure Reproduction)** subsection above, paired with `[Observed]` evidence tags that quote only what is visible in the screenshot, with adjacent `[Inferred]` paragraphs for any conclusions. Example:
 
 ```markdown
-[Observed] Production traffic was intentionally split across both the stable and canary revisions during the failure window:
+[Observed] The Container App Overview blade displayed the bad revision under the "Revisions with Issues" tab with the verbatim platform error text: "The TargetPort 80 does not match the listening port 8080. 1/1 Container crashing: app".
 
-![Traffic split between stable and canary revisions](../../assets/troubleshooting/traffic-routing-canary/traffic-routing-canary-traffic-split.png)
+![Container App Overview blade showing the Revisions with Issues tab](../../assets/troubleshooting/traffic-routing-canary/01-overview-multi-revision-mode.png)
 
-[Observed] Rollback completed when traffic was returned fully to the stable revision and the canary stopped receiving requests:
-
-![Traffic restored to the stable revision after rollback](../../assets/troubleshooting/traffic-routing-canary/traffic-routing-canary-traffic-after-rollback.png)
+[Inferred] The platform attributes the failure to a listening-port mismatch on this specific revision, not to ingress misconfiguration.
 ```
 
 ## Clean Up
