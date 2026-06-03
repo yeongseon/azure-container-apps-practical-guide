@@ -48,9 +48,9 @@ Reproduce a revision that is created but never becomes ready due to startup prob
 
 ## 1) Background
 
-This lab demonstrates what happens when a revision is accepted by the Azure Container Apps control plane but never stabilizes. The trigger misconfigures a startup probe to target a non-existent path, causing the probe to fail repeatedly. The revision exists and containers may start, but the platform marks the revision as unhealthy because it never passes the startup probe.
+This lab demonstrates what happens when a revision is accepted by the Azure Container Apps control plane but never stabilizes. The trigger misconfigures a startup probe so that it cannot succeed — either by pointing it at a path the container never serves (returns 404) **or** by pointing it at a port nothing is listening on (connection refused). Either variant causes the probe to fail repeatedly. The revision exists and containers may start, but the platform marks the revision as unhealthy because it never passes the startup probe.
 
-This pattern is distinct from API validation failures (which reject the update before creating a revision) and from port mismatches (covered in a separate lab).
+This pattern is distinct from API validation failures (which reject the update before creating a revision) and from the **app's own `ingress.targetPort`** mismatch (covered in [Ingress Target Port Mismatch](./ingress-target-port-mismatch.md)). Here the ingress target port is correct; only the **startup probe's** endpoint is misconfigured.
 
 ### Architecture
 
@@ -60,7 +60,7 @@ flowchart TD
     A[Deploy baseline app] --> B[Healthy revision running]
     B --> C[Trigger: Add bad startup probe]
     C --> D[New revision created]
-    D --> E[Startup probe targets /nonexistent]
+    D --> E[Startup probe targets bad path or port]
     E --> F[Probe fails repeatedly]
     F --> G[Revision never becomes Ready]
     G --> H[Fix: Disable startup probe]
@@ -75,14 +75,14 @@ flowchart TD
 
 ## 2) Hypothesis
 
-**IF** a startup probe is configured to target a path that returns 404 or times out, **THEN** the revision will be created but never become ready, and system logs will show `ProbeFailed` events until the probe configuration is fixed.
+**IF** a startup probe is configured to target an endpoint the container cannot satisfy (either a path that returns 404, or a port that refuses connection), **THEN** the revision will be created but never become ready, and system logs will show `ProbeFailed` events until the probe configuration is fixed.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
-| Startup probe path | Not configured or valid path | `/nonexistent` (returns 404) |
-| Latest revision health | `Healthy` | `Degraded` or `Failed` |
-| System logs | Normal startup events | `ProbeFailed` events |
-| Recovery path | No action required | Disable startup probe and deploy new revision |
+| Startup probe endpoint | Not configured or valid path+port | `/nonexistent` (404) or `port 9999` (connection refused) |
+| Latest revision health | `Healthy` | `Degraded` / `Failed` / `Unhealthy` |
+| System logs | Normal startup events | `ProbeFailed` followed by `ContainerTerminated(ProbeFailure)` |
+| Recovery path | No action required | Disable or correct startup probe and deploy new revision |
 
 ## 3) Runbook
 
@@ -317,43 +317,54 @@ Environment: `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan. 
 
 ### Observed Evidence (Portal Captures — 2026-06-03)
 
-Reproduced in `rg-aca-lab-rev-prov` / `cae-labrevprov-j2qmuu`, `koreacentral`, Consumption plan. App: `ca-labrevprov-j2qmuu`. Startup probe set to `httpGet.path=/health`, `port=9999` (no listener — connection refused), `failureThreshold=3`, `periodSeconds=5`. Revision suffix `probefail1780455941`.
+Reproduced in `rg-aca-lab-rev-prov` / `cae-labrevprov-j2qmuu`, `koreacentral`, Consumption plan. App: `ca-labrevprov-j2qmuu`. Startup probe set to `httpGet.path=/health`, **`port=9999`** (no listener — connection refused), `failureThreshold=3`, `periodSeconds=5`. Revision suffix `probefail1780455941`. The app's `ingress.targetPort` remained correct at 80; only the **startup probe's** port was set to 9999.
 
-[Observed] The Container App **Overview** blade surfaces the failing revision under the **Revisions with Issues** tab. The revision `probefail1780455941` is listed with **Provisioning Status = Failed** and **Running Status = (none)** — the new revision was accepted by the control plane but never reached a healthy state.
+!!! note "Variant: connection-refused vs 404"
+    The 2026-06-03 reproduction exercises the **wrong-port (connection refused)** variant of the hypothesis. The 2026-05-01 reproduction above exercised a closely related variant on a different environment. Both confirm the same failure mode — the revision is created but never becomes ready because the startup probe never succeeds — and the system-log signature (`ProbeFailed → ContainerTerminated(ProbeFailure)`) is identical.
+
+!!! note "Traffic-state difference between the two reproductions"
+    In the 2026-05-01 reproduction the previous healthy revision retained traffic (the standard single-revision-mode behavior when the new revision never reaches Healthy). In the 2026-06-03 reproduction, the **configured** traffic weight on the failed revision is 100% (visible in capture 02 / 03) — but with 0/1 replicas ready, no requests can actually be served. Both observations are valid: the routing layer reports configured intent independent of replica readiness, and the post-failure traffic split depends on the revision mode and the order in which configuration was applied.
+
+[Observed] The Container App **Overview** blade surfaces the failing revision under the **Revisions with Issues** tab. The revision `probefail1780455941` is listed with **Provisioning Status = Failed**.
 
 ![Container App Overview showing the failed revision under Revisions with Issues](../../assets/troubleshooting/revision-provisioning-failure/01-overview-revisions-with-issues.png)
 
-[Observed] The **Revisions and replicas** blade shows two active revisions side by side: `probefail1780455941` carries **100% traffic** but is in **Failed / Unhealthy** state with **0/1 replicas ready**, while the previous revision `probe1780455700` is **Running / Healthy** with **1/1 replicas** but receives **0% traffic**.
+[Inferred] The first-class **Revisions with Issues** tab on the Overview blade is the fastest UI signal that a recently deployed revision did not stabilize — a customer-facing engineer should land here first.
+
+[Observed] The **Revisions and replicas** blade shows two active revisions side by side: `probefail1780455941` carries **100% traffic** in a **Failed** state, while the previous revision `probe1780455700` is **Running** with **0% traffic**.
 
 ![Revisions and replicas grid showing failed vs healthy revisions](../../assets/troubleshooting/revision-provisioning-failure/02-revisions-list-failed-vs-healthy.png)
 
-[Inferred] This is the failure signature unique to **runtime probe failure**: the revision is created and traffic is shifted to it, but no replicas ever pass the startup probe — so the traffic split is "live" but no replica can actually serve requests.
+[Inferred] This is the failure signature unique to **runtime probe failure**: the revision is created and the routing layer is configured to send traffic to it, but no replicas ever pass the startup probe — so the traffic split is "live" while no replica can actually serve requests.
 
-[Observed] The revision detail flyout for `probefail1780455941` confirms **Provisioning state = Failed**, **Running state = Unhealthy**, and **Replicas = 0/1**. The startup probe configuration is shown in the **Containers** section.
+[Observed] The revision detail flyout for `probefail1780455941` shows **Status = Active**, **Running status = Failed**, **Status details = 1/1 Container crashing: app**, **Active/total replicas = 0/1**, and **Traffic = 100%**.
 
 ![Revision detail flyout for the failed revision](../../assets/troubleshooting/revision-provisioning-failure/03-revision-detail-failed.png)
 
-[Observed] The **Logs** tab on the revision detail (System logs + Historical) emits the probe failure cascade in chronological order:
+[Inferred] The `1/1 Container crashing: app` phrasing on the detail flyout is the most direct symptom-to-container mapping in the Portal — it points the investigator straight at the `app` container's startup behavior (probes, command, image) rather than at ingress or scaling.
+
+[Observed] The **Logs** tab on the revision detail (System + Historical) shows the probe failure cascade in chronological order. The visible log lines include:
 
 ```text
-Reason=ProbeFailed       Msg=Probe of StartUp failed
-Reason=ProbeFailed       Msg=Container ca-labrevprov-j2qmuu failed startup probe, will be restarted
-Reason=ContainerTerminated  Msg=Container 'ca-labrevprov-j2qmuu' was terminated with reason 'ProbeFailure'
+Reason=ProbeFailed         Msg=Container app failed startup probe, will be restarted
+Reason=ContainerTerminated Msg=Container 'app' was terminated with reason 'ProbeFailure'
 ```
 
 ![Revision detail Logs tab showing probe failure cascade](../../assets/troubleshooting/revision-provisioning-failure/04-revision-detail-logs-tab.png)
 
-[Observed] The **Activity log** records the corresponding control-plane events — multiple `Create or Update Container App` operations as the revision update is reconciled. The control-plane operations themselves succeed (the API accepts the probe configuration); the failure is purely at the data-plane / runtime layer.
+[Strongly Suggested] The `ProbeFailed` → `ContainerTerminated(ProbeFailure)` sequence is the smoking gun for this lab's hypothesis — it directly attributes the container termination to probe failure rather than to OOM, exit code, image pull, or scaling decisions.
+
+[Observed] The **Activity log** records control-plane events for the revision update: multiple `Create or Update Container App` entries with statuses including `Succeeded` and `Accepted`.
 
 ![Activity log showing Create or Update Container App events](../../assets/troubleshooting/revision-provisioning-failure/05-activity-log.png)
 
-[Strongly Suggested] The combination of (a) successful Activity-log entries for the update operation, plus (b) `Provisioning state = Failed` on the revision, plus (c) `ProbeFailed → ContainerTerminated` in the system logs, isolates the root cause to the **startup probe**, not to the API, image pull, ingress, or scaling rules.
+[Inferred] The presence of `Succeeded` entries for `Create or Update Container App` shows the **control-plane** accepted the revision update — there is no API-validation rejection here. Combined with the `Failed` revision state in capture 03 and the `ProbeFailed` logs in capture 04, this isolates the failure to the **data-plane** (the container's startup probe response), not to API validation or RBAC.
 
-[Observed] The **Diagnose and solve problems** blade exposes the **Container Apps Diagnostics** entry point with categories including **Availability and Performance** (Health Probe Check), **Deployment**, **Configuration and Management**, and **Networking** — the Microsoft-managed first-party diagnostics tools that surface the same probe-failure evidence collected manually above.
+[Observed] The **Diagnose and solve problems** blade exposes the **Container Apps Diagnostics** entry point with categories including **Availability and Performance** (Health Probe Check, Ingress Settings Check), **Container Apps Environment**, **Configuration and Management**, **Deployment**, **SSL and Domains**, and **Networking**.
 
 ![Diagnose and solve problems landing blade](../../assets/troubleshooting/revision-provisioning-failure/06-diagnose-and-solve-problems.png)
 
-[Inferred] For customer-facing support, the **Availability and Performance → Health Probe Check** tile is the single-click entry point for this failure mode — it consolidates the revision health state, probe configuration, and recent probe failures into one diagnostic panel.
+[Inferred] For customer-facing support, the **Availability and Performance → Health Probe Check** tile is the recommended single-click entry point for this failure mode — it consolidates revision health, probe configuration, and recent probe failures into one Microsoft-managed diagnostic panel.
 
 ## Portal Evidence Capture Guide
 
