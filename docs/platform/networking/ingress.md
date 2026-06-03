@@ -70,6 +70,16 @@ flowchart TD
 
 The default FQDN uses the environment DNS suffix. For internal service-to-service calls, Microsoft Learn documents an internal FQDN pattern that includes `.internal.` and is scoped to the same Container Apps environment.
 
+## Portal view
+
+The **Ingress** blade under **Networking** is where every ingress setting documented on this page is configured for a single container app. Use this view to confirm an app's current ingress posture before deciding which deeper section (transport, IP restrictions, CORS, etc.) to consult.
+
+![Azure Portal Ingress blade for ca-sample-d38538 showing Ingress enabled, Accepting traffic from anywhere, Ingress type HTTP, Client certificate mode Ignore, Transport Auto, Target port 80, the public Endpoints URL ending in koreacentral.azurecontainerapps.io, an Additional TCP ports row, and the start of the IP Restrictions section with "Allow all traffic (default)" selected.](../../assets/platform/networking/01-ingress-blade.png)
+
+- **[Observed]** The blade renders the ingress toggle checked, **Ingress traffic** with two radio choices ("Limited to Container Apps Environment" unselected, "Accepting traffic from anywhere" selected), **Ingress type** with HTTP selected and TCP disabled, **Client certificate mode** with Ignore / Accept / Require options, a **Transport** dropdown defaulted to Auto, an **Insecure connections** checkbox, **Target port** showing `80`, an **Endpoint(s)** link of the form `https://<your-app-name>.<env-suffix>.koreacentral.azurecontainerapps.io`, an **Additional TCP ports** collapsible row, and an **IP Restrictions** section header followed by "IP Security Restrictions Mode" set to "Allow all traffic (default)".
+- **[Inferred]** Grouping `Ingress traffic`, `Ingress type`, `Client certificate mode`, `Transport`, `Target port`, and `IP Restrictions` together on one blade mirrors the conceptual model in this page: ingress is one decision surface that combines exposure (external vs internal), protocol (HTTP / HTTP/2 / TCP), authentication boundary (client certificate mode), and source filtering (IP restrictions). The "Accepting traffic from anywhere" radio corresponds to `external: true` in ARM/Bicep/YAML; "Limited to Container Apps Environment" corresponds to `external: false`.
+- **[Not Proven]** The visible blade does not expose every ingress field documented by Microsoft Learn — for example, CORS policy, session affinity (`affinity: sticky` / `none`), the request timeout default of 240 seconds, and `additionalPortMappings` rules beyond the collapsed "Additional TCP ports" row are not visible here. The ingress request timeout, CORS policy, and sticky-session settings are reached from the **CORS** entry in the left navigation and from ARM/Bicep templates, not directly from this single blade.
+
 ## Enabling ingress
 
 At the app level, ingress is controlled through the ingress configuration, including the `external` property in ARM, Bicep, and YAML representations.
