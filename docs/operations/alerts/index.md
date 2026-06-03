@@ -67,6 +67,42 @@ az monitor metrics alert create \
 |---|---|
 | `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
+### Portal view: Container App Alerts blade
+
+Open the Container App in the Azure Portal, then choose **Monitoring → Alerts** in the left navigation. This per-resource Alerts blade is scoped to a single Container App and lists fired alert instances (not the rule definitions themselves).
+
+![Container App Alerts blade scoped to ca-ops-cgedjv, showing pinned filters Resource name ca-ops-cgedjv, Time range Past 24 hours, Alert condition Fired, Severity all, with all severity tiles at zero and an empty grid showing the No alerts found empty state](../../assets/operations/alerts/01-alerts-blade.png)
+
+[Observed] The header row reads `ca-ops-cgedjv | Alerts`. The pinned filter chips read `Resource name : ca-ops-cgedjv` (greyed out and pre-scoped to this Container App), `Time range : Past 24 hours`, `Alert condition : Fired`, and `Severity : all`. The summary tiles report `Total alerts: 0` with per-severity counters `Critical: 0`, `Error: 0`, `Warning: 0`, `Informational: 0`, `Verbose: 0`. The empty-state panel in the grid area shows the heading `No alerts found`, the body text `Try changing your search or choose a different scope level if you don't see what you're looking for`, and a `Clear filters` button.
+
+[Inferred] An empty Fired list with `Severity : all` means no alert rule scoped to this Container App has transitioned to the Fired state inside the 24-hour window. This view does not prove that no rules exist - it only proves that none of the existing rules have produced a firing instance. To verify rule definitions and their enabled state, the toolbar **Alert rules** button must be opened (next capture).
+
+[Not Proven] This blade does not display rule scope, condition, severity, or action group binding. It also does not distinguish between "no rule exists" and "a rule exists but its condition has not been met". Inspection of the **Alert rules** sub-blade is required to confirm what is being evaluated.
+
+### Portal view: Azure Monitor alert rules
+
+From the Alerts blade toolbar, choose **Alert rules**. The Alert rules blade lists every alert rule whose scope includes the current resource and surfaces the rule's enabled state, severity, and condition summary.
+
+![Alert rules blade showing alert-ca-5xx rule with Condition Requests > 0, Severity 2 - Warning, Target scope ca-ops-cgedjv, Target resource type Container App, Signal type Metrics, Status Enabled](../../assets/operations/alerts/02-alert-rules-blade.png)
+
+[Observed] Exactly one row is rendered: `Name: alert-ca-5xx`, `Condition: Requests > 0`, `Severity: 2 - Warning`, `Target scope: ca-ops-cgedjv`, `Target resource type: Container App`, `Signal type: Metrics`, `Status: Enabled` with a green check icon. The filter chips show `Subscription : Visual Studio Enterprise Subscription`, `Target resource type : all`, `Target scope : ca-ops-cgedjv`, `Signal type : all`, `Severity : all`, `Status : Enabled`. The grid footer reads `Showing 1 - 1 of 1 results`.
+
+[Inferred] The `Status: Enabled` flag together with the green check confirms the rule is currently armed and will evaluate every aggregation window. Because `Signal type` reports `Metrics`, this is a metric alert rule and its evaluation cadence is governed by the rule's `evaluation-frequency` and `window-size` properties, not by log ingestion latency. The single-row result is consistent with the prior CLI-created `alert-ca-5xx` rule; because the grid is filtered to `Status : Enabled`, this view confirms only that exactly one **enabled** metric alert rule is currently scoped to this Container App and does not rule out the existence of additional disabled rules.
+
+[Not Proven] This grid does not reveal the action group bound to the rule, the resolved condition expression (only the truncated summary `Requests > 0`), or the evaluation window. The rule detail blade must be opened to see scope hierarchy, condition aggregation, and the action group binding.
+
+### Portal view: Alert rule configuration
+
+Click the rule name (`alert-ca-5xx`) to open the metric alert rule detail blade. This view shows the resolved scope, condition, and action group binding in a single place.
+
+![alert-ca-5xx metric alert rule overview showing Resource group rg-aca-ops-cgedjv, Location Global, Severity 2 - Warning, Description Demo 5xx response detected on ca-ops Container App, Scope ca-ops-cgedjv under Visual Studio Enterprise Subscription and rg-aca-ops-cgedjv, Conditions Requests > 0 with 1 time series monitored at estimated cost 0.10 dollars per month, Actions ag-ops-demo](../../assets/operations/alerts/03-alert-rule-detail.png)
+
+[Observed] The Essentials section reads `Resource group: rg-aca-ops-cgedjv`, `Location: Global`, `Subscription: Visual Studio Enterprise Subscription`, `Severity: 2 - Warning`, `Description: Demo: 5xx response detected on ca-ops Container App`. The **Scope** card shows `Resource: ca-ops-cgedjv` with hierarchy `Visual Studio Enterprise Subscription > rg-aca-ops-cgedjv`. The **Conditions** card lists `Requests > 0` with `Time series monitored: 1` and `Estimated monthly cost: $0.10`. The **Actions** card lists `Name: ag-ops-demo`.
+
+[Inferred] The rule is fully bound: a Container App scope (`ca-ops-cgedjv`), a metric condition (`Requests > 0`), and an action group (`ag-ops-demo`) are all present. Because the condition counts every request (`> 0`) rather than filtering on status code, this rule will fire on any incoming traffic in the evaluation window and is therefore a demonstration rule rather than a production 5xx detector - the `Description` field reinforces this intent. The `Location: Global` value is expected for metric alerts because Azure Monitor evaluates them out of a regional pool independent of the monitored resource's region.
+
+[Not Proven] This overview does not display the rule's `evaluation-frequency` or `window-size` (they live in the **Alert rule configuration** sub-blade), nor does it expand the action group to show notification channels. The action group's configured notifications must be inspected separately (next capture).
+
 Pre-alert baseline checks from real deployment (PII scrubbed):
 
 ```bash
@@ -152,6 +188,18 @@ Route alerts by criticality:
 - **Severity 4**: ticketing/backlog for non-urgent trends
 
 Keep ownership explicit by mapping each alert to an on-call team.
+
+### Portal view: Action group overview
+
+From the alert rule overview, click **ag-ops-demo** in the **Actions** card to open the action group resource. The action group bound to an alert rule is itself an Azure resource. Opening it confirms the display name (used in notification payloads), the subscription, and the resource group, and acts as the entry point to inspect or edit notification channels (Settings → Notifications, Actions).
+
+![ag-ops-demo Action group overview showing Resource group rg-aca-ops-cgedjv, Location Global, Subscription Visual Studio Enterprise Subscription, Subscription ID zero GUID, Display name OpsDemo](../../assets/operations/alerts/04-action-group.png)
+
+[Observed] The header reads `ag-ops-demo` with subtitle `Action group`. The Essentials section reports `Resource group: rg-aca-ops-cgedjv`, `Location: Global`, `Subscription: Visual Studio Enterprise Subscription`, `Display name: OpsDemo`. The left navigation exposes `Overview`, `Activity log`, `Access control (IAM)`, `Tags`, `Diagnose and solve problems`, `Resource visualizer`, `Settings`, `Automation`, `Help`.
+
+[Inferred] The action group exists and is reachable, which confirms that the action group resource ID referenced by `alert-ca-5xx` is valid. `Location: Global` is the expected value for Action Groups - they are routed through the regional notification pipeline regardless of the monitored resource's region. `Display name: OpsDemo` is the short name that Azure Monitor injects into email subjects, SMS bodies, and webhook payloads when the action group fires, so it is the user-facing label that on-call responders will see, distinct from the resource name `ag-ops-demo`.
+
+[Not Proven] This Overview blade does not enumerate the actual notification channels (email, SMS, webhook, ITSM, Logic App, etc.) - those live under **Settings → Notifications** and **Settings → Actions**. An empty Overview here is also consistent with an action group that has no configured channels, which would cause alerts to fire silently. To prove notifications will actually reach a responder, the **Notifications** sub-blade must be opened and at least one channel verified.
 
 ## Recommended Threshold Baseline
 
