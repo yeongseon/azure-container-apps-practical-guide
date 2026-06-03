@@ -87,6 +87,58 @@ Keep related apps together when they share:
     Environment design changes networking, quota scope, profile selection, and migration effort.
     Rebuilding an environment later is possible, but it is always more disruptive than getting the boundary right early.
 
+## Portal View
+
+The Azure Portal exposes the environment as a separate resource from the apps that run on it. Walking through its blades makes the environment-level decisions in this page concrete: the type you picked at creation, the workload profiles available to host apps, the network posture, and the apps placed on it.
+
+### Step 1: Open the environment Overview
+
+Navigate to **Container Apps Environment** in your resource group. The Overview blade summarizes the environment-scoped facts that an app blade cannot change after creation.
+
+![Container Apps Environment Overview blade showing Environment type Workload profiles, Static IP, Korea Central location, KEDA 2.18.1, Dapr 1.16.4-msft.7, 1 application listed in the Applications tab](../../assets/platform/environments/01-environment-overview.png)
+
+[Observed] The Essentials panel reports `Environment type : Workload profiles`, `Location : Korea Central`, `Status : Succeeded`, `Static IP : 4.230.156.3`, `KEDA version : 2.18.1`, `Dapr version : 1.16.4-msft.7`, and `Applications : 1`. The Applications tab below lists one app, `ca-sample-d38538`, with `App Type : Container App`.
+
+[Inferred] The `Environment type : Workload profiles` field corresponds to the v2 environment described in the "Environment decisions happen before app decisions" section above — this is the default at creation time per Microsoft Learn. The single `Static IP : 4.230.156.3` and a non-empty `KEDA version` field together indicate that ingress egress IP and the autoscaler runtime are managed at the environment scope, not per-app, which is what makes "Environment boundaries are hard to change later" true in practice.
+
+[Not Proven] The Overview blade does not show whether the static IP is reused across all apps in the environment, nor whether the KEDA and Dapr versions are the active runtime for the listed app — those are platform-managed values surfaced for informational purposes.
+
+### Step 2: Inspect Workload profiles
+
+Expand **Settings** in the left navigation and open **Workload profiles**. This blade is the v2-only surface where you would mix Consumption, Dedicated, and (in supported regions) Flex profiles within the same environment.
+
+![Workload profiles blade showing a single Consumption profile with capacity Up to 4 vCPUs / 8 Gi and 1 app placed on it; Settings group expanded showing Dapr components, Certificates, Quota, Workload profiles, Networking, Volume mounts, Identity, Planned Maintenance, Locks](../../assets/platform/environments/02-workload-profiles.png)
+
+[Observed] The blade shows one row under the `Consumption` group header: profile `Consumption`, capacity `Up to 4 vCPUs / 8 Gi`, `# of Apps : 1`. The `Add` button is enabled in the command bar, and the columns `Current cores usage`, `Current instances`, and `Min & Max number of instances` are dashed (empty).
+
+[Inferred] An environment created with the default Workload profiles (v2) type ships with the built-in `Consumption` profile already attached — Dedicated profiles must be added explicitly, which matches the "Choose workload profiles" step in the decision flow at the top of this page. The empty `Current cores usage` and `Current instances` columns are expected for the Consumption profile because Microsoft Learn documents that Consumption capacity is not pre-allocated; cores and instances appear only for Dedicated profiles.
+
+[Not Proven] The blade does not prove that the environment cannot later be downgraded to Consumption-only (v1); that constraint is documented at the platform level, not visible here. It also does not prove which apps are bound to the Consumption profile beyond the count — drilling into the app is required to see the per-app `workloadProfileName` setting.
+
+### Step 3: Review Networking
+
+Open **Networking** under Settings. This blade is the second decision step from the diagram at the top — networking model — and the values shown here are the ones Microsoft Learn states cannot be changed after environment creation.
+
+![Networking blade showing General tab with Public Network Access set to Enable Allows incoming traffic from the public internet, and Virtual network section showing This environment isn't integrated](../../assets/platform/environments/03-networking.png)
+
+[Observed] The General tab shows `Public Network Access : Enable - Allows incoming traffic from the public internet` (radio button selected), and the Virtual network section reads `This environment isn't integrated`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, `Custom DNS Suffix`.
+
+[Inferred] `This environment isn't integrated` confirms this environment was created with the default Azure-managed network rather than an existing VNet. Combined with the "Environment boundaries are hard to change later" callout above, this means switching this environment to VNet integration is not a runtime configuration change — it requires a new environment. The presence of separate tabs for `Ingress settings` and `Custom DNS Suffix` shows that ingress posture and DNS suffix are environment-scoped surfaces, which is why the "Boundary heuristics" section recommends splitting environments when those properties must differ.
+
+[Not Proven] The blade does not show whether disabling `Public Network Access` here would block all apps in the environment, or only new connections; that behavior would need to be tested or read from Microsoft Learn.
+
+### Step 4: List Apps placed on the environment
+
+Expand **Apps** in the left navigation and open **Apps**. This view is the inverse of the per-app blades: it lists every app that shares this environment's network boundary, quota domain, and profile mix.
+
+![Apps blade on the environment showing one Container App ca-sample-d38538 with App Type Container App, Resource group rg-aca-basics-d38538, Workload profile Consumption; filter by Workload profile shows All](../../assets/platform/environments/04-apps-on-environment.png)
+
+[Observed] The list shows one row: `Name : ca-sample-d38538`, `App Type : Container App`, `Resource group : rg-aca-basics-d38538`, `Workload profile : Consumption`. A `Workload profile : All` filter chip is active above the list, and a `Filter by name` search box is empty.
+
+[Inferred] The `Workload profile` column is per-app, which makes app-to-profile placement visible only when you view the environment as a whole — a per-app blade shows its own profile but not its peers. This is the operational view that supports the "Boundary heuristics" guidance: when you decide whether to add another app to this environment, you are deciding which apps share the static IP from Step 1, the network posture from Step 3, and the Consumption profile from Step 2.
+
+[Not Proven] The blade does not show traffic patterns or compliance boundaries between the listed apps; those operational signals come from the apps' own ingress and identity configuration, not from this list.
+
 ## See Also
 
 - [Concepts](../index.md)
