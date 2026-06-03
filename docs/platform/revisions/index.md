@@ -98,6 +98,22 @@ In **Single mode**, the platform automatically deactivates the old revision when
 - [Traffic Split](traffic-split.md) — weighted routing, labels, and `latestRevision`
 - [Revision Lifecycle](lifecycle.md) — activation, inactive retention, and cleanup behavior
 
+## Portal View
+
+The **Revisions and replicas** blade is where the lifecycle, mode, and traffic split concepts above become concrete. The capture below shows a Container App running in **Multiple** revision mode with two active revisions and a weighted traffic split.
+
+### Step 1: Open Revisions and replicas
+
+In the left navigation of any Container App, open **Application** → **Revisions and replicas**. The blade groups revisions into three tabs (**Active revisions**, **Inactive revisions**, **Replicas**) and exposes the **Deployment mode** toggle in the command bar.
+
+![Revisions list with 70/30 traffic split between two active revisions](../../assets/platform/revisions/01-revisions-list-traffic-split.png)
+
+[Observed] The **Active revisions** tab lists two revisions: `ca-sample-d38538--v2` (created 6/3/2026, 11:40) and `ca-sample-d38538--0uzoi59` (created 6/3/2026, 10:34). Both show **Running** status with a green checkmark, **Traffic** values of **30** and **70** percent respectively, **1** replica each, and **Active** checkboxes selected. The command bar shows **Create new revision**, **Save**, **Refresh**, and **Deployment mode** actions. The page header reads "Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr."
+
+[Inferred] The presence of two simultaneously active revisions with a 70/30 traffic split confirms the app is in **Multiple revision mode** — Single mode would deactivate `--0uzoi59` once `--v2` became healthy, as described in the **Single vs Multiple Revision Mode** table above. The independent **Traffic** columns map directly to the weighted routing described in [Traffic Split](traffic-split.md), and the **Active** checkboxes correspond to the **Active** state in the state diagram. The header sentence reiterates the immutability property in the language of *capability*: each revision **can have** its own container image, scale rule, and Dapr configuration, but the blade alone does not prove that these two specific rows actually differ in those fields.
+
+[Not Proven] The blade does not reveal which container image, environment variables, or scale rules each revision uses (those live in the per-revision detail blade), nor does it show inactive revisions or replica-level health. Whether the 70/30 split was set explicitly via `--revision-weight` or applied by `latestRevision` routing is also not visible from this view; both produce the same display.
+
 ## Common Pitfalls
 
 - **Sticky Sessions**: Traffic splitting may disrupt session state if not handled at the app layer.
