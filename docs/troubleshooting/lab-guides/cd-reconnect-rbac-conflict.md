@@ -320,6 +320,43 @@ Role assignment already exists.
 
 Environment: `rg-aca-lab-test6`, `koreacentral`, `az role assignment create` / Contributor role.
 
+### Observed Evidence (Portal Captures — 2026-06-03)
+
+**Environment:** `rg-aca-lab-cd-rbac`, `koreacentral`.
+**Service Principal:** `ca-labcdrbac-khgtaj-github-actions-lab` (simulated CD identity, mirrors `az containerapp github-action add`).
+**Container Registry:** `acrlabcdrbackhgtaj`.
+
+The five captures below were taken end-to-end after running `./trigger.sh` (reproduce conflict) and `./verify.sh` (delete-and-retry recovery). All PII (subscription IDs, tenant identifiers, object IDs) is replaced with the documented Azure zero-GUID placeholder per the [Portal capture rules in AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules).
+
+[Observed] The resource group's **Deployments** blade shows the full sequence of ARM deployments produced by the reproduction: the seed `lab-cd-rbac` and `lab-ra-initial` succeeded, then `lab-ra-reconnect` failed during the simulated reconnect:
+
+![Resource group Deployments list showing lab-ra-reconnect Failed](../../assets/troubleshooting/cd-reconnect-rbac-conflict/01-deployments-list.png)
+
+[Observed] Opening the failed `lab-ra-reconnect` deployment surfaces the ARM error banner: "The role assignment already exists. The ID of the existing role assignment is `f20aea0020b1586db8fb747527f778c8`". The deployment row is marked **Failed** with status `Conflict` (HTTP 409).
+
+![Failed reconnect deployment detail with RoleAssignmentExists error](../../assets/troubleshooting/cd-reconnect-rbac-conflict/02-deployment-failed-detail.png)
+
+[Inferred] Because the error originates from the Authorization resource provider on the `roleAssignments` write itself, ARM rejected the deployment at the role-assignment step rather than after creating downstream resources. (Cannot be proven from this capture alone — confirmed via the CLI evidence in the preceding subsection, where the second deployment of `infra/role-assignment.bicep` fails with the same `RoleAssignmentExists` code and no other resources are touched.)
+
+[Observed] Navigating to the ACR's **Access control (IAM) → Role assignments** tab and filtering by `github-actions-lab` shows exactly one `AcrPush` assignment held by the simulated CD service principal on the registry scope:
+
+![ACR IAM showing single orphaned AcrPush assignment before recovery](../../assets/troubleshooting/cd-reconnect-rbac-conflict/03-iam-orphaned-assignment.png)
+
+[Inferred] This is the `(scope=ACR, principal=SP, role=AcrPush)` triple that ARM is trying to re-create in the failed deployment — the uniqueness collision is the proximate cause of the `RoleAssignmentExists` error.
+
+[Observed] After `./verify.sh` deletes the orphaned assignment with `az role assignment delete --ids ...` and re-runs the ARM deployment with the same fresh `roleAssignmentName`, the **`lab-ra-verify-recovery`** deployment shows the green "Your deployment is complete" banner:
+
+![Recovered deployment lab-ra-verify-recovery showing Succeeded state](../../assets/troubleshooting/cd-reconnect-rbac-conflict/04-deployment-recovered.png)
+
+[Observed] Returning to ACR IAM with the same `github-actions-lab` filter shows exactly one active `AcrPush` assignment for the service principal (not zero, not two) — the post-recovery cardinality is unchanged from the pre-recovery state:
+
+![ACR IAM after recovery showing single active AcrPush assignment](../../assets/troubleshooting/cd-reconnect-rbac-conflict/05-iam-after-fix.png)
+
+!!! note "Capture #5 is intentionally visually identical to capture #3"
+    Both captures show a single row with the same PII-rewritten zero-GUID, because the assignment-name GUID is sanitized by the Portal capture helper. The point of capture #5 is to demonstrate **cardinality preservation** (the recovery did not leave residue and did not double-assign), not to visually distinguish the new assignment from the old one. The underlying GUID difference (old `f20aea00-20b1-586d-b8fb-747527f778c8` → new `3dff3c6b-d97c-4a23-a34d-107c9a0af29f`) is shown in the CLI evidence above and in `verify.sh` step 5's output.
+
+[Inferred] The progression Deployments-list → Failed-detail → IAM-before → Recovered-detail → IAM-after is **strongly consistent with** the hypothesis that a pre-existing `(scope, principal, role)` triple on the registry is the blocking factor for the ARM `Microsoft.Authorization/roleAssignments` write, and that `az role assignment delete --ids` followed by a retry restores convergence. The Portal evidence corroborates the CLI evidence in the preceding subsection; it does not independently exclude other simultaneous blockers (deny assignments, policy assignments, propagation delays), which the `### Falsification` checks below are designed to rule out.
+
 ### Falsification
 
 The hypothesis is falsified if any of the following occur:
@@ -327,7 +364,9 @@ The hypothesis is falsified if any of the following occur:
 - The second ARM deployment succeeds without error → contradicts the RBAC uniqueness constraint on `(scope, principal, role)`.
 - Deleting the conflicting assignment does not allow the retried deployment to succeed → suggests a different blocking factor (for example, deny assignment, management lock, or policy assignment).
 - The conflict reproduces even when no prior role assignment exists for the principal on the registry scope → suggests an unrelated cause such as a deny assignment or a tenant-wide RBAC policy.
-- A direct `az role assignment create` with the same triple returns success while the ARM deployment fails → expected; this confirms the ARM-vs-CLI behavior difference rather than falsifying the hypothesis.
+
+!!! note "Not a falsifier: ARM-fails / CLI-succeeds asymmetry"
+    A direct `az role assignment create` with the same `(scope, principal, role)` triple returning success while the ARM deployment fails does **not** falsify the hypothesis. Modern Azure CLI is idempotent and returns the existing assignment instead of erroring; ARM enforces the uniqueness constraint at the resource-write level. The asymmetry is expected and is itself supporting evidence for the hypothesis, not a counter-example.
 
 If the trigger script does not produce `RoleAssignmentExists` on the second deployment, capture `/tmp/cd-rbac-conflict.log`, confirm the first deployment created the assignment (`az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID"`), and rerun after a 30-second wait to allow RBAC propagation.
 
@@ -338,27 +377,30 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 ### Capture rules (apply to every screenshot)
 
 - **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+- **PII must be replaced with placeholder text (not masked with black rectangles).** Follow the [Portal Screenshot Capture rules in AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules): subscription / tenant / object GUIDs → zero-GUID `00000000-0000-0000-0000-000000000000`; subscription name → `Visual Studio Enterprise Subscription`; tenant badge → `Contoso`; account avatar → solid Portal-blue mask (`#0078d4`). Black-box redaction is forbidden — it looks like a leak and breaks visual continuity.
 
-### PII masking checklist
+### PII replacement checklist
 
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+Apply the inline PII helper from [AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules) before every capture; then re-open the committed PNG and confirm:
+
+- [ ] Subscription ID (URL bar, breadcrumb, resource ID column, Correlation ID) rendered as `00000000-0000-0000-0000-000000000000`
+- [ ] Tenant ID (URL bar, account flyout) rendered as `00000000-0000-0000-0000-000000000000`
+- [ ] Subscription name rendered as `Visual Studio Enterprise Subscription` (no `MCAPS-*` prefix)
+- [ ] Tenant badge in the top-right rendered as `Contoso` (no `MICROSOFT NON-PRODUCTION` text)
+- [ ] Account-menu avatar masked with solid Portal-blue (`#0078d4`), not a black rectangle
+- [ ] No employee email (`*@microsoft.com`) or tenant email (`*@*.onmicrosoft.com`) anywhere in the frame
+- [ ] No real customer resource group / app / environment names from a leaked customer tenant
+- [ ] Global search bar dropdown is dismissed (recent resources from other labs must not be visible)
 
 ### Captures to take
 
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
-| 1 | Immediately after the reconnect deployment fails | Resource Group → Deployments → `lab-ra-reconnect` | Deployment error details showing `RoleAssignmentExists` / `AppRbacDeployment` and the returned existing assignment ID | `cd-reconnect-rbac-conflict-deployment-failed.png` |
-| 2 | During diagnosis | Azure Container Registry → Access control (IAM) → Role assignments | Filter Role = `AcrPush`; filter principal to the simulated CD service principal so the orphaned assignment is visible | `cd-reconnect-rbac-conflict-role-assignment.png` |
-| 3 | During diagnosis | Azure Container Registry → Activity log | Time range `Last 1 hour`; operation filter around role assignment creation / authorization events associated with the failed reconnect | `cd-reconnect-rbac-conflict-activity-log.png` |
-| 4 | After cleanup of the orphaned assignment | Resource Group → Deployments → `lab-ra-verify-recovery` | Successful retry deployment after deleting the conflicting assignment | `cd-reconnect-rbac-conflict-deployment-recovered.png` |
-| 5 | After recovery | Azure Container Registry → Access control (IAM) → Role assignments | Same filter as above, showing exactly one active `AcrPush` assignment for the service principal | `cd-reconnect-rbac-conflict-role-assignment-after-fix.png` |
+| 1 | Immediately after `./trigger.sh` finishes | Resource Group → Deployments | Default list view showing seed `lab-cd-rbac` and `lab-ra-initial` Succeeded plus `lab-ra-reconnect` Failed | `01-deployments-list.png` |
+| 2 | Same point as #1 | Resource Group → Deployments → `lab-ra-reconnect` | Deployment detail with "Your deployment failed" banner and the `RoleAssignmentExists` error containing the existing 32-char-hex assignment ID | `02-deployment-failed-detail.png` |
+| 3 | During diagnosis | Azure Container Registry → Access control (IAM) → **Role assignments** tab | Use the scoped "Search by name" filter inside the IAM blade (NOT the global search bar) and filter to `github-actions-lab`; expect exactly one `AcrPush` assignment for the simulated CD service principal | `03-iam-orphaned-assignment.png` |
+| 4 | After `./verify.sh` completes Step 4 (retry) | Resource Group → Deployments → `lab-ra-verify-recovery` | Deployment detail with green "Your deployment is complete" banner | `04-deployment-recovered.png` |
+| 5 | After `./verify.sh` completes Step 5 | Azure Container Registry → Access control (IAM) → **Role assignments** tab | Same scoped filter as #3; expect exactly one active `AcrPush` assignment (the freshly created one, different underlying GUID from #3 — verify in CLI output since the GUID renders as the zero-GUID placeholder after PII replacement) | `05-iam-after-fix.png` |
 
 ### Asset path
 
@@ -366,17 +408,7 @@ Save PNGs to `docs/assets/troubleshooting/cd-reconnect-rbac-conflict/` (create t
 
 ### Reference captures in Observed Evidence
 
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
-
-```markdown
-[Observed] The reconnect deployment failed because ARM tried to create a role assignment that already existed on the ACR scope:
-
-![Failed reconnect deployment with RoleAssignmentExists](../../assets/troubleshooting/cd-reconnect-rbac-conflict/cd-reconnect-rbac-conflict-deployment-failed.png)
-
-[Observed] After deleting the orphaned `AcrPush` assignment, the retry deployment completed successfully and recreated the expected RBAC state:
-
-![Recovered reconnect deployment after orphaned assignment cleanup](../../assets/troubleshooting/cd-reconnect-rbac-conflict/cd-reconnect-rbac-conflict-deployment-recovered.png)
-```
+The captures above are referenced inline from the **Observed Evidence (Portal Captures — 2026-06-03)** subsection. New captures from future re-runs should be added as additional dated subsections rather than overwriting these files, so that prior evidence remains traceable.
 
 ## Clean Up
 
