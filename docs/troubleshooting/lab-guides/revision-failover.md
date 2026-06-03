@@ -13,9 +13,9 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-05-01
-    az_cli_version: 2.70.0
-    notes: traffic→0 + deactivate = HTTP 000, reactivate recovers
+    tested_date: 2026-06-03
+    az_cli_version: 2.71.0
+    notes: ingress targetPort=9999 mismatch triggers Degraded; rollback via az containerapp ingress update --target-port 8000 restores Running without redeploy. Six Portal captures attached.
   core_claims:
   - claim: Azure Container Apps lets you activate, deactivate, and manage revisions for a container app.
     source: https://learn.microsoft.com/azure/container-apps/revisions-manage
@@ -276,6 +276,60 @@ ContainerAppReady     → Running state reached
 
 Environment: `koreacentral`, Consumption plan.
 
+### Observed Evidence (Live Azure Reproduction — 2026-06-03)
+
+**Environment:** `rg-aca-lab-revision` / `cae-labrevision-zfnp6h`, `koreacentral`, Consumption plan.
+**App:** `ca-labrevision-zfnp6h` (Flask + Gunicorn listening on `0.0.0.0:8000`).
+**Azure CLI:** `2.71.0` (the combined `az containerapp update --target-port --registry-server --image` form from `trigger.sh` is rejected on this version, so the trigger was executed as three separate calls — `az containerapp registry set`, `az containerapp ingress update --target-port`, `az containerapp update --image --revision-suffix`).
+
+[Observed] The Container App Overview blade displays a **Revisions with issues** notification, surfacing failing revisions at the top-level view before any drill-down:
+
+![Container App Overview blade with revisions issues banner](../../assets/troubleshooting/revision-failover/01-overview-revisions-with-issues.png)
+
+[Observed] The **Revisions and replicas** blade lists all three active revisions. The intentionally broken revision `ca-labrevision-zfnp6h--brokenv21780461923` holds `100 %` traffic with **Running status = Failed** (red X), while the earlier revisions `--v1heal1780461597` and `--nuvlvyg` hold `0 %` traffic and show `Failed` and `Degraded` respectively (they have no replicas to serve traffic and so cannot pass health checks):
+
+![Revisions and replicas blade with 3 unhealthy revisions](../../assets/troubleshooting/revision-failover/02-revisions-and-replicas-blade.png)
+
+[Observed] Opening the revision detail flyout for `--brokenv21780461923` (a few seconds later, after the platform reclassified the failure mode from `Failed` → `Degraded` as it kept retrying) shows the smoking gun in **Status details**:
+
+> Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 9999 does not match the listening port 8000.
+
+Other key fields: **Status = Active**, **Running status = Degraded**, **Traffic = 100 %**, **Active/total replicas = 1/1**, **Min-max replicas = 1 - 2**.
+
+![Revision details flyout showing TargetPort 9999 vs listening port 8000](../../assets/troubleshooting/revision-failover/03-revision-detail-broken-v2-flyout.png)
+
+[Observed] Streaming the broken revision's real-time application logs from the Logs tab of the same flyout proves the container itself is healthy — Gunicorn starts and binds to port 8000:
+
+```text
+[INFO] Starting gunicorn 22.0.0
+[INFO] Listening at: http://0.0.0.0:8000 (1)
+[INFO] Using worker: sync
+[INFO] Booting worker with pid: 6
+[INFO] Booting worker with pid: 7
+```
+
+This **falsifies any hypothesis that the application crashed**: the failure is purely the ingress `targetPort: 9999` not matching the container's listening port `8000`.
+
+![Logs tab streaming gunicorn Listening at port 8000](../../assets/troubleshooting/revision-failover/04-show-logs-broken-v2.png)
+
+[Observed] After running `az containerapp ingress update --name "$APP_NAME" --resource-group "$RG" --target-port 8000` (the rollback), the **Revisions and replicas** blade refreshes to show `--brokenv21780461923` as **Running** (green check) while still holding `100 %` traffic. No new revision was created — the existing revision recovered the instant the target port matched the listening port:
+
+![Revisions blade post-rollback with green Running status](../../assets/troubleshooting/revision-failover/05-revisions-after-rollback-healthy.png)
+
+[Observed] The post-rollback HTTP probe from outside Azure returns `200`:
+
+```bash
+$ curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+    https://ca-labrevision-zfnp6h.ambitiouswater-88aea64c.koreacentral.azurecontainerapps.io/
+HTTP 200
+```
+
+[Observed] The **Activity log** blade lists nine `Create or Update Container App` operations within the last 6 hours, capturing every step of the experiment (baseline image push, ingress target-port flip to 9999, ingress target-port rollback to 8000, traffic-weight adjustments). Each operation shows `Accepted` or `Succeeded` — the platform never rejected the misconfiguration, which is why the failure surfaces as a runtime probe/ingress mismatch rather than a deployment-time validation error:
+
+![Activity log with multiple Create or Update Container App events](../../assets/troubleshooting/revision-failover/06-activity-log-update-events.png)
+
+[Inferred] The recovery path proves the hypothesis: a one-command `az containerapp ingress update --target-port 8000` restores the revision to `Healthy` without rebuilding or redeploying. This is the cheapest possible mitigation for an ingress-port misconfiguration and is what the playbook should recommend before any image-level rollback is attempted.
+
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
@@ -283,7 +337,7 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 ### Capture rules (apply to every screenshot)
 
 - **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+- **Replace PII with documentation placeholders, not black rectangles.** Follow the PII replacement rules in [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules) — GUIDs → `00000000-0000-0000-0000-000000000000`, tenant display name → `Contoso`, employee emails → `user@example.com`, etc. The reusable helper at `scripts/portal-capture-helpers.js` applies all rules in one call. Re-open the committed PNG and confirm no real subscription IDs, tenant names, or employee emails remain.
 
 ### PII masking checklist
 
@@ -297,13 +351,16 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 ### Captures to take
 
-| # | When | Portal blade | View / filters | Filename |
+The 2026-06-03 reproduction above used this set of six captures. Reuse the same filenames when reproducing the lab so the embedded image references in **Observed Evidence** continue to resolve:
+
+| # | When | Portal blade | What it proves | Filename |
 |---|---|---|---|---|
-| 1 | After the bad rollout creates a new revision | Container App → Revisions | Full revisions list showing the previously healthy revision and the newest unhealthy revision side by side | `revision-failover-revisions-before-rollback.png` |
-| 2 | During diagnosis | Container App → Revisions → latest bad revision | Revision detail showing the unhealthy rollout state and the bad target port / startup signal | `revision-failover-bad-revision-detail.png` |
-| 3 | During rollback | Container App → Traffic splitting | Traffic panel showing 100% reassigned to the last healthy revision | `revision-failover-traffic-rollback.png` |
-| 4 | Immediately after rollback | Container App → Revisions | Revisions list showing the healthy revision still active while the bad revision has 0% traffic or is being deactivated | `revision-failover-revisions-after-rollback.png` |
-| 5 | After the configuration fix is deployed | Container App → Revisions | Newest post-fix revision shows `Healthy`, confirming service stabilization after rollback + repair | `revision-failover-after-fix.png` |
+| 1 | After the bad rollout, before opening Revisions | Container App → Overview | The `Revisions with issues` banner surfaces the failure at the top-level blade | `01-overview-revisions-with-issues.png` |
+| 2 | After the bad rollout creates a new revision | Container App → Revisions and replicas (Active revisions tab) | All active revisions listed with traffic %, running status, and replica counts — the broken revision is the one holding 100 % traffic | `02-revisions-and-replicas-blade.png` |
+| 3 | Click the broken revision name → Basics tab of the flyout | Revision details flyout (Basics) | `Status details` shows the exact `TargetPort N does not match the listening port M` message that pinpoints the misconfiguration | `03-revision-detail-broken-v2-flyout.png` |
+| 4 | In the same flyout, click the **Logs** tab | Revision details flyout (Logs) | Real-time stderr proves the container itself bound to its listening port — falsifying any "the app crashed" hypothesis | `04-show-logs-broken-v2.png` |
+| 5 | After `az containerapp ingress update --target-port <correct>`, refresh Revisions | Container App → Revisions and replicas | The previously broken revision turns `Running` (green) without any image change — proving the failure was purely the ingress port mismatch | `05-revisions-after-rollback-healthy.png` |
+| 6 | After full experiment | Container App → Activity log | Every `Create or Update Container App` operation is listed `Accepted` / `Succeeded` — proving the platform validated the misconfiguration syntactically and the failure surfaced only at runtime probe time | `06-activity-log-update-events.png` |
 
 ### Asset path
 
@@ -311,16 +368,16 @@ Save PNGs to `docs/assets/troubleshooting/revision-failover/` (create the direct
 
 ### Reference captures in Observed Evidence
 
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+The 2026-06-03 reproduction above already embeds all six captures with `[Observed]` evidence tags. Use that block as the template when adding new reproductions: pair each `[Observed]` line with the specific Portal blade text it cites, and immediately follow it with the corresponding image reference. Example pattern:
 
 ```markdown
 [Observed] The latest rollout created a bad revision while an older healthy revision remained available for failover:
 
-![Healthy and unhealthy revisions before rollback](../../assets/troubleshooting/revision-failover/revision-failover-revisions-before-rollback.png)
+![Healthy and unhealthy revisions before rollback](../../assets/troubleshooting/revision-failover/02-revisions-and-replicas-blade.png)
 
 [Observed] Traffic was moved back to the healthy revision before the bad configuration was repaired:
 
-![Traffic rolled back to the healthy revision](../../assets/troubleshooting/revision-failover/revision-failover-traffic-rollback.png)
+![Revisions blade post-rollback with green Running status](../../assets/troubleshooting/revision-failover/05-revisions-after-rollback-healthy.png)
 ```
 
 ## Clean Up
