@@ -81,6 +81,14 @@ ca-myapp--0000001  True      Healthy   Running    2026-04-04T11:30:41+00:00
 - Failure patterns: `Provisioning failed`, `Failed`, `Degraded`, inactive latest revision.
 - If failed → go to [Revision Provisioning Failure](../playbooks/startup-and-provisioning/revision-provisioning-failure.md).
 
+### Portal view: Revisions and replicas
+
+Navigate: **Container App → Application → Revisions and replicas → Active revisions**.
+
+![Revisions and replicas blade showing one active revision in Running state with 100% traffic and 1 replica](../../assets/troubleshooting/first-10-minutes/01-revisions-and-replicas.png)
+
+`[Observed]` The **Active revisions** tab lists the revision `ca-ops-cgedjv--dkckziz` with **Running status: Running**, **Traffic: 100%**, and **Replicas: 1**. This is the healthy baseline — a single active revision serving all traffic with at least one healthy replica. If the latest revision is missing, shows `Provisioning failed`, or is split into multiple competing revisions, jump to the playbook linked above.
+
 ## 2) Replica Status
 
 ```bash
@@ -102,6 +110,14 @@ ca-myapp--0000001-646779b4c5-bhc2v     Running         2026-04-04T11:30:52+00:00
 - Look for replicas that remain in `Running` state.
 - Failure patterns: repeated short-lived replicas, no replicas created, restart loops.
 - If failed → go to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
+
+### Portal view: Replicas tab
+
+Navigate: **Container App → Application → Revisions and replicas → Replicas**.
+
+![Replicas tab showing one running replica with revision and creation timestamp](../../assets/troubleshooting/first-10-minutes/02-replicas-tab.png)
+
+`[Observed]` The **Replicas** tab lists a single replica `ca-ops-cgedjv--dkckziz-5f495449d5-vpjzs` in **Running** state. Use this view to confirm replicas are long-lived. `[Inferred]` If you refresh the blade every 30 seconds and see the replica name change repeatedly (different pod-hash suffix), the container is crash-looping even though the revision shows healthy. That symptom maps to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
 
 ## 3) Container Logs
 
@@ -131,6 +147,14 @@ Workers=auto
 - Failure patterns: `ModuleNotFoundError`, `Address already in use`, `connection refused`, crash loops.
 - If failed → go to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
 
+### Portal view: Log stream
+
+Navigate: **Container App → Monitoring → Log stream**.
+
+![Log stream blade with replica/container selectors and live stdout/stderr output area](../../assets/troubleshooting/first-10-minutes/03-log-stream.png)
+
+`[Observed]` The **Log stream** blade lets you pick **Replica** and **Container** from drop-downs, then streams stdout/stderr in real time without waiting for Log Analytics ingestion. Use this when a replica has just started and Log Analytics has not yet received the first records (typical lag: 1-3 minutes). `[Not Proven]` Log stream does not show **historical** logs — only what arrives after you open the blade. For root-cause analysis of a past failure, switch to the **Logs** blade and query `ContainerAppConsoleLogs_CL`.
+
 ## 4) Image Pull
 
 ```bash
@@ -155,6 +179,14 @@ TimeGenerated              Reason_s      Log_s
 - Failure patterns: `ImagePullBackOff`, `manifest unknown`, `unauthorized`, `denied`.
 - If failed → go to [Image Pull Failure](../playbooks/startup-and-provisioning/image-pull-failure.md).
 
+### Portal view: Container image configuration
+
+Navigate: **Container App → Application → Containers → Properties**.
+
+![Containers Properties tab showing Registry login server, Image and tag fields, and resource allocation](../../assets/troubleshooting/first-10-minutes/04-containers-image-config.png)
+
+`[Observed]` The **Properties** tab under **Containers** shows the **Registry login server** (`mcr.microsoft.com`) and **Image and tag** (`k8se/quickstart:latest`) the platform is attempting to pull. `[Inferred]` If the value here does not match what you pushed, the most recent revision was created from a stale template — check your CI/CD pipeline or `az containerapp update --image` step. `[Not Proven]` This blade only shows the **configured** image reference; whether the pull succeeded must still be verified through system logs (the CLI command above) or the Activity log.
+
 ## 5) Ingress Configuration
 
 ```bash
@@ -168,6 +200,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 - Confirm `external` setting matches your access model and `targetPort` matches app listening port.
 - Failure patterns: ingress disabled, wrong `targetPort`, internal app tested from public internet.
 - If failed → go to [Ingress Not Reachable](../playbooks/ingress-and-networking/ingress-not-reachable.md).
+
+### Portal view: Ingress
+
+Navigate: **Container App → Networking → Ingress**.
+
+![Ingress blade showing Ingress enabled, traffic accepting from Anywhere, target port 80, and transport Auto](../../assets/troubleshooting/first-10-minutes/05-ingress.png)
+
+`[Observed]` The **Ingress** blade shows the binary toggle (**Ingress**: enabled), the traffic-source dropdown (**Accepting traffic from**: Anywhere = external), and the **Target port** field (`80`). The **Application Url** at the top of the blade is the externally resolvable FQDN. `[Inferred]` Three common misconfigurations are visible here at a glance: (1) toggle off → no FQDN issued, (2) **Accepting traffic from** set to **VNet** while you are testing from the public internet → DNS resolves but connection times out, (3) **Target port** does not match the port your app listens on (e.g. app binds `8000` but ingress points at `80`) → connections reset with no app logs.
 
 ## 6) Health Probes
 
@@ -186,6 +226,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 !!! warning "Probe defaults can still fail"
     Apps with migrations, cold dependency checks, or large model loads often need a longer startup probe window.
 
+### Portal view: Health probes
+
+Navigate: **Container App → Application → Containers → Health probes**.
+
+![Containers Health probes tab showing Startup, Liveness, and Readiness probe configuration](../../assets/troubleshooting/first-10-minutes/06-health-probes.png)
+
+`[Observed]` The **Health probes** tab exposes the three probe types (**Startup**, **Liveness**, **Readiness**) and lets you inspect each one's transport (HTTP/TCP/gRPC), path, port, and timing fields without parsing JSON. `[Inferred]` This is the fastest way to spot the three classic probe mistakes: (1) path returns 404 in the app's router → readiness flaps, (2) **Startup probe** timeout shorter than actual boot time (e.g. 30 s for an app that needs 60 s to warm a model) → revision never goes Ready, (3) probe **Port** does not match the container's listening port → TCP probe succeeds (port open) but HTTP probe fails. `[Not Proven]` The Portal does not show **historical** probe results; for that, query `ContainerAppSystemLogs_CL | where Reason_s in ("LivenessProbeFailed","ReadinessProbeFailed","StartupProbeFailed")` in Log Analytics.
+
 ## 7) Registry Authentication
 
 ```bash
@@ -200,6 +248,14 @@ az role assignment list --scope "$(az acr show --name "$ACR_NAME" --query id --o
 - Confirm managed identity exists and has `AcrPull` role on the registry scope.
 - Failure patterns: no principal ID, missing `AcrPull`, ACR firewall blocks environment egress.
 - If failed → go to [Managed Identity Auth Failure](../playbooks/identity-and-configuration/managed-identity-auth-failure.md) and [Image Pull Failure](../playbooks/startup-and-provisioning/image-pull-failure.md).
+
+### Portal view: Identity
+
+Navigate: **Container App → Settings → Identity**.
+
+![Identity blade showing system-assigned managed identity enabled with Object ID and Permissions Azure role assignments link](../../assets/troubleshooting/first-10-minutes/07-identity.png)
+
+`[Observed]` The **System assigned** tab shows **Status: On** and exposes the **Object (principal) ID** the platform uses for token requests, plus a **Permissions / Azure role assignments** link that pivots to the IAM blade scoped to this identity. The **User assigned** tab (separate) lists any user-assigned identities attached to the app. `[Inferred]` If **Status: Off**, the app cannot use managed identity at all — registry pulls fall back to admin credentials (which may be disabled on hardened ACRs) and any Key Vault references fail at revision-provisioning time. `[Not Proven]` This blade does not show **which** revisions are using the identity — that detail lives in the revision's Containers configuration.
 
 ## 8) Secrets and Config
 
@@ -231,6 +287,14 @@ az network private-endpoint list --resource-group "$RG" --output table
 - Failure patterns: DNS resolution failures, blocked NSG outbound rules, missing private DNS link.
 - If failed → go to [Internal DNS and Private Endpoint Failure](../playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md).
 
+### Portal view: Container Apps Environment overview
+
+Navigate: **Container Apps Environment → Overview**.
+
+![Container Apps Environment overview blade with status, location, subscription, and links to Log Analytics and apps](../../assets/troubleshooting/first-10-minutes/09-environment-overview.png)
+
+`[Observed]` The **Environment** Overview shows **Status: Succeeded**, the linked **Log Analytics workspace**, the **Environment type** (Workload profiles or Consumption only), and the list of Container Apps deployed inside. `[Inferred]` If the environment is in a custom VNet, the Overview also exposes the **Infrastructure subnet** — verify outbound rules on its NSG and route table here. If the environment status is anything other than **Succeeded** (`Failed`, `Updating`, `Canceled`), every app inside is affected; fix the environment before debugging individual apps. `[Not Proven]` The Overview does not show DNS resolution success or NSG flow logs — use **Network Watcher → Connection Troubleshoot** from the environment's subnet to test specific dependency endpoints.
+
 ## 10) Dependencies
 
 ```bash
@@ -244,6 +308,14 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 - Confirm the app can resolve and reach critical services (database, storage, API endpoints).
 - Failure patterns: DNS timeout, TLS handshake errors, outbound firewall denials.
 - If failed → go to [Service-to-Service Connectivity Failure](../playbooks/ingress-and-networking/service-to-service-connectivity-failure.md), [Managed Identity Auth Failure](../playbooks/identity-and-configuration/managed-identity-auth-failure.md), or [Internal DNS and Private Endpoint Failure](../playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md).
+
+### Portal view: Console (exec into a replica)
+
+Navigate: **Container App → Monitoring → Console**.
+
+![Console blade with replica and container selectors and a Choose start up command dialog offering /bin/sh, /bin/bash, or Custom](../../assets/troubleshooting/first-10-minutes/10-console.png)
+
+`[Observed]` The **Console** blade lets you select a **Replica** and **Container**, then opens an in-browser shell prompted by the **Choose start up command** dialog (`/bin/sh`, `/bin/bash`, or a custom command). Once attached, run dependency probes interactively (`nslookup`, `curl -v`, `nc -zv`) without needing `az containerapp exec` from your laptop. `[Inferred]` If **Reconnect** loops or the shell exits immediately, the container image lacks a shell (distroless / scratch base) — verify dependencies from a sidecar or rebuild with a debug image. `[Not Proven]` The Console runs **inside one replica**; a single successful probe does not prove every replica can reach the same dependency. Repeat against multiple replicas if you suspect intermittent network issues.
 
 ## Escalate with Context
 
