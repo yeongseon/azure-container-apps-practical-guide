@@ -49,7 +49,7 @@ Practice safe rollback by intentionally creating an unhealthy revision and routi
 
 ## 1) Background
 
-This lab starts with a healthy revision, then introduces a wrong ingress target port. The platform rejects the revision because the probe cannot connect, and you have two valid recovery paths:
+This lab starts with a healthy revision, then introduces a wrong ingress target port. The platform marks the affected revision unhealthy because the startup probe cannot connect, and you have two valid recovery paths:
 
 1. **Traffic-shift rollback** (multi-revision mode) — keep a previous healthy revision active and route traffic away from the failing one.
 2. **In-place correction** — when the failure is purely an ingress misconfiguration on a single shared field (such as `targetPort`), fix the field directly without redeploying. The platform re-probes and the same revision recovers in ~30s.
@@ -315,9 +315,11 @@ az containerapp update \
 
 ![Container App Overview blade with revisions issues banner](../../assets/troubleshooting/revision-failover/01-overview-revisions-with-issues.png)
 
-[Observed] The **Revisions and replicas** blade lists all three active revisions. The intentionally broken revision `ca-labrevision-zfnp6h--brokenv21780461923` holds `100 %` traffic with **Running status = Failed** (red X). The earlier revisions `--v1heal1780461597` and `--nuvlvyg` hold `0 %` traffic and show `Failed` / `Degraded`; their replica counts in the **Replicas** column are non-zero because the platform attempted to start them during the experiment, but they cannot pass health checks for the same `targetPort` reason (the ingress target port is a single shared setting that affects every revision):
+[Observed] The **Revisions and replicas** blade lists all three active revisions. The intentionally broken revision `ca-labrevision-zfnp6h--brokenv21780461923` holds `100 %` traffic with **Running status = Failed** (red X). The earlier revisions `--v1heal1780461597` and `--nuvlvyg` hold `0 %` traffic and show `Failed` / `Degraded`; their replica counts in the **Replicas** column are non-zero:
 
 ![Revisions and replicas blade with 3 unhealthy revisions](../../assets/troubleshooting/revision-failover/02-revisions-and-replicas-blade.png)
+
+[Inferred] The older revisions remain unhealthy even at `0 %` traffic because the ingress `targetPort` is a single shared environment setting that affects every revision; once it was flipped to `9999`, no revision (regardless of image) could pass the platform startup probe.
 
 [Observed] Opening the revision detail flyout for `--brokenv21780461923` shows **Status = Active**, **Running status = Degraded**, **Traffic = 100 %**, **Active/total replicas = 1/1**, **Min-max replicas = 1 - 2**, and the smoking gun in **Status details**:
 
@@ -391,7 +393,7 @@ The 2026-06-03 reproduction above used this set of six captures. Reuse the same 
 | 3 | Click the broken revision name → Basics tab of the flyout | Revision details flyout (Basics) | `Status details` shows the exact `TargetPort N does not match the listening port M` message that pinpoints the misconfiguration | `03-revision-detail-broken-v2-flyout.png` |
 | 4 | In the same flyout, click the **Logs** tab | Revision details flyout (Logs) | Real-time stderr proves the container itself bound to its listening port — falsifying any "the app crashed" hypothesis | `04-show-logs-broken-v2.png` |
 | 5 | After `az containerapp ingress update --target-port <correct>`, refresh Revisions | Container App → Revisions and replicas | The previously broken revision turns `Running` (green) without any image change — proving the failure was purely the ingress port mismatch | `05-revisions-after-rollback-healthy.png` |
-| 6 | After full experiment | Container App → Activity log | Every `Create or Update Container App` operation is listed `Accepted` / `Succeeded` — proving the platform validated the misconfiguration syntactically and the failure surfaced only at runtime probe time | `06-activity-log-update-events.png` |
+| 6 | After full experiment | Container App → Activity log | Lab activity entries (mix of `Create or Update Container App`, `Auth Token for Container App Dev APIs`, `List Container App Secrets`) all show `Accepted` / `Succeeded` — supporting the inference that the control plane never rejected the misconfiguration and the failure surfaced only at runtime probe time | `06-activity-log-update-events.png` |
 
 ### Asset path
 
