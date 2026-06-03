@@ -64,6 +64,30 @@ az monitor diagnostic-settings create \
 |---|---|
 | `az monitor diagnostic-settings ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
 
+### Portal view: confirm log destination on the environment
+
+Open the Container Apps environment → **Monitoring** → **Logging options**.
+
+![Logging options blade showing Azure Log Analytics selected with workspace law-ops-cgedjv](../../assets/operations/diagnostic-settings/01-logging-options-blade.png)
+
+[Observed] The Logging options blade shows three radio choices under **Logs Destination**: `Azure Log Analytics`, `Azure Monitor`, and `Don't save logs`. `Azure Log Analytics` is the selected option. Under **Log Destination Configuration**, `Subscription`, `Resource group` (`rg-aca-ops-cgedjv`), and `Log Analytics workspace` (`law-ops-cgedjv`) are populated, the `Parse JSON logs into columns` checkbox is unchecked, and the toolbar `Save` and `Discard` buttons are disabled.
+
+[Inferred] The `Azure Log Analytics` selection plus the populated workspace value means this environment is already sending system and console logs to `law-ops-cgedjv`. If you intend to add an Azure Monitor diagnostic setting on top of (or instead of) this default workspace path, you usually keep `Azure Log Analytics` selected here and create a separate `az monitor diagnostic-settings` rule against the environment resource ID; switching to `Azure Monitor` in this blade is the alternative entry point that the in-blade hint text describes.
+
+[Not Proven] This blade alone does not list the `az monitor diagnostic-settings` rules that exist on the environment, does not show the categories or category groups those rules export, and does not confirm whether records are currently arriving at the destination — those need a separate confirmation (see the Activity log view below and the Verification section).
+
+### Portal view: confirm the diagnostic setting was created
+
+Open the Container Apps environment → **Activity log** and filter by recent operations.
+
+![Activity log blade with rows Create or update resource diagnostic setting and Create or Update Managed Environment, both Succeeded](../../assets/operations/diagnostic-settings/02-activity-log-diagnostic-setting-created.png)
+
+[Observed] The Activity log blade shows two rows: `Create or update resource diagnostic setting` and `Create or Update Managed Environment`, both with `Status = Succeeded`. The filter chips above the grid show `Resource group: rg-aca-ops-cgedjv` and `Resource: cae-ops-cgedjv`, the timespan is `Last 6 hours`, and the row count reads `2 items`.
+
+[Inferred] The `Create or update resource diagnostic setting` row that targets `cae-ops-cgedjv` is the Activity-log record produced by the `az monitor diagnostic-settings create --resource $ENVIRONMENT_ID ...` call from the Procedure. A `Succeeded` status here is the operation-level result for the control-plane write, so it confirms the rule was accepted by Azure Resource Manager against the managed environment.
+
+[Not Proven] This Activity-log row does not show which categories (`allLogs` vs. a category subset) the rule exports, does not show the destination type (Log Analytics vs. Event Hub vs. Storage), and does not confirm that log records are flowing to that destination — only that the write succeeded. Use `az monitor diagnostic-settings list --resource "$ENVIRONMENT_ID"` to read the actual rule, and the Verification section below to confirm ingestion.
+
 Minimal Bicep pattern:
 
 ```bicep
