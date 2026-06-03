@@ -323,7 +323,7 @@ Expected output (with the baseline `azuredocs/containerapps-helloworld:latest` i
 |---|---|
 | Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` restored to `secretRef` |
 | Log Analytics query (SDK-instrumented image only) | Recent traces return |
-| `./labs/observability-tracing/verify.sh` | PASS |
+| `./labs/observability-tracing/verify.sh` | Connection-string check PASS; trace-record check PASS **only when the application image is SDK-instrumented** (with the baseline `azuredocs/containerapps-helloworld:latest` image this row reports zero traces — see `[Not Proven]` caveat in the Hypothesis) |
 
 ### Observed Evidence (Live Azure Reproduction — 2026-06-03)
 
@@ -450,7 +450,7 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 | 3 | During the incident | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000001`) | Same env var, Source = "Manual entry", Value textarea showing the literal `InstrumentationKey=00000000-...;IngestionEndpoint` (suffix clipped by the textarea) | `03-env-vars-after-trigger-literal.png` |
 | 4 | During the incident | Application Insights `appi-labobs-622oal` → Transaction search | Filter chips `Local Time: Last 24 hours (Automatic)`, `View as: Traces`, `Event types = All selected`; "See all data in the last 24 hours" prompt (no executed result table) | `04-appinsights-transaction-search.png` |
 | 5 | During the incident | Application Insights `appi-labobs-622oal` → Logs | KQL `traces \| count`; Time range `Last hour`; Results column header `Count` with single row `0` | `05-appinsights-logs-traces-count-zero.png` |
-| 6 | After the fix | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000002`) | Same env var, Source = "Reference a secret" again, Value = `appinsights-connection-stri...` | `06-env-vars-restored-secretref.png` |
+| 6 | After the fix | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000002`) | Same env var, Source = "Reference a secret", Value = `appinsights-connection-stri...` | `06-env-vars-restored-secretref.png` |
 
 ### Asset path
 
