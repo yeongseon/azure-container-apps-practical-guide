@@ -9,13 +9,13 @@ content_sources:
     - https://learn.microsoft.com/azure/key-vault/general/rbac-guide
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-03'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-05-01
-    az_cli_version: 2.70.0
-    notes: ContainerAppSecretRefNotFound confirmed, fixed with real-secret
+    tested_date: 2026-06-03
+    az_cli_version: 2.71.0
+    notes: ForbiddenByRbac confirmed pre-fix; HTTP 200 confirmed after Key Vault Secrets User role assignment + revision restart. Portal captures attached.
   core_claims:
   - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
     source: https://learn.microsoft.com/azure/container-apps/managed-identity
@@ -25,12 +25,12 @@ content_validation:
     verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
-    result: not_tested
+    last_tested: '2026-06-03'
+    cli_version: 2.71.0
+    result: pass
   bicep:
-    last_tested: null
-    result: not_tested
+    last_tested: '2026-06-03'
+    result: pass
 ---
 # Managed Identity Key Vault Failure Lab
 
@@ -179,6 +179,25 @@ az containerapp update \
 | Command | Why it is used |
 |---|---|
 | `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az containerapp update --image ...` | Rolls the Container App to the new image; this starts a new revision that reads the Key Vault secret on startup. |
+| `az containerapp registry set ...` | Configures registry credentials separately from the image update (required workaround on `az` CLI 2.71.0 and later). |
+
+!!! warning "Azure CLI 2.71.0+ rejects combined registry flags on `containerapp update`"
+    On `az` CLI 2.71.0 and later, passing `--registry-server`, `--registry-username`, and `--registry-password` together with `--image` to `az containerapp update` returns `unrecognized arguments`. Configure the registry separately, then update the image:
+
+    ```bash
+    az containerapp registry set \
+        --name "$APP_NAME" \
+        --resource-group "$RG" \
+        --server "$ACR_LOGIN_SERVER" \
+        --username "$ACR_USERNAME" \
+        --password "$ACR_PASSWORD"
+
+    az containerapp update \
+        --name "$APP_NAME" \
+        --resource-group "$RG" \
+        --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1"
+    ```
 
 Expected output:
 
@@ -305,13 +324,13 @@ Expected output:
 
 | Step | Action | Expected | Actual | Pass/Fail |
 |---|---|---|---|---|
-| 1 | Deploy baseline infrastructure | Deployment succeeds | | |
-| 2 | Capture outputs | App, registry, environment, and vault names resolved | | |
-| 3 | Run `trigger.sh` | App starts with missing Key Vault RBAC | | |
-| 4 | Run `verify.sh` before fix | Non-200 response before RBAC assignment | | |
-| 5 | Check identity and role assignments | Principal exists, required role missing | | |
-| 6 | Create Key Vault role assignment | Role assignment succeeds | | |
-| 7 | Re-run verification | App returns HTTP 200 after fix | | |
+| 1 | Deploy baseline infrastructure | Deployment succeeds | `provisioningState: Succeeded` in `koreacentral`; app `ca-labkv-gtlopy`, KV `kv-labkv-gtlopy`, ACR `acrlabkvgtlopy` provisioned. | Pass |
+| 2 | Capture outputs | App, registry, environment, and vault names resolved | All four names resolved from deployment outputs; FQDN `ca-labkv-gtlopy.calmriver-ae84e755.koreacentral.azurecontainerapps.io`. | Pass |
+| 3 | Run `trigger.sh` | App starts with missing Key Vault RBAC | Image built and pushed; revision started after the CLI 2.71.0 registry-flag workaround was applied. | Pass |
+| 4 | Run `verify.sh` before fix | Non-200 response before RBAC assignment | App returned HTTP 500 with body `Access denied or Key Vault read failed: (Forbidden) ... Inner error: ForbiddenByRbac ... Assignment: (not found)`. | Pass |
+| 5 | Check identity and role assignments | Principal exists, required role missing | `identity.principalId = <principal-id>`; `az role assignment list` returned no `Key Vault Secrets User` at the Key Vault scope. | Pass |
+| 6 | Create Key Vault role assignment | Role assignment succeeds | `az role assignment create --role "Key Vault Secrets User" --scope <KV_ID>` returned a role assignment object; revision restarted via `RESTART_TOKEN`. | Pass |
+| 7 | Re-run verification | App returns HTTP 200 after fix | App returned HTTP 200 with body `{"secretLength":"20","status":"ok"}`. | Pass |
 
 ## Expected Evidence
 
@@ -334,25 +353,61 @@ Expected output:
 | Secret-dependent endpoint | HTTP 200 |
 | Logs | No continuing Key Vault authorization failure for the tested path |
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Reproduction — 2026-06-03)
 
-**Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
-**App:** `ca-mi-kv` (system-assigned MI: `<object-id>`)
-**Key Vault:** `kv-lab6-mi`
+**Environment:** `rg-aca-lab-kv` in `koreacentral`, Consumption plan, Azure CLI 2.71.0.
+**App:** `ca-labkv-gtlopy` (system-assigned managed identity, principal `<principal-id>`).
+**Key Vault:** `kv-labkv-gtlopy` (RBAC authorization model — `enableRbacAuthorization: true`).
+**FQDN:** `ca-labkv-gtlopy.calmriver-ae84e755.koreacentral.azurecontainerapps.io`
 
-[Observed] Before fix: `az role assignment list --assignee "<object-id>"` returned `[]` — no Key Vault access policy or role assignment present.
+#### During failure
 
-[Observed] Trigger state: `az keyvault show --query "properties.accessPolicies"` returned `[]` — MI had zero permissions on Key Vault.
+[Observed] The Container App's **Identity** blade shows the system-assigned managed identity is enabled (`Status: On`) with an object (principal) ID assigned. Identity provisioning alone does not grant any resource access:
 
-[Observed] Fix applied: `az keyvault set-policy --object-id <object-id> --secret-permissions get list` → policy confirmed with `objectId: <object-id>`.
+![Container App Identity blade with system-assigned managed identity enabled](../../assets/troubleshooting/managed-identity-key-vault-failure/01-identity-blade-system-assigned-on.png)
 
-[Observed] After fix: `az keyvault secret show --name "db-password"` returned `SuperSecret123!` — secret accessible via MI policy.
+[Observed] The Key Vault's **Access control (IAM) → Role assignments** blade, filtered by the Container App principal name (`ca-labkv-gtlopy`), shows "No role assignments found for the applied filter." No `Key Vault Secrets User` (or any other) role exists at the vault scope for this principal:
 
-[Observed] `az containerapp show --query "identity.type"` returned `SystemAssigned` — managed identity active on `ca-mi-kv`.
+![Key Vault IAM blade showing no role assignment for the Container App principal](../../assets/troubleshooting/managed-identity-key-vault-failure/02-kv-iam-no-role-for-app-principal.png)
 
-[Inferred] The 403 / `AccessDenied` from Key Vault is fully explained by the missing access policy. The fix is deterministic: assign `get`/`list` permissions and secret reads succeed.
+[Observed] The Container App's **Revisions and replicas** blade shows the active revision is `Running` with replica count 1 throughout the incident — the platform considers the app healthy even while the secret-dependent endpoint returns HTTP 500:
 
-Environment: `koreacentral`, Consumption plan, Azure Key Vault with access policy authorization model.
+![Container App Revisions blade with the active revision Running during the incident](../../assets/troubleshooting/managed-identity-key-vault-failure/03-revisions-running-during-incident.png)
+
+[Observed] The Container App's **Metrics** blade, with the `Requests` metric split by `Status Code Category` for the last 30 minutes, shows the pre-fix request volume dominated by 5xx responses (5xx = 86, 2xx = 1) — visible proof that the failure is a request-time error, not a startup or scaling failure:
+
+![Metrics blade showing 5xx-dominated request volume during the incident](../../assets/troubleshooting/managed-identity-key-vault-failure/04-metrics-requests-5xx-during-incident.png)
+
+[Observed] The HTTP 500 response body returned by the Flask handler at this point contained:
+
+```text
+Access denied or Key Vault read failed: (Forbidden) Caller is not authorized
+to perform action on resource ...
+Action: 'Microsoft.KeyVault/vaults/secrets/getSecret/action'
+... Assignment: (not found) ... Inner error: ForbiddenByRbac
+```
+
+[Not Proven from Portal] The 403 response from Key Vault itself is not directly visible in any Portal blade for this lab. Gunicorn is configured without access logs, and the Flask handler catches the exception and returns it as a JSON 500 — so the **Log stream** blade contains no useful application output. The `ForbiddenByRbac` evidence comes from the HTTP response body collected by the verification script. The Portal-side proof is the combination of (a) zero role assignments at the KV scope (capture #2) and (b) the 5xx-dominated request metric (capture #4).
+
+#### After fix
+
+[Observed] After running `az role assignment create --role "Key Vault Secrets User" --assignee-object-id <principal-id> --scope <kv-resource-id>`, the same Key Vault **Access control (IAM) → Role assignments** filter now shows exactly one result: `Key Vault Secrets User` assigned to `ca-labkv-gtlopy` at this vault's scope:
+
+![Key Vault IAM blade after fix showing Key Vault Secrets User assigned to the app principal](../../assets/troubleshooting/managed-identity-key-vault-failure/05-kv-iam-role-assigned-after-fix.png)
+
+[Observed] After triggering a new revision with `az containerapp update --set-env-vars RESTART_TOKEN=...` and re-running the verification script, the app returned HTTP 200 with body:
+
+```text
+{"secretLength":"20","status":"ok"}
+```
+
+[Observed] The Container App **Metrics** blade with the same `Requests` / `Status Code Category` split, extended to capture both the incident window and the post-fix traffic, shows 2xx responses (116) rising alongside the prior 5xx population (86) — visualizing the clean recovery after the role assignment:
+
+![Metrics blade after fix showing 2xx recovery alongside the earlier 5xx population](../../assets/troubleshooting/managed-identity-key-vault-failure/06-metrics-requests-2xx-after-fix.png)
+
+[Inferred] Because (a) no infrastructure change other than the role assignment + identity restart was applied between captures #4 and #6, and (b) the response body changed from `ForbiddenByRbac` to `{"status":"ok"}` over the same code path, the failure is fully explained by the missing `Key Vault Secrets User` assignment at the vault scope. The fix is deterministic: assign the role, restart the revision, secret reads succeed.
+
+[Strongly Suggested] On vaults configured with `enableRbacAuthorization: true`, legacy `az keyvault set-policy` calls are silently ignored by the data plane (the policy is stored but not consulted). Engineers reproducing similar incidents on RBAC-mode vaults must use `az role assignment create`, not `set-policy`.
 
 ## Portal Evidence Capture Guide
 
@@ -361,7 +416,7 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 ### Capture rules (apply to every screenshot)
 
 - **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+- **PII must be rewritten, not blacked out.** Use the text-replacement helper documented in `AGENTS.md` (rewrites GUIDs, MCAPS subscription names, tenant badge, `@microsoft.com` / `*.onmicrosoft.com` emails, author alias/name to documentation placeholders). The only acceptable visual mask is a Portal-blue (`#0078d4`) rectangle on the top-right account avatar — black rectangles look like leaks and break visual continuity.
 
 ### PII masking checklist
 
@@ -377,11 +432,15 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
-| 1 | During diagnosis, before RBAC is added | Container App → Identity | Full identity blade showing the system-assigned managed identity is enabled for the app | `managed-identity-key-vault-failure-identity.png` |
-| 2 | During diagnosis, before RBAC is added | Key Vault → Access control (IAM) → Role assignments | Filter by the Container App principal; show that `Key Vault Secrets User` is missing at the vault scope | `managed-identity-key-vault-failure-kv-rbac-missing.png` |
-| 3 | During the incident | Container App → Monitoring → Log stream (or Logs) | Application log view showing the 403 / authorization failure while the revision remains running | `managed-identity-key-vault-failure-app-logs-403.png` |
-| 4 | After the RBAC fix | Key Vault → Access control (IAM) → Role assignments | Same filter, now showing `Key Vault Secrets User` assigned to the app identity | `managed-identity-key-vault-failure-kv-rbac-added.png` |
-| 5 | After the fix | Container App → Monitoring → Log stream (or Logs) | Successful post-fix request or the absence of continuing Key Vault authorization errors after the new revision starts | `managed-identity-key-vault-failure-app-logs-after-fix.png` |
+| 1 | During diagnosis | Container App → Identity | System-assigned identity blade with `Status: On` and object (principal) ID visible | `01-identity-blade-system-assigned-on.png` |
+| 2 | During diagnosis, before RBAC fix | Key Vault → Access control (IAM) → Role assignments | Filter by the Container App principal name; show "No role assignments found for the applied filter" | `02-kv-iam-no-role-for-app-principal.png` |
+| 3 | During the incident | Container App → Revisions and replicas | Active revision shown as `Running` with healthy replicas while the secret-dependent endpoint is failing | `03-revisions-running-during-incident.png` |
+| 4 | During the incident | Container App → Monitoring → Metrics | `Requests` metric, last 30 minutes, split by `Status Code Category`; chart dominated by 5xx | `04-metrics-requests-5xx-during-incident.png` |
+| 5 | After the RBAC fix | Key Vault → Access control (IAM) → Role assignments | Same principal-name filter, now showing 1 result: `Key Vault Secrets User` assigned to the app principal | `05-kv-iam-role-assigned-after-fix.png` |
+| 6 | After the fix | Container App → Monitoring → Metrics | Same `Requests` / `Status Code Category` split, time range extended to include post-fix traffic; 2xx rises alongside the earlier 5xx population | `06-metrics-requests-2xx-after-fix.png` |
+
+!!! tip "Why Metrics, not Log stream"
+    Gunicorn in the lab image is configured without access logs, and the Flask handler catches the Key Vault exception and returns it in the HTTP 500 response body. The **Log stream** blade therefore contains no useful failure signal. **Metrics → Requests split by Status Code Category** is the correct Portal evidence for this lab — it shows the 5xx population during the incident and the 2xx recovery after the role assignment.
 
 ### Asset path
 
@@ -389,16 +448,16 @@ Save PNGs to `docs/assets/troubleshooting/managed-identity-key-vault-failure/` (
 
 ### Reference captures in Observed Evidence
 
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+Add image references inside the **Observed Evidence (Live Azure Reproduction)** subsection above, paired with `[Observed]` evidence tags:
 
 ```markdown
 [Observed] The Container App identity existed, but the vault had no effective secret-read RBAC assignment for that principal:
 
-![Missing Key Vault role assignment for the Container App identity](../../assets/troubleshooting/managed-identity-key-vault-failure/managed-identity-key-vault-failure-kv-rbac-missing.png)
+![Missing Key Vault role assignment for the Container App identity](../../assets/troubleshooting/managed-identity-key-vault-failure/02-kv-iam-no-role-for-app-principal.png)
 
-[Observed] After `Key Vault Secrets User` was assigned at the vault scope, the application logs stopped showing the authorization failure path:
+[Observed] After `Key Vault Secrets User` was assigned at the vault scope, the Requests metric showed the 2xx recovery alongside the earlier 5xx population:
 
-![Application logs after Key Vault RBAC fix](../../assets/troubleshooting/managed-identity-key-vault-failure/managed-identity-key-vault-failure-app-logs-after-fix.png)
+![Metrics blade after fix showing 2xx recovery alongside the earlier 5xx population](../../assets/troubleshooting/managed-identity-key-vault-failure/06-metrics-requests-2xx-after-fix.png)
 ```
 
 ## Clean Up
