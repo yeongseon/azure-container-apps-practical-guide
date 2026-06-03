@@ -99,7 +99,7 @@ Navigate to **Container Apps Environment** in your resource group. The Overview 
 
 [Observed] The Essentials panel reports `Environment type : Workload profiles`, `Location : Korea Central`, `Status : Succeeded`, `Static IP : 4.230.156.3`, `KEDA version : 2.18.1`, `Dapr version : 1.16.4-msft.7`, and `Applications : 1`. The Applications tab below lists one app, `ca-sample-d38538`, with `App Type : Container App`.
 
-[Inferred] The `Environment type : Workload profiles` field corresponds to the v2 environment described in the "Environment decisions happen before app decisions" section above — this is the default at creation time per Microsoft Learn. The single `Static IP : 4.230.156.3` and a non-empty `KEDA version` field together indicate that ingress egress IP and the autoscaler runtime are managed at the environment scope, not per-app, which is what makes "Environment boundaries are hard to change later" true in practice.
+[Inferred] The `Environment type : Workload profiles` field corresponds to the v2 environment described in the "Environment decisions happen before app decisions" section above. Because `Static IP`, `KEDA version`, and `Dapr version` are surfaced on the environment resource — not on the listed app — this blade reinforces the page's framing that several platform settings live at the environment scope, which is what makes "Environment boundaries are hard to change later" true in practice.
 
 [Not Proven] The Overview blade does not show whether the static IP is reused across all apps in the environment, nor whether the KEDA and Dapr versions are the active runtime for the listed app — those are platform-managed values surfaced for informational purposes.
 
@@ -111,7 +111,7 @@ Expand **Settings** in the left navigation and open **Workload profiles**. This 
 
 [Observed] The blade shows one row under the `Consumption` group header: profile `Consumption`, capacity `Up to 4 vCPUs / 8 Gi`, `# of Apps : 1`. The `Add` button is enabled in the command bar, and the columns `Current cores usage`, `Current instances`, and `Min & Max number of instances` are dashed (empty).
 
-[Inferred] An environment created with the default Workload profiles (v2) type ships with the built-in `Consumption` profile already attached — Dedicated profiles must be added explicitly, which matches the "Choose workload profiles" step in the decision flow at the top of this page. The empty `Current cores usage` and `Current instances` columns are expected for the Consumption profile because Microsoft Learn documents that Consumption capacity is not pre-allocated; cores and instances appear only for Dedicated profiles.
+[Inferred] The blade confirms this environment currently exposes a single `Consumption` profile with one app placed on it. That mapping is exactly the "Choose workload profiles → Place apps on profiles" step from the decision flow at the top of this page, made visible at the environment scope rather than on a per-app blade. The `Add` button being enabled in the command bar reflects that profile mix is an environment-level operation, not an app-level one — which is why the "Boundary heuristics" list calls out workload profile mix as a reason to split environments.
 
 [Not Proven] The blade does not prove that the environment cannot later be downgraded to Consumption-only (v1); that constraint is documented at the platform level, not visible here. It also does not prove which apps are bound to the Consumption profile beyond the count — drilling into the app is required to see the per-app `workloadProfileName` setting.
 
@@ -135,7 +135,7 @@ Expand **Apps** in the left navigation and open **Apps**. This view is the inver
 
 [Observed] The list shows one row: `Name : ca-sample-d38538`, `App Type : Container App`, `Resource group : rg-aca-basics-d38538`, `Workload profile : Consumption`. A `Workload profile : All` filter chip is active above the list, and a `Filter by name` search box is empty.
 
-[Inferred] The `Workload profile` column is per-app, which makes app-to-profile placement visible only when you view the environment as a whole — a per-app blade shows its own profile but not its peers. This is the operational view that supports the "Boundary heuristics" guidance: when you decide whether to add another app to this environment, you are deciding which apps share the static IP from Step 1, the network posture from Step 3, and the Consumption profile from Step 2.
+[Inferred] The `Workload profile` column is per-app, which makes app-to-profile placement visible only when you view the environment as a whole — a per-app blade shows its own profile but not its peers. This is the operational view that supports the "Boundary heuristics" guidance: when you decide whether to add another app to this environment, you are deciding which apps share the same environment boundary, the network posture from Step 3, and the Consumption profile from Step 2.
 
 [Not Proven] The blade does not show traffic patterns or compliance boundaries between the listed apps; those operational signals come from the apps' own ingress and identity configuration, not from this list.
 
