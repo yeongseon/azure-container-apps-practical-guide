@@ -107,9 +107,9 @@ Navigate: **Container App** → **Monitoring** → **Logs**.
 
 ![Logs blade showing the Log Analytics query editor for the container app](../../assets/operations/log-streaming/02-log-analytics-blade.png)
 
-`[Observed]` The **Logs** blade opens the Log Analytics query editor scoped to the workspace attached to the Container Apps environment. The left tree exposes the `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL` tables. Unlike the Log stream blade, this view requires an explicit KQL query and a time range before it returns rows.
+`[Observed]` The **Logs** blade on the Container App opens a query editor tab (**New Query 1**) with a **Run** button, a **Time range** selector (currently **Last 24 hours**), a **Show** row-limit selector (**1000 results**), a **KQL mode** dropdown, an empty editor showing the placeholder *"Type your query here or click one of the queries to start"*, and a **Query history** panel below.
 
-`[Inferred]` This is the correct surface for **historical** analysis (counts, aggregations, cross-revision queries) because the data is persisted in the workspace per the environment's diagnostic settings. Live tailing belongs on the Log stream blade, not here.
+`[Inferred]` This editor is the Log Analytics surface scoped to the workspace attached to the Container Apps environment — the same workspace that the environment's diagnostic settings stream logs into. It is the correct surface for **historical** analysis (counts, aggregations, cross-revision queries) because the data is persisted in the workspace; live tailing belongs on the Log stream blade, not here. The tables exposed for this workload are typically `ContainerAppConsoleLogs_CL` (stdout/stderr) and `ContainerAppSystemLogs_CL` (platform events) — confirm by expanding the **Tables** pane on the left.
 
 `[Not Proven]` The exact ingestion lag between a log line being emitted by the container and becoming queryable in this blade depends on workspace ingestion behavior and is not measured on this page.
 
@@ -125,7 +125,7 @@ flowchart TD
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show] ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
 ## Verification
 
