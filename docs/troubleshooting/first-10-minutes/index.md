@@ -87,7 +87,11 @@ Navigate: **Container App → Application → Revisions and replicas → Active 
 
 ![Revisions and replicas blade showing one active revision in Running state with 100% traffic and 1 replica](../../assets/troubleshooting/first-10-minutes/01-revisions-and-replicas.png)
 
-`[Observed]` The **Active revisions** tab lists the revision `ca-ops-cgedjv--dkckziz` with **Running status: Running**, **Traffic: 100%**, and **Replicas: 1**. This is the healthy baseline — a single active revision serving all traffic with at least one healthy replica. If the latest revision is missing, shows `Provisioning failed`, or is split into multiple competing revisions, jump to the playbook linked above.
+`[Observed]` The **Active revisions** tab lists the revision `ca-ops-cgedjv--dkckziz` with **Running status: Running**, **Traffic: 100%**, and **Replicas: 1**.
+
+`[Inferred]` A single active revision serving 100% of traffic with a Running replica is the expected steady state for this app, so this snapshot is consistent with a healthy deployment. If the latest revision is missing, shows `Provisioning failed`, or is split into multiple competing revisions, jump to the playbook linked above.
+
+`[Not Proven]` This blade does not confirm that the replica is **handling requests successfully** — only that the platform considers it Running. End-to-end health requires a probe response or a request-log entry (see Step 6 and Step 3).
 
 ## 2) Replica Status
 
@@ -117,7 +121,11 @@ Navigate: **Container App → Application → Revisions and replicas → Replica
 
 ![Replicas tab showing one running replica with revision and creation timestamp](../../assets/troubleshooting/first-10-minutes/02-replicas-tab.png)
 
-`[Observed]` The **Replicas** tab lists a single replica `ca-ops-cgedjv--dkckziz-5f495449d5-vpjzs` in **Running** state. Use this view to confirm replicas are long-lived. `[Inferred]` If you refresh the blade every 30 seconds and see the replica name change repeatedly (different pod-hash suffix), the container is crash-looping even though the revision shows healthy. That symptom maps to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
+`[Observed]` The **Replicas** tab lists a single replica `ca-ops-cgedjv--dkckziz-5f495449d5-vpjzs` in **Running** state, tied to the active revision.
+
+`[Inferred]` If you refresh the blade every 30 seconds and see the replica name change repeatedly (different pod-hash suffix), the container is crash-looping even though the revision shows healthy. That symptom maps to [Container Start Failure](../playbooks/startup-and-provisioning/container-start-failure.md).
+
+`[Not Proven]` A single observation of one Running replica does not prove the replica is long-lived; only repeated refreshes (or `kubectl`-style restart counters, which this blade does not expose) can confirm stability over time.
 
 ## 3) Container Logs
 
@@ -153,7 +161,11 @@ Navigate: **Container App → Monitoring → Log stream**.
 
 ![Log stream blade with replica/container selectors and live stdout/stderr output area](../../assets/troubleshooting/first-10-minutes/03-log-stream.png)
 
-`[Observed]` The **Log stream** blade lets you pick **Replica** and **Container** from drop-downs, then streams stdout/stderr in real time without waiting for Log Analytics ingestion. Use this when a replica has just started and Log Analytics has not yet received the first records (typical lag: 1-3 minutes). `[Not Proven]` Log stream does not show **historical** logs — only what arrives after you open the blade. For root-cause analysis of a past failure, switch to the **Logs** blade and query `ContainerAppConsoleLogs_CL`.
+`[Observed]` The **Log stream** blade exposes **Replica** and **Container** dropdowns above a console area that renders incoming stdout/stderr from the selected target.
+
+`[Inferred]` This surface is the right tool when a replica has just started and you need output immediately — it subscribes to the live log channel rather than querying ingested data, so it avoids whatever ingestion delay the workspace currently has.
+
+`[Not Proven]` The blade does not show **historical** logs — only what arrives after you open it — and the exact ingestion lag for the same lines to appear in `ContainerAppConsoleLogs_CL` is not visible here. For past failures, query the workspace through the **Logs** blade.
 
 ## 4) Image Pull
 
@@ -185,7 +197,11 @@ Navigate: **Container App → Application → Containers → Properties**.
 
 ![Containers Properties tab showing Registry login server, Image and tag fields, and resource allocation](../../assets/troubleshooting/first-10-minutes/04-containers-image-config.png)
 
-`[Observed]` The **Properties** tab under **Containers** shows the **Registry login server** (`mcr.microsoft.com`) and **Image and tag** (`k8se/quickstart:latest`) the platform is attempting to pull. `[Inferred]` If the value here does not match what you pushed, the most recent revision was created from a stale template — check your CI/CD pipeline or `az containerapp update --image` step. `[Not Proven]` This blade only shows the **configured** image reference; whether the pull succeeded must still be verified through system logs (the CLI command above) or the Activity log.
+`[Observed]` The **Properties** tab under **Containers** shows the **Registry login server** (`mcr.microsoft.com`) and **Image and tag** (`k8se/quickstart:latest`) currently configured on the active revision, along with the CPU/memory allocation for the container.
+
+`[Inferred]` If the values here do not match what your last CI/CD run pushed, the most recent revision was created from a stale template — re-check the `az containerapp update --image` step (or equivalent IaC) in the pipeline.
+
+`[Not Proven]` This blade only shows the **configured** image reference; it does not prove the pull actually succeeded. Pull success must still be verified through system logs (the CLI command above) or the Activity log.
 
 ## 5) Ingress Configuration
 
@@ -207,7 +223,11 @@ Navigate: **Container App → Networking → Ingress**.
 
 ![Ingress blade showing Ingress enabled, traffic accepting from Anywhere, target port 80, and transport Auto](../../assets/troubleshooting/first-10-minutes/05-ingress.png)
 
-`[Observed]` The **Ingress** blade shows the binary toggle (**Ingress**: enabled), the traffic-source dropdown (**Accepting traffic from**: Anywhere = external), and the **Target port** field (`80`). The **Application Url** at the top of the blade is the externally resolvable FQDN. `[Inferred]` Three common misconfigurations are visible here at a glance: (1) toggle off → no FQDN issued, (2) **Accepting traffic from** set to **VNet** while you are testing from the public internet → DNS resolves but connection times out, (3) **Target port** does not match the port your app listens on (e.g. app binds `8000` but ingress points at `80`) → connections reset with no app logs.
+`[Observed]` The **Ingress** blade shows **Ingress: enabled**, **Accepting traffic from: Anywhere**, **Target port: 80**, **Transport: Auto**, and an **Application Url** field at the top of the blade.
+
+`[Inferred]` Because **Accepting traffic from** is set to **Anywhere**, the displayed Application Url should be reachable from the public internet — this is the externally exposed FQDN for the app. Three common misconfigurations are visible here at a glance: (1) toggle off → no FQDN issued, (2) **Accepting traffic from** set to **VNet** while you are testing from the public internet → DNS resolves but connection times out, (3) **Target port** does not match the port your app listens on (e.g. app binds `8000` but ingress points at `80`) → connections reset with no app logs.
+
+`[Not Proven]` This blade does not prove the FQDN actually resolves in public DNS or that an HTTP request reaches the container — confirm with `curl -v https://<fqdn>/` from outside the VNet.
 
 ## 6) Health Probes
 
@@ -232,7 +252,11 @@ Navigate: **Container App → Application → Containers → Health probes**.
 
 ![Containers Health probes tab showing Startup, Liveness, and Readiness probe configuration](../../assets/troubleshooting/first-10-minutes/06-health-probes.png)
 
-`[Observed]` The **Health probes** tab exposes the three probe types (**Startup**, **Liveness**, **Readiness**) and lets you inspect each one's transport (HTTP/TCP/gRPC), path, port, and timing fields without parsing JSON. `[Inferred]` This is the fastest way to spot the three classic probe mistakes: (1) path returns 404 in the app's router → readiness flaps, (2) **Startup probe** timeout shorter than actual boot time (e.g. 30 s for an app that needs 60 s to warm a model) → revision never goes Ready, (3) probe **Port** does not match the container's listening port → TCP probe succeeds (port open) but HTTP probe fails. `[Not Proven]` The Portal does not show **historical** probe results; for that, query `ContainerAppSystemLogs_CL | where Reason_s in ("LivenessProbeFailed","ReadinessProbeFailed","StartupProbeFailed")` in Log Analytics.
+`[Observed]` The **Health probes** tab under **Containers** lists the three probe types — **Startup**, **Liveness**, **Readiness** — and exposes each one's transport (HTTP/TCP/gRPC), path, port, and timing fields without requiring you to parse the revision JSON.
+
+`[Inferred]` This view is the fastest way to catch the three classic probe mistakes: (1) path returns 404 in the app's router → readiness flaps, (2) **Startup probe** timeout shorter than actual boot time (e.g. 30 s for an app that needs 60 s to warm a model) → revision never goes Ready, (3) probe **Port** does not match the container's listening port → TCP probe succeeds (port open) but HTTP probe fails.
+
+`[Not Proven]` The Portal does not show **historical** probe results; for that, query `ContainerAppSystemLogs_CL | where Reason_s in ("LivenessProbeFailed","ReadinessProbeFailed","StartupProbeFailed")` in Log Analytics.
 
 ## 7) Registry Authentication
 
@@ -253,9 +277,13 @@ az role assignment list --scope "$(az acr show --name "$ACR_NAME" --query id --o
 
 Navigate: **Container App → Settings → Identity**.
 
-![Identity blade showing system-assigned managed identity enabled with Object ID and Permissions Azure role assignments link](../../assets/troubleshooting/first-10-minutes/07-identity.png)
+![Identity blade System assigned tab showing Status On, Object principal ID, and an Azure role assignments button](../../assets/troubleshooting/first-10-minutes/07-identity.png)
 
-`[Observed]` The **System assigned** tab shows **Status: On** and exposes the **Object (principal) ID** the platform uses for token requests, plus a **Permissions / Azure role assignments** link that pivots to the IAM blade scoped to this identity. The **User assigned** tab (separate) lists any user-assigned identities attached to the app. `[Inferred]` If **Status: Off**, the app cannot use managed identity at all — registry pulls fall back to admin credentials (which may be disabled on hardened ACRs) and any Key Vault references fail at revision-provisioning time. `[Not Proven]` This blade does not show **which** revisions are using the identity — that detail lives in the revision's Containers configuration.
+`[Observed]` The **System assigned** tab shows **Status: On**, an **Object (principal) ID** value, a **User assigned** sibling tab, and an **Azure role assignments** button under **Permissions**. A notice at the bottom of the blade confirms the resource is **registered with Microsoft Entra ID**.
+
+`[Inferred]` If **Status** is **Off**, the app cannot use a system-assigned managed identity at all — registry pulls fall back to admin credentials (which may be disabled on hardened ACRs) and any Key Vault references fail at revision-provisioning time. The **Azure role assignments** button is the quickest way to verify that this Object ID actually holds `AcrPull` (or whatever role) on the registry scope.
+
+`[Not Proven]` This blade does not show which **revisions** are currently using the identity, nor whether a recent role assignment has propagated through Entra ID — propagation can lag image-pull attempts by minutes.
 
 ## 8) Secrets and Config
 
@@ -271,6 +299,9 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 - Confirm secret references exist and expected environment variables are present.
 - Failure patterns: `secretRef` points to missing secret, null env var values, stale revision after secret update.
 - If failed → go to [Secret and Key Vault Reference Failure](../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) and [Revision Provisioning Failure](../playbooks/startup-and-provisioning/revision-provisioning-failure.md).
+
+!!! note "Portal capture intentionally omitted for this step"
+    The Portal **Secrets** blade is intentionally not captured for this step. The CLI commands above are authoritative because they print secret **references** (env-var name → secret name → Key Vault URI) in a single output, which the Portal splits across multiple blades. Use the CLI as the source of truth for triage; open the Portal **Secrets** blade only when you need the inline edit/version UI.
 
 ## 9) Environment and Network
 
@@ -293,7 +324,11 @@ Navigate: **Container Apps Environment → Overview**.
 
 ![Container Apps Environment overview blade with status, location, subscription, and links to Log Analytics and apps](../../assets/troubleshooting/first-10-minutes/09-environment-overview.png)
 
-`[Observed]` The **Environment** Overview shows **Status: Succeeded**, the linked **Log Analytics workspace**, the **Environment type** (Workload profiles or Consumption only), and the list of Container Apps deployed inside. `[Inferred]` If the environment is in a custom VNet, the Overview also exposes the **Infrastructure subnet** — verify outbound rules on its NSG and route table here. If the environment status is anything other than **Succeeded** (`Failed`, `Updating`, `Canceled`), every app inside is affected; fix the environment before debugging individual apps. `[Not Proven]` The Overview does not show DNS resolution success or NSG flow logs — use **Network Watcher → Connection Troubleshoot** from the environment's subnet to test specific dependency endpoints.
+`[Observed]` The **Environment** Overview blade shows **Status: Succeeded**, the linked **Log Analytics workspace**, the **Environment type** (Workload profiles or Consumption only), and the list of Container Apps deployed inside the environment.
+
+`[Inferred]` If the environment is in a custom VNet, the Overview also exposes the **Infrastructure subnet** — use that as the starting point for verifying outbound NSG rules and route tables. If the environment status is anything other than **Succeeded** (`Failed`, `Updating`, `Canceled`), every app inside is affected; fix the environment before debugging individual apps.
+
+`[Not Proven]` The Overview does not show DNS resolution success or NSG flow logs — use **Network Watcher → Connection Troubleshoot** from the environment's subnet to test specific dependency endpoints.
 
 ## 10) Dependencies
 
@@ -315,7 +350,11 @@ Navigate: **Container App → Monitoring → Console**.
 
 ![Console blade with replica and container selectors and a Choose start up command dialog offering /bin/sh, /bin/bash, or Custom](../../assets/troubleshooting/first-10-minutes/10-console.png)
 
-`[Observed]` The **Console** blade lets you select a **Replica** and **Container**, then opens an in-browser shell prompted by the **Choose start up command** dialog (`/bin/sh`, `/bin/bash`, or a custom command). Once attached, run dependency probes interactively (`nslookup`, `curl -v`, `nc -zv`) without needing `az containerapp exec` from your laptop. `[Inferred]` If **Reconnect** loops or the shell exits immediately, the container image lacks a shell (distroless / scratch base) — verify dependencies from a sidecar or rebuild with a debug image. `[Not Proven]` The Console runs **inside one replica**; a single successful probe does not prove every replica can reach the same dependency. Repeat against multiple replicas if you suspect intermittent network issues.
+`[Observed]` The **Console** blade exposes **Replica** and **Container** dropdowns and opens a **Choose start up command** dialog offering `/bin/sh`, `/bin/bash`, or a custom command before attaching an in-browser shell.
+
+`[Inferred]` Once attached, you can run dependency probes interactively (`nslookup`, `curl -v`, `nc -zv`) without needing `az containerapp exec` from your laptop, which is useful when corporate egress blocks the CLI control plane. If **Reconnect** loops or the shell exits immediately, the container image likely lacks a shell (distroless / scratch base) — verify dependencies from a sidecar or rebuild with a debug image.
+
+`[Not Proven]` The Console runs **inside one replica**; a single successful probe does not prove every replica can reach the same dependency. Repeat against multiple replicas if you suspect intermittent network issues.
 
 ## Escalate with Context
 
