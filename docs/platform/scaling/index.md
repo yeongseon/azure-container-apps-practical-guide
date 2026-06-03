@@ -90,6 +90,22 @@ graph TD
 - Worker scales from zero when queue depth rises.
 - Both apps can scale independently even inside one environment.
 
+## Portal View
+
+The **Scale** blade makes the min/max replica guardrails and scale-rule structure directly visible for any revision of a Container App.
+
+### Step 1: Open the Scale blade
+
+In the left navigation of any Container App, open **Application** → **Scale**. The blade is revision-scoped: the **Based on revision** dropdown at the top selects which revision's scale configuration you are viewing or editing.
+
+![Scale blade showing min/max replicas and an empty scale rules section](../../assets/platform/scaling/01-scale-blade-overview.png)
+
+[Observed] The header reads "ca-sample-d38538 | Scale" with command bar actions **Edit and deploy**, **Refresh**, and **Send us your feedback**. The **Based on revision** dropdown is set to `ca-sample-d38538--v2` and an informational notice reads "Not seeing your revision? Click here to find and activate an existing revision." The body shows a **Scale** tab with two sections: **Scale rule settings** containing `Min / max replicas` with value `1 - 3`, and **Scale rules** showing the message "There are no scaling rules defined for this revision."
+
+[Inferred] The revision-scoped dropdown confirms the "Scaling is revision-scoped" note above: each revision carries its own `minReplicas`, `maxReplicas`, and scale-rule set, which is why progressive rollouts can mix different scale behaviors across active revisions. The `1 - 3` value places this revision in the `minReplicas > 0` row of the **Min and Max Replicas** table — there is always a warm baseline, so cold starts are avoided at the cost of constant idle compute. The **Edit and deploy** action (rather than an inline **Save**) reflects the immutable-revision model: changing scale settings produces a new revision rather than mutating the current one.
+
+[Not Proven] The blade does not show which KEDA scaler types are available for new rules, the per-rule metadata schema (concurrent request count, queue name, polling interval), or runtime metrics such as current replica count and recent scale events. Whether the empty **Scale rules** section means HTTP scaling is using platform defaults or that no scaling will occur beyond the static `1 - 3` range cannot be determined from this view alone.
+
 ## Common Scaling Trade-offs
 
 - Lower idle cost vs cold-start sensitivity.
