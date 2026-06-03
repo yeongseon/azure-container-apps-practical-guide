@@ -122,7 +122,7 @@ az containerapp identity assign \
 
 **[Inferred]** The two-tab layout appears to map to the two identity types described in this page: **System assigned** for an identity whose lifecycle is tied to the Container App, and **User assigned** for a standalone Azure resource that can be attached to one or more apps. The presence of a single **Status** toggle on the System assigned tab is consistent with the documented constraint that a Container App can have at most one system-assigned identity. The **Save / Discard** command-bar pattern is consistent with the typical Portal edit-then-commit workflow for identity configuration.
 
-**[Not Proven]** This PNG does not show any principal ID, tenant ID, RBAC role assignment details, or the contents of the User assigned tab. The PNG does not establish whether enabling the identity triggers a new revision — that behavior is documented in the linked Microsoft Learn source and is not visible here.
+**[Not Proven]** This PNG does not show any principal ID, tenant ID, RBAC role assignment details, or the contents of the User assigned tab. It also does not establish whether enabling the identity triggers a new revision.
 
 ## Assigning Roles
 
