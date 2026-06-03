@@ -48,9 +48,9 @@ Reproduce a revision that is created but never becomes ready due to startup prob
 
 ## 1) Background
 
-This lab demonstrates what happens when a revision is accepted by the Azure Container Apps control plane but never stabilizes. The trigger misconfigures a startup probe to target a non-existent path, causing the probe to fail repeatedly. The revision exists and containers may start, but the platform marks the revision as unhealthy because it never passes the startup probe.
+This lab demonstrates what happens when a revision is accepted by the Azure Container Apps control plane but never stabilizes. The trigger misconfigures a startup probe so that it cannot succeed — either by pointing it at a path the container never serves (returns 404) **or** by pointing it at a port nothing is listening on (connection refused). Either variant causes the probe to fail repeatedly. The revision exists and containers may start, but the platform marks the revision as unhealthy because it never passes the startup probe.
 
-This pattern is distinct from API validation failures (which reject the update before creating a revision) and from port mismatches (covered in a separate lab).
+This pattern is distinct from API validation failures (which reject the update before creating a revision) and from the **app's own `ingress.targetPort`** mismatch (covered in [Ingress Target Port Mismatch](./ingress-target-port-mismatch.md)). Here the ingress target port is correct; only the **startup probe's** endpoint is misconfigured.
 
 ### Architecture
 
@@ -60,7 +60,7 @@ flowchart TD
     A[Deploy baseline app] --> B[Healthy revision running]
     B --> C[Trigger: Add bad startup probe]
     C --> D[New revision created]
-    D --> E[Startup probe targets /nonexistent]
+    D --> E[Startup probe targets bad path or port]
     E --> F[Probe fails repeatedly]
     F --> G[Revision never becomes Ready]
     G --> H[Fix: Disable startup probe]
@@ -75,14 +75,14 @@ flowchart TD
 
 ## 2) Hypothesis
 
-**IF** a startup probe is configured to target a path that returns 404 or times out, **THEN** the revision will be created but never become ready, and system logs will show `ProbeFailed` events until the probe configuration is fixed.
+**IF** a startup probe is configured to target an endpoint the container cannot satisfy (either a path that returns 404, or a port that refuses connection), **THEN** the revision will be created but never become ready, and system logs will show `ProbeFailed` events until the probe configuration is fixed.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
-| Startup probe path | Not configured or valid path | `/nonexistent` (returns 404) |
-| Latest revision health | `Healthy` | `Degraded` or `Failed` |
-| System logs | Normal startup events | `ProbeFailed` events |
-| Recovery path | No action required | Disable startup probe and deploy new revision |
+| Startup probe endpoint | Not configured or valid path+port | `/nonexistent` (404) or `port 9999` (connection refused) |
+| Latest revision health | `Healthy` | `Degraded` / `Failed` / `Unhealthy` |
+| System logs | Normal startup events | `ProbeFailed` followed by `ContainerTerminated(ProbeFailure)` |
+| Recovery path | No action required | Disable or correct startup probe and deploy new revision |
 
 ## 3) Runbook
 
@@ -315,6 +315,57 @@ revision rollout safety mechanism prevents the failing revision from receiving p
 
 Environment: `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan. App: `ca-rev-provision`, startup probe on port 9999 (app listens on 80).
 
+### Observed Evidence (Portal Captures — 2026-06-03)
+
+Reproduced in `rg-aca-lab-rev-prov` / `cae-labrevprov-j2qmuu`, `koreacentral`, Consumption plan. App: `ca-labrevprov-j2qmuu`. Startup probe set to `httpGet.path=/health`, **`port=9999`** (no listener — connection refused), `failureThreshold=3`, `periodSeconds=5`. Revision suffix `probefail1780455941`. The app's `ingress.targetPort` remained correct at 80; only the **startup probe's** port was set to 9999.
+
+!!! note "Variant: connection-refused vs 404"
+    The 2026-06-03 reproduction exercises the **wrong-port (connection refused)** variant of the hypothesis. The 2026-05-01 reproduction above exercised a closely related variant on a different environment. Both confirm the same failure mode — the revision is created but never becomes ready because the startup probe never succeeds — and the system-log signature (`ProbeFailed → ContainerTerminated(ProbeFailure)`) is identical.
+
+!!! note "Traffic-state difference between the two reproductions"
+    In the 2026-05-01 reproduction the previous healthy revision retained traffic (the standard single-revision-mode behavior when the new revision never reaches Healthy). In the 2026-06-03 reproduction, the **configured** traffic weight on the failed revision is 100% (visible in capture 02 / 03) — but with 0/1 replicas ready, no requests can actually be served. Both observations are valid: the routing layer reports configured intent independent of replica readiness, and the post-failure traffic split depends on the revision mode and the order in which configuration was applied.
+
+[Observed] The Container App **Overview** blade surfaces the failing revision under the **Revisions with Issues** tab. The revision `probefail1780455941` is listed with **Running status = Failed** and **Running status details = 1/1 Container crashing: app**.
+
+![Container App Overview showing the failed revision under Revisions with Issues](../../assets/troubleshooting/revision-provisioning-failure/01-overview-revisions-with-issues.png)
+
+[Inferred] The first-class **Revisions with Issues** tab on the Overview blade is the fastest UI signal that a recently deployed revision did not stabilize — a customer-facing engineer should land here first.
+
+[Observed] The **Revisions and replicas** blade shows two active revisions side by side: `probefail1780455941` carries **100% traffic** in a **Failed** state, while the previous revision `probe1780455700` is **Running** with **0% traffic**.
+
+![Revisions and replicas grid showing failed vs healthy revisions](../../assets/troubleshooting/revision-provisioning-failure/02-revisions-list-failed-vs-healthy.png)
+
+[Inferred] This is the failure signature unique to **runtime probe failure**: the revision is created and the routing layer is configured to send traffic to it, but no replicas ever pass the startup probe — so the traffic split is "live" while no replica can actually serve requests.
+
+[Observed] The revision detail flyout for `probefail1780455941` shows **Status = Active**, **Running status = Failed**, **Status details = 1/1 Container crashing: app**, **Active/total replicas = 0/1**, and **Traffic = 100%**.
+
+![Revision detail flyout for the failed revision](../../assets/troubleshooting/revision-provisioning-failure/03-revision-detail-failed.png)
+
+[Inferred] The `1/1 Container crashing: app` phrasing on the detail flyout is the most direct symptom-to-container mapping in the Portal — it points the investigator straight at the `app` container's startup behavior (probes, command, image) rather than at ingress or scaling.
+
+[Observed] The **Logs** tab on the revision detail (System + Historical) shows the probe failure cascade in chronological order. The visible log lines include:
+
+```text
+Reason=ProbeFailed         Msg=Container app failed startup probe, will be restarted
+Reason=ContainerTerminated Msg=Container 'app' was terminated with reason 'ProbeFailure'
+```
+
+![Revision detail Logs tab showing probe failure cascade](../../assets/troubleshooting/revision-provisioning-failure/04-revision-detail-logs-tab.png)
+
+[Strongly Suggested] The `ProbeFailed` → `ContainerTerminated(ProbeFailure)` sequence is the smoking gun for this lab's hypothesis — it directly attributes the container termination to probe failure rather than to OOM, exit code, image pull, or scaling decisions.
+
+[Observed] The **Activity log** records control-plane events for the revision update: multiple `Create or Update Container App` entries with statuses including `Succeeded` and `Accepted`.
+
+![Activity log showing Create or Update Container App events](../../assets/troubleshooting/revision-provisioning-failure/05-activity-log.png)
+
+[Inferred] The presence of `Succeeded` entries for `Create or Update Container App` shows the **control-plane** accepted the revision update — there is no API-validation rejection here. Combined with the `Failed` revision state in capture 03 and the `ProbeFailed` logs in capture 04, this isolates the failure to the **data-plane** (the container's startup probe response), not to API validation or RBAC.
+
+[Observed] The **Diagnose and solve problems** blade exposes the **Container Apps Diagnostics** entry point with categories including **Availability and Performance** (Health Probe Check, Ingress Settings Check), **Container Apps Environment**, **Dapr Components Insights**, **Configuration and Management**, **Deployment**, **SSL and Domains**, and **Networking**.
+
+![Diagnose and solve problems landing blade](../../assets/troubleshooting/revision-provisioning-failure/06-diagnose-and-solve-problems.png)
+
+[Inferred] For customer-facing support, the **Availability and Performance → Health Probe Check** tile is the recommended single-click entry point for this failure mode — it consolidates revision health, probe configuration, and recent probe failures into one Microsoft-managed diagnostic panel.
+
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
@@ -322,27 +373,29 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 ### Capture rules (apply to every screenshot)
 
 - **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+- **PII must be replaced before commit, not blacked out.** Follow the PII Replacement Rules in [AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules) — use the helper at [`scripts/portal-capture-helpers.js`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/scripts/portal-capture-helpers.js) (or the inline `browser_run_code_unsafe` snippet) which substitutes GUIDs with `00000000-0000-0000-0000-000000000000`, masks the account avatar with Portal-blue (`#0078d4`), and rewrites tenant/employee identifiers. Solid black rectangles are forbidden — they read as visual leaks and break Portal continuity.
 
-### PII masking checklist
+### PII verification checklist (verify the PNG before commit)
 
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+- [ ] No real subscription GUID anywhere (URL bar excluded — not part of PNG)
+- [ ] No real tenant GUID, no `Microsoft Non-Production` badge in top-right
+- [ ] No `ychoe@microsoft.com` or `Yeongseon Choe` anywhere
+- [ ] Subscription name reads `Visual Studio Enterprise Subscription` (not `MCAPS-*`)
+- [ ] Account avatar masked with solid **Portal-blue** (`#0078d4`), not black
+- [ ] Real customer resource group / app / environment names renamed to lab defaults if reused
 
 ### Captures to take
 
+The reproduction performed on 2026-06-03 (see **Observed Evidence (Portal Captures)** above) produced the following 6 canonical captures. Reuse the same filenames when re-reproducing on a fresh environment.
+
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
-| 1 | After the bad startup probe revision is created | Container App → Revisions | Full revisions list showing the newest revision in `Failed` / `Degraded` state | `revision-provisioning-failure-revisions-failed.png` |
-| 2 | During diagnosis | Container App → Revisions → latest failed revision | Revision detail showing status / events for the startup probe failure | `revision-provisioning-failure-revision-detail.png` |
-| 3 | During diagnosis | Container App → Monitoring → Logs | KQL `ContainerAppSystemLogs_CL | where Reason_s in ("ProbeFailed", "ContainerTerminated") | order by TimeGenerated desc` | `revision-provisioning-failure-system-logs.png` |
-| 4 | During diagnosis | Container App → Containers / Health probes | Full health probe configuration showing the bad startup probe path or port | `revision-provisioning-failure-probe-config.png` |
-| 5 | After the startup probe is removed or corrected | Container App → Revisions | Latest revision shows `Healthy` / `Provisioned` after the fix | `revision-provisioning-failure-after-fix.png` |
+| 1 | After the bad startup probe revision is created | Container App → Overview | **Revisions with Issues** tab showing the new failed revision | `01-overview-revisions-with-issues.png` |
+| 2 | During diagnosis | Container App → Revisions and replicas | Active revisions grid showing failed vs healthy revisions side by side | `02-revisions-list-failed-vs-healthy.png` |
+| 3 | During diagnosis | Container App → Revisions → failed revision | Revision detail flyout showing `Failed` / `Unhealthy` / `0/1 replicas` | `03-revision-detail-failed.png` |
+| 4 | During diagnosis | Revision detail → Logs tab | System + Historical logs showing `ProbeFailed → ContainerTerminated(ProbeFailure)` cascade | `04-revision-detail-logs-tab.png` |
+| 5 | During diagnosis | Container App → Activity log | `Create or Update Container App` events from the revision update | `05-activity-log.png` |
+| 6 | During diagnosis | Container App → Diagnose and solve problems | Container Apps Diagnostics landing — Availability and Performance / Deployment categories | `06-diagnose-and-solve-problems.png` |
 
 ### Asset path
 
@@ -350,16 +403,12 @@ Save PNGs to `docs/assets/troubleshooting/revision-provisioning-failure/` (creat
 
 ### Reference captures in Observed Evidence
 
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
+Add image references inside the **Observed Evidence (Portal Captures)** subsection above, paired with `[Observed]` evidence tags. Example pattern (see the 2026-06-03 captures above for a full worked example):
 
 ```markdown
 [Observed] The new revision was created, but it never became ready because the startup probe configuration kept failing:
 
-![Failed revision caused by startup probe misconfiguration](../../assets/troubleshooting/revision-provisioning-failure/revision-provisioning-failure-revisions-failed.png)
-
-[Observed] After the bad startup probe was removed, the next revision reached a healthy provisioned state:
-
-![Healthy revision after startup probe fix](../../assets/troubleshooting/revision-provisioning-failure/revision-provisioning-failure-after-fix.png)
+![Failed revision caused by startup probe misconfiguration](../../assets/troubleshooting/revision-provisioning-failure/01-overview-revisions-with-issues.png)
 ```
 
 ## Clean Up
@@ -378,7 +427,7 @@ az group delete --name "$RG" --yes --no-wait
 
 ## See Also
 
-- [Probe and Port Mismatch Lab](./probe-and-port-mismatch.md) — covers port mismatch; this lab covers probe path mismatch
+- [Probe and Port Mismatch Lab](./probe-and-port-mismatch.md) — covers app-port mismatch; this lab covers startup-probe endpoint mismatch (bad path or bad port)
 - [Container Start Failure Playbook](../playbooks/startup-and-provisioning/container-start-failure.md)
 
 ## Sources
