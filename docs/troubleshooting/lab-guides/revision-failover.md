@@ -320,7 +320,7 @@ This **falsifies any hypothesis that the application crashed**: the failure is p
 
 ```bash
 $ curl -s -o /dev/null -w "HTTP %{http_code}\n" \
-    https://ca-labrevision-zfnp6h.ambitiouswater-88aea64c.koreacentral.azurecontainerapps.io/
+    "https://${APP_NAME}.<env-suffix>.koreacentral.azurecontainerapps.io/"
 HTTP 200
 ```
 
