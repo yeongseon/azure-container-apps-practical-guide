@@ -429,7 +429,7 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
 | 1 | During diagnosis | Container App → Identity | System-assigned identity blade with `Status: On` and object (principal) ID visible | `01-identity-blade-system-assigned-on.png` |
-| 2 | During diagnosis, before RBAC fix | Key Vault → Access control (IAM) → Role assignments | Filter by the Container App principal name; show "No role assignments found for the applied filter" | `02-kv-iam-no-role-for-app-principal.png` |
+| 2 | During diagnosis, before RBAC fix | Key Vault → Access control (IAM) → Role assignments | Filter by the Container App principal name; result count `All (0)` with `No results.` | `02-kv-iam-no-role-for-app-principal.png` |
 | 3 | During the incident | Container App → Revisions and replicas | Active revision shown as `Running` with healthy replicas while the secret-dependent endpoint is failing | `03-revisions-running-during-incident.png` |
 | 4 | During the incident | Container App → Monitoring → Metrics | `Requests` metric, last 30 minutes, split by `Status Code Category`; chart dominated by 5xx | `04-metrics-requests-5xx-during-incident.png` |
 | 5 | After the RBAC fix | Key Vault → Access control (IAM) → Role assignments | Same principal-name filter, now showing 1 result: `Key Vault Secrets User` assigned to the app principal | `05-kv-iam-role-assigned-after-fix.png` |
