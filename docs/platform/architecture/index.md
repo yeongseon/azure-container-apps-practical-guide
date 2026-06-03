@@ -352,6 +352,94 @@ Azure Container Apps also supports jobs for work that should run to completion i
 
 Architecturally, jobs share the Container Apps platform model but differ from apps in one key way: the primary unit of work is an execution that runs to completion, not an ingress-exposed service that continuously receives requests.
 
+## Portal View
+
+The diagrams above describe the architecture abstractly. This section walks through what those same concepts look like in the Azure portal, using a live Container Apps environment (`cae-basics-d38538`) and a sample app (`ca-sample-d38538`) deployed in Korea Central. Each capture is a real blade you can navigate to and confirm against your own deployment.
+
+### Step 1: Container Apps environment overview
+
+Start at the **Container Apps environment** resource. The environment is the platform boundary discussed in the *Environment Internals* section above: it owns shared networking, the KEDA-powered scaling layer, the Dapr runtime, and the Envoy-based ingress proxy. Navigate to the environment resource (`cae-basics-d38538` in the sample) to see this blade.
+
+![Container Apps environment overview blade showing Essentials panel with Resource group, Status Succeeded, Location Korea Central, Environment type Workload profiles, Static IP, Applications count, KEDA version 2.18.1, Dapr version 1.16.4-msft.7, and an Applications tab listing the hosted container apps](../../assets/platform/architecture/01-environment-overview.png)
+
+**[Observed]** The Essentials panel shows `Status : Succeeded`, `Location : Korea Central`, `Environment type : Workload profiles`, `Static IP : 4.230.156.3`, `Applications : 1`, `KEDA version : 2.18.1`, and `Dapr version : 1.16.4-msft.7`. The Applications tab below lists a single row, `ca-sample-d38538`, with `App Type : Container App` and `Resource Group : rg-aca-basics-d38538`.
+
+**[Inferred]** The presence of `KEDA version` and `Dapr version` fields directly in the environment Essentials panel confirms what the architecture diagram shows: KEDA-powered scaling and the optional Dapr sidecar runtime are environment-level capabilities, not per-app installations. The `Static IP` field is the egress address shared by every app in this environment, which is why environment selection is a networking-design decision and not just a deployment-target choice.
+
+**[Not Proven]** This blade does not show the Envoy ingress proxy as a discrete component. The proxy exists inside the environment per Microsoft Learn documentation but is not exposed as a separately addressable resource in the portal.
+
+### Step 2: Resource group view
+
+Next, navigate to the parent resource group (`rg-aca-basics-d38538`) to see the full set of Azure resources the environment depends on.
+
+![Resource group overview blade showing four resources: acrbasicsd38538 (Container registry), ca-sample-d38538 (Container App), cae-basics-d38538 (Container Apps Environment), and law-basics-d38538 (Log Analytics workspace)](../../assets/platform/architecture/02-resource-group-overview.png)
+
+**[Observed]** The Resources list shows four rows: `acrbasicsd38538` typed `Container registry`, `ca-sample-d38538` typed `Container App`, `cae-basics-d38538` typed `Container Apps Environment`, and `law-basics-d38538` typed `Log Analytics workspace`. The Essentials panel shows `Location : Korea Central` and `Deployments : No deployments`.
+
+**[Inferred]** A working Container Apps deployment is a small graph of Azure resources, not a single object. The Container Apps Environment and the Container App are two distinct resource types with their own lifecycle. The Container Registry holds the images that revisions reference, and the Log Analytics workspace is the observability backend that the environment forwards logs to. Deleting any one of these resources independently is possible and will produce different failure modes — this is the boundary you reason about during incident response.
+
+**[Not Proven]** The resource list does not show wiring: it cannot tell you which app uses which registry, or whether the Log Analytics workspace is the one the environment was configured to use. Those bindings live inside each resource's configuration and are visible from the corresponding blade.
+
+### Step 3: Container App overview
+
+Drill into the Container App resource itself (`ca-sample-d38538`). This is the unit you deploy, scale, and version.
+
+![Container App overview blade showing Essentials panel with Resource group, Status Running, Location Korea Central, Application Url, Container Apps Environment cae-basics-d38538, Environment type Workload profiles, Log Analytics law-basics-d38538, Development stack Generic, and left navigation with Application, Networking, Security, and Monitoring groups](../../assets/platform/architecture/03-container-app-overview.png)
+
+**[Observed]** The Essentials panel shows `Status : Running`, `Location : Korea Central`, an `Application Url` field whose value is truncated with an ellipsis (visible prefix `https://ca-sample-d38538.calmdune-5b5e37e7.koreacentral.azurecont…`), `Container Apps Environment : cae-basics-d38538`, `Environment type : Workload profiles`, `Log Analytics : law-basics-d38538`, and `Development stack : Generic`. The left navigation has expandable groups for `Application` (with child entries `Revisions and replicas`, `Containers`, `Scale`, `Volumes`), `Networking` (`Ingress`, `Custom domains`, `CORS`), `Security`, and `Monitoring` (`Log stream`, `Logs`, `Console`, `Alerts`, `Metrics`, `Dashboards with Grafana`, `Advisor recommendations`).
+
+**[Inferred]** The Essentials panel surfaces both runtime-oriented fields (`Status`, `Application Url`) and configuration-time bindings (`Container Apps Environment`, `Log Analytics`) on the same blade, which mirrors the control-plane vs data-plane split discussed earlier on this page. The left-navigation grouping also mirrors the architecture sections of this doc — `Revisions and replicas` for the revision model, `Scale` for the scaling model, `Ingress` and `Custom domains` for the networking model, and `Log stream`/`Logs` for the observability pipeline.
+
+**[Not Proven]** The overview blade exposes an `Application Url` field but does not by itself prove whether the ingress is configured as external or internal, or whether the URL is reachable from the public internet — that decision lives in the `Networking > Ingress` child blade.
+
+### Step 4: Revisions and replicas
+
+Open the **Revisions and replicas** blade to see the revision model in practice. This is the same concept described in the *Revision and Replica Model* section above.
+
+![Revisions and replicas blade showing the Microsoft Learn description that 'Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr', with an Active revisions tab listing one revision ca-sample-d38538--0uzoi59, Running status, 100 percent traffic, and 1 replica](../../assets/platform/architecture/04-revisions-and-replicas.png)
+
+**[Observed]** The blade header is `ca-sample-d38538 | Revisions and replicas` and includes the descriptive text *"Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr."* Three tabs are visible: `Active revisions`, `Inactive revisions`, `Replicas`. The Active revisions table has one row: `ca-sample-d38538--0uzoi59`, `Date created : 6/3/2026, 10:34:26 PM`, `Running status : Running`, `Traffic : 100`%, `Replicas : 1`.
+
+**[Inferred]** The revision suffix (`--0uzoi59`) is appended to the app name to form a revision-specific identifier. The fact that `Traffic` and `Replicas` are columns on a per-revision row — not on the app itself — confirms that traffic splitting and replica scaling are revision-scoped properties, which is why revisions are the right unit for rollout and rollback. The separate `Inactive revisions` and `Replicas` tabs reflect the lifecycle described in the *Revision lifecycle mental model* table: revisions can be active or inactive, and replicas are the running instances of an active revision.
+
+**[Not Proven]** This blade shows the revision identifier and traffic state but does not by itself show the image tag, environment variables, or scale rules that define what makes this revision distinct from any prior revision. Those details require opening the revision's detail panel (`View details` link) or comparing JSON snapshots between revisions.
+
+### Step 5: Containers blade (revision-bound template)
+
+The **Containers** blade is where you see why revisions are immutable: every change here saves as a *new revision* rather than mutating the current one. This is the concrete implementation of the *Revision and Replica Model* discussed above.
+
+![Containers blade showing Based on revision ca-sample-d38538--0uzoi59, Container dropdown ca-sample-d38538, tabs Properties / Environment variables / Health probes / Volume mounts, Container details with Name ca-sample-d38538, Image source Docker Hub or other registries, Image type Public, Registry login server mcr.microsoft.com, Image and tag k8se/quickstart:latest, CPU cores 0.5 (Min 0.1 Max 4), Memory (Gi) 1 (Min 0.1 Max 8), and a Save as a new revision button at the bottom](../../assets/platform/architecture/05-containers-blade.png)
+
+**[Observed]** The blade header is `ca-sample-d38538 | Containers` and the page begins with the text *"One or more containers, along with settings such as scale rules, can be specified in a container app. Edit the container app to change the configuration."* The `Based on revision` field shows `ca-sample-d38538--0uzoi59`. The `Container` dropdown is set to `ca-sample-d38538` with `Create new container` and `Delete this container` links below it. Four tabs are visible: `Properties` (active), `Environment variables`, `Health probes`, `Volume mounts`. Under Container details: `Name : ca-sample-d38538`, `Image source : Docker Hub or other registries`, `Image type : Public`, `Registry login server : mcr.microsoft.com`, `Image and tag : k8se/quickstart:latest`, `Command override` (empty), `Arguments override` (empty). Container resource allocation shows `CPU cores : 0.5` (`Min: 0.1, Max: 4`) and `Memory (Gi) : 1` (`Min: 0.1, Max: 8`). The bottom action buttons are `Save as a new revision` and `Discard`.
+
+**[Inferred]** The label `Based on revision : ca-sample-d38538--0uzoi59` (read-only, not editable) plus the bottom action button literally named `Save as a new revision` is the strongest visible proof of the immutable-revision model. You cannot edit the current revision in place — any change here forks a new revision. The four tabs (`Properties`, `Environment variables`, `Health probes`, `Volume mounts`) enumerate the revision-scope fields that, when changed, will produce a new revision; this directly mirrors the *Revision lifecycle mental model* step 1 ("A deployment changes app configuration or template fields that affect revision state").
+
+**[Not Proven]** The blade shows the current image (`mcr.microsoft.com/k8se/quickstart:latest`) but does not show image *digest*, signature, or whether the registry is private — the `Image type : Public` radio reflects the user's configuration intent, not a runtime verification of registry access.
+
+### Step 6: Scale blade (KEDA-powered rules)
+
+The **Scale** blade exposes the KEDA-powered scaling model described above as a concrete configuration surface. This is where you see that scale rules are revision-scoped and that the rule *type* — not just min/max replicas — drives behavior.
+
+![Scale blade showing Based on revision ca-sample-d38538--0uzoi59, Scale rule settings panel with Min replicas 1, Max replicas 3 (Max 1000), Cooldown period 300, Polling interval 30, Current number of replicas 1 (View Details), and a Scale rules table containing one rule named http-scaler with Type HTTP scaling](../../assets/platform/architecture/06-scale-blade.png)
+
+**[Observed]** The `Based on revision` field shows `ca-sample-d38538--0uzoi59`. The Scale rule settings explanation reads *"Control automatic scaling by setting the range of application replicas that'll be deployed in response to a trigger event. Use scale rules to determine the type of events that trigger scaling."* Fields: `Min replicas : 1` (`Min: 0`), `Max replicas : 3` (`Max: 1000`), `Cooldown period : 300`, `Polling interval : 30`, `Current number of replicas : 1 (View Details)`. The Scale rules table has one row: `Name : http-scaler`, `Type : HTTP scaling`.
+
+**[Inferred]** The fact that `Type` is a column (alongside `Name`) — not a fixed property of every app — confirms what the architecture diagram showed: scaling is pluggable, and HTTP, TCP, CPU, memory, and event-driven scalers are different rule *types* that share the same min/max/cooldown surface. The visible `Min replicas : 0` floor in the helper text (`Min: 0`) is the concrete entry point for "scale to zero" described in the *Scaling Model* section. The `Polling interval : 30` field is the cadence at which the configured scaler queries its source — this is why event-driven scale-out is not instantaneous.
+
+**[Not Proven]** The blade shows that an HTTP scaler exists but the row alone does not show the rule's threshold (concurrent requests target). That detail lives behind the rule name link. Likewise, `Current number of replicas : 1` is a point-in-time read; it does not prove how the platform reached that count or how long it has been steady.
+
+### Step 7: Ingress blade (Envoy proxy configuration)
+
+The **Ingress** blade is where the Envoy-based HTTP edge proxy described in the *Networking Model* section becomes visible as a configuration surface — terminating TLS, exposing the external endpoint, and binding to a container port.
+
+![Ingress blade with an info banner that traffic goes to the latest revision by default, Ingress enabled, Ingress traffic set to Accepting traffic from anywhere, Ingress type HTTP, Client certificate mode Ignore, Transport Auto, Target port 80, Endpoint(s) showing the public azurecontainerapps.io URL, and an IP Restrictions section with IP Security Restrictions Mode Allow all traffic (default)](../../assets/platform/architecture/07-ingress-blade.png)
+
+**[Observed]** A blue info banner reads *"When you enable Ingress, all traffic will be directed to your latest revision by default. To change traffic settings, go to the revision management page."* Below: *"Enable ingress for applications that need an HTTP or TCP endpoint."* The `Ingress` toggle is checked. `Ingress traffic` has two radio options — `Limited to Container Apps Environment` (unselected) and `Accepting traffic from anywhere` (selected). `Ingress type` shows `HTTP` selected and `TCP` greyed out. `Client certificate mode` has `Ignore` selected (alternatives `Accept`, `Require`). `Transport : Auto`. `Insecure connections : ` (unchecked). `Target port : 80`. `Endpoint(s) : https://<your-app-name>.<env-suffix>.koreacentral.azurecontainerapps.io`. `Session affinity : ` (unchecked). A collapsed `Additional TCP ports` panel is below. An `IP Restrictions` section reads *"Access restrictions allow you to define lists of allow/deny rules to control traffic to your app. If there are no rules defined then your app will accept traffic from any address."* with `IP Security Restrictions Mode : Allow all traffic (default)`.
+
+**[Inferred]** The split between `Ingress traffic` (external vs internal-only) and `Target port` (the port your container listens on) is the concrete realization of the architecture statement that the Envoy proxy "terminates TLS and routes requests to the correct app revision." The `Endpoint(s)` URL uses `https://` even though `Target port` is `80` — this confirms TLS is terminated at the ingress layer, not inside the container, which is exactly the data-plane responsibility described in the *Networking Model* section. The info banner about "all traffic will be directed to your latest revision by default" plus the link to "the revision management page" connects this blade to Step 4: traffic splitting between revisions is configured there, not here.
+
+**[Not Proven]** This blade shows that ingress is configured as external (`Accepting traffic from anywhere`) but does not by itself prove that any *specific* request was served — that requires log stream evidence or the `Endpoint(s)` URL responding. Likewise, `IP Security Restrictions Mode : Allow all traffic (default)` shows no IP allowlist is configured, but the blade does not show whether environment-level network policies (e.g., a VNet integration with NSGs) further restrict reachability.
+
 ## Design Review Checklist
 
 Use this page as a quick architecture review guide before you deploy a new workload:
