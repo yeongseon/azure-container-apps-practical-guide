@@ -55,6 +55,18 @@ az containerapp logs show \
 |---|---|
 | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
 
+### Portal view: Log stream blade
+
+Navigate: **Container App** → **Monitoring** → **Log stream**.
+
+![Log stream blade showing live container output](../../assets/operations/log-streaming/01-log-stream-blade.png)
+
+`[Observed]` The **Log stream** blade renders a live, append-only console of stdout/stderr from the selected revision. **Replica** and **Container** dropdowns at the top of the blade let you narrow the stream without leaving the page.
+
+`[Inferred]` The Portal stream is the UI-equivalent of `az containerapp logs show --follow` — both subscribe to the same live log channel exposed by the Container Apps data plane, so it is the right tool when you need output during an active incident rather than retained history.
+
+`[Not Proven]` Whether the Portal stream and the CLI stream share the exact same buffer cursor (i.e., whether they would emit identical lines for the same wall-clock window) is not verified here.
+
 Use filters when you already know the failing scope:
 
 ```bash
@@ -88,6 +100,18 @@ Streaming is best for **current** output. Log Analytics is better when you need:
 - counts and aggregations
 - cross-app or cross-revision queries
 - scheduled-query alerts
+
+### Portal view: Log Analytics workspace (retained history)
+
+Navigate: **Container App** → **Monitoring** → **Logs**.
+
+![Logs blade showing the Log Analytics query editor for the container app](../../assets/operations/log-streaming/02-log-analytics-blade.png)
+
+`[Observed]` The **Logs** blade opens the Log Analytics query editor scoped to the workspace attached to the Container Apps environment. The left tree exposes the `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL` tables. Unlike the Log stream blade, this view requires an explicit KQL query and a time range before it returns rows.
+
+`[Inferred]` This is the correct surface for **historical** analysis (counts, aggregations, cross-revision queries) because the data is persisted in the workspace per the environment's diagnostic settings. Live tailing belongs on the Log stream blade, not here.
+
+`[Not Proven]` The exact ingestion lag between a log line being emitted by the container and becoming queryable in this blade depends on workspace ingestion behavior and is not measured on this page.
 
 <!-- diagram-id: log-streaming-decision-flow -->
 ```mermaid
