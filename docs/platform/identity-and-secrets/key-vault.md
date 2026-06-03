@@ -131,7 +131,7 @@ az containerapp update \
 
 **[Inferred]** The two-column **Key** / **Value** layout is consistent with the documented Container App secret store model where each secret is a named key/value pair. The header sentence "changing secrets will not create a new revision" appears to map to the documented behavior that secret updates take effect without producing a new revision. The presence of a single primary **Add** button on an otherwise empty list appears to indicate the starting point for declaring either an inline secret value or a Key Vault reference in the portal.
 
-**[Not Proven]** This PNG does not show the Add-secret form, the type selector that distinguishes inline secrets from Key Vault references, the Key Vault URL or identity-selection fields, or any resolved secret values. It does not establish how secret references are bound to environment variables on the container, nor what RBAC role assignments are required on the referenced Key Vault.
+**[Not Proven]** This PNG does not show any secret entries, Key Vault reference type information, identity-selection details, or resolved secret values. The empty state in this capture does not establish how secret references are wired into the container, nor what RBAC role assignments exist on any referenced Key Vault.
 
 ## Step 4: Python code (SDK access)
 
