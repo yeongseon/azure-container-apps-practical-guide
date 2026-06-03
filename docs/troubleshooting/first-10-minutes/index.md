@@ -223,9 +223,9 @@ Navigate: **Container App → Networking → Ingress**.
 
 ![Ingress blade showing Ingress enabled, traffic accepting from Anywhere, target port 80, and transport Auto](../../assets/troubleshooting/first-10-minutes/05-ingress.png)
 
-`[Observed]` The **Ingress** blade shows **Ingress: enabled**, **Accepting traffic from: Anywhere**, **Target port: 80**, **Transport: Auto**, and an **Application Url** field at the top of the blade.
+`[Observed]` The **Ingress** blade shows **Ingress: enabled**, **Accepting traffic from: Anywhere**, **Target port: 80**, **Transport: Auto**, and an **Endpoint(s)** field that lists the app's URL.
 
-`[Inferred]` Because **Accepting traffic from** is set to **Anywhere**, the displayed Application Url should be reachable from the public internet — this is the externally exposed FQDN for the app. Three common misconfigurations are visible here at a glance: (1) toggle off → no FQDN issued, (2) **Accepting traffic from** set to **VNet** while you are testing from the public internet → DNS resolves but connection times out, (3) **Target port** does not match the port your app listens on (e.g. app binds `8000` but ingress points at `80`) → connections reset with no app logs.
+`[Inferred]` Because **Accepting traffic from** is set to **Anywhere**, the URL listed under **Endpoint(s)** should be reachable from the public internet — this is the externally exposed FQDN for the app. Three common misconfigurations are visible here at a glance: (1) toggle off → no FQDN issued, (2) **Accepting traffic from** set to **VNet** while you are testing from the public internet → DNS resolves but connection times out, (3) **Target port** does not match the port your app listens on (e.g. app binds `8000` but ingress points at `80`) → connections reset with no app logs.
 
 `[Not Proven]` This blade does not prove the FQDN actually resolves in public DNS or that an HTTP request reaches the container — confirm with `curl -v https://<fqdn>/` from outside the VNet.
 
@@ -252,7 +252,7 @@ Navigate: **Container App → Application → Containers → Health probes**.
 
 ![Containers Health probes tab showing Startup, Liveness, and Readiness probe configuration](../../assets/troubleshooting/first-10-minutes/06-health-probes.png)
 
-`[Observed]` The **Health probes** tab under **Containers** lists the three probe types — **Startup**, **Liveness**, **Readiness** — and exposes each one's transport (HTTP/TCP/gRPC), path, port, and timing fields without requiring you to parse the revision JSON.
+`[Observed]` The **Health probes** tab under **Containers** lists the configured probes — the visible portion of the blade shows **Liveness** and **Readiness** sections with their transport (HTTP/TCP/gRPC), path, port, and timing fields exposed as editable form fields rather than raw JSON. **Startup** probe (the third type Container Apps supports) is rendered in the same scrollable list.
 
 `[Inferred]` This view is the fastest way to catch the three classic probe mistakes: (1) path returns 404 in the app's router → readiness flaps, (2) **Startup probe** timeout shorter than actual boot time (e.g. 30 s for an app that needs 60 s to warm a model) → revision never goes Ready, (3) probe **Port** does not match the container's listening port → TCP probe succeeds (port open) but HTTP probe fails.
 
