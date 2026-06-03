@@ -10,7 +10,6 @@ content_sources:
       divergence.
     based_on:
     - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/memory-scale-rule
 content_validation:
   status: verified
   last_reviewed: '2026-06-02'
@@ -28,7 +27,7 @@ content_validation:
   - claim: Azure Container Apps memory scale rules read container memory usage
       from the Kubernetes metrics API, separate from the Azure Monitor
       `MemoryPercentage` metric pipeline.
-    source: https://learn.microsoft.com/azure/container-apps/memory-scale-rule
+    source: https://learn.microsoft.com/azure/container-apps/scale-app
     verified: true
 validation:
   az_cli:
@@ -334,7 +333,6 @@ This deletes the resource group and all child resources.
 ## Sources
 
 - [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Memory scale rule - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/memory-scale-rule)
 - [Available metrics - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/metrics)
 - [Horizontal Pod Autoscaler algorithm details - Kubernetes](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details)
 - [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)
