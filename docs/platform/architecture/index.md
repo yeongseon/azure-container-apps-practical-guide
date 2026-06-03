@@ -352,6 +352,58 @@ Azure Container Apps also supports jobs for work that should run to completion i
 
 Architecturally, jobs share the Container Apps platform model but differ from apps in one key way: the primary unit of work is an execution that runs to completion, not an ingress-exposed service that continuously receives requests.
 
+## Portal View
+
+The diagrams above describe the architecture abstractly. This section walks through what those same concepts look like in the Azure portal, using a live Container Apps environment (`cae-basics-d38538`) and a sample app (`ca-sample-d38538`) deployed in Korea Central. Each capture is a real blade you can navigate to and confirm against your own deployment.
+
+### Step 1: Container Apps environment overview
+
+Start at the **Container Apps environment** resource. The environment is the platform boundary discussed in the *Environment Internals* section above: it owns shared networking, the KEDA-powered scaling layer, the Dapr runtime, and the Envoy-based ingress proxy. Navigate to the environment resource (`cae-basics-d38538` in the sample) to see this blade.
+
+![Container Apps environment overview blade showing Essentials panel with Resource group, Status Succeeded, Location Korea Central, Environment type Workload profiles, Static IP, Applications count, KEDA version 2.18.1, Dapr version 1.16.4-msft.7, and an Applications tab listing the hosted container apps](../../assets/platform/architecture/01-environment-overview.png)
+
+**[Observed]** The Essentials panel shows `Status : Succeeded`, `Location : Korea Central`, `Environment type : Workload profiles`, `Static IP : 4.230.156.3`, `Applications : 1`, `KEDA version : 2.18.1`, and `Dapr version : 1.16.4-msft.7`. The Applications tab below lists a single row, `ca-sample-d38538`, with `App Type : Container App` and `Resource Group : rg-aca-basics-d38538`.
+
+**[Inferred]** The presence of `KEDA version` and `Dapr version` fields directly in the environment Essentials panel confirms what the architecture diagram shows: KEDA-powered scaling and the optional Dapr sidecar runtime are environment-level capabilities, not per-app installations. The `Static IP` field is the egress address shared by every app in this environment, which is why environment selection is a networking-design decision and not just a deployment-target choice.
+
+**[Not Proven]** This blade does not show the Envoy ingress proxy as a discrete component. The proxy exists inside the environment per Microsoft Learn documentation but is not exposed as a separately addressable resource in the portal.
+
+### Step 2: Resource group view
+
+Next, navigate to the parent resource group (`rg-aca-basics-d38538`) to see the full set of Azure resources the environment depends on.
+
+![Resource group overview blade showing four resources: acrbasicsd38538 (Container registry), ca-sample-d38538 (Container App), cae-basics-d38538 (Container Apps Environment), and law-basics-d38538 (Log Analytics workspace)](../../assets/platform/architecture/02-resource-group-overview.png)
+
+**[Observed]** The Resources list shows four rows: `acrbasicsd38538` typed `Container registry`, `ca-sample-d38538` typed `Container App`, `cae-basics-d38538` typed `Container Apps Environment`, and `law-basics-d38538` typed `Log Analytics workspace`. The Essentials panel shows `Location : Korea Central` and `Deployments : No deployments` (no recent ARM deployments in this resource group).
+
+**[Inferred]** A working Container Apps deployment is a small graph of Azure resources, not a single object. The Container Apps Environment and the Container App are two distinct resource types with their own lifecycle. The Container Registry holds the images that revisions reference, and the Log Analytics workspace is the observability backend that the environment forwards logs to. Deleting any one of these resources independently is possible and will produce different failure modes — this is the boundary you reason about during incident response.
+
+**[Not Proven]** The resource list does not show wiring: it cannot tell you which app uses which registry, or whether the Log Analytics workspace is the one the environment was configured to use. Those bindings live inside each resource's configuration and are visible from the corresponding blade.
+
+### Step 3: Container App overview
+
+Drill into the Container App resource itself (`ca-sample-d38538`). This is the unit you deploy, scale, and version.
+
+![Container App overview blade showing Essentials panel with Resource group, Status Running, Location Korea Central, Application Url, Container Apps Environment cae-basics-d38538, Environment type Workload profiles, Log Analytics law-basics-d38538, Development stack Generic, and left navigation with Application, Networking, Security, and Monitoring groups](../../assets/platform/architecture/03-container-app-overview.png)
+
+**[Observed]** The Essentials panel shows `Status : Running`, `Location : Korea Central`, `Application Url : https://ca-sample-d38538.calmdune-5b5e37e7.koreacentral.azurecontainerapps.io`, `Container Apps Environment : cae-basics-d38538`, `Environment type : Workload profiles`, `Log Analytics : law-basics-d38538`, and `Development stack : Generic`. The left navigation has expandable groups for `Application` (with child entries `Revisions and replicas`, `Containers`, `Scale`, `Volumes`), `Networking` (`Ingress`, `Custom domains`, `CORS`), `Security`, and `Monitoring` (`Log stream`, `Logs`, `Console`, `Alerts`, `Metrics`, `Dashboards with Grafana`, `Advisor recommendations`).
+
+**[Inferred]** The Essentials panel makes the control-plane vs data-plane split concrete: `Status` and `Application Url` reflect runtime data-plane state (the app is reachable and serving), while `Container Apps Environment` and `Log Analytics` are control-plane bindings established at configuration time. The left-navigation grouping mirrors the architecture sections of this page — `Revisions and replicas` for the revision model, `Scale` for the scaling model, `Ingress` and `Custom domains` for the networking model, and `Log stream`/`Logs` for the observability pipeline.
+
+**[Not Proven]** The Application Url shown is reachable from the public internet in this case, but this blade does not by itself prove the ingress is configured as external — that decision lives in the `Networking > Ingress` child blade, not the overview.
+
+### Step 4: Revisions and replicas
+
+Open the **Revisions and replicas** blade to see the revision model in practice. This is the same concept described in the *Revision and Replica Model* section above.
+
+![Revisions and replicas blade showing the Microsoft Learn description that 'Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr', with an Active revisions tab listing one revision ca-sample-d38538--0uzoi59, Running status, 100 percent traffic, and 1 replica](../../assets/platform/architecture/04-revisions-and-replicas.png)
+
+**[Observed]** The blade header is `ca-sample-d38538 | Revisions and replicas` and includes the descriptive text *"Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr."* Three tabs are visible: `Active revisions`, `Inactive revisions`, `Replicas`. The Active revisions table has one row: `ca-sample-d38538--0uzoi59`, `Date created : 6/3/2026, 10:34:26 PM`, `Running status : Running`, `Traffic : 100`%, `Replicas : 1`.
+
+**[Inferred]** The revision suffix (`--0uzoi59`) is appended to the app name to form a globally unique, immutable identifier. The fact that `Traffic` and `Replicas` are columns on a per-revision row — not on the app itself — confirms that traffic splitting and replica scaling are revision-scoped properties, which is why revisions are the right unit for rollout and rollback. The separate `Inactive revisions` and `Replicas` tabs reflect the lifecycle described in the *Revision lifecycle mental model* table: revisions can be active or inactive, and replicas are the running instances of an active revision.
+
+**[Not Proven]** This blade shows the revision identifier and traffic state but does not by itself show the image tag, environment variables, or scale rules that define what makes this revision distinct from any prior revision. Those details require opening the revision's detail panel (`View details` link) or comparing JSON snapshots between revisions.
+
 ## Design Review Checklist
 
 Use this page as a quick architecture review guide before you deploy a new workload:
