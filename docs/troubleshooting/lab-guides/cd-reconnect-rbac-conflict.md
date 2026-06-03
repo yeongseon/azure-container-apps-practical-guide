@@ -332,23 +332,30 @@ The five captures below were taken end-to-end after running `./trigger.sh` (repr
 
 ![Resource group Deployments list showing lab-ra-reconnect Failed](../../assets/troubleshooting/cd-reconnect-rbac-conflict/01-deployments-list.png)
 
-[Observed] Opening the failed `lab-ra-reconnect` deployment surfaces the ARM error banner: "The role assignment already exists. The ID of the existing role assignment is `f20aea0020b1586db8fb747527f778c8`". The status is `Conflict` (HTTP 409) and the deployment was rejected by the Authorization resource provider before any other resource was modified:
+[Observed] Opening the failed `lab-ra-reconnect` deployment surfaces the ARM error banner: "The role assignment already exists. The ID of the existing role assignment is `f20aea0020b1586db8fb747527f778c8`". The deployment row is marked **Failed** with status `Conflict` (HTTP 409).
 
 ![Failed reconnect deployment detail with RoleAssignmentExists error](../../assets/troubleshooting/cd-reconnect-rbac-conflict/02-deployment-failed-detail.png)
 
-[Observed] Navigating to the ACR's **Access control (IAM) → Role assignments** tab and filtering by `github-actions-lab` confirms that exactly one orphaned `AcrPush` assignment is held by the simulated CD service principal on the registry scope — this is the same triple `(scope=ACR, principal=SP, role=AcrPush)` that ARM is trying to re-create:
+[Inferred] Because the error originates from the Authorization resource provider on the `roleAssignments` write itself, ARM rejected the deployment at the role-assignment step rather than after creating downstream resources. (Cannot be proven from this capture alone — confirmed via the CLI evidence in the preceding subsection, where the second deployment of `infra/role-assignment.bicep` fails with the same `RoleAssignmentExists` code and no other resources are touched.)
+
+[Observed] Navigating to the ACR's **Access control (IAM) → Role assignments** tab and filtering by `github-actions-lab` shows exactly one `AcrPush` assignment held by the simulated CD service principal on the registry scope:
 
 ![ACR IAM showing single orphaned AcrPush assignment before recovery](../../assets/troubleshooting/cd-reconnect-rbac-conflict/03-iam-orphaned-assignment.png)
 
-[Observed] After `./verify.sh` deletes the orphaned assignment with `az role assignment delete --ids ...` and re-runs the ARM deployment with the same fresh `roleAssignmentName`, the **`lab-ra-verify-recovery`** deployment completes successfully — the green "Your deployment is complete" banner confirms the conflict was the sole blocker:
+[Inferred] This is the `(scope=ACR, principal=SP, role=AcrPush)` triple that ARM is trying to re-create in the failed deployment — the uniqueness collision is the proximate cause of the `RoleAssignmentExists` error.
+
+[Observed] After `./verify.sh` deletes the orphaned assignment with `az role assignment delete --ids ...` and re-runs the ARM deployment with the same fresh `roleAssignmentName`, the **`lab-ra-verify-recovery`** deployment shows the green "Your deployment is complete" banner:
 
 ![Recovered deployment lab-ra-verify-recovery showing Succeeded state](../../assets/troubleshooting/cd-reconnect-rbac-conflict/04-deployment-recovered.png)
 
-[Observed] Returning to ACR IAM with the same `github-actions-lab` filter shows the final state: still exactly one active `AcrPush` assignment for the service principal (not zero, not two). The visible row is the freshly created assignment (new GUID `3dff3c6b-d97c-4a23-a34d-107c9a0af29f` per CLI output, rendered as the zero-GUID placeholder in the capture), proving the recovery restored the expected RBAC state without leaving residue:
+[Observed] Returning to ACR IAM with the same `github-actions-lab` filter shows exactly one active `AcrPush` assignment for the service principal (not zero, not two) — the post-recovery cardinality is unchanged from the pre-recovery state:
 
 ![ACR IAM after recovery showing single active AcrPush assignment](../../assets/troubleshooting/cd-reconnect-rbac-conflict/05-iam-after-fix.png)
 
-[Inferred] The progression Deployments-list → Failed-detail → IAM-before → Recovered-detail → IAM-after is **strongly consistent with** the hypothesis that a pre-existing `(scope, principal, role)` triple on the registry is the sole blocking factor for the ARM `Microsoft.Authorization/roleAssignments` write, and that `az role assignment delete --ids` followed by a retry restores convergence without disrupting any other resource. The Portal evidence corroborates the CLI evidence in the preceding subsection.
+!!! note "Capture #5 is intentionally visually identical to capture #3"
+    Both captures show a single row with the same PII-rewritten zero-GUID, because the assignment-name GUID is sanitized by the Portal capture helper. The point of capture #5 is to demonstrate **cardinality preservation** (the recovery did not leave residue and did not double-assign), not to visually distinguish the new assignment from the old one. The underlying GUID difference (old `f20aea00-20b1-586d-b8fb-747527f778c8` → new `3dff3c6b-d97c-4a23-a34d-107c9a0af29f`) is shown in the CLI evidence above and in `verify.sh` step 5's output.
+
+[Inferred] The progression Deployments-list → Failed-detail → IAM-before → Recovered-detail → IAM-after is **strongly consistent with** the hypothesis that a pre-existing `(scope, principal, role)` triple on the registry is the blocking factor for the ARM `Microsoft.Authorization/roleAssignments` write, and that `az role assignment delete --ids` followed by a retry restores convergence. The Portal evidence corroborates the CLI evidence in the preceding subsection; it does not independently exclude other simultaneous blockers (deny assignments, policy assignments, propagation delays), which the `### Falsification` checks below are designed to rule out.
 
 ### Falsification
 
@@ -357,7 +364,9 @@ The hypothesis is falsified if any of the following occur:
 - The second ARM deployment succeeds without error → contradicts the RBAC uniqueness constraint on `(scope, principal, role)`.
 - Deleting the conflicting assignment does not allow the retried deployment to succeed → suggests a different blocking factor (for example, deny assignment, management lock, or policy assignment).
 - The conflict reproduces even when no prior role assignment exists for the principal on the registry scope → suggests an unrelated cause such as a deny assignment or a tenant-wide RBAC policy.
-- A direct `az role assignment create` with the same triple returns success while the ARM deployment fails → expected; this confirms the ARM-vs-CLI behavior difference rather than falsifying the hypothesis.
+
+!!! note "Not a falsifier: ARM-fails / CLI-succeeds asymmetry"
+    A direct `az role assignment create` with the same `(scope, principal, role)` triple returning success while the ARM deployment fails does **not** falsify the hypothesis. Modern Azure CLI is idempotent and returns the existing assignment instead of erroring; ARM enforces the uniqueness constraint at the resource-write level. The asymmetry is expected and is itself supporting evidence for the hypothesis, not a counter-example.
 
 If the trigger script does not produce `RoleAssignmentExists` on the second deployment, capture `/tmp/cd-rbac-conflict.log`, confirm the first deployment created the assignment (`az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID"`), and rerun after a 30-second wait to allow RBAC propagation.
 
