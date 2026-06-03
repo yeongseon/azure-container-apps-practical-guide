@@ -145,6 +145,16 @@ configuration:
 !!! tip "Use labels and weights together"
     Labels solve validation and partner routing. Weights solve production migration. Treat them as complementary controls, not substitutes.
 
+## Portal view: Revisions and replicas blade
+
+![Revisions and replicas blade for a Container App with two active revisions and a 30/70 traffic split](../../assets/platform/revisions/01-revisions-replicas-blade.png)
+
+[Observed] The blade header reads `ca-sample-d38538 | Revisions and replicas` with the subtitle `Container App`. The command bar exposes `+ Create new revision`, `Save`, `Refresh`, `Deployment mode`, and `Send us your feedback`. Below the command bar a description reads "Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr. Make updates to your app by creating a new revision." with a `Learn more` link. Three tabs are rendered: `Active revisions` (selected), `Inactive revisions`, and `Replicas`. The `Active revisions` table has columns `Name`, `Date created`, `Running status`, `View Logs`, `Label`, `Traffic`, `Replicas`, and `Active`. Two rows are listed: `ca-sample-d38538--v2` with `Running` status, an empty `Label` text box, `Traffic` value `30 %`, `1` replica, and an `Active` checkbox marked; and `ca-sample-d38538--0uzoi59` with `Running` status, an empty `Label` text box, `Traffic` value `70 %`, `1` replica, and an `Active` checkbox marked.
+
+[Inferred] The two rows with traffic values that sum to 100 are consistent with the "Traffic percentages must total 100" constraint described in the Core constraints section above. The presence of two simultaneously `Active` revisions appears to map to the "Weighted split requires multiple revision mode" constraint, because single revision mode would not surface two active rows. The `Label` text box rendered inline on each row is consistent with the `label` selector documented in the Weighted traffic routing section.
+
+[Not Proven] The screenshot does not include the `Deployment mode` panel contents, so it does not show which revision mode value is currently selected. The empty `Label` text boxes on both rows are visible but the screenshot does not show whether they are read-only or editable. The `Inactive revisions` and `Replicas` tabs are present but their contents are not displayed in this capture.
+
 ## See Also
 
 - [Revisions Overview](index.md)
