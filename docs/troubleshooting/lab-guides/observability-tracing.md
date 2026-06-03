@@ -14,9 +14,9 @@ content_validation:
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
-    az_cli_version: 2.70.0
-    notes: APPLICATIONINSIGHTS_CONNECTION_STRING present confirmed; 20 requests sent to App Insights
+    tested_date: 2026-06-03
+    az_cli_version: 2.71.0
+    notes: Reproduced end-to-end in rg-aca-lab-observability (koreacentral); baseline secretRef → invalid literal → secretRef restored across revisions 0m6ek7p → 0000001 → 0000002; six Portal captures attached with PII-replacement masking. Telemetry-count claim left [Not Proven] because the baseline helloworld image ships no Application Insights SDK.
   core_claims:
   - claim: Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability.
     source: https://learn.microsoft.com/azure/container-apps/observability
@@ -319,39 +319,95 @@ Expected output:
 | Log Analytics query | Recent traces return |
 | `./labs/observability-tracing/verify.sh` | PASS |
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Reproduction — 2026-06-03)
+
+Reproduced end-to-end in `koreacentral` against resource group `rg-aca-lab-observability` using Azure CLI `2.71.0`. The Container App revisions advanced as follows:
+
+| Revision | State | Source of `APPLICATIONINSIGHTS_CONNECTION_STRING` |
+|---|---|---|
+| `ca-labobs-622oal--0m6ek7p` | Baseline (active) | `secretRef: appinsights-connection-string` |
+| `ca-labobs-622oal--0000001` | After `trigger.sh` (active) | Literal value `InstrumentationKey=...;IngestionEndpoint=https://invalid/` |
+| `ca-labobs-622oal--0000002` | After restore (active) | `secretRef: appinsights-connection-string` |
+
+CLI evidence (with PII redacted to placeholder GUIDs and lab-owned resource names):
 
 ```text
-# Step 1: Working state — APPLICATIONINSIGHTS_CONNECTION_STRING as secretRef
-az containerapp show --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
+# Baseline — secret-backed configuration
+az containerapp show --name ca-labobs-622oal --resource-group rg-aca-lab-observability \
   --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
 → [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-     "secretRef": "appinsights-conn" }]
+     "secretRef": "appinsights-connection-string" }]
 
-# Step 2: Trigger — replace with invalid literal connection string
-az containerapp update --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
-  --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid.example.com/"
-
-az containerapp show --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
+# After ./labs/observability-tracing/trigger.sh — literal invalid string applied
+az containerapp show --name ca-labobs-622oal --resource-group rg-aca-lab-observability \
   --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
 → [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-     "value": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid.example.com/" }]
+     "value": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/" }]
 
-# Step 3: Fix — restore secretRef
-az containerapp update --name ca-tracing-lab5 --resource-group rg-aca-lab-test5 \
-  --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-conn"
-
+# After restore — secretRef back in place on revision 0000002
+az containerapp update --name ca-labobs-622oal --resource-group rg-aca-lab-observability \
+  --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"
 → [{ "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-     "secretRef": "appinsights-conn" }]
+     "secretRef": "appinsights-connection-string" }]
 ```
 
-- `[Observed]` Working state: `secretRef: appinsights-conn` — env var sourced from secret.
-- `[Observed]` After trigger: `value: "InstrumentationKey=00000000-...;IngestionEndpoint=https://invalid.example.com/"` — plaintext invalid string replaces secret reference.
-- `[Observed]` After fix: `secretRef: appinsights-conn` restored.
-- `[Inferred]` Invalid literal connection string causes the App Insights SDK to fail silently; no traces appear in the portal until the valid `secretRef` is restored.
-- `[Not Proven]` Actual trace count difference in App Insights — requires SDK-enabled app (helloworld image has no AI SDK).
+Each Portal capture below documents one observable fact. `[Observed]` paragraphs cite only what is visible in the screenshot at capture time. `[Inferred]` paragraphs connect the captures across revisions to support or falsify the hypothesis.
 
-Environment: `koreacentral`, rg-aca-lab-test5, cae-lab5.
+#### Capture 1 — Container App Overview
+
+`[Observed]` The Overview blade for `ca-labobs-622oal` shows the Container App is provisioned, running, and reachable via its `azurecontainerapps.io` application URL at capture time.
+
+![Container App Overview blade for ca-labobs-622oal](../../assets/troubleshooting/observability-tracing/01-overview.png)
+
+`[Inferred]` Because the app is in a steady-state running condition, any subsequent observation of missing telemetry cannot be attributed to a failed deployment or unreachable replica — it must be attributed to the telemetry configuration itself.
+
+#### Capture 2 — Baseline environment variables (secret-backed)
+
+`[Observed]` The Containers → Environment variables tab, viewed against revision `ca-labobs-622oal--0m6ek7p` (the "Based on revision" selector at the top of the blade), shows `APPLICATIONINSIGHTS_CONNECTION_STRING` with **Source = "Reference a secret"** and **Value = "appinsights-connection-stri..."** (truncated `appinsights-connection-string` secret name).
+
+![Baseline env vars — secretRef on revision 0m6ek7p](../../assets/troubleshooting/observability-tracing/02-env-vars-baseline-secretref.png)
+
+`[Inferred]` This matches the documented control state: the connection string is injected from the secret store, so the runtime resolves it to the real Application Insights connection string at container start.
+
+#### Capture 3 — Misconfigured environment variables (literal invalid value)
+
+`[Observed]` After `./labs/observability-tracing/trigger.sh` runs, the same blade — now bound to revision `ca-labobs-622oal--0000001` — shows the same env var name with **Source = "Manual entry"** and **Value = "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"** at capture time.
+
+![Misconfigured env vars — literal value on revision 0000001](../../assets/troubleshooting/observability-tracing/03-env-vars-after-trigger-literal.png)
+
+`[Inferred]` Comparing this capture to Capture 2 falsifies any claim that the secret store was modified: only the env var's *source* was changed from secret reference to manual entry. The misconfiguration is therefore at the Container App template layer, not the Container Apps environment secret layer.
+
+#### Capture 4 — Application Insights Transaction search (no fresh telemetry)
+
+`[Observed]` Transaction search on the lab's Application Insights resource (`appi-labobs-622oal`), filtered to `Last 24 hours` and `View as: Traces`, returns an empty result table at capture time.
+
+![Application Insights Transaction search — empty](../../assets/troubleshooting/observability-tracing/04-appinsights-transaction-search.png)
+
+`[Inferred]` The empty result is consistent with the hypothesis that the invalid literal connection string blocks telemetry export. It does not on its own prove the connection string is the cause, because the baseline `azuredocs/containerapps-helloworld:latest` image also ships no Application Insights SDK (see `[Not Proven]` note below).
+
+#### Capture 5 — Logs blade KQL `traces | count` returns 0
+
+`[Observed]` On the Application Insights Logs blade, the query `traces | count` executes and returns a single row with `Count_ = 0` at capture time.
+
+![App Insights Logs blade — traces count is 0](../../assets/troubleshooting/observability-tracing/05-appinsights-logs-traces-count-zero.png)
+
+`[Inferred]` The zero count is consistent with telemetry export failing, but as with Capture 4, the helloworld image's lack of an Application Insights SDK means a zero count would also be observed in the baseline. This capture documents the *measurable* state during the incident; it does not by itself prove the connection-string change is responsible.
+
+#### Capture 6 — Restored environment variables (secret-backed)
+
+`[Observed]` After the restore command applies `secretref:appinsights-connection-string`, the Containers → Environment variables tab — now bound to revision `ca-labobs-622oal--0000002` — shows `APPLICATIONINSIGHTS_CONNECTION_STRING` with **Source = "Reference a secret"** and **Value = "appinsights-connection-stri..."** again at capture time. A secondary `OTEL_SERVICE_NAME` row continues to display **Source = "Manual entry"** and **Value = "ca-labobs-622oal"**.
+
+![Restored env vars — secretRef on revision 0000002](../../assets/troubleshooting/observability-tracing/06-env-vars-restored-secretref.png)
+
+`[Inferred]` Captures 2 and 6 together (both showing the same Source / Value for the same env var name, on different revision IDs) falsify any claim that the restore left the misconfiguration in place. The misconfiguration was bounded to revision `0000001` and is no longer present on the active revision `0000002`.
+
+#### Falsification summary
+
+- `[Observed]` Three distinct revision IDs (`0m6ek7p` → `0000001` → `0000002`) each carry a different env var source/value combination as documented above.
+- `[Inferred]` The `Reference a secret` ↔ `Manual entry` flip on the same env var name, bounded by `trigger.sh` and the restore command, is sufficient to confirm the *configuration-change* half of the hypothesis: the trigger does replace the working secret reference with an invalid literal.
+- `[Not Proven]` The telemetry-blocking half of the hypothesis (that the invalid connection string would actually drop traces *that the SDK is emitting*) cannot be empirically falsified here, because the baseline `azuredocs/containerapps-helloworld:latest` image used by `infra/main.bicep` does not ship an Application Insights SDK. Captures 4 and 5 are therefore consistent with the hypothesis but not a smoking gun. To upgrade this to `[Measured]`, swap the lab image for one of the reference apps under `apps/` (e.g. `apps/python/`) instrumented with the OpenTelemetry Distro for Azure Monitor.
+
+Environment: `koreacentral`, `rg-aca-lab-observability`, `cae-labobs-622oal`, `appi-labobs-622oal`, `log-labobs-622oal`.
 
 ## Portal Evidence Capture Guide
 
@@ -359,29 +415,31 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 ### Capture rules (apply to every screenshot)
 
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
+- **Full-screen browser capture only.** Capture the entire browser window (Portal command bar, breadcrumb, left navigation, and blade). Do not crop to a single chart — reviewers must be able to verify the blade, filters, revision selector, and time range.
+- **PII replacement, not redaction.** Use the [`scripts/portal-capture-helpers.js`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/scripts/portal-capture-helpers.js) helper (or the inlined `PII_SCRIPT` documented in [`AGENTS.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md)). The helper rewrites GUIDs to the zero-GUID placeholder, `MCAPS*` subscription names to `Visual Studio Enterprise Subscription`, the `Microsoft Non-Production` tenant badge to `Contoso`, employee emails / aliases / display names to `user@example.com` / `demouser` / `Demo User`, and `*.onmicrosoft.com` to `contoso.onmicrosoft.com`. The Account-menu avatar (the only DOM element that cannot be textually rewritten) is masked using Playwright's native `mask` with Portal blue (`#0078d4`) so it blends into the command bar — **never** use a black rectangle.
+- **Re-verify the committed PNG.** Open every saved PNG and confirm: no `MICROSOFT NON-PRODUCTION` badge, no real subscription ID GUIDs, no employee identities, and the avatar is the solid Portal-blue square (not black).
 
-### PII masking checklist
+### PII replacement checklist
 
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
+- [ ] All GUIDs (subscription, tenant, object, principal, resource IDs) → `00000000-0000-0000-0000-000000000000`
+- [ ] `MCAPS*` subscription names → `Visual Studio Enterprise Subscription`
+- [ ] `Microsoft Non-Production` tenant badge → `Contoso`
+- [ ] `*@microsoft.com` and `*@*.onmicrosoft.com` → `user@example.com`
+- [ ] `*.onmicrosoft.com` bare domains → `contoso.onmicrosoft.com`
+- [ ] Employee alias `ychoe` → `demouser`; display name `Yeongseon Choe` → `Demo User`
+- [ ] Account-menu avatar masked with Portal blue (`#0078d4`), not black
+- [ ] Search bars, filter chips, and input controls scrubbed (helper covers `input.value` and `textarea.value`)
 
-### Captures to take
+### Captures taken in the 2026-06-03 reproduction
 
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
-| 1 | Before the trigger | Container App → Revisions and replicas → latest revision → Containers / Environment variables | Show `APPLICATIONINSIGHTS_CONNECTION_STRING` sourced from a secret reference | `observability-tracing-env-before.png` |
-| 2 | During the incident | Container App → Revisions and replicas → broken revision → Containers / Environment variables | Show that the secret reference was replaced with an invalid literal connection string value | `observability-tracing-env-broken.png` |
-| 3 | During the incident | Application Insights → Transaction search | Time range `Last 15 minutes`; show missing or stale requests/traces after the bad connection string is deployed | `observability-tracing-transaction-search.png` |
-| 4 | During the incident or immediately after fix validation | Application Insights → Application map / Dependency map | Same time range, showing no fresh telemetry path updates while the app is misconfigured | `observability-tracing-application-map.png` |
-| 5 | After the fix restores the secret-backed value | Container App → Revisions and replicas → latest revision → Containers / Environment variables | Show `APPLICATIONINSIGHTS_CONNECTION_STRING` back on `secretRef` | `observability-tracing-env-after.png` |
-| 6 | After the fix | Application Insights → Transaction search | Same filters, now showing fresh requests / traces again | `observability-tracing-transaction-search-after.png` |
+| 1 | Steady state | Container App → Overview | Default overview; confirms the app is provisioned and reachable | `01-overview.png` |
+| 2 | Before the trigger | Container App → Containers → Environment variables (Based on revision `0m6ek7p`) | Shows `APPLICATIONINSIGHTS_CONNECTION_STRING` Source = "Reference a secret", Value = `appinsights-connection-stri...` | `02-env-vars-baseline-secretref.png` |
+| 3 | During the incident | Container App → Containers → Environment variables (Based on revision `0000001`) | Same env var, Source = "Manual entry", Value = invalid literal `InstrumentationKey=00000000-...;IngestionEndpoint=https://invalid/` | `03-env-vars-after-trigger-literal.png` |
+| 4 | During the incident | Application Insights `appi-labobs-622oal` → Transaction search | Time range `Last 24 hours`, View as `Traces`; empty result table | `04-appinsights-transaction-search.png` |
+| 5 | During the incident | Application Insights `appi-labobs-622oal` → Logs | KQL `traces \| count`; result row `Count_ = 0` | `05-appinsights-logs-traces-count-zero.png` |
+| 6 | After the fix | Container App → Containers → Environment variables (Based on revision `0000002`) | Same env var, Source = "Reference a secret" again, Value = `appinsights-connection-stri...` | `06-env-vars-restored-secretref.png` |
 
 ### Asset path
 
@@ -389,17 +447,7 @@ Save PNGs to `docs/assets/troubleshooting/observability-tracing/` (create the di
 
 ### Reference captures in Observed Evidence
 
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
-
-```markdown
-[Observed] The broken revision replaced the Application Insights secret reference with a literal invalid connection string:
-
-![Broken Application Insights connection string in revision env vars](../../assets/troubleshooting/observability-tracing/observability-tracing-env-broken.png)
-
-[Observed] After restoring the secret-backed configuration, new telemetry began appearing again in Application Insights:
-
-![Application Insights transaction search after fix](../../assets/troubleshooting/observability-tracing/observability-tracing-transaction-search-after.png)
-```
+Pair each PNG with a single `[Observed]` paragraph (screenshot-visible facts only) and follow it with a separate `[Inferred]` paragraph that does the cross-capture reasoning. Do **not** mix the two tags inside the same paragraph. See the six per-capture blocks above for the canonical pattern.
 
 ## Clean Up
 
