@@ -93,7 +93,7 @@ flowchart TD
 
 ## Portal View: Container App Job as a Distinct Resource Type
 
-![Container App Job overview blade | Trigger Type | Manual | Execution history | View | Parallelism | 1 | Completion count | 1](../../assets/platform/jobs/01-job-overview.png)
+![Container App Job | Trigger Type | Manual | Execution history | View | Parallelism | 1 | Completion count | 1](../../assets/platform/jobs/01-job-overview.png)
 
 **[Observed]** `cj-sample-d38538`. `Container App Job`. `Run now`. `Suspend`. `Refresh`. `Delete`. `Resource group`. `rg-aca-basics-d38538`. `Location`. `Korea Central`. `Subscription`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `00000000-0000-0000-0000-000000000000`. `Container Apps Environme...`. `cae-basics-d38538`. `Log Analytics`. `law-basics-d38538`. `Workload profile`. `Consumption`. `Properties`. `Job`. `Provisioning status`. `Succeeded`. `Trigger Type`. `Manual`. `Execution history`. `View`. `Configuration`. `Replica timeout`. `300`. `Replica retry limit`. `1`. `Advanced`. `Parallelism`. `1`. `Completion count`. `1`.
 
