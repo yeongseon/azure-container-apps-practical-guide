@@ -518,6 +518,16 @@ az monitor log-analytics query \
   --output table
 ```
 
+### Verify security hardening surfaces in Azure Portal
+
+![ca-sample-d38538 | Ingress | Container App | Refresh | Send us your feedback | Ingress | Ingress traffic | Limited to Container Apps Environment | Accepting traffic from anywhere | Ingress type | HTTP | TCP | Client certificate mode | Ignore | Accept | Require | Transport | Auto | Insecure connections | Target port | 80 | Endpoint(s) | https://<app-name>.<unique-id>.<region>.azurecontainerapps.io | Session affinity | Additional TCP ports | IP Restrictions | IP Security Restrictions Mode | Allow all traffic (default) | Save | Discard](../assets/best-practices/security-ingress-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Ingress` `Container App` `Refresh` `Send us your feedback` `Ingress` `Ingress traffic` `Limited to Container Apps Environment` `Accepting traffic from anywhere` `Ingress type` `HTTP` `TCP` `Client certificate mode` `Ignore` `Accept` `Require` `Transport` `Auto` `Insecure connections` `Target port` `80` `Endpoint(s)` `https://<app-name>.<unique-id>.<region>.azurecontainerapps.io` `Session affinity` `Additional TCP ports` `IP Restrictions` `IP Security Restrictions Mode` `Allow all traffic (default)` `Save` `Discard`.
+
+**[Inferred]** The `Limited to Container Apps Environment` radio option appears to map to the internal-scope guidance in [Use internal environments for sensitive workloads](#use-internal-environments-for-sensitive-workloads), which is consistent with restricting ingress to the environment boundary. The `Accepting traffic from anywhere` radio paired with the external `Endpoint(s)` value is consistent with the public-surface concern in [Restrict ingress to internal for backend services](#restrict-ingress-to-internal-for-backend-services), which treats external ingress as the exposure surface to constrain. The `IP Security Restrictions Mode` `Allow all traffic (default)` value is consistent with the explicit allow-list expectation in [Configure egress filtering](#configure-egress-filtering), which treats the default-allow posture as the baseline to tighten. The `Client certificate mode` selector with `Ignore`, `Accept`, and `Require` options appears to map to the authentication-at-ingress guidance in [Enable Easy Auth to require authentication](#enable-easy-auth-to-require-authentication), which is consistent with enforcing authentication at the ingress edge.
+
+**[Not Proven]** Whether the displayed `Client certificate mode` is set to `Ignore`, `Accept`, or `Require` is not visible on this view. The configured IP allow or deny rules under `IP Restrictions` are not visible on this view. The Easy Auth identity provider configuration is not visible on this view. The Dapr mTLS state and Key Vault reference bindings are not visible on this view.
+
 ## Common Mistakes / Anti-Patterns
 
 | Anti-Pattern | Risk | Fix |
