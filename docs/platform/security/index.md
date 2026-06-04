@@ -360,7 +360,7 @@ Principles:
 
 [Inferred] The `Grant access to this resource` card with its `Add role assignment` button is consistent with the per-resource scoping that the [Least-Privilege Assignment Pattern](#least-privilege-assignment-pattern) diagram describes — RBAC bindings created at the Container App resource rather than at the resource group. The `Roles` tab label is consistent with the catalog framing in the [Built-in Roles for Container Apps](#built-in-roles-for-container-apps) table, which lists `Contributor`, `Container Apps Contributor`, `Reader`, and `Monitoring Reader` as the principal role choices an operator would pick from. The presence of a `Deny assignments` tab alongside `Role assignments` is consistent with this page's broader RBAC framing as both an allow surface and an exception surface.
 
-[Not Proven] This image does not show the contents of the `Role assignments`, `Roles`, or `Deny assignments` tabs, so the actual list of principals, the actual catalog of built-in and custom roles, and any existing deny rules are not visible here. The image does not show the role-assignment dialog that opens after clicking `Add role assignment`, so the role picker and scope picker referenced in the role-assignment workflow are outside the scope of this capture.
+[Not Proven] This image does not show the contents of the `Role assignments`, `Roles`, or `Deny assignments` tabs, so the actual list of principals, the actual catalog of built-in and custom roles, and any existing deny rules are not visible here. No secondary pane, dialog, or result panel is rendered in this capture, so any controls beyond the buttons and labels shown here are outside the scope of this image.
 
 ## Data Protection
 
