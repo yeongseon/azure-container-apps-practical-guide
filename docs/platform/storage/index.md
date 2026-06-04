@@ -378,7 +378,7 @@ flowchart TD
 
 **[Inferred]** The `Replicas` `1 (Show replicas)` value is consistent with the per-replica ephemeral storage budget described in [Ephemeral Storage](#ephemeral-storage).
 
-**[Not Proven]** The configured vCPU allocation that determines the ephemeral storage budget is not visible on this view. The mounted Azure Files volumes and their sub paths are not visible on this view. The EmptyDir volume definitions shared across containers in this replica are not visible on this view. The container-scoped storage usage relative to the budget is not visible on this view.
+**[Not Proven]** The configured vCPU allocation is not visible on this view. The mounted Azure Files volumes and their sub paths are not visible on this view. The EmptyDir volume definitions are not visible on this view. The container-scoped storage usage is not visible on this view.
 
 ## See Also
 
