@@ -77,6 +77,18 @@ Solid arrows show runtime data flow. Dashed arrows show identity, authentication
     Keep deployment-time concerns (image pull, identity assignment, RBAC) in infrastructure automation,
     and runtime concerns (timeouts, retries, circuit breaking) in application configuration.
 
+## Portal view: resource group as the visible dependency boundary
+
+This screenshot is used here as a visual companion to the [Architecture](#architecture) diagram and the [Dependency Classification Matrix](#dependency-classification-matrix), focusing on the resource types visibly listed in the resource group.
+
+![Resource group overview blade showing four resources: "acrbasicsd38538" (Container registry), "ca-sample-d38538" (Container App), "cae-basics-d38538" (Container Apps Environment), and "law-basics-d38538" (Log Analytics workspace); Essentials panel showing "Location" Korea Central and "Deployments" No deployments](../../assets/platform/architecture/02-resource-group-overview.png)
+
+[Observed] The Resources list shows four rows: "acrbasicsd38538" with Type "Container registry", "ca-sample-d38538" with Type "Container App", "cae-basics-d38538" with Type "Container Apps Environment", and "law-basics-d38538" with Type "Log Analytics workspace". The Essentials panel shows "Location : Korea Central" and "Deployments : No deployments".
+
+[Inferred] The separate `Container registry`, `Container App`, and `Container Apps Environment` rows are consistent with this page's [Architecture](#architecture) diagram treating image source, application runtime, and environment boundary as different parts of the deployment. The `Container registry` row appears to map directly to the `Azure Container Registry` row in the [Dependency Classification Matrix](#dependency-classification-matrix).
+
+[Not Proven] This blade does not show which Container App uses which Container Registry. It does not show the managed identity dashed-arrow relationships shown in [Architecture](#architecture). It does not show the Microsoft Entra ID node from the same diagram. It does not show whether `Key Vault`, `Azure SQL/Cosmos DB`, or `Redis/Storage` dependencies from the [Dependency Classification Matrix](#dependency-classification-matrix) exist in this deployment. It does not show the Dapr sidecar relationship from [Architecture](#architecture).
+
 ## Dependency Classification Matrix
 
 | Dependency | Access Pattern | Primary Risk | Mitigation Baseline |
