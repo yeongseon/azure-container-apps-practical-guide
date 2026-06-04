@@ -62,6 +62,18 @@ flowchart TD
     Lowering replicas or CPU aggressively can reduce spend but degrade latency and reliability.
     Validate changes against service objectives.
 
+## Portal View: Replica Range and Scaler Type as Cost Levers
+
+The Azure Portal **Scale** blade is the surface that names the replica range and scaler type that this page's [Cost Lever Matrix](#cost-lever-matrix) treats as cost levers.
+
+![ca-sample-d38538 | Scale Based on revision ca-sample-d38538--0uzoi59 Scale rule settings Min replicas 1 Min: 0 Max replicas 3 Max: 1000 Cooldown period 300 Polling interval 30 Current number of replicas 1 (View Details) Scale rules Name Type http-scaler HTTP scaling Save as a new revision Cancel](../../assets/platform/architecture/06-scale-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Scale`. `Container App`. `Refresh`. `Send us your feedback`. `Based on revision`. `ca-sample-d38538--0uzoi59`. `Scale`. `Scale rule settings`. `Control automatic scaling by setting the range of application replicas that'll be deployed in response to a trigger event. Use scale rules to determine the type of events that trigger scaling.` `Learn more`. `Min replicas`. `1`. `Min: 0`. `Max replicas`. `3`. `Max: 1000`. `Cooldown period`. `300`. `Polling interval`. `30`. `Current number of replicas`. `1 (View Details)`. `Scale rules`. `Add`. `Name`. `Type`. `Del...`. `http-scaler`. `HTTP scaling`. `Save as a new revision`. `Cancel`.
+
+**[Inferred]** The `Min replicas` and `Max replicas` fields appear to map to the `minReplicas` and `maxReplicas` rows of this page's [Cost Lever Matrix](#cost-lever-matrix). The `Min replicas` placeholder text `Min: 0` is consistent with the floor this page's [Scale-to-Zero for Intermittent Workloads](#scale-to-zero-for-intermittent-workloads) section sets via `az containerapp update --min-replicas 0`.
+
+**[Not Proven]** CPU and memory per replica are not shown on this blade. Workload profile selection is not shown. The HTTP scaler's threshold value is not shown. Cost in currency is not shown.
+
 ## Cost Lever Matrix
 
 | Lever | Cost Impact | Reliability Impact | Recommended Guardrail |
