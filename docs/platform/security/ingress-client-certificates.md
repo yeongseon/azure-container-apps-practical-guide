@@ -174,6 +174,16 @@ az containerapp ingress cors enable \
 |---|---|
 | `az containerapp ingress cors ...` | Runs the Azure CLI operation required by the documented step. |
 
+#### Portal view: environment Networking blade (scope boundary)
+
+![Container Apps environment Networking blade showing "General", "Ingress settings", "Request Routing", "Encryption", and "Custom DNS Suffix" tabs, with "General" selected; a "Public Network Access" field with "Enable" selected and "Disable" unselected radio options; and a "Virtual network" section stating "This environment isn't integrated".](../../assets/platform/networking/02-environment-networking.png)
+
+[Observed] The blade subtitle reads `Container Apps Environment`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, and `Custom DNS Suffix`, with `General` selected. No tab is labeled `Client certificates`, and no field labeled `clientCertificateMode` is visible on the selected `General` tab.
+
+[Inferred] The presence of an `Ingress settings` tab on a blade whose subtitle is `Container Apps Environment` is consistent with this page's framing of ingress configuration as having an environment-scoped surface in addition to the app-scoped `clientCertificateMode` setting described under [Require client certificates](#2-require-client-certificates). The absence of a tab named `Client certificates` on this environment blade is consistent with this page's description of `clientCertificateMode` as a per-app `configuration.ingress` field set on the container app rather than on the environment.
+
+[Not Proven] This image does not show the contents of the `Ingress settings` tab, so whatever environment-level ingress fields exist behind that tab are outside the scope of this capture. It does not show any app-level ingress blade, so the `clientCertificateMode` radio or dropdown surface is not represented here. It does not show the `X-Forwarded-Client-Cert` header described under [Understand what the app receives](#4-understand-what-the-app-receives), and it does not show any per-path exclusion control referenced in the warning above.
+
 ## Verification
 
 ### Check ingress configuration
