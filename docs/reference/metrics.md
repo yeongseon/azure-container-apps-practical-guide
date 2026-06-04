@@ -9,7 +9,7 @@ content_sources:
     - https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics
 content_validation:
   status: verified
-  last_reviewed: '2026-06-04'
+  last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
   - claim: Azure Container Apps publishes platform metrics under the Microsoft.App/containerapps namespace, including CPU, memory, network, replica, request, and resiliency metrics.
@@ -20,6 +20,12 @@ content_validation:
     verified: true
   - claim: Container Apps metrics support Replica and Revision dimensions for splitting and filtering.
     source: https://learn.microsoft.com/azure/container-apps/metrics
+    verified: true
+  - claim: Resiliency metrics are emitted by the per-app Envoy sidecar only when a resiliency policy is attached to the receiving app and traffic originates inside the same Container Apps Environment via service discovery.
+    source: https://learn.microsoft.com/azure/container-apps/service-discovery-resiliency
+    verified: true
+  - claim: NodeCount is published under Microsoft.App/managedEnvironments only for environments that have dedicated workload profiles.
+    source: https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
     verified: true
 ---
 # Azure Container Apps Metrics Reference
@@ -105,6 +111,335 @@ If you change the CPU/memory limits on a revision, the denominator changes for a
 
 !!! warning "Percentage metrics are not KEDA scaler utilization"
     The KEDA `cpu` and `memory` scalers report `utilization` against their own targets (the value you put in `--scale-rule-metadata value=...`). `CpuPercentage` and `MemoryPercentage` are independent Azure Monitor metrics. They can disagree on the same replica because the denominator and aggregation window differ. See [CPU and memory scaler](../platform/scaling/cpu-memory-scaler.md) and [Memory percentage vs. KEDA utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md).
+
+## What each metric means
+
+The catalog tables above are the lookup index. This section explains, in plain language, what each metric actually measures, when it moves, what a normal value looks like, and which playbook to open when it goes wrong. The numeric examples are drawn from a live load test described in [How these numbers were produced](#how-these-numbers-were-produced).
+
+!!! info "Scope of this pass"
+    This page prioritizes **full metric coverage with verified live data** (18 of 19 metrics emitted non-zero values during the test described below; `ResiliencyConnectTimeouts` is documented as baseline-zero with a labelled explanation). Portal Metrics-blade screenshots are present for `CpuPercentage` and `MemoryPercentage`; expanding screenshot coverage to every metric is tracked as separate follow-up work. The numeric samples in each section were observed via `az monitor metrics list` against the deployed test apps.
+
+!!! tip "Alert thresholds in this page are starting points"
+    Every "alert at X%" or "page when Y > Z" suggestion below is a **starting point** to think with, not a universal default. The test workload is intentionally extreme (sustained ~145 RPS against a 0.5 vCPU app, deliberate 503s, 4-second slow endpoints). Tune thresholds against your own baseline distribution before promoting them to paging rules.
+
+### `UsageNanoCores` — CPU Usage
+
+Absolute CPU consumption of a replica, reported in nanocores (1 vCPU = 1,000,000,000 nanocores). This is the raw numerator behind `CpuPercentage`. A replica configured with `--cpu 0.5` is allowed to burn up to 500,000,000 nanocores before the kernel throttles it.
+
+| Property | Value |
+|---|---|
+| Unit | Nanocores |
+| Recommended aggregation | `Average` for sustained load, `Maximum` for spike detection |
+| Useful split | `replicaName` to see which replica is hot |
+| Goes up when | The container does work — request handling, GC, background threads |
+| Stays flat when | The container is idle, the replica is descheduled, or CFS quota is throttling it (in which case `CpuPercentage` pegs near 100% and `UsageNanoCores` plateaus at the limit) |
+| Sample observed | ~990,000,000 nanocores per replica averaged across 10 replicas under sustained load (≈0.99 vCPU per replica against a 0.5 vCPU limit on a bursting profile) |
+
+Pair with `CpuPercentage` to know whether a high absolute value means "working hard" (low percentage) or "throttled" (near-100% percentage). See [CPU throttling playbook](../troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md).
+
+### `WorkingSetBytes` — Memory Working Set Bytes
+
+Resident set size of the container process — the amount of physical memory the kernel is currently keeping in RAM for this replica. This is the numerator behind `MemoryPercentage`. It includes anonymous pages, file-backed pages that are mapped and active, and stack/heap, but excludes swapped-out pages and unreferenced file cache.
+
+| Property | Value |
+|---|---|
+| Unit | Bytes |
+| Recommended aggregation | `Average` to track baseline drift, `Maximum` to catch the peak before an OOM |
+| Useful split | `replicaName` to find a leaking replica |
+| Goes up when | The application allocates and retains memory — request buffers, caches, leaks |
+| Stays flat when | The runtime has reached steady-state allocation and is reusing freed memory rather than growing the heap |
+| Sample observed | ~790,000,000 bytes per replica (≈753 MiB) under sustained load against a 1 GiB limit on the test app |
+
+A monotonically rising `WorkingSetBytes` curve over hours is the classical signature of a memory leak. See [Memory leak OOMKilled playbook](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md).
+
+### `RxBytes` — Network In Bytes
+
+Cumulative bytes received by the replica's network namespace during the aggregation interval, summed across all interfaces. This is total inbound network volume, not just HTTP request bodies — it includes TCP/TLS overhead, health-probe traffic, and intra-environment service-to-service calls.
+
+| Property | Value |
+|---|---|
+| Unit | Bytes |
+| Recommended aggregation | `Total` per interval to see throughput |
+| Useful split | `replicaName` to compare replicas |
+| Goes up when | Clients send requests, peer apps send service-to-service calls, or large request bodies hit the replica |
+| Stays flat when | Traffic is routed elsewhere (uneven load balancing — see [Replica load imbalance playbook](../troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md)), or the ingress proxy is buffering and not forwarding |
+| Sample observed | ~700,000 bytes per minute per replica under ~145 RPS aggregate load |
+
+### `TxBytes` — Network Out Bytes
+
+Cumulative bytes transmitted by the replica's network namespace during the aggregation interval. Includes response bodies, TLS handshake bytes, downstream API calls the replica initiates, and Container Apps platform telemetry the data plane emits.
+
+| Property | Value |
+|---|---|
+| Unit | Bytes |
+| Recommended aggregation | `Total` |
+| Useful split | `replicaName` |
+| Goes up when | The replica sends large response payloads, calls many downstream services, or streams data |
+| Stays flat when | All requests are short and responses small, or downstream calls have stopped |
+| Sample observed | ~22,000,000 bytes per minute per replica when the load profile included a `/payload?kb=512` endpoint returning 512 KiB responses |
+
+Because the response side typically dwarfs the request side for web traffic, `TxBytes` is usually 10-100× `RxBytes` on a healthy API.
+
+### `Replicas` — Replica count
+
+How many replicas were running for a revision at each sample point. This is the most direct evidence of scaler behavior: every scale-out adds a step, every scale-in removes one.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Maximum` to see the peak, `Average` for hourly billing-shape view, `Minimum` to verify `--min-replicas` is honored |
+| Useful split | `revisionName` to separate parallel revisions during a traffic split |
+| Goes up when | The scale rule fires (HTTP concurrency, queue depth, CPU/memory utilization) or `min-replicas` is raised |
+| Stays flat at the floor | Scale rules are not firing and `min-replicas` is the floor |
+| Stays flat at the ceiling | `max-replicas` has been hit — verify in revision YAML |
+| Sample observed | Scaled from 1 to 10 within ~3 minutes once HTTP concurrency exceeded 20 |
+
+If `Requests` is climbing but `Replicas` is not, see [HTTP scaling not triggering playbook](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md).
+
+### `RestartCount` — Total Replica Restart Count
+
+Number of times a replica's main container has been restarted by the Container Apps data plane. Restarts happen when the container exits non-zero, the liveness probe fails, the kernel OOM-kills the process, or the data plane recycles the replica during a controlled event.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Maximum` to see the cumulative restart count, `Total` per interval to see restart rate |
+| Useful split | `replicaName` to find the unstable replica |
+| Goes up when | The container crashes (exit non-zero), is OOM-killed, fails its liveness probe repeatedly, or panics during startup |
+| Stays at zero when | The container is healthy and the platform has not recycled it |
+| Sample observed | The test app deployed without a listening server reached `RestartCount=2` within ~5 minutes as the readiness/liveness probes failed |
+
+Any non-zero value warrants investigation. See [Crashloop OOM and resource pressure playbook](../troubleshooting/playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) and [Probe failure and slow start playbook](../troubleshooting/playbooks/startup-and-provisioning/probe-failure-and-slow-start.md).
+
+### `Requests` — Requests
+
+HTTP request count observed at the ingress layer (Envoy) for the revision. Each request is counted exactly once even if the resiliency policy retries it internally — the retries are counted under `ResiliencyRequestRetries`, not duplicated here.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Total` per interval for throughput |
+| Useful splits | `statusCodeCategory` (`2xx`/`3xx`/`4xx`/`5xx`), `statusCode` (granular), `revisionName`, `replicaName` |
+| Goes up when | Clients send traffic — external HTTPS, intra-environment service calls, health probes from outside the replica |
+| Stays at zero when | The app has no ingress configured, or all traffic is being routed to a different revision via traffic split, or DNS/networking is broken upstream of ingress |
+| Sample observed | Sustained 7,000-8,000 requests per minute (~130 RPS) across the test revision while 7 parallel `hey` load streams were running |
+
+Splitting by `statusCodeCategory` is the single most useful operational view for catching error spikes:
+
+```bash
+az monitor metrics list \
+    --resource "$RES_ID" \
+    --metric Requests \
+    --aggregation Total \
+    --interval PT5M \
+    --filter "statusCodeCategory eq '*'" \
+    --output table
+```
+
+### `CoresQuotaUsed` — Reserved Cores (per revision)
+
+Aggregate vCPU reservation for a single revision, calculated as `replicas × cpu-per-replica`. This is a *reservation*, not a *consumption* — it reflects how many cores the data plane has earmarked for the revision to satisfy its current replica count and per-replica CPU request, regardless of whether the replicas are actually doing work.
+
+| Property | Value |
+|---|---|
+| Unit | Count (vCPU) |
+| Recommended aggregation | `Maximum` for capacity planning |
+| Useful split | `revisionName` |
+| Goes up when | The revision scales out, or a new revision is provisioned with a higher CPU request |
+| Stays flat when | Replica count is stable and CPU request is unchanged |
+| Sample observed | `CoresQuotaUsed=2.5` for a revision running 5 replicas × 0.5 vCPU each |
+
+### `TotalCoresQuotaUsed` — Total Reserved Cores (per subscription)
+
+Sum of `CoresQuotaUsed` across every active revision in the subscription within the metric's region. This is what to alert on for "approaching subscription cores quota" because it matches what Azure's quota enforcement compares against.
+
+| Property | Value |
+|---|---|
+| Unit | Count (vCPU) |
+| Recommended aggregation | `Maximum` |
+| Useful split | None — this is already an aggregate |
+| Goes up when | Any container app in the subscription scales out or a new revision is provisioned |
+| Stays flat when | No revision is changing replica count or CPU request |
+| Sample observed | `TotalCoresQuotaUsed=2.5` in the test subscription where only the load-test revision was actively scaled |
+
+For the quota itself and how to raise it, see [Subscription quota exceeded playbook](../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md).
+
+### Resiliency metrics — overview
+
+The six `Resiliency*` metrics are emitted by the per-app Envoy sidecar **only when a resiliency policy is attached to the receiving app and the traffic originates inside the same Container Apps Environment** (via service discovery, not the public FQDN). They are silent for external traffic because the public ingress is a separate Envoy that does not apply the per-app resiliency policy.
+
+To populate these metrics you need:
+
+1. A target app with an internal-only ingress (`--ingress internal`).
+2. A resiliency policy attached to the target via `az containerapp resiliency create` or equivalent ARM.
+3. A caller app in the *same environment* calling the target by its simple hostname on port 80 (e.g., `http://target-app/`).
+
+See [Service-to-service connectivity failure playbook](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md) for the troubleshooting flow when these metrics stay at zero despite a policy being attached.
+
+### `ResiliencyConnectTimeouts` — Resiliency Connection Timeouts
+
+Number of upstream TCP connections that exceeded the resiliency policy's `tcpConnectionPool.connectionTimeoutInSeconds` while trying to establish. This counts connect-phase timeouts only — request-phase hangs are counted by `ResiliencyRequestTimeouts`.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Total` |
+| Goes up when | The upstream replica is unreachable at the TCP layer — destination port has no listening process and is silently dropped (no RST), or a firewall is dropping SYN packets |
+| Stays at zero when | TCP handshake completes — either the upstream is reachable, *or* the destination has a listening socket that accepts the SYN but never reads from the connection (a slow upstream is not a connect timeout) |
+| Sample observed | **[Observed]** `0` across all aggregation buckets in the test environment. **[Inferred]** The test target `ca-res-blackhole` runs `socket.listen()` without `accept()`, so the kernel's SYN backlog completes the TCP handshake on its own and Envoy's connection attempt succeeds; the subsequent HTTP request hang surfaces under `ResiliencyRequestsPendingConnectionPool` and `ResiliencyRequestTimeouts` instead of as a connect-phase timeout. **[Not Proven]** Reliably reproducing a non-zero value would likely require dropping SYN packets at L3 (a firewall DROP rule on the destination port) which a Container Apps replica cannot do without the `NET_ADMIN` capability; this was not attempted in this pass. |
+
+A non-zero value in production typically means the upstream replica died and the data plane has not yet removed it from the endpoint slice — see [Service-to-service connectivity failure playbook](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md). Treat any sustained non-zero reading as a request to investigate upstream health, not as a normal background level.
+
+### `ResiliencyEjectedHosts` — Resiliency Ejected Hosts
+
+Current number of upstream replicas that the resiliency policy's outlier detection has temporarily ejected from the load-balancing pool. Ejection happens after consecutive errors from a replica exceed the policy's threshold (`consecutiveErrors`).
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Maximum` — this is a current-state gauge, not a counter |
+| Goes up when | A replica returns more consecutive errors than the policy allows; the policy ejects it for the `interval` window |
+| Returns to zero when | The ejection window expires and the policy re-admits the host, or the unhealthy replica is replaced |
+| Sample observed | `Maximum=24` against a 2-replica target serving 503 — outlier detection ejected and re-admitted hosts repeatedly across the test window |
+
+This metric is the early-warning system for replica health. A persistently non-zero value means traffic is being concentrated on fewer healthy replicas than configured, raising load on the survivors.
+
+### `ResiliencyEjectionsAborted` — Resiliency Ejections Aborted
+
+Number of times the outlier detector wanted to eject a replica but was blocked because doing so would exceed `maxEjectionPercent`. By design, the policy refuses to eject all replicas because that would leave the caller with nowhere to send traffic.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Total` per interval |
+| Goes up when | Multiple upstream replicas are unhealthy and the policy is hitting its safety cap (commonly `maxEjectionPercent: 50` for 2-replica targets means at most 1 can be ejected; the second attempt aborts) |
+| Stays at zero when | At most one replica is unhealthy at a time, or `maxEjectionPercent` is set high enough that the cap is never reached |
+| Sample observed | `Total=7,329` against a 2-replica target where both replicas were serving 503; the policy capped ejections at 50% and aborted every additional attempt |
+
+A high `ResiliencyEjectionsAborted` value alongside non-zero `ResiliencyEjectedHosts` is the smoking gun for "I'm in a brown-out — my upstream is mostly unhealthy and traffic is being concentrated on a small surviving subset". This is a signal to scale the upstream or shed traffic.
+
+### `ResiliencyRequestRetries` — Resiliency Request Retries
+
+Number of additional request attempts the resiliency policy has issued on top of the original request. A retry policy with `numRetries: 3` can produce up to 3 additional attempts per failing original request, so a single observed external 5xx may appear as 4 attempts in this counter.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Total` per interval |
+| Goes up when | The retry policy's `retryOn` condition matches — typically `5xx`, `gateway-error`, `reset`, `connect-failure`, `retriable-status-codes` |
+| Stays at zero when | All requests succeed on the first attempt, or no retry policy is configured |
+| Sample observed | `Total=9,636` against a target serving constant 503 with retries on 503/500 and `numRetries: 3` |
+
+A sudden climb in `ResiliencyRequestRetries` is often the first signal that an upstream is degrading — the caller's success rate may still look fine because retries are hiding the failure, but capacity is being consumed disproportionately. Alert on rate of retries, not absolute count.
+
+### `ResiliencyRequestTimeouts` — Resiliency Request Timeouts
+
+Number of requests that exceeded the policy's `httpRetryPolicy.retryBackOff.maxIntervalInMilliseconds` or per-try timeout while waiting for the upstream to respond. This is the *request-phase* timeout (server slow to respond), distinct from `ResiliencyConnectTimeouts` (couldn't even open the TCP connection).
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Total` per interval |
+| Goes up when | The upstream takes longer to respond than the per-try timeout — overloaded replica, slow database call, blocked thread pool |
+| Stays at zero when | All upstream responses fit within the policy's per-try budget |
+| Sample observed | `Total=1,100` against a target with `httpRetryPolicy.timeout: 1s` calling `/slow?ms=4000` (intentional 4-second delay) |
+
+### `ResiliencyRequestsPendingConnectionPool` — Resiliency Requests Pending Connection Pool
+
+Number of requests queued in the per-target connection pool waiting for either an existing connection to become free or a new connection to be opened (up to `tcpConnectionPool.maxConnections`). Once `httpConnectionPool.http1MaxPendingRequests` is hit, additional requests fail fast with a circuit-breaker rejection rather than queuing further.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Maximum` (this is a queue depth gauge) |
+| Useful split | `replicaName` to find a caller replica that is hot |
+| Goes up when | The caller is sending more concurrent requests than the connection pool can drain — often because the upstream is slow or because the pool is tight relative to load |
+| Stays at zero when | Pool capacity comfortably exceeds in-flight request count |
+| Sample observed | `Maximum=10,488` against a 503-serving target with `tcpConnectionPool.maxConnections: 100` and ~145 RPS sustained calls |
+
+A persistently non-zero value is a sign your circuit-breaker policy is being exercised. That is by design — the policy is protecting your caller from a slow upstream — but it also means user-visible latency is climbing. Pair this metric with a downstream latency SLI.
+
+### `ResponseTime` — Average Response Time (Preview)
+
+End-to-end latency observed at the ingress proxy, measured from "request received" to "last response byte sent". Includes time the request spent in the connection pool queue, time the upstream replica spent generating the response, and time spent serializing the response back to the client.
+
+| Property | Value |
+|---|---|
+| Unit | Milliseconds |
+| Recommended aggregation | `Average` for the dashboard headline, but use a percentile view in Application Insights for SLO alerting (Azure Monitor metrics do not expose percentiles for this metric) |
+| Useful splits | `statusCodeCategory`, `statusCode` |
+| Goes up when | Upstream replicas are slow, the connection pool is queuing requests, response payloads grow large, or thread pools are saturated |
+| Sample observed | ~2,000 ms average when the load mix included a `/slow?ms=1500` endpoint at 25% of traffic; ~50 ms average for healthy 2xx-only traffic |
+
+Be aware that this is a Preview metric — Microsoft Learn flags it as not yet GA. Average is a lossy summary; a long tail of slow responses can be hidden by many fast ones. Cross-check with Application Insights `requests | summarize percentile(duration, 99) by bin(timestamp, 5m)` for percentile views.
+
+### `CpuPercentage` — CPU Usage Percentage (Preview)
+
+`UsageNanoCores ÷ (configured CPU limit in nanocores) × 100`. The denominator is the per-replica CPU limit you set with `--cpu`, not the node's total CPU.
+
+| Property | Value |
+|---|---|
+| Unit | Percent (0-100, can briefly exceed 100 due to sampling) |
+| Recommended aggregation | `Average` for trend, `Maximum` for spike detection |
+| Useful split | `replicaName` |
+| Goes up when | The replica is doing CPU-bound work — request handling, GC, computation |
+| Stays at 100% (suspiciously flat) when | The replica is being CPU-throttled by the kernel (CFS quota). Latency will climb but CPU never crosses 100% by design |
+| Sample observed | `Maximum=100.7%` (the slight overshoot is a sampling artifact) for replicas serving the `/cpu?ms=400` endpoint with `--cpu 0.5` |
+
+See [CPU throttling playbook](../troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md) for diagnosing the throttling case. Preview — do not rely on this as the sole SLO source.
+
+### `MemoryPercentage` — Memory Percentage (Preview)
+
+`WorkingSetBytes ÷ (configured memory limit in bytes) × 100`. The denominator is the per-replica memory limit you set with `--memory`, not the node's total memory.
+
+| Property | Value |
+|---|---|
+| Unit | Percent |
+| Recommended aggregation | `Average` for baseline, `Maximum` for OOM proximity |
+| Useful split | `replicaName` |
+| Goes up when | The application allocates and retains memory |
+| Hits 100% then drops to a small value | The kernel OOM-killed the process, the replica restarted, and `WorkingSetBytes` started over from baseline. Confirm with `RestartCount` |
+| Sample observed | `Maximum=72.5%` for replicas under load with `--memory 1Gi` (≈742 MiB working set against 1 GiB limit) |
+
+This is the metric to alert on for memory headroom. As a **starting point**, page when `Average > 80%` for `15m`, escalate when `Maximum > 95%` for any window — then tune against your own baseline working set. See [Memory leak OOMKilled playbook](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md).
+
+!!! warning "Not the same as KEDA `memory` scaler utilization"
+    The KEDA `memory` scaler reports its own `utilization` against the value passed to `--scale-rule-metadata value=...`. `MemoryPercentage` is independent — they share a numerator but have different denominators. See [Memory percentage vs. KEDA utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md).
+
+### `NodeCount` — Workload Profile Node Count (Preview)
+
+Current count of nodes in a dedicated workload profile within a Container Apps Environment. This metric is emitted only for environments that have one or more dedicated workload profiles (`D4`, `D8`, `E4`, `E8`, GPU variants, etc.). Consumption-profile environments do not emit this metric — they have no node count concept.
+
+| Property | Value |
+|---|---|
+| Unit | Count |
+| Recommended aggregation | `Maximum` for capacity headroom |
+| Useful split | `workloadProfileName` to break down per profile |
+| Goes up when | Apps assigned to a workload profile request enough cumulative CPU/memory to exceed the current node fleet, prompting the profile to scale within its `min-nodes` and `max-nodes` bounds |
+| Stays at the minimum when | No app on that profile is requesting more capacity than the current node count provides |
+| Sample observed | `Maximum=1` on a `D4` workload profile with `min-nodes=1, max-nodes=3` and one small app deployed |
+
+If apps land on the wrong workload profile (or no profile at all), see [Workload profile mismatch playbook](../troubleshooting/playbooks/cost-and-quota/workload-profile-mismatch.md).
+
+## How these numbers were produced
+
+The numeric samples above came from a deliberate load test environment to demonstrate that each metric publishes the expected shape of data. The topology was:
+
+| App | Role | Configuration | Drives metric(s) |
+|---|---|---|---|
+| `ca-loadtest-d38538` | Public ingress test target | `--cpu 0.5 --memory 1Gi --min-replicas 1 --max-replicas 10`, HTTP scaler at 20 concurrency | `UsageNanoCores`, `WorkingSetBytes`, `RxBytes`, `TxBytes`, `Replicas`, `Requests`, `ResponseTime`, `CpuPercentage`, `MemoryPercentage`, `CoresQuotaUsed`, `TotalCoresQuotaUsed` |
+| `ca-crashloop-d38538` | Memory-leak loop, no ingress | `--cpu 0.25 --memory 0.5Gi`, container allocates 16 MiB every 200 ms | Intended for `RestartCount` (see note below) |
+| `ca-res-503` | Resiliency target serving constant 503 | 2 replicas, `policy-503` with retries on 503/500 and outlier detection | `ResiliencyRequestRetries`, `ResiliencyEjectedHosts`, `ResiliencyEjectionsAborted`, `ResiliencyRequestsPendingConnectionPool` |
+| `ca-res-slow` | Resiliency target with 4-second response | `policy-slow` with per-try timeout of 1 second | `ResiliencyRequestTimeouts` |
+| `ca-res-pool` | Resiliency target with tight pool | `policy-pool` with `http1MaxPendingRequests: 1` | `ResiliencyRequestsPendingConnectionPool` |
+| `ca-res-blackhole` | TCP listen without accept | TCP transport, no HTTP server | `RestartCount` (probe failures), `ResiliencyRequestsPendingConnectionPool` |
+| `ca-res-caller` | Intra-environment caller | 100 threads × 5 targets via service discovery (`http://target-name`) | Drives traffic into the four resiliency targets above |
+| `cae-wp-d38538` | Dedicated workload profile environment | `D4` profile, `min-nodes=1, max-nodes=3`, one app deployed | `NodeCount` |
+
+Load was generated by 7 parallel `hey` processes against the public endpoint of `ca-loadtest-d38538` (a mix of `/cpu`, `/mem`, `/slow`, `/error`, `/payload`) and by `ca-res-caller` issuing intra-environment calls to the four resiliency targets on port 80 (Container Apps service discovery routes hostname-only URLs through the env-internal ingress proxy on port 80, regardless of the target's `--target-port`).
+
+!!! info "Why `ResiliencyConnectTimeouts` did not move"
+    `ca-res-blackhole` calls `socket.listen()` without `accept()`, so the kernel's SYN backlog completes the TCP handshake on its own. Envoy's connection to the upstream succeeds; the subsequent HTTP request hang shows up as `ResiliencyRequestsPendingConnectionPool` and `ResiliencyRequestTimeouts`, not as a connect-phase timeout. Triggering `ResiliencyConnectTimeouts` reliably requires dropping SYN packets at L3 (a firewall DROP rule) which a Container Apps replica cannot do without the `NET_ADMIN` capability. In production, a non-zero `ResiliencyConnectTimeouts` typically means the destination replica died and the data plane has not yet removed it from the endpoint slice.
 
 ## Portal verification: CPU Usage Percentage
 
