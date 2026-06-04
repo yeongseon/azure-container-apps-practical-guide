@@ -81,6 +81,18 @@ az resource show \
   --output json
 ```
 
+## Portal View: Revision State Before Recovery Actions
+
+The Azure Portal **Revisions and replicas** blade is the surface that names the revision and reports its running status, which is also the input the recovery commands in this page operate on.
+
+![Revisions and replicas blade showing the Microsoft Learn description that 'Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr', with an Active revisions tab listing one revision ca-sample-d38538--0uzoi59, Running status Running, Traffic 100 percent, and 1 replica](../../assets/platform/architecture/04-revisions-and-replicas.png)
+
+**[Observed]** The blade header is `ca-sample-d38538 | Revisions and replicas` and includes the descriptive text *"Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr."* Three tabs are visible: `Active revisions`, `Inactive revisions`, `Replicas`. The Active revisions table has one row: `ca-sample-d38538--0uzoi59`, `Date created : 6/3/2026, 10:34:26 PM`, `Running status : Running`, `Traffic : 100`%, `Replicas : 1`.
+
+**[Inferred]** The per-revision value `Running status : Running` appears to map to the steady-state symptom this page's [Recovery Action Matrix](#recovery-action-matrix) treats as the baseline against which `Sporadic probe failures`, `All replicas failing readiness`, and `Repeated liveness restarts` are compared. The revision identifier `ca-sample-d38538--0uzoi59` is consistent with the value this page's [Restart and Recovery Workflows](#restart-and-recovery-workflows) section passes to `az containerapp revision restart --revision`, and the `Active revisions` table columns (`Date created`, `Running status`, `Traffic`, `Replicas`) are consistent with the row shape this page's [Verification Steps](#verification-steps) section reads with `az containerapp revision list --output table`.
+
+**[Not Proven]** The probe configuration, restart counts, and replica-level failure history that this page's troubleshooting steps reason about are not visible on this blade. Whether the `Running` status reflects all probes passing or only the platform-level readiness signal is not shown by this row.
+
 ## Restart and Recovery Workflows
 
 Restart a revision when transient faults occur:
