@@ -115,6 +115,16 @@ Suggested baseline tags:
 | `business-unit` | `finance` |
 | `operations-team` | `platform-engineering` |
 
+### Verify environment configuration in Azure Portal
+
+![cae-basics-d38538 | Container Apps Environment | Refresh | Delete | Essentials | View Cost | JSON View | Resource group (move) | rg-aca-basics-d38538 | Status | Succeeded | Location (move) | Korea Central | Subscription (move) | Visual Studio Enterprise Subscription | Subscription ID | 00000000-0000-0000-0000-000000000000 | Aspire Dashboard | Not yet active (set up) | Tags (edit) | Add tags | Environment type | Workload profiles | Static IP | 4.230.156.3 | Applications | 1 | KEDA version | 2.18.1 | Dapr version | 1.16.4-msft.7 | Applications | Get started | Monitoring | Tutorials | Name | App Type | Resource Group | ca-sample-d38538 | Container App | rg-aca-basics-d38538](../assets/best-practices/environment-design-environment-overview.png)
+
+**[Observed]** `cae-basics-d38538` `Container Apps Environment` `Refresh` `Delete` `Essentials` `View Cost` `JSON View` `Resource group (move)` `rg-aca-basics-d38538` `Status` `Succeeded` `Location (move)` `Korea Central` `Subscription (move)` `Visual Studio Enterprise Subscription` `Subscription ID` `00000000-0000-0000-0000-000000000000` `Aspire Dashboard` `Not yet active (set up)` `Tags (edit)` `Add tags` `Environment type` `Workload profiles` `Static IP` `4.230.156.3` `Applications` `1` `KEDA version` `2.18.1` `Dapr version` `1.16.4-msft.7` `Applications` `Get started` `Monitoring` `Tutorials` `Name` `App Type` `Resource Group` `ca-sample-d38538` `Container App` `rg-aca-basics-d38538` `Overview` `Activity log` `Access control (IAM)` `Tags` `Diagnose and solve problems` `Resource visualizer` `Settings` `Apps` `Services` `Monitoring` `Automation` `Help`.
+
+**[Inferred]** The `Tags (edit)` field with value `Add tags` is consistent with the baseline-tag schema discussed in [Standardize names and tags](#standardize-names-and-tags), where stable metadata such as `environment`, `workload`, and `region` is expected to be applied to the environment resource. The `Location` value `Korea Central` is consistent with the region-selection criteria listed in [Choose regions deliberately](#choose-regions-deliberately). The `Environment type` value `Workload profiles` is consistent with the workload-profile availability bullet listed under [Choose regions deliberately](#choose-regions-deliberately). The environment-scoped page header `cae-basics-d38538` paired with the `Container Apps Environment` resource type is consistent with treating the environment as a lifecycle-tier boundary as discussed in [Use one environment per lifecycle tier by default](#use-one-environment-per-lifecycle-tier-by-default).
+
+**[Not Proven]** Subnet configuration, custom DNS suffix, zone redundancy, and Log Analytics workspace bindings are not visible on this view. Workload profile mix (Consumption vs Dedicated D4/D8/E4/E8), node counts, and per-profile quotas are not visible on this view. Outbound NAT egress rules, private endpoint connections, and peered virtual networks are not visible on this view. Whether the displayed environment was provisioned via CLI, Bicep, ARM, or Portal create is not visible on this view.
+
 ## Common Mistakes / Anti-Patterns
 
 - Putting production and development apps in the same environment.
