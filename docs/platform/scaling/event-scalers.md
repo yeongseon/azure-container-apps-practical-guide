@@ -124,6 +124,16 @@ Example managed identity shape from Learn:
 !!! warning "Full ACA-specific metadata examples for Event Hubs and Kafka are not currently enumerated in Microsoft Learn"
     Microsoft Learn confirms these event-source families are supported through KEDA-backed scaling, but the current page does not provide the complete metadata key sets in the way it does for Service Bus and Azure Queue. Validate exact metadata against the current scaler contract before production rollout.
 
+### Portal view: Scale blade (revision without the event-scaler scale-to-zero pattern)
+
+![Scale blade for a Container App with a "Based on revision" dropdown selected, an "Edit and deploy" command, a "Scale rule settings" section, a "Min / max replicas" row with value "1 - 3", and a "Scale rules" section stating "There are no scaling rules defined for this revision".](../../assets/platform/scaling/01-scale-blade.png)
+
+[Observed] On the selected `Scale` tab, the `Scale rule settings` section shows a `Min / max replicas` row with the value `1 - 3`. The `Scale rules` section shows the empty-state message `There are no scaling rules defined for this revision`. No row labeled `azure-servicebus`, `azure-queue`, or any other KEDA scaler type is visible inside the `Scale rules` section.
+
+[Inferred] The `Min / max replicas` lower bound rendered as `1` is consistent with this page's framing of event-scaler revisions as a *different* shape from what this image shows, since the [Event-driven rule pattern](#event-driven-rule-pattern) YAML and the [Service Bus example](#service-bus-example) and [Azure Queue Storage example](#azure-queue-storage-example) all set `minReplicas: 0` / `--min-replicas 0`. The empty `Scale rules` section header is consistent with the [Supported event-scaler families](#supported-event-scaler-families) table that lists scaler `type` values (such as `azure-servicebus` and `azure-queue`) as entries that would appear inside this section once added.
+
+[Not Proven] This image does not show any `azure-servicebus`, `azure-queue`, Event Hubs, or Kafka rule configured, and the `queueName`, `namespace`, `messageCount`, `accountName`, or `queueLength` metadata fields shown in the examples above are not visualized here. It does not show any `secretRef`, `connection`, or `identity` field corresponding to the [Identity options](#identity-options) section. It does not show the `Edit and deploy` panel.
+
 ## See Also
 
 - [Scaling Overview](index.md)
