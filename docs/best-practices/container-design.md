@@ -467,6 +467,16 @@ Example policy baseline:
 | Secrets | All sensitive values injected via `secretref:` |
 | Tagging | Immutable tag only, no `latest` |
 
+### Verify container design surfaces in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Container App | Create new revision | Save | Refresh | Deployment mode | Active revisions | Inactive revisions | Replicas | Name | ca-sample-d38538--0uzoi59 | Date created | 6/3/2026, 10:34:26 PM | Running status | Running | Label | Traffic | 100 % | Replicas | 1 (Show replicas)](../assets/best-practices/container-design-revisions-and-replicas.png)
+
+**[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100 %` `1 (Show replicas)`.
+
+**[Inferred]** The `Running` value under `Running status` for revision `ca-sample-d38538--0uzoi59` is consistent with the probe-gated readiness model described in [Configure startup, readiness, and liveness probes intentionally](#configure-startup-readiness-and-liveness-probes-intentionally), which gates a revision becoming serving-ready on startup and readiness probe outcomes. The immutable revision name suffix `--0uzoi59` alongside `Create new revision` appears to map to the per-revision identity discussed in [Use immutable image tags and reject `:latest` in production](#use-immutable-image-tags-and-reject-latest-in-production), which strengthens revision immutability with immutable image tags. The `Traffic` value `100 %` on a single revision is consistent with the deployment-creates-a-revision-candidate model described in [Design for the Azure Container Apps execution model](#design-for-the-azure-container-apps-execution-model), which makes a revision traffic-eligible only after readiness gates pass. The `Replicas` value `1 (Show replicas)` is consistent with the scale-in container-termination context discussed in [Implement SIGTERM-aware graceful shutdown](#implement-sigterm-aware-graceful-shutdown), which calls out that scale-in and revision deactivation terminate containers.
+
+**[Not Proven]** Container image reference, tag format, and `:latest` usage for the running revision are not visible on this view. Startup, readiness, and liveness probe endpoints, thresholds, and timing are not visible on this view. SIGTERM handling, drain behavior, and termination grace period are not visible on this view. Structured JSON log schema, log fields, and `CONTAINER_APP_PORT` binding are not visible on this view.
+
 ## Advanced Topics
 
 ### Hardened supply chain integration
