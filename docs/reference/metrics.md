@@ -12,7 +12,7 @@ content_validation:
   last_reviewed: '2026-06-04'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps publishes platform metrics under the Microsoft.App/containerApps namespace, including CPU, memory, network, replica, request, and resiliency metrics.
+  - claim: Azure Container Apps publishes platform metrics under the Microsoft.App/containerapps namespace, including CPU, memory, network, replica, request, and resiliency metrics.
     source: https://learn.microsoft.com/azure/container-apps/metrics
     verified: true
   - claim: CPU Usage Percentage and Memory Percentage metrics report consumption as a percentage of the container's configured CPU and memory limits.
@@ -27,7 +27,7 @@ content_validation:
 Quick lookup for the platform metrics that Azure Container Apps publishes to Azure Monitor. Use this page when you build alerts, dashboards, autoscaling rules, or KQL queries against your Container Apps.
 
 !!! info "Two metric namespaces"
-    Container App resources publish metrics under `Microsoft.App/containerApps`. The Container Apps Environment publishes a separate small set under `Microsoft.App/managedEnvironments`. Pick the namespace that matches the resource scope you opened in Portal or the resource ID you pass to `az monitor metrics list`.
+    Container App resources publish metrics under `Microsoft.App/containerapps`. The Container Apps Environment publishes a separate small set under `Microsoft.App/managedEnvironments`. Pick the namespace that matches the resource scope you opened in Portal or the resource ID you pass to `az monitor metrics list`.
 
 !!! tip "Percentage metrics are denominator-relative"
     `CpuPercentage` and `MemoryPercentage` are computed against the **container's configured CPU and memory limits**, not against the node or environment. A replica scoped to `cpu=0.5, memory=1Gi` reports 100% when it consumes 0.5 vCPU or 1 GiB respectively. See [Percentage metric denominators](#percentage-metric-denominators) below.
@@ -45,43 +45,43 @@ Quick lookup for the platform metrics that Azure Container Apps publishes to Azu
 flowchart TD
     A[Container replica] --> B[Container Apps data plane]
     B --> C[Azure Monitor metrics pipeline]
-    C --> D[Microsoft.App/containerApps namespace]
+    C --> D[Microsoft.App/containerapps namespace]
     C --> E[Microsoft.App/managedEnvironments namespace]
     D --> F[Portal Metrics blade]
     D --> G[az monitor metrics list]
     D --> H[Alerts and autoscale rules]
 ```
 
-## Container App metrics (Microsoft.App/containerApps)
+## Container App metrics (Microsoft.App/containerapps)
 
-The metric IDs below are the values you pass to `az monitor metrics list --metric` or select from the Metric dropdown in the Portal Metrics blade.
+The metric IDs below are the values you pass to `az monitor metrics list --metric` or select from the Metric dropdown in the Portal Metrics blade. Dimensions are reproduced verbatim from Microsoft Learn.
 
-| Metric ID | Display name | Unit | Aggregation | Dimensions |
-|---|---|---|---|---|
-| `UsageNanoCores` | CPU Usage | Nanocores | Avg, Min, Max | `revisionName`, `replicaName` |
-| `WorkingSetBytes` | Memory Working Set Bytes | Bytes | Avg, Min, Max | `revisionName`, `replicaName` |
-| `RxBytes` | Network In Bytes | Bytes | Total | `revisionName`, `replicaName` |
-| `TxBytes` | Network Out Bytes | Bytes | Total | `revisionName`, `replicaName` |
-| `Replicas` | Replica Count | Count | Avg, Min, Max | `revisionName` |
-| `RestartCount` | Total Replica Restart Count | Count | Avg, Max | `revisionName`, `replicaName` |
-| `Requests` | Requests | Count | Total | `revisionName`, `replicaName`, `statusCode`, `statusCodeCategory` |
-| `CoresQuotaUsed` | Reserved Cores Used | Count | Avg, Max | `revisionName` |
-| `TotalCoresQuotaUsed` | Total Reserved Cores Used | Count | Avg, Max | None |
-| `ResiliencyConnectTimeouts` | Resiliency Connect Timeouts | Count | Total | `revisionName`, `replicaName` |
-| `ResiliencyRequestRetries` | Resiliency Request Retries | Count | Total | `revisionName`, `replicaName` |
-| `ResiliencyRequestTimeouts` | Resiliency Request Timeouts | Count | Total | `revisionName`, `replicaName` |
-| `ResiliencyCircuitBreakerStatus` | Resiliency Circuit Breaker Status | Count | Avg, Max | `revisionName` |
-| `ResiliencyEjectedHosts` | Resiliency Ejected Hosts | Count | Avg, Max | `revisionName` |
-| `ResiliencyClosedConnections` | Resiliency Closed Connections | Count | Total | `revisionName`, `replicaName` |
-| `ResponseTime` (Preview) | Avg Response Time | Milliseconds | Avg | `statusCode` |
-| `CpuPercentage` (Preview) | CPU Usage Percentage | Percent | Avg, Max | `replicaName` |
-| `MemoryPercentage` (Preview) | Memory Percentage | Percent | Avg, Max | `replicaName` |
+| Metric ID | Display name | Unit | Dimensions |
+|---|---|---|---|
+| `UsageNanoCores` | CPU Usage | Nanocores | Replica, Revision |
+| `WorkingSetBytes` | Memory Working Set Bytes | Bytes | Replica, Revision |
+| `RxBytes` | Network In Bytes | Bytes | Replica, Revision |
+| `TxBytes` | Network Out Bytes | Bytes | Replica, Revision |
+| `Replicas` | Replica count | Count | Revision |
+| `RestartCount` | Total Replica Restart Count | Count | Replica, Revision |
+| `Requests` | Requests | Count | Replica, Revision, Status Code, Status Code Category |
+| `CoresQuotaUsed` | Reserved Cores | Count | Revision |
+| `TotalCoresQuotaUsed` | Total Reserved Cores | Count | None |
+| `ResiliencyConnectTimeouts` | Resiliency Connection Timeouts | Count | Revision |
+| `ResiliencyEjectedHosts` | Resiliency Ejected Hosts | Count | Revision |
+| `ResiliencyEjectionsAborted` | Resiliency Ejections Aborted | Count | Revision |
+| `ResiliencyRequestRetries` | Resiliency Request Retries | Count | Revision |
+| `ResiliencyRequestTimeouts` | Resiliency Request Timeouts | Count | Revision |
+| `ResiliencyRequestsPendingConnectionPool` | Resiliency Requests Pending Connection Pool | Count | Replica |
+| `ResponseTime` (Preview) | Average Response Time | Milliseconds | Status Code, Status Code Category |
+| `CpuPercentage` (Preview) | CPU Usage Percentage | Percent | Replica |
+| `MemoryPercentage` (Preview) | Memory Percentage | Percent | Replica |
 
 ## Environment metrics (Microsoft.App/managedEnvironments)
 
-| Metric ID | Display name | Unit | Aggregation | Dimensions |
-|---|---|---|---|---|
-| `NodeCount` (Preview) | Node Count | Count | Avg, Max | None |
+| Metric ID | Display name | Unit | Dimensions |
+|---|---|---|---|
+| `NodeCount` (Preview) | Workload Profile Node Count | Count | Workload Profile Name |
 
 ## Percentage metric denominators
 
@@ -114,9 +114,9 @@ The chart below was captured from the `Metrics` blade of `ca-dotnet-d38538` (`cp
 
 **[Observed]** `Microsoft Azure (Preview)`. `Report a bug`. `Search resources, services, and docs (G+/)`. `Copilot`. `Home`. `ca-dotnet-d38538 | Metrics`. `Container App`. `New chart`. `Refresh`. `Share`. `Local Time: Last 24 hours (Automatic - 5 minut...)`. `Avg CPU Usage Percentage (Preview) for ca-dotnet-d38538`. `Add metric`. `Add filter`. `Apply splitting`. `Line chart`. `Drill into Logs`. `New alert rule`. `Save to dashboard`. `ca-dotnet-d38538, CPU Usage Percentage (P... Avg`. `CPU Usage Percentage (Preview) (Avg), ca-dotnet-d38538`. `0.0016%`. `Thu 04`. `6 AM`. `12 PM`. `6 PM`. `Jun 04 10:17 PM`. `Overview`. `Activity log`. `Access control (IAM)`. `Tags`. `Diagnose and solve problems`. `Resource visualizer`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`. `Dashboards with Grafana`. `Advisor recommendations`. `Automation`. `Help`.
 
-**[Inferred]** The metric pill text `ca-dotnet-d38538, CPU Usage Percentage (P... Avg` appears consistent with the `CpuPercentage` (Preview) metric described in the [Container App metrics (Microsoft.App/containerApps)](#container-app-metrics-microsoftappcontainerapps) table. The `Avg` aggregation chip appears consistent with the `Avg` aggregation listed in the same table for `CpuPercentage`. The `0.0016%` average appears consistent with an idle replica consuming a small fraction of the 0.5 vCPU denominator described in [Percentage metric denominators](#percentage-metric-denominators), where 100% corresponds to 500,000,000 nanocores. The `Local Time: Last 24 hours (Automatic - 5 minut...)` time scope appears consistent with a Portal default time range that aggregates the metric into 5-minute buckets.
+**[Inferred]** The metric pill text `ca-dotnet-d38538, CPU Usage Percentage (P... Avg` appears consistent with the `CpuPercentage` (Preview) metric described in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table. The `Avg` aggregation chip appears consistent with the `Avg` aggregation listed in the same table for `CpuPercentage`. The `0.0016%` average appears consistent with an idle replica consuming a small fraction of the 0.5 vCPU denominator described in [Percentage metric denominators](#percentage-metric-denominators), where 100% corresponds to 500,000,000 nanocores. The `Local Time: Last 24 hours (Automatic - 5 minut...)` time scope appears consistent with a Portal default time range that aggregates the metric into 5-minute buckets.
 
-**[Not Proven]** The `properties.template.containers[].resources.cpu` value on the `ca-dotnet-d38538` revision is not visible on this view. The `UsageNanoCores` numerator that produced the `0.0016%` average is not visible on this view; the chart shows only the derived percentage. The per-replica split implied by the `replicaName` dimension in the [Container App metrics (Microsoft.App/containerApps)](#container-app-metrics-microsoftappcontainerapps) table is not visible on this view; no `Apply splitting` chip is applied. The KEDA `cpu` scaler `utilization` value that the [CPU and memory scaler](../platform/scaling/cpu-memory-scaler.md) page warns can diverge from `CpuPercentage` is not visible on this view.
+**[Not Proven]** The `properties.template.containers[].resources.cpu` value on the `ca-dotnet-d38538` revision is not visible on this view. The `UsageNanoCores` numerator that produced the `0.0016%` average is not visible on this view; the chart shows only the derived percentage. The per-replica split implied by the `Replica` dimension in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table is not visible on this view; no `Apply splitting` chip is applied. The KEDA `cpu` scaler `utilization` value that the [CPU and memory scaler](../platform/scaling/cpu-memory-scaler.md) page warns can diverge from `CpuPercentage` is not visible on this view.
 
 ## Portal verification: Memory Percentage
 
@@ -126,9 +126,9 @@ The same `Metrics` blade was reconfigured to plot `MemoryPercentage` for the sam
 
 **[Observed]** `Microsoft Azure (Preview)`. `Report a bug`. `Search resources, services, and docs (G+/)`. `Copilot`. `How can I programmatically access Azure metrics?`. `Home`. `ca-dotnet-d38538 | Metrics`. `Container App`. `New chart`. `Refresh`. `Share`. `Local Time: Last 24 hours (Automatic - 5 minut...)`. `Avg Memory Percentage (Preview) for ca-dotnet-d38538`. `Add metric`. `Add filter`. `Apply splitting`. `Line chart`. `Drill into Logs`. `New alert rule`. `Save to dashboard`. `ca-dotnet-d38538, Memory Percentage (P... Avg`. `Memory Percentage (Preview) (Avg), ca-dotnet-d38538`. `3%`. `0%`. `0.5%`. `1%`. `1.5%`. `2%`. `2.5%`. `Thu 04`. `6 AM`. `12 PM`. `6 PM`. `Jun 04 10:17 PM`. `Overview`. `Activity log`. `Access control (IAM)`. `Tags`. `Diagnose and solve problems`. `Resource visualizer`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`. `Dashboards with Grafana`. `Advisor recommendations`. `Automation`. `Help`.
 
-**[Inferred]** The metric pill text `ca-dotnet-d38538, Memory Percentage (P... Avg` appears consistent with the `MemoryPercentage` (Preview) metric described in the [Container App metrics (Microsoft.App/containerApps)](#container-app-metrics-microsoftappcontainerapps) table. The `Avg` aggregation chip appears consistent with the `Avg` aggregation listed in the same table for `MemoryPercentage`. The `3%` average appears consistent with the 1 GiB memory denominator described in [Percentage metric denominators](#percentage-metric-denominators), where 3% corresponds to roughly 32 MiB of working set against a 1,073,741,824-byte limit. The Y-axis tick range from `0%` to `3%` appears consistent with the Portal default auto-scaling behavior for a low-magnitude percentage series.
+**[Inferred]** The metric pill text `ca-dotnet-d38538, Memory Percentage (P... Avg` appears consistent with the `MemoryPercentage` (Preview) metric described in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table. The `Avg` aggregation chip appears consistent with the `Avg` aggregation listed in the same table for `MemoryPercentage`. The `3%` average appears consistent with the 1 GiB memory denominator described in [Percentage metric denominators](#percentage-metric-denominators), where 3% corresponds to roughly 30.7 MiB of working set against a 1,073,741,824-byte limit. The Y-axis tick range from `0%` to `3%` appears consistent with the Portal default auto-scaling behavior for a low-magnitude percentage series.
 
-**[Not Proven]** The `properties.template.containers[].resources.memory` value on the `ca-dotnet-d38538` revision is not visible on this view. The `WorkingSetBytes` numerator that produced the `3%` average is not visible on this view; the chart shows only the derived percentage. The per-replica split implied by the `replicaName` dimension in the [Container App metrics (Microsoft.App/containerApps)](#container-app-metrics-microsoftappcontainerapps) table is not visible on this view; no `Apply splitting` chip is applied. The KEDA `memory` scaler `utilization` value that the [Memory percentage vs. KEDA utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) playbook warns can diverge from `MemoryPercentage` is not visible on this view.
+**[Not Proven]** The `properties.template.containers[].resources.memory` value on the `ca-dotnet-d38538` revision is not visible on this view. The `WorkingSetBytes` numerator that produced the `3%` average is not visible on this view; the chart shows only the derived percentage. The per-replica split implied by the `Replica` dimension in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table is not visible on this view; no `Apply splitting` chip is applied. The KEDA `memory` scaler `utilization` value that the [Memory percentage vs. KEDA utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) playbook warns can diverge from `MemoryPercentage` is not visible on this view.
 
 ## Query metrics with az CLI
 
@@ -215,7 +215,7 @@ az monitor metrics list \
 | How many replicas are running for a revision? | `Replicas` | Avg, Min, Max |
 | Are replicas restarting? | `RestartCount` | Max, Total |
 | What is the request rate and HTTP error split? | `Requests` | Total, with `statusCodeCategory` split |
-| Are retries or circuit breakers active? | `ResiliencyRequestRetries`, `ResiliencyCircuitBreakerStatus` | Total, Max |
+| Are retries or ejections happening? | `ResiliencyRequestRetries`, `ResiliencyEjectedHosts`, `ResiliencyEjectionsAborted` | Total, Max |
 | Am I approaching the subscription cores quota? | `TotalCoresQuotaUsed` | Max |
 
 ## See Also
@@ -229,7 +229,7 @@ az monitor metrics list \
 
 ## Sources
 
-- [Supported metrics for Microsoft.App/containerApps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
 - [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
 - [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
 - [`az monitor metrics list` reference (Microsoft Learn)](https://learn.microsoft.com/cli/azure/monitor/metrics)
