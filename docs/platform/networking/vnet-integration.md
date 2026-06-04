@@ -77,6 +77,18 @@ flowchart TD
     CA1 -- Private Link --> PE
 ```
 
+## Portal view: non-integrated baseline that this page's Bicep replaces
+
+The Networking blade on an environment created without a custom VNet is the contrast baseline for this page's recipe — the `vnetConfiguration` block in the [Deploy Container Apps Environment with VNet](#deploy-container-apps-environment-with-vnet) section is what transitions an environment away from this state.
+
+![Networking blade showing General tab with "Public Network Access" set to "Enable - Allows incoming traffic from the public internet", and Virtual network section reading "This environment isn't integrated"; tab strip lists "General", "Ingress settings", "Request Routing", "Encryption", "Custom DNS Suffix"](../../assets/platform/environments/03-networking.png)
+
+[Observed] The General tab shows `Public Network Access : Enable - Allows incoming traffic from the public internet` (radio button selected). The Virtual network section reads `This environment isn't integrated`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, `Custom DNS Suffix`. No subnet resource ID, CIDR range, or NSG attachment field is visible on the blade.
+
+[Inferred] The `This environment isn't integrated` text is consistent with this page's [Deploy Container Apps Environment with VNet](#deploy-container-apps-environment-with-vnet) recipe being the path a user follows when starting from a non-integrated environment. The absence of a subnet resource ID field appears to map to this page's `infrastructureSubnetId` property in the same recipe.
+
+[Not Proven] This image does not visualize the `infrastructureSubnetId` property, the `internal: true` vs `internal: false` choice from this page's [Internal vs External Ingress](#internal-vs-external-ingress) table, the `/23` minimum subnet sizing called out in this page's overview, the NSG rules from this page's [Network Security Groups](#network-security-groups) section, or the private endpoint connectivity discussed in this page's [Access Private Resources](#access-private-resources) section.
+
 ## Prerequisites
 
 - Azure subscription with VNet creation permissions
