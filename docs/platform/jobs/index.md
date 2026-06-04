@@ -80,6 +80,16 @@ flowchart TD
     F --> J[Language Recipes]
 ```
 
+## Portal View: Job Resource with Trigger and Lifecycle Fields
+
+![cj-sample-d38538 Container App Job — Properties tab with Trigger Type Manual, Replica timeout 300, Replica retry limit 1, Parallelism 1, Completion count 1](../../assets/platform/jobs/01-job-overview.png)
+
+**[Observed]** `cj-sample-d38538`. `Container App Job`. `Run now`. `Suspend`. `Refresh`. `Delete`. `Resource group`. `rg-aca-basics-d38538`. `Location`. `Korea Central`. `Subscription`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `00000000-0000-0000-0000-000000000000`. `Container Apps Environme...`. `cae-basics-d38538`. `Log Analytics`. `law-basics-d38538`. `Workload profile`. `Consumption`. `Properties`. `Job`. `Provisioning status`. `Succeeded`. `Trigger Type`. `Manual`. `Execution history`. `View`. `Configuration`. `Replica timeout`. `300`. `Replica retry limit`. `1`. `Advanced`. `Parallelism`. `1`. `Completion count`. `1`.
+
+**[Inferred]** The `Trigger Type` field reading `Manual` appears to map to the trigger taxonomy enumerated under [What this section covers](#what-this-section-covers), which lists Manual, Scheduled, and Event-Driven trigger pages. The `Replica timeout`, `Replica retry limit`, `Parallelism`, and `Completion count` fields appear to map to the execution parameters covered by [Execution Lifecycle](execution-lifecycle.md), which the [Reading path](#reading-path) calls out as the next step before tuning. The dedicated `Container App Job` resource type label is consistent with [Jobs vs Apps](jobs-vs-apps.md) being a distinct workload boundary documented on this page.
+
+**[Not Proven]** The trigger taxonomy enumerated on this page (Manual, Schedule, Event) is not enumerable from this single blade — only the current `Manual` selection is shown. The cron field for Schedule triggers is not shown on this Manual job. The event scaler field for Event-Driven triggers is not shown on this Manual job. Whether the `Suspend` toolbar action interrupts a running execution cannot be determined from this static view.
+
 ## Review Matrix
 
 | Review area | Page-specific check |
