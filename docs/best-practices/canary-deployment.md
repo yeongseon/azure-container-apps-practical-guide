@@ -130,6 +130,16 @@ resource app 'Microsoft.App/containerApps@2026-01-01' = {
 }
 ```
 
+### Verify canary surfaces in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Container App | Create new revision | Save | Refresh | Deployment mode | Active revisions | Inactive revisions | Replicas | Name | ca-sample-d38538--0uzoi59 | Date created | 6/3/2026, 10:34:26 PM | Running status | Running | Label | Traffic | 100 % | Replicas | 1 (Show replicas)](../assets/best-practices/canary-revisions-and-replicas.png)
+
+**[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100 %` `1 (Show replicas)`.
+
+**[Inferred]** The `Deployment mode` setting appears to map to the staged-rollout prerequisite in [1. Keep rollout stages explicit](#1-keep-rollout-stages-explicit), which is consistent with treating multiple-revision mode as the baseline for canary increments. The `Traffic` column with the displayed `100 %` value is consistent with the weighted-increment guidance in [1. Keep rollout stages explicit](#1-keep-rollout-stages-explicit), which advances the canary by adjusting traffic weights. The `Active revisions` and `Inactive revisions` grouping is consistent with the stable-warm guidance in [3. Keep the stable revision warm](#3-keep-the-stable-revision-warm), which keeps the prior revision available during the canary window. The `Save` command appears to map to the explicit-promotion step described in [4. Automate promotion, but automate rollback too](#4-automate-promotion-but-automate-rollback-too), which is consistent with committing a traffic change as the promotion action.
+
+**[Not Proven]** The current canary weight distribution between revisions is not visible on this view. The metric gates and SLO checks evaluated between increments are not visible on this view. The image tag or digest used by the displayed revision is not visible on this view. The automated rollback rules and their triggers are not visible on this view.
+
 ## Common Mistakes / Anti-Patterns
 
 - **Jumping from 5% to 100% with no gates**
