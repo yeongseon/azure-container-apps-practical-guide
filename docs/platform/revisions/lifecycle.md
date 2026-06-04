@@ -141,6 +141,16 @@ az containerapp revision list \
 |---|---|
 | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
+## Portal view: Revisions and replicas blade
+
+![Revisions and replicas blade for a Container App showing the Create new revision and Save commands, the Active revisions and Inactive revisions tabs, two rows with Date created timestamps, Running status, and Active checkboxes selected](../../assets/platform/revisions/01-revisions-replicas-blade.png)
+
+[Observed] The blade header reads `<your-app-name> | Revisions and replicas` with the subtitle `Container App`. The command bar exposes `Create new revision`, `Save`, `Refresh`, `Deployment mode`, and `Send us your feedback`. A tab strip shows `Active revisions` (selected), `Inactive revisions`, and `Replicas`. The `Active revisions` table has columns `Name`, `Date created`, `Running status`, `View Logs`, `Label`, `Traffic`, `Replicas`, and `Active`. Two rows are listed: `<your-app-name>--<revision-suffix-1>` with `Date created 6/3/2026, 11:40:04 PM`, `Running` status with a `View details` link, a `Replicas` count of `1`, and the `Active` checkbox checked; and `<your-app-name>--<revision-suffix-2>` with `Date created 6/3/2026, 10:34:26 PM`, `Running` status with a `View details` link, a `Replicas` count of `1`, and the `Active` checkbox checked. The left navigation highlights `Revisions and replicas` under `Application`.
+
+[Inferred] The `Create new revision` command in the command bar appears to map to the "How revisions enter the lifecycle" section above, which lists the revision-scope changes (image, scaling rules, environment variables, resource limits) that produce a new revision. The `Active revisions` and `Inactive revisions` tabs are consistent with the `Active` and `Inactive` checkpoints in the "Documented lifecycle stages" list. The `Active` checkbox column paired with the `Save` command is consistent with the manual activation/deactivation capability described in the "Manual activation and deactivation" section, which uses the `az containerapp revision activate` and `az containerapp revision deactivate` commands. The `Date created` column is consistent with the `createdTime` field returned by the `az containerapp revision list` query in the "Operational checks" section.
+
+[Not Proven] The screenshot does not show the dialog that opens after clicking `Create new revision`, so the form fields for revision-scope changes are outside the scope of this image. It does not show the contents of the `Inactive revisions` tab, so the `maxInactiveRevisions` retention behavior and the count of retained inactive revisions are not visible. It does not show the `Replicas` tab contents, the `View details` panel, or the prompt that follows toggling an `Active` checkbox and clicking `Save`.
+
 ## See Also
 
 - [Revisions Overview](index.md)
