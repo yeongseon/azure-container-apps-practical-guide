@@ -504,6 +504,16 @@ graph TD
 !!! warning "Bookmark this page"
     Most high-severity Container Apps incidents map to one or more anti-patterns in this list. Running this checklist before every major release prevents avoidable outages.
 
+### Verify anti-pattern surfaces in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Container App | Create new revision | Save | Refresh | Deployment mode | Active revisions | Inactive revisions | Replicas | Name | ca-sample-d38538--0uzoi59 | Date created | 6/3/2026, 10:34:26 PM | Running status | Running | Label | Traffic | 100 % | Replicas | 1 (Show replicas)](../assets/best-practices/anti-patterns-revisions-and-replicas.png)
+
+**[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100 %` `1 (Show replicas)`.
+
+**[Inferred]** The immutable revision suffix on `ca-sample-d38538--0uzoi59` is consistent with the digest-or-versioned-tag guidance in [1) Using `:latest` image tag in production](#1-using-latest-image-tag-in-production), which treats mutable tags as the anti-pattern under review. The `Deployment mode` setting appears to map to the multi-revision posture called out in [7) Single revision mode in production](#7-single-revision-mode-in-production), which is consistent with treating single-revision mode as the anti-pattern. The `Active revisions` and `Inactive revisions` grouping appears to map to the rollout-history guidance referenced in the [Anti-pattern quick reference table](#anti-pattern-quick-reference-table), which is consistent with treating retained revisions as the rollback surface. The `Traffic` column with the displayed `100 %` value is consistent with the no-staged-rollout concern in [7) Single revision mode in production](#7-single-revision-mode-in-production), where all traffic on a single revision removes the canary option.
+
+**[Not Proven]** The image tag or digest used by the displayed revision is not visible on this view. The configured probes, secrets, and environment variables for this revision are not visible on this view. The scale-rule definitions and `minReplicas` value are not visible on this view. Whether multiple revision mode is currently enabled is not visible on this view.
+
 ## Advanced Topics
 
 - Automate anti-pattern detection in CI using policy checks for image tags, resource limits, and revision mode.
