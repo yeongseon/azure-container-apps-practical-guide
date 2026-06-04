@@ -81,6 +81,18 @@ az resource show \
   --output json
 ```
 
+## Portal View: Revision State Before Recovery Actions
+
+The Azure Portal **Revisions and replicas** blade is the surface that names the revision and reports its running status, which is also the input the recovery commands in this page operate on.
+
+![Revisions and replicas blade for ca-sample-d38538 with tabs Active revisions / Inactive revisions / Replicas, an Active revisions table with columns Name, Date created, Running status, View Logs, Label, Traffic, Replicas, and one row ca-sample-d38538--0uzoi59 6/3/2026, 10:34:26 PM Running View details Show Logs 100 % 1 (Show replicas)](../../assets/platform/architecture/04-revisions-and-replicas.png)
+
+**[Observed]** Header: `ca-sample-d38538 | Revisions and replicas`, `Container App`. Toolbar: `Create new revision`, `Save`, `Refresh`, `Deployment mode`, `Send us your feedback`. Body text: `Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr. Make updates to your app by creating a new revision.` `Learn more`. Tabs: `Active revisions`, `Inactive revisions`, `Replicas`. Column headers: `Name`, `Date created`, `Running status`, `View Logs`, `Label`, `Traffic`, `Replicas`. Row values: `ca-sample-d38538--0uzoi59`, `6/3/2026, 10:34:26 PM`, `Running`, `View details`, `Show Logs`, `100`, `%`, `1 (Show replicas)`.
+
+**[Inferred]** The per-revision column `Running status` with value `Running` is consistent with this page's [Verification Steps](#verification-steps) reading revision-scoped state via `az containerapp revision list --output table`. The per-revision identifier under `Name` (`ca-sample-d38538--0uzoi59`) appears to map to the `--revision` argument shape this page's [Restart and Recovery Workflows](#restart-and-recovery-workflows) passes to `az containerapp revision restart`.
+
+**[Not Proven]** Probe configuration is not shown. Restart counts are not shown. Replica-level failure history is not shown. Whether the `Running` value reflects startup, liveness, or readiness probe results is not shown.
+
 ## Restart and Recovery Workflows
 
 Restart a revision when transient faults occur:
