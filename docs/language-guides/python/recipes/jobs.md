@@ -243,6 +243,16 @@ az containerapp job execution list \
 |---|---|
 | `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
+### Verify job in Azure Portal
+
+![cj-sample-d38538 | Container App Job | Run now | Suspend | Refresh | Delete | Resource group | Container Apps Environment | Workload profile | Provisioning status | Trigger Type | Execution history | Replica timeout | Replica retry limit | Parallelism | Completion count](../../../assets/language-guides/python/recipes/jobs-overview-blade.png)
+
+**[Observed]** `cj-sample-d38538`. `Container App Job`. `Run now`. `Suspend`. `Refresh`. `Delete`. `Resource group`. `rg-aca-basics-d38538`. `Location`. `Korea Central`. `Subscription`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `00000000-0000-0000-0000-000000000000`. `Container Apps Environme...`. `cae-basics-d38538`. `Log Analytics`. `law-basics-d38538`. `Workload profile`. `Consumption`. `Properties`. `Job`. `Provisioning status`. `Succeeded`. `Trigger Type`. `Manual`. `Execution history`. `View`. `Configuration`. `Replica timeout`. `300`. `Replica retry limit`. `1`. `Advanced`. `Parallelism`. `1`. `Completion count`. `1`.
+
+**[Inferred]** The `Trigger Type` field reading `Manual` appears to map to the `--trigger-type "Manual"` lever passed to `az containerapp job create` in [Steps](#steps) Step 1. The `Replica timeout` value `300` is consistent with the `--replica-timeout` lever passed to `az containerapp job create` in [Steps](#steps) Step 1 (`600` in the manual flow and `300` in the event-driven flow). The `Replica retry limit` value `1` appears to map to the `--replica-retry-limit 1` lever passed in [Steps](#steps) Steps 1 and 2. The `Parallelism` value `1` and `Completion count` value `1` appear to map to `--parallelism 1` and `--replica-completion-count 1` passed in [Steps](#steps) Step 1. The `Run now` toolbar action is consistent with the `az containerapp job start` invocation in [Steps](#steps) Step 1.
+
+**[Not Proven]** The Service Bus scaler from [Steps](#steps) Step 2 is not visible on this Manual job view. The `--env-vars SERVICEBUS_NAMESPACE` and `SERVICEBUS_QUEUE` values from [Steps](#steps) Step 2 are not visible on this view. The dedup-table behavior described in [Steps](#steps) Step 3 is application-internal. Individual execution exit codes are not visible on this overview blade.
+
 ## Next Steps / Clean Up
 
 - Move the dedup table from SQLite to a shared durable database.
