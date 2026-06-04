@@ -95,6 +95,16 @@ Microsoft Learn now recommends using the built-in Consumption profile in a Workl
     The Microsoft Learn pages reviewed for this guide recommend the v2 environment type, but they do not document a simple in-place conversion path from Consumption-only to Workload profiles.
     Plan a parallel environment, redeploy apps with IaC, validate networking, and then cut over.
 
+### Verify Consumption-plan surfaces in Azure Portal
+
+![cae-basics-d38538 | Container Apps Environment | Refresh | Delete | Essentials | View Cost | JSON View | Resource group (move) | rg-aca-basics-d38538 | Status | Succeeded | Location (move) | Korea Central | Subscription (move) | Visual Studio Enterprise Subscription | Subscription ID | 00000000-0000-0000-0000-000000000000 | Aspire Dashboard | Not yet active (set up) | Tags (edit) | Add tags | Environment type | Workload profiles | Static IP | 4.230.156.3 | Applications | 1 | KEDA version | 2.18.1 | Dapr version | 1.16.4-msft.7 | Applications | Get started | Monitoring | Tutorials | Name | App Type | Resource Group | ca-sample-d38538 | Container App | rg-aca-basics-d38538](../../assets/platform/environments/consumption-plan-environment-overview.png)
+
+**[Observed]** `cae-basics-d38538` `Container Apps Environment` `Refresh` `Delete` `Essentials` `View Cost` `JSON View` `Resource group (move)` `rg-aca-basics-d38538` `Status` `Succeeded` `Location (move)` `Korea Central` `Subscription (move)` `Visual Studio Enterprise Subscription` `Subscription ID` `00000000-0000-0000-0000-000000000000` `Aspire Dashboard` `Not yet active (set up)` `Tags (edit)` `Add tags` `Environment type` `Workload profiles` `Static IP` `4.230.156.3` `Applications` `1` `KEDA version` `2.18.1` `Dapr version` `1.16.4-msft.7` `Applications` `Get started` `Monitoring` `Tutorials` `Name` `App Type` `Resource Group` `ca-sample-d38538` `Container App` `rg-aca-basics-d38538`.
+
+**[Inferred]** The `Environment type` `Workload profiles` value is consistent with the v2-recommended environment surface discussed in [Migration considerations](#migration-considerations).
+
+**[Not Proven]** Whether the displayed environment was originally provisioned as Consumption-only or Workload profiles is not visible on this view. The billing-rate breakdown (CPU-seconds, memory-seconds, request count) is not visible on this view. The configured workload-profile names and replica resource boundaries are not visible on this view. The VNet, subnet, and CIDR bindings for this environment are not visible on this view.
+
 ## See Also
 
 - [Plans and Workload Profiles](plans-and-workload-profiles.md)
