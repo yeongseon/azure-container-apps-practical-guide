@@ -314,6 +314,16 @@ graph TD
        ```
 
 
+### Verify revisions and traffic in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Create new revision | Save | Refresh | Deployment mode | Send us your feedback | Active revisions | Inactive revisions | Replicas | Name | Date created | Running status | View Logs | Label | Traffic | Replicas | ca-sample-d38538--0uzoi59 | Running | 100 % | 1](../../../assets/language-guides/python/tutorial/07-revisions-and-replicas-blade.png)
+
+**[Observed]** `ca-sample-d38538`. `Container App`. `Revisions and replicas`. `Create new revision`. `Save`. `Refresh`. `Deployment mode`. `Send us your feedback`. `Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr. Make updates to your app by creating a new revision.`. `Learn more`. `Active revisions`. `Inactive revisions`. `Replicas`. `Name`. `Date created`. `Running status`. `View Logs`. `Label`. `Traffic`. `ca-sample-d38538--0uzoi59`. `6/3/2026, 10:34:26 PM`. `Running`. `View details`. `Show Logs`. `100`. `%`. `1`. `Show replicas`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
+
+**[Inferred]** The `Deployment mode` toolbar action appears to map to the same lever set by `az containerapp revision set-mode --mode multiple` in [Step-by-step](#step-by-step) Step 2. The `Create new revision` toolbar action is consistent with the new-revision effect of `az containerapp update --image` in [Step-by-step](#step-by-step) Step 3. The `Active revisions` and `Inactive revisions` tabs are consistent with the `revision list` and `revision deactivate` operations in [Step-by-step](#step-by-step) Steps 4 and 7. The `Traffic` column value `100 %` for `ca-sample-d38538--0uzoi59` appears to map to the per-revision weight set by `az containerapp ingress traffic set --revision-weight` in [Step-by-step](#step-by-step) Steps 5 and 6.
+
+**[Not Proven]** The canary revision and its `10 %` weight from [Step-by-step](#step-by-step) Step 5 are not visible on this view. The 90/10 split target named in [Step-by-step](#step-by-step) Step 5 is not visible on this view. The `Label` column is empty for the listed revision. The `Inactive revisions` tab contents are not visible on this view.
+
 ## Operational guidance
 
 - Pair canary rollout with telemetry checks (errors, latency, saturation).
