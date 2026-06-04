@@ -87,6 +87,16 @@ Even when ingress accepts the certificate, your app should still validate the fo
 - Expected thumbprint
 - Optional chain or revocation policy if your compliance model requires it
 
+### Verify mTLS ingress surfaces in Azure Portal
+
+![ca-sample-d38538 | Ingress | Container App | Refresh | Send us your feedback | Ingress | Ingress traffic | Limited to Container Apps Environment | Accepting traffic from anywhere | Ingress type | HTTP | TCP | Client certificate mode | Ignore | Accept | Require | Transport | Auto | Insecure connections | Target port | 80 | Endpoint(s) | https://<app-name>.<unique-id>.<region>.azurecontainerapps.io | Session affinity | Additional TCP ports | IP Restrictions | IP Security Restrictions Mode | Allow all traffic (default) | Save | Discard](../assets/best-practices/mtls-ingress-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Ingress` `Container App` `Refresh` `Send us your feedback` `Ingress` `Ingress traffic` `Limited to Container Apps Environment` `Accepting traffic from anywhere` `Ingress type` `HTTP` `TCP` `Client certificate mode` `Ignore` `Accept` `Require` `Transport` `Auto` `Insecure connections` `Target port` `80` `Endpoint(s)` `https://<app-name>.<unique-id>.<region>.azurecontainerapps.io` `Session affinity` `Additional TCP ports` `IP Restrictions` `IP Security Restrictions Mode` `Allow all traffic (default)` `Save` `Discard`.
+
+**[Inferred]** The `Client certificate mode` selector with `Ignore`, `Accept`, and `Require` options appears to map to the ingress-side client-certificate handling discussed in [Terminate external mTLS at ingress](#terminate-external-mtls-at-ingress), where the platform negotiates the client certificate before the app sees the request. The `Accepting traffic from anywhere` radio paired with the external `Endpoint(s)` value is consistent with [Terminate external mTLS at ingress](#terminate-external-mtls-at-ingress) treating the external ingress edge as the mTLS termination point. The `Limited to Container Apps Environment` radio option appears to map to the same-environment service-to-service scope described in [Prefer Dapr for same-environment service-to-service calls](#prefer-dapr-for-same-environment-service-to-service-calls), which keeps service-to-service traffic inside the environment. The `Client certificate mode` field is consistent with [Validate the forwarded certificate in the app](#validate-the-forwarded-certificate-in-the-app), which assumes the application validates the forwarded client certificate after ingress handling.
+
+**[Not Proven]** Whether the displayed `Client certificate mode` is set to `Ignore`, `Accept`, or `Require` is not visible on this view. The certificate authority list, allowed issuers, and validation rules applied by the ingress are not visible on this view. The `X-Forwarded-Client-Cert` header forwarding behavior and downstream app validation logic are not visible on this view. The Dapr mTLS state and peer-encryption status at the environment level are not visible on this view.
+
 ## Common Mistakes / Anti-Patterns
 
 ### Re-implementing east-west mTLS in every service
