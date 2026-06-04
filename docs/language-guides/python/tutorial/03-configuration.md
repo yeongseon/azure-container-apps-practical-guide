@@ -307,6 +307,16 @@ graph TD
        }
        ```
 
+### Verify configuration in Azure Portal
+
+![Container App | Containers | Properties Environment variables Health probes Volume mounts | Container details Name Image source Image type Registry login server Image and tag Command override Arguments override | Container resource allocation CPU cores Memory | left nav Application Containers Scale Volumes Settings Networking Monitoring](../../../assets/language-guides/python/tutorial/03-containers-blade.png)
+
+**[Observed]** `ca-sample-d38538`. `Container App`. `Containers`. `Refresh`. `Send us your feedback`. `Based on revision`. `ca-sample-d38538--0uzoi59`. `Container`. `Create new container`. `Delete this container`. `Properties`. `Environment variables`. `Health probes`. `Volume mounts`. `Container details`. `Name`. `Image source`. `Azure Container Registry`. `Docker Hub or other registries`. `Image type`. `Public`. `Private`. `Registry login server`. `mcr.microsoft.com`. `Image and tag`. `k8se/quickstart:latest`. `Command override`. `Arguments override`. `Container resource allocation`. `CPU cores`. `0.5`. `Min: 0.1, Max: 4`. `Memory (Gi)`. `1`. `Min: 0.1, Max: 8`. `Save as a new revision`. `Discard`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
+
+**[Inferred]** The `Environment variables` tab appears to map to the same `name=value` pairs supplied via `--set-env-vars` in [Step-by-step](#step-by-step) Step 2. The `Container details` `Image and tag` field appears to map to the image reference produced by the ACR push flow inherited from [Prerequisites](#prerequisites) and the upstream tutorial. The left-navigation entry `Scale` is consistent with the `--scale-rule-*` levers configured in [Step-by-step](#step-by-step) Steps 4 and 5. The `Based on revision` value `ca-sample-d38538--0uzoi59` appears consistent with the `az containerapp update` operations in [Step-by-step](#step-by-step) Steps 2, 3, 4, and 5, each of which creates a new revision.
+
+**[Not Proven]** The values set for `LOG_LEVEL` and `FEATURE_FLAG` are not visible on the `Properties` tab shown here. The `DB_PASSWORD` `secretref` mapping is not visible on the `Properties` tab shown here. The KEDA `http-scale` rule definition is not visible on the `Containers` blade. The Dapr `appId` and `appPort` values are not visible on the `Containers` blade.
+
 ## Python example: read config safely
 
 ```python
