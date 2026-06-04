@@ -97,6 +97,18 @@ Start larger than the documented minimum when:
 - You plan to add more dedicated node pools later.
 - You expect the environment to become a shared landing zone for multiple teams.
 
+### Portal view: non-VNet-integrated baseline
+
+The Networking blade on an environment created without a custom VNet is the contrast baseline for this page's CIDR rules — the subnet sizing table only applies when a VNet integration is configured.
+
+![Networking blade showing General tab with "Public Network Access" set to "Enable - Allows incoming traffic from the public internet", and Virtual network section reading "This environment isn't integrated"; tab strip lists "General", "Ingress settings", "Request Routing", "Encryption", "Custom DNS Suffix"](../../assets/platform/environments/03-networking.png)
+
+[Observed] The General tab shows `Public Network Access : Enable - Allows incoming traffic from the public internet` (radio button selected). The Virtual network section reads `This environment isn't integrated`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, `Custom DNS Suffix`. No subnet resource ID, CIDR range, or delegation field is visible on the blade.
+
+[Inferred] The `This environment isn't integrated` text is consistent with this page's [Minimum subnet sizes](#minimum-subnet-sizes) table only applying once a custom VNet is in scope. The absence of a subnet resource ID or CIDR field on this blade appears to map to the same condition — without VNet integration, this page's [Delegation and subnet roles](#delegation-and-subnet-roles) and [IP allocation model](#ip-allocation-model) sections do not have a corresponding configured surface to read.
+
+[Not Proven] This image does not visualize the `infrastructureSubnetId` property described in this page's [Delegation and subnet roles](#delegation-and-subnet-roles) section, the `Microsoft.App/environments` delegation requirement, or the `platformReservedCidr` / `dockerBridgeCidr` legacy ranges. It does not visualize the `/27` vs `/23` minimum subnet sizes from this page's [Minimum subnet sizes](#minimum-subnet-sizes) table, the reserved 11 IP addresses, or the per-replica vs per-node IP allocation distinction from this page's [IP allocation model](#ip-allocation-model) section.
+
 ## See Also
 
 - [VNet Integration](../networking/vnet-integration.md)
