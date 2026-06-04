@@ -96,6 +96,16 @@ That means:
 !!! tip "Treat defaults as a starting point, not a production tuning recommendation"
     The documented defaults are safe references, but production settings should be based on latency SLOs, backlog objectives, and downstream capacity.
 
+## Portal view: Scale blade
+
+![Scale blade for a Container App showing the Based on revision dropdown, the Edit and deploy command, Min / max replicas displayed as 1 - 3, and an empty Scale rules section with "There are no scaling rules defined for this revision"](../../assets/platform/scaling/01-scale-blade.png)
+
+[Observed] The blade header reads `<your-app-name> | Scale` with the subtitle `Container App`. The command bar exposes `Edit and deploy`, `Refresh`, and `Send us your feedback`. A `Based on revision` dropdown is set to `<your-app-name>--<revision-suffix>` with a helper link reading `Not seeing your revision? Click here to find and activate an existing revision.` A description below the dropdown explains that containers and scale rules can be specified in a revision and that updates require deploying a new revision. A single `Scale` tab is selected. Under `Scale rule settings`, the row `Min / max replicas` shows the value `1 - 3`. Under `Scale rules`, the empty-state message reads `There are no scaling rules defined for this revision`. The left navigation highlights `Scale` under `Application`.
+
+[Inferred] The `Min / max replicas` value of `1 - 3` appears to map to the `minReplicas` and `maxReplicas` properties in the Common properties table above. The empty-state message under `Scale rules` is consistent with the `rules` row in the Common properties table, where `rules` is described as an array of scale rules. The presence of the `Based on revision` dropdown is consistent with the "Lower bound per revision" and "Upper bound per revision" wording in the `minReplicas` and `maxReplicas` rows of that same table.
+
+[Not Proven] The screenshot does not show any configured HTTP, TCP, or custom rule details from the "Rule shapes by category" table. It does not show the `pollingInterval` or `cooldownPeriod` properties. It does not show the scale-to-zero behavior described in the "Scale-to-zero behavior" section or the first-condition-wins evaluation described in the "Multiple-rule evaluation" section. The dialog that opens after clicking `Edit and deploy` is not visible.
+
 ## See Also
 
 - [Scaling Overview](index.md)
