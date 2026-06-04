@@ -49,6 +49,7 @@ flowchart TD
 | [CLI Reference](cli-reference.md) | Execute repeatable app, revision, ingress, identity, and job operations | Platform engineer, SRE, developer | Deployment, rollback, diagnostics | Correct `az containerapp` command with long flags |
 | [Environment Variables](environment-variables.md) | Validate runtime injection and app config behavior | Application developer, SRE | Startup validation, config debugging | Confirmed variable names, defaults, and examples |
 | [Platform Limits](platform-limits.md) | Check design boundaries and quota-sensitive architecture decisions | Architect, platform owner, SRE | Load planning, scaling strategy, pre-production review | Limit/constraint table for design and operations |
+| [Metrics](metrics.md) | Look up Azure Monitor metric IDs, dimensions, and percentage denominators for Container Apps | SRE, platform engineer, developer | Building alerts, dashboards, autoscale rules, KQL queries | Metric ID, aggregation, dimension, and CLI query template |
 
 ## Quick navigation by task
 
@@ -70,6 +71,7 @@ flowchart TD
 | [CLI Reference](cli-reference.md) | Common `az containerapp` commands for app lifecycle, configuration, deployment, and scaling |
 | [Environment Variables](environment-variables.md) | Platform-injected variables and recommended app/runtime variables |
 | [Platform Limits](platform-limits.md) | Platform quotas, request/timeout constraints, storage behavior, and scale boundaries |
+| [Metrics](metrics.md) | Azure Monitor metric reference for Container Apps including percentage metric denominators and CLI query examples |
 
 ## Quick Links
 
