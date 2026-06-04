@@ -97,6 +97,18 @@ Useful Learn-backed checkpoints:
 - Treat replica limits, subnet limits, and environment core quotas as separate constraints.
 - Re-check quotas whenever you introduce GPU, new regions, or multi-team environments.
 
+### Portal view: per-profile capacity column at the environment scope
+
+The Workload profiles blade on a v2 environment surfaces per-profile capacity and usage columns at the environment scope.
+
+![Workload profiles blade showing one row under the "Consumption" group header with profile "Consumption", capacity "Up to 4 vCPUs / 8 Gi", and "# of Apps : 1"; the "Add" button is enabled in the command bar; the columns "Current cores usage", "Current instances", and "Min & Max number of instances" are dashed](../../assets/platform/environments/02-workload-profiles.png)
+
+[Observed] The blade renders one row grouped under a `Consumption` header with capacity `Up to 4 vCPUs / 8 Gi` and `# of Apps : 1`. The columns `Current cores usage`, `Current instances`, and `Min & Max number of instances` are dashed for the visible row. The `Add` button is enabled in the command bar.
+
+[Inferred] The presence of per-profile `Up to 4 vCPUs / 8 Gi`, `Current cores usage`, `Current instances`, and `Min & Max number of instances` columns on this blade appears to map to the environment layer of this page's [Scope stack](#scope-stack) diagram. The separate dashed `Current cores usage` and `Current instances` columns alongside the static `Up to 4 vCPUs / 8 Gi` capacity column are consistent with this page's [Soft vs. hard boundaries](#soft-vs-hard-boundaries) framing that quota-style and platform-style limits are different categories of constraint.
+
+[Not Proven] This image does not visualize the `Managed Environment Count`, `Managed Environment Consumption Cores`, `Managed Environment General Purpose Cores`, `Managed Environment Memory Optimized Cores`, or GPU quota items listed in this page's [What Microsoft Learn publishes directly](#what-microsoft-learn-publishes-directly) table. It does not visualize the `1,000` maximum replicas per revision limit. It does not visualize the integrated or manual quota request paths described in this page's [How to request increases](#how-to-request-increases) section.
+
 ## See Also
 
 - [Reference: Platform Limits](../../reference/platform-limits.md)
