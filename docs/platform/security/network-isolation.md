@@ -82,6 +82,16 @@ Security implication:
 - You still need per-app ingress decisions.
 - Public reachability should be limited to true edge applications, not all services in the environment.
 
+#### Portal view: environment Networking blade (unhardened baseline)
+
+![Container Apps environment Networking blade showing "General", "Ingress settings", "Request Routing", "Encryption", and "Custom DNS Suffix" tabs, with "General" selected; a "Public Network Access" field with "Enable" selected and "Disable" unselected radio options; and a "Virtual network" section stating "This environment isn't integrated".](../../assets/platform/networking/02-environment-networking.png)
+
+[Observed] On the selected `General` tab, `Public Network Access` shows two radio options with `Enable` selected and `Disable` unselected, and the `Virtual network` section reads `This environment isn't integrated`.
+
+[Inferred] The simultaneous state of `Public Network Access: Enable` and a `Virtual network` section reading `This environment isn't integrated` is consistent with this page's framing of an environment that has neither the [Layer 1: Environment exposure boundary](#layer-1-environment-exposure-boundary) control nor the [Layer 2: Custom VNet integration](#layer-2-custom-vnet-integration) control applied. The grouping of these two rows on the same `General` tab is consistent with this page's description of environment exposure and VNet integration as distinct but related layer-1 and layer-2 decisions in the defense-in-depth stack.
+
+[Not Proven] This image does not show any subnet ID, NSG, UDR, route table, or private endpoint surface, so [Layer 3: Private endpoints](#layer-3-private-endpoints) and [Layer 4: NSG and UDR controls](#layer-4-nsg-and-udr-controls) are not represented here. It does not show any per-app ingress mode field, so [Layer 5: App ingress decisions](#layer-5-app-ingress-decisions) is outside the scope of this capture. It does not show Azure Firewall, NAT Gateway, or egress policy controls, so [Layer 6: Egress control](#layer-6-egress-control) is not represented in this image.
+
 ## Layer 2: Custom VNet integration
 
 Microsoft Learn documents that you can deploy a Container Apps environment into a user-provided virtual network by using a dedicated subnet. This is the control that unlocks most enterprise isolation patterns.
