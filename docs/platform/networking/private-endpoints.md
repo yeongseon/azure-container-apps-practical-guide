@@ -78,6 +78,18 @@ flowchart TD
     - Traffic stays on Microsoft backbone
     - No public internet exposure
 
+## Portal view: non-integrated starting point before the private-endpoint setup
+
+This screenshot is used here as a visual starting point for the [Quick Start: Deploy Test Environment](#quick-start-deploy-test-environment) recipe and the [Architecture](#architecture) flow that depend on a VNet-integrated environment.
+
+![Networking blade showing "General" selected; "Public Network Access" with "Enable: Allows incoming traffic from the public internet." selected; "Virtual network" section reading "This environment isn't integrated"; tab strip lists "General", "Ingress settings", "Request Routing", "Encryption", "Custom DNS Suffix"](../../assets/platform/environments/03-networking.png)
+
+[Observed] "Public Network Access" shows "Enable: Allows incoming traffic from the public internet." selected. "Virtual network" reads "This environment isn't integrated". The visible tabs are "General", "Ingress settings", "Request Routing", "Encryption", and "Custom DNS Suffix".
+
+[Inferred] The visible "This environment isn't integrated" text is consistent with this page using the screenshot as a before-state for the VNet-integrated path in [Quick Start: Deploy Test Environment](#quick-start-deploy-test-environment) and [Architecture](#architecture). The selected "Enable: Allows incoming traffic from the public internet." option appears to map to a networking context discussed separately from the `--internal-only true` example in [Verify Connectivity](#verify-connectivity).
+
+[Not Proven] This image does not show a private endpoint resource name. It does not show the private DNS zone label `privatelink.vaultcore.azure.net` from [Architecture](#architecture). It does not show the `privatelink.azurecr.io` or `privatelink.<region>.data.microsoft.com` labels from [ACR Private Endpoint Flow](#acr-private-endpoint-flow). It does not show the `--internal-only true` flag from [Verify Connectivity](#verify-connectivity). It does not show the managed identity RBAC role names from [Using Private Endpoints in Code](#using-private-endpoints-in-code).
+
 ## Quick Start: Deploy Test Environment
 
 We provide a complete private endpoint test environment with Key Vault and Storage Account.
