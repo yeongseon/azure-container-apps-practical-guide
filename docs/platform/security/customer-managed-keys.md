@@ -79,6 +79,18 @@ The current Microsoft Learn documentation does **not** document the following Co
 
 Because those items are not documented, this guide takes the conservative position that **Container Apps environment CMK is not currently a supported feature surface**.
 
+## Portal View: Secrets Surface Without CMK Controls
+
+The Azure Portal **Secrets** blade is the surface for the [Key Vault-backed secrets](#key-vault-backed-secrets) pattern described below.
+
+![ca-sample-d38538 | Secrets Add Refresh Send us your feedback Secrets are key/value pairs that can be used to protect sensitive data like passwords and connection strings. Secrets that you store here will be valid across all your revisions. Note that changing secrets will not create a new revision. Key Value Edit Delete No secrets to display. Add your first secret. Add](../../assets/platform/identity-and-secrets/03-secrets-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Secrets`. `Container App`. `Add`. `Refresh`. `Send us your feedback`. `Secrets are key/value pairs that can be used to protect sensitive data like passwords and connection strings. Secrets that you store here will be valid across all your revisions. Note that changing secrets will not create a new revision.` `Key`. `Value`. `Edit`. `Delete`. `No secrets to display.` `Add your first secret.` `Add`.
+
+**[Inferred]** The blade's column headers `Key`, `Value`, `Edit`, `Delete` appear to map to the per-secret lifecycle that this page's [Key Vault-backed secrets](#key-vault-backed-secrets) section identifies as the documented Key Vault integration surface. The body sentence `Secrets that you store here will be valid across all your revisions` is consistent with this page's [Scope guidance for architecture reviews](#scope-guidance-for-architecture-reviews) row stating Container Apps can use Key Vault for app secrets.
+
+**[Not Proven]** A customer-managed key field is not shown on this blade. An encryption-at-rest key selector is not shown. A Key Vault key reference field is not shown. Whether any environment-level CMK surface exists elsewhere in the Portal cannot be determined from this blade.
+
 ## What you can use instead
 
 ### Key Vault-backed secrets
