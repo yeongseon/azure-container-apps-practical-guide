@@ -154,6 +154,18 @@ Dedicated profiles are the better fit when you need:
 - GPU-enabled dedicated hardware.
 - Networking features that require a Workload profiles environment, such as UDR or NAT Gateway egress.
 
+### Portal view: profiles and per-profile app counts
+
+The Workload profiles blade on a v2 environment is the surface where profile types appear and where each profile rolls up the number of apps targeting it via `workloadProfileName`.
+
+![Workload profiles blade on a Workload profiles (v2) environment showing one row under the "Consumption" group header with profile "Consumption", profile type implied by the group header, capacity "Up to 4 vCPUs / 8 Gi", and "# of Apps : 1"; the "Add" button is enabled in the command bar; the columns "Current cores usage", "Current instances", and "Min & Max number of instances" are dashed](../../assets/platform/environments/02-workload-profiles.png)
+
+[Observed] The blade renders one row grouped under a `Consumption` header: profile `Consumption`, capacity `Up to 4 vCPUs / 8 Gi`, `# of Apps : 1`. No `Dedicated` or `Flex` group header is rendered. The `Add` button is enabled in the command bar. The `Current cores usage`, `Current instances`, and `Min & Max number of instances` columns are dashed for the visible row.
+
+[Inferred] The single `Consumption`-grouped row aligns with this page's [Profile types inside a v2 environment](#profile-types-inside-a-v2-environment) statement that each v2 environment includes a default Consumption profile, and the absence of any `Dedicated` or `Flex` group is consistent with this page's framing of those profile types as ones you add. The `# of Apps : 1` column appearing per profile is consistent with this page's [Profile properties and app targeting](#profile-properties-and-app-targeting) note that an app targets a profile via `workloadProfileName`, which lets per-profile app counts be rolled up at the profile scope.
+
+[Not Proven] This image does not visualize any `D4`/`D8`/`D16`/`D32`, `E4`/`E8`/`E16`/`E32`, or `NC24-A100`/`NC48-A100`/`NC96-A100` profile rows enumerated in this page's [Current dedicated profile families](#current-dedicated-profile-families) table. It does not visualize the `minimumCount` or `maximumCount` Bicep properties shown in this page's [Profile properties and app targeting](#profile-properties-and-app-targeting) snippet. It does not visualize per-app `workloadProfileName` values for the one app counted in the `# of Apps` column.
+
 ## See Also
 
 - [Plans and Workload Profiles](plans-and-workload-profiles.md)
