@@ -421,6 +421,16 @@ Use this checklist for recurring scale reviews:
 - Are scale events correlated with dependency incidents?
 - Is cost trend consistent with demand growth?
 
+### Verify scale configuration in Azure Portal
+
+![ca-sample-d38538 | Scale | Edit and deploy | Refresh | Send us your feedback | Based on revision | ca-sample-d38538--0uzoi59 | Scale rule settings | Min replicas 1 | Max replicas 3 | Cooldown period (seconds) 300 | Polling interval (seconds) 30 | Current number of replicas 1 | Scale rules | http-scaler | HTTP scaling](../assets/best-practices/scaling-scale-blade.png)
+
+**[Observed]** Visible page title `ca-sample-d38538 | Scale`. Command bar entries: `Edit and deploy`, `Refresh`, `Send us your feedback`. Section label `Based on revision` with value `ca-sample-d38538--0uzoi59`. Section heading `Scale rule settings` with fields `Min replicas` `1`, `Max replicas` `3`, `Cooldown period (seconds)` `300`, `Polling interval (seconds)` `30`, `Current number of replicas` `1`. Section heading `Scale rules` lists one rule: `http-scaler` with type `HTTP scaling`. Left navigation entries include `Application`, `Revisions and replicas`, `Containers`, `Scale`, `Volumes`, `Settings`.
+
+**[Inferred]** The `Min replicas` `1` and `Max replicas` `3` fields appear to map to the `--min-replicas` and `--max-replicas` levers discussed in [Plan min and max replicas as reliability guardrails](#plan-min-and-max-replicas-as-reliability-guardrails). The `http-scaler` entry under `Scale rules` with type `HTTP scaling` is consistent with the `--scale-rule-name`/`--scale-rule-type http` pattern documented in [Tune HTTP scaling with concurrency and response behavior in mind](#tune-http-scaling-with-concurrency-and-response-behavior-in-mind). The non-zero `Min replicas` `1` value is consistent with the warm-floor row in [Decide explicitly on scale-to-zero](#decide-explicitly-on-scale-to-zero) that calls out `minReplicas: 1+` as the always-warm posture. The `Edit and deploy` command bar entry is consistent with the revision-creating effect of `az containerapp update` described throughout [Recommended Practices](#recommended-practices).
+
+**[Not Proven]** Concurrency thresholds, queue lengths, custom metric targets, or polling-interval tuning rationale for the `http-scaler` rule are not visible on this view. Historical scale events, replica scale-out timestamps, and per-replica resource utilization are not visible on this view. KEDA scaler authentication configuration, identity bindings, and secret references are not visible on this view. Whether the displayed values were applied via CLI, Bicep, ARM, or Portal edit is not visible on this view.
+
 ## Advanced Topics
 
 ### Adaptive threshold tuning by time window
