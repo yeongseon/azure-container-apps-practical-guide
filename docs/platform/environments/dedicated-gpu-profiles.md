@@ -90,13 +90,13 @@ Dedicated GPU placement changes the cost model:
 
 ### Portal view: GPU profile rows are not present by default
 
-The Workload profiles blade on a v2 environment created without any Dedicated GPU profile request is the baseline contrast for this page's GPU placement model.
+The Workload profiles blade on a v2 environment is the surface where Dedicated GPU profile rows would appear once added.
 
 ![Workload profiles blade showing one row under the "Consumption" group header with profile "Consumption", capacity "Up to 4 vCPUs / 8 Gi", and "# of Apps : 1"; the "Add" button is enabled in the command bar; the columns "Current cores usage", "Current instances", and "Min & Max number of instances" are dashed](../../assets/platform/environments/02-workload-profiles.png)
 
 [Observed] The blade renders one row grouped under a `Consumption` header: profile `Consumption`, capacity `Up to 4 vCPUs / 8 Gi`, `# of Apps : 1`. No `NC24-A100`, `NC48-A100`, or `NC96-A100` row is visible on the blade. The `Add` button is enabled in the command bar. The `Current cores usage`, `Current instances`, and `Min & Max number of instances` columns are dashed for the visible row.
 
-[Inferred] The absence of any `NC24-A100`, `NC48-A100`, or `NC96-A100` row on this blade is consistent with this page's [Capacity and region limits apply](#main-content) warning that GPU-enabled Dedicated profiles are available only in select regions and that capacity is allocated on a per-case basis. The presence of an enabled `Add` button alongside the absence of GPU rows appears to map to this page's [Current GPU profile names](#current-gpu-profile-names) framing that GPU profiles are additions to a v2 environment rather than defaults included with every environment.
+[Inferred] The absence of any `NC24-A100`, `NC48-A100`, or `NC96-A100` row on this blade is consistent with this page's [Capacity and region limits apply](#main-content) warning that GPU-enabled Dedicated profiles are available only in select regions and that capacity is allocated on a per-case basis.
 
 [Not Proven] This image does not visualize the `Consumption-GPU-NC24-A100` or `Consumption-GPU-NC8as-T4` serverless GPU profile names listed in this page's [Current GPU profile names](#current-gpu-profile-names) section. It does not visualize the per-instance billing model from this page's [Cost considerations](#cost-considerations) section. It does not visualize the GPU-backed node or Dedicated plan instance billing nodes from this page's [Placement model](#placement-model) Mermaid diagram.
 
