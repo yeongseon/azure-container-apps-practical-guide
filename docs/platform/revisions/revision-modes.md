@@ -135,6 +135,16 @@ Choose **multiple** when:
 - You want blue/green labels for deterministic validation.
 - You need instant rollback by moving traffic rather than rebuilding artifacts.
 
+## Portal view: Revisions and replicas blade
+
+![Revisions and replicas blade for a Container App showing the Deployment mode button, two active revision rows, 30/70 Traffic inputs, and Active checkboxes selected](../../assets/platform/revisions/01-revisions-replicas-blade.png)
+
+[Observed] The blade header reads `<your-app-name> | Revisions and replicas` with the subtitle `Container App`. The command bar exposes `Create new revision`, `Save`, `Refresh`, `Deployment mode`, and `Send us your feedback`. A banner above the table describes each revision as an immutable snapshot of the container app. A tab strip shows `Active revisions` (selected), `Inactive revisions`, and `Replicas`. The `Active revisions` table has columns `Name`, `Date created`, `Running status`, `View Logs`, `Label`, `Traffic`, `Replicas`, and `Active`. Two rows are listed: `<your-app-name>--<revision-suffix-1>` with a `Traffic` editor showing `30 %` and the `Active` checkbox checked, and `<your-app-name>--<revision-suffix-2>` with a `Traffic` editor showing `70 %` and the `Active` checkbox checked. Both rows show `Running` status and a single replica count. The left navigation highlights `Revisions and replicas` under `Application`.
+
+[Inferred] The `Deployment mode` button in the command bar appears to map to the `activeRevisionsMode` property described in the "Revision Modes" table above, which is the same setting toggled by the `az containerapp revision set-mode` command shown in the "In multiple mode" section. The presence of two rows with independent `Traffic` percentage editors and `Active` checkboxes on the same blade is consistent with the multiple-mode capability described in the "Multiple revision mode" section, where the page explains that you split traffic between active revisions rather than letting the platform deprovision the older one.
+
+[Not Proven] The panel that opens after clicking `Deployment mode` is not shown in this capture, so the exact label and radio shape of the `Single` and `Multiple` choices on that panel are outside the scope of this image. The blade also does not show how the `Inactive revisions` and `Replicas` tabs render, nor what happens when the `Active` checkbox is unchecked and `Save` is clicked.
+
 ## See Also
 
 - [Revisions Overview](index.md)
