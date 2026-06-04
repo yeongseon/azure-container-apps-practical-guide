@@ -496,5 +496,6 @@ nav:
     - CLI Reference: reference/cli-reference.md
     - Environment Variables: reference/environment-variables.md
     - Platform Limits: reference/platform-limits.md
+    - Metrics: reference/metrics.md
   - Contributing:
     - contributing/index.md
