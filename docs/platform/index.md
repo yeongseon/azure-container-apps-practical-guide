@@ -62,6 +62,16 @@ graph TD
 !!! warning "Do not skip platform concepts"
     Jumping directly to language guides without understanding revision mode, ingress boundaries, and scaling behavior often leads to production misconfigurations.
 
+### Verify platform surfaces in Azure Portal
+
+![cae-basics-d38538 | Container Apps Environment | Environment type | Workload profiles | Applications | 1 | KEDA version | 2.18.1 | Dapr version | 1.16.4-msft.7 | ca-sample-d38538 | Container App](../assets/platform/index-environment-overview.png)
+
+**[Observed]** `cae-basics-d38538` `Container Apps Environment` `Refresh` `Delete` `Essentials` `View Cost` `JSON View` `Resource group (move)` `rg-aca-basics-d38538` `Status` `Succeeded` `Location (move)` `Korea Central` `Subscription (move)` `Visual Studio Enterprise Subscription` `Subscription ID` `00000000-0000-0000-0000-000000000000` `Aspire Dashboard` `Not yet active (set up)` `Tags (edit)` `Add tags` `Environment type` `Workload profiles` `Static IP` `4.230.156.3` `Applications` `1` `KEDA version` `2.18.1` `Dapr version` `1.16.4-msft.7` `Applications` `Get started` `Monitoring` `Tutorials` `Name` `App Type` `Resource Group` `ca-sample-d38538` `Container App` `rg-aca-basics-d38538`.
+
+**[Inferred]** The `Container Apps Environment` `cae-basics-d38538` value with its nested `ca-sample-d38538` `Container App` row is consistent with the environment-to-app resource hierarchy summarized in [Documents](#documents).
+
+**[Not Proven]** The control-plane and data-plane components behind this environment are not visible on this view. The revision lifecycle state of the listed Container App is not visible on this view. The configured scaling rules for the listed Container App are not visible on this view. The networking and ingress controls for the environment are not visible on this view.
+
 ## Advanced Topics
 
 - Build architecture decision records (ADRs) per environment
