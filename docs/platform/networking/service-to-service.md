@@ -161,6 +161,16 @@ def get_data():
     Even with internal networking or Dapr service invocation, enforce client-side timeouts,
     bounded retries, and idempotency to avoid cascading failures.
 
+## Portal view: Ingress blade
+
+![Ingress blade for a Container App showing the Ingress traffic scope, Ingress type, client certificate mode, transport, target port, endpoint, and IP restrictions sections](../../assets/platform/networking/01-ingress-blade.png)
+
+[Observed] The blade header reads `<your-app-name> | Ingress` with the subtitle `Container App`. The command bar exposes `Refresh` and `Send us your feedback`. A banner above the form notes that traffic is going to the latest revision and links to the revision management page. The form contains an `Ingress` checkbox in the checked state, followed by an `Ingress traffic` radio group with two options: `Limited to Container Apps Environment` and `Accepting traffic from anywhere`, with the second option selected. Below that, `Ingress type` shows `HTTP` selected and `TCP` shown but not selectable. `Client certificate mode` shows three radios: `Ignore` (selected), `Accept`, and `Require`. `Transport` is a dropdown showing the value `Auto`. `Insecure connections` is an unchecked checkbox. `Target port` shows the value `80`. An `Endpoint(s)` row renders a full app FQDN. A collapsed `Additional TCP ports` section and an `IP Restrictions` section showing `Allow all traffic (default)` follow. `Save` and `Discard` buttons appear at the bottom of the form. The left navigation highlights `Ingress` under the `Networking` group.
+
+[Inferred] The `Ingress traffic` radio option `Limited to Container Apps Environment` appears to map to the internal-only ingress configuration described in the Internal DNS section above, since both surfaces describe restricting reachability to the same Container Apps environment. The presence of an `Endpoint(s)` row on the same blade as the `Ingress` checkbox is consistent with the FQDN-based service discovery flow shown in the Internal Resolution Flow diagram.
+
+[Not Proven] The screenshot does not show the panel or behavior that follows selecting `Limited to Container Apps Environment`, so the rendered shape of the resulting internal endpoint is outside the scope of this image. The `Additional TCP ports` section is collapsed and its contents are not visible. The `IP Restrictions` section header is visible but the rule editor is not.
+
 ## See Also
 - [Ingress in Azure Container Apps](ingress.md)
 - [Dapr Integration](../../language-guides/python/recipes/dapr-integration.md)
