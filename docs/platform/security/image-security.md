@@ -59,6 +59,16 @@ Requirements documented by Microsoft Learn:
 !!! tip "Managed identity is the preferred ACR authentication path"
     Managed identity removes long-lived registry credentials from app configuration and gives you auditable RBAC-based access to the registry.
 
+#### Portal view: Identity blade (ACR pull prerequisite)
+
+![Identity blade for a Container App showing the System assigned and User assigned tabs and a Status Off toggle](../../assets/platform/identity-and-secrets/01-identity-blade.png)
+
+[Observed] The blade is `<your-app-name> | Identity` with the subtitle `Container App`. Two tabs are rendered: `System assigned` (selected) and `User assigned`. The command bar exposes `Save`, `Discard`, `Refresh`, and `Got feedback?`. A single form field labeled `Status` is rendered as an `Off` / `On` toggle, currently set to `Off`.
+
+[Inferred] The two-tab split between `System assigned` and `User assigned` is consistent with the two managed identity flavors named in the [Managed identity for Azure Container Registry](#managed-identity-for-azure-container-registry) requirements list — either flavor satisfies the "Enable the managed identity on the container app" prerequisite. The single `Status` toggle on the System assigned tab is consistent with this page's recommendation to prefer managed identity over `username` and `password` registry credentials, as it is the surface where identity enablement is exposed on this blade. The `Save` / `Discard` pair on the command bar is consistent with identity configuration being an explicit committed change on this blade rather than an inferred side effect of other settings.
+
+[Not Proven] This image does not show the `AcrPull` role assignment itself, which lives on the Azure Container Registry resource rather than on this blade. It does not show the principal ID, tenant ID, or any user-assigned identity attachment. It does not show the registry configuration on the Container App that would consume the identity. The toggle is currently `Off`, so the post-enable principal ID field and any associated permissions surface are not rendered in this capture.
+
 ### Username and password for private registries
 
 Container Apps also supports private registry authorization through username and password. This is functional, but it shifts the security burden to secret storage and credential rotation.
