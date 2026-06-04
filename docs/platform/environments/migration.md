@@ -136,6 +136,18 @@ If the target environment fails validation:
 
 For cross-region or major network changes, keep the source environment alive until log, metric, and business-transaction health remain stable through the agreed rollback window.
 
+### Portal view: the network type that a migration cannot flip in place
+
+The Networking blade on an existing environment shows the network type that was selected at creation. Per this page's [Scenario guidance](#scenario-guidance) framing, changes that touch this surface are the ones that drive the parallel-environment cutover pattern.
+
+![Networking blade showing General tab with "Public Network Access" set to "Enable - Allows incoming traffic from the public internet", and Virtual network section reading "This environment isn't integrated"; tab strip lists "General", "Ingress settings", "Request Routing", "Encryption", "Custom DNS Suffix"](../../assets/platform/environments/03-networking.png)
+
+[Observed] The General tab shows `Public Network Access : Enable - Allows incoming traffic from the public internet` (radio button selected). The Virtual network section reads `This environment isn't integrated`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, `Custom DNS Suffix`. No subnet picker, `Save` button, or in-place VNet integration control is visible.
+
+[Inferred] The visible `This environment isn't integrated` text alongside the absence of a subnet picker or VNet integration control on the blade appears to map to this page's [Scenario guidance](#scenario-guidance) recommendation to build a parallel v2 environment rather than attempting an in-place conversion. The `Public Network Access` and `Virtual network` settings being grouped on one tab is consistent with this page's [Verification](#verification) checkpoint that DNS, ingress exposure, and dependency paths must match the target design after cutover.
+
+[Not Proven] This image does not visualize the `Move` resource action used for the cross-subscription scenario in this page's [Scenario guidance](#scenario-guidance) table. It does not visualize the `environmentId` or `workloadProfileName` Bicep properties shown in this page's [Reference Bicep pattern for app recreation](#reference-bicep-pattern-for-app-recreation) snippet. It does not visualize the Mermaid steps from this page's [Parallel environment cutover](#parallel-environment-cutover) flow, such as DNS cutover or source decommissioning.
+
 ## See Also
 
 - [Plans and Workload Profiles](plans-and-workload-profiles.md)
