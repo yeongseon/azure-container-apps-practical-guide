@@ -563,6 +563,16 @@ curl "https://$APP_FQDN/health"
     {"status":"healthy","timestamp":"2026-04-09T10:30:00.000000+00:00"}
     ```
 
+### Step 9: Verify deployment in Azure Portal
+
+![Container App | Overview | Stop Refresh Delete | Essentials | Resource group Status Running Application Url | Container Apps Environment Environment type Workload profiles Log Analytics | Get started Properties Monitoring | left nav Application Networking Settings Monitoring Containers Scale Volumes Ingress Logs](../../../assets/language-guides/python/tutorial/02-container-app-overview-after-deploy.png)
+
+**[Observed]** `ca-sample-d38538`. `Container App`. `Overview`. `Stop`. `Refresh`. `Delete`. `Essentials`. `Resource group`. `Status`. `Running`. `Location`. `Korea Central`. `Subscription`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `Aspire Dashboard`. `Not yet active`. `Tags`. `Add tags`. `Application Url`. `Container Apps Environme...`. `Environment type`. `Workload profiles`. `Log Analytics`. `Development stack`. `Generic`. `View Cost`. `JSON View`. `Get started`. `Properties`. `Monitoring`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Settings`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
+
+**[Inferred]** The `Status` field value of `Running` appears consistent with the `state:properties.provisioningState` of `Succeeded` returned by the CLI verification in [Step 8: Verify deployment](#step-8-verify-deployment). The `Application Url` field appears to surface the same `properties.configuration.ingress.fqdn` value queried in [Step 7: Create Container App](#step-7-create-container-app). The `Container Apps Environme...` link appears to map to the `$ENVIRONMENT_NAME` value supplied to `--environment` in [Step 7: Create Container App](#step-7-create-container-app). The left-navigation entries `Containers`, `Scale`, `Ingress`, and `Logs` are consistent with the artifacts created across [Step 5: Create Container Apps environment](#step-5-create-container-apps-environment) and [Step 7: Create Container App](#step-7-create-container-app).
+
+**[Not Proven]** The image digest is not shown on this blade. The replica count is not shown on this blade. The revision name is not shown on this blade. The health-probe status is not shown on this blade.
+
 ## See Also
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)
 - [07 - Revisions and Traffic Splitting](07-revisions-traffic.md)
