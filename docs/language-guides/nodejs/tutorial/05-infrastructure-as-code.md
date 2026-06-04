@@ -233,6 +233,16 @@ graph TD
         }
         ```
 
+### Verify resource group in Azure Portal
+
+![Subscription|Visual Studio Enterprise Subscription|Subscription ID|00000000-0000-0000-0000-000000000000|Location|Korea Central|Deployments|No deployments](../../../assets/language-guides/nodejs/tutorial/05-resource-group-overview-blade.png)
+
+**[Observed]** `Microsoft Azure (Preview)`. `Report a bug`. `Search resources, services, and docs (G+/)`. `Copilot`. `Home`. `rg-aca-basics-d38538`. `Resource group`. `Create`. `Manage view`. `Delete resource group`. `Refresh`. `Export to CSV`. `Open query`. `Assign tags`. `Move`. `Delete`. `Export template`. `Group by none`. `Essentials`. `Subscription (move)`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `00000000-0000-0000-0000-000000000000`. `Tags (edit)`. `Add tags`. `Deployments`. `No deployments`. `Location`. `Korea Central`. `View Cost`. `JSON View`. `Resources`. `Recommendations`. `Filter for any field...`. `Type equals all`. `Location equals all`. `Add filter`. `Name`. `Type`. `acrbasicsd38538`. `Container registry`. `ca-dotnet-d38538`. `Container App`. `ca-java-d38538`. `ca-nodejs-d38538`. `ca-sample-d38538`. `cae-basics-d38538`. `Container Apps Environment`. `cj-event-d38538`. `Container App Job`. `cj-sample-d38538`. `cj-scheduled-d38538`. `law-basics-d38538`. `Log Analytics workspace`. `stacad38538`. `Storage account`. `stacad38538-00000000-0000-0000-0000-000000000000`. `Event Grid System Topic`. `Overview`. `Activity log`. `Access control (IAM)`. `Tags`. `Resource visualizer`. `Events`. `Settings`. `Cost Management`. `Monitoring`. `Automation`. `Help`. `Showing 1 - 12 of 12`.
+
+**[Inferred]** The `Container App` row `ca-nodejs-d38538` appears consistent with the Container App resource deployed by `az deployment group create` against the Bicep template in [Step-by-step](#step-by-step) Step 4. The `Container Apps Environment` row `cae-basics-d38538` appears consistent with the environment resource deployed by the same `az deployment group create` invocation in [Step-by-step](#step-by-step) Step 4. The `Container registry` row `acrbasicsd38538` appears consistent with the `containerRegistryName` output that [Step-by-step](#step-by-step) Step 5 retrieves via `az deployment group show --query properties.outputs`. The `Log Analytics workspace` row `law-basics-d38538` appears consistent with the workspace resource referenced by the environment module shown in [Example Bicep snippet (environment + logs)](#example-bicep-snippet-environment-logs).
+
+**[Not Proven]** The `properties.outputs` JSON payload returned by [Step-by-step](#step-by-step) Step 5 is not visible on this view. The `az deployment group validate` `status` JSON from [Step-by-step](#step-by-step) Step 2 is not visible on this view. The `az deployment group what-if` change preview from [Step-by-step](#step-by-step) Step 3 is not visible on this view. The per-deployment history record for the `az deployment group create` run from [Step-by-step](#step-by-step) Step 4 is not visible on this view.
+
 ## Example Bicep snippet (environment + logs)
 
 ```bicep
