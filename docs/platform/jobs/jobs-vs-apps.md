@@ -91,6 +91,16 @@ flowchart TD
     G -->|No| F
 ```
 
+## Portal View: Container App Job as a Distinct Resource Type
+
+![Container App Job | Trigger Type | Manual | Execution history | View | Parallelism | 1 | Completion count | 1](../../assets/platform/jobs/01-job-overview.png)
+
+**[Observed]** `cj-sample-d38538`. `Container App Job`. `Run now`. `Suspend`. `Refresh`. `Delete`. `Resource group`. `rg-aca-basics-d38538`. `Location`. `Korea Central`. `Subscription`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `00000000-0000-0000-0000-000000000000`. `Container Apps Environme...`. `cae-basics-d38538`. `Log Analytics`. `law-basics-d38538`. `Workload profile`. `Consumption`. `Properties`. `Job`. `Provisioning status`. `Succeeded`. `Trigger Type`. `Manual`. `Execution history`. `View`. `Configuration`. `Replica timeout`. `300`. `Replica retry limit`. `1`. `Advanced`. `Parallelism`. `1`. `Completion count`. `1`.
+
+**[Inferred]** The resource label `Container App Job` appears to map to the `Container Apps Job` column of the [Decision matrix](#decision-matrix). The `Trigger Type` field appears to correspond to the `Trigger` row of the [Decision matrix](#decision-matrix), and the `Execution history` field is consistent with the `Operational artifact` row entry `Execution history`.
+
+**[Not Proven]** No `Container App` resource is shown in this PNG. A side-by-side comparison with an app blade cannot be made from this single capture. The `Ingress traffic` trigger row entry in the matrix is not visible in this PNG. Whether the `Container App Job` and `Container App` resource types share an environment cannot be determined from this view alone.
+
 ## See Also
 
 - [Container Apps Jobs Overview](index.md)
