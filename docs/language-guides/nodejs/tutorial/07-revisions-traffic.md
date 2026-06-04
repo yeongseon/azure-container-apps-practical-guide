@@ -250,6 +250,16 @@ graph TD
         "Deactivate succeeded"
         ```
 
+### Verify revisions and traffic in Azure Portal
+
+![ca-nodejs-d38538 | Container App | Revisions and replicas | Create new revision | Save | Refresh | Deployment mode | Send us your feedback | Active revisions | Inactive revisions | Replicas | Name | Date created | 6/4/2026, 5:33:42 PM | Running status | View Logs | Label | Traffic | Replicas | ca-nodejs-d38538--0000001 | Running | 100 % | 1](../../../assets/language-guides/nodejs/tutorial/07-revisions-and-replicas-blade.png)
+
+**[Observed]** `ca-nodejs-d38538`. `Container App`. `Revisions and replicas`. `Create new revision`. `Save`. `Refresh`. `Deployment mode`. `Send us your feedback`. `Learn more`. `Active revisions`. `Inactive revisions`. `Replicas`. `Name`. `Date created`. `Running status`. `View Logs`. `Label`. `Traffic`. `ca-nodejs-d38538--0000001`. `6/4/2026, 5:33:42 PM`. `Running`. `View details`. `Show Logs`. `100`. `%`. `1`. `Show replicas`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
+
+**[Inferred]** The `Deployment mode` toolbar action appears to map to the same lever set by `az containerapp revision set-mode --mode multiple` in [Step-by-step](#step-by-step) Step 2. The `Create new revision` toolbar action is consistent with the new-revision effect of `az containerapp update --image` in [Step-by-step](#step-by-step) Step 3. The `Active revisions` and `Inactive revisions` tabs are consistent with the `revision list` and `revision deactivate` operations in [Step-by-step](#step-by-step) Steps 4 and 7. The `Traffic` column value `100 %` for `ca-nodejs-d38538--0000001` appears to map to the per-revision weight set by `az containerapp ingress traffic set --revision-weight` in [Step-by-step](#step-by-step) Steps 5 and 6.
+
+**[Not Proven]** The canary revision and its `10 %` weight from [Step-by-step](#step-by-step) Step 5 are not visible on this view. The 90/10 split target named in [Step-by-step](#step-by-step) Step 5 is not visible on this view. The `Label` column is empty for the listed revision. The `Inactive revisions` tab contents are not visible on this view.
+
 ## Node.js Revision Management
 
 When using multiple revisions with Node.js, ensure your application handles statelessness correctly. Session data should be stored in an external cache like Azure Cache for Redis to prevent user impact when traffic is split between different revisions.
