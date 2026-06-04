@@ -123,6 +123,16 @@ flowchart TD
 |---|---|
 | `az containerapp job start] ...` | Creates, updates, starts, or inspects a Container Apps job. |
 
+## Portal View: Manual Trigger Type and Run Now Action
+
+![Container App Job | Trigger Type | Manual | Run now | Suspend | Replica timeout | 300 | Replica retry limit | 1 | Parallelism | 1 | Completion count | 1](../../assets/platform/jobs/01-job-overview.png)
+
+**[Observed]** `cj-sample-d38538`. `Container App Job`. `Run now`. `Suspend`. `Refresh`. `Delete`. `Resource group`. `rg-aca-basics-d38538`. `Location`. `Korea Central`. `Subscription`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `00000000-0000-0000-0000-000000000000`. `Container Apps Environme...`. `cae-basics-d38538`. `Log Analytics`. `law-basics-d38538`. `Workload profile`. `Consumption`. `Properties`. `Job`. `Provisioning status`. `Succeeded`. `Trigger Type`. `Manual`. `Execution history`. `View`. `Configuration`. `Replica timeout`. `300`. `Replica retry limit`. `1`. `Advanced`. `Parallelism`. `1`. `Completion count`. `1`.
+
+**[Inferred]** The `Trigger Type` field appears to map to the same configuration lever set by `--trigger-type` in [How a manual job is triggered](#how-a-manual-job-is-triggered). The `Run now` toolbar button appears to map to the same start action surfaced by `az containerapp job start` in [How a manual job is triggered](#how-a-manual-job-is-triggered). The `Replica timeout`, `Replica retry limit`, `Parallelism`, and `Completion count` fields appear to map to the same levers as the `--replica-timeout`, `--replica-retry-limit`, `--parallelism`, and `--replica-completion-count` flags shown in that same section.
+
+**[Not Proven]** Whether `Run now` accepts override parameters at trigger time cannot be determined from this static view. The Portal execution-state strings flagged for verification in [Execution lifecycle for operator-driven runs](#execution-lifecycle-for-operator-driven-runs) are not shown on this blade. No active or historical execution rows are visible in this PNG. The retry-and-completion semantics described in [Parallelism and `replicaCompletionCount`](#parallelism-and-replicacompletioncount) are not enumerable from these single integer values.
+
 ## See Also
 
 - [Container Apps Jobs Overview](index.md)
