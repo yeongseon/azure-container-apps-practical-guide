@@ -195,6 +195,10 @@ az monitor diagnostic-settings list \
   --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az monitor diagnostic-settings list` | Lists the diagnostic-settings configured on the Container Apps environment so logging/audit destinations can be verified. |
+
 ```kusto
 ContainerAppSystemLogs_CL
 | where TimeGenerated > ago(24h)
@@ -209,6 +213,16 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 - Use standard TLS for ingress and private dependency calls.
 - Use **peer-to-peer mTLS** where documented for your workload pattern.
 - Record that **environment-level CMK** is not a documented Container Apps feature surface today.
+
+### Verify compliance baseline surfaces in Azure Portal
+
+![ca-sample-d38538 | Identity | Container App | System assigned | User assigned | Save | Discard | Refresh | Got feedback? | Status | Off | On](../assets/best-practices/compliance-baseline-identity-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Identity` `Container App` `System assigned` `User assigned` `Save` `Discard` `Refresh` `Got feedback?` `Status` `Off` `On`.
+
+**[Inferred]** The `System assigned` and `User assigned` tabs appear to map to the managed-identity expectation in the [Identity](#identity) baseline checklist, which is consistent with treating managed identity as the required authentication surface. The `Status` `Off` and `On` toggle is consistent with the explicit-activation posture documented in [Start from the Microsoft baseline, then map to your platform standard](#start-from-the-microsoft-baseline-then-map-to-your-platform-standard), which treats security defaults as deliberate baseline decisions. The `Save` control appears to map to the change-recording expectation in the [Data and secrets](#data-and-secrets) baseline checklist, which is consistent with applying identity-bound secret access as a committed configuration step. The `User assigned` tab appears to map to the shared-credential scoping discussed in the [Image](#image) baseline checklist, which is consistent with binding registry pulls to a managed identity rather than admin credentials.
+
+**[Not Proven]** The Azure RBAC role assignments granted to this identity are not visible on this view. The Key Vault references and secret store bindings are not visible on this view. The registry-authentication mode and `AcrPull` assignments are not visible on this view. The Azure Policy compliance state for this resource is not visible on this view.
 
 ## Common Mistakes / Anti-Patterns
 
