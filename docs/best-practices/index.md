@@ -161,6 +161,16 @@ flowchart TD
 - Update decision records after incidents, postmortems, and significant architecture deviations.
 - Review quarterly with platform, security, and operations stakeholders to remove stale assumptions.
 
+### Verify best-practices surfaces in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Container App | Create new revision | Save | Refresh | Deployment mode | Active revisions | Inactive revisions | Replicas | Name | ca-sample-d38538--0uzoi59 | Date created | 6/3/2026, 10:34:26 PM | Running status | Running | Label | Traffic | 100 % | Replicas | 1 (Show replicas)](../assets/best-practices/index-revisions-and-replicas.png)
+
+**[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100 %` `1 (Show replicas)`.
+
+**[Inferred]** The `Deployment mode` setting is consistent with the deployment-strategy expectation in [Quality gate before implementation](#quality-gate-before-implementation). The `Active revisions` and `Inactive revisions` grouping is consistent with the rollback-readiness concern raised in [Common outcomes when this layer is skipped](#common-outcomes-when-this-layer-is-skipped). The `Traffic` column with the displayed `100 %` value appears to map to the traffic-splitting topic listed in [Decision areas covered](#decision-areas-covered). The immutable revision suffix on `ca-sample-d38538--0uzoi59` is consistent with the deployment-validation expectation in [Quality gate before implementation](#quality-gate-before-implementation).
+
+**[Not Proven]** The image tag or digest used by the displayed revision is not visible on this view. The configured scale rules and `minReplicas` value are not visible on this view. Whether multiple revision mode is currently enabled is not visible on this view. The managed identity and Key Vault reference bindings for this revision are not visible on this view.
+
 ## Advanced Topics
 
 - Define environment-specific baseline profiles (dev, pre-prod, prod) with explicit trade-off boundaries.
