@@ -245,6 +245,16 @@ flowchart TD
 - **Live Metrics**: Use Application Insights Live Metrics Stream for real-time monitoring of your .NET app.
 - **Log Scopes**: Use `logger.BeginScope` to add contextual metadata (like `UserId`) to every log entry.
 
+### Verify log stream in Azure Portal
+
+![Based on revision|ca-dotnet-d38538--0000001|Replica|ca-dotnet-d38538--0000001-6dbf4684d5-7w5sh|Container|ca-dotnet-d38538|Category|Application](../../../assets/language-guides/dotnet/tutorial/04-log-stream-blade.png)
+
+**[Observed]** `Microsoft Azure (Preview)`. `Report a bug`. `Search resources, services, and docs (G+/)`. `Copilot`. `Home`. `ca-dotnet-d38538`. `Container App`. `Log stream`. `Refresh`. `Send us your feedback`. `Display`. `Historical`. `Real-time`. `Category`. `System`. `Application`. `Based on revision`. `ca-dotnet-d38538--0000001`. `Replica`. `ca-dotnet-d38538--0000001-6dbf4684d5-7w5sh`. `Container`. `ca-dotnet-d38538`. `Reconnect`. `Stop`. `Copy`. `Clear`. `Maximize`. `Connecting to the container 'ca-dotnet-d38538'...`. `Successfully Connected`. `Microsoft.Hosting.Lifetime`. `Now listening on: http://0.0.0.0:8000`. `Application started. Press Ctrl+C to shut down.`. `Hosting environment: Production`. `Content root path: /app`. `Overview`. `Activity log`. `Access control (IAM)`. `Tags`. `Diagnose and solve problems`. `Resource visualizer`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`. `Dashboards with Grafana`. `Advisor recommendations`.
+
+**[Inferred]** The `Real-time` radio appears to map to the live tail behavior triggered by `az containerapp logs show --follow` in [Step-by-step](#step-by-step) Step 2. The `Category` toggle value `Application` appears consistent with the default console-log stream from [Step-by-step](#step-by-step) Step 2, and the `System` option appears consistent with the system-log selector exercised in [Step-by-step](#step-by-step) Step 3. The displayed log line `Now listening on: http://0.0.0.0:8000` appears consistent with the `Microsoft.Hosting.Lifetime` startup log shape shown in the expected output of [Step-by-step](#step-by-step) Step 2. The displayed log lines emitted from the `Microsoft.Hosting.Lifetime` category appear consistent with the `ILogger`-emitted console output that the `ContainerAppConsoleLogs_CL` table indexes per the KQL query in [Step-by-step](#step-by-step) Step 4.
+
+**[Not Proven]** The Log Analytics KQL query results from [Step-by-step](#step-by-step) Step 4 are not visible on this view. The `fail: Microsoft.AspNetCore.Server.Kestrel` exception row from the KQL query in [Step-by-step](#step-by-step) Step 5 is not visible on this view. The OpenTelemetry exporter wiring described in [Step-by-step](#step-by-step) Step 6 is not visible on this view. The `az containerapp logs show` CLI invocation from [Step-by-step](#step-by-step) Step 2 is not visible on this view.
+
 ## See Also
 - [03 - Configuration, Secrets, and Dapr](03-configuration.md)
 - [.NET Runtime Reference](../dotnet-runtime.md)
