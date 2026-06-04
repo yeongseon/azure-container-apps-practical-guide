@@ -65,17 +65,17 @@ By default, Container Apps can access:
 | UDR + Azure Firewall | Domain/IP filtering and inspection | Higher complexity and cost | Regulated production workloads |
 | NAT Gateway | Static outbound IP for allow-lists | No L7 filtering by itself | SaaS allow-list integrations |
 
-## Portal view: non-integrated baseline for the Bicep examples
+## Portal view: non-integrated starting point for UDR and NAT Gateway recipes
 
-This screenshot is used here as a visual contrast baseline for the Bicep examples in [User-Defined Routes (UDR)](#user-defined-routes-udr) and [NAT Gateway for Static Outbound IP](#nat-gateway-for-static-outbound-ip).
+This screenshot is used here as a visual starting point for the Bicep examples in [User-Defined Routes (UDR)](#user-defined-routes-udr) and [NAT Gateway for Static Outbound IP](#nat-gateway-for-static-outbound-ip).
 
 ![Networking blade showing "General" selected; "Public Network Access" with "Enable: Allows incoming traffic from the public internet." selected; "Virtual network" section reading "This environment isn't integrated"; tab strip lists "General", "Ingress settings", "Request Routing", "Encryption", "Custom DNS Suffix"](../../assets/platform/environments/03-networking.png)
 
 [Observed] The `Public Network Access` section has `Enable: Allows incoming traffic from the public internet.` selected. The `Virtual network` section reads `This environment isn't integrated`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, `Custom DNS Suffix`. No route table, NAT gateway, or firewall reference is visible in the shown content.
 
-[Inferred] The visible `This environment isn't integrated` text is consistent with the Bicep examples in [User-Defined Routes (UDR)](#user-defined-routes-udr) and [NAT Gateway for Static Outbound IP](#nat-gateway-for-static-outbound-ip) introducing subnet-attached resources that are not shown on this blade. The absence of any visible route table or NAT gateway value appears to map to the `routeTable` and `natGateway` subnet properties used in those examples.
+[Inferred] The visible `This environment isn't integrated` text is consistent with this page using the screenshot as a contrast point for the Bicep examples in [User-Defined Routes (UDR)](#user-defined-routes-udr) and [NAT Gateway for Static Outbound IP](#nat-gateway-for-static-outbound-ip). The screenshot appears to map to a configuration context separate from the `routeTable` and `natGateway` subnet properties shown in those examples.
 
-[Not Proven] This image does not show the `Microsoft.Network/routeTables` resource from [User-Defined Routes (UDR)](#user-defined-routes-udr). It does not show the `Microsoft.Network/natGateways` resource from [NAT Gateway for Static Outbound IP](#nat-gateway-for-static-outbound-ip). It does not show the `Microsoft.Network/firewallPolicies` resource from [Azure Firewall Rules](#azure-firewall-rules). It does not show the service tags listed in [Required Outbound Dependencies](#required-outbound-dependencies). It does not show the managed identity ACR egress dependencies in the same section.
+[Not Proven] This image does not show the `Microsoft.Network/routeTables` resource from [User-Defined Routes (UDR)](#user-defined-routes-udr). It does not show the `Microsoft.Network/natGateways` resource from [NAT Gateway for Static Outbound IP](#nat-gateway-for-static-outbound-ip). It does not show the `Microsoft.Network/firewallPolicies` resource from [Azure Firewall Rules](#azure-firewall-rules). It does not show the service tags listed in [Required Outbound Dependencies](#required-outbound-dependencies). It does not show the managed identity ACR egress dependencies discussed later in [Required Outbound Dependencies](#required-outbound-dependencies).
 
 ## User-Defined Routes (UDR)
 
