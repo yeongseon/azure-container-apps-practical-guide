@@ -215,6 +215,16 @@ az containerapp revision deactivate \
 !!! tip "Use unique labels for testing"
     Assign a label to a specific revision to test it independently of production traffic. Use `az containerapp ingress traffic set --label testing=$APP_NAME--xxxxxxx` and visit `https://testing---$APP_NAME.<random-suffix>.<region>.azurecontainerapps.io`.
 
+## Verify revisions and traffic in Azure Portal
+
+![ca-java-d38538 | Container App | Revisions and replicas | Create new revision | Save | Refresh | Deployment mode | Send us your feedback | Active revisions | Inactive revisions | Replicas | Name | Date created | Running status | View Logs | Label | Traffic | Replicas | ca-java-d38538--0000001 | Running | 100 % | 1](../../../assets/language-guides/java/tutorial/07-revisions-and-replicas-blade.png)
+
+**[Observed]** `ca-java-d38538`. `Container App`. `Revisions and replicas`. `Create new revision`. `Save`. `Refresh`. `Deployment mode`. `Send us your feedback`. `Learn more`. `Active revisions`. `Inactive revisions`. `Replicas`. `Name`. `Date created`. `Running status`. `View Logs`. `Label`. `Traffic`. `ca-java-d38538--0000001`. `Running`. `View details`. `Show Logs`. `100`. `%`. `1`. `Show replicas`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
+
+**[Inferred]** The `Deployment mode` toolbar action appears to map to the same lever discussed in [Revision Modes](#revision-modes). The `Create new revision` toolbar action is consistent with the new-revision effect of `az containerapp update --image` documented in [Creating New Revisions](#creating-new-revisions). The `Active revisions` and `Inactive revisions` tabs are consistent with the `revision list` and `revision deactivate` operations in [Cleaning Up Old Revisions](#cleaning-up-old-revisions). The `Traffic` column value `100 %` for `ca-java-d38538--0000001` appears to map to the per-revision weight set by `az containerapp ingress traffic set --revision-weight` in [Managing Traffic Splitting](#managing-traffic-splitting).
+
+**[Not Proven]** Any canary revision and weight applied in [Managing Traffic Splitting](#managing-traffic-splitting) are not visible on this view. Any 50/50 or 10/90 split target named in [Managing Traffic Splitting](#managing-traffic-splitting) is not visible on this view. The `Label` column is empty for the listed revision. The `Inactive revisions` tab contents are not visible on this view.
+
 ## See Also
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
 - [02 - First Deploy to Azure](02-first-deploy.md)
