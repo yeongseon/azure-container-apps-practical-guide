@@ -518,6 +518,16 @@ az monitor log-analytics query \
   --output table
 ```
 
+### Verify security hardening surfaces in Azure Portal
+
+![ca-sample-d38538 | Ingress | Container App | Refresh | Send us your feedback | Ingress | Ingress traffic | Limited to Container Apps Environment | Accepting traffic from anywhere | Ingress type | HTTP | TCP | Client certificate mode | Ignore | Accept | Require | Transport | Auto | Insecure connections | Target port | 80 | Endpoint(s) | https://<app-name>.<unique-id>.<region>.azurecontainerapps.io | Session affinity | Additional TCP ports | IP Restrictions | IP Security Restrictions Mode | Allow all traffic (default) | Save | Discard](../assets/best-practices/security-ingress-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Ingress` `Container App` `Refresh` `Send us your feedback` `Ingress` `Ingress traffic` `Limited to Container Apps Environment` `Accepting traffic from anywhere` `Ingress type` `HTTP` `TCP` `Client certificate mode` `Ignore` `Accept` `Require` `Transport` `Auto` `Insecure connections` `Target port` `80` `Endpoint(s)` `https://<app-name>.<unique-id>.<region>.azurecontainerapps.io` `Session affinity` `Additional TCP ports` `IP Restrictions` `IP Security Restrictions Mode` `Allow all traffic (default)` `Save` `Discard`.
+
+**[Inferred]** The `Limited to Container Apps Environment` radio option is consistent with the internal-scope expectation in [Use internal environments for sensitive workloads](#use-internal-environments-for-sensitive-workloads). The `Accepting traffic from anywhere` radio paired with the external `Endpoint(s)` value is consistent with the externally-reachable scope discussed in [Restrict ingress to internal for backend services](#restrict-ingress-to-internal-for-backend-services). The external `Endpoint(s)` value `https://<app-name>.<unique-id>.<region>.azurecontainerapps.io` is consistent with the public-DNS dependency referenced in [Enable private endpoints for all Azure dependencies](#enable-private-endpoints-for-all-azure-dependencies). The `IP Restrictions` section paired with the `IP Security Restrictions Mode` `Allow all traffic (default)` value is consistent with the ingress-scope concern discussed in [Restrict ingress to internal for backend services](#restrict-ingress-to-internal-for-backend-services).
+
+**[Not Proven]** Whether the displayed `Client certificate mode` is set to `Ignore`, `Accept`, or `Require` is not visible on this view. The configured IP allow or deny rules under `IP Restrictions` are not visible on this view. The Easy Auth identity provider configuration is not visible on this view. The Dapr mTLS state and Key Vault reference bindings are not visible on this view.
+
 ## Common Mistakes / Anti-Patterns
 
 | Anti-Pattern | Risk | Fix |
