@@ -286,6 +286,16 @@ Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schem
    - Verify reduced replica count during idle periods.
    - Compare latency before and after scale events.
 
+### Verify log stream in Azure Portal
+
+![ca-sample-d38538 | Container App | Log stream | Refresh | Send us your feedback | Real-time | Category | System | Application | Based on revision | ca-sample-d38538--v2 | Replica | ca-sample-d38538--v2-64dd6cf5b6-2wdpl | Container | ca-sample-d38538 | Reconnect | Stop | Copy | Clear | Maximize | Connecting to stream... | 2026-06-04T11:20:16.43591 | Successfully Connected to container | Listening on :80](../../../assets/language-guides/python/tutorial/04-log-stream-blade.png)
+
+**[Observed]** `ca-sample-d38538`. `Container App`. `Log stream`. `Refresh`. `Send us your feedback`. `Historical`. `Real-time`. `Category`. `System`. `Application`. `Based on revision`. `ca-sample-d38538--v2`. `Not seeing your revision?`. `Click here to find and activate an existing revision.`. `Replica`. `ca-sample-d38538--v2-64dd6cf5b6-2wdpl`. `Container`. `ca-sample-d38538`. `Reconnect`. `Stop`. `Copy`. `Clear`. `Maximize`. `Connecting to stream...`. `2026-06-04T11:20:16.43591`. `Connecting to the container 'ca-sample-d38538'...`. `2026-06-04T11:20:16.46996`. `Successfully Connected to container: 'ca-sample-d38538' [Revision: 'ca-sample-d38538--v2', Replica: 'ca-sample-d38538--v2-64dd6cf5b6-2wdpl']`. `2026-06-03T14:40:20.9561158Z stderr F 2026/06/03 14:40:20 Listening on :80...`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
+
+**[Inferred]** The `Real-time` radio appears to map to the live tail behavior triggered by `az containerapp logs show --follow` in [Step-by-step](#step-by-step) Step 2. The `Category` toggle between `System` and `Application` appears consistent with the `--type system` versus `--type console` selector exercised in [Step-by-step](#step-by-step) Step 3. The `Based on revision` selector value `ca-sample-d38538--v2` is consistent with the per-revision scoping that `az containerapp logs show --revision` provides in [Step-by-step](#step-by-step) Step 2. The `Replica` selector value `ca-sample-d38538--v2-64dd6cf5b6-2wdpl` appears consistent with the per-replica scoping that `az containerapp logs show --replica` provides in [Step-by-step](#step-by-step) Step 2.
+
+**[Not Proven]** The Log Analytics KQL query results from [Step-by-step](#step-by-step) Step 4 are not visible on this view. The error-row results returned by the KQL query in [Step-by-step](#step-by-step) Step 5 are not visible on this view. The OpenTelemetry trace export from [Step-by-step](#step-by-step) Step 6 is not visible on this view. The KEDA scaling telemetry correlation described in [Step-by-step](#step-by-step) Step 7 is not visible on this view.
+
 ## Observability practices
 
 - Emit structured JSON logs with correlation IDs.
