@@ -399,6 +399,16 @@ Post-deploy:
 - Release notes include final traffic state.
 - Cleanup task scheduled.
 
+### Verify revision state in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Container App | Create new revision | Save | Refresh | Deployment mode | Send us your feedback | Active revisions | Inactive revisions | Replicas | Name | Date created | Running status | View Logs | Label | Traffic | Replicas | ca-sample-d38538--0uzoi59 | Running | View details | Show Logs | 100 % | 1 (Show replicas)](../assets/best-practices/revision-strategy-revisions-and-replicas.png)
+
+**[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Send us your feedback` `Each revision is an immutable snapshot of your container app, and can have different setups for traffic allocation, container images, autoscaling, or Dapr.` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100` `%` `1 (Show replicas)` `Overview` `Activity log` `Access control (IAM)` `Tags` `Application` `Containers` `Scale` `Volumes` `Settings` `Networking` `Ingress` `Custom domains` `CORS` `Security` `Monitoring` `Log stream` `Logs` `Console` `Alerts` `Metrics`.
+
+**[Inferred]** The `Deployment mode` command-bar entry appears to map to the `az containerapp revision set-mode --mode multiple` operation documented in [Decide single vs multiple revision mode by release complexity](#decide-single-vs-multiple-revision-mode-by-release-complexity). The revision row `ca-sample-d38538--0uzoi59` is consistent with the `--revision-suffix` convention discussed in [Use a revision suffix convention that is machine-sortable](#use-a-revision-suffix-convention-that-is-machine-sortable). The empty `Label` column and the `100 %` value in `Traffic` are consistent with the `az containerapp revision label add` and weight-shifting flow documented in [Use labels for stable endpoints and weights for controlled migration](#use-labels-for-stable-endpoints-and-weights-for-controlled-migration). The `Active revisions` and `Inactive revisions` tabs are consistent with the `az containerapp revision list` and `az containerapp revision deactivate` operations documented in [Manage revision lifecycle to control cost and cognitive load](#manage-revision-lifecycle-to-control-cost-and-cognitive-load).
+
+**[Not Proven]** Per-revision image tags, environment variables, scaler bindings, and ingress configuration are not visible on this view. Inactive revision rows, prior traffic splits, and rollback history are not visible on this view. Replica-level CPU, memory, restart counts, and probe state are not visible on this view. Whether the displayed revision was created via CLI, Bicep, ARM, GitHub Actions, or Portal edit is not visible on this view.
+
 ## Advanced Topics
 
 ### Weighted promotion automation with safety windows
