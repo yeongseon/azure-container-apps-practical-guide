@@ -226,6 +226,16 @@ graph TD
         }
         ```
 
+### Verify configuration in Azure Portal
+
+![ca-nodejs-d38538 | Container App | Containers | Refresh | Send us your feedback | Based on revision | ca-nodejs-d38538--0000001 | Container | Create new container | Delete this container | Properties | Environment variables | Health probes | Volume mounts | Container details | Name | ca-nodejs-d38538 | Image source | Azure Container Registry | Authentication | Managed identity | Subscription | Visual Studio Enterprise Subscription | Registry | acrbasicsd38538.azurecr.io | Image | nodejs-sample | Image tag | v1 | Command override | Arguments override | Container resource allocation | CPU cores | 0.5 | Memory (Gi) | 1 | Save as a new revision | Discard | Application | Revisions and replicas | Containers | Scale | Volumes | Settings | Networking | Ingress | Custom domains | CORS | Security | Monitoring | Log stream | Logs | Console | Alerts | Metrics](../../../assets/language-guides/nodejs/tutorial/03-containers-blade.png)
+
+**[Observed]** `ca-nodejs-d38538`. `Container App`. `Containers`. `Refresh`. `Send us your feedback`. `Based on revision`. `ca-nodejs-d38538--0000001`. `Container`. `Create new container`. `Delete this container`. `Properties`. `Environment variables`. `Health probes`. `Volume mounts`. `Container details`. `Name`. `ca-nodejs-d38538`. `Image source`. `Azure Container Registry`. `Docker Hub or other registries`. `Authentication`. `Managed identity`. `Secrets`. `Identity`. `System assigned`. `Subscription`. `Visual Studio Enterprise Subscription`. `Registry`. `acrbasicsd38538.azurecr.io`. `Image`. `nodejs-sample`. `Image tag`. `v1`. `Command override`. `Arguments override`. `Container resource allocation`. `CPU cores`. `0.5`. `Min: 0.1, Max: 4`. `Memory (Gi)`. `1`. `Min: 0.1, Max: 8`. `Save as a new revision`. `Discard`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
+
+**[Inferred]** The `Environment variables` tab appears to map to the same `name=value` pairs supplied via `--set-env-vars` in [Step-by-step](#step-by-step). The `Image` field value `nodejs-sample` and `Image tag` value `v1` appear consistent with the `--image` reference set during deployment in [02 - First Deploy](02-first-deploy.md). The `Registry` field value `acrbasicsd38538.azurecr.io` is consistent with the ACR login server created in [02 - First Deploy](02-first-deploy.md). The `Based on revision` field value `ca-nodejs-d38538--0000001` is consistent with the revision-creating effect of `az containerapp update` invoked across [Step-by-step](#step-by-step).
+
+**[Not Proven]** The values configured for `NODE_ENV` and other environment variables are not visible on the `Properties` tab shown here. Any `secretref` mapping is not visible on the `Properties` tab shown here. The KEDA `http-scale` rule definition is not visible on the `Containers` blade. The Dapr `appId` and `appPort` values are not visible on the `Containers` blade.
+
 ## Node.js example: read config safely
 
 In Node.js, environment variables are accessed via `process.env`. Use the `dotenv` package (already included in the reference app) for local development.
