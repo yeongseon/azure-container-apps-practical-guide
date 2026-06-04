@@ -494,6 +494,16 @@ az role assignment list \
 |---|---|
 | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
+### Verify managed identity surfaces in Azure Portal
+
+![ca-sample-d38538 | Identity | Container App | System assigned | User assigned | Save | Discard | Refresh | Got feedback? | Status | Off | On](../assets/best-practices/identity-and-secrets-identity-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Identity` `Container App` `System assigned` `User assigned` `Save` `Discard` `Refresh` `Got feedback?` `Status` `Off` `On`.
+
+**[Inferred]** The `System assigned` tab appears to map to the baseline pattern described in [Enable system-assigned identity as the baseline pattern](#enable-system-assigned-identity-as-the-baseline-pattern), which is consistent with treating the per-resource system identity as the default starting point. The `User assigned` tab is consistent with the shared-operations scope discussed in [Use user-assigned identity intentionally for shared operations](#use-user-assigned-identity-intentionally-for-shared-operations), where a user-assigned identity is reused across resources. The `Status` `Off` and `On` toggle appears to map to the decision-matrix step in [Use a managed identity decision matrix first](#use-a-managed-identity-decision-matrix-first), which is consistent with treating identity activation as a deliberate choice rather than a default. The `Save` and `Discard` controls are consistent with the per-app scoping guidance in [Scope identities per app unless sharing is required](#scope-identities-per-app-unless-sharing-is-required), which keeps identity changes bounded to this app.
+
+**[Not Proven]** The federated identity credentials configured for workload identity scenarios are not visible on this view. The Azure RBAC role assignments granted to this identity are not visible on this view. The user-assigned identity associations under the `User assigned` tab are not visible on this view. The Microsoft Entra ID object ID and principal ID for the system-assigned identity are not visible on this view.
+
 ## Common Mistakes / Anti-Patterns
 
 - Treating sample defaults as production-ready without checking ingress, scale, identity, and monitoring requirements.
