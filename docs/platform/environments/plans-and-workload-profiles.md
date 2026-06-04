@@ -107,6 +107,18 @@ Choose **Consumption-only (v1)** only when:
     Microsoft Learn recommends using a **Workload profiles (v2)** environment with the built-in Consumption profile when you want consumption-style billing.
     That keeps the option to add dedicated resources later without redesigning the environment type first.
 
+### Portal view: built-in Consumption profile on a v2 environment
+
+The Workload profiles blade on an existing v2 environment shows the built-in Consumption profile and lets you add Dedicated profiles. The capture below is the same environment used elsewhere in this guide.
+
+![Workload profiles blade on a Workload profiles (v2) environment showing one row under the "Consumption" group header with profile "Consumption", capacity "Up to 4 vCPUs / 8 Gi", and "# of Apps : 1"; the "Add" button is enabled in the command bar and no "Dedicated" group header is rendered](../../assets/platform/environments/02-workload-profiles.png)
+
+[Observed] The blade renders one row under a `Consumption` group header: profile `Consumption`, capacity `Up to 4 vCPUs / 8 Gi`, `# of Apps : 1`. No row appears under a `Dedicated` group header. The `Add` button is enabled in the command bar. The columns `Current cores usage`, `Current instances`, and `Min & Max number of instances` are dashed.
+
+[Inferred] The single visible `Consumption` row without any `Dedicated` row is consistent with this page's [Capability comparison](#capability-comparison) entry that Workload profiles (v2) environments expose a built-in Consumption option while Dedicated SKUs are listed as a separate `Yes` capability rather than an automatic one. The `Add` button being enabled in the command bar is consistent with this page's [How the layers fit together](#how-the-layers-fit-together) framing of Dedicated workload profiles as additions a v2 environment can take on top of the built-in Consumption profile.
+
+[Not Proven] This image does not visualize the D-series, E-series, or GPU profile rows shown in this page's [one-environment-many-workload-profiles diagram](#how-the-layers-fit-together). It does not show the `Add` panel or any Dedicated profile being added. It does not show pricing or billing surface corresponding to the Consumption vs Dedicated plan-type distinction in the [Capability comparison](#capability-comparison) table.
+
 ## See Also
 
 - [Environments in Azure Container Apps](index.md)
