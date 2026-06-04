@@ -122,7 +122,7 @@ az containerapp update \
 
 [Inferred] The `Min / max replicas` lower bound rendered as `1` (rather than `0`) is consistent with this page's note under [Common gotchas](#common-gotchas) that CPU and memory rules `keep at least one replica`. The empty `Scale rules` state is consistent with the YAML example under [Rule shape](#rule-shape), where `cpu` and `memory` rules would appear as entries under `template.scale.rules` rather than as values on the `Min / max replicas` row.
 
-[Not Proven] This image does not show any `cpu` or `memory` rule configured, so the `type=Utilization` and `value` metadata fields shown in the YAML and `az containerapp update` examples above are not visualized here. It does not show the `Edit and deploy` panel that would surface the rule-type picker, so the Portal control that maps to `--scale-rule-type cpu` is outside the scope of this capture. It does not show any utilization metric or live replica count, so the lagging-signal and oscillation behaviors described under [Common gotchas](#common-gotchas) are not represented in this image.
+[Not Proven] This image does not show any `cpu` or `memory` rule configured. The `type=Utilization` and `value` metadata fields shown in the YAML and `az containerapp update` examples above are not visualized here. It does not show the `Edit and deploy` panel that would surface the rule-type picker. The Portal control that maps to `--scale-rule-type cpu` is outside the scope of this capture. It does not show any utilization metric or live replica count, and the lagging-signal and oscillation behaviors described under [Common gotchas](#common-gotchas) are not represented in this image.
 
 ## See Also
 
