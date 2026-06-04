@@ -93,6 +93,16 @@ Performance and scope notes:
 !!! warning "Use the current property name in new IaC"
     Use `peerTrafficConfiguration.encryption.enabled` in current ARM or Bicep examples. Microsoft documentation previously showed `peerAuthentication.mtls.enabled` in earlier schema examples, so older blog posts or snippets may not match current API versions.
 
+#### Portal view: environment Networking blade (Encryption tab label)
+
+![Networking blade for a Container Apps environment showing the tab strip General Ingress settings Request Routing Encryption Custom DNS Suffix with General selected and a Virtual network section reporting This environment is not integrated](../../assets/platform/networking/02-environment-networking.png)
+
+[Observed] The blade is `<your-environment-name> | Networking` with the subtitle `Container Apps Environment`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, and `Custom DNS Suffix`, with `General` selected. The `General` tab shows a `Public Network Access` field with two radios — `Enable: Allows incoming traffic from the public internet.` (selected) and `Disable: Block all incoming traffic from the public internet.` — and a `Virtual network` section that reads `This environment isn't integrated`.
+
+[Inferred] The presence of a dedicated `Encryption` tab in the tab strip is consistent with [Plane 1: Environment-internal peer encryption](#plane-1-environment-internal-peer-encryption) being framed on this page as an environment-scoped setting rather than an app-scoped one. The grouping of `Encryption` as a peer tab alongside `Ingress settings` and `Request Routing` is consistent with the three-plane model on this page locating the environment plane and the ingress-side surfaces on the same environment blade, while [Plane 3: Dapr service-to-service mTLS](#plane-3-dapr-service-to-service-mtls) is described as configured separately on Dapr-enabled apps. The `Virtual network` row reading "This environment isn't integrated" appears to be orthogonal to the `Encryption` tab being present, which is consistent with this page's description of peer encryption as protecting east-west traffic within the managed environment rather than depending on VNet integration state.
+
+[Not Proven] This image does not show the contents of the `Encryption` tab, so the actual toggle, the field label corresponding to `peerTrafficConfiguration.encryption.enabled`, and any latency or throughput warnings inside the tab body are not visible here. It does not show the `Ingress settings` tab contents, so the `clientCertificateMode` field referenced in [Plane 2: Ingress client certificate authentication](#plane-2-ingress-client-certificate-authentication) is outside the scope of this capture. It does not show any Dapr-related surface, so [Plane 3: Dapr service-to-service mTLS](#plane-3-dapr-service-to-service-mtls) is not represented in this image.
+
 ### Plane 2: Ingress client certificate authentication
 
 Ingress client certificate authentication terminates at the Container Apps managed ingress layer. You configure it with `ingress.clientCertificateMode` on the container app.
