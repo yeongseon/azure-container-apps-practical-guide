@@ -370,6 +370,16 @@ flowchart TD
 | Sub path starting with `/` | Container app fails to start | Use relative sub paths: `uploads`, not `/uploads` |
 | Exceeding ephemeral storage budget | `EphemeralStorageExceeded` crash loop | Reduce write volume, add log rotation, or increase vCPU allocation |
 
+### Verify storage surfaces in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Container App | Create new revision | Save | Refresh | Deployment mode | Active revisions | Inactive revisions | Replicas | Name | ca-sample-d38538--0uzoi59 | Date created | 6/3/2026, 10:34:26 PM | Running status | Running | Label | Traffic | 100 % | Replicas | 1 (Show replicas)](../../assets/platform/storage/index-revisions-and-replicas.png)
+
+**[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100 %` `1 (Show replicas)`.
+
+**[Inferred]** The `Replicas` `1 (Show replicas)` value is consistent with the per-replica ephemeral storage budget described in [Ephemeral Storage](#ephemeral-storage).
+
+**[Not Proven]** The configured vCPU allocation is not visible on this view. The mounted Azure Files volumes and their sub paths are not visible on this view. The EmptyDir volume definitions are not visible on this view. The container-scoped storage usage is not visible on this view.
+
 ## See Also
 
 - [EmptyDir Disk Full — Lab Guide](../../troubleshooting/lab-guides/emptydir-disk-full.md)
