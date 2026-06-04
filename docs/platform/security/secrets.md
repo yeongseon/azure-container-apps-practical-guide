@@ -199,6 +199,16 @@ Use these rules of thumb to avoid duplicating the full identity guidance elsewhe
 - Keep the **secret definition** and the **container reference** conceptually separate when reviewing revisions.
 - Treat **revision restart behavior** as part of your rotation plan, not as an implementation detail.
 
+## Portal view: Secrets blade
+
+![Secrets blade for a Container App showing the description that secrets are valid across all revisions, a Key Value Edit Delete table header, and the No secrets to display empty state](../../assets/platform/identity-and-secrets/03-secrets-blade.png)
+
+[Observed] The blade header reads `<your-app-name> | Secrets` with the subtitle `Container App`. The command bar exposes `Add`, `Refresh`, and `Send us your feedback`. A description paragraph reads "Secrets are key/value pairs that can be used to protect sensitive data like passwords and connection strings. Secrets that you store here will be valid across all your revisions. Note that changing secrets will not create a new revision." A table header lists four columns: `Key`, `Value`, `Edit`, and `Delete`. The central area shows a padlock illustration with the text "No secrets to display." and "Add your first secret." The left navigation shows `Security` highlighted in the Settings group.
+
+[Inferred] The phrase "valid across all your revisions" in the blade description is consistent with the "Secrets are app-scoped, not revision-scoped" note in the [Secret exposure model](#secret-exposure-model) section, which describes the same lifetime: the secret store lives on the app, not on any individual revision. The four-column `Key` / `Value` / `Edit` / `Delete` table header is consistent with the per-entry management surface that the [Inline secrets vs Key Vault references](#inline-secrets-vs-key-vault-references) table assumes — a flat list of named entries that callers reach by `secretRef`, regardless of whether the value is stored inline or sourced from Key Vault. The `Security` highlight under `Settings` is consistent with this page's framing of secrets as a per-app security setting rather than a per-revision deployment artifact.
+
+[Not Proven] The image does not include any populated secret rows, any secret-creation form, any inline-value or Key Vault reference selector, any `keyVaultUrl` or `identity` field, any `secretRef` consumption flow from the [How containers consume secrets](#how-containers-consume-secrets) section, or any evidence of the Key Vault refresh timing described in the [Rotation and refresh behavior](#rotation-and-refresh-behavior) section.
+
 ## See Also
 
 - [Security Overview](index.md)
