@@ -97,6 +97,16 @@ A safe operating pattern is:
 3. validate scaling in a non-production environment
 4. keep `maxReplicas` conservative until observed behavior is understood
 
+### Portal view: Scale blade (empty rules section where a custom scaler would appear)
+
+![Scale blade for a Container App with a "Based on revision" dropdown selected, an "Edit and deploy" command, a "Scale rule settings" section, a "Min / max replicas" row with value "1 - 3", and a "Scale rules" section stating "There are no scaling rules defined for this revision".](../../assets/platform/scaling/01-scale-blade.png)
+
+[Observed] The selected `Scale` tab shows a `Scale rules` section whose body is the empty-state message `There are no scaling rules defined for this revision`. No row of the type `custom-trigger`, no `type` field, no `metadata` block, and no `auth` block is visible inside the `Scale rules` section.
+
+[Inferred] The `Scale rules` section header rendered above the empty-state message is consistent with this page's description under [Custom rule shape](#custom-rule-shape) of custom scalers as entries living inside `template.scale.rules`. The empty state on this revision is consistent with the [Example: generic custom scaler shape](#example-generic-custom-scaler-shape) JSON snippet describing what a `custom` entry's `type`, `metadata`, and `auth` fields would look like once added.
+
+[Not Proven] This image does not show any configured `custom` rule row, and the `<scaler-type>`, `metadata`, and `auth` fields from the YAML and JSON examples above are not visualized here. It does not show any `secretRef` or `identity` field corresponding to the choices described under [Authentication patterns](#authentication-patterns). It does not show the `Edit and deploy` panel.
+
 ## Review Matrix
 
 | Review area | Page-specific check |
