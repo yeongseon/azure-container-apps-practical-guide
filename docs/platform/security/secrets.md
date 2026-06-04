@@ -199,6 +199,16 @@ Use these rules of thumb to avoid duplicating the full identity guidance elsewhe
 - Keep the **secret definition** and the **container reference** conceptually separate when reviewing revisions.
 - Treat **revision restart behavior** as part of your rotation plan, not as an implementation detail.
 
+## Portal view: Secrets blade
+
+![Secrets blade for a Container App showing the Add command, the description that secrets are valid across all revisions, and the No secrets to display empty state](../../assets/platform/identity-and-secrets/03-secrets-blade.png)
+
+[Observed] The blade header reads `<your-app-name> | Secrets` with the subtitle `Container App`. The command bar exposes `Add`, `Refresh`, and `Send us your feedback`. A description paragraph reads "Secrets are key/value pairs that can be used to protect sensitive data like passwords and connection strings. Secrets that you store here will be valid across all your revisions. Note that changing secrets will not create a new revision." A table header lists `Key`, `Value`, `Edit`, and `Delete` columns. The central area shows a padlock illustration with "No secrets to display." and "Add your first secret." above an `Add` button. The left navigation highlights `Secrets` under the Settings group.
+
+[Inferred] The description sentence "valid across all your revisions" is consistent with the "Secrets are app-scoped, not revision-scoped" note in the [Secret exposure model](#secret-exposure-model) section above. The sentence "changing secrets will not create a new revision" is consistent with the same note's statement that adding, changing, or deleting a secret does not create a new revision by itself. The single `Add` command in an otherwise empty list appears to map to the entry point for either of the two definition patterns described in the [Inline secrets vs Key Vault references](#inline-secrets-vs-key-vault-references) table — inline `name`+`value` or `name`+`keyVaultUrl`+`identity` — without committing the blade to either pattern until the Add dialog opens.
+
+[Not Proven] The screenshot does not show the dialog that opens after clicking `Add`, so the inline-vs-Key-Vault selector, the `keyVaultUrl` input, and the `identity` selector are outside the scope of this image. It does not show any populated rows, so the per-row `Edit` and `Delete` actions are not visible in their active state. It does not show the `secretRef` consumption flow from the [How containers consume secrets](#how-containers-consume-secrets) section or the 30-minute Key Vault refresh behavior from the [Rotation and refresh behavior](#rotation-and-refresh-behavior) section.
+
 ## See Also
 
 - [Security Overview](index.md)
