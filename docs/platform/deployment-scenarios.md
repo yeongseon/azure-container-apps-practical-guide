@@ -253,6 +253,16 @@ Before deploying any scenario, verify:
 - [ ] **Scale rules** (min/max replicas) are defined to prevent unexpected costs
 - [ ] **Private DNS zones** are configured for internal ingress (Scenario B)
 
+## Verify deployment-scenario surfaces in Azure Portal
+
+![ca-sample-d38538 | Ingress | Container App | Refresh | Send us your feedback | Ingress | Ingress traffic | Limited to Container Apps Environment | Accepting traffic from anywhere | Ingress type | HTTP | TCP | Client certificate mode | Ignore | Accept | Require | Transport | Auto | Insecure connections | Target port | 80 | Endpoint(s) | https://<app-name>.<unique-id>.<region>.azurecontainerapps.io | Session affinity | Additional TCP ports | IP Restrictions | IP Security Restrictions Mode | Allow all traffic (default) | Save | Discard](../assets/platform/deployment-scenarios-ingress-blade.png)
+
+**[Observed]** `ca-sample-d38538 | Ingress` `Container App` `Refresh` `Send us your feedback` `Ingress` `Ingress traffic` `Limited to Container Apps Environment` `Accepting traffic from anywhere` `Ingress type` `HTTP` `TCP` `Client certificate mode` `Ignore` `Accept` `Require` `Transport` `Auto` `Insecure connections` `Target port` `80` `Endpoint(s)` `https://<app-name>.<unique-id>.<region>.azurecontainerapps.io` `Session affinity` `Additional TCP ports` `IP Restrictions` `IP Security Restrictions Mode` `Allow all traffic (default)` `Save` `Discard`.
+
+**[Inferred]** The `Limited to Container Apps Environment` radio option is consistent with the internal-ingress scope described in [Scenario B — Internal VNet (Private Ingress)](#scenario-b-internal-vnet-private-ingress). The `Accepting traffic from anywhere` radio paired with the external `Endpoint(s)` value appears to map to the public-ingress scope described in [Scenario A — Public Consumption (Simplest)](#scenario-a-public-consumption-simplest). The `IP Restrictions` section with the `IP Security Restrictions Mode` `Allow all traffic (default)` value is consistent with the networking-and-security comparison surface listed in [Matrix A — Networking and Security](#matrix-a-networking-and-security). The external `Endpoint(s)` value `https://<app-name>.<unique-id>.<region>.azurecontainerapps.io` is consistent with the public-endpoint scope referenced in [Scenario A — Public Consumption (Simplest)](#scenario-a-public-consumption-simplest).
+
+**[Not Proven]** Whether the displayed configuration corresponds to a Consumption-only or Workload Profiles environment is not visible on this view. The subnet, VNet, and NAT Gateway bindings for the environment are not visible on this view. The container registry authentication mode (admin user or managed identity) is not visible on this view. The active workload profile name and replica resource boundaries are not visible on this view.
+
 ## See Also
 
 - [Environments](environments/index.md) — differences between Consumption and Workload Profiles
