@@ -66,7 +66,7 @@ flowchart TD
 
 The Azure Portal **Scale** blade is the surface that names the replica range and scaler type that this page's [Cost Lever Matrix](#cost-lever-matrix) treats as cost levers.
 
-![ca-sample-d38538 Scale Based on revision ca-sample-d38538--0uzoi59 Scale rule settings Min replicas 1 Min: 0 Max replicas 3 Max: 1000 Cooldown period 300 Polling interval 30 Current number of replicas 1 (View Details) Scale rules Name Type http-scaler HTTP scaling Save as a new revision Cancel](../../assets/platform/architecture/06-scale-blade.png)
+![ca-sample-d38538 | Scale Based on revision ca-sample-d38538--0uzoi59 Scale rule settings Min replicas 1 Min: 0 Max replicas 3 Max: 1000 Cooldown period 300 Polling interval 30 Current number of replicas 1 (View Details) Scale rules Name Type http-scaler HTTP scaling Save as a new revision Cancel](../../assets/platform/architecture/06-scale-blade.png)
 
 **[Observed]** `ca-sample-d38538 | Scale`. `Container App`. `Refresh`. `Send us your feedback`. `Based on revision`. `ca-sample-d38538--0uzoi59`. `Scale`. `Scale rule settings`. `Control automatic scaling by setting the range of application replicas that'll be deployed in response to a trigger event. Use scale rules to determine the type of events that trigger scaling.` `Learn more`. `Min replicas`. `1`. `Min: 0`. `Max replicas`. `3`. `Max: 1000`. `Cooldown period`. `300`. `Polling interval`. `30`. `Current number of replicas`. `1 (View Details)`. `Scale rules`. `Add`. `Name`. `Type`. `Del...`. `http-scaler`. `HTTP scaling`. `Save as a new revision`. `Cancel`.
 
