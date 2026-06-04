@@ -105,7 +105,7 @@ A safe operating pattern is:
 
 [Inferred] The `Scale rules` section header rendered above the empty-state message is consistent with this page's description under [Custom rule shape](#custom-rule-shape) of custom scalers as entries living inside `template.scale.rules`. The empty state on this revision is consistent with the [Example: generic custom scaler shape](#example-generic-custom-scaler-shape) JSON snippet describing what a `custom` entry's `type`, `metadata`, and `auth` fields would look like once added.
 
-[Not Proven] This image does not show any `custom` rule configured, and the `<scaler-type>`, `metadata`, and `auth` fields from the YAML and JSON examples above are not visualized here. It does not show the `secretRef` or `identity` authentication choices described under [Authentication patterns](#authentication-patterns). It does not show the `Edit and deploy` panel that would surface a scaler-type picker, and the Portal control that would carry a KEDA `<scaler-type>` string is outside the scope of this capture.
+[Not Proven] This image does not show any configured `custom` rule row, and the `<scaler-type>`, `metadata`, and `auth` fields from the YAML and JSON examples above are not visualized here. It does not show any `secretRef` or `identity` field corresponding to the choices described under [Authentication patterns](#authentication-patterns). It does not show the `Edit and deploy` panel.
 
 ## Review Matrix
 
