@@ -467,6 +467,16 @@ az containerapp show \
 - Retaining oversized base images and rebuilding frequently
 - Creating many small environments without ownership boundaries
 
+### Verify cost-relevant surfaces in Azure Portal
+
+![cae-basics-d38538 | Container Apps Environment | Refresh | Delete | Essentials | Resource group (move) | rg-aca-basics-d38538 | Status | Succeeded | Location (move) | Korea Central | Subscription (move) | Visual Studio Enterprise Subscription | Subscription ID | 00000000-0000-0000-0000-000000000000 | Tags (edit) | Add tags | Environment type | Workload profiles | Static IP | 4.230.156.3 | Applications | 1 | KEDA version | 2.18.1 | Dapr version | 1.16.4-msft.7](../assets/best-practices/cost-environment-overview.png)
+
+**[Observed]** `cae-basics-d38538` `Container Apps Environment` `Refresh` `Delete` `Essentials` `Resource group (move)` `rg-aca-basics-d38538` `Status` `Succeeded` `Location (move)` `Korea Central` `Subscription (move)` `Visual Studio Enterprise Subscription` `Subscription ID` `00000000-0000-0000-0000-000000000000` `Tags (edit)` `Add tags` `Environment type` `Workload profiles` `Static IP` `4.230.156.3` `Applications` `1` `KEDA version` `2.18.1` `Dapr version` `1.16.4-msft.7`.
+
+**[Inferred]** The `Environment type` value `Workload profiles` appears to map to the profile-selection decision discussed in [Consumption profile vs workload profiles](#consumption-profile-vs-workload-profiles), which trades pay-per-second consumption billing against reserved node capacity. The `Applications` count `1` on this environment is consistent with the consolidation-vs-isolation question in [Share environments strategically to reduce overhead](#share-environments-strategically-to-reduce-overhead), which evaluates how many workloads should sit behind one environment boundary. The `KEDA version` `2.18.1`, `Dapr version` `1.16.4-msft.7`, and `Static IP` `4.230.156.3` are consistent with the environment-managed components discussed in [Understand idle environment cost](#understand-idle-environment-cost), which warns that environment-related services continue to incur charges even with minimal workload activity. The `Resource group (move)` value `rg-aca-basics-d38538` and `Subscription (move)` value `Visual Studio Enterprise Subscription` are consistent with the cost-allocation scope discussed in [Budget guardrails with Azure Cost Management](#budget-guardrails-with-azure-cost-management), which sets budgets per environment and tags resources for cost allocation.
+
+**[Not Proven]** Per-app CPU and memory requests, `minReplicas`/`maxReplicas`, and scale rule configuration are not visible on this view. Log Analytics workspace ingestion volume, retention setting, and `_BilledSize` breakdown are not visible on this view. ACR SKU, image size, and tag retention policy bound to this environment are not visible on this view. Budget thresholds, anomaly alerts, and cost-center tags configured in Azure Cost Management are not visible on this view.
+
 ## Advanced Topics
 
 - Model monthly cost per workload class (interactive API, internal service, scheduled jobs) and assign explicit SLO-to-cost envelopes.
