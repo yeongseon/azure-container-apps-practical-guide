@@ -352,6 +352,16 @@ Principles:
 - Review role assignments quarterly — remove unused assignments.
 - Separate deployment permissions (CI/CD) from runtime permissions (managed identity).
 
+### Portal view: Access control (IAM) blade
+
+![Access control IAM blade for a Container App showing the Check access tab with Grant access View access and View deny assignments cards and the Roles tab label](../../assets/platform/identity-and-secrets/04-iam-blade.png)
+
+[Observed] The blade is `<your-app-name> | Access control (IAM)` with the subtitle `Container App`. Four tabs are rendered along the top: `Check access`, `Role assignments`, `Roles`, and `Deny assignments`. The `Check access` tab is selected. The tab body shows three cards titled `Grant access to this resource` (with an `Add role assignment` button), `View access to this resource` (with a `View` button), and `View deny assignments` (with a `View` button). Above the cards, a `My access` section exposes a `View my access` button and a `Check access` section exposes a `Check access` button. The command bar includes `+ Add`, `Download role assignments`, `Edit columns`, `Refresh`, `Delete`, and `Feedback`. The left navigation lists `Application`, `Settings`, `Networking`, `Security`, `Monitoring`, `Automation`, and `Help` groups.
+
+[Inferred] The `Grant access to this resource` card with its `Add role assignment` button is consistent with the per-resource scoping that the [Least-Privilege Assignment Pattern](#least-privilege-assignment-pattern) diagram describes — RBAC bindings created at the Container App resource rather than at the resource group. The `Roles` tab label is consistent with the catalog framing in the [Built-in Roles for Container Apps](#built-in-roles-for-container-apps) table, which lists `Contributor`, `Container Apps Contributor`, `Reader`, and `Monitoring Reader` as the principal role choices an operator would pick from. The presence of a `Deny assignments` tab alongside `Role assignments` is consistent with this page's broader RBAC framing as both an allow surface and an exception surface.
+
+[Not Proven] This image does not show the contents of the `Role assignments`, `Roles`, or `Deny assignments` tabs, so the actual list of principals, the actual catalog of built-in and custom roles, and any existing deny rules are not visible here. The image does not show the role-assignment dialog that opens after clicking `Add role assignment`, so the role picker and scope picker referenced in the role-assignment workflow are outside the scope of this capture.
+
 ## Data Protection
 
 ### Encryption at Rest
