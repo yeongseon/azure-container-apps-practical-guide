@@ -176,7 +176,7 @@ az containerapp ingress cors enable \
 
 #### Portal view: environment Networking blade (scope boundary)
 
-![Container Apps environment Networking blade showing tabs General, Ingress settings, Request Routing, Encryption, and Custom DNS Suffix with General selected; a Public Network Access field with Enable selected and Disable unselected radio options; and a Virtual network section stating "This environment isn't integrated".](../../assets/platform/networking/02-environment-networking.png)
+![Container Apps environment Networking blade showing "General", "Ingress settings", "Request Routing", "Encryption", and "Custom DNS Suffix" tabs, with "General" selected; a "Public Network Access" field with "Enable" selected and "Disable" unselected radio options; and a "Virtual network" section stating "This environment isn't integrated".](../../assets/platform/networking/02-environment-networking.png)
 
 [Observed] The blade subtitle reads `Container Apps Environment`. The tab strip lists `General`, `Ingress settings`, `Request Routing`, `Encryption`, and `Custom DNS Suffix`, with `General` selected. No tab is labeled `Client certificates`, and no field labeled `clientCertificateMode` is visible on the selected `General` tab.
 
