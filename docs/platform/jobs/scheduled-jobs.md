@@ -120,7 +120,7 @@ flowchart TD
 
 **[Inferred]** The `Trigger Type` field appears to map to the same configuration lever set by `--trigger-type` in [Creating a scheduled job](#creating-a-scheduled-job). The `Cron expression` field appears to map to the same lever set by `--cron-expression` in that same section. The five space-separated tokens shown in the `Cron expression` value are consistent with the five-field format used by every row of the [Cron expression examples](#cron-expression-examples) table.
 
-**[Not Proven]** No time-zone selector is visible on this blade, so the verification asked for in [Time zone handling](#time-zone-handling) cannot be answered from this PNG. No overlap or missed-run control is visible on this blade. The next scheduled execution time is not shown on this blade. No execution-history rows are visible in this PNG.
+**[Not Proven]** No time-zone selector is visible on this blade. The verification asked for in [Time zone handling](#time-zone-handling) cannot be answered from this PNG. No overlap or missed-run control is visible on this blade. The next scheduled execution time is not shown on this blade. No execution-history rows are visible in this PNG.
 
 ## See Also
 
