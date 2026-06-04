@@ -87,6 +87,16 @@ Conservative guidance:
 - Standardize on approved registries such as ACR.
 - Review pipeline inputs so application teams cannot silently switch to unapproved public registries.
 
+### Verify image security surfaces in Azure Portal
+
+![ca-sample-d38538 | Revisions and replicas | Container App | Create new revision | Save | Refresh | Deployment mode | Active revisions | Inactive revisions | Replicas | Name | Date created | Running status | View Logs | Label | Traffic | Replicas | ca-sample-d38538--0uzoi59 | 6/3/2026, 10:34:26 PM | Running | View details | Show Logs | 100 % | 1 (Show replicas)](../assets/best-practices/image-security-revisions-and-replicas.png)
+
+**[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100 %` `1 (Show replicas)`.
+
+**[Inferred]** The immutable revision suffix on `ca-sample-d38538--0uzoi59` is consistent with the version-pinning guidance in [Pin deploys to immutable versions](#pin-deploys-to-immutable-versions), which treats immutable references as the basis for predictable rollback. The `Create new revision` command appears to map to the post-scan promotion step described in [Scan images before promotion](#scan-images-before-promotion), where an approved image reference produces a new ACA revision. The `Active revisions` and `Inactive revisions` grouping is consistent with the rollback-traceability concern called out in the anti-pattern table below, which warns that `:latest` weakens rollback traceability. The `Container App` resource-type label for `ca-sample-d38538` appears to map to the registry-authentication scope in [Use Azure Container Registry with managed identity](#use-azure-container-registry-with-managed-identity), which describes the container app authenticating to ACR via managed identity.
+
+**[Not Proven]** The image registry, repository, tag, and digest used by the displayed revision are not visible on this view. Managed identity bindings and `AcrPull` role assignments are not visible on this view. Defender for Containers scan status and vulnerability findings are not visible on this view. Azure Policy registry allow-list rules are not visible on this view.
+
 ## Common Mistakes / Anti-Patterns
 
 | Anti-pattern | Why it is risky | Better choice |
