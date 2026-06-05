@@ -311,6 +311,10 @@ az containerapp logs show \
     --tail 50
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show --type system --tail 50` | Reads the most recent platform-emitted system log entries for the app. The `system` log stream surfaces image-pull events (`PullingImage`, `PulledImage`, `FailedPulling`) and other platform-level signals from outside the replica. During the broken window this stream stays quiet — no new pull is triggered for the already-running revision — which is the surprising signal the lab is calling out. |
+
 In the post-break window the system logs should keep showing `PulledImage` for the most recent image tag from the baseline pull, with no new pull events during the broken window — this is the surprising signal:
 
 ```text
