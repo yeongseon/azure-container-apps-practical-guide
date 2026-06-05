@@ -1,0 +1,3 @@
+timeoutPolicy:
+  connectionTimeoutInSeconds: 5
+  responseTimeoutInSeconds: 1

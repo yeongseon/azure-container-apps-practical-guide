@@ -1,0 +1,6 @@
+FROM python:3.12-alpine
+WORKDIR /app
+COPY blackhole.py ./
+EXPOSE 8000
+USER 1000:1000
+CMD ["python", "blackhole.py"]
