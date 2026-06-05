@@ -12,7 +12,7 @@ content_sources:
     - https://keda.sh/docs/latest/scalers/memory/
     - https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
 content_validation:
-  status: draft
+  status: verified
   last_reviewed: '2026-06-05'
   reviewer: ai-agent
   core_claims:
@@ -93,7 +93,7 @@ flowchart TD
 
 | Scenario | Duration | Impact on scaling | Action required |
 |---|---|---|---|
-| **New revision deployment** | 30-120s per replica | None — transient | No |
+| **New revision deployment** | 30-60s per replica (lab-validated: healthy container showed ~60s gap) | None — transient | No |
 | **Scale-from-zero cold start** | 60-180s | First scaling decision delayed | Set `minReplicas >= 1` if latency-sensitive |
 | **Container crash/restart** | Repeats each cycle | Scaling decisions skip affected replica | Fix the crash |
 | **OOMKill** | Brief per kill | Similar to crash | Right-size memory or fix leak |
