@@ -394,6 +394,7 @@ nav:
         - Memory Leak OOMKilled: troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md
         - Replica Load Imbalance: troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md
         - Memory Percentage vs KEDA Utilization: troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md
+        - KEDA No Metrics Returned: troubleshooting/playbooks/scaling-and-runtime/keda-no-metrics-returned.md
     - Methodology:
       - troubleshooting/methodology/index.md
       - Detector Map: troubleshooting/methodology/detector-map.md
@@ -472,6 +473,7 @@ nav:
       - Memory Leak OOMKilled Lab: troubleshooting/lab-guides/memory-leak-oomkilled.md
       - Replica Load Imbalance Lab: troubleshooting/lab-guides/replica-load-imbalance.md
       - Memory Percentage vs KEDA Utilization Lab: troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md
+      - KEDA No Metrics Returned Lab: troubleshooting/lab-guides/keda-no-metrics-returned.md
       - Docker Hub Rate Limit Lab: troubleshooting/lab-guides/docker-hub-rate-limit.md
       - Image Size Startup Delay Lab: troubleshooting/lab-guides/image-size-startup-delay.md
       - Multi-Arch Image Mismatch Lab: troubleshooting/lab-guides/multi-arch-image-mismatch.md
