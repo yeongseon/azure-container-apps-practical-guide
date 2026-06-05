@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Scenario C: Healthy baseline (control — should NOT produce "no metrics" logs).
+# Scenario C: Healthy baseline (control).
 #   MODE=healthy.
-#   Container starts immediately and stays stable. Metrics should always
-#   be available. Use this as a control to compare log patterns with A and B.
+#   Container starts immediately and stays stable. Expect a brief burst
+#   of "no metrics returned" logs (~30-60s) during Kubernetes Metrics
+#   Server warm-up, then no further errors. Use as a control to compare
+#   log patterns with A and B.
 set -euo pipefail
 
 : "${RG:?RG (resource group) must be set}"
@@ -47,5 +49,5 @@ else
     --env-vars "MODE=healthy"
 fi
 
-echo "[scenario-c] done. Healthy baseline — should NOT produce 'no metrics' logs."
+echo "[scenario-c] done. Healthy baseline — expect brief 'no metrics' logs during warm-up (~60s), then none."
 echo "  Check system logs: APP_NAME=${APP_NAME} bash ${LAB_DIR}/verify.sh"

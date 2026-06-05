@@ -115,7 +115,8 @@ flowchart TD
 ### System logs query (KQL)
 
 ```bash
-WORKSPACE_ID="<log-analytics-workspace-resource-id>"
+# Use the Log Analytics workspace customerId (GUID), not the Azure resource ID
+WORKSPACE_ID="<log-analytics-workspace-customer-id>"
 
 az monitor log-analytics query \
   --workspace "$WORKSPACE_ID" \

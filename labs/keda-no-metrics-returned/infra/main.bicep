@@ -29,6 +29,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' =
     name: 'Basic'
   }
   properties: {
+    // Lab-only setting for simpler image pulls without managed identity.
     adminUserEnabled: true
   }
 }

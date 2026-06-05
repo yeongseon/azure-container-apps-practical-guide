@@ -2,8 +2,8 @@
 # Verify script: collect ALL available evidence for "no metrics returned" reproduction.
 # Outputs a structured report per app. Run once per scenario to avoid duplicate queries.
 #
-# Usage: APP_NAME=ca-nometrics-slow bash verify.sh
-#        APP_NAME=ca-nometrics-crash LOOKBACK=PT1H bash verify.sh
+# Usage: RG=rg-aca-no-metrics-lab APP_NAME=ca-nometrics-slow bash verify.sh
+#        RG=rg-aca-no-metrics-lab APP_NAME=ca-nometrics-crash LOOKBACK=PT1H bash verify.sh
 set -euo pipefail
 
 : "${RG:?RG (resource group) must be set}"
@@ -80,10 +80,10 @@ if [[ -n "$ENV_ID" ]]; then
 fi
 
 if [[ -n "$WORKSPACE_CUSTOMER_ID" ]]; then
-  WORKSPACE_ID="$(az monitor log-analytics workspace list --resource-group "$RG" \
-    --query "[?customerId=='${WORKSPACE_CUSTOMER_ID}'] | [0].id" --output tsv 2>/dev/null)" || true
+  # az monitor log-analytics query expects the customerId (GUID), not the resource ID
+  WORKSPACE_ID="$WORKSPACE_CUSTOMER_ID"
 fi
-echo "Workspace ID: ${WORKSPACE_ID:-<not resolved>}"
+echo "Workspace ID (customerId): ${WORKSPACE_ID:-<not resolved>}"
 
 # ---------------------------------------------------------------
 # 5. System logs: "no metrics returned" / "invalid metrics" / "failed to get"
