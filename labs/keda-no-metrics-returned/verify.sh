@@ -35,8 +35,8 @@ echo "========================================================"
 # ---------------------------------------------------------------
 echo
 echo "=== 0. Tool versions ==="
-az version --output json 2>/dev/null || echo "(az version unavailable)"
-az extension show --name containerapp --query "{name:name, version:version}" -o json 2>/dev/null || echo "(containerapp extension not found)"
+az version --output json 2>/dev/null | tee "${APP_DIR}/az-version-${TS}.json" || echo "(az version unavailable)"
+az extension show --name containerapp --query "{name:name, version:version}" -o json 2>/dev/null | tee "${APP_DIR}/containerapp-extension-${TS}.json" || echo "(containerapp extension not found)"
 
 # ---------------------------------------------------------------
 # 1. App metadata
@@ -92,13 +92,15 @@ else
 fi
 
 echo
-echo "=== 3. Replica list ==="
-if [[ -n "$ACTIVE_REV" ]]; then
+echo "=== 3. Replica list (all active revisions) ==="
+while IFS= read -r REV; do
+  [[ -z "$REV" ]] && continue
+  echo "--- Replicas for revision: $REV ---"
   az containerapp replica list \
     --name "$APP_NAME" --resource-group "$RG" \
-    --revision "$ACTIVE_REV" \
-    --output table 2>/dev/null || echo "(no replicas found)"
-fi
+    --revision "$REV" \
+    --output table 2>/dev/null || echo "(no replicas for $REV)"
+done <<< "$ACTIVE_REVS"
 
 # ---------------------------------------------------------------
 # 4. Resolve Log Analytics workspace
@@ -343,6 +345,7 @@ echo "    ${APP_NAME}-revisions-health.png"
 } 2>&1 | tee_report
 
 # Generate summary markdown
+LOCATION="$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query location -o tsv 2>/dev/null)" || true
 SUMMARY="${APP_DIR}/summary-${TS}.md"
 cat > "$SUMMARY" <<MDEOF
 # Evidence Summary: ${APP_NAME}
@@ -352,6 +355,7 @@ cat > "$SUMMARY" <<MDEOF
 | App | ${APP_NAME} |
 | Container | ${CONTAINER_NAME} |
 | Resource Group | ${RG} |
+| Region | ${LOCATION:-unknown} |
 | Timestamp | ${TS} |
 | Active Revisions | $(echo "${ACTIVE_REVS:-none}" | tr '\n' ', ' | sed 's/, $//') |
 | Lookback | ${LOOKBACK} |
@@ -359,6 +363,8 @@ cat > "$SUMMARY" <<MDEOF
 ## Collected files
 
 - \`report-${TS}.txt\` — Full evidence report
+- \`az-version-${TS}.json\` — Azure CLI version
+- \`containerapp-extension-${TS}.json\` — containerapp extension version
 - \`revisions-${TS}.json\` — Active revision details
 - \`traffic-${TS}.json\` — Traffic configuration
 
