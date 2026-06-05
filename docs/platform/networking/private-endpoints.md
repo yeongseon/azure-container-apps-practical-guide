@@ -616,6 +616,7 @@ az group delete --name rg-container-apps-private --yes --no-wait
 ## See Also
 - [VNet Integration](vnet-integration.md)
 - [Egress Control](egress-control.md)
+- [ACR Network Path Selection](acr-network-path-selection.md)
 - [Key Vault](../identity-and-secrets/key-vault.md)
 - [Blob Storage and File Mounts](../../language-guides/python/recipes/storage.md)
 - [Private Container Registry](../../language-guides/python/recipes/container-registry.md)

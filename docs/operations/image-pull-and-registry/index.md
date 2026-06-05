@@ -170,6 +170,7 @@ az containerapp show \
 
 - [Image Pull Failure Playbook](../../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md)
 - [Egress Control — Required Outbound Dependencies](../../platform/networking/egress-control.md#required-outbound-dependencies)
+- [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md)
 - [Troubleshooting Playbooks](../../troubleshooting/playbooks/index.md)
 - [Deployment Workflows](../deployment/index.md)
 - [Secret Rotation](../secret-rotation/index.md)

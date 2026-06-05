@@ -283,6 +283,7 @@ For the failure symptoms and validation steps, see [Image Pull Failure](../../tr
 ## See Also
 - [VNet Integration](vnet-integration.md)
 - [Private Endpoints](private-endpoints.md)
+- [ACR Network Path Selection](acr-network-path-selection.md)
 - [Service-to-Service Communication](service-to-service.md)
 
 ## Sources
