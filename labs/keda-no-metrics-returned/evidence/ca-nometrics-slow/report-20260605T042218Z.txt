@@ -1,0 +1,162 @@
+========================================================
+KEDA No-Metrics-Returned Lab — Evidence Report
+========================================================
+App:       ca-nometrics-slow
+RG:        rg-aca-no-metrics-lab
+Lookback:  PT30M
+Timestamp: 20260605T042218Z
+========================================================
+
+=== 1. App configuration ===
+{
+  "cpu": 0.5,
+  "envVars": [
+    {
+      "name": "MODE",
+      "value": "slow-start"
+    },
+    {
+      "name": "DELAY_SECONDS",
+      "value": "120"
+    }
+  ],
+  "location": "Korea Central",
+  "maxReplicas": 10,
+  "memory": "1Gi",
+  "minReplicas": 1,
+  "name": "ca-nometrics-slow",
+  "provisioningState": "Succeeded",
+  "revisionMode": "Single",
+  "scaleRules": [
+    {
+      "custom": {
+        "auth": [],
+        "metadata": {
+          "type": "Utilization",
+          "value": "50"
+        },
+        "type": "memory"
+      },
+      "name": "mem-rule"
+    }
+  ]
+}
+
+=== 2. Active revision ===
+Active revision: ca-nometrics-slow--j7tojom
+{
+  "active": true,
+  "createdTime": "2026-06-05T04:04:58+00:00",
+  "healthState": "Healthy",
+  "name": "ca-nometrics-slow--j7tojom",
+  "provisioningState": "Provisioned",
+  "replicas": 1,
+  "runningState": "Running"
+}
+
+=== 3. Replica list ===
+Name                                         ResourceGroup
+-------------------------------------------  ---------------------
+ca-nometrics-slow--j7tojom-56878c6977-4b6rm  rg-aca-no-metrics-lab
+
+=== 4. Log Analytics workspace ===
+Workspace ID: /subscriptions/75ad149b-d193-4aad-b02b-573802921f9e/resourceGroups/rg-aca-no-metrics-lab/providers/Microsoft.OperationalInsights/workspaces/log-nometrics-zpwk6x
+
+=== 5. System logs: metric errors ===
+(Log Analytics ingestion delay: 5-10 min)
+(query failed or no results yet)
+
+=== 6. Metric error count timeline (5-min bins) ===
+(query failed or no results yet)
+
+=== 7. System logs: DEPRECATED warnings ===
+(query failed or no results yet)
+
+=== 8. System logs: all scaler-related logs (last 30) ===
+(query failed or no results yet)
+
+=== 9. System logs: container lifecycle events ===
+(query failed or no results yet)
+
+=== 10. Console logs (last 30 lines) ===
+{"TimeStamp": "2026-06-05T04:22:35.79093", "Log": "Connecting to the container 'ca-nometrics-slow'..."}
+{"TimeStamp": "2026-06-05T04:22:35.90799", "Log": "Successfully Connected to container: 'ca-nometrics-slow' [Revision: 'ca-nometrics-slow--j7tojom', Replica: 'ca-nometrics-slow--j7tojom-56878c6977-4b6rm']"}
+{"TimeStamp": "2026-06-05T04:05:15.7297418+00:00", "Log": "F [slow-start] sleeping 120s before starting server"}
+{"TimeStamp": "2026-06-05T04:07:15.729984+00:00", "Log": "F [slow-start] delay complete, starting server"}
+{"TimeStamp": "2026-06-05T04:07:15.7301164+00:00", "Log": "F [app] listening on :8000"}
+
+=== 11. System logs via CLI (last 30 lines) ===
+{"TimeStamp": "2026-06-05T04:22:36Z", "Type": "Normal", "ContainerAppName": null, "RevisionName": null, "ReplicaName": null, "Msg": "Connecting to the events collector...", "Reason": "StartingGettingEvents", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-05T04:22:37Z", "Type": "Normal", "ContainerAppName": null, "RevisionName": null, "ReplicaName": null, "Msg": "Successfully connected to events server", "Reason": "ConnectedToEventsServer", "EventSource": "ContainerAppController", "Count": 1}
+
+=== 12a. Replica count (Max) ===
+
+=== 12b. Restart count (Total) ===
+
+=== 12c. Memory Percentage (Avg) ===
+
+=== 12d. CPU Percentage (Avg) ===
+
+=== 12e. Memory Working Set Bytes (Avg) ===
+
+=== 12f. Request count (Total) ===
+
+=== 13. cgroup memory.stat from live replica ===
+Replica: ca-nometrics-slow--j7tojom-56878c6977-4b6rm
+ERROR: The command failed with an unexpected error. Here is the traceback:
+ERROR: (25, 'Inappropriate ioctl for device')
+Traceback (most recent call last):
+  File "/opt/az/lib/python3.13/site-packages/knack/cli.py", line 233, in invoke
+    cmd_result = self.invocation.execute(args)
+  File "/opt/az/lib/python3.13/site-packages/azure/cli/core/commands/__init__.py", line 669, in execute
+    raise ex
+  File "/opt/az/lib/python3.13/site-packages/azure/cli/core/commands/__init__.py", line 737, in _run_jobs_serially
+    results.append(self._run_job(expanded_arg, cmd_copy))
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/az/lib/python3.13/site-packages/azure/cli/core/commands/__init__.py", line 706, in _run_job
+    result = cmd_copy(params)
+  File "/opt/az/lib/python3.13/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
+    return self.handler(*args, **kwargs)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/az/lib/python3.13/site-packages/azure/cli/core/commands/command_operation.py", line 120, in handler
+    return op(**command_args)
+  File "/opt/az/lib/python3.13/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3537, in containerapp_ssh
+    writer = get_stdin_writer(conn)
+  File "/opt/az/lib/python3.13/site-packages/azure/cli/command_modules/containerapp/_ssh_utils.py", line 187, in get_stdin_writer
+    tty.setcbreak(sys.stdin.fileno())  # needed to prevent printing arrow key characters
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/az/lib/python3.13/tty.py", line 69, in setcbreak
+    mode = tcgetattr(fd)
+termios.error: (25, 'Inappropriate ioctl for device')
+To check existing issues, please visit: https://github.com/Azure/azure-cli/issues
+INFO: Connecting to the container 'ca-nometrics-slow'...
+(exec failed — replica may be initializing or crash-looping)
+
+=== 14. Activity log (resource group, last 1h) ===
+Time                          Operation                                        Status
+----------------------------  -----------------------------------------------  ---------
+2026-06-05T04:10:52.0948037Z  Microsoft.App/containerApps/getAuthToken/action  Succeeded
+2026-06-05T04:10:52.0479268Z  Microsoft.App/containerApps/getAuthToken/action  Started
+2026-06-05T04:05:07.2516055Z  Microsoft.App/containerApps/write                Succeeded
+2026-06-05T04:04:51.1129523Z  Microsoft.App/containerApps/write                Accepted
+2026-06-05T04:04:50.7379834Z  Microsoft.App/containerApps/write                Started
+
+========================================================
+Evidence collection complete for ca-nometrics-slow
+Report saved to: labs/keda-no-metrics-returned/evidence/ca-nometrics-slow/report-20260605T042218Z.txt
+========================================================
+
+Portal screenshots to capture manually:
+  1. Metrics blade → MemoryPercentage (Avg) split by Replica
+  2. Metrics blade → Replicas (Max)
+  3. Metrics blade → RestartCount (Total)
+  4. Log stream → System logs (filter: 'no metrics returned')
+  5. Revisions blade → Revision health state and replica count
+
+Save screenshots to: labs/keda-no-metrics-returned/evidence/ca-nometrics-slow/
+  Naming convention:
+    ca-nometrics-slow-metrics-memory-percentage.png
+    ca-nometrics-slow-metrics-replica-count.png
+    ca-nometrics-slow-metrics-restart-count.png
+    ca-nometrics-slow-system-logs-no-metrics.png
+    ca-nometrics-slow-revisions-health.png

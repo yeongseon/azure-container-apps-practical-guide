@@ -240,7 +240,7 @@ Inactive revisions:
 
 ## See Also
 
-- [Platform - Revision Lifecycle](revisions/index.md)
+- [Platform - Revisions Overview](revisions/index.md)
 - [Operations - Deployment Workflows](../../operations/deployment/index.md)
 - [Best Practices - Revision Strategy](../../best-practices/revision-strategy.md)
 - [Platform - Scaling](scaling/index.md)

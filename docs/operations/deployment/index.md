@@ -117,10 +117,11 @@ Supported artifact types:
 The standard production deployment method. Build and push an image to a registry, then deploy.
 
 ```bash
-# Build and push to ACR
+# Build and push to ACR with an immutable tag
+IMAGE_TAG="$(date +%Y%m%d%H%M%S)"
 az acr build \
   --registry "$ACR_NAME" \
-  --image "$APP_NAME:$(date +%Y%m%d%H%M%S)" \
+  --image "$APP_NAME:$IMAGE_TAG" \
   --file "apps/python/Dockerfile" \
   "apps/python"
 
@@ -128,7 +129,7 @@ az acr build \
 az containerapp update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --image "$ACR_NAME.azurecr.io/$APP_NAME:v2"
+  --image "$ACR_NAME.azurecr.io/$APP_NAME:$IMAGE_TAG"
 ```
 
 | Command | Why it is used |
@@ -184,7 +185,7 @@ Use workload identity federation where possible to avoid long-lived service prin
 
 ## Revision Behavior and Zero-Downtime Deployments
 
-Every deployment that changes revision-scope properties creates a **new revision**. The platform handles zero-downtime transitions automatically in multiple-revision mode.
+Every deployment that changes revision-scope properties creates a **new revision**. In single-revision mode, the platform automatically performs a zero-downtime cutover to the new revision. In multiple-revision mode, you must explicitly manage traffic routing between revisions.
 
 ### Revision-Scope vs Application-Scope Changes
 
@@ -263,7 +264,7 @@ az containerapp update \
 ```
 
 !!! tip "Revision cleanup"
-    Setting `--max-inactive-revisions` automatically deactivates the oldest revisions beyond the limit. This does not affect active revisions receiving traffic.
+    Setting `--max-inactive-revisions` automatically purges the oldest inactive revisions when the count exceeds the limit. This does not affect active revisions receiving traffic.
 
 ## Deployment Workflow and Release Guardrails
 
