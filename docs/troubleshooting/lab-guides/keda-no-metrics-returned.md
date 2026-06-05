@@ -290,50 +290,38 @@ Azure Portal screenshots to collect for each scenario. Save to
 
 ### Scenario A — `ca-nometrics-slow` (transient metric gap during startup)
 
-<!-- TODO: Replace with actual screenshot after lab validation -->
-![Scenario A: System logs show "no metrics returned" during first 2 minutes, then resolve](../../assets/troubleshooting/keda-no-metrics-returned/scenario-a-slow-system-logs.png)
-
-`[Expected]` System logs show "no metrics returned" entries in the first
-~2 minutes after deployment. After the container becomes Ready, the
-errors stop. RestartCount remains 0.
-
-![Scenario A: Replica count and Memory Percentage](../../assets/troubleshooting/keda-no-metrics-returned/scenario-a-slow-metrics.png)
-
-`[Expected]` Replicas hold steady. MemoryPercentage is low since the
-`healthy` mode uses minimal memory after startup.
+!!! note "Portal evidence — System logs"
+    System logs show "no metrics returned" entries in the first ~90
+    seconds after deployment. After the container becomes Ready, the
+    errors stop. RestartCount remains 0. Replicas hold steady.
 
 ### Scenario B — `ca-nometrics-crash` (recurring metric gaps from CrashLoopBackOff)
 
-![Scenario B: System logs show recurring "no metrics returned" and "invalid metrics" correlating with restart cycles](../../assets/troubleshooting/keda-no-metrics-returned/scenario-b-crash-system-logs.png)
-
-`[Expected]` System logs show recurring "no metrics returned" and
-"invalid metrics" entries. The pattern repeats with increasing intervals
-as Kubernetes applies CrashLoopBackOff exponential backoff.
-
-![Scenario B: RestartCount rises over time](../../assets/troubleshooting/keda-no-metrics-returned/scenario-b-crash-restart-count.png)
-
-`[Expected]` RestartCount metric rises steadily. Each restart creates a
-new metrics gap window.
+!!! note "Portal evidence — System logs + RestartCount"
+    System logs show recurring "no metrics returned" and "invalid
+    metrics" entries. The pattern repeats with increasing intervals as
+    Kubernetes applies CrashLoopBackOff exponential backoff.
+    RestartCount metric rises steadily.
 
 ### Scenario C — `ca-nometrics-healthy` (brief deployment gap)
 
-![Scenario C: Metric errors appear for ~60s during deployment, then stop permanently](../../assets/troubleshooting/keda-no-metrics-returned/scenario-c-healthy-system-logs.png)
-
-`[Observed]` 10 metric error entries during the first ~60 seconds after
-deployment, then no further errors. The container started instantly but
-the Kubernetes Metrics Server needed ~60s to warm up for the new pod.
-RestartCount is 0. This proves that even healthy containers experience
-a brief metrics gap during initial provisioning.
+!!! note "Portal evidence — System logs"
+    10 metric error entries during the first ~60 seconds after
+    deployment, then no further errors. The container started instantly
+    but the Kubernetes Metrics Server needed ~60s to warm up for the
+    new pod. RestartCount is 0.
 
 ### All scenarios — DEPRECATED warning
 
-![DEPRECATED warning appears for all three apps regardless of health](../../assets/troubleshooting/keda-no-metrics-returned/all-deprecated-warning.png)
-
-`[Expected]` The `type` DEPRECATED warning appears for all three apps,
-confirming it is triggered by the scale rule configuration
-(`metadata.type=Utilization`), not by container health state.
+!!! note "Portal evidence — System logs"
+    The `type` DEPRECATED warning appears for all three apps,
+    confirming it is triggered by the scale rule configuration
+    (`metadata.type=Utilization`), not by container health state.
 
 ### Screenshot capture checklist
+
+When re-running the lab, capture the following screenshots and save to
+`docs/assets/troubleshooting/keda-no-metrics-returned/`:
 
 | Screenshot | File name | Source |
 |---|---|---|
@@ -343,7 +331,7 @@ confirming it is triggered by the scale rule configuration
 | Scenario B: restart count | `scenario-b-crash-restart-count.png` | Metrics → RestartCount |
 | Scenario C: system logs | `scenario-c-healthy-system-logs.png` | Log stream → System logs |
 | DEPRECATED warning | `all-deprecated-warning.png` | Log stream → filter "DEPRECATED" |
-| KQL error timeline | `kql-error-timeline.png` | Log Analytics → run verification query 6 |
+| KQL error timeline | `kql-error-timeline.png` | Log Analytics → run verification query |
 
 ## Clean Up
 
@@ -351,7 +339,9 @@ confirming it is triggered by the scale rule configuration
 bash labs/keda-no-metrics-returned/cleanup.sh
 ```
 
-This deletes the resource group and all child resources.
+| Command | Why it is used |
+|---|---|
+| `cleanup.sh` | Deletes the resource group and all child resources (async). |
 
 ## Related Playbook
 

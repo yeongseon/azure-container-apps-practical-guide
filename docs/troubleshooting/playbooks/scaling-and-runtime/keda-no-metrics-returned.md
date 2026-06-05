@@ -131,6 +131,10 @@ az monitor log-analytics query \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor log-analytics query` | Queries ContainerAppSystemLogs_CL for KEDA metric error entries. |
+
 ### Restart count correlation
 
 ```bash
@@ -142,6 +146,10 @@ az monitor metrics list \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics list --metric RestartCount` | Checks whether container restarts correlate with metric error timestamps. |
+
 If restart timestamps align with "no metrics" log timestamps, the cause
 is container lifecycle, not a scaler defect.
 
@@ -152,6 +160,10 @@ az containerapp logs show \
   --name "<app-name>" --resource-group "<rg>" \
   --type console --follow false --tail 30
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp logs show --type console` | Retrieves application stdout/stderr to identify crash causes. |
 
 Look for stack traces, `exit(1)`, or OOMKilled messages.
 
