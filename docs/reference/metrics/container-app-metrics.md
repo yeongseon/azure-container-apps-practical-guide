@@ -39,7 +39,7 @@ The metric IDs below are the values you pass to `az monitor metrics list --metri
 | `ResiliencyEjectionsAborted` | Resiliency Ejections Aborted | Count | Revision |
 | `ResiliencyRequestRetries` | Resiliency Request Retries | Count | Revision |
 | `ResiliencyRequestTimeouts` | Resiliency Request Timeouts | Count | Revision |
-| `ResiliencyRequestsPendingConnectionPool` | Resiliency Requests Pending Connection Pool | Count | Replica |
+| `ResiliencyRequestsPendingConnectionPool` | Resiliency Requests Pending Connection Pool | Count | Revision |
 | `ResponseTime` | Average Response Time (Preview) | Milliseconds | Status Code, Status Code Category |
 | `CpuPercentage` | CPU Usage Percentage (Preview) | Percent | Replica |
 | `MemoryPercentage` | Memory Percentage (Preview) | Percent | Replica |

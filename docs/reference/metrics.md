@@ -1,6 +1,6 @@
 ---
 content_validation:
-  status: deprecated
+  status: verified
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims: []
