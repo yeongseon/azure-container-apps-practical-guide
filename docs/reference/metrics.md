@@ -900,6 +900,9 @@ For the matching KQL query pack, see [KEDA scaler metrics](../troubleshooting/kq
 
 The numeric samples above came from a deliberate load test environment to demonstrate that each metric publishes the expected shape of data. The topology was:
 
+!!! info "Reproduce these captures"
+    See [`labs/metrics-load-test/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/metrics-load-test/README.md) for the full reproduction guide — provisioning script, load generator, dual-environment topology diagram, metric → app mapping, prerequisites, estimated cost, capture-refresh checklist, and known limitations.
+
 | App | Role | Configuration | Drives metric(s) |
 |---|---|---|---|
 | `ca-loadtest-d38538` | Public ingress test target (in `cae-basics-d38538`) | `--cpu 0.5 --memory 1Gi --min-replicas 2 --max-replicas 10`, HTTP scaler at 20 concurrency | `UsageNanoCores`, `WorkingSetBytes`, `RxBytes`, `TxBytes`, `Replicas`, `Requests`, `ResponseTime`, `CpuPercentage`, `MemoryPercentage`, `CoresQuotaUsed`, `TotalCoresQuotaUsed` |
