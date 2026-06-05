@@ -62,7 +62,7 @@ Use the table below to choose a role-first path. Each path points to the same co
 | Developer | Build and ship a reliable API on Container Apps | Python 01, 02, 03 | 04, 07, troubleshooting quick triage | 8-12 hours |
 | DevOps Engineer | Standardize deployment and release flow | 02, 05, 06 | operations/deployment, operations/monitoring | 10-14 hours |
 | Architect | Select platform boundaries and operating model | overview, when-to-use, platform index | best-practices index, networking, identity | 6-10 hours |
-| SRE / Operator | Stabilize production and reduce incident MTTR | 04, operations/monitoring, troubleshooting index | alerts, recovery, KQL packs | 8-12 hours |
+| SRE / Operator | Stabilize production and reduce incident MTTR | 04, operations/monitoring, troubleshooting index | [Reference: Metrics](../reference/metrics.md) (including KEDA scaler observability), alerts, recovery, KQL packs | 8-12 hours |
 
 !!! tip "Pick one primary role first"
     If you wear multiple hats, complete one role path end-to-end before blending tracks. This creates a coherent mental model of revisions, scaling, and operations.

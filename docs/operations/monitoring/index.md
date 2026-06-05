@@ -41,6 +41,9 @@ flowchart TD
     AG --> WEBHOOK[Webhook]
 ```
 
+!!! info "This page is operational; metric definitions live in Reference"
+    This page covers *how* to wire signals, queries, and alerts in production. For *what* each metric measures — exact metric IDs, aggregations, dimensions, percentage denominators, and KEDA scaler attribution — see the [Container Apps metrics reference](../../reference/metrics.md). Use that page when building an alert rule, dashboard, or autoscale rule and you need the precise metric contract.
+
 ## Prerequisites
 
 - Log Analytics workspace connected to the Container Apps environment
@@ -276,6 +279,7 @@ sequenceDiagram
 - Use sampling strategies to balance fidelity and telemetry cost.
 
 ## See Also
+- [Container Apps metrics reference](../../reference/metrics.md) — metric IDs, aggregations, dimensions, denominators, KEDA scaler observability
 - [Logging](../logging/index.md)
 - [Log Streaming](../logging/log-streaming.md)
 - [Log Analytics Queries](../logging/log-analytics-queries.md)

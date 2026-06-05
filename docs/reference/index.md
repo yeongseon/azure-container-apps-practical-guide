@@ -61,6 +61,8 @@ flowchart TD
 | Align autoscale assumptions with known boundaries | [Platform Limits](platform-limits.md#scale-limits) | Centralized scale-related constraints and notes |
 | Check networking and ingress constraints | [Platform Limits](platform-limits.md#networking-limits) | Clarifies ingress/port and network boundary expectations |
 | Validate job runtime metadata variables | [Environment Variables](environment-variables.md#platform-injected-variables) | Includes job-specific variable names |
+| Look up the exact metric ID, aggregation, or dimension for an alert | [Metrics](metrics.md) | Catalog of every Azure Monitor metric Container Apps publishes, with denominators and CLI query templates |
+| Find out which KEDA scaler caused a replica change | [Metrics → KEDA scaler observability](metrics.md#keda-scaler-observability) | Explains the two-pipeline split (KEDA scaler decisions vs Azure Monitor `Replicas` metric) and the KQL pack used to attribute replica changes to a scaler |
 
 ## Main Content
 
