@@ -103,6 +103,7 @@ nav:
       - Overview: platform/architecture/index.md
       - Resource Relationships: platform/architecture/resource-relationships.md
     - Deployment Scenarios: platform/deployment-scenarios.md
+    - Deployment: platform/deployment.md
     - Environments:
       - platform/environments/index.md
       - Plans and Workload Profiles: platform/environments/plans-and-workload-profiles.md
