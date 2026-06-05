@@ -175,7 +175,7 @@ platform versions.
 
 | Hypothesis | Action |
 |---|---|
-| **H1** | No action. Inform the customer that these are expected transient logs during container lifecycle transitions. |
+| **H1** | No action. These are expected transient logs during container lifecycle transitions. |
 | **H2** | Fix the application crash. Check console logs for the root cause. Once the container runs stably, the metric errors will stop. |
 | **H3** | Adjust `startupProbe` and `readinessProbe` timings to match the actual container startup duration. Increase `initialDelaySeconds` or `failureThreshold` if the container needs more time. |
 | **H4** | Review all scale rule triggers. An unreachable external scaler or misconfigured trigger can cause `invalid metrics` for other scalers in the same ScaledObject. |

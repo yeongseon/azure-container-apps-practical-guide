@@ -249,8 +249,8 @@ ca-nometrics-healthy  10          04:10:26               04:11:27  (~61s window)
 
 ### Operator takeaway from experiment
 
-The Scenario C result is the most valuable for customer communications:
-**customers should expect 30-60 seconds of "no metrics returned" logs
+The Scenario C result is the most important takeaway:
+**expect 30-60 seconds of "no metrics returned" logs
 after every deployment**, even when the application starts instantly.
 This is a normal Kubernetes Metrics Server warm-up period, not a defect.
 

@@ -124,7 +124,7 @@ The lab is considered reproduced when **all** of the following hold
 
 ## Operator Takeaway
 
-When a customer reports these log messages:
+When investigating these log messages:
 
 1. **Expect 30-60s of errors after every deployment.** The Scenario C
    result proves that even a perfectly healthy, instantly-starting
