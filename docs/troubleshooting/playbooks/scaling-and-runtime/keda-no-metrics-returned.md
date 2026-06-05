@@ -47,9 +47,29 @@ scaler memory info: The 'type' setting is DEPRECATED and will be removed in v2.1
 !!! tip "TL;DR"
     The first two messages are **transient** and occur when the Kubernetes
     Metrics Server has no data for a container — typically during startup,
-    restart, or deployment. They do not indicate a broken scaler. The third
+    restart, or deployment. By themselves, these messages do not prove
+    a broken scaler. The third
     message is a **configuration deprecation warning** unrelated to
     runtime health.
+
+### When to use this playbook
+
+Use this playbook when:
+
+- System logs contain `no metrics returned from resource metrics API` messages
+- CPU or memory scaler behavior differs from Azure Portal metric charts
+- You need to determine if metric errors are transient (expected) or persistent (action needed)
+- The app recently deployed, restarted, crashed, or scaled from zero
+
+### When not to use this playbook
+
+Do not start from this playbook when:
+
+- HTTP scaling is not triggering — see [HTTP Scaling Not Triggering](./http-scaling-not-triggering.md)
+- Memory percentage disagrees with KEDA utilization — see [Memory Percentage vs KEDA Utilization](./memory-percentage-vs-keda-utilization.md)
+- Custom or event scalers fail — see [Event Scaler Mismatch](./event-scaler-mismatch.md)
+- The issue is HTTP 5xx without scaling symptoms
+- The container is OOMKilled with no scaling rule configured
 
 ### Why these messages appear
 
@@ -93,12 +113,15 @@ flowchart TD
 
 | Scenario | Duration | Impact on scaling | Action required |
 |---|---|---|---|
-| **New revision deployment** | 30-60s per replica (lab-validated: healthy container showed ~60s gap) | None — transient | No |
+| **New revision deployment** | 30-60s per replica | None — transient | No |
 | **Scale-from-zero cold start** | 60-180s | First scaling decision delayed | Set `minReplicas >= 1` if latency-sensitive |
 | **Container crash/restart** | Repeats each cycle | Scaling decisions skip affected replica | Fix the crash |
 | **OOMKill** | Brief per kill | Similar to crash | Right-size memory or fix leak |
 | **Platform node maintenance** | 30-120s | Transparent if multiple replicas | No |
-| **Readiness probe too aggressive** | Persistent if probe keeps failing | Replica stays Not Ready, never reports metrics | Tune probe timing |
+| **Readiness probe too aggressive** | Persistent if probe keeps failing | Replica stays Not Ready, typically does not report metrics | Tune probe timing |
+
+!!! example "Lab observation"
+    In the [KEDA No Metrics Returned Lab](../../lab-guides/keda-no-metrics-returned.md) (Korea Central, 2026-06-05), even a healthy, instantly-starting container produced "no metrics returned" logs for ~60 seconds after deployment. This should be treated as a lab observation in a specific environment, not a universal platform guarantee.
 
 ## 3. Competing Hypotheses
 
@@ -151,7 +174,7 @@ az monitor metrics list \
 | `az monitor metrics list --metric RestartCount` | Checks whether container restarts correlate with metric error timestamps. |
 
 If restart timestamps align with "no metrics" log timestamps, the cause
-is container lifecycle, not a scaler defect.
+is container lifecycle, likely not a scaler defect.
 
 ### Console logs for crash evidence
 
@@ -181,7 +204,7 @@ field. The `type` field was removed in KEDA v2.18.
 
 In Azure Container Apps, the KEDA version is managed by the platform. Whether
 `metricType` is exposed depends on the Container Apps API version.
-**This warning is cosmetic and does not affect scaling behavior** on current
+**This warning is cosmetic and should not affect scaling behavior** on current
 platform versions.
 
 ## 5. Resolution
@@ -203,7 +226,7 @@ platform versions.
   being marked unhealthy.
 - Fix application crashes that cause CrashLoopBackOff — each restart
   creates a new metrics gap window.
-- These logs **cannot be suppressed or filtered** — they are internal
+- These logs **cannot currently be suppressed or filtered** — they are internal
   KEDA/HPA controller logs emitted by the platform.
 
 ## See Also
