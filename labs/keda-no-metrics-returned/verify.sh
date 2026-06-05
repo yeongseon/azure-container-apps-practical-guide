@@ -10,7 +10,8 @@ set -euo pipefail
 : "${APP_NAME:?APP_NAME must be set}"
 
 LOOKBACK="${LOOKBACK:-PT30M}"
-OUTDIR="${OUTDIR:-labs/keda-no-metrics-returned/evidence}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUTDIR="${OUTDIR:-${SCRIPT_DIR}/evidence}"
 APP_DIR="${OUTDIR}/${APP_NAME}"
 mkdir -p "$APP_DIR"
 
@@ -30,6 +31,14 @@ echo "Timestamp: $TS"
 echo "========================================================"
 
 # ---------------------------------------------------------------
+# 0. Tool versions
+# ---------------------------------------------------------------
+echo
+echo "=== 0. Tool versions ==="
+az version --output json 2>/dev/null || echo "(az version unavailable)"
+az extension show --name containerapp --query "{name:name, version:version}" -o json 2>/dev/null || echo "(containerapp extension not found)"
+
+# ---------------------------------------------------------------
 # 1. App metadata
 # ---------------------------------------------------------------
 echo
@@ -42,10 +51,22 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 # 2. Active revision & replica status
 # ---------------------------------------------------------------
 echo
-echo "=== 2. Active revision ==="
-ACTIVE_REV="$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
-  --query '[?properties.active]|[0].name' -o tsv 2>/dev/null)" || true
-echo "Active revision: ${ACTIVE_REV:-<none>}"
+echo "=== 1b. Container name ==="
+CONTAINER_NAME="$(az containerapp show --name "$APP_NAME" --resource-group "$RG" \
+  --query 'properties.template.containers[0].name' -o tsv 2>/dev/null)" || CONTAINER_NAME="$APP_NAME"
+echo "Container name: $CONTAINER_NAME"
+
+echo
+echo "=== 2. Active revision(s) ==="
+ACTIVE_REVS="$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
+  --query '[?properties.active].name' -o tsv 2>/dev/null)" || true
+ACTIVE_REV="$(echo "$ACTIVE_REVS" | head -1)"
+echo "Active revisions: ${ACTIVE_REVS:-<none>}"
+
+# Save full revision list as JSON for later analysis
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
+  --query '[?properties.active].{name:name, replicas:properties.replicas, trafficWeight:properties.trafficWeight, healthState:properties.healthState}' \
+  -o json > "${APP_DIR}/revisions-${TS}.json" 2>/dev/null || true
 
 if [[ -n "$ACTIVE_REV" ]]; then
   az containerapp revision show --name "$APP_NAME" --resource-group "$RG" \
@@ -53,6 +74,13 @@ if [[ -n "$ACTIVE_REV" ]]; then
     --query "{name:name, replicas:properties.replicas, active:properties.active, healthState:properties.healthState, provisioningState:properties.provisioningState, createdTime:properties.createdTime, runningState:properties.runningState}" \
     -o json
 fi
+
+echo
+echo "=== 2b. Traffic configuration ==="
+az containerapp ingress traffic show \
+  --name "$APP_NAME" --resource-group "$RG" \
+  -o json > "${APP_DIR}/traffic-${TS}.json" 2>/dev/null || echo "(no ingress traffic config)"
+cat "${APP_DIR}/traffic-${TS}.json" 2>/dev/null || true
 
 echo
 echo "=== 3. Replica list ==="
@@ -263,7 +291,7 @@ if [[ -n "$ACTIVE_REV" ]]; then
     echo "Replica: $REPLICA"
     az containerapp exec \
       --name "$APP_NAME" --resource-group "$RG" \
-      --replica "$REPLICA" --container "$APP_NAME" \
+      --replica "$REPLICA" --container "$CONTAINER_NAME" \
       --command "/bin/sh -c 'echo --- memory.current ---; cat /sys/fs/cgroup/memory.current 2>/dev/null || cat /sys/fs/cgroup/memory/memory.usage_in_bytes; echo; echo --- memory.max ---; cat /sys/fs/cgroup/memory.max 2>/dev/null || cat /sys/fs/cgroup/memory/memory.limit_in_bytes; echo; echo --- memory.stat (top 20 fields) ---; (cat /sys/fs/cgroup/memory.stat 2>/dev/null || cat /sys/fs/cgroup/memory/memory.stat) | head -20'" \
       2>&1 || echo "(exec failed — replica may be initializing or crash-looping)"
   else
@@ -305,5 +333,33 @@ echo "    ${APP_NAME}-revisions-health.png"
 
 } 2>&1 | tee_report
 
+# Generate summary markdown
+SUMMARY="${APP_DIR}/summary-${TS}.md"
+cat > "$SUMMARY" <<MDEOF
+# Evidence Summary: ${APP_NAME}
+
+| Field | Value |
+|-------|-------|
+| App | ${APP_NAME} |
+| Container | ${CONTAINER_NAME} |
+| Resource Group | ${RG} |
+| Timestamp | ${TS} |
+| Active Revisions | ${ACTIVE_REVS:-none} |
+| Lookback | ${LOOKBACK} |
+
+## Collected files
+
+- \`report-${TS}.txt\` — Full evidence report
+- \`revisions-${TS}.json\` — Active revision details
+- \`traffic-${TS}.json\` — Traffic configuration
+
+## Next steps
+
+- [ ] Capture Portal screenshots (listed in report)
+- [ ] Correlate metric error timestamps with restart events
+- [ ] Classify as transient (H1) or persistent (H2-H5)
+MDEOF
+
 echo
 echo "Full report: $REPORT"
+echo "Summary: $SUMMARY"
