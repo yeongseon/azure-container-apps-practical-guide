@@ -148,6 +148,7 @@ If a firewall or NVA is in the path, mirror the same dependency categories there
 
 - [UDR and NSG Egress Blocked Lab](../../lab-guides/udr-nsg-egress-blocked.md)
 - [Egress Control](../../../platform/networking/egress-control.md)
+- [ACR Network Path Selection](../../../platform/networking/acr-network-path-selection.md)
 - [Networking in Azure Container Apps](../../../platform/networking/index.md)
 - [Deployment Networking Operations](../../../operations/deployment/networking.md)
 

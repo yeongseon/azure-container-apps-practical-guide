@@ -131,6 +131,7 @@ nav:
       - VNet Integration: platform/networking/vnet-integration.md
       - Private Endpoints: platform/networking/private-endpoints.md
       - Egress Control: platform/networking/egress-control.md
+      - ACR Network Path Selection: platform/networking/acr-network-path-selection.md
       - Service-to-Service: platform/networking/service-to-service.md
     - Storage:
       - Overview: platform/storage/index.md

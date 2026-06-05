@@ -427,6 +427,7 @@ az group delete --name "$RG" --yes --no-wait
 
 - [Container Start Failure Playbook](../playbooks/startup-and-provisioning/container-start-failure.md)
 - [Revision Provisioning Failure Lab](./revision-provisioning-failure.md)
+- [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md)
 
 ## Sources
 
