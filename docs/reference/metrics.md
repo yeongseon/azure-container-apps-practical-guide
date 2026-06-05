@@ -843,7 +843,7 @@ ContainerAppSystemLogs_CL
 | order by Count desc
 ```
 
-The values below were observed in the live test environment (`cae-wp-d38538`, 6-hour window). The first row is the goal of this section: it is the only event source that ties a `Replicas` step to a scaler name.
+The values below were observed in the shared Log Analytics workspace attached to both test environments over a 6-hour window. The `SuccessfulRescale` example below comes from `ca-loadtest-d38538` in `cae-basics-d38538`. The first row is the goal of this section: it is the only event source that ties a `Replicas` step to a scaler name.
 
 | `EventSource_s` | `Reason_s` | `Type_s` | Count (this env, 6h) | What it means |
 |---|---|---|---|---|
