@@ -286,6 +286,7 @@ nav:
   - Operations:
     - operations/index.md
     - Alerts: operations/alerts/index.md
+    - Metric alerts by incident question: operations/alerts/metric-alerts-by-incident-question.md
     - Custom Domains:
       - operations/custom-domains/index.md
       - Managed Certificates: operations/custom-domains/managed-certificates.md

@@ -39,6 +39,8 @@ Prioritize metrics that indicate user impact or workload instability:
 - **CPU/Memory utilization** sustained near limits
 - **Job execution failures** for scheduled/event-driven jobs
 
+For a question-driven selection table that maps each incident question to the exact metric, aggregation, split dimension, and a starting threshold, see [Metric alerts by incident question](metric-alerts-by-incident-question.md).
+
 ## Azure Monitor Alert Rules
 
 Use metric alerts for fast detection and log alerts for richer context.
