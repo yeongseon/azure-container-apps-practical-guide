@@ -113,7 +113,7 @@ flowchart TD
 
 | Scenario | Duration | Impact on scaling | Action required |
 |---|---|---|---|
-| **New revision deployment** | 30-60s per replica [^1] | None — transient | No |
+| **New revision deployment** | 30-60s per replica | None — transient | No |
 | **Scale-from-zero cold start** | 60-180s | First scaling decision delayed | Set `minReplicas >= 1` if latency-sensitive |
 | **Container crash/restart** | Repeats each cycle | Scaling decisions skip affected replica | Fix the crash |
 | **OOMKill** | Brief per kill | Similar to crash | Right-size memory or fix leak |
@@ -122,8 +122,6 @@ flowchart TD
 
 !!! example "Lab observation"
     In the [KEDA No Metrics Returned Lab](../../lab-guides/keda-no-metrics-returned.md) (Korea Central, 2026-06-05), even a healthy, instantly-starting container produced "no metrics returned" logs for ~60 seconds after deployment. This should be treated as a lab observation in a specific environment, not a universal platform guarantee.
-
-[^1]: Observed in the [KEDA No Metrics Returned Lab](../../lab-guides/keda-no-metrics-returned.md) (Korea Central, 2026-06-05, Consumption tier). Duration may vary by region and workload profile.
 
 ## 3. Competing Hypotheses
 
