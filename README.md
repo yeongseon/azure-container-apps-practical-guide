@@ -2,7 +2,7 @@
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-Comprehensive guide for running containerized applications on Azure Container Apps — from first deployment to production troubleshooting.
+Evidence-driven, operator-focused guide for running containerized applications on Azure Container Apps. Every claim is backed by lab observations, live metric captures, or cited Microsoft Learn sources — from first deployment through production-grade monitoring, alerting, and incident response.
 
 ## What's Inside
 
@@ -15,6 +15,13 @@ Comprehensive guide for running containerized applications on Azure Container Ap
 | [Operations](https://yeongseon.github.io/azure-container-apps-practical-guide/operations/) | Deployment, monitoring, scaling, alerts, secret rotation, recovery |
 | [Troubleshooting](https://yeongseon.github.io/azure-container-apps-practical-guide/troubleshooting/) | Playbooks, hands-on labs, KQL query packs, decision tree, evidence map |
 | [Reference](https://yeongseon.github.io/azure-container-apps-practical-guide/reference/) | CLI reference, environment variables, platform limits |
+
+## What Makes This Different
+
+- **Lab-validated** — 40+ hands-on labs with reproducible Bicep, verify scripts, and evidence reports
+- **KQL query packs** — 30+ production-ready queries for Log Analytics and App Insights
+- **Metrics reference** — All 27 platform metrics documented with live screenshots, denominators, and dimension mapping
+- **Playbooks** — Structured troubleshooting with competing hypotheses, decision flows, and CLI evidence collection
 
 ## Language Guides
 
