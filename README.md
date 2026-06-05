@@ -18,9 +18,9 @@ Evidence-driven, operator-focused guide for running containerized applications o
 
 ## What Makes This Different
 
-- **Lab-validated** — 40+ hands-on labs with reproducible Bicep, verify scripts, and evidence reports
+- **Lab-validated** — 14 hands-on labs with reproducible Bicep, verify scripts, and evidence reports
 - **KQL query packs** — 30+ production-ready queries for Log Analytics and App Insights
-- **Metrics reference** — All 27 platform metrics documented with live screenshots, denominators, and dimension mapping
+- **Metrics reference** — All platform metrics documented with live screenshots, denominators, and dimension mapping
 - **Playbooks** — Structured troubleshooting with competing hypotheses, decision flows, and CLI evidence collection
 
 ## Language Guides
