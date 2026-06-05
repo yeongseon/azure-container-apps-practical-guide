@@ -1,0 +1,293 @@
+---
+content_sources:
+  diagrams:
+  - id: experiment-architecture
+    type: flowchart
+    source: self-generated
+    justification: Lab-specific architecture showing three side-by-side
+      Container Apps with identical scale rules but different startup/crash
+      behaviors, designed to reproduce KEDA metric collection errors.
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - https://keda.sh/docs/latest/scalers/memory/
+content_validation:
+  status: draft
+  last_reviewed: '2026-06-05'
+  reviewer: ai-agent
+  lab_validation:
+    status: not-tested
+    notes: "Lab scripts created but not yet validated against a live Azure environment."
+  core_claims:
+  - claim: KEDA/HPA logs "no metrics returned from resource metrics API" when the
+      Kubernetes Metrics Server has no data for a container that is not yet Ready.
+    source: https://github.com/kubernetes/kubernetes/issues/127169
+    verified: true
+  - claim: CrashLoopBackOff creates recurring windows where metrics are unavailable,
+      producing repeated "no metrics returned" and "invalid metrics" log entries.
+    source: https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
+    verified: true
+---
+# KEDA "No Metrics Returned" Reproduction Lab
+
+Reproduce the KEDA/HPA log messages `no metrics returned from resource
+metrics API` and `invalid metrics` by creating containers that are
+intentionally Not Ready or crash-looping, then compare against a healthy
+baseline to confirm the errors are caused by container lifecycle events.
+
+## Lab Metadata
+
+| Attribute | Value |
+|---|---|
+| Difficulty | Beginner-Intermediate |
+| Estimated Duration | 20-30 minutes (10 min wait for log ingestion) |
+| Tier | Consumption |
+| Failure Mode | KEDA system logs show "no metrics returned" / "invalid metrics" |
+| Skills Practiced | System log analysis, KQL queries, container lifecycle correlation, KEDA deprecation awareness |
+
+## 1) Background
+
+KEDA's CPU and memory scalers query the Kubernetes Resource Metrics API
+for per-container utilization data. The Metrics Server can only return
+data for containers that are **Running and Ready**. When a container is:
+
+- Still initializing (readiness probe not yet passing)
+- Restarting after a crash or OOMKill
+- Being rescheduled during platform maintenance
+
+…the Metrics API returns an empty response, and the HPA controller logs:
+
+```text
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API
+```
+
+If the app has multiple scale rules and only some metrics fail:
+
+```text
+invalid metrics (1 invalid out of 5), first error is: failed to get <app> container metric value: ...
+```
+
+Additionally, scale rules using `--scale-rule-metadata "type=Utilization"`
+trigger a deprecation warning because KEDA v2.7+ replaced `metadata.type`
+with the trigger-level `metricType` field (removed in v2.18):
+
+```text
+scaler memory info: The 'type' setting is DEPRECATED and will be removed in v2.18 - Use 'metricType' instead.
+```
+
+## 2) Hypothesis
+
+**IF** three Container Apps share the same memory scale rule but run
+workloads with different startup/crash behaviors, **THEN**:
+
+- **Scenario A (slow-start)**: System logs show "no metrics returned"
+  during the first ~2 minutes (while the container is Not Ready), then
+  the errors stop once the readiness probe passes.
+- **Scenario B (crash-loop)**: System logs show recurring "no metrics
+  returned" and "invalid metrics" that correlate with container restart
+  timestamps. The pattern repeats with exponential backoff intervals.
+- **Scenario C (healthy)**: System logs show **no** metric error entries.
+  The DEPRECATED warning may still appear (it is independent of
+  container health).
+
+### Architecture
+
+<!-- diagram-id: experiment-architecture -->
+```mermaid
+flowchart TD
+    A["Container Apps environment"] --> B["Scenario A: ca-nometrics-slow"]
+    A --> C["Scenario B: ca-nometrics-crash"]
+    A --> D["Scenario C: ca-nometrics-healthy"]
+    B --> B1["MODE=slow-start<br/>DELAY_SECONDS=120"]
+    C --> C1["MODE=crash-loop<br/>DELAY_SECONDS=30"]
+    D --> D1["MODE=healthy"]
+    B1 --> S["Same scale rule:<br/>memory Utilization=50<br/>min 1-2 / max 10"]
+    C1 --> S
+    D1 --> S
+    S --> R["Observe:<br/>ContainerAppSystemLogs_CL<br/>RestartCount<br/>Replica status"]
+```
+
+| Scenario | App name | Mode | Expected "no metrics" logs | Expected RestartCount |
+|---|---|---|---|---|
+| **A. Slow startup** | `ca-nometrics-slow` | `slow-start` (120s delay) | Transient, first ~2 min only | 0 |
+| **B. CrashLoopBackOff** | `ca-nometrics-crash` | `crash-loop` (exit every 30s) | Recurring, correlates with restarts | Rising |
+| **C. Healthy baseline** | `ca-nometrics-healthy` | `healthy` | None | 0 |
+
+## 3) Runbook
+
+### Deploy infrastructure
+
+```bash
+export RG="rg-aca-no-metrics-lab"
+export LOCATION="koreacentral"
+export BASE_NAME="nometrics"
+
+az group create --name "$RG" --location "$LOCATION"
+
+az deployment group create \
+    --resource-group "$RG" --name main \
+    --template-file labs/keda-no-metrics-returned/infra/main.bicep \
+    --parameters baseName="$BASE_NAME"
+
+export ACR_NAME="$(az deployment group show --resource-group "$RG" --name main \
+    --query properties.outputs.containerRegistryName.value --output tsv)"
+export ENV_NAME="$(az deployment group show --resource-group "$RG" --name main \
+    --query properties.outputs.environmentName.value --output tsv)"
+```
+
+| Command | Why it is used |
+|---|---|
+| `az group create` | Creates the resource group that scopes all lab resources. |
+| `az deployment group create` | Deploys the Bicep template that provisions Log Analytics, ACR, and the Container Apps environment. |
+| `az deployment group show` | Reads the Bicep outputs to capture the generated ACR and environment names. |
+
+### Create three scenarios
+
+```bash
+bash labs/keda-no-metrics-returned/trigger-scenario-a.sh
+bash labs/keda-no-metrics-returned/trigger-scenario-b.sh
+bash labs/keda-no-metrics-returned/trigger-scenario-c.sh
+```
+
+| Command | Why it is used |
+|---|---|
+| `trigger-scenario-a.sh` | Builds the image, creates `ca-nometrics-slow` with `MODE=slow-start` and `DELAY_SECONDS=120`. The container sleeps 2 minutes before starting the HTTP server, so the readiness probe fails during this window. |
+| `trigger-scenario-b.sh` | Creates `ca-nometrics-crash` with `MODE=crash-loop` and `DELAY_SECONDS=30`. The container exits every 30 seconds, triggering CrashLoopBackOff. |
+| `trigger-scenario-c.sh` | Creates `ca-nometrics-healthy` with `MODE=healthy`. The container starts immediately and stays stable. |
+
+### Observe (wait at least 10 minutes for Log Analytics ingestion)
+
+```bash
+sleep 600
+
+for APP in ca-nometrics-slow ca-nometrics-crash ca-nometrics-healthy; do
+    APP_NAME=$APP bash labs/keda-no-metrics-returned/verify.sh
+done
+```
+
+`verify.sh` queries `ContainerAppSystemLogs_CL` for "no metrics returned",
+"invalid metrics", and "DEPRECATED" messages, then checks console logs,
+replica status, and restart counts.
+
+## 4) Expected Evidence
+
+The hypothesis is confirmed when **all** of the following hold:
+
+| Check | Confirmation rule | Falsification |
+|---|---|---|
+| Scenario A: transient errors | "no metrics returned" entries appear within the first ~2 minutes after deployment, then stop | Errors persist beyond 5 minutes after container becomes Ready |
+| Scenario B: recurring errors | "no metrics returned" entries repeat and correlate with `RestartCount` increases | No metric errors despite container crashes |
+| Scenario C: no errors | Zero "no metrics returned" or "invalid metrics" entries | Metric errors appear for a healthy, stable container |
+| All: DEPRECATED warning | "The 'type' setting is DEPRECATED" appears for all three apps | Warning does not appear (Azure platform may have migrated) |
+
+## 5) Verification Queries
+
+### KQL: metric error log pattern
+
+```kql
+ContainerAppSystemLogs_CL
+| where ContainerAppName_s in ("ca-nometrics-slow", "ca-nometrics-crash", "ca-nometrics-healthy")
+| where Log_s has_any ("no metrics returned", "invalid metrics", "failed to get")
+| summarize ErrorCount=count() by ContainerAppName_s, bin(TimeGenerated, 5m)
+| order by TimeGenerated asc
+```
+
+Expected: `ca-nometrics-crash` shows sustained error counts across
+multiple 5-min bins. `ca-nometrics-slow` shows errors only in the first
+1-2 bins. `ca-nometrics-healthy` shows zero.
+
+### KQL: DEPRECATED warning
+
+```kql
+ContainerAppSystemLogs_CL
+| where ContainerAppName_s in ("ca-nometrics-slow", "ca-nometrics-crash", "ca-nometrics-healthy")
+| where Log_s has "DEPRECATED"
+| summarize count() by ContainerAppName_s
+```
+
+Expected: All three apps show the warning (it is configuration-based,
+not health-based).
+
+## 6) Portal Evidence (to capture after reproduction)
+
+Azure Portal screenshots to collect for each scenario. Save to
+`docs/assets/troubleshooting/keda-no-metrics-returned/`.
+
+### Scenario A — `ca-nometrics-slow` (transient metric gap during startup)
+
+<!-- TODO: Replace with actual screenshot after lab validation -->
+![Scenario A: System logs show "no metrics returned" during first 2 minutes, then resolve](../../assets/troubleshooting/keda-no-metrics-returned/scenario-a-slow-system-logs.png)
+
+`[Expected]` System logs show "no metrics returned" entries in the first
+~2 minutes after deployment. After the container becomes Ready, the
+errors stop. RestartCount remains 0.
+
+![Scenario A: Replica count and Memory Percentage](../../assets/troubleshooting/keda-no-metrics-returned/scenario-a-slow-metrics.png)
+
+`[Expected]` Replicas hold steady. MemoryPercentage is low since the
+`healthy` mode uses minimal memory after startup.
+
+### Scenario B — `ca-nometrics-crash` (recurring metric gaps from CrashLoopBackOff)
+
+![Scenario B: System logs show recurring "no metrics returned" and "invalid metrics" correlating with restart cycles](../../assets/troubleshooting/keda-no-metrics-returned/scenario-b-crash-system-logs.png)
+
+`[Expected]` System logs show recurring "no metrics returned" and
+"invalid metrics" entries. The pattern repeats with increasing intervals
+as Kubernetes applies CrashLoopBackOff exponential backoff.
+
+![Scenario B: RestartCount rises over time](../../assets/troubleshooting/keda-no-metrics-returned/scenario-b-crash-restart-count.png)
+
+`[Expected]` RestartCount metric rises steadily. Each restart creates a
+new metrics gap window.
+
+### Scenario C — `ca-nometrics-healthy` (control baseline)
+
+![Scenario C: No metric error entries in system logs](../../assets/troubleshooting/keda-no-metrics-returned/scenario-c-healthy-system-logs.png)
+
+`[Expected]` Zero "no metrics returned" or "invalid metrics" entries.
+The container starts immediately and remains stable. RestartCount is 0.
+
+### All scenarios — DEPRECATED warning
+
+![DEPRECATED warning appears for all three apps regardless of health](../../assets/troubleshooting/keda-no-metrics-returned/all-deprecated-warning.png)
+
+`[Expected]` The `type` DEPRECATED warning appears for all three apps,
+confirming it is triggered by the scale rule configuration
+(`metadata.type=Utilization`), not by container health state.
+
+### Screenshot capture checklist
+
+| Screenshot | File name | Source |
+|---|---|---|
+| Scenario A: system logs | `scenario-a-slow-system-logs.png` | Log stream → System logs |
+| Scenario A: metrics | `scenario-a-slow-metrics.png` | Metrics → MemoryPercentage + Replicas |
+| Scenario B: system logs | `scenario-b-crash-system-logs.png` | Log stream → System logs |
+| Scenario B: restart count | `scenario-b-crash-restart-count.png` | Metrics → RestartCount |
+| Scenario C: system logs | `scenario-c-healthy-system-logs.png` | Log stream → System logs |
+| DEPRECATED warning | `all-deprecated-warning.png` | Log stream → filter "DEPRECATED" |
+| KQL error timeline | `kql-error-timeline.png` | Log Analytics → run verification query 6 |
+
+## Clean Up
+
+```bash
+bash labs/keda-no-metrics-returned/cleanup.sh
+```
+
+This deletes the resource group and all child resources.
+
+## Related Playbook
+
+- [KEDA "No Metrics Returned from Resource Metrics API"](../playbooks/scaling-and-runtime/keda-no-metrics-returned.md)
+
+## See Also
+
+- [Memory Percentage vs KEDA Utilization Lab](./memory-percentage-vs-keda-utilization.md)
+- [CPU and Memory Scaler](../../platform/scaling/cpu-memory-scaler.md)
+- [Scale Rule Mismatch Lab](./scale-rule-mismatch.md)
+
+## Sources
+
+- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)
+- [HPA with container metrics fails when pod is not ready - kubernetes#127169](https://github.com/kubernetes/kubernetes/issues/127169)
+- [Deprecating parameter 'type' in CPU/Memory scaler - kedacore/keda#6348](https://github.com/kedacore/keda/discussions/6348)
+- [Troubleshooting HPA metric retrieval - SigNoz](https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/)
