@@ -179,6 +179,10 @@ Use the category that best matches your first confirmed symptom.
 3. Use [KQL Queries](../kql/index.md) for timeline and correlation.
 4. If multiple signals conflict, use the [Detector Map](../methodology/detector-map.md).
 
+## Contributing a New Playbook
+
+Start from the [playbook template](../../contributing/playbook-template.md). Copy the file, rename it, and fill in each section. The template includes all required frontmatter fields, section headings, and CI-compliance markers (diagram-id comments, command explanation tables).
+
 ## See Also
 
 - [First 10 Minutes: Quick Triage Checklist](../first-10-minutes/index.md)

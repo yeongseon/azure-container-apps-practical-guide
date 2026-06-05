@@ -505,3 +505,4 @@ nav:
     - Metrics: reference/metrics.md
   - Contributing:
     - contributing/index.md
+    - Playbook Template: contributing/playbook-template.md
