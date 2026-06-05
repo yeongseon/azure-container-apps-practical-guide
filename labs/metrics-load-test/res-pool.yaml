@@ -1,0 +1,8 @@
+httpConnectionPoolPolicy:
+  http1MaxPendingRequests: 1
+  http2MaxRequests: 1
+tcpConnectionPoolPolicy:
+  maxConnections: 1
+timeoutPolicy:
+  connectionTimeoutInSeconds: 5
+  responseTimeoutInSeconds: 30

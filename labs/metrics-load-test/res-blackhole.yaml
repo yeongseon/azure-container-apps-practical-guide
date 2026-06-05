@@ -1,0 +1,5 @@
+timeoutPolicy:
+  connectionTimeoutInSeconds: 1
+  responseTimeoutInSeconds: 30
+tcpRetryPolicy:
+  maxConnectAttempts: 1

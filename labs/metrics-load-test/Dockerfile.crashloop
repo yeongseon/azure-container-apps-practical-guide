@@ -1,0 +1,7 @@
+FROM python:3.12-alpine
+WORKDIR /app
+COPY crashloop.py ./
+EXPOSE 8000
+ENV PORT=8000 CHUNK_MB=16 INTERVAL_MS=200
+USER 1000:1000
+CMD ["python", "crashloop.py"]
