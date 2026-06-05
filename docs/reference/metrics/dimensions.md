@@ -65,6 +65,10 @@ az monitor metrics list \
     --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics list --filter "podName eq '*'"` | Splits per-replica CPU usage using the API dimension key `podName` (Portal displays "Replica"). |
+
 Split requests by status code category:
 
 ```bash
@@ -77,6 +81,10 @@ az monitor metrics list \
     --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics list --filter "statusCodeCategory eq '*'"` | Splits HTTP requests into 2xx/3xx/4xx/5xx categories. |
+
 Split node count by workload profile (environment-level metric):
 
 ```bash
@@ -88,6 +96,10 @@ az monitor metrics list \
     --filter "workloadProfileName eq '*'" \
     --output table
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics list --filter "workloadProfileName eq '*'"` | Splits node count by workload profile for capacity planning. |
 
 Wherever a metric section in this guide refers to `podName`, that is the literal value to pass to `--filter "podName eq '*'"`. The Portal chip will still display "Replica" because that is the friendly display name.
 

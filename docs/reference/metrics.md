@@ -65,3 +65,14 @@ The following anchors redirect to the new locations for backward compatibility.
 <a id="how-these-numbers-were-produced"></a>
 <a id="query-metrics-with-az-cli"></a>
 **Evidence and CLI queries** → [Evidence and Captures](metrics/evidence-and-captures.md)
+
+## See Also
+
+- [Metrics Overview](metrics/index.md)
+- [CLI Reference](cli-reference.md)
+- [Platform Limits](platform-limits.md)
+
+## Sources
+
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
