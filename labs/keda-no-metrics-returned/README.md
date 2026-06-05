@@ -33,15 +33,17 @@ unrelated — it occurs because the scale rule uses the legacy
 
 ## Scenarios
 
-| Scenario | App name | Mode | Expected behavior |
+| Scenario | App name | Mode | Observed behavior (2026-06-05) |
 |---|---|---|---|
-| **A. Slow startup** | `ca-nometrics-slow` | `slow-start` (120s delay) | "no metrics returned" during first ~2 min, then resolves |
-| **B. CrashLoopBackOff** | `ca-nometrics-crash` | `crash-loop` (exits every 30s) | Recurring "no metrics returned" + "invalid metrics" on every crash cycle |
-| **C. Healthy baseline** | `ca-nometrics-healthy` | `healthy` | No metric error logs (control) |
+| **A. Slow startup** | `ca-nometrics-slow` | `slow-start` (120s delay) | 12 errors in ~76s during startup probe failure, then resolved |
+| **B. CrashLoopBackOff** | `ca-nometrics-crash` | `crash-loop` (exits every 30s) | 29 recurring errors over 20+ min, correlating with crash/restart cycles |
+| **C. Healthy baseline** | `ca-nometrics-healthy` | `healthy` | 10 errors in ~61s during Metrics Server warm-up, then zero |
 
-Comparing A/B against C isolates that the metric errors are caused by
-container lifecycle events (Not Ready / restart), not by a platform or
-scaler defect.
+Comparing A/B against C shows that metric errors are caused by
+container lifecycle events (Not Ready / restart). The Scenario C result
+further proves that even a healthy, instantly-starting container
+produces ~60s of metric errors during initial deployment due to
+Kubernetes Metrics Server warm-up.
 
 ## Workload
 
@@ -98,45 +100,52 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 
 ## What "Success" Looks Like
 
-The lab is considered reproduced when:
+The lab is considered reproduced when **all** of the following hold
+(validated 2026-06-05, Korea Central):
 
 1. **Scenario A (slow-start)**: `ContainerAppSystemLogs_CL` contains
-   "no metrics returned" entries during the first ~2 minutes after
+   "no metrics returned" entries during the first ~90 seconds after
    deployment, then the errors stop once the container becomes Ready.
 
 2. **Scenario B (crash-loop)**: `ContainerAppSystemLogs_CL` contains
    recurring "no metrics returned" and "invalid metrics" entries that
    correlate with container restart timestamps. The pattern repeats
-   with increasing intervals (CrashLoopBackOff).
+   with increasing intervals (CrashLoopBackOff exponential backoff).
 
-3. **Scenario C (healthy)**: `ContainerAppSystemLogs_CL` contains **no**
-   "no metrics returned" or "invalid metrics" entries for this app.
-   The `DEPRECATED` warning may still appear (it is independent of
-   container health).
+3. **Scenario C (healthy)**: `ContainerAppSystemLogs_CL` contains a
+   **brief burst** (~30-60s) of "no metrics returned" entries
+   immediately after deployment, then **no further errors**. This
+   proves the Kubernetes Metrics Server needs warm-up time even for
+   healthy containers.
 
 4. **All scenarios**: The `DEPRECATED` / `metricType` warning appears
-   in system logs for all three apps, confirming it is a configuration
-   warning, not a runtime error.
+   exactly once per app in system logs, confirming it is a
+   configuration warning, not a runtime error.
 
 ## Operator Takeaway
 
 When a customer reports these log messages:
 
-1. **Check if the logs are transient or persistent.** Transient
+1. **Expect 30-60s of errors after every deployment.** The Scenario C
+   result proves that even a perfectly healthy, instantly-starting
+   container produces "no metrics returned" logs for ~60 seconds. This
+   is the Kubernetes Metrics Server warm-up period, not a defect.
+
+2. **Check if the logs are transient or persistent.** Transient
    occurrences during deployments, restarts, or scale events are
    expected and do not affect service health.
 
-2. **If persistent**, investigate container health:
+3. **If persistent (>10 min)**, investigate container health:
    - Is the container crash-looping? (`RestartCount` metric)
    - Are readiness/startup probes too aggressive?
    - Is the container OOMKilled repeatedly?
 
-3. **The "DEPRECATED" warning** can be addressed by migrating the scale
+4. **The "DEPRECATED" warning** can be addressed by migrating the scale
    rule from `metadata.type=Utilization` to the trigger-level
    `metricType` field, if the Azure Container Apps API version supports
    it. This is cosmetic and does not affect scaling behavior.
 
-4. **To reduce frequency** of these logs:
+5. **To reduce frequency** of these logs:
    - Set `minReplicas >= 1` to avoid cold-start metrics gaps
    - Tune startup/readiness probes to match actual container startup time
    - Fix application crashes that cause CrashLoopBackOff

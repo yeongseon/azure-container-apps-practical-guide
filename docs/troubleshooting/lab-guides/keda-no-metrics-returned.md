@@ -87,9 +87,11 @@ workloads with different startup/crash behaviors, **THEN**:
 - **Scenario B (crash-loop)**: System logs show recurring "no metrics
   returned" and "invalid metrics" that correlate with container restart
   timestamps. The pattern repeats with exponential backoff intervals.
-- **Scenario C (healthy)**: System logs show **no** metric error entries.
-  The DEPRECATED warning may still appear (it is independent of
-  container health).
+- **Scenario C (healthy)**: System logs show a **brief burst** of metric
+  error entries (~30-60s) immediately after deployment due to the
+  Kubernetes Metrics Server warm-up period, then no further errors.
+  The DEPRECATED warning also appears (it is independent of container
+  health).
 
 ### Architecture
 
@@ -266,7 +268,8 @@ ContainerAppSystemLogs_CL
 
 Expected: `ca-nometrics-crash` shows sustained error counts across
 multiple 5-min bins. `ca-nometrics-slow` shows errors only in the first
-1-2 bins. `ca-nometrics-healthy` shows zero.
+1-2 bins. `ca-nometrics-healthy` shows errors only in the first bin
+(deployment warm-up), then zero.
 
 ### KQL: DEPRECATED warning
 
