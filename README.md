@@ -2,7 +2,7 @@
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-Evidence-driven, operator-focused guide for running containerized applications on Azure Container Apps. Every claim is backed by lab observations, live metric captures, or cited Microsoft Learn sources — from first deployment through production-grade monitoring, alerting, and incident response.
+Evidence-driven, operator-focused guide for running containerized applications on Azure Container Apps. Key operational guidance is supported by reproducible labs, metric captures, KQL examples, and Microsoft Learn references — from first deployment through production-grade monitoring, alerting, and incident response.
 
 ## What's Inside
 
@@ -20,7 +20,7 @@ Evidence-driven, operator-focused guide for running containerized applications o
 
 - **Lab-validated** — 14 hands-on labs with reproducible Bicep, verify scripts, and evidence reports
 - **KQL query packs** — 30+ production-ready queries for Log Analytics and App Insights
-- **Metrics reference** — All platform metrics documented with live screenshots, denominators, and dimension mapping
+- **Metrics reference** — Platform metrics explained with captures, denominator notes, and dimension mapping
 - **Playbooks** — Structured troubleshooting with competing hypotheses, decision flows, and CLI evidence collection
 
 ## Language Guides
