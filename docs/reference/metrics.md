@@ -82,6 +82,10 @@ The metric IDs below are the values you pass to `az monitor metrics list --metri
 | `ResponseTime` | Average Response Time (Preview) | Milliseconds | Status Code, Status Code Category |
 | `CpuPercentage` | CPU Usage Percentage (Preview) | Percent | Replica |
 | `MemoryPercentage` | Memory Percentage (Preview) | Percent | Replica |
+| `GpuUtilizationPercentage` | GPU Utilization Percentage (Preview) | Percent | Replica, Revision |
+
+!!! info "JVM metrics for Java apps"
+    The metric definition catalog for a Container App also includes 11 JVM metrics (`jvm.memory.total.used`, `jvm.memory.used`, `jvm.gc.count`, `jvm.gc.duration`, `jvm.thread.count`, `jvm.buffer.memory.usage`, etc.) that emit values **only when the app runs Java with the OpenTelemetry Java agent enabled and the environment is configured to receive OTel data**. They are not documented further in this reference because they reproduce the upstream [OpenTelemetry JVM semantic conventions](https://opentelemetry.io/docs/specs/semconv/runtime/jvm-metrics/) verbatim. For non-Java workloads these metrics are present in the dropdown but never populate.
 
 !!! warning "Dimension *display name* (`Replica`) vs *API filter name* (`podName`)"
     The "Replica" column above is the display name Microsoft Learn shows in the Portal Metrics blade chip selector. The actual filter key you pass to `az monitor metrics list --filter` for that dimension is **`podName`**, not `replicaName` — calling the API with `replicaName eq '*'` returns `BadRequest`. Verified API filter names per metric (as reported by the metrics service `BadRequest` error message when an unsupported dimension is requested):
@@ -94,6 +98,7 @@ The metric IDs below are the values you pass to `az monitor metrics list --metri
     | `CoresQuotaUsed` | `revisionName` |
     | `TotalCoresQuotaUsed` | (no dimensions) |
     | `CpuPercentage`, `MemoryPercentage` | `podName` |
+    | `GpuUtilizationPercentage` | `revisionName`, `podName` |
     | `Resiliency*` (all six) | `revisionName` |
     | `ResponseTime` | `statusCodeCategory`, `statusCode` |
 
@@ -104,6 +109,18 @@ The metric IDs below are the values you pass to `az monitor metrics list --metri
 | Metric ID | Display name | Unit | Dimensions |
 |---|---|---|---|
 | `NodeCount` | Workload Profile Node Count (Preview) | Count | Workload Profile Name |
+| `IngressUsageNanoCores` | Ingress CPU Usage (Preview) | NanoCores | Pod Name, Node Name |
+| `IngressUsageBytes` | Ingress Memory Usage Bytes (Preview) | Bytes | Pod Name, Node Name |
+| `IngressCpuPercentage` | Ingress CPU Usage Percentage (Preview) | Percent | Pod Name, Node Name |
+| `IngressMemoryPercentage` | Ingress Memory Usage Percentage (Preview) | Percent | Pod Name, Node Name |
+| `EnvCoresQuotaLimit` | Cores Quota Limit (Deprecated) | Count | None |
+| `EnvCoresQuotaUtilization` | Percentage Cores Used Out Of Limit (Deprecated) | Percent | None |
+
+!!! warning "`EnvCoresQuotaLimit` and `EnvCoresQuotaUtilization` are deprecated"
+    Microsoft Learn flags both of the env-cores-quota metrics with the **(Deprecated)** suffix in the Portal Metrics blade and they emit no values in current environments. **[Observed]** In `cae-wp-d38538`, opening either metric in the Portal returns `--` in the Avg value pill and a flat empty chart. Use `az containerapp env list-usages --resource-group $RG --name $CONTAINER_ENV` instead — that returns the `ManagedEnvironmentConsumptionCores` / `ManagedEnvironmentGeneralPurposeCores` counters Azure's enforcement actually checks against. See [Subscription quota exceeded playbook](../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md).
+
+!!! info "Ingress metrics are env-wide, not per-app"
+    The four `Ingress*` metrics measure the resource consumption of the **Container Apps environment-level ingress proxy** (the public Envoy gateway shared by all apps with external ingress), not the per-replica sidecar inside each app. The `podName` / `nodeName` dimensions refer to ingress-controller pods, not application replicas. To attribute ingress traffic to a specific app, use the per-app `Requests` and `ResponseTime` metrics instead.
 
 ## Percentage metric denominators
 
@@ -133,7 +150,7 @@ If you change the CPU/memory limits on a revision, the denominator changes for a
 The catalog tables above are the lookup index. This section explains, in plain language, what each metric actually measures, when it moves, what a normal value looks like, and which playbook to open when it goes wrong. The numeric examples are drawn from a live load test described in [How these numbers were produced](#how-these-numbers-were-produced).
 
 !!! info "Scope of this pass"
-    This page prioritizes **full metric coverage with verified live data** (18 of 19 metrics emitted non-zero values during the test described below; `ResiliencyConnectTimeouts` is documented as baseline-zero with a labelled explanation). Portal Metrics-blade screenshots are present for `CpuPercentage` and `MemoryPercentage`; expanding screenshot coverage to every metric is tracked as separate follow-up work. The numeric samples in each section were observed via `az monitor metrics list` against the deployed test apps.
+    This page provides **full coverage of every metric published in both namespaces**, with verified live data and Portal Metrics-blade screenshots for each metric that the test environment was capable of exercising. The container-app namespace publishes 20 metrics (18 emitted non-zero values during the test; `ResiliencyConnectTimeouts` is documented as baseline-zero with a labelled explanation; `GpuUtilizationPercentage` is documented from `az monitor metrics list-definitions` because the test environment had no GPU profile). The env namespace publishes 7 metrics (`NodeCount` and the four `Ingress*` Preview metrics exercised live; `EnvCoresQuotaLimit` and `EnvCoresQuotaUtilization` are documented in their **(Deprecated)** empty state with replacement guidance). Each section below ends with a **Captures** subsection containing the always-visible Portal screenshot at the baseline (unsplit) view, plus collapsible split views by `podName`, `revisionName`, `statusCodeCategory`, `statusCode`, or `workloadProfileName` as applicable. The numeric samples in each section were observed via `az monitor metrics list` and the Portal Metrics blade against the deployed test apps.
 
 !!! tip "Alert thresholds in this page are starting points"
     Every "alert at X%" or "page when Y > Z" suggestion below is a **starting point** to think with, not a universal default. The test workload is intentionally extreme (sustained ~145 RPS against a 0.5 vCPU app, deliberate 503s, 4-second slow endpoints). Tune thresholds against your own baseline distribution before promoting them to paging rules.
@@ -153,6 +170,17 @@ Absolute CPU consumption of a replica, reported in nanocores (1 vCPU = 1,000,000
 
 Pair with `CpuPercentage` to know whether a high absolute value means "working hard" (low percentage) or "throttled" (near-100% percentage). See [CPU throttling playbook](../troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md).
 
+#### Captures
+
+Baseline view of `UsageNanoCores` on `ca-loadtest-d38538` during the load test — no split, `Avg` aggregation, Last 24 hours. The aggregated per-bucket average peaks at `495,799,661 nanocores` (~0.495 vCPU), consistent with replicas running near their 0.5 vCPU limit.
+
+![Portal Metrics blade showing CPU Usage on ca-loadtest-d38538, Avg aggregation, peak 495,799,661 nanocores](../assets/reference/metrics-usage-nano-cores-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName` — each line is one replica. The replica labels reveal that the test app reached 10 simultaneous replicas, each one independently spending ~495M nanocores. The per-replica view is essential for diagnosing **hot-replica imbalance** (one pod doing all the work while others idle) — every replica should hover at a similar value when load is evenly distributed.
+
+    ![Portal Metrics blade showing CPU Usage split by podName, multiple replica lines all near 495M nanocores](../assets/reference/metrics-usage-nano-cores-split-replica.png)
+
 ### `WorkingSetBytes` — Memory Working Set Bytes
 
 Resident set size of the container process — the amount of physical memory the kernel is currently keeping in RAM for this replica. This is the numerator behind `MemoryPercentage`. It includes anonymous pages (heap, stack), file-backed pages that are mapped and active, but excludes swapped-out pages and unreferenced file cache.
@@ -168,6 +196,17 @@ Resident set size of the container process — the amount of physical memory the
 
 A monotonically rising `WorkingSetBytes` curve over hours is the classical signature of a memory leak. See [Memory leak OOMKilled playbook](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md).
 
+#### Captures
+
+Baseline view of `WorkingSetBytes` on `ca-loadtest-d38538` — no split, `Avg` aggregation. The per-bucket average stabilizes around `~790 MB` (≈753 MiB) of resident set against the configured 1 GiB memory limit.
+
+![Portal Metrics blade showing Memory Working Set Bytes on ca-loadtest-d38538, Avg aggregation, ~790MB plateau](../assets/reference/metrics-working-set-bytes-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName`. Multiple replica lines should track each other closely on a steady-state workload — divergence (one line climbing faster than the others) is the earliest visible signal of a per-replica memory leak. The Portal "Replica" chip filters by what the metrics API exposes as `podName`.
+
+    ![Portal Metrics blade showing Memory Working Set Bytes split by podName, replica lines stacked near 790MB](../assets/reference/metrics-working-set-bytes-split-replica.png)
+
 ### `RxBytes` — Network In Bytes
 
 Cumulative bytes received by the replica's network namespace during the aggregation interval, summed across all interfaces. This is total inbound network volume, not just HTTP request bodies — it includes TCP/TLS overhead, health-probe traffic, and intra-environment service-to-service calls.
@@ -180,6 +219,17 @@ Cumulative bytes received by the replica's network namespace during the aggregat
 | Goes up when | Clients send requests, peer apps send service-to-service calls, or large request bodies hit the replica |
 | Stays flat when | Traffic is routed elsewhere (uneven load balancing — see [Replica load imbalance playbook](../troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md)), or the ingress proxy is buffering and not forwarding |
 | Sample observed | **[Observed]** `~700,000 bytes` per minute per replica under ~145 RPS aggregate load on `ca-loadtest-d38538` |
+
+#### Captures
+
+Baseline view of `RxBytes` on `ca-loadtest-d38538` — no split, `Total` aggregation over 5-minute buckets. The per-bucket total shows the aggregate inbound network volume across all replicas under sustained load.
+
+![Portal Metrics blade showing Network In Bytes on ca-loadtest-d38538, Total aggregation](../assets/reference/metrics-rx-bytes-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName`. Lines should be roughly proportional to each replica's share of inbound traffic. A persistently low line on one replica while others receive most traffic is the signature of a **replica load imbalance** — see [Replica load imbalance playbook](../troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md).
+
+    ![Portal Metrics blade showing Network In Bytes split by podName, multiple replica lines](../assets/reference/metrics-rx-bytes-split-replica.png)
 
 ### `TxBytes` — Network Out Bytes
 
@@ -196,6 +246,17 @@ Cumulative bytes transmitted by the replica's network namespace during the aggre
 
 Because the response side typically dwarfs the request side for web traffic, `TxBytes` is usually 10-100× `RxBytes` on a healthy API.
 
+#### Captures
+
+Baseline view of `TxBytes` on `ca-loadtest-d38538` — no split, `Total` aggregation. The per-bucket total reflects aggregate outbound bytes (response payloads + downstream calls + telemetry) across all replicas.
+
+![Portal Metrics blade showing Network Out Bytes on ca-loadtest-d38538, Total aggregation](../assets/reference/metrics-tx-bytes-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName`. Compare line magnitudes against `RxBytes` for the same replica — a healthy API replica's `TxBytes:RxBytes` ratio is typically 10-100× because response bodies dwarf request bodies. A flat-line replica is either idle (no requests) or hung (requests in but no responses out).
+
+    ![Portal Metrics blade showing Network Out Bytes split by podName, multiple replica lines](../assets/reference/metrics-tx-bytes-split-replica.png)
+
 ### `Replicas` — Replica count
 
 How many replicas were running for a revision at each sample point. This is the most direct evidence of scaler behavior: every scale-out adds a step, every scale-in removes one.
@@ -210,7 +271,18 @@ How many replicas were running for a revision at each sample point. This is the 
 | Stays flat at the ceiling | `max-replicas` has been hit — verify in revision YAML |
 | Sample observed | **[Observed]** Scaled from 1 to 10 within ~3 minutes on `ca-loadtest-d38538` once HTTP concurrency exceeded the scale rule threshold of 20 |
 
-If `Requests` is climbing but `Replicas` is not, see [HTTP scaling not triggering playbook](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md).
+If `Requests` is climbing but `Replicas` is not, see [HTTP scaling not triggering playbook](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md). If you need to know *which* scaler caused a replica change, see [KEDA scaler observability](#keda-scaler-observability).
+
+#### Captures
+
+Baseline view of `Replicas` on `ca-loadtest-d38538` — no split, `Maximum` aggregation. The chart shows the staircase pattern of scale-out from 1 → 10 replicas as the HTTP scaler crosses its `concurrentRequests=20` threshold under load, then a slower scale-in once load subsides.
+
+![Portal Metrics blade showing Replica Count on ca-loadtest-d38538, Max aggregation, scaling staircase 1 to 10](../assets/reference/metrics-replicas-baseline.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. During a blue/green deployment or traffic split, each active revision appears as its own line — useful for confirming that an older revision has actually scaled down to zero after traffic is shifted away. For single-revision apps the split shows a single line, identical to the baseline view.
+
+    ![Portal Metrics blade showing Replica Count split by revisionName](../assets/reference/metrics-replicas-split-revision.png)
 
 ### `RestartCount` — Total Replica Restart Count
 
@@ -226,6 +298,22 @@ Number of times a replica's main container has been restarted by the Container A
 | Sample observed | **[Observed]** The test app `ca-crashloop-d38538`, deployed without a listening server, reached `RestartCount=2` within ~5 minutes as the readiness/liveness probes failed |
 
 Any non-zero value warrants investigation. See [Crashloop OOM and resource pressure playbook](../troubleshooting/playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) and [Probe failure and slow start playbook](../troubleshooting/playbooks/startup-and-provisioning/probe-failure-and-slow-start.md).
+
+#### Captures
+
+Baseline view of `RestartCount` on `ca-crashloop-d38538` — no split, `Maximum` aggregation. The test app deliberately fails its liveness probe and the platform restarts it repeatedly; the running maximum across the test window climbs to `Max=104`.
+
+![Portal Metrics blade showing Total Replica Restart Count on ca-crashloop-d38538, Max aggregation, value 104](../assets/reference/metrics-restart-count-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName`. The split reveals which specific replica(s) are crash-looping — in a multi-replica deployment a single bad replica can dominate the restart count while the others run cleanly. The Portal "Replica" chip filters by what the metrics API exposes as `podName`.
+
+    ![Portal Metrics blade showing Total Replica Restart Count split by podName](../assets/reference/metrics-restart-count-split-replica.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. Useful during a bad-revision rollout: a sudden climb in restarts concentrated on the newest revision is a strong signal to roll back. Older stable revisions should stay flat at zero.
+
+    ![Portal Metrics blade showing Total Replica Restart Count split by revisionName](../assets/reference/metrics-restart-count-split-revision.png)
 
 ### `Requests` — Requests
 
@@ -252,6 +340,34 @@ az monitor metrics list \
     --output table
 ```
 
+| Command flag | What it does |
+|---|---|
+| `--metric Requests` | Selects the HTTP request counter from the [Container App metrics](#container-app-metrics-microsoftappcontainerapps) table |
+| `--aggregation Total` | Sums requests inside each 5-minute interval rather than averaging |
+| `--filter "statusCodeCategory eq '*'"` | Splits the series into `2xx`, `3xx`, `4xx`, `5xx` lines so the success/error mix is visible in a single table |
+| `--interval PT5M` | Matches the Portal Metrics blade default bucket size for direct cross-checking |
+
+#### Captures
+
+Baseline view of `Requests` on `ca-loadtest-d38538` — no split, `Total` aggregation. The chart shows the aggregate request rate (sum across all replicas, all status codes) sustained around ~7,000-8,000 requests per minute during the load test.
+
+![Portal Metrics blade showing Requests on ca-loadtest-d38538, Total aggregation, ~8000 rpm](../assets/reference/metrics-requests-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName`. Lines should be roughly equal when load balancing is working; significant divergence is **replica load imbalance** — see the same playbook referenced under `RxBytes`. Useful during scale-out events because newly added replicas should start receiving roughly even shares of traffic within seconds.
+
+    ![Portal Metrics blade showing Requests split by podName, multiple replica lines](../assets/reference/metrics-requests-split-replica.png)
+
+??? note "Split by `statusCodeCategory` (2xx/3xx/4xx/5xx)"
+    Same metric split by `statusCodeCategory`. This is the **single most useful operational split** — it lets you see the success/error mix in one view. A sudden climb in the `5xx` line is the primary signal for an availability incident; a climb in `4xx` typically means client-side breakage (auth, malformed requests) rather than an outage. Set up alerts on the `5xx` series, not the total `Requests` count.
+
+    ![Portal Metrics blade showing Requests split by statusCodeCategory with 2xx and 5xx lines](../assets/reference/metrics-requests-split-status-category.png)
+
+??? note "Split by `statusCode` (granular per code)"
+    Same metric split by `statusCode`. Useful when `statusCodeCategory` alone is too coarse — for example, distinguishing `503 Service Unavailable` (target down) from `504 Gateway Timeout` (target slow) within the `5xx` bucket. The Portal legend will show one line per observed code.
+
+    ![Portal Metrics blade showing Requests split by statusCode with individual code lines](../assets/reference/metrics-requests-split-status-code.png)
+
 ### `CoresQuotaUsed` — Reserved Cores (per revision)
 
 Aggregate vCPU reservation for a single revision, calculated as `replicas × cpu-per-replica`. This is a *reservation*, not a *consumption* — it reflects how many cores the data plane has earmarked for the revision to satisfy its current replica count and per-replica CPU request, regardless of whether the replicas are actually doing work.
@@ -264,6 +380,17 @@ Aggregate vCPU reservation for a single revision, calculated as `replicas × cpu
 | Goes up when | The revision scales out, or a new revision is provisioned with a higher CPU request |
 | Stays flat when | Replica count is stable and CPU request is unchanged |
 | Sample observed | **[Observed]** `CoresQuotaUsed=2.5` for `ca-loadtest-d38538` while it ran 5 replicas × 0.5 vCPU each |
+
+#### Captures
+
+Baseline view of `CoresQuotaUsed` on `ca-loadtest-d38538` — no split, `Maximum` aggregation. The chart steps up as the HTTP scaler adds replicas: each 0.5 vCPU replica added bumps the reservation up by 0.5, producing a visible staircase from `0.5` at 1 replica to `5.0` at the 10-replica peak.
+
+![Portal Metrics blade showing Reserved Cores on ca-loadtest-d38538, Max aggregation, staircase to 5.0](../assets/reference/metrics-cores-quota-used-baseline.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. During a traffic split or revision rollout, each revision's reservation appears as its own line — useful for confirming a new revision has provisioned at least one replica before traffic is shifted to it, and that the old revision has fully scaled in afterwards.
+
+    ![Portal Metrics blade showing Reserved Cores split by revisionName](../assets/reference/metrics-cores-quota-used-split-revision.png)
 
 ### `TotalCoresQuotaUsed` — Total Reserved Cores (per container app)
 
@@ -280,6 +407,21 @@ Total cores currently reserved for **this container app**, summed across all of 
 
 !!! info "This metric is not the subscription-level quota counter"
     Container Apps does not publish a subscription-wide "cores used" platform metric. To see environment-level core consumption against the per-environment quota (default 100 cores in most regions), use `az containerapp env list-usages --resource-group $RG --name $CONTAINER_ENV` — it returns the `ManagedEnvironmentConsumptionCores` and `ManagedEnvironmentGeneralPurposeCores` counters that Azure's enforcement actually compares against. See [Subscription quota exceeded playbook](../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md) for raising those quotas.
+
+#### Captures
+
+`TotalCoresQuotaUsed` is present in the Portal Metrics blade dropdown for any individual container app and renders as a single flat or step line — visually identical to `CoresQuotaUsed` on a single-revision app. A separate Portal screenshot adds little beyond the `CoresQuotaUsed` capture above. For programmatic use, the canonical query is:
+
+```bash
+az monitor metrics list \
+    --resource "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
+    --metric TotalCoresQuotaUsed \
+    --aggregation Maximum \
+    --interval PT5M \
+    --output table
+```
+
+For per-environment consumption against quota (the number Azure's enforcement actually checks), use `az containerapp env list-usages` instead — that surface is not a platform metric.
 
 ### Resiliency metrics — overview
 
@@ -307,6 +449,14 @@ Number of upstream TCP connections that exceeded the resiliency policy's `timeou
 
 A non-zero value in production typically means the upstream replica died and the data plane has not yet removed it from the endpoint slice — see [Service-to-service connectivity failure playbook](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md). Treat any sustained non-zero reading as a request to investigate upstream health, not as a normal background level.
 
+#### Captures
+
+Baseline view of `ResiliencyConnectTimeouts` on `ca-res-503` — no split, `Total` aggregation. The chart is **flat at zero** throughout the test window because the test target accepts TCP handshakes (see explanation under Sample observed). A non-zero value here would mean SYN packets are being silently dropped at L3 before reaching the destination.
+
+![Portal Metrics blade showing Resiliency Connection Timeouts on ca-res-503, Total aggregation, flat at zero](../assets/reference/metrics-resiliency-connect-timeouts-baseline.png)
+
+This metric has a `revisionName` split dimension, but with the value pinned at zero across all revisions the split would render an identical empty chart — omitted here.
+
 ### `ResiliencyEjectedHosts` — Resiliency Ejected Hosts
 
 Current number of upstream replicas that the resiliency policy's outlier detection has temporarily ejected from the load-balancing pool. Ejection happens after consecutive errors from a replica exceed the policy's threshold (`circuitBreakerPolicy.consecutiveErrors`).
@@ -320,6 +470,17 @@ Current number of upstream replicas that the resiliency policy's outlier detecti
 | Sample observed | **[Observed]** `Maximum=1` across 24 consecutive 5-minute buckets against the 2-replica `ca-res-503` target — outlier detection ejected and re-admitted the unhealthy host throughout the test window, but capped at 1 ejection at any moment because `maxEjectionPercent: 50` of 2 replicas = 1. **[Inferred]** Querying `Total` aggregation on this gauge would produce `24` (sum of 24 buckets × 1), which is misleading and does not mean "24 distinct hosts were ejected". |
 
 This metric is the early-warning system for replica health. A persistently non-zero value means traffic is being concentrated on fewer healthy replicas than configured, raising load on the survivors.
+
+#### Captures
+
+Baseline view of `ResiliencyEjectedHosts` on `ca-res-503` — no split, `Maximum` aggregation. The chart sits at `Max=1` across the entire test window: outlier detection keeps ejecting and re-admitting the unhealthy replica, but `maxEjectionPercent: 50` of 2 replicas caps the simultaneous-ejection count at 1.
+
+![Portal Metrics blade showing Resiliency Ejected Hosts on ca-res-503, Max aggregation, plateau at 1](../assets/reference/metrics-resiliency-ejected-hosts-baseline.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. For single-revision targets the split shows one line, but during a revision rollout this view distinguishes ejections happening against an older (still unhealthy) revision from those against the newer revision — useful for confirming that a fix deployed in the new revision actually reduces ejection activity.
+
+    ![Portal Metrics blade showing Resiliency Ejected Hosts split by revisionName](../assets/reference/metrics-resiliency-ejected-hosts-split-revision.png)
 
 ### `ResiliencyEjectionsAborted` — Resiliency Ejections Aborted
 
@@ -335,6 +496,22 @@ Number of times the outlier detector wanted to eject a replica but was blocked b
 
 A high `ResiliencyEjectionsAborted` value alongside non-zero `ResiliencyEjectedHosts` is the smoking gun for the brown-out state: your upstream is mostly unhealthy and traffic is being concentrated on a small surviving subset. This is a signal to scale the upstream or shed traffic.
 
+#### Captures
+
+Baseline view of `ResiliencyEjectionsAborted` on `ca-res-503` — no split, `Total` aggregation. The counter climbs steadily as both replicas of `ca-res-503` serve constant 503: outlier detection tries to eject the second replica, hits the `maxEjectionPercent: 50` safety cap (max 1 of 2 replicas ejectable), and increments `EjectionsAborted` on every blocked attempt. Cumulative total reached **7,329** across the test window.
+
+![Portal Metrics blade showing Resiliency Ejections Aborted on ca-res-503, Total aggregation, climbing to 7329](../assets/reference/metrics-resiliency-ejections-aborted-baseline.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. The split reveals which revision the caller is actually hitting when ejections are being aborted — useful during a revision rollout to confirm whether the brown-out is being driven by the old unhealthy revision or whether the new revision has inherited the same failure mode.
+
+    ![Portal Metrics blade showing Resiliency Ejections Aborted split by revisionName](../assets/reference/metrics-resiliency-ejections-aborted-split-revision.png)
+
+??? note "Negative example — flat at zero on `ca-res-blackhole`"
+    For comparison, here is the same metric against `ca-res-blackhole` (TCP listen-without-accept target — no circuit-breaker policy configured). The chart is **flat at zero** throughout the same test window because no resiliency policy is attached, so Envoy never attempts an ejection that could be aborted. This is the negative control: a zero reading by itself does *not* mean the upstream is healthy, it can also mean the metric has no policy to populate it.
+
+    ![Portal Metrics blade showing Resiliency Ejections Aborted on ca-res-blackhole, Total aggregation, flat at zero](../assets/reference/metrics-resiliency-ejections-aborted-blackhole-baseline.png)
+
 ### `ResiliencyRequestRetries` — Resiliency Request Retries
 
 Number of additional request attempts the resiliency policy has issued on top of the original request. A retry policy with `httpRetryPolicy.maxRetries: 2` can produce up to 2 additional attempts per failing original request, so a single observed external 5xx may appear as up to 3 attempts in this counter (1 original + 2 retries).
@@ -349,6 +526,17 @@ Number of additional request attempts the resiliency policy has issued on top of
 
 A sudden climb in `ResiliencyRequestRetries` is often the first signal that an upstream is degrading — the caller's success rate may still look fine because retries are hiding the failure, but capacity is being consumed disproportionately. Alert on rate of retries, not absolute count.
 
+#### Captures
+
+Baseline view of `ResiliencyRequestRetries` on `ca-res-503` — no split, `Total` aggregation. The counter climbs steadily because every original request to `ca-res-503` returns 503, which matches `httpRetryPolicy.matches.errors: ['5xx']`; each failing original triggers up to `httpRetryPolicy.maxRetries: 2` additional attempts. Cumulative total reached **9,636** retries across the 2-hour test window.
+
+![Portal Metrics blade showing Resiliency Request Retries on ca-res-503, Total aggregation, climbing to 9636](../assets/reference/metrics-resiliency-request-retries-baseline.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. During a rollout, this split lets you confirm whether the retry storm is concentrated on the old (unhealthy) revision or the new one — a clean fix should produce a falling line on the new revision and a rising line on the old one as traffic shifts away.
+
+    ![Portal Metrics blade showing Resiliency Request Retries split by revisionName](../assets/reference/metrics-resiliency-request-retries-split-revision.png)
+
 ### `ResiliencyRequestTimeouts` — Resiliency Request Timeouts
 
 Number of requests that exceeded the policy's `timeoutPolicy.responseTimeoutInSeconds` (per-request response budget) while waiting for the upstream to respond. This is the *request-phase* timeout (server slow to respond), distinct from `ResiliencyConnectTimeouts` (couldn't even open the TCP connection).
@@ -360,6 +548,17 @@ Number of requests that exceeded the policy's `timeoutPolicy.responseTimeoutInSe
 | Goes up when | The upstream takes longer to respond than the per-request timeout — overloaded replica, slow database call, blocked thread pool |
 | Stays at zero when | All upstream responses fit within the policy's per-request budget |
 | Sample observed | **[Observed]** `Total=1,100` against `ca-res-slow` configured with `timeoutPolicy.responseTimeoutInSeconds: 1` while the caller exercised `/slow?ms=4000` (intentional 4-second delay) |
+
+#### Captures
+
+Baseline view of `ResiliencyRequestTimeouts` on `ca-res-slow` — no split, `Total` aggregation. Every caller request to `/slow?ms=4000` blows past the policy's 1-second response budget, producing a steady climb. Cumulative total reached **1,100** timeouts across the test window.
+
+![Portal Metrics blade showing Resiliency Request Timeouts on ca-res-slow, Total aggregation, climbing to 1100](../assets/reference/metrics-resiliency-request-timeouts-baseline.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. Use this view to confirm that a fix (raising the timeout, speeding up the upstream, or rolling back to a faster revision) has actually moved the metric on the right revision. Single-revision targets render as one line; multi-revision targets show one line per revision so you can attribute timeout volume.
+
+    ![Portal Metrics blade showing Resiliency Request Timeouts split by revisionName](../assets/reference/metrics-resiliency-request-timeouts-split-revision.png)
 
 ### `ResiliencyRequestsPendingConnectionPool` — Resiliency Requests Pending Connection Pool
 
@@ -376,6 +575,17 @@ Number of requests queued in the per-target connection pool waiting for either a
 
 A persistently non-zero value is a sign your circuit-breaker policy is being exercised. That is by design — the policy is protecting your caller from a slow upstream — but it also means user-visible latency is climbing. Pair this metric with a downstream latency SLI.
 
+#### Captures
+
+Baseline view of `ResiliencyRequestsPendingConnectionPool` on `ca-res-pool` — no split, `Maximum` aggregation. With `http1MaxPendingRequests: 1` and a flood of concurrent calls from `ca-res-caller`, the queue depth gauge stays near its cap throughout the test; per-bucket maximum reached **10,488** pending requests at peak.
+
+![Portal Metrics blade showing Resiliency Pending Connection Pool on ca-res-pool, Max aggregation, peaking at 10488](../assets/reference/metrics-resiliency-pending-pool-baseline.png)
+
+??? note "Split by `revisionName`"
+    Same metric split by `revisionName`. The split helps when a connection-pool problem might be revision-specific (for example, a new revision raised the timeout or pool size). Note this metric does not split by `podName` — to find which *caller* replica is hot, drill into the caller app's logs or use Application Insights dependency tracking instead.
+
+    ![Portal Metrics blade showing Resiliency Pending Connection Pool split by revisionName](../assets/reference/metrics-resiliency-pending-pool-split-revision.png)
+
 ### `ResponseTime` — Average Response Time (Preview)
 
 End-to-end latency observed at the ingress proxy, measured from "request received" to "last response byte sent". Includes time the request spent in the connection pool queue, time the upstream replica spent generating the response, and time spent serializing the response back to the client.
@@ -389,6 +599,17 @@ End-to-end latency observed at the ingress proxy, measured from "request receive
 | Sample observed | **[Observed]** `~2,000 ms` average when the load mix included a `/slow?ms=1500` endpoint at 25% of traffic; `~50 ms` average for healthy 2xx-only traffic on `ca-loadtest-d38538` |
 
 Be aware that this is a Preview metric — Microsoft Learn flags it as not yet GA. Average is a lossy summary; a long tail of slow responses can be hidden by many fast ones. Cross-check with Application Insights `requests | summarize percentile(duration, 99) by bin(timestamp, 5m)` for percentile views.
+
+#### Captures
+
+Baseline view of `ResponseTime` on `ca-loadtest-d38538` — no split, `Average` aggregation. The chart shows the mixed-workload average response time during the load test, with sustained averages climbing into the seconds when the `/slow?ms=1500` endpoint contributes to the mix.
+
+![Portal Metrics blade showing Average Response Time on ca-loadtest-d38538, Avg aggregation](../assets/reference/metrics-response-time-baseline.png)
+
+??? note "Split by `statusCodeCategory`"
+    Same metric split by `statusCodeCategory`. The split reveals a frequently-misleading pattern: **`5xx` responses are often *faster* than `2xx` responses** because errors short-circuit before doing real work. If your `Average` `ResponseTime` *drops* during an incident, check the status-code split — the drop may be an artifact of error responses pulling the average down rather than performance actually improving. Alert on the `2xx`-only series for a meaningful latency SLI.
+
+    ![Portal Metrics blade showing Average Response Time split by statusCodeCategory](../assets/reference/metrics-response-time-split-status-category.png)
 
 ### `CpuPercentage` — CPU Usage Percentage (Preview)
 
@@ -404,6 +625,17 @@ Be aware that this is a Preview metric — Microsoft Learn flags it as not yet G
 | Sample observed | **[Observed]** `Maximum=100.7%` (the slight overshoot is a sampling artifact) for replicas of `ca-loadtest-d38538` serving the `/cpu?ms=400` endpoint with `--cpu 0.5` |
 
 See [CPU throttling playbook](../troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md) for diagnosing the throttling case. Preview — do not rely on this as the sole SLO source.
+
+#### Captures
+
+Baseline view of `CpuPercentage` on `ca-loadtest-d38538` — no split, `Average` aggregation. Replicas serving the `/cpu?ms=400` endpoint saturate their 0.5 vCPU allotment; the aggregated per-bucket average peaks at **100.7%** (the slight overshoot above 100% is a sampling artifact, not actual over-budget execution — CFS quota caps the actual scheduler at exactly 100%).
+
+![Portal Metrics blade showing CPU Usage Percentage on ca-loadtest-d38538, Avg aggregation, peak 100.7%](../assets/reference/metrics-cpu-percentage-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName`. Each replica should saturate similarly during a CPU-bound load test; a single replica stuck near 100% while others sit idle is the signature of **replica load imbalance** at the CPU layer. The Portal "Replica" chip filters by what the metrics API exposes as `podName`. A flat plateau at exactly 100% across all replicas — with response latency climbing in parallel — indicates the kernel is CFS-throttling the workload, see the CPU throttling playbook above.
+
+    ![Portal Metrics blade showing CPU Usage Percentage split by podName, multiple replica lines near 100%](../assets/reference/metrics-cpu-percentage-split-replica.png)
 
 ### `MemoryPercentage` — Memory Percentage (Preview)
 
@@ -423,6 +655,37 @@ This is the metric to alert on for memory headroom. As a **starting point**, pag
 !!! warning "Not the same as KEDA `memory` scaler utilization"
     The KEDA `memory` scaler reports its own `utilization` against the value passed to `--scale-rule-metadata value=...`. `MemoryPercentage` is independent — they share a numerator but have different denominators. See [Memory percentage vs. KEDA utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md).
 
+#### Captures
+
+Baseline view of `MemoryPercentage` on `ca-loadtest-d38538` — no split, `Average` aggregation. Replicas under sustained load hold ~742 MiB working set against the 1 GiB memory limit, producing a per-bucket maximum of **72.5%**. The chart trends flat at this plateau because the test workload reaches steady-state allocation rather than leaking.
+
+![Portal Metrics blade showing Memory Percentage on ca-loadtest-d38538, Avg aggregation, peak 72.5%](../assets/reference/metrics-memory-percentage-baseline.png)
+
+??? note "Split by `podName` (per-replica view)"
+    Same metric split by `podName`. On a steady-state workload, lines should track each other within a few percentage points; a single replica's line climbing while others stay flat is the earliest visible signal of a **per-replica memory leak**. A line that hits ~100% and abruptly drops to a small value is OOM-kill — cross-check with `RestartCount` on the same replica to confirm. The Portal "Replica" chip filters by what the metrics API exposes as `podName`.
+
+    ![Portal Metrics blade showing Memory Percentage split by podName, multiple replica lines](../assets/reference/metrics-memory-percentage-split-replica.png)
+
+### `GpuUtilizationPercentage` — GPU Utilization Percentage (Preview)
+
+Per-replica GPU utilization for container apps running on workload profiles that expose a GPU (currently the `Consumption-GPU-NC8as-T4`, `Consumption-GPU-NC24-A100`, `NC8as-T4`, `NC24-A100`, and similar GPU-equipped profiles). The metric is published only when the app is scheduled on a GPU-capable workload profile and the replica's CUDA driver surface has reported utilization to the data plane.
+
+| Property | Value |
+|---|---|
+| Unit | Percent (0-100) |
+| Recommended aggregation | `Average` for trend, `Maximum` for spike detection |
+| Useful splits | `podName`, `revisionName` |
+| Goes up when | The replica issues CUDA kernel launches — model inference, training steps, GPU-accelerated preprocessing |
+| Stays at zero when | The container is running but performing only CPU work, or no CUDA-aware process is active in the container |
+| Stays at 100% (suspiciously flat) | The GPU is fully saturated; throughput will become input-bound (batch size, input pipeline) rather than compute-bound. Add replicas or move to a higher-tier GPU profile |
+| Sample observed | **[Not exercised]** This environment does not contain a GPU-equipped workload profile, so the metric was not driven against live data in this pass. The metric is documented from `az monitor metrics list-definitions` output, which confirms its presence in the `Microsoft.App/containerapps` namespace with `Replica, Revision` as the published dimensions. |
+
+This metric is the primary saturation signal for AI inference workloads on Container Apps. Pair with `Requests` (request rate) and `ResponseTime` (latency) to distinguish "GPU is the bottleneck" from "CPU-bound preprocessing is the bottleneck" — if `Requests` rises but `GpuUtilizationPercentage` stays flat, the inference loop is not the constraint.
+
+#### Captures
+
+No live Portal capture is included in this pass because the test environment (`cae-wp-d38538`) was provisioned with general-purpose `D4` profiles only, not GPU profiles, so the metric reports no values. The Portal Metrics blade dropdown will still surface this metric for any container app scope, but the chart renders empty when no GPU-scheduled replica is publishing readings.
+
 ### `NodeCount` — Workload Profile Node Count (Preview)
 
 Current count of underlying nodes in a workload profile within a Container Apps Environment, split by the `Workload Profile Name` dimension. The metric is published on the `Microsoft.App/managedEnvironments` namespace for environments that use the workload profiles architecture (any environment that lists profiles under `properties.workloadProfiles`, including the auto-managed `Consumption` profile and any explicitly added `Dedicated` profiles such as `D4`, `D8`, `E4`, `E8`, or GPU variants). For the older Consumption-only environment type (no `workloadProfiles` block on the environment), this metric is not emitted.
@@ -437,6 +700,201 @@ Current count of underlying nodes in a workload profile within a Container Apps 
 | Sample observed | **[Observed]** `Maximum=1` on a `D4` workload profile (`min-nodes=1, max-nodes=3`) in `cae-wp-d38538` with one small app deployed |
 
 If apps land on the wrong workload profile (or no profile at all), see [Workload profile mismatch playbook](../troubleshooting/playbooks/cost-and-quota/workload-profile-mismatch.md).
+
+#### Captures
+
+Baseline view of `NodeCount` on `cae-wp-d38538` — no split, `Maximum` aggregation. The `D4` workload profile is provisioned with `min-nodes=1, max-nodes=3` and the env holds one small app, so the metric sits at `Max=1` throughout the test window. The Consumption profile (auto-managed) renders alongside but reports `0` because no app is currently scheduled on it.
+
+![Portal Metrics blade showing Node Count on cae-wp-d38538, Max aggregation, plateau at 1](../assets/reference/metrics-nodecount-baseline.png)
+
+??? note "Split by `workloadProfileName`"
+    Same metric split by `workloadProfileName`. This is the **mandatory** view for capacity planning on multi-profile environments: it separates Consumption-profile node count (managed entirely by the platform) from each Dedicated profile (`D4`, `D8`, `E4`, etc.) you have added. Use this view to confirm a Dedicated profile is honoring its `min-nodes` floor and is not pinned at `max-nodes` — a profile stuck at `max-nodes` means workloads have outgrown the ceiling, see the workload profile mismatch playbook.
+
+    ![Portal Metrics blade showing Node Count split by workloadProfileName](../assets/reference/metrics-nodecount-split-profile.png)
+
+### `IngressUsageNanoCores` — Ingress CPU Usage (Preview)
+
+Absolute CPU consumption (in nanocores) of the **environment-level ingress proxy** — the shared Envoy gateway that fronts every app with external ingress in a Container Apps Environment. This metric is per-ingress-pod, not per-application: the `podName` dimension lists ingress controller pods, not your application replicas.
+
+| Property | Value |
+|---|---|
+| Unit | NanoCores (1 vCPU = 1,000,000,000) |
+| Recommended aggregation | `Average` for trend, `Maximum` for spike detection |
+| Useful splits | `podName` (per ingress-controller pod), `nodeName` (per host) |
+| Goes up when | The shared ingress proxy is serving more requests, processing larger payloads, or terminating more TLS handshakes for any app in the environment |
+| Stays flat when | External request volume is steady across all apps in the environment |
+| Sample observed | **[Observed]** Non-zero values in `cae-wp-d38538` during the `ca-loadtest-d38538` load test, reflecting the ingress proxy's CPU cost for terminating TLS and forwarding requests to backend replicas |
+
+This metric is for **environment operators** investigating cross-app ingress bottlenecks, not for app owners debugging their own replica CPU — for that, use the per-app `UsageNanoCores`/`CpuPercentage`. A sustained climb here while no individual app's `Requests` rate has changed signals the shared ingress is saturating, which typically means the environment needs to be split or the affected apps moved to a dedicated environment.
+
+#### Captures
+
+Baseline view of `IngressUsageNanoCores` on `cae-wp-d38538` — no split, `Average` aggregation. The chart shows the shared ingress proxy's CPU consumption during the load test against `ca-loadtest-d38538`.
+
+![Portal Metrics blade showing Ingress CPU Usage on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-cpu-usage-baseline.png)
+
+### `IngressUsageBytes` — Ingress Memory Usage Bytes (Preview)
+
+Absolute memory consumption (in bytes) of the environment-level ingress proxy pods.
+
+| Property | Value |
+|---|---|
+| Unit | Bytes |
+| Recommended aggregation | `Average` for baseline drift, `Maximum` for OOM proximity |
+| Useful splits | `podName` (per ingress-controller pod), `nodeName` (per host) |
+| Goes up when | The shared ingress proxy buffers more concurrent connections, holds more TLS session state, or accumulates internal Envoy stats |
+| Sample observed | **[Observed]** Non-zero values in `cae-wp-d38538` during the load test, with the per-bucket average reflecting the ingress proxy's working set under load |
+
+A monotonically rising `IngressUsageBytes` on a steady traffic profile would indicate a memory leak in the ingress data plane itself — open a support case rather than restarting the env, because the ingress is platform-managed.
+
+#### Captures
+
+Baseline view of `IngressUsageBytes` on `cae-wp-d38538` — no split, `Average` aggregation.
+
+![Portal Metrics blade showing Ingress Memory Usage Bytes on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-memory-bytes-baseline.png)
+
+### `IngressCpuPercentage` — Ingress CPU Usage Percentage (Preview)
+
+Percentage of the ingress proxy pod's configured CPU limit currently in use. The denominator is the platform-managed CPU limit on the ingress controller container, not anything you control directly.
+
+| Property | Value |
+|---|---|
+| Unit | Percent |
+| Recommended aggregation | `Average` for trend, `Maximum` for saturation |
+| Useful splits | `podName`, `nodeName` |
+| Goes up when | Shared ingress is serving more requests across all apps in the environment |
+| Saturates at near 100% when | The ingress proxy is CPU-bound — symptom is increased latency for **all** apps with external ingress in this environment simultaneously |
+| Sample observed | **[Observed]** Low single-digit percentages in `cae-wp-d38538` during the load test, indicating the ingress proxy was nowhere near its CPU limit during this workload |
+
+#### Captures
+
+Baseline view of `IngressCpuPercentage` on `cae-wp-d38538` — no split, `Average` aggregation.
+
+![Portal Metrics blade showing Ingress CPU Usage Percentage on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-cpu-percentage-baseline.png)
+
+### `IngressMemoryPercentage` — Ingress Memory Usage Percentage (Preview)
+
+Percentage of the ingress proxy pod's configured memory limit currently in use.
+
+| Property | Value |
+|---|---|
+| Unit | Percent |
+| Recommended aggregation | `Average` for baseline, `Maximum` for OOM proximity |
+| Useful splits | `podName`, `nodeName` |
+| Approaches 100% when | The shared ingress is buffering many concurrent in-flight connections or large response bodies across all apps in the environment |
+| Sample observed | **[Observed]** Low single-digit percentages in `cae-wp-d38538` during the load test |
+
+#### Captures
+
+Baseline view of `IngressMemoryPercentage` on `cae-wp-d38538` — no split, `Average` aggregation.
+
+![Portal Metrics blade showing Ingress Memory Usage Percentage on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-memory-percentage-baseline.png)
+
+### `EnvCoresQuotaLimit` and `EnvCoresQuotaUtilization` — Deprecated cores quota metrics
+
+The two env-scope cores-quota metrics — `EnvCoresQuotaLimit` (the configured cores quota for the environment) and `EnvCoresQuotaUtilization` (the percentage of that quota currently consumed) — are flagged **(Deprecated)** by Microsoft Learn and emit no values in current environments.
+
+| Property | Value |
+|---|---|
+| Unit | `EnvCoresQuotaLimit` = Count, `EnvCoresQuotaUtilization` = Percent |
+| Recommended aggregation | N/A (no values emitted) |
+| Useful splits | None — neither metric exposes dimensions |
+| What you see in Portal | `--` in the Avg value pill, empty flat chart |
+| Replacement | `az containerapp env list-usages --resource-group $RG --name $CONTAINER_ENV` returns the `ManagedEnvironmentConsumptionCores` and `ManagedEnvironmentGeneralPurposeCores` counters that Azure's enforcement actually checks against |
+
+#### Captures
+
+Both deprecated metrics render identically: the Portal Metrics blade accepts the metric in the dropdown but the chart is empty and the Avg value pill shows `--`. These captures are included to document the **empty-state** so support engineers can confirm at a glance that the absence of data is expected (deprecation), not a logging or permissions failure.
+
+![Portal Metrics blade showing EnvCoresQuotaLimit on cae-wp-d38538, Avg pill renders --, chart empty](../assets/reference/metrics-cores-quota-limit-deprecated.png)
+
+![Portal Metrics blade showing EnvCoresQuotaUtilization on cae-wp-d38538, Avg pill renders --, chart empty](../assets/reference/metrics-percentage-cores-used-deprecated.png)
+
+For the replacement workflow, see [Subscription quota exceeded playbook](../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md).
+
+## KEDA scaler observability
+
+KEDA is the autoscaler embedded inside the Container Apps data plane: every scale-out and scale-in on `Replicas` is a KEDA reconciliation. The `Replicas` metric tells you *that* a change happened; it does not tell you *which* scaler fired (HTTP concurrency? CPU? queue depth?), *what value* the scaler observed, or *why* a scale event was suppressed. KEDA's own scaler-level metrics are not surfaced as Azure Monitor platform metrics — they are only reachable through the surfaces below.
+
+**[Observed]** In this environment, system logs exposed scaler lifecycle, failure, and rescale events, while Activity Log did not show per-rescale runtime events. **[Not Proven]** The KEDA OTel export path was not enabled in this environment, so that part of this section is based on Microsoft Learn rather than live observation. This section catalogues the three places you *can* observe KEDA behavior, the gap each surface has, and the KQL pattern that closes the most common gap.
+
+### The three observable surfaces
+
+| Surface | How to enable | What you get | Caveats |
+|---|---|---|---|
+| **`ContainerAppSystemLogs_CL` in Log Analytics** | Always on if Log Analytics is attached to the environment (`--logs-destination log-analytics`) | Scaler lifecycle (`KEDAScalersStarted`), validation failures (`ScaledObjectCheckFailed`), and the actual rescale decisions (`SuccessfulRescale`). The fired scaler name is embedded in the log message body. | The `EventSource_s` column does not consistently match the scaler family (see warning below). Filter primarily on `Reason_s`, not `EventSource_s`. |
+| **Source-side scaler metric (where applicable)** | Query the scaler's source system directly — Service Bus message count, Storage Queue depth, custom HTTP scaler target, etc. | The exact value KEDA polled at decision time, with the source system's own granularity. | Each scaler has a different source; there is no unified Azure Monitor metric for "scaler current value". This is often the easier observability win because the source metric already exists in your monitoring stack. |
+| **KEDA OTel export (Preview)** | `properties.openTelemetryConfiguration.metricsConfiguration.includeKeda: true` on the **environment**, plus a metrics-capable destination configured under the same block | KEDA internal metrics such as `keda.scaler.metrics.value`, `keda.scaler.active`, `keda.scaled.object.paused`, and scaler/scaled-object error metrics (some backends normalize these to Prometheus-style names such as `keda_scaler_metrics_value`) | Preview feature. Microsoft Learn documents metrics export to Datadog or a named OTLP endpoint; Application Insights doesn't accept metrics, and Learn does not document direct export to Azure Monitor platform metrics, Managed Prometheus, or Log Analytics as first-class `includeKeda` destinations |
+
+### What system logs publish
+
+Run this in Log Analytics to catalog the scaling-related `Reason_s` codes appearing in the last 6 hours:
+
+```kusto
+ContainerAppSystemLogs_CL
+| where TimeGenerated > ago(6h)
+| where Reason_s in (
+    "SuccessfulRescale",
+    "KEDAScalersStarted",
+    "ScaledObjectCheckFailed",
+    "ScaledObjectReady"
+)
+| summarize Count = count() by EventSource_s, Reason_s, Type_s
+| order by Count desc
+```
+
+The values below were observed in the live test environment (`cae-wp-d38538`, 6-hour window). The first row is the goal of this section: it is the only event source that ties a `Replicas` step to a scaler name.
+
+| `EventSource_s` | `Reason_s` | `Type_s` | Count (this env, 6h) | What it means |
+|---|---|---|---|---|
+| `Scaling` | `SuccessfulRescale` | `Normal` | 2 | The HPA-equivalent inside KEDA decided to change the replica count. The log message body contains the new replica count and the scaler that triggered the change. |
+| `KEDA` | `KEDAScalersStarted` | `Normal` | 18 | KEDA initialized the scalers attached to a ScaledObject. Logged once per ScaledObject lifecycle, typically at app create or revision activation. |
+| `KEDA` | `ScaledObjectCheckFailed` | `Warning` | 70 | KEDA tried to validate the ScaledObject's trigger spec and found no usable trigger definition. **[Observed]** In this environment, the warning repeated roughly every 5 minutes on apps effectively pinned at a fixed replica count with no usable scale rule; other environments can also emit this for invalid trigger specs, including HTTP rules created before ingress is enabled. |
+
+!!! warning "`SuccessfulRescale` was observed under `Scaling` in this environment"
+    **[Observed]** In this environment, `SuccessfulRescale` arrived with `EventSource_s == "Scaling"`, not `EventSource_s == "KEDA"`. Treat that as current observed behavior rather than a guaranteed schema contract; to avoid missing real scale events, filter by `Reason_s == "SuccessfulRescale"` first and use `EventSource_s` only as a secondary classifier.
+
+### Smoking-gun KQL — which scaler fired the rescale?
+
+This query extracts the target replica count and scaler name from `SuccessfulRescale` events. Read it next to the `Replicas` metric timeline to answer both *what* scaled and *who* fired it.
+
+```kusto
+ContainerAppSystemLogs_CL
+| where TimeGenerated > ago(6h)
+| where Reason_s == "SuccessfulRescale"
+| extend ScalerName = coalesce(
+    extract(@"(?i)by the scaler:\s*([^\s\.]+)", 1, Log_s),
+    extract(@"(?i)scaler:\s*([^\s\.]+)", 1, Log_s)
+)
+| extend TargetReplicas = toint(extract(@"scaled to (\d+)", 1, Log_s))
+| project TimeGenerated, ContainerAppName_s, TargetReplicas, ScalerName, Log_s
+| order by TimeGenerated desc
+```
+
+Example output from the test environment (`ca-loadtest-d38538` has an HTTP scaler with `concurrentRequests=20`):
+
+| TimeGenerated | ContainerAppName_s | TargetReplicas | ScalerName | `Log_s` excerpt |
+|---|---|---|---|---|
+| 2026-06-05T01:42:37Z | `ca-loadtest-d38538` | 10 | `http-scaler` | `"ca-loadtest-d38538 has been scaled to 10 by the scaler: http-scaler."` |
+| 2026-06-05T01:33:12Z | `ca-loadtest-d38538` | 5 | `http-scaler` | `"ca-loadtest-d38538 has been scaled to 5 by the scaler: http-scaler."` |
+
+For apps with multiple scale rules (e.g., HTTP + CPU + custom queue), the `ScalerName` column tells you which one won the reconciliation — KEDA selects the maximum desired replica count across all active scalers, then the log message names the winner.
+
+### What is *not* available
+
+These gaps are intentional to call out so support engineers don't waste time searching for them:
+
+| Missing surface | Reality |
+|---|---|
+| A Portal Metrics blade dropdown entry called "KEDA Scaler Value" or similar | Not present. `Replicas` is the only KEDA-adjacent metric in the platform dropdown. |
+| `Replicas` split by `triggerName` or `scaler` | Not supported. `Replicas` only splits by `revisionName`. To attribute a scale step to a scaler you must join `Replicas` with `ContainerAppSystemLogs_CL` `SuccessfulRescale` events using the KQL above. |
+| KEDA metrics in Managed Prometheus by default | Not collected. Managed Prometheus on AKS scrapes KEDA's `/metrics` endpoint; Container Apps does not expose that endpoint to the user. Use the `includeKeda` OTel preview to a metrics-capable destination instead. |
+| Activity Log entries for each scale-out | **[Observed]** Not present in this environment. Activity Log captured control-plane operations (revision create, app update, resiliency policy update) but no per-rescale runtime events, so treat it as a control-plane audit surface rather than a primary runtime scaling surface. |
+
+!!! tip "The source-side metric is often the easier win"
+    For Service Bus, Storage Queue, Event Hubs, and other Azure-native scalers, the *source* already publishes a platform metric (queue depth, lag, message count) in Azure Monitor. Alert on the *source* metric — your KEDA scaler is polling it anyway, and the source metric arrives without the OTel preview, without log parsing, and at lower latency than the system log surface.
+
+For the matching KQL query pack, see [KEDA scaler metrics](../troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md) and [Scaling events](../troubleshooting/kql/scaling-and-replicas/scaling-events.md).
 
 ## How these numbers were produced
 
@@ -457,30 +915,6 @@ Load was generated by 5 parallel `hey` processes against the public endpoint of 
 
 !!! info "Why `ResiliencyConnectTimeouts` did not move"
     `ca-res-blackhole` calls `socket.listen()` without `accept()`, so the kernel's SYN backlog completes the TCP handshake on its own. Envoy's connection to the upstream succeeds; the subsequent HTTP request hang shows up as `ResiliencyRequestsPendingConnectionPool` and `ResiliencyRequestTimeouts`, not as a connect-phase timeout. Triggering `ResiliencyConnectTimeouts` reliably requires dropping SYN packets at L3 (a firewall DROP rule) which a Container Apps replica cannot do without the `NET_ADMIN` capability. In production, a non-zero `ResiliencyConnectTimeouts` typically means the destination replica died and the data plane has not yet removed it from the endpoint slice.
-
-## Portal verification: CPU Usage Percentage
-
-The chart below was captured from the `Metrics` blade of `ca-dotnet-d38538` (`cpu=0.5, memory=1Gi`, one running replica `ca-dotnet-d38538--0000001-6dbf4684d5-7w5sh`). The app was idle, so the percentage hovers near zero.
-
-![Resource|ca-dotnet-d38538|Metric|CPU Usage Percentage (Preview)|Aggregation|Avg|Avg value|0.0016%|Time range|Last 24 hours](../assets/reference/metrics-cpu-percentage.png)
-
-**[Observed]** `Microsoft Azure (Preview)`. `Report a bug`. `Search resources, services, and docs (G+/)`. `Copilot`. `Home`. `ca-dotnet-d38538 | Metrics`. `Container App`. `New chart`. `Refresh`. `Share`. `Local Time: Last 24 hours (Automatic - 5 minut...)`. `Avg CPU Usage Percentage (Preview) for ca-dotnet-d38538`. `Add metric`. `Add filter`. `Apply splitting`. `Line chart`. `Drill into Logs`. `New alert rule`. `Save to dashboard`. `ca-dotnet-d38538, CPU Usage Percentage (P... Avg`. `CPU Usage Percentage (Preview) (Avg), ca-dotnet-d38538`. `0.0016%`. `Thu 04`. `6 AM`. `12 PM`. `6 PM`. `Jun 04 10:17 PM`. `Overview`. `Activity log`. `Access control (IAM)`. `Tags`. `Diagnose and solve problems`. `Resource visualizer`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`. `Dashboards with Grafana`. `Advisor recommendations`. `Automation`. `Help`.
-
-**[Inferred]** The metric pill text `ca-dotnet-d38538, CPU Usage Percentage (P... Avg` appears consistent with the `CpuPercentage` metric described in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table. The `Avg` aggregation chip appears consistent with the `--aggregation Average` invocation for `CpuPercentage` shown in [Query metrics with az CLI](#query-metrics-with-az-cli). The `0.0016%` average appears consistent with an idle replica consuming a small fraction of the 0.5 vCPU denominator described in [Percentage metric denominators](#percentage-metric-denominators), where 100% corresponds to 500,000,000 nanocores. The `Local Time: Last 24 hours (Automatic - 5 minut...)` time scope appears consistent with a Portal default time range that aggregates the metric into 5-minute buckets.
-
-**[Not Proven]** The `properties.template.containers[].resources.cpu` value on the `ca-dotnet-d38538` revision is not visible on this view. The `UsageNanoCores` numerator that produced the `0.0016%` average is not visible on this view; the chart shows only the derived percentage. The per-replica split implied by the `Replica` dimension in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table is not visible on this view; no `Apply splitting` chip is applied. The KEDA `cpu` scaler `utilization` value that the [CPU and memory scaler](../platform/scaling/cpu-memory-scaler.md) page warns can diverge from `CpuPercentage` is not visible on this view.
-
-## Portal verification: Memory Percentage
-
-The same `Metrics` blade was reconfigured to plot `MemoryPercentage` for the same replica. The plateau near 3% reflects the .NET runtime working set against the 1 GiB memory limit, not a problem with the app.
-
-![Resource|ca-dotnet-d38538|Metric|Memory Percentage (Preview)|Aggregation|Avg|Avg value|3%|Time range|Last 24 hours](../assets/reference/metrics-memory-percentage.png)
-
-**[Observed]** `Microsoft Azure (Preview)`. `Report a bug`. `Search resources, services, and docs (G+/)`. `Copilot`. `How can I programmatically access Azure metrics?`. `Home`. `ca-dotnet-d38538 | Metrics`. `Container App`. `New chart`. `Refresh`. `Share`. `Local Time: Last 24 hours (Automatic - 5 minut...)`. `Avg Memory Percentage (Preview) for ca-dotnet-d38538`. `Add metric`. `Add filter`. `Apply splitting`. `Line chart`. `Drill into Logs`. `New alert rule`. `Save to dashboard`. `ca-dotnet-d38538, Memory Percentage (P... Avg`. `Memory Percentage (Preview) (Avg), ca-dotnet-d38538`. `3%`. `0%`. `0.5%`. `1%`. `1.5%`. `2%`. `2.5%`. `Thu 04`. `6 AM`. `12 PM`. `6 PM`. `Jun 04 10:17 PM`. `Overview`. `Activity log`. `Access control (IAM)`. `Tags`. `Diagnose and solve problems`. `Resource visualizer`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Settings`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`. `Dashboards with Grafana`. `Advisor recommendations`. `Automation`. `Help`.
-
-**[Inferred]** The metric pill text `ca-dotnet-d38538, Memory Percentage (P... Avg` appears consistent with the `MemoryPercentage` metric described in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table. The `Avg` aggregation chip appears consistent with the `--aggregation Average` invocation pattern for percentage metrics shown in [Query metrics with az CLI](#query-metrics-with-az-cli). The `3%` average appears consistent with the 1 GiB memory denominator described in [Percentage metric denominators](#percentage-metric-denominators), where 3% corresponds to roughly 30.7 MiB of working set against a 1,073,741,824-byte limit. The Y-axis tick range from `0%` to `3%` appears consistent with the Portal default auto-scaling behavior for a low-magnitude percentage series.
-
-**[Not Proven]** The `properties.template.containers[].resources.memory` value on the `ca-dotnet-d38538` revision is not visible on this view. The `WorkingSetBytes` numerator that produced the `3%` average is not visible on this view; the chart shows only the derived percentage. The per-replica split implied by the `Replica` dimension in the [Container App metrics (Microsoft.App/containerapps)](#container-app-metrics-microsoftappcontainerapps) table is not visible on this view; no `Apply splitting` chip is applied. The KEDA `memory` scaler `utilization` value that the [Memory percentage vs. KEDA utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) playbook warns can diverge from `MemoryPercentage` is not visible on this view.
 
 ## Query metrics with az CLI
 
@@ -578,7 +1012,11 @@ az monitor metrics list \
 - [Environment Variables](environment-variables.md)
 - [Operations — Monitoring](../operations/monitoring/index.md)
 - [Platform — CPU and memory scaler](../platform/scaling/cpu-memory-scaler.md)
+- [KEDA scaler observability](#keda-scaler-observability) (on this page)
+- [Troubleshooting — KEDA scaler metrics KQL pack](../troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md)
+- [Troubleshooting — Scaling events KQL pack](../troubleshooting/kql/scaling-and-replicas/scaling-events.md)
 - [Troubleshooting — Memory percentage vs. KEDA utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md)
+- [Troubleshooting — HTTP scaling not triggering](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md)
 
 ## Sources
 
