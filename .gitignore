@@ -84,3 +84,4 @@ htmlcov/
 .coverage.*
 coverage.xml
 *.cover
+labs/keda-no-metrics-returned/evidence/
