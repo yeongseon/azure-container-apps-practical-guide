@@ -18,9 +18,9 @@ content_validation:
 ---
 # Azure Container Apps Practical Guide
 
-Comprehensive, practical documentation for designing, deploying, operating, and troubleshooting containerized applications on Azure Container Apps.
+Azure Container Apps Practical Guide is a hands-on documentation site for learning, deploying, operating, and troubleshooting Azure Container Apps.
 
-This site is organized as a learning and operations guide so you can move from fundamentals to production troubleshooting with clear, repeatable workflows.
+It covers Azure Container Apps architecture, environments, revisions, scaling, KEDA, networking, managed identity, monitoring, Log Analytics KQL queries, troubleshooting playbooks, and Bicep-based hands-on labs — from first deployment to production incident response.
 
 <div class="grid cards" markdown>
 
