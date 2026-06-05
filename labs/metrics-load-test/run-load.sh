@@ -38,4 +38,8 @@ echo "  [pid $!] payload: 4c@2rps 512KiB for 30m"
 
 echo ""
 echo "All load generators started in background."
-echo "Total: ~$(( (5+4+1+2+1+1+2) * 1 )) RPS sustained for 30 minutes."
+# hey's -q flag is requests-per-second PER WORKER, not aggregate. Sustained aggregate
+# RPS depends on backpressure from the target app. Observed steady-state on the docs
+# environment was ~130-145 RPS into ca-loadtest-d38538, which is enough to push the
+# HTTP scaler (concurrentRequests=20) toward the max-replicas=10 ceiling.
+echo "Sustained for 30 minutes; observed ~130-145 RPS aggregate steady-state on the docs env."

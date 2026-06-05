@@ -150,7 +150,7 @@ If you change the CPU/memory limits on a revision, the denominator changes for a
 The catalog tables above are the lookup index. This section explains, in plain language, what each metric actually measures, when it moves, what a normal value looks like, and which playbook to open when it goes wrong. The numeric examples are drawn from a live load test described in [How these numbers were produced](#how-these-numbers-were-produced).
 
 !!! info "Scope of this pass"
-    This page provides **full coverage of every metric published in both namespaces**, with verified live data and Portal Metrics-blade screenshots for each metric that the test environment was capable of exercising. The container-app namespace publishes 20 metrics (18 emitted non-zero values during the test; `ResiliencyConnectTimeouts` is documented as baseline-zero with a labelled explanation; `GpuUtilizationPercentage` is documented from `az monitor metrics list-definitions` because the test environment had no GPU profile). The env namespace publishes 7 metrics (`NodeCount` and the four `Ingress*` Preview metrics exercised live; `EnvCoresQuotaLimit` and `EnvCoresQuotaUtilization` are documented in their **(Deprecated)** empty state with replacement guidance). Each section below ends with a **Captures** subsection containing the always-visible Portal screenshot at the baseline (unsplit) view, plus collapsible split views by `podName`, `revisionName`, `statusCodeCategory`, `statusCode`, or `workloadProfileName` as applicable. The numeric samples in each section were observed via `az monitor metrics list` and the Portal Metrics blade against the deployed test apps.
+    This page provides **full coverage of every metric published in both namespaces**, with verified live data and Portal Metrics-blade screenshots for each metric that the test environment was capable of exercising. The container-app namespace publishes 20 metrics (18 emitted non-zero values during the test; `ResiliencyConnectTimeouts` is documented as baseline-zero with a labelled explanation; `GpuUtilizationPercentage` is documented from `az monitor metrics list-definitions` because the test environment had no GPU profile). The env namespace publishes 7 metrics (`NodeCount` and the four `Ingress*` Preview metrics exercised live; `EnvCoresQuotaLimit` and `EnvCoresQuotaUtilization` are documented in their **(Deprecated)** empty state with replacement guidance). Each metric section ends with a **Captures** subsection: in most cases that subsection contains an always-visible Portal screenshot at the baseline (unsplit) view plus collapsible split views by `podName`, `revisionName`, `statusCodeCategory`, `statusCode`, or `workloadProfileName` as applicable; in a small number of cases (`TotalCoresQuotaUsed`, `GpuUtilizationPercentage`) the Captures subsection deliberately contains an explanatory note instead of a screenshot, with the reason stated inline. The numeric samples in each section were observed via `az monitor metrics list` and the Portal Metrics blade against the deployed test apps.
 
 !!! tip "Alert thresholds in this page are starting points"
     Every "alert at X%" or "page when Y > Z" suggestion below is a **starting point** to think with, not a universal default. The test workload is intentionally extreme (sustained ~145 RPS against a 0.5 vCPU app, deliberate 503s, 4-second slow endpoints). Tune thresholds against your own baseline distribution before promoting them to paging rules.
@@ -269,15 +269,15 @@ How many replicas were running for a revision at each sample point. This is the 
 | Goes up when | The scale rule fires (HTTP concurrency, queue depth, CPU/memory utilization) or `min-replicas` is raised |
 | Stays flat at the floor | Scale rules are not firing and `min-replicas` is the floor |
 | Stays flat at the ceiling | `max-replicas` has been hit — verify in revision YAML |
-| Sample observed | **[Observed]** Scaled from 1 to 10 within ~3 minutes on `ca-loadtest-d38538` once HTTP concurrency exceeded the scale rule threshold of 20 |
+| Sample observed | **[Observed]** Scaled from the `--min-replicas 2` floor to the `--max-replicas 10` ceiling on `ca-loadtest-d38538` once HTTP concurrency exceeded the scale rule threshold of 20 |
 
 If `Requests` is climbing but `Replicas` is not, see [HTTP scaling not triggering playbook](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md). If you need to know *which* scaler caused a replica change, see [KEDA scaler observability](#keda-scaler-observability).
 
 #### Captures
 
-Baseline view of `Replicas` on `ca-loadtest-d38538` — no split, `Maximum` aggregation. The chart shows the staircase pattern of scale-out from 1 → 10 replicas as the HTTP scaler crosses its `concurrentRequests=20` threshold under load, then a slower scale-in once load subsides.
+Baseline view of `Replicas` on `ca-loadtest-d38538` — no split, `Maximum` aggregation. The chart shows the staircase pattern of scale-out from the `min-replicas=2` floor toward the `max-replicas=10` ceiling as the HTTP scaler crosses its `concurrentRequests=20` threshold under load, then a slower scale-in once load subsides.
 
-![Portal Metrics blade showing Replica Count on ca-loadtest-d38538, Max aggregation, scaling staircase 1 to 10](../assets/reference/metrics-replicas-baseline.png)
+![Portal Metrics blade showing Replica Count on ca-loadtest-d38538, Max aggregation, scaling staircase from floor of 2 toward 10](../assets/reference/metrics-replicas-baseline.png)
 
 ??? note "Split by `revisionName`"
     Same metric split by `revisionName`. During a blue/green deployment or traffic split, each active revision appears as its own line — useful for confirming that an older revision has actually scaled down to zero after traffic is shifted away. For single-revision apps the split shows a single line, identical to the baseline view.
@@ -295,13 +295,13 @@ Number of times a replica's main container has been restarted by the Container A
 | Useful split | `podName` to find the unstable replica (the Portal chip shows "Replica" but the `--filter` key is `podName`) |
 | Goes up when | The container crashes (exit non-zero), is OOM-killed, fails its liveness probe repeatedly, or panics during startup |
 | Stays at zero when | The container is healthy and the platform has not recycled it |
-| Sample observed | **[Observed]** The test app `ca-crashloop-d38538`, deployed without a listening server, reached `RestartCount=2` within ~5 minutes as the readiness/liveness probes failed |
+| Sample observed | **[Observed]** The crashloop test app `ca-crashloop-d38538` — deployed with a deliberate memory-growth loop (allocates 16 MiB every 200 ms) — reached `RestartCount=104` over the test window as the kernel OOM-killed each replica when it hit the `--memory 0.5Gi` limit and the platform restarted it |
 
 Any non-zero value warrants investigation. See [Crashloop OOM and resource pressure playbook](../troubleshooting/playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) and [Probe failure and slow start playbook](../troubleshooting/playbooks/startup-and-provisioning/probe-failure-and-slow-start.md).
 
 #### Captures
 
-Baseline view of `RestartCount` on `ca-crashloop-d38538` — no split, `Maximum` aggregation. The test app deliberately fails its liveness probe and the platform restarts it repeatedly; the running maximum across the test window climbs to `Max=104`.
+Baseline view of `RestartCount` on `ca-crashloop-d38538` — no split, `Maximum` aggregation. The test app's memory-growth loop pushes each replica past its `--memory 0.5Gi` cgroup limit, the kernel OOM-killer terminates the container, and the platform restarts it; the running maximum across the test window climbs to `Max=104`.
 
 ![Portal Metrics blade showing Total Replica Restart Count on ca-crashloop-d38538, Max aggregation, value 104](../assets/reference/metrics-restart-count-baseline.png)
 
@@ -383,9 +383,9 @@ Aggregate vCPU reservation for a single revision, calculated as `replicas × cpu
 
 #### Captures
 
-Baseline view of `CoresQuotaUsed` on `ca-loadtest-d38538` — no split, `Maximum` aggregation. The chart steps up as the HTTP scaler adds replicas: each 0.5 vCPU replica added bumps the reservation up by 0.5, producing a visible staircase from `0.5` at 1 replica to `5.0` at the 10-replica peak.
+Baseline view of `CoresQuotaUsed` on `ca-loadtest-d38538` — no split, `Maximum` aggregation. The chart steps up as the HTTP scaler adds replicas: each 0.5 vCPU replica added bumps the reservation up by 0.5, producing a visible staircase from `1.0` at the 2-replica floor (`--min-replicas 2 × --cpu 0.5`) to `5.0` at the 10-replica peak.
 
-![Portal Metrics blade showing Reserved Cores on ca-loadtest-d38538, Max aggregation, staircase to 5.0](../assets/reference/metrics-cores-quota-used-baseline.png)
+![Portal Metrics blade showing Reserved Cores on ca-loadtest-d38538, Max aggregation, staircase from 1.0 floor to 5.0 peak](../assets/reference/metrics-cores-quota-used-baseline.png)
 
 ??? note "Split by `revisionName`"
     Same metric split by `revisionName`. During a traffic split or revision rollout, each revision's reservation appears as its own line — useful for confirming a new revision has provisioned at least one replica before traffic is shifted to it, and that the old revision has fully scaled in afterwards.
@@ -571,7 +571,7 @@ Number of requests queued in the per-target connection pool waiting for either a
 | Useful split | `revisionName` (this metric does not split by replica/pod — to find a caller replica that is hot, drill into the caller app's logs or use Application Insights) |
 | Goes up when | The caller is sending more concurrent requests than the connection pool can drain — often because the upstream is slow or because the pool is tight relative to load |
 | Stays at zero when | Pool capacity comfortably exceeds in-flight request count |
-| Sample observed | **[Observed]** `Maximum=10,488` against `ca-res-503` with a tight `tcpConnectionPool.maxConnections` setting and ~145 RPS sustained calls from `ca-res-caller` |
+| Sample observed | **[Observed]** `Maximum=10,488` against `ca-res-pool` with a tight `httpConnectionPoolPolicy.http1MaxPendingRequests: 1` setting and ~145 RPS sustained calls from `ca-res-caller` |
 
 A persistently non-zero value is a sign your circuit-breaker policy is being exercised. That is by design — the policy is protecting your caller from a slow upstream — but it also means user-visible latency is climbing. Pair this metric with a downstream latency SLI.
 
@@ -697,15 +697,15 @@ Current count of underlying nodes in a workload profile within a Container Apps 
 | Useful split | `workloadProfileName` to break down per profile |
 | Goes up when | Apps assigned to a workload profile request enough cumulative CPU/memory to exceed the current node fleet, prompting the profile to scale within its `min-nodes` and `max-nodes` bounds |
 | Stays at the minimum when | No app on that profile is requesting more capacity than the current node count provides |
-| Sample observed | **[Observed]** `Maximum=1` on a `D4` workload profile (`min-nodes=1, max-nodes=3`) in `cae-wp-d38538` with one small app deployed |
+| Sample observed | **[Observed]** `Maximum=2` on a `D4` workload profile (`min-nodes=2, max-nodes=2`) in `cae-wp-d38538` with one app pinned to that profile |
 
 If apps land on the wrong workload profile (or no profile at all), see [Workload profile mismatch playbook](../troubleshooting/playbooks/cost-and-quota/workload-profile-mismatch.md).
 
 #### Captures
 
-Baseline view of `NodeCount` on `cae-wp-d38538` — no split, `Maximum` aggregation. The `D4` workload profile is provisioned with `min-nodes=1, max-nodes=3` and the env holds one small app, so the metric sits at `Max=1` throughout the test window. The Consumption profile (auto-managed) renders alongside but reports `0` because no app is currently scheduled on it.
+Baseline view of `NodeCount` on `cae-wp-d38538` — no split, `Maximum` aggregation. The `D4` workload profile is provisioned with `min-nodes=2, max-nodes=2` (pinned fleet, no autoscaling headroom in this lab) and the env holds one app on that profile, so the metric sits at `Max=2` throughout the test window. The Consumption profile (auto-managed) renders alongside but reports `0` because no app is currently scheduled on it.
 
-![Portal Metrics blade showing Node Count on cae-wp-d38538, Max aggregation, plateau at 1](../assets/reference/metrics-nodecount-baseline.png)
+![Portal Metrics blade showing Node Count on cae-wp-d38538, Max aggregation, plateau at 2](../assets/reference/metrics-nodecount-baseline.png)
 
 ??? note "Split by `workloadProfileName`"
     Same metric split by `workloadProfileName`. This is the **mandatory** view for capacity planning on multi-profile environments: it separates Consumption-profile node count (managed entirely by the platform) from each Dedicated profile (`D4`, `D8`, `E4`, etc.) you have added. Use this view to confirm a Dedicated profile is honoring its `min-nodes` floor and is not pinned at `max-nodes` — a profile stuck at `max-nodes` means workloads have outgrown the ceiling, see the workload profile mismatch playbook.
@@ -723,13 +723,13 @@ Absolute CPU consumption (in nanocores) of the **environment-level ingress proxy
 | Useful splits | `podName` (per ingress-controller pod), `nodeName` (per host) |
 | Goes up when | The shared ingress proxy is serving more requests, processing larger payloads, or terminating more TLS handshakes for any app in the environment |
 | Stays flat when | External request volume is steady across all apps in the environment |
-| Sample observed | **[Observed]** Non-zero values in `cae-wp-d38538` during the `ca-loadtest-d38538` load test, reflecting the ingress proxy's CPU cost for terminating TLS and forwarding requests to backend replicas |
+| Sample observed | **[Observed]** Low baseline values in `cae-wp-d38538` reflecting the env-level ingress controller's own activity (this lab placed only `ca-node-anchor` in `cae-wp-d38538`, with internal-only ingress; the load-driven app `ca-loadtest-d38538` lives in a separate environment `cae-basics-d38538`). A high-traffic example would require capturing this metric on an env that hosts external-ingress apps under sustained load. |
 
 This metric is for **environment operators** investigating cross-app ingress bottlenecks, not for app owners debugging their own replica CPU — for that, use the per-app `UsageNanoCores`/`CpuPercentage`. A sustained climb here while no individual app's `Requests` rate has changed signals the shared ingress is saturating, which typically means the environment needs to be split or the affected apps moved to a dedicated environment.
 
 #### Captures
 
-Baseline view of `IngressUsageNanoCores` on `cae-wp-d38538` — no split, `Average` aggregation. The chart shows the shared ingress proxy's CPU consumption during the load test against `ca-loadtest-d38538`.
+Baseline view of `IngressUsageNanoCores` on `cae-wp-d38538` — no split, `Average` aggregation. This env hosts only `ca-node-anchor` (internal ingress, no external traffic), so the chart reflects the env-level ingress controller's baseline cost rather than application-driven load. The load-driven app `ca-loadtest-d38538` is in a separate env (`cae-basics-d38538`) and does not contribute to this chart.
 
 ![Portal Metrics blade showing Ingress CPU Usage on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-cpu-usage-baseline.png)
 
@@ -743,13 +743,13 @@ Absolute memory consumption (in bytes) of the environment-level ingress proxy po
 | Recommended aggregation | `Average` for baseline drift, `Maximum` for OOM proximity |
 | Useful splits | `podName` (per ingress-controller pod), `nodeName` (per host) |
 | Goes up when | The shared ingress proxy buffers more concurrent connections, holds more TLS session state, or accumulates internal Envoy stats |
-| Sample observed | **[Observed]** Non-zero values in `cae-wp-d38538` during the load test, with the per-bucket average reflecting the ingress proxy's working set under load |
+| Sample observed | **[Observed]** Low baseline values in `cae-wp-d38538` reflecting the env-level ingress controller's working set; this env hosts only `ca-node-anchor` (internal ingress), so the chart does not reflect application load |
 
 A monotonically rising `IngressUsageBytes` on a steady traffic profile would indicate a memory leak in the ingress data plane itself — open a support case rather than restarting the env, because the ingress is platform-managed.
 
 #### Captures
 
-Baseline view of `IngressUsageBytes` on `cae-wp-d38538` — no split, `Average` aggregation.
+Baseline view of `IngressUsageBytes` on `cae-wp-d38538` — no split, `Average` aggregation. Same dual-env caveat as `IngressUsageNanoCores` above: this env hosts only `ca-node-anchor` (internal ingress), so the value reflects the ingress controller's baseline working set, not application load.
 
 ![Portal Metrics blade showing Ingress Memory Usage Bytes on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-memory-bytes-baseline.png)
 
@@ -764,11 +764,11 @@ Percentage of the ingress proxy pod's configured CPU limit currently in use. The
 | Useful splits | `podName`, `nodeName` |
 | Goes up when | Shared ingress is serving more requests across all apps in the environment |
 | Saturates at near 100% when | The ingress proxy is CPU-bound — symptom is increased latency for **all** apps with external ingress in this environment simultaneously |
-| Sample observed | **[Observed]** Low single-digit percentages in `cae-wp-d38538` during the load test, indicating the ingress proxy was nowhere near its CPU limit during this workload |
+| Sample observed | **[Observed]** Low single-digit percentages in `cae-wp-d38538` — this env hosts only `ca-node-anchor` (internal ingress), so the value reflects the ingress controller's baseline overhead rather than application load |
 
 #### Captures
 
-Baseline view of `IngressCpuPercentage` on `cae-wp-d38538` — no split, `Average` aggregation.
+Baseline view of `IngressCpuPercentage` on `cae-wp-d38538` — no split, `Average` aggregation. Same dual-env caveat as the absolute Ingress metrics: this env hosts only `ca-node-anchor` (internal ingress), so the chart reflects the ingress controller's baseline overhead, not application traffic.
 
 ![Portal Metrics blade showing Ingress CPU Usage Percentage on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-cpu-percentage-baseline.png)
 
@@ -782,11 +782,11 @@ Percentage of the ingress proxy pod's configured memory limit currently in use.
 | Recommended aggregation | `Average` for baseline, `Maximum` for OOM proximity |
 | Useful splits | `podName`, `nodeName` |
 | Approaches 100% when | The shared ingress is buffering many concurrent in-flight connections or large response bodies across all apps in the environment |
-| Sample observed | **[Observed]** Low single-digit percentages in `cae-wp-d38538` during the load test |
+| Sample observed | **[Observed]** Low single-digit percentages in `cae-wp-d38538` — the env hosts only `ca-node-anchor` (internal ingress) so this value reflects baseline ingress controller memory rather than application load |
 
 #### Captures
 
-Baseline view of `IngressMemoryPercentage` on `cae-wp-d38538` — no split, `Average` aggregation.
+Baseline view of `IngressMemoryPercentage` on `cae-wp-d38538` — no split, `Average` aggregation. Same dual-env caveat as the other Ingress metrics: this env hosts only `ca-node-anchor` (internal ingress), so the value reflects baseline ingress memory rather than application load.
 
 ![Portal Metrics blade showing Ingress Memory Usage Percentage on cae-wp-d38538, Avg aggregation](../assets/reference/metrics-ingress-memory-percentage-baseline.png)
 
@@ -887,7 +887,7 @@ These gaps are intentional to call out so support engineers don't waste time sea
 | Missing surface | Reality |
 |---|---|
 | A Portal Metrics blade dropdown entry called "KEDA Scaler Value" or similar | Not present. `Replicas` is the only KEDA-adjacent metric in the platform dropdown. |
-| `Replicas` split by `triggerName` or `scaler` | Not supported. `Replicas` only splits by `revisionName`. To attribute a scale step to a scaler you must join `Replicas` with `ContainerAppSystemLogs_CL` `SuccessfulRescale` events using the KQL above. |
+| `Replicas` split by `triggerName` or `scaler` | Not supported. `Replicas` only splits by `revisionName`. To attribute a scale step to a scaler you must correlate the `Replicas` timeline alongside `ContainerAppSystemLogs_CL` `SuccessfulRescale` events using the KQL above — there is no in-Metrics-blade join. |
 | KEDA metrics in Managed Prometheus by default | Not collected. Managed Prometheus on AKS scrapes KEDA's `/metrics` endpoint; Container Apps does not expose that endpoint to the user. Use the `includeKeda` OTel preview to a metrics-capable destination instead. |
 | Activity Log entries for each scale-out | **[Observed]** Not present in this environment. Activity Log captured control-plane operations (revision create, app update, resiliency policy update) but no per-rescale runtime events, so treat it as a control-plane audit surface rather than a primary runtime scaling surface. |
 
@@ -902,14 +902,14 @@ The numeric samples above came from a deliberate load test environment to demons
 
 | App | Role | Configuration | Drives metric(s) |
 |---|---|---|---|
-| `ca-loadtest-d38538` | Public ingress test target | `--cpu 0.5 --memory 1Gi --min-replicas 1 --max-replicas 10`, HTTP scaler at 20 concurrency | `UsageNanoCores`, `WorkingSetBytes`, `RxBytes`, `TxBytes`, `Replicas`, `Requests`, `ResponseTime`, `CpuPercentage`, `MemoryPercentage`, `CoresQuotaUsed`, `TotalCoresQuotaUsed` |
+| `ca-loadtest-d38538` | Public ingress test target (in `cae-basics-d38538`) | `--cpu 0.5 --memory 1Gi --min-replicas 2 --max-replicas 10`, HTTP scaler at 20 concurrency | `UsageNanoCores`, `WorkingSetBytes`, `RxBytes`, `TxBytes`, `Replicas`, `Requests`, `ResponseTime`, `CpuPercentage`, `MemoryPercentage`, `CoresQuotaUsed`, `TotalCoresQuotaUsed` |
 | `ca-crashloop-d38538` | Memory-leak loop, no ingress | `--cpu 0.25 --memory 0.5Gi`, container allocates 16 MiB every 200 ms | Drove `RestartCount` after the process exceeded its memory limit and the kernel OOM-killed it |
-| `ca-res-503` | Resiliency target serving constant 503 | 2 replicas, `policy-503` with retries on 503/500 and outlier detection | `ResiliencyRequestRetries`, `ResiliencyEjectedHosts`, `ResiliencyEjectionsAborted`, `ResiliencyRequestsPendingConnectionPool` |
+| `ca-res-503` | Resiliency target serving constant 503 | 2 replicas, `policy-503` with retries on 503/500 and outlier detection | `ResiliencyRequestRetries`, `ResiliencyEjectedHosts`, `ResiliencyEjectionsAborted` |
 | `ca-res-slow` | Resiliency target with 4-second response | `policy-slow` with `timeoutPolicy.responseTimeoutInSeconds: 1` (per-request response budget of 1 second) | `ResiliencyRequestTimeouts` |
 | `ca-res-pool` | Resiliency target with tight pool | `policy-pool` with `http1MaxPendingRequests: 1` | `ResiliencyRequestsPendingConnectionPool` |
-| `ca-res-blackhole` | TCP listen without accept | TCP transport, no HTTP server | `RestartCount` (probe failures), `ResiliencyRequestsPendingConnectionPool` |
+| `ca-res-blackhole` | TCP listen without accept | TCP transport, no HTTP server | Negative-example target — produces baseline-zero captures for `ResiliencyConnectTimeouts` and `ResiliencyEjectionsAborted` (see the "Why `ResiliencyConnectTimeouts` did not move" admonition below) |
 | `ca-res-caller` | Intra-environment caller | 100 threads × 5 targets via service discovery (`http://target-name`) | Drives traffic into the four resiliency targets above |
-| `cae-wp-d38538` | Dedicated workload profile environment | `D4` profile, `min-nodes=1, max-nodes=3`, one app deployed | `NodeCount` |
+| `cae-wp-d38538` | Dedicated workload profile environment (separate from the load-test env) | `D4` profile pinned at `min-nodes=2, max-nodes=2`, one app (`ca-node-anchor`) deployed with internal ingress | `NodeCount`, baseline `IngressUsageNanoCores`, `IngressUsageBytes`, `IngressCpuPercentage`, `IngressMemoryPercentage` |
 
 Load was generated by 5 parallel `hey` processes against the public endpoint of `ca-loadtest-d38538` (one each hitting `/health`, `/cpu`, `/payload`, `/error`, `/slow`) and by `ca-res-caller` issuing intra-environment calls to the four resiliency targets on port 80 (Container Apps service discovery routes hostname-only URLs through the env-internal ingress proxy on port 80, regardless of the target's `--target-port`).
 
