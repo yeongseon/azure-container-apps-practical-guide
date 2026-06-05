@@ -1,7 +1,7 @@
 # Lab: Container Apps metrics load test
 
 Reproducible Azure deployment that drives every metric documented in
-[`docs/reference/metrics.md`](../../docs/reference/metrics.md) to a non-zero,
+[`docs/reference/metrics/index.md`](../../docs/reference/metrics/index.md) to a non-zero,
 observable shape so the 45 Portal screenshots in that reference can be
 re-captured against a live environment.
 
@@ -148,7 +148,7 @@ enough to walk the HTTP scaler toward `max-replicas=10`.
 # bursty 1-minute spikes followed by zero-buckets; longer windows show
 # the steady-state better.
 
-# 5. Capture screenshots per the file list in docs/reference/metrics.md.
+# 5. Capture screenshots per the file list in docs/reference/metrics/index.md.
 # See "Capture refresh checklist" below.
 
 # 6. Clean up. ALWAYS run this.
@@ -179,7 +179,7 @@ flat. Fix the failing condition before capturing.
 
 ## Capture refresh checklist
 
-When re-capturing the 45 PNGs referenced by `docs/reference/metrics.md`:
+When re-capturing the 45 PNGs referenced by `docs/reference/metrics/index.md`:
 
 1. **Confirm steady-state load is generating real RPS, not just running.**
    `hey` buffers stdout, so `/tmp/metrics-load/*.log` may stay quiet until
@@ -201,7 +201,7 @@ When re-capturing the 45 PNGs referenced by `docs/reference/metrics.md`:
    100 threads across 5 targets` startup line.
 4. **Wait the full 30-60 minutes** after load starts before opening the
    Portal Metrics blade. 1-minute buckets backfill late.
-5. **Capture in the order** declared in `docs/reference/metrics.md`:
+5. **Capture in the order** declared in `docs/reference/metrics/index.md`:
    per-metric baseline (no split) first, then each `??? note "Split by X"`
    admonition's screenshot. **Reuse the existing filenames** under
    `docs/assets/reference/` — the convention is
@@ -258,7 +258,7 @@ az group show --name rg-aca-basics-d38538 --query properties.provisioningState -
 
 ## See also
 
-- [Container Apps metrics reference](../../docs/reference/metrics.md) — the
+- [Container Apps metrics reference](../../docs/reference/metrics/index.md) — the
   Portal screenshots this lab reproduces
 - [Memory percentage vs KEDA utilization (playbook)](../../docs/troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md)
 - [HTTP scaling not triggering (playbook)](../../docs/troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md)

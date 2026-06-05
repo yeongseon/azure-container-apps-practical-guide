@@ -85,8 +85,8 @@ Use this table when you need a direct path from a practical goal to the right pa
 | Harden production runtime | [best-practices/container-design.md](../best-practices/container-design.md) | [best-practices/index.md](../best-practices/index.md) |
 | Establish operations workflow | [operations/index.md](../operations/index.md) | [operations/monitoring/index.md](../operations/monitoring/index.md) |
 | Debug a failing revision quickly | [troubleshooting/first-10-minutes/index.md](../troubleshooting/first-10-minutes/index.md) | [troubleshooting/playbooks/index.md](../troubleshooting/playbooks/index.md) |
-| Look up a metric ID, aggregation, or dimension for an alert or dashboard | [Metrics reference](../reference/metrics.md) | [operations/monitoring/index.md](../operations/monitoring/index.md) |
-| Explain why replicas changed (which scaler triggered the scale event) | [KEDA scaler observability](../reference/metrics.md#keda-scaler-observability) | [troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md](../troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md) |
+| Look up a metric ID, aggregation, or dimension for an alert or dashboard | [Metrics reference](../reference/metrics/index.md) | [operations/monitoring/index.md](../operations/monitoring/index.md) |
+| Explain why replicas changed (which scaler triggered the scale event) | [KEDA scaler observability](../reference/metrics/keda-observability.md) | [troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md](../troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md) |
 
 !!! tip "Treat the repository as a lifecycle map"
     Start Here is orientation, Platform is design, Best Practices is production standards, Operations is execution, and Troubleshooting is incident handling.
