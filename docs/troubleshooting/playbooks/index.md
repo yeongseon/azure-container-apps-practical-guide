@@ -181,7 +181,7 @@ Use the category that best matches your first confirmed symptom.
 
 ## Contributing a New Playbook
 
-Start from the [playbook template](_template.md). Copy the file, rename it, and fill in each section. The template includes all required frontmatter fields, section headings, and CI-compliance markers (diagram-id comments, command explanation tables).
+Start from the [playbook template](../../contributing/playbook-template.md). Copy the file, rename it, and fill in each section. The template includes all required frontmatter fields, section headings, and CI-compliance markers (diagram-id comments, command explanation tables).
 
 ## See Also
 
