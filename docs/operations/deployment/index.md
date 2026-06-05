@@ -3,6 +3,11 @@ hide:
   - toc
 content_sources:
   diagrams:
+  - id: deployment-methods
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/
   - id: deployment-workflow-and-release-guardrails
     type: flowchart
     source: mslearn-adapted
@@ -52,6 +57,7 @@ This guide summarizes practical deployment workflows for Azure Container Apps ac
 
 Azure Container Apps supports four deployment methods:
 
+<!-- diagram-id: deployment-methods -->
 ```mermaid
 flowchart LR
     subgraph "Source-Based"
@@ -101,6 +107,10 @@ az containerapp up \
   --environment "$ENVIRONMENT_NAME" \
   --artifact "./target/myapp.jar"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp up --artifact` | Deploys a Java artifact (JAR/WAR) without requiring a Dockerfile. |
 
 Supported artifact types:
 
@@ -204,6 +214,10 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--new-rev=20" "$APP_NAME--stable-rev=80"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic set` | Splits traffic between revisions by percentage for progressive rollout. |
+
 ### Deployment Labels (Preview)
 
 Deployment labels allow you to route traffic to a specific revision by a stable label name, independent of revision name.
@@ -216,6 +230,10 @@ az containerapp revision label add \
   --label "canary" \
   --revision "$APP_NAME--new-rev"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision label add` | Assigns a named label to a specific revision for dedicated URL routing. |
 
 The labeled revision becomes accessible at `<label>.<app-fqdn>` for testing before promoting traffic.
 
@@ -232,6 +250,10 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--stable-rev=100"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp ingress traffic set` | Routes 100% traffic back to the stable revision for quick rollback. |
+
 ### Reactivate a Deactivated Revision
 
 If the previous revision has been deactivated, reactivate it first:
@@ -243,6 +265,10 @@ az containerapp revision activate \
   --revision "$APP_NAME--stable-rev"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision activate` | Reactivates a previously deactivated revision so it can receive traffic. |
+
 ### Redeploy a Known-Good Image
 
 ```bash
@@ -251,6 +277,10 @@ az containerapp update \
   --resource-group "$RG" \
   --image "$ACR_NAME.azurecr.io/$APP_NAME:last-known-good"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --image` | Redeploys the app with a known-good image tag to create a new stable revision. |
 
 ## Inactive Revision Cleanup
 
@@ -262,6 +292,10 @@ az containerapp update \
   --resource-group "$RG" \
   --max-inactive-revisions 5
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --max-inactive-revisions` | Sets the maximum number of inactive revisions to retain. |
 
 !!! tip "Revision cleanup"
     Setting `--max-inactive-revisions` automatically purges the oldest inactive revisions when the count exceeds the limit. This does not affect active revisions receiving traffic.

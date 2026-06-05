@@ -2,12 +2,19 @@
 hide:
   - toc
 content_sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/revisions
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/deploy-artifact
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
+  diagrams:
+  - id: deployment-methods-flow
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
+    - https://learn.microsoft.com/azure/container-apps/deploy-artifact
+    - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
+  - id: change-scope-decision
+    type: flowchart
+    source: mslearn-adapted
+    based_on:
+    - https://learn.microsoft.com/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: 2026-04-21
@@ -35,6 +42,7 @@ Azure Container Apps uses a revision-based deployment model where every meaningf
 
 Container Apps supports multiple deployment paths. Each method ultimately creates or updates a revision.
 
+<!-- diagram-id: deployment-methods-flow -->
 ```mermaid
 flowchart LR
     subgraph Sources["Deployment Source"]
@@ -86,6 +94,10 @@ az containerapp up \
     --source "./apps/python"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp up --source` | Deploys directly from source code; the platform auto-detects the runtime and builds the container image. |
+
 The platform:
 
 1. Detects the language runtime from project files
@@ -109,6 +121,10 @@ az containerapp up \
     --ingress external \
     --target-port 8080
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp up --artifact` | Deploys a Java artifact (JAR/WAR) without requiring a Dockerfile. |
 
 This command:
 
@@ -136,10 +152,16 @@ az containerapp update \
     --image "$ACR_NAME.azurecr.io/$APP_NAME:git-$(git rev-parse --short HEAD)"
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az containerapp update --image` | Updates the app with a new container image, creating a new revision. |
+
 ## Change Types
 
 Changes to a Container App fall into two categories that determine whether a new revision is created.
 
+<!-- diagram-id: change-scope-decision -->
 ```mermaid
 flowchart TD
     A[Configuration Change] --> B{Change Scope?}
@@ -213,6 +235,10 @@ az containerapp revision label add \
     --label staging
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision label add` | Assigns a named label to a specific revision for dedicated URL routing. |
+
 Common label patterns:
 
 - `staging` — Route QA traffic to a candidate revision
@@ -232,6 +258,10 @@ az containerapp update \
     --max-inactive-revisions 50
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp update --max-inactive-revisions` | Sets the maximum number of inactive revisions to retain. |
+
 Inactive revisions:
 
 - Have no running replicas and incur no compute cost
@@ -241,8 +271,8 @@ Inactive revisions:
 ## See Also
 
 - [Platform - Revisions Overview](revisions/index.md)
-- [Operations - Deployment Workflows](../../operations/deployment/index.md)
-- [Best Practices - Revision Strategy](../../best-practices/revision-strategy.md)
+- [Operations - Deployment Workflows](../operations/deployment/index.md)
+- [Best Practices - Revision Strategy](../best-practices/revision-strategy.md)
 - [Platform - Scaling](scaling/index.md)
 
 ## Sources
