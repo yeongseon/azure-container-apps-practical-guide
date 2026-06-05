@@ -90,3 +90,19 @@ az monitor metrics list \
 ```
 
 Wherever a metric section in this guide refers to `podName`, that is the literal value to pass to `--filter "podName eq '*'"`. The Portal chip will still display "Replica" because that is the friendly display name.
+
+## See Also
+
+- [Metrics Overview](index.md)
+- [Container App Metrics](container-app-metrics.md)
+- [Environment Metrics](managed-environment-metrics.md)
+- [Percentage Metrics](percentage-metrics.md)
+- [Dimensions](dimensions.md)
+- [KEDA Observability](keda-observability.md)
+- [Evidence and Captures](evidence-and-captures.md)
+
+## Sources
+
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)

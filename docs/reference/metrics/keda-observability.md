@@ -91,3 +91,19 @@ These gaps are intentional to call out so support engineers don't waste time sea
     For Service Bus, Storage Queue, Event Hubs, and other Azure-native scalers, the *source* already publishes a platform metric (queue depth, lag, message count) in Azure Monitor. Alert on the *source* metric — your KEDA scaler is polling it anyway, and the source metric arrives without the OTel preview, without log parsing, and at lower latency than the system log surface.
 
 For the matching KQL query pack, see [KEDA scaler metrics](../../troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md) and [Scaling events](../../troubleshooting/kql/scaling-and-replicas/scaling-events.md).
+
+## See Also
+
+- [Metrics Overview](index.md)
+- [Container App Metrics](container-app-metrics.md)
+- [Environment Metrics](managed-environment-metrics.md)
+- [Percentage Metrics](percentage-metrics.md)
+- [Dimensions](dimensions.md)
+- [KEDA Observability](keda-observability.md)
+- [Evidence and Captures](evidence-and-captures.md)
+
+## Sources
+
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)

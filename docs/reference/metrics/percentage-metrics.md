@@ -32,3 +32,19 @@ If you change the CPU/memory limits on a revision, the denominator changes for a
 
 !!! warning "Percentage metrics are not KEDA scaler utilization"
     The KEDA `cpu` and `memory` scalers report `utilization` against their own targets (the value you put in `--scale-rule-metadata value=...`). `CpuPercentage` and `MemoryPercentage` are independent Azure Monitor metrics. They can disagree on the same replica because the denominator and aggregation window differ. See [CPU and memory scaler](../../platform/scaling/cpu-memory-scaler.md) and [Memory percentage vs. KEDA utilization](../../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md).
+
+## See Also
+
+- [Metrics Overview](index.md)
+- [Container App Metrics](container-app-metrics.md)
+- [Environment Metrics](managed-environment-metrics.md)
+- [Percentage Metrics](percentage-metrics.md)
+- [Dimensions](dimensions.md)
+- [KEDA Observability](keda-observability.md)
+- [Evidence and Captures](evidence-and-captures.md)
+
+## Sources
+
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)

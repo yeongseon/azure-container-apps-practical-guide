@@ -151,3 +151,19 @@ Both deprecated metrics render identically: the Portal Metrics blade accepts the
 ![Portal Metrics blade showing EnvCoresQuotaUtilization on cae-wp-d38538, Avg pill renders --, chart empty](../../assets/reference/metrics-percentage-cores-used-deprecated.png)
 
 For the replacement workflow, see [Subscription quota exceeded playbook](../../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md).
+
+## See Also
+
+- [Metrics Overview](index.md)
+- [Container App Metrics](container-app-metrics.md)
+- [Environment Metrics](managed-environment-metrics.md)
+- [Percentage Metrics](percentage-metrics.md)
+- [Dimensions](dimensions.md)
+- [KEDA Observability](keda-observability.md)
+- [Evidence and Captures](evidence-and-captures.md)
+
+## Sources
+
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)

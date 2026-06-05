@@ -341,6 +341,10 @@ az monitor metrics list \
     --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor metrics list --metric TotalCoresQuotaUsed` | Queries the per-app total reserved cores for capacity planning. |
+
 For per-environment consumption against quota (the number Azure's enforcement actually checks), use `az containerapp env list-usages` instead — that surface is not a platform metric.
 
 ### Resiliency metrics — overview
@@ -605,3 +609,19 @@ This metric is the primary saturation signal for AI inference workloads on Conta
 #### Captures
 
 No live Portal capture is included in this pass because the test environment (`cae-wp-d38538`) was provisioned with general-purpose `D4` profiles only, not GPU profiles, so the metric reports no values. The Portal Metrics blade dropdown will still surface this metric for any container app scope, but the chart renders empty when no GPU-scheduled replica is publishing readings.
+
+## See Also
+
+- [Metrics Overview](index.md)
+- [Container App Metrics](container-app-metrics.md)
+- [Environment Metrics](managed-environment-metrics.md)
+- [Percentage Metrics](percentage-metrics.md)
+- [Dimensions](dimensions.md)
+- [KEDA Observability](keda-observability.md)
+- [Evidence and Captures](evidence-and-captures.md)
+
+## Sources
+
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
