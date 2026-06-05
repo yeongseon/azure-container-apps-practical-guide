@@ -53,7 +53,8 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 echo
 echo "=== 1b. Container name ==="
 CONTAINER_NAME="$(az containerapp show --name "$APP_NAME" --resource-group "$RG" \
-  --query 'properties.template.containers[0].name' -o tsv 2>/dev/null)" || CONTAINER_NAME="$APP_NAME"
+  --query 'properties.template.containers[0].name' -o tsv 2>/dev/null)" || true
+CONTAINER_NAME="${CONTAINER_NAME:-$APP_NAME}"
 echo "Container name: $CONTAINER_NAME"
 
 echo
@@ -64,9 +65,12 @@ ACTIVE_REV="$(echo "$ACTIVE_REVS" | head -1)"
 echo "Active revisions: ${ACTIVE_REVS:-<none>}"
 
 # Save full revision list as JSON for later analysis
-az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
+REVISIONS_JSON="$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
   --query '[?properties.active].{name:name, replicas:properties.replicas, trafficWeight:properties.trafficWeight, healthState:properties.healthState}' \
-  -o json > "${APP_DIR}/revisions-${TS}.json" 2>/dev/null || true
+  -o json 2>/dev/null)" || true
+if [[ -n "$REVISIONS_JSON" && "$REVISIONS_JSON" != "null" ]]; then
+  echo "$REVISIONS_JSON" > "${APP_DIR}/revisions-${TS}.json"
+fi
 
 if [[ -n "$ACTIVE_REV" ]]; then
   az containerapp revision show --name "$APP_NAME" --resource-group "$RG" \
@@ -77,10 +81,15 @@ fi
 
 echo
 echo "=== 2b. Traffic configuration ==="
-az containerapp ingress traffic show \
+TRAFFIC_JSON="$(az containerapp ingress traffic show \
   --name "$APP_NAME" --resource-group "$RG" \
-  -o json > "${APP_DIR}/traffic-${TS}.json" 2>/dev/null || echo "(no ingress traffic config)"
-cat "${APP_DIR}/traffic-${TS}.json" 2>/dev/null || true
+  -o json 2>/dev/null)" || true
+if [[ -n "$TRAFFIC_JSON" && "$TRAFFIC_JSON" != "null" ]]; then
+  echo "$TRAFFIC_JSON" > "${APP_DIR}/traffic-${TS}.json"
+  echo "$TRAFFIC_JSON"
+else
+  echo "(no ingress traffic config)"
+fi
 
 echo
 echo "=== 3. Replica list ==="
@@ -344,7 +353,7 @@ cat > "$SUMMARY" <<MDEOF
 | Container | ${CONTAINER_NAME} |
 | Resource Group | ${RG} |
 | Timestamp | ${TS} |
-| Active Revisions | ${ACTIVE_REVS:-none} |
+| Active Revisions | $(echo "${ACTIVE_REVS:-none}" | tr '\n' ', ' | sed 's/, $//') |
 | Lookback | ${LOOKBACK} |
 
 ## Collected files
