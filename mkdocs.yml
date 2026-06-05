@@ -1,6 +1,6 @@
 site_name: Azure Container Apps Practical Guide
 site_url: https://yeongseon.github.io/azure-container-apps-practical-guide/
-site_description: Comprehensive guide for designing, operating, and troubleshooting Azure Container Apps
+site_description: Practical Azure Container Apps guide covering architecture, KEDA scaling, networking, managed identity, monitoring, Log Analytics KQL, troubleshooting playbooks, Bicep labs, and production operations.
 site_author: yeongseon
 
 repo_name: yeongseon/azure-container-apps-practical-guide

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yeongseon.github.io/azure-container-apps-practical-guide/sitemap.xml

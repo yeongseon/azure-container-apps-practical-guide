@@ -1,5 +1,7 @@
 # Azure Container Apps Practical Guide
 
+📘 **Documentation site:** <https://yeongseon.github.io/azure-container-apps-practical-guide/>
+
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
 Evidence-driven, operator-focused guide for running containerized applications on Azure Container Apps. Key operational guidance is supported by reproducible labs, metric captures, KQL examples, and Microsoft Learn references — from first deployment through production-grade monitoring, alerting, and incident response.
