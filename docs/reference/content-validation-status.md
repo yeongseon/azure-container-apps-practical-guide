@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated dashboard tracking content validation status.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-02"
+  last_reviewed: "2026-06-06"
   reviewer: ai-agent
   core_claims:
     - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
@@ -24,18 +24,18 @@ This page tracks the source validation status of all documentation content. All 
 
 ## Summary
 
-*Generated: 2026-06-02*
+*Generated: 2026-06-06*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 213 | 148 | 65 | 0 | 0 |
+| Text Documents | 230 | 165 | 65 | 0 | 0 |
 
 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 148
+    "Verified" : 165
     "Pending Review" : 65
 ```
 
@@ -45,12 +45,14 @@ pie title Document Validation Status
 
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
+| [Acr Network Path Selection](../platform/networking/acr-network-path-selection.md) | ✅ | ✅ Verified | 4/4 | 2026-06-05 |
 | [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Cpu Memory Scaler](../platform/scaling/cpu-memory-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Custom Scalers](../platform/scaling/custom-scalers.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Customer Managed Keys](../platform/security/customer-managed-keys.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Dedicated Gpu Profiles](../platform/environments/dedicated-gpu-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
+| [Deployment](../platform/deployment.md) | ✅ | ✅ Verified | 4/4 | 2026-04-21 |
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
@@ -117,6 +119,7 @@ pie title Document Validation Status
 | [Log Analytics Queries](../operations/logging/log-analytics-queries.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Log Streaming](../operations/logging/log-streaming.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
 | [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
+| [Metric Alerts By Incident Question](../operations/alerts/metric-alerts-by-incident-question.md) | ✅ | ✅ Verified | 3/3 | 2026-06-05 |
 | [Min Replica Change Impact](../operations/scaling/min-replica-change-impact.md) | ✅ | ✅ Verified | 3/3 | 2026-05-18 |
 | [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
@@ -130,6 +133,11 @@ pie title Document Validation Status
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
 | [5Xx Trend Over Time](../troubleshooting/kql/http/5xx-trend-over-time.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Acr Network Path Dns Forwarder Bypass](../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md) | ✅ | ✅ Verified | 4/4 | 2026-06-05 |
+| [Acr Network Path Firewall Allowlist](../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md) | ✅ | ✅ Verified | 4/4 | 2026-06-06 |
+| [Acr Network Path Pe Direct](../troubleshooting/lab-guides/acr-network-path-pe-direct.md) | ✅ | ✅ Verified | 4/4 | 2026-06-05 |
+| [Acr Network Path Pe Forced Inspection](../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md) | ✅ | ✅ Verified | 3/3 | 2026-06-06 |
+| [Acr Network Path Record Split Brain](../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) | ✅ | ✅ Verified | 4/4 | 2026-06-06 |
 | [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-29 |
 | [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Appinsights Connection String Missing](../troubleshooting/playbooks/observability/appinsights-connection-string-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
@@ -151,7 +159,7 @@ pie title Document Validation Status
 | [Crashloop Oom And Resource Pressure](../troubleshooting/playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Custom Domain Tls Renewal](../troubleshooting/lab-guides/custom-domain-tls-renewal.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Custom Domain Tls Renewal](../troubleshooting/playbooks/networking-advanced/custom-domain-tls-renewal.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
-| [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ✅ | ✅ Verified | 2/2 | 2026-04-29 |
+| [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ✅ | ✅ Verified | 2/2 | 2026-06-03 |
 | [Dapr Pubsub Failure](../troubleshooting/lab-guides/dapr-pubsub-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Dapr Pubsub Failure](../troubleshooting/playbooks/platform-features/dapr-pubsub-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Dapr Sidecar Logs](../troubleshooting/kql/dapr-and-jobs/dapr-sidecar-logs.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -189,9 +197,11 @@ pie title Document Validation Status
 | [Image Size Startup Delay](../troubleshooting/playbooks/startup-and-provisioning/image-size-startup-delay.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Ingress Error Analysis](../troubleshooting/kql/ingress-and-networking/ingress-error-analysis.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Ingress Not Reachable](../troubleshooting/playbooks/ingress-and-networking/ingress-not-reachable.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-29 |
+| [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ | ✅ Verified | 4/4 | 2026-04-29 |
 | [Internal Dns And Private Endpoint Failure](../troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Job Execution History](../troubleshooting/kql/dapr-and-jobs/job-execution-history.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ✅ | ✅ Verified | 2/2 | 2026-06-05 |
+| [Keda No Metrics Returned](../troubleshooting/playbooks/scaling-and-runtime/keda-no-metrics-returned.md) | ✅ | ✅ Verified | 3/3 | 2026-06-05 |
 | [Keda Scaler Metrics](../troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Keyvault Access Errors](../troubleshooting/kql/identity-and-secrets/keyvault-access-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Latency Trend By Status Code](../troubleshooting/kql/http/latency-trend-by-status-code.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -200,12 +210,12 @@ pie title Document Validation Status
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Log Analytics Ingestion Gap](../troubleshooting/playbooks/observability/log-analytics-ingestion-gap.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Managed Identity Auth Failure](../troubleshooting/playbooks/identity-and-configuration/managed-identity-auth-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-29 |
+| [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-06-03 |
 | [Managed Identity Token Errors](../troubleshooting/kql/identity-and-secrets/managed-identity-token-errors.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Memory Leak Oomkilled](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ | ✅ Verified | 2/2 | 2026-06-02 |
-| [Memory Percentage Vs Keda Utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) | ✅ | ✅ Verified | 3/3 | 2026-06-02 |
+| [Memory Percentage Vs Keda Utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) | ✅ | ✅ Verified | 4/4 | 2026-06-02 |
 | [Memory Usage Patterns](../troubleshooting/kql/console-and-runtime/memory-usage-patterns.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Mental Model](../troubleshooting/mental-model.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ✅ | ✅ Verified | 2/2 | 2026-04-29 |
@@ -280,9 +290,16 @@ pie title Document Validation Status
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
 | [Cli Reference](../reference/cli-reference.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Container App Metrics](../reference/metrics/container-app-metrics.md) | ✅ | ✅ Verified | 4/4 | 2026-06-05 |
+| [Dimensions](../reference/metrics/dimensions.md) | ❌ | ✅ Verified | 2/2 | 2026-06-05 |
 | [Environment Variables](../reference/environment-variables.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Evidence And Captures](../reference/metrics/evidence-and-captures.md) | ❌ | ✅ Verified | 2/2 | 2026-06-05 |
+| [Keda Observability](../reference/metrics/keda-observability.md) | ❌ | ✅ Verified | 1/1 | 2026-06-05 |
+| [Managed Environment Metrics](../reference/metrics/managed-environment-metrics.md) | ❌ | ✅ Verified | 1/1 | 2026-06-05 |
+| [Metrics](../reference/metrics.md) | ❌ | ✅ Verified | — | 2026-06-05 |
+| [Percentage Metrics](../reference/metrics/percentage-metrics.md) | ✅ | ✅ Verified | 1/1 | 2026-06-05 |
 | [Platform Limits](../reference/platform-limits.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Validation Status](../reference/validation-status.md) | ✅ | ✅ Verified | 1/1 | 2026-05-23 |
+| [Validation Status](../reference/validation-status.md) | ✅ | ✅ Verified | 1/1 | 2026-06-06 |
 
 ## Validation Categories
 

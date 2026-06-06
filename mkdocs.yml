@@ -468,6 +468,7 @@ nav:
       - ACR Network Path D - Record-Level Split-Brain: troubleshooting/lab-guides/acr-network-path-record-split-brain.md
       - ACR Network Path A - Firewall Allowlist: troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md
       - ACR Network Path E - DNS Forwarder Bypass: troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md
+      - ACR Network Path C - PE Forced Inspection: troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md
       - Egress IP Change Lab: troubleshooting/lab-guides/egress-ip-change.md
       - Custom Domain TLS Renewal Lab: troubleshooting/lab-guides/custom-domain-tls-renewal.md
       - WebSocket and gRPC Ingress Lab: troubleshooting/lab-guides/websocket-grpc-ingress.md

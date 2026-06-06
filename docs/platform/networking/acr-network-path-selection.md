@@ -134,7 +134,7 @@ Two conditions must both be true to inspect Private Endpoint traffic:
 
 When this is in place, the firewall NVA must also be configured to allow the destination, and SNAT and return symmetry must be planned so that the response from ACR returns through the same firewall instance. Asymmetric routing of Private Link traffic through an NVA is a well-known source of partial-success failures.
 
-Use this path only when an explicit compliance or governance requirement forces it. The cost is the same throughput overhead as Path A, plus the operational burden of keeping PE network policies, UDRs, and NVA rules in sync.
+Use this path only when an explicit compliance or governance requirement forces it. The cost is the same throughput overhead as Path A, plus the operational burden of keeping PE network policies, UDRs, and NVA rules in sync. The [ACR Network Path C lab](../../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md) reproduces this exactly: it deploys a Container Apps environment, an Azure Firewall, and an ACR Private Endpoint with `privateEndpointNetworkPolicies=Enabled` and explicit `/32` UDR routes for both PE NIC IPs (login and data endpoints), then removes only the `/32` routes mid-deployment and shows that the pull still succeeds while `AZFWApplicationRule` records zero new rows for the ACR FQDN — falsifying the "default route catches PE traffic" assumption while proving that image-pull success is not a reliable signal of firewall inspection state.
 
 ## DNS Patterns That Decide the Path
 
@@ -180,6 +180,7 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 - [ACR Network Path D Lab — Record-Level Split-Brain](../../troubleshooting/lab-guides/acr-network-path-record-split-brain.md)
 - [ACR Network Path A Lab — Firewall Allowlist](../../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md)
 - [ACR Network Path E Lab — DNS Forwarder Bypass](../../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md)
+- [ACR Network Path C Lab — PE Forced Inspection](../../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md)
 
 ## Sources
 

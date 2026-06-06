@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-02"
+  last_reviewed: "2026-06-06"
   reviewer: ai-agent
   core_claims:
     - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
@@ -21,12 +21,12 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-06-02*
+*Generated: 2026-06-06*
 
 | Metric | Count |
 |---|---:|
-| Total tutorials | 72 |
-| ✅ Validated | 2 |
+| Total tutorials | 78 |
+| ✅ Validated | 8 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
 | ➖ Not tested | 70 |
@@ -34,7 +34,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 2
+    "Validated" : 8
     "Not Tested" : 70
 ```
 
@@ -92,6 +92,11 @@ pie title Tutorial Validation Status
 
 | Page | az-cli | Bicep | Last Tested | Status |
 |---|---|---|---|---|
+| [Acr Network Path Dns Forwarder Bypass](../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md) | ✅ Pass | ✅ Pass | 2026-06-05 | ✅ Pass |
+| [Acr Network Path Firewall Allowlist](../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
+| [Acr Network Path Pe Direct](../troubleshooting/lab-guides/acr-network-path-pe-direct.md) | ✅ Pass | ✅ Pass | 2026-06-05 | ✅ Pass |
+| [Acr Network Path Pe Forced Inspection](../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
+| [Acr Network Path Record Split Brain](../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
 | [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Azure Files Mount Failure](../troubleshooting/lab-guides/azure-files-mount-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
@@ -112,8 +117,9 @@ pie title Tutorial Validation Status
 | [Github Actions Oidc Failure](../troubleshooting/lab-guides/github-actions-oidc-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Image Size Startup Delay](../troubleshooting/lab-guides/image-size-startup-delay.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ➖ No Data | ➖ No Data | — | ➖ Not Tested |
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ Pass | ✅ Pass | 2026-06-02 | ✅ Pass |
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
