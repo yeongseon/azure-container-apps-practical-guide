@@ -107,6 +107,8 @@ Use this path when the deployment cannot justify the cost or complexity of a Pri
 
 The main downside is that every image-pull byte traverses the firewall. For large images or rapid scale-out, this turns the firewall throughput SKU into the binding constraint on cold-start performance.
 
+When ACR is locked down with a public-network firewall (`networkRuleSet.defaultAction = Deny` plus an `ipRules` allowlist), the value that must appear in the allowlist is the **firewall's SNAT public IP**, not the Container Apps environment's static outbound IP — the egress flow leaves through the firewall, so ACR sees the firewall PIP as the client. See [the lab](../../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md) for a falsification experiment that removes the firewall PIP from `ipRules` mid-deployment and captures the resulting `DENIED` message (with the firewall PIP echoed back in the error body) directly from Container Apps system logs.
+
 ## Path B: ACR Private Endpoint with Default Routing
 
 ACR exposes a Private Endpoint in a subnet reachable from the Container Apps VNet (same VNet, peered VNet, or via VNet integration). The ACR Private DNS Zone is `privatelink.azurecr.io`, and it must contain a record for the registry login endpoint (`<registry>`) **and** a record for each region's dedicated data endpoint (`<registry>.<region>.data`). When both records resolve to the corresponding PE NIC private IPs, replicas reach ACR directly over the Azure backbone with default routing — the firewall is not on the path.
@@ -176,6 +178,7 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 - [ACR Pull Failure Lab](../../troubleshooting/lab-guides/acr-pull-failure.md)
 - [ACR Network Path B Lab — PE Direct](../../troubleshooting/lab-guides/acr-network-path-pe-direct.md)
 - [ACR Network Path D Lab — Record-Level Split-Brain](../../troubleshooting/lab-guides/acr-network-path-record-split-brain.md)
+- [ACR Network Path A Lab — Firewall Allowlist](../../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md)
 - [ACR Network Path E Lab — DNS Forwarder Bypass](../../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md)
 
 ## Sources
