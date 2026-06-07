@@ -64,6 +64,9 @@ site/
 .terraform/
 *.tfstate
 *.tfstate.*
+# Bicep transpiler output (generated from main.bicep by `az bicep build` / `az deployment group create`)
+labs/*/infra/main.json
+labs/*/infra/*.bicepparam.json
 
 # Azure
 .azure/
