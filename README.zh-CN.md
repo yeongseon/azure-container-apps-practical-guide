@@ -55,12 +55,24 @@ mkdocs serve
 
 ## 故障排除实验 (Troubleshooting Labs)
 
-`labs/` 文件夹中包含 10 个动手实验，配有 Bicep 模板，可重现真实的 Container Apps 问题。每个实验包括：
+`labs/` 文件夹中包含动手实验，配有 Bicep 模板，可重现真实的 Container Apps 问题。每个实验包括：
 
 - 可证伪的假设和分步运行手册
 - 真实的 Azure 部署数据 (KQL 日志、CLI 输出)
 - 预期证据 (Expected Evidence) 章节 (包含证伪逻辑)
 - 到相应实战手册的交叉链接
+
+### ACR 网络路径实验系列
+
+`labs/acr-network-path-*` 中的 5 个实验系列重现了 Container App 访问 Azure Container Registry 的 5 种不同网络路径：
+
+- **路径 A — 防火墙允许列表** — 通过 Azure Firewall SNAT 和 `networkRuleSet.ipRules` 允许列表切换的公共 ACR
+- **路径 B — PE 直连** — 带 `privatelink.azurecr.io` 链接 DNS 区域的 ACR Premium 私有终结点
+- **路径 C — PE 强制检查** — 私有终结点 + Azure Firewall + `/32` UDR 路由（静默检查绕过类）
+- **路径 D — 记录级区域权限** — 链接的专用 DNS 区域中按记录的 DNS 权限故障
+- **路径 E — DNS 转发器绕过** — 绕过链接区域的自定义 DNS 解析器拓扑
+
+有关 5 种路径的概念分类，请参阅 [ACR 网络路径选择](https://yeongseon.github.io/azure-container-apps-practical-guide/platform/networking/acr-network-path-selection/) 平台文档。
 
 ## 贡献
 

@@ -176,11 +176,11 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 - [UDR and NSG Egress Blocked](../../troubleshooting/playbooks/networking-advanced/udr-nsg-egress-blocked.md)
 - [Private Endpoint DNS Failure](../../troubleshooting/playbooks/networking-advanced/private-endpoint-dns-failure.md)
 - [ACR Pull Failure Lab](../../troubleshooting/lab-guides/acr-pull-failure.md)
-- [ACR Network Path B Lab — PE Direct](../../troubleshooting/lab-guides/acr-network-path-pe-direct.md)
-- [ACR Network Path D Lab — Record-Level Split-Brain](../../troubleshooting/lab-guides/acr-network-path-record-split-brain.md)
 - [ACR Network Path A Lab — Firewall Allowlist](../../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md)
-- [ACR Network Path E Lab — DNS Forwarder Bypass](../../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md)
+- [ACR Network Path B Lab — PE Direct](../../troubleshooting/lab-guides/acr-network-path-pe-direct.md)
 - [ACR Network Path C Lab — PE Forced Inspection](../../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md)
+- [ACR Network Path D Lab — Record-Level Zone Authority](../../troubleshooting/lab-guides/acr-network-path-record-split-brain.md)
+- [ACR Network Path E Lab — DNS Forwarder Bypass](../../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md)
 
 ## Sources
 
