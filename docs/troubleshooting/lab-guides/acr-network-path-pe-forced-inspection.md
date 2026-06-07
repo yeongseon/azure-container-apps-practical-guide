@@ -108,6 +108,24 @@ This lab is structurally different from the other four labs in the series. The o
 | Skills Practiced | Azure Firewall Basic provisioning (data + management public IPs, `AzureFirewallSubnet` + `AzureFirewallManagementSubnet`), firewall-policy application rules for ACR FQDNs (login + regional data endpoint), `0.0.0.0/0` UDR plus `/32` UDR routes for each PE NIC IP with next-hop = firewall private IP, ACR Premium Private Endpoint (`publicNetworkAccess=Disabled`) with `privatelink.azurecr.io` Private DNS Zone, PE NIC IP discovery via `nic.ipConfigurations[].privateLinkConnectionProperties.fqdns` (NOT `customDnsConfigs`, which is empty when `privateDnsZoneGroup` is configured), ACR admin-credential auth via `az containerapp registry set --username --password`, firewall resource-specific diagnostics via `logAnalyticsDestinationType: 'Dedicated'` to unlock `AZFWApplicationRule`, schema-tolerant `union isfuzzy=true` KQL pattern for diagnostic-table schema transitions, longest-prefix-match routing semantics for Private Endpoint traffic, distinguishing pull-success signals from inspection-visibility signals |
 | Estimated Cost | ~$3-4 USD per run (Korea Central, 2-3 hours: Azure Firewall Basic + 2 public IPs ~$24/day dominates; ACR Premium $1.67/day; Container Apps + Private Endpoint + Log Analytics negligible) |
 
+## Lab position
+
+This lab is part of the **5-lab ACR network path series** that reproduces the five distinct network paths a Container App can take to reach ACR. See [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) for the conceptual taxonomy that names and orders all five paths.
+
+| Item | Value |
+|---|---|
+| Series | ACR Network Path Labs |
+| Scenario label | Scenario C — PE with Forced Inspection |
+| Conceptual order | 3 of 5 in [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) |
+| Implementation order | 5 of 5 — this lab was authored last and is the only lab in the series whose failure mode is *successful pull with silent inspection*, rather than a visibly broken pull |
+| Main path tested | ACR Premium PE in workload VNet + `0.0.0.0/0` UDR to Azure Firewall + explicit `/32` UDR routes for both PE NIC IPs (login and regional data endpoint) forcing the firewall to be on the image-pull path |
+| Failure mode class | Silent inspection bypass (pull succeeds in both states, firewall log silent in the broken state) — structurally different from the other four labs in this series whose failure mode is a visibly broken pull with an error in `ContainerAppSystemLogs_CL` |
+| Existing-revision impact during broken window | None — pull succeeds throughout, no revision-health change ever; the only signal that moves is firewall log presence/absence |
+| Fresh-pull behavior cleanly proven | Yes — admin credentials remove the managed-identity confound; the controlled variable is the `/32` UDR routes for the PE NIC IPs, and pull success is held constant while firewall visibility flips between the three states (baseline visible → bypass silent → recover visible) |
+
+!!! note "Observed in this lab"
+    This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (ACR Premium PE, Azure Firewall Basic with FQDN application rules for ACR login and regional data endpoints, Container Apps Consumption profile, admin-credential auth, firewall diagnostics in `Dedicated` schema mode unlocking `AZFWApplicationRule`). Treat it as **validated for this lab's specific topology, auth mode, and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. Phrases like "silently bypassed" throughout this lab refer to *this specific UDR-misconfiguration topology* (a `0.0.0.0/0` default route to a firewall NVA without explicit `/32` routes for each PE NIC IP). They are **not** a universal claim that Azure Firewall fails to inspect Private Endpoint traffic in every deployment — a different routing design (e.g. explicit `/32` UDR routes for each PE NIC IP from the start, or no `0.0.0.0/0` UDR at all) avoids the failure mode entirely; the mechanism (system-injected `/32` PE route beats `0.0.0.0/0` UDR by longest-prefix match) is documented in [Inspect private endpoint traffic with Azure Firewall](https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall).
+
 ## 1) Background
 
 Azure Container Apps can reach ACR through several network paths — public via firewall, Private Endpoint direct, Private Endpoint with forced inspection, or one of two DNS failure scenarios. The [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) page documents all of them and the decision table that distinguishes them.
@@ -395,11 +413,11 @@ TimeGenerated                  Fqdn                                             
 2026-06-06T06:32:06.895921Z    acracrpefcinhh4rw.azurecr.io                          10.90.1.160  Allow   afwp-acrpefci-nhh4rw      acr-and-platform-allow
 ```
 
-The `SourceIp` value `10.90.1.160` is provably from the `snet-aca` workload subnet (`10.90.0.0/23`) — this is the replica's RFC1918 internal IP, which the firewall sees directly because the firewall is the next hop on the route table. Unlike Lab 4 where ACR observes the firewall's SNAT public IP because the firewall is performing source NAT on outbound flows, in Lab 5 the firewall itself is the observer, so it sees the replica's pre-SNAT internal IP. The chain of inference is:
+The `SourceIp` value `10.90.1.160` is provably from the `snet-aca` workload subnet (`10.90.0.0/23`) — an ACA workload-subnet RFC1918 source IP, which the firewall sees directly because the firewall is the next hop on the route table. (The ACA workload subnet hosts both user replicas and platform-managed components, including the component that performs image pulls; ACA does not expose which specific component owns a given source IP, so this lab uses "ACA workload-subnet source IP" rather than "replica IP" for the pull-path source.) Unlike Lab A — where ACR observes the firewall's SNAT public IP because the firewall is performing source NAT on outbound flows — in this lab the firewall itself is the observer, so it sees the pre-SNAT ACA workload-subnet source IP. The chain of inference is:
 
-1. The replica's outbound HTTPS connection to `acracrpefcinhh4rw.azurecr.io` resolved to the PE NIC IP `10.90.2.5` (login) via the linked `privatelink.azurecr.io` zone.
+1. The image-pull HTTPS connection from the ACA workload subnet to `acracrpefcinhh4rw.azurecr.io` resolved to the PE NIC IP `10.90.2.5` (login) via the linked `privatelink.azurecr.io` zone.
 2. The route table on `snet-aca` had a customer-defined `/32` UDR route for `10.90.2.5/32` pointing at the firewall's private IP `10.90.3.4`, so the packet went to the firewall first.
-3. The firewall's application rule `allow-acr-login` matched on FQDN `acracrpefcinhh4rw.azurecr.io`, allowed the connection, and logged the row in `AZFWApplicationRule` with `SourceIp=10.90.1.160` (the replica IP, before any firewall SNAT).
+3. The firewall's application rule `allow-acr-login` matched on FQDN `acracrpefcinhh4rw.azurecr.io`, allowed the connection, and logged the row in `AZFWApplicationRule` with `SourceIp=10.90.1.160` (the pre-SNAT ACA workload-subnet source IP that the firewall observed on the inbound side).
 4. The firewall then forwarded the packet to the PE NIC `10.90.2.5`, which delivered it to the ACR backend over the Azure backbone.
 
 The same chain repeats for `<registry>.koreacentral.data.azurecr.io` → `10.90.2.4` (data endpoint). Both FQDNs appear in the log because the image-pull conversation consists of both a login round-trip (manifest, auth) and a data-layer download. If only one `/32` UDR route had been added (say, only for the login IP), only the login FQDN would appear in the log and the data-layer rows would be silent — which is why both `/32` routes are mandatory.
@@ -513,10 +531,10 @@ This is the **critical structural finding** that distinguishes Scenario C from e
 
 Zero rows. The firewall recorded nothing for the ACR FQDN during the 5+ minute window between the bypass-deploy timestamp and the gate-check query. The pull happened — the v-bypass revision is provably running its image — but the firewall did not see it. The chain of inference for the silent bypass is:
 
-1. The replica's outbound HTTPS connection to `acracrpefcinhh4rw.azurecr.io` resolved to the PE NIC IP `10.90.2.5` via the linked `privatelink.azurecr.io` zone (DNS resolution is unchanged — DNS is not the controlled variable).
+1. The image-pull HTTPS connection from the ACA workload subnet to `acracrpefcinhh4rw.azurecr.io` resolved to the PE NIC IP `10.90.2.5` via the linked `privatelink.azurecr.io` zone (DNS resolution is unchanged — DNS is not the controlled variable).
 2. The route table on `snet-aca` no longer had a customer-defined `/32` UDR route for `10.90.2.5/32`. The only customer route was `default-via-afw` (`0.0.0.0/0` → firewall private IP), which has length `/0`.
 3. The VNet data plane consulted the route table for the packet's destination `10.90.2.5`. By longest-prefix match: the system-injected `/32` route for the PE has length `/32`; the customer `default-via-afw` UDR has length `/0`. `/32 > /0`, so the system route wins.
-4. The packet went directly from the replica to the PE NIC `10.90.2.5`, bypassing the firewall entirely. The PE forwarded the packet to ACR over the Azure backbone, the pull succeeded, the revision became `Healthy`.
+4. The packet went directly from the ACA workload subnet to the PE NIC `10.90.2.5`, bypassing the firewall entirely. The PE forwarded the packet to ACR over the Azure backbone, the pull succeeded, the revision became `Healthy`.
 5. The firewall has no record of the connection in `AZFWApplicationRule` because the packet never traversed it. Same for the data-endpoint pull conversation to `10.90.2.4`.
 
 #### Recover (`falsify.sh` step 13, after re-adding both `/32` UDR routes)

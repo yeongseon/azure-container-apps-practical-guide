@@ -73,6 +73,24 @@ This lab makes a non-obvious Azure Container Apps behavior falsifiable: **deleti
 | Skills Practiced | Azure Private DNS Zone record manipulation (`az network private-dns record-set a delete/create/add-record`), ACR Private Endpoint multi-IP NIC inspection, 4-layer in-replica network probing (DNS/TCP/TLS/HTTP), workload-layer falsification design, distinguishing record-level (D) from resolver-topology (E) DNS failures, recognizing that Azure Private DNS zones linked to a VNet are authoritative for their namespace |
 | Estimated Cost | ~$1-2 USD per run (Korea Central, 2-3 hours, ACR Premium dominates; no VM cost vs. sibling Scenario E lab) |
 
+## Lab position
+
+This lab is part of the **5-lab ACR network path series** that reproduces the five distinct network paths a Container App can take to reach ACR. See [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) for the conceptual taxonomy that names and orders all five paths.
+
+| Item | Value |
+|---|---|
+| Series | ACR Network Path Labs |
+| Scenario label | Scenario D — Record-Level Zone Authority |
+| Conceptual order | 4 of 5 in [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) |
+| Implementation order | 3 of 5 — this lab was authored third and is the record-CONTENT failure class (sibling Scenario E is the resolver-TOPOLOGY failure class on the same DNS axis) |
+| Main path tested | Default Azure DNS in VNet + `privatelink.azurecr.io` linked zone authoritative for the namespace + per-record A record manipulation on the regional data endpoint |
+| Failure mode class | Workload-side NXDOMAIN on the data FQDN's DNS layer; no pull failure (broken-window fresh pull is intentionally out of scope) |
+| Existing-revision impact during broken window | None — already-running revision keeps serving from cached image layers; the broken record only surfaces in the workload `/probe` endpoint, not in revision health |
+| Fresh-pull behavior cleanly proven | No — broken-window fresh pull is explicitly out of scope under `publicNetworkAccess=Disabled` (control-plane token-exchange confound; see [§"Why we do not script a broken-window fresh pull"](#why-we-do-not-script-a-broken-window-fresh-pull) below) |
+
+!!! note "Observed in this lab"
+    This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (ACR Premium PE, default Azure DNS at `168.63.129.16` in the VNet, `privatelink.azurecr.io` linked zone with deliberate single-record deletion of the regional data endpoint, Container Apps Consumption profile, managed-identity auth). Treat it as **validated for this lab's specific topology and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. In a custom-DNS-with-public-fallback topology (BIND with views, `systemd-resolved` with multi-domain fallback, etc.), the same record deletion produces a different observable outcome (`topology_class=split_brain` instead of `topology_class=data_nxdomain`) — see the [§1 Background](#1-background) taxonomy table.
+
 ## 1) Background
 
 Azure Container Apps can reach ACR through several network paths — public via firewall, Private Endpoint direct, Private Endpoint with forced inspection, or one of two DNS failure scenarios. The [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) page documents all of them.
