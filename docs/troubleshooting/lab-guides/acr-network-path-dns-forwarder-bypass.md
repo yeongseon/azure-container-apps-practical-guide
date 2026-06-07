@@ -69,6 +69,24 @@ This lab makes a non-obvious Azure Container Apps behavior falsifiable: **breaki
 | Skills Practiced | Custom DNS on VNet, dnsmasq operations via `az vm run-command`, ACR Private Endpoint + Private DNS Zone wiring, workload-layer DNS instrumentation, falsifiable lab design |
 | Estimated Cost | ~$1-3 USD per run (Korea Central, 2-3 hours, ACR Premium dominates) |
 
+## Lab position
+
+This lab is part of the **5-lab ACR network path series** that reproduces the five distinct network paths a Container App can take to reach ACR. See [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) for the conceptual taxonomy that names and orders all five paths.
+
+| Item | Value |
+|---|---|
+| Series | ACR Network Path Labs |
+| Scenario label | Scenario E — DNS Forwarder Bypass |
+| Conceptual order | 5 of 5 in [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) |
+| Implementation order | 2 of 5 — this lab was authored second and is the resolver-TOPOLOGY failure class (sibling Scenario D is the record-CONTENT failure class on the same DNS axis) |
+| Main path tested | Custom VNet DNS server (dnsmasq on a B1s Ubuntu VM) as the workload-VNet resolver + ACR Premium PE in the same VNet + `privatelink.azurecr.io` linked zone; the failure variable is the dnsmasq upstream (`168.63.129.16` → `8.8.8.8`) |
+| Failure mode class | Workload-side `getaddrinfo()` returns public registry IP after dnsmasq upstream swap; no pull failure (broken-window fresh pull is intentionally out of scope) |
+| Existing-revision impact during broken window | None — already-running revision keeps serving from cached image layers; the broken resolver only surfaces in the workload `/probe` endpoint, not in revision health |
+| Fresh-pull behavior cleanly proven | No — broken-window fresh pull is explicitly out of scope under `publicNetworkAccess=Disabled` (control-plane token-exchange confound; see [§"Why we do not script a broken-window fresh pull"](#why-we-do-not-script-a-broken-window-fresh-pull) below) |
+
+!!! note "Observed in this lab"
+    This behavior was reproduced in **Korea Central on 2026-06-05** with the specific topology described above (ACR Premium PE, dnsmasq on Ubuntu B1s VM as the VNet's custom DNS server with the upstream toggled between `168.63.129.16` and `8.8.8.8`, `privatelink.azurecr.io` linked zone, Container Apps Consumption profile, managed-identity auth). Treat it as **validated for this lab's specific topology and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. A different custom-DNS topology (Azure Private DNS Resolver, Windows DNS, on-prem caching DNS, etc.) with a correctly configured forwarding rule for `privatelink.azurecr.io` → `168.63.129.16` avoids the failure mode entirely.
+
 ## 1) Background
 
 Azure Container Apps can reach ACR through several network paths — public via firewall, Private Endpoint direct, Private Endpoint with forced inspection, or one of two DNS failure scenarios. The [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) page documents all of them.

@@ -62,6 +62,24 @@ This is the recommended default for production Container Apps that pull from ACR
 | Skills Practiced | ACR Private Endpoint, Private DNS Zone wiring, managed identity ACR pull, falsifiable lab design |
 | Estimated Cost | ~$1-2 USD per run (Korea Central, 2-3 hours, ACR Premium dominates) |
 
+## Lab position
+
+This lab is part of the **5-lab ACR network path series** that reproduces the five distinct network paths a Container App can take to reach ACR. See [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) for the conceptual taxonomy that names and orders all five paths.
+
+| Item | Value |
+|---|---|
+| Series | ACR Network Path Labs |
+| Scenario label | Scenario B — Private Endpoint Direct |
+| Conceptual order | 2 of 5 in [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) |
+| Implementation order | 1 of 5 — this lab was the first authored in the series and established the baseline topology that Labs C/D/E build on (ACR Premium PE, `privatelink.azurecr.io` linked zone, managed-identity auth) |
+| Main path tested | ACR Premium PE in workload VNet → `privatelink.azurecr.io` linked DNS zone → PE NIC RFC1918 IP → Azure backbone (no firewall in image-data path) |
+| Failure mode class | Pull-fails on fresh pull (visibly broken revision with `ImagePullUnauthorized` after the VNet → DNS-zone link is removed) |
+| Existing-revision impact during broken window | None — already-running replica keeps serving from cached image layers; the failure surfaces only on the next fresh pull (new revision, manual restart, or scale-out) |
+| Fresh-pull behavior cleanly proven | Partially — managed identity is used, so the control-plane token-exchange path is on a different network path than the data-plane image pull; the data-plane failure is proven by a forced fresh pull (`az containerapp revision restart`) that surfaces `ImagePullUnauthorized` |
+
+!!! note "Observed in this lab"
+    This behavior was reproduced in **Korea Central on 2026-06-05** with the specific topology described above (ACR Premium with Private Endpoint, `privatelink.azurecr.io` linked DNS zone, Container Apps Consumption profile, managed-identity auth, no firewall on the image-data path). Treat it as **validated for this lab's specific topology, auth mode, and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. Different ACR SKUs (Basic/Standard cannot host a Private Endpoint), different DNS topologies (custom DNS server without proper forwarding — see sibling Scenario E lab), missing zone records (see sibling Scenario D lab), and different Container Apps platform versions can change the observed behavior.
+
 ## 1) Background
 
 Azure Container Apps can reach ACR through several network paths — public via firewall, Private Endpoint direct, Private Endpoint with forced inspection, or one of two DNS misconfiguration scenarios. The [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) page documents all of them.
