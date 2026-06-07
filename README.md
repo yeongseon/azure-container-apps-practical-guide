@@ -20,7 +20,7 @@ Evidence-driven, operator-focused guide for running containerized applications o
 
 ## What Makes This Different
 
-- **Lab-validated** — 14 hands-on labs with reproducible Bicep, verify scripts, and evidence reports
+- **Lab-validated** — Comprehensive hands-on lab suite with reproducible Bicep, verify scripts, and evidence reports
 - **KQL query packs** — 30+ production-ready queries for Log Analytics and App Insights
 - **Metrics reference** — Platform metrics explained with captures, denominator notes, and dimension mapping
 - **Playbooks** — Structured troubleshooting with competing hypotheses, decision flows, and CLI evidence collection
@@ -64,12 +64,24 @@ Minimal reference applications demonstrating Azure Container Apps patterns:
 
 ## Troubleshooting Labs
 
-10 hands-on labs in `labs/` with Bicep templates that reproduce real-world Container Apps issues. Each lab includes:
+Hands-on labs in `labs/` with Bicep templates that reproduce real-world Container Apps issues. Each lab includes:
 
 - Falsifiable hypothesis and step-by-step runbook
 - Real Azure deployment data (KQL logs, CLI output)
 - Expected Evidence sections with falsification logic
 - Cross-links to corresponding playbooks
+
+### ACR Network Path Series
+
+A focused 5-lab series in `labs/acr-network-path-*` reproduces the five distinct network paths a Container App can take to reach Azure Container Registry:
+
+- **Path A — Firewall Allowlist** — Public ACR with Azure Firewall SNAT and `networkRuleSet.ipRules` allowlist toggling
+- **Path B — PE Direct** — ACR Premium Private Endpoint with `privatelink.azurecr.io` linked DNS zone
+- **Path C — PE with Forced Inspection** — Private Endpoint plus Azure Firewall plus `/32` UDR routes (silent inspection-bypass class)
+- **Path D — Record-Level Zone Authority** — Per-record DNS authority failure in a linked Private DNS Zone
+- **Path E — DNS Forwarder Bypass** — Custom DNS resolver topology that bypasses the linked zone
+
+See the [ACR Network Path Selection](https://yeongseon.github.io/azure-container-apps-practical-guide/platform/networking/acr-network-path-selection/) platform doc for the conceptual taxonomy that names and orders all five paths.
 
 ## Contributing
 
