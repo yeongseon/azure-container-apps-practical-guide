@@ -40,12 +40,18 @@ param appImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:la
 @description('Container image for the audit job. Override after building from labs/zone-redundancy-best-effort/audit/.')
 param auditImage string = 'mcr.microsoft.com/azure-cli:2.83.0'
 
+@description('Optional Azure Container Registry name (without ".azurecr.io" suffix) in the same resource group. When set, the deployment grants the audit Job UAMI AcrPull on this registry and wires a registries block so the Job can pull the custom audit image. Leave empty when using the default placeholder auditImage.')
+param auditAcrName string = ''
+
+@description('UTC timestamp captured at deployment start. Required as a parameter because utcNow() is only valid as a parameter default.')
+param deploymentTime string = utcNow()
+
 // ---------------------------------------------------------------------
 // Derived names + common tags
 // ---------------------------------------------------------------------
 
 var suffix = take(uniqueString(resourceGroup().id, baseName), 6)
-var expiresAt = dateTimeAdd(utcNow(), 'PT${expiryHours}H')
+var expiresAt = dateTimeAdd(deploymentTime, 'PT${expiryHours}H')
 
 var names = {
   vnet: 'vnet-${baseName}-${suffix}'
@@ -157,6 +163,24 @@ resource uamiReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
     principalId: uami.properties.principalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', readerRoleId)
+  }
+}
+
+// Optional: AcrPull on a customer-supplied ACR so the audit Job can pull
+// its custom image. Only created when auditAcrName is non-empty.
+var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+
+resource auditAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = if (!empty(auditAcrName)) {
+  name: auditAcrName
+}
+
+resource uamiAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(auditAcrName)) {
+  name: guid(resourceGroup().id, uami.id, acrPullRoleId, auditAcrName)
+  scope: auditAcr
+  properties: {
+    principalId: uami.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
   }
 }
 
@@ -291,6 +315,7 @@ resource auditJob 'Microsoft.App/jobs@2024-03-01' = {
   })
   dependsOn: [
     uamiReader
+    uamiAcrPull
   ]
   identity: {
     type: 'UserAssigned'
@@ -310,6 +335,16 @@ resource auditJob 'Microsoft.App/jobs@2024-03-01' = {
         parallelism: 1
         replicaCompletionCount: 1
       }
+      // Registries block is only needed when pulling from a private ACR.
+      // We always emit the array shape but leave it empty when no ACR
+      // was supplied, so the Job validates against the public default
+      // auditImage.
+      registries: empty(auditAcrName) ? [] : [
+        {
+          server: '${auditAcrName}.azurecr.io'
+          identity: uami.id
+        }
+      ]
     }
     template: {
       containers: [
@@ -346,18 +381,21 @@ resource auditJob 'Microsoft.App/jobs@2024-03-01' = {
               value: '2024-03-01'
             }
           ]
-          // The default audit image is `mcr.microsoft.com/azure-cli` so
+          // The default `auditImage` is `mcr.microsoft.com/azure-cli` so
           // the deployment succeeds even before the user builds the
-          // custom audit image. To produce real samples, build the
-          // image under labs/zone-redundancy-best-effort/audit/ and
-          // pass it via `auditImage` parameter.
-          command: [
+          // custom audit image. When no custom ACR is wired (`auditAcrName`
+          // empty), override command/args with a placeholder echo so the
+          // Job emits an explicit `AuditPlaceholder` notice instead of
+          // running the azure-cli default ENTRYPOINT. When a custom ACR
+          // is provided, assume the image's own ENTRYPOINT (sample.sh)
+          // should run, so leave command/args unset.
+          command: empty(auditAcrName) ? [
             '/bin/sh'
             '-c'
-          ]
-          args: [
+          ] : []
+          args: empty(auditAcrName) ? [
             'echo {\\"event\\":\\"AuditPlaceholder\\",\\"note\\":\\"Override auditImage parameter with the built sample.sh image to begin sampling\\"}'
-          ]
+          ] : []
         }
       ]
     }

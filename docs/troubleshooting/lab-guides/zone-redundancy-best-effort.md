@@ -355,18 +355,29 @@ These captures add depth but are not required to validate H0a. Capture only if t
 
 ### Observed Evidence (Live Azure Reproduction)
 
-> Placeholder — to be populated after the lab is run against a real Azure subscription. Pair every `[Observed]` line with the relevant filename from the capture table above.
+> **Run scope.** This evidence comes from a short reproduction window (~10 minutes of perturbation, not the full 24-hour baseline mandated in Phase 1). Replace these numbers when you run the lab end-to-end against your own subscription. The full-baseline `BaselineChurnEvents` slot is left as `TBD` because a 10-minute window cannot meaningfully estimate a 24-hour baseline rate.
 
-```text
-[Measured] BaselineChurnEvents = TBD per app over 24 h
-[Measured] PerturbationChurnEvents (no-retry, app-min3) = TBD
-[Measured] Client-visible failure rate (no-retry, perturbation) = TBD / TBD
-[Measured] Client-visible failure rate (retry-backoff, perturbation) = TBD / TBD
-[Measured] MaxReplacementFraction app-min2 = TBD, app-min3 = TBD, app-min6 = TBD
-[Measured] RecoverySecs p50 = TBD s, p95 = TBD s
-[Inferred] Zone redundancy reduces but does not eliminate clustered churn (or: does eliminate it under this configuration)
-[Not Proven] Per-replica AZ placement
-```
+**Reproduction window**: 2026-06-08 16:41:11Z – 16:51:31Z UTC (koreacentral), commit `997e093` + Bicep audit-Job fix described in this PR.
+
+**Subject apps**: `app-min2` (minReplicas=2, single zone-redundant env), `app-min3` (minReplicas=3), `app-min6` (minReplicas=6).
+
+**Audit Job**: `audit-sampler` cron `*/5 * * * *`, image `acrzrlab34754.azurecr.io/zr-lab/audit:latest`, observed `ReplicaInventorySample` count = 11 over the window (Q1, `06-log-analytics-q1-ingestion.png`).
+
+| Tag | Measurement | Source | Evidence file |
+|---|---|---|---|
+| `[Measured]` | BaselineChurnEvents per app over 24 h | TBD (run scope = 10 min) | — |
+| `[Observed]` | PerturbationChurnEvents (Phase 2B no-retry, app-min3) | 1 cluster of **3 replicas** terminated 16:46:00Z (revision `app-min3--qk3yg73-546bf86bc8`) | Q3, `07-log-analytics-q3-clustered-churn.png` |
+| `[Observed]` | PerturbationChurnEvents (Phase 2C retry-backoff, app-min3) | 1 cluster of **2 replicas** terminated 16:49:00Z (revision `app-min3--qk3yg73-7bc8fc9d8c`) | Q3, `07-log-analytics-q3-clustered-churn.png` |
+| `[Measured]` | Client-visible failure rate (Phase 2A baseline no-retry) | **0 / 270** failures, avg latency 519 ms | `trigger.sh` stdout, `/tmp/zr-phase2-baseline-no-retry.log` |
+| `[Measured]` | Client-visible failure rate (Phase 2B combined no-retry) | **0 / 270** failures, avg latency 520 ms | `trigger.sh` stdout, `/tmp/zr-phase2-combined-no-retry.log` |
+| `[Measured]` | Client-visible failure rate (Phase 2C combined retry-backoff) | **0 / 270** failures, avg latency 522 ms | `trigger.sh` stdout, `/tmp/zr-phase2-combined-retry-backoff.log` |
+| `[Observed]` | Max replica count (app-min3, perturbation window) | **4** (transient peak during restart, baseline = 3) | Metrics, `11-app-min3-metrics-replicas.png` |
+| `[Measured]` | MaxReplacementFraction app-min2 / app-min3 / app-min6 | TBD (Q7 not yet executed; requires longer run) | — |
+| `[Measured]` | RecoverySecs p50 / p95 | TBD (Q4 not yet executed; requires longer run) | — |
+| `[Inferred]` | Under `minReplicas=3` + zone-redundant env, a single revision restart produces clustered termination of all 3 replicas within a 60-second window, but the surviving replicas (plus the new ones spinning up) absorb 10 RPS without any client-visible 503 — even without client-side retry | H0a confirmed, H0b confirmed under this load profile | `07-log-analytics-q3-clustered-churn.png`, `11-app-min3-metrics-replicas.png` |
+| `[Not Proven]` | Per-replica AZ placement (the ARM `revisions/{rev}/replicas` API does not expose `zone`, so this lab measures temporal clustering only, not zone distribution) | — | — |
+
+> **Caveat on H0b.** The 0/270 failure rate under this load profile (10 RPS, single revision restart, 3 replicas) is a positive signal that `minReplicas=3` is sufficient to absorb single-revision churn for low-traffic apps. It does **not** generalize to higher load or simultaneous multi-revision events. Re-run with `trigger.sh --rps 50` (or stop all replicas concurrently) before claiming `app-min3` is "503-safe under all clustered-churn scenarios".
 
 ## 13. Solution
 
