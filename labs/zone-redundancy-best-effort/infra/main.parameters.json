@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "baseName": {
+      "value": "zrlab"
+    },
+    "expiryHours": {
+      "value": 48
+    },
+    "vnetAddressPrefix": {
+      "value": "10.50.0.0/16"
+    },
+    "infrastructureSubnetPrefix": {
+      "value": "10.50.0.0/23"
+    },
+    "appImage": {
+      "value": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+    }
+  }
+}

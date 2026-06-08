@@ -116,6 +116,7 @@ For persistent failures, roll traffic back to a healthy revision (see revisions 
 | Sporadic probe failures | Restart revision once | Increase probe delay and inspect dependency latency |
 | All replicas failing readiness | Check configuration/secrets rollout | Shift traffic to prior healthy revision |
 | Repeated liveness restarts | Inspect memory/CPU pressure and startup logs | Reduce resource contention and redeploy |
+| Clustered multi-replica restart (≥2 replicas replaced within 60s) on a zone-redundant environment | Triage with the [zone redundancy mass-reschedule KQL pack](../../troubleshooting/kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md) before assuming a per-replica zone failure | Apply the four-layer mitigation in the [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) |
 | Environment-wide instability | Validate managed environment health | Activate incident response and failover runbook |
 
 ## Verification Steps
@@ -177,6 +178,8 @@ Example output (PII masked):
 - [Revisions](../../operations/revision-management/index.md)
 - [Observability](../../operations/monitoring/index.md)
 - [Health Probes](../../operations/health-probes/index.md)
+- [Zone Redundancy (Operations)](../../operations/disaster-recovery/zone-redundancy.md)
+- [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md)
 
 ## Sources
 - [Azure Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)

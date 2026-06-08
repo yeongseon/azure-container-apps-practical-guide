@@ -206,6 +206,9 @@ Trade-offs:
 - Regional capability constraints.
 - Additional architecture validation required for dependencies.
 
+!!! warning "Zone placement is best-effort, not a per-replica guarantee"
+    Microsoft Learn describes zone-redundant Container Apps as relying on a scheduler that "ensures optimal distribution across physical hosts while meeting your minimum replica count requirements." That is a **best-effort** behavior — setting `minReplicas=N` in a zone-redundant environment does **not** guarantee one replica in each of N distinct zones at every moment. Underspecified resource requests, host capacity, and maintenance events can all skew distribution. When your SLO depends on stronger zonal guarantees than this, combine zone redundancy with the four-layer mitigation matrix in the [Zone Redundancy Best-Effort playbook](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) — explicit resource requests, app-layer retries and circuit breakers, multi-region or AKS topology escalation, and replica-inventory observability.
+
 Check environment profile:
 
 ```bash
@@ -508,6 +511,8 @@ az monitor metrics list \
 - [Scaling (Platform)](../platform/scaling/index.md)
 - [Operations Monitoring](../operations/monitoring/index.md)
 - [Operations Recovery](../operations/recovery/index.md)
+- [Zone Redundancy (Operations)](../operations/disaster-recovery/zone-redundancy.md)
+- [Zone Redundancy Best-Effort playbook](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md)
 - [Networking Best Practices](./networking.md)
 - [Identity and Secrets Best Practices](./identity-and-secrets.md)
 

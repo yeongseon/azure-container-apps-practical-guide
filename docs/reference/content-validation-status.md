@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated dashboard tracking content validation status.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-06"
+  last_reviewed: "2026-06-08"
   reviewer: ai-agent
   core_claims:
     - claim: "Microsoft Learn provides official documentation for Azure Container Apps."
@@ -24,18 +24,18 @@ This page tracks the source validation status of all documentation content. All 
 
 ## Summary
 
-*Generated: 2026-06-06*
+*Generated: 2026-06-08*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 261 | 261 | 0 | 0 | 0 |
-| Text Documents | 230 | 165 | 65 | 0 | 0 |
+| Text Documents | 233 | 168 | 65 | 0 | 0 |
 
 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title Document Validation Status
-    "Verified" : 165
+    "Verified" : 168
     "Pending Review" : 65
 ```
 
@@ -126,7 +126,7 @@ pie title Document Validation Status
 | [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Use Uami For Acr And Reconnect Cd](../operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md) | ✅ | ✅ Verified | 3/3 | 2026-05-06 |
-| [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
+| [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ✅ Verified | 4/4 | 2026-06-08 |
 
 ### Troubleshooting
 
@@ -275,6 +275,9 @@ pie title Document Validation Status
 | [Websocket Grpc Ingress](../troubleshooting/playbooks/networking-advanced/websocket-grpc-ingress.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Workload Profile Mismatch](../troubleshooting/lab-guides/workload-profile-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-29 |
 | [Workload Profile Mismatch](../troubleshooting/playbooks/cost-and-quota/workload-profile-mismatch.md) | ✅ | ✅ Verified | 3/3 | 2026-04-29 |
+| [Zone Redundancy Best Effort](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) | ✅ | ✅ Verified | 3/3 | 2026-06-08 |
+| [Zone Redundancy Best Effort](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) | ✅ | ✅ Verified | 4/4 | 2026-06-08 |
+| [Zone Redundancy Mass Reschedule](../troubleshooting/kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md) | ✅ | ✅ Verified | 3/3 | 2026-06-08 |
 
 ### Start Here
 
