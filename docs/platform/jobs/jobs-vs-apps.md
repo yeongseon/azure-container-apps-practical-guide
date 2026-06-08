@@ -99,7 +99,7 @@ flowchart TD
 
 **[Inferred]** The resource label `Container App Job` appears to map to the `Container Apps Job` column of the [Decision matrix](#decision-matrix). The `Trigger Type` field appears to correspond to the `Trigger` row of the [Decision matrix](#decision-matrix), and the `Execution history` field is consistent with the `Operational artifact` row entry `Execution history`.
 
-**[Not Proven]** No `Container App` resource is shown in this PNG. A side-by-side comparison with an app blade cannot be made from this single capture. The `Ingress traffic` trigger row entry in the matrix is not visible in this PNG. Whether the `Container App Job` and `Container App` resource types share an environment cannot be determined from this view alone.
+**[Not Proven]** Additional comparison detail, alternate trigger detail, and environment-relationship detail are not visible on this view.
 
 ## See Also
 

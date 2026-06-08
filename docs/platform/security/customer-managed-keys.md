@@ -87,7 +87,7 @@ Because those items are not documented, this guide takes the conservative positi
 
 **[Inferred]** The table headers `Key`, `Value`, `Edit`, `Delete` appear to map to a secret-entry management surface, which is consistent with the documented [Key Vault-backed secrets](#key-vault-backed-secrets) alternative on this page. The body sentence `Secrets that you store here will be valid across all your revisions` is consistent with the [Scope guidance for architecture reviews](#scope-guidance-for-architecture-reviews) row stating Container Apps can use Key Vault for app secrets.
 
-**[Not Proven]** A customer-managed key field is not shown on this blade. An encryption-at-rest key selector is not shown. A Key Vault key reference field is not shown. Whether any environment-level CMK surface exists elsewhere in the Portal cannot be determined from this blade.
+**[Not Proven]** Additional CMK field detail, encryption configuration detail, and environment-level CMK surface detail are not visible on this blade.
 
 ## What you can use instead
 

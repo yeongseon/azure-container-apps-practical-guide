@@ -88,7 +88,7 @@ flowchart TD
 
 **[Inferred]** The `Trigger Type` field reading `Manual` appears to map to the trigger taxonomy enumerated under [What this section covers](#what-this-section-covers), which lists Manual, Scheduled, and Event-Driven trigger pages. The `Replica timeout`, `Replica retry limit`, `Parallelism`, and `Completion count` fields appear to map to the execution parameters covered by [Execution Lifecycle](execution-lifecycle.md), which the [Reading path](#reading-path) calls out as the next step before tuning. The dedicated `Container App Job` resource type label is consistent with [Jobs vs Apps](jobs-vs-apps.md) being a distinct workload boundary documented on this page.
 
-**[Not Proven]** Only the current `Trigger Type` value `Manual` is visible in this PNG. Other trigger values are not visible in this PNG. The cron field for Schedule triggers is not shown on this Manual job. The event scaler field for Event-Driven triggers is not shown on this Manual job. Whether the `Suspend` toolbar action interrupts a running execution cannot be determined from this static view.
+**[Not Proven]** Additional trigger configuration detail and runtime action behavior detail are not visible on this view.
 
 ## Review Matrix
 

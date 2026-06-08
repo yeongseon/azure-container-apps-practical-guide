@@ -131,7 +131,7 @@ flowchart TD
 
 **[Inferred]** The `Trigger Type` field appears to map to the same configuration lever set by `--trigger-type` in [How a manual job is triggered](#how-a-manual-job-is-triggered). The `Run now` toolbar button appears to map to the same start action surfaced by `az containerapp job start` in [How a manual job is triggered](#how-a-manual-job-is-triggered). The `Replica timeout`, `Replica retry limit`, `Parallelism`, and `Completion count` fields appear to map to the same levers as the `--replica-timeout`, `--replica-retry-limit`, `--parallelism`, and `--replica-completion-count` flags shown in that same section.
 
-**[Not Proven]** Whether `Run now` accepts override parameters at trigger time cannot be determined from this static view. The Portal execution-state strings flagged for verification in [Execution lifecycle for operator-driven runs](#execution-lifecycle-for-operator-driven-runs) are not shown on this blade. No active or historical execution rows are visible in this PNG. The retry-and-completion semantics described in [Parallelism and `replicaCompletionCount`](#parallelism-and-replicacompletioncount) are not enumerable from these single integer values.
+**[Not Proven]** Additional invocation behavior detail, execution-state detail, execution history detail, and runtime semantics detail are not visible on this view.
 
 ## See Also
 
