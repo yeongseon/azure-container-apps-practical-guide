@@ -363,6 +363,7 @@ nav:
         - Dapr Pub/Sub Config Failure: troubleshooting/playbooks/platform-features/dapr-pubsub-failure.md
         - EasyAuth Entra ID Config Failure: troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md
         - Multi-Region Failover Failure: troubleshooting/playbooks/platform-features/multi-region-failover.md
+        - Zone Redundancy Best-Effort: troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md
       - Networking Advanced:
         - Subnet CIDR Exhaustion: troubleshooting/playbooks/networking-advanced/subnet-cidr-exhaustion.md
         - UDR and NSG Egress Blocked: troubleshooting/playbooks/networking-advanced/udr-nsg-egress-blocked.md
@@ -435,6 +436,7 @@ nav:
         - KEDA Scaler Metrics: troubleshooting/kql/scaling-and-replicas/keda-scaler-metrics.md
         - Replica Distribution by Revision: troubleshooting/kql/scaling-and-replicas/replica-distribution-by-revision.md
         - Scale-In Delay Analysis: troubleshooting/kql/scaling-and-replicas/scale-in-delay-analysis.md
+        - Zone Redundancy Mass Reschedule: troubleshooting/kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md
       - Identity and Secrets:
         - Managed Identity Token Errors: troubleshooting/kql/identity-and-secrets/managed-identity-token-errors.md
         - Secret Reference Failures: troubleshooting/kql/identity-and-secrets/secret-reference-failures.md
@@ -499,6 +501,7 @@ nav:
       - Dapr Pub/Sub Failure Lab: troubleshooting/lab-guides/dapr-pubsub-failure.md
       - EasyAuth Entra ID Failure Lab: troubleshooting/lab-guides/easyauth-entra-id-failure.md
       - Multi-Region Failover Lab: troubleshooting/lab-guides/multi-region-failover.md
+      - Zone Redundancy Best-Effort Lab: troubleshooting/lab-guides/zone-redundancy-best-effort.md
   - Reference:
     - reference/index.md
     - Content Validation: reference/content-validation-status.md
