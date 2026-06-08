@@ -89,10 +89,10 @@ flowchart TD
     F[Perturbation: trigger.sh] --> G[az containerapp revision restart]
     G --> H[ACA system events]
     H --> I[Log Analytics<br/>ContainerAppSystemLogs_CL]
-    E --> J[KQL: clustered churn + recovery]
+    E --> J[KQL: clustered churn + recovery<br/>H0a falsification]
     I --> J
-    K[Load harness in trigger.sh] --> L[503 + latency samples printed to local stdout]
-    L --> J
+    K[Load harness in trigger.sh] --> L[Local stdout JSON<br/>LoadEnd success/fail totals<br/>not ingested into LAW]
+    L --> M[Local analysis<br/>H0b client-visible failure rate]
 ```
 
 ## Cleanup

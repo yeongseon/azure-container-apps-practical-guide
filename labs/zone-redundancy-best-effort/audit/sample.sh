@@ -60,13 +60,15 @@ acquire_token() {
     | jq -r '.access_token'
 }
 
-list_active_revision() {
+list_active_revisions() {
+  # Returns a JSON array of revision names with active=true. Callers
+  # detect zero/multiple active revisions explicitly so the sample event
+  # records the anomaly instead of silently collapsing to the first one.
   local token="$1" app="$2"
   curl --silent --show-error --fail \
     -H "Authorization: Bearer ${token}" \
     "https://management.azure.com/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.App/containerApps/${app}/revisions?api-version=${API_VERSION}" \
-    | jq -r '.value[] | select(.properties.active == true) | .name' \
-    | head -n1
+    | jq -c '[.value[] | select(.properties.active == true) | .name]'
 }
 
 list_replicas() {
@@ -86,20 +88,49 @@ get_min_replicas() {
 
 sample_app() {
   local token="$1" app="$2"
-  local rev replicas_json min_replicas
+  local active_json active_count rev replicas_json min_replicas
+  local resolution_status resolution_detail observed_count
 
-  if ! rev=$(list_active_revision "$token" "$app") || [[ -z "$rev" ]]; then
-    emit_error "$app" "no_active_revision" "list_active_revision returned empty"
+  if ! active_json=$(list_active_revisions "$token" "$app"); then
+    emit_error "$app" "no_active_revision" "list_active_revisions ARM call failed"
     return
   fi
 
+  active_count=$(echo "$active_json" | jq 'length')
+
+  if [[ "$active_count" -eq 0 ]]; then
+    emit_error "$app" "no_active_revision" "ARM returned zero revisions with active=true"
+    return
+  fi
+
+  if [[ "$active_count" -gt 1 ]]; then
+    local names
+    names=$(echo "$active_json" | jq -r 'join(",")')
+    emit_error "$app" "multiple_active_revisions" "active_count=${active_count} revisions=${names}"
+    return
+  fi
+
+  rev=$(echo "$active_json" | jq -r '.[0]')
+
   if ! replicas_json=$(list_replicas "$token" "$app" "$rev"); then
-    emit_error "$app" "replicas_fetch_failed" "list_replicas curl failed"
+    emit_error "$app" "replicas_fetch_failed" "list_replicas ARM call failed for revision=${rev}"
     return
   fi
 
   if ! min_replicas=$(get_min_replicas "$token" "$app"); then
     min_replicas=0
+  fi
+
+  observed_count=$(echo "$replicas_json" | jq '.value | length')
+  resolution_status="ok"
+  resolution_detail=""
+
+  if [[ "${min_replicas:-0}" -eq 0 ]]; then
+    resolution_status="partial"
+    resolution_detail="configuredMinReplicas could not be resolved or is zero"
+  elif [[ "$observed_count" -eq 0 ]]; then
+    resolution_status="empty_replica_list"
+    resolution_detail="ARM replica list returned zero entries for active revision=${rev}"
   fi
 
   jq -cn \
@@ -110,7 +141,8 @@ sample_app() {
     --argjson configuredMinReplicas "${min_replicas:-0}" \
     --arg collectionMethod "managementPlaneReplicaList" \
     --arg sampleKind "baseline" \
-    --arg resolutionStatus "ok" \
+    --arg resolutionStatus "$resolution_status" \
+    --arg resolutionDetail "$resolution_detail" \
     --argjson replicas "$(echo "$replicas_json" | jq '[.value[] | {id: .name, createdTime: .properties.createdTime, runningState: .properties.runningState}]')" \
     '{
       event:$event,
@@ -124,18 +156,24 @@ sample_app() {
       replicaRunningStates: [$replicas[].runningState],
       collectionMethod: $collectionMethod,
       sampleKind: $sampleKind,
-      resolutionStatus: $resolutionStatus
+      resolutionStatus: $resolutionStatus,
+      resolutionDetail: $resolutionDetail
     }'
 }
 
 main() {
   local token
+  IFS=',' read -r -a apps <<< "$SUBJECT_APPS"
+
   if ! token=$(acquire_token); then
     echo "ERROR: failed to acquire managed identity token" >&2
-    exit 1
+    for app in "${apps[@]}"; do
+      emit_error "$app" "token_acquisition_failed" \
+        "IMDS managed identity token request did not return an access_token"
+    done
+    exit 0
   fi
 
-  IFS=',' read -r -a apps <<< "$SUBJECT_APPS"
   for app in "${apps[@]}"; do
     sample_app "$token" "$app"
   done

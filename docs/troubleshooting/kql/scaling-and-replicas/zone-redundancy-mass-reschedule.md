@@ -49,7 +49,8 @@ flowchart TD
     B --> F[Q2 Per-app baseline]
     D --> G[Q3 Clustered churn detection]
     D --> H[Q4 Recovery duration]
-    D --> I[Q5 503 correlation]
+    P[App Insights instrumentation<br/>production traffic only<br/>not provisioned by lab] --> Q[AppRequests / requests table]
+    Q --> I[Q5 503 correlation - optional template]
     D --> J[Q6 Baseline vs perturbation]
     D --> K[Q7 Multi-app comparison]
     B --> J
@@ -182,32 +183,38 @@ Churns
 - `WithinDeadline == false` (>10 min recovery) indicates a slow path that warrants escalation review.
 - Use this column to set realistic SLOs: do not promise sub-recovery-window availability solely from `zoneRedundant=true`.
 
-## Q5 — 503 Correlation During Churn
+## Q5 — 503 Correlation During Churn (production template — optional)
 
-Overlay HTTP 5xx incidence against clustered-churn windows from Q3. Tests the lab's H0b: "clustered multi-replica churn does NOT correlate with client-visible 503 spike under load."
+Overlay HTTP 5xx incidence against clustered-churn windows from Q3. Provides the production-traffic equivalent of the lab's H0b verdict for apps that are instrumented with Application Insights.
 
-> The 5xx signal comes from your load-generator's stdout (printed by `trigger.sh --load`). For production traffic, replace the Errors block with App Insights `requests | where resultCode startswith "5"`.
+!!! warning "Lab does not generate this signal"
+    The companion lab does **not** ship an Application Insights resource, and the default sample image (`mcr.microsoft.com/azuredocs/containerapps-helloworld`) does not emit structured access logs into `ContainerAppConsoleLogs_CL`. The lab's H0b primary metric is the client-visible failure rate printed by `trigger.sh --client no-retry` (`LoadEnd.fail / LoadEnd.total`), correlated by hand to Q3 timestamps. Use Q5 only when you have a production app whose requests are visible in `AppRequests` (App Insights) or an equivalent ingested 5xx source.
 
 ```kusto
 let Window = 6h;
 let ClusterSecs = 60;
+let SubjectApps = dynamic(["app-min2", "app-min3", "app-min6"]);
 let Churns =
     ContainerAppSystemLogs_CL
     | where TimeGenerated > ago(Window)
-    | where ContainerAppName_s in ("app-min2", "app-min3", "app-min6")
+    | where ContainerAppName_s in (SubjectApps)
     | where Reason_s == "ContainerTerminated"
     | summarize TerminatedReplicas = dcount(ReplicaName_s)
               by ContainerAppName_s, bin(TimeGenerated, ClusterSecs * 1s)
     | where TerminatedReplicas >= 2
     | project ChurnBin = TimeGenerated, App = ContainerAppName_s, TerminatedReplicas;
 let Errors =
-    ContainerAppConsoleLogs_CL
-    | where TimeGenerated > ago(Window)
-    | where JobName_s == "" and isnotempty(ContainerAppName_s)
-    | where Log_s has_any ("503", "502", "504")
-    | summarize ErrorCount = count()
-              by ContainerAppName_s, bin(TimeGenerated, ClusterSecs * 1s)
-    | project ErrorBin = TimeGenerated, App = ContainerAppName_s, ErrorCount;
+    // Replace this block with your production 5xx source.
+    // Example for Application Insights:
+    //   AppRequests
+    //   | where TimeGenerated > ago(Window)
+    //   | where Properties has_any (SubjectApps)
+    //   | where ResultCode startswith "5"
+    //   | extend App = tostring(Properties["containerapps.io/app"])
+    //   | summarize ErrorCount = count() by App, bin(TimeGenerated, ClusterSecs * 1s)
+    //   | project ErrorBin = TimeGenerated, App, ErrorCount
+    // Placeholder rows so the join compiles even without instrumentation:
+    datatable(ErrorBin: datetime, App: string, ErrorCount: long) [];
 Churns
 | join kind=leftouter (Errors) on App, $left.ChurnBin == $right.ErrorBin
 | project TimeWindow = ChurnBin, App, TerminatedReplicas, ErrorCount = coalesce(ErrorCount, 0)
@@ -215,11 +222,12 @@ Churns
 | order by TimeWindow desc
 ```
 
-**Interpretation**:
+**Interpretation** (only valid when the `Errors` block is wired to a real ingested source):
 
 - `CorrelationStrong == true` across multiple churn windows is `[Correlated]` evidence that clustered churn produces client-visible failures.
-- `CorrelationStrong == false` across all churn windows is consistent with H0b (no client impact), but only if the load generator was actively running during the churn window.
+- `CorrelationStrong == false` across all churn windows is consistent with H0b (no client impact), but only if the load generator (or production traffic) was actively driving requests during the churn window.
 - Causation requires the `trigger.sh --perturb restart` control: see Q6.
+- When the `Errors` block is left as the empty placeholder datatable, every row will report `ErrorCount = 0` and `CorrelationStrong = false`. **This is not evidence in favor of H0b** — it is evidence that no 5xx source is connected.
 
 ## Q6 — Baseline vs Perturbation Comparison
 
