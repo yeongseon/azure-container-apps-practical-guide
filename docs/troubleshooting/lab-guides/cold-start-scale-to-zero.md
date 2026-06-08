@@ -198,6 +198,10 @@ az containerapp show \
 |---|---|
 | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
+[Observed] The Scale blade for the same revision shows `Min replicas: 0`, `Max replicas: 10`, `Cooldown period: 300`, `Polling interval: 30`, and a single `http-scaler` rule of type `HTTP scaling`. The `Current number of replicas` field reads `0`, matching the experimental-state precondition that the revision is allowed to scale to zero:
+
+![Scale blade showing Min replicas 0, Max replicas 10, Cooldown period 300, Polling interval 30, Current number of replicas 0, and an http-scaler rule of type HTTP scaling](../../assets/troubleshooting/cold-start-scale-to-zero/01-scale-blade-min-zero.png)
+
 ### Wait for the revision to scale in
 
 ```bash
@@ -297,6 +301,10 @@ Expected experimental-state pattern:
 ```text
 No replicas found.
 ```
+
+[Observed] The Revisions and replicas blade reports the same state visually: the single active revision `--0000005` is listed with `Running status: Scaled to 0`, `Traffic: 100%`, and `Replicas: 0`. The `Scaled to 0` status is the platform's UI signal that the revision is currently in the idle, no-replicas state that the cold-start hypothesis depends on:
+
+![Revisions and replicas blade showing revision --0000005 with Running status Scaled to 0, Traffic 100 percent, and 0 replicas](../../assets/troubleshooting/cold-start-scale-to-zero/02-revisions-scaled-to-zero.png)
 
 ### Revision and system log signals
 
