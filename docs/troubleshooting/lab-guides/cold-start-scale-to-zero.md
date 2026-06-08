@@ -198,6 +198,12 @@ az containerapp show \
 |---|---|
 | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
+[Observed] The Scale blade for revision `app-test-20240709--0000005` shows `Min replicas: 0`, `Max replicas: 10`, `Cooldown period: 300`, `Polling interval: 30`, `Current number of replicas: 0`, and one scale rule named `http-scaler` with type `HTTP scaling`:
+
+![Scale blade showing Min replicas 0, Max replicas 10, Cooldown period 300, Polling interval 30, Current number of replicas 0, and an http-scaler rule of type HTTP scaling](../../assets/troubleshooting/cold-start-scale-to-zero/01-scale-blade-min-zero.png)
+
+[Inferred] These rendered values establish the scale-to-zero precondition for the lab.
+
 ### Wait for the revision to scale in
 
 ```bash
@@ -297,6 +303,12 @@ Expected experimental-state pattern:
 ```text
 No replicas found.
 ```
+
+[Observed] The Revisions and replicas blade shows one active revision, `app-test-20240709--0000005`, with `Running status: Scaled to 0`, `Traffic: 100%`, and `Replicas: 0`:
+
+![Revisions and replicas blade showing revision --0000005 with Running status Scaled to 0, Traffic 100 percent, and 0 replicas](../../assets/troubleshooting/cold-start-scale-to-zero/02-revisions-scaled-to-zero.png)
+
+[Inferred] Together with the Scale blade above, this is the Portal evidence that the app was at the scale-to-zero baseline before the latency test.
 
 ### Revision and system log signals
 
