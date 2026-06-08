@@ -58,25 +58,55 @@ flowchart TD
 
 ## Q1 — Ingestion Check
 
-Confirm the audit Job is actually writing samples into Log Analytics before relying on any downstream query. `[Observed]` evidence that the pipeline is live.
+Confirm the audit Job is actually writing usable samples into Log Analytics before relying on any downstream query. `[Observed]` evidence that the pipeline is live and that the audit script is resolving replica state (not silently emitting error rows).
 
 ```kusto
 let LookbackHours = 2h;
 ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(LookbackHours)
-| where JobName_s == "audit-sampler"
+| extend JobNameVal = coalesce(column_ifexists("ContainerJobName_s", ""), column_ifexists("JobName_s", ""))
+| where JobNameVal == "audit-sampler"
 | extend parsed = parse_json(Log_s)
-| extend event = tostring(parsed.event)
-| where event == "ReplicaInventorySample"
-| summarize Samples = count(),
+| where tostring(parsed.event) == "ReplicaInventorySample"
+| extend resolutionStatus = tostring(parsed.resolutionStatus),
+         app = tostring(parsed.app)
+| summarize TotalSamples = count(),
+            OkSamples = countif(resolutionStatus == "ok"),
+            ErrorSamples = countif(resolutionStatus != "ok"),
+            UniqueApps = dcount(app),
             FirstSample = min(TimeGenerated),
-            LastSample = max(TimeGenerated),
-            UniqueApps = dcount(tostring(parsed.app))
-| extend ExpectedSamples = (LookbackHours / 5m) * UniqueApps
-| extend HealthRatio = round(todouble(Samples) / todouble(ExpectedSamples), 2)
+            LastSample = max(TimeGenerated)
+| extend ExpectedOkSamples = (LookbackHours / 5m) * UniqueApps
+| extend HealthRatio = round(todouble(OkSamples) / todouble(ExpectedOkSamples), 2)
 ```
 
-**Healthy result**: `HealthRatio` close to `1.0` (within ±10%), `UniqueApps == 3`. A `HealthRatio < 0.5` means the audit Job is failing or the workload profile is throttling its cold-starts — diagnose the Job, **do not** interpret downstream results as authoritative.
+**Healthy result**: `HealthRatio` close to `1.0` (within ±10%), `UniqueApps == 3`, and `ErrorSamples == 0`. `HealthRatio` is computed only from `resolutionStatus == "ok"` samples — error-shaped rows (timeouts, ARM throttling, missing replica list) intentionally do **not** count toward health. A `HealthRatio < 0.5` means the audit Job is failing or the workload profile is throttling its cold-starts — diagnose the Job, **do not** interpret downstream results as authoritative. If `ErrorSamples > 0`, run Q1b to see which apps and which `resolutionStatus` values are appearing before treating any downstream baseline as clean.
+
+### Q1b — Error Sample Breakdown (drill-down)
+
+When Q1 reports `ErrorSamples > 0`, this drill-down shows which apps the audit Job failed to inventory and the underlying `resolutionStatus` / `resolutionDetail`. `[Observed]` evidence that scopes the failure to a subset of apps so the downstream baseline (Q2-Q4) can be re-interpreted accordingly.
+
+```kusto
+let LookbackHours = 2h;
+ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(LookbackHours)
+| extend JobNameVal = coalesce(column_ifexists("ContainerJobName_s", ""), column_ifexists("JobName_s", ""))
+| where JobNameVal == "audit-sampler"
+| extend parsed = parse_json(Log_s)
+| where tostring(parsed.event) == "ReplicaInventorySample"
+| extend resolutionStatus = tostring(parsed.resolutionStatus),
+         resolutionDetail = tostring(parsed.resolutionDetail),
+         app = tostring(parsed.app)
+| where resolutionStatus != "ok"
+| summarize ErrorCount = count(),
+            FirstError = min(TimeGenerated),
+            LastError = max(TimeGenerated),
+            SampleDetail = any(resolutionDetail)
+            by app, resolutionStatus
+| order by app asc, resolutionStatus asc
+```
+
+**Interpretation**: A non-empty result for a given `app` means Q2's per-app `SteadyStateOK` flag for that app is built from a smaller-than-`UniqueApps × LookbackHours / 5m` sample. Quote `ErrorCount` next to the Q2/Q4 verdict for that app in the lab's Observed Evidence section.
 
 ## Q2 — Per-App Baseline Summary
 
@@ -86,7 +116,8 @@ Establish the steady-state observed replica count per app and confirm `observedR
 let Window = 24h;
 ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(Window)
-| where JobName_s == "audit-sampler"
+| extend JobNameVal = coalesce(column_ifexists("ContainerJobName_s", ""), column_ifexists("JobName_s", ""))
+| where JobNameVal == "audit-sampler"
 | extend parsed = parse_json(Log_s)
 | where tostring(parsed.event) == "ReplicaInventorySample"
 | where tostring(parsed.resolutionStatus) == "ok"
@@ -159,7 +190,8 @@ let Churns =
 let Recoveries =
     ContainerAppConsoleLogs_CL
     | where TimeGenerated > ago(Window)
-    | where JobName_s == "audit-sampler"
+    | extend JobNameVal = coalesce(column_ifexists("ContainerJobName_s", ""), column_ifexists("JobName_s", ""))
+    | where JobNameVal == "audit-sampler"
     | extend parsed = parse_json(Log_s)
     | where tostring(parsed.event) == "ReplicaInventorySample"
     | where tostring(parsed.resolutionStatus) == "ok"
@@ -348,7 +380,7 @@ MinConfig
 
 - **Evidence levels**: Every query above ties to one of the lab's evidence categories (`[Observed]`, `[Measured]`, `[Correlated]`, `[Inferred]`, `[Not Proven]`). The single weakest claim — per-replica AZ placement — remains `[Not Proven]` because ACA management plane does not expose it.
 - **5-minute audit cadence**: This pack reasons about replica state at 5-minute granularity. Sub-5-minute transient churn that resolves between samples will be invisible to Q2/Q4 but **will** appear in Q3 (system events are real-time).
-- **Job stdout vs app stdout**: Q1/Q2/Q4 use `JobName_s == "audit-sampler"` to isolate the audit. Q5 uses `JobName_s == ""` to find subject-app errors. Update both filters if you rename the audit Job.
+- **Job stdout filter**: Q1/Q1b/Q2/Q4 isolate audit-Job rows in `ContainerAppConsoleLogs_CL` with the defensive pattern `coalesce(column_ifexists("ContainerJobName_s", ""), column_ifexists("JobName_s", "")) == "audit-sampler"`. `ContainerJobName_s` is the documented column name for the Container Apps Jobs table; `JobName_s` is the legacy column on older workspaces. Update both literals if you rename the audit Job. Q5 is unrelated to this filter — it queries app traffic in `AppRequests` (or your own ingested 5xx source), not audit-Job stdout.
 - **Perturbation log**: `trigger.sh` prints `PerturbationStart` JSON to its own stdout, not to Log Analytics. Capture it locally (`./trigger.sh ... > /tmp/perturb.log`) and hand-copy timestamps into Q6's `PerturbWindows` table.
 
 ## Limitations
@@ -356,7 +388,7 @@ MinConfig
 - `ContainerAppSystemLogs_CL` `Reason_s` values vary across runtime versions. If the queries return zero rows even after restart, check the actual `Reason_s` values via `ContainerAppSystemLogs_CL | distinct Reason_s | take 100`.
 - `parse_json(Log_s)` fails silently when the audit container emits malformed JSON. Q1's `HealthRatio` is the canary for this.
 - Replica-level AZ placement is **not measurable** through the management plane or IMDS from inside an ACA replica. Treat all "zone-related" conclusions as `[Inferred]` from churn-pattern observation, not as `[Observed]` per-replica zone data.
-- Q5 conflates Container Apps platform 5xx (returned by the ingress) with app-emitted 5xx in `Log_s`. Use App Insights `requests` for stricter source-of-truth.
+- Q5 is an optional production template; the companion lab's H0b verdict comes from `trigger.sh` local stdout totals (`LoadEnd.fail / LoadEnd.total`) compared against an immediately-preceding baseline run of the same client variant and duration. The default sample image does **not** emit ingested 5xx telemetry into `ContainerAppConsoleLogs_CL`, so Q5's placeholder `datatable` returns zero rows in the lab environment — that is a missing-data result, not evidence in favor of H0b. Use Q5 only after you wire `AppRequests` (App Insights) or another ingested 5xx source.
 
 ## See Also
 

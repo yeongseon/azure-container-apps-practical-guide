@@ -111,7 +111,11 @@ run_load() {
             attempts=$attempt
             break
           fi
-          sleep "$(awk "BEGIN{print 0.1*(2**($attempt-1))}")"
+          # Sleep between attempts only; documented backoff is 0.2s, 0.4s, 0.8s, 1.6s
+          # after attempts 1..4. No sleep after attempt 5 to honor the four-retry budget.
+          if (( attempt < 5 )); then
+            sleep "$(awk "BEGIN{print 0.2*(2**($attempt-1))}")"
+          fi
         done
       else
         code=$(curl --silent --output /dev/null --write-out '%{http_code}' \

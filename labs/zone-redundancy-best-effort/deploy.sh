@@ -63,8 +63,8 @@ Next steps:
   3. Start collecting placement samples (wait at least one cron tick, ~5 min).
 
   4. When ready to perturb:
-       ./trigger.sh --client no-retry
-       ./trigger.sh --client retry-backoff
+       ./trigger.sh --combined --client no-retry --duration 180 --app app-min3
+       ./trigger.sh --combined --client retry-backoff --duration 180 --app app-min3
 
   5. When done, clean up:
        ./cleanup.sh

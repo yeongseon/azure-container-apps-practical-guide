@@ -201,27 +201,42 @@ date -u +"%Y-%m-%dT%H:%M:%SZ" > /tmp/zr-baseline-start.txt
 date -u +"%Y-%m-%dT%H:%M:%SZ" > /tmp/zr-baseline-end.txt
 ```
 
+| Command | Why it is used |
+|---|---|
+| `./verify.sh` | Health-check wrapper that confirms env zone-redundant flag, per-app scale config, audit Job presence, and ingestion of at least one `ReplicaInventorySample` row. Must pass before the 24-hour baseline window starts. |
+| `date -u +"..." > /tmp/zr-baseline-start.txt` / `end.txt` | Bookend timestamps for the baseline window. Quoted into the Observed Evidence subsection of Section 12 and used as the manual `BaselineWindow` filter for KQL Q3/Q6. |
+| `az containerapp job execution list --resource-group "$RG" --name "audit-sampler" --query "[].{name:name, status:properties.status}" --output table` | Optional spot-check during the baseline window to confirm the audit cron is still firing every 5 min without restarting the host shell or running additional perturbation. |
+
 ### Phase 2 — Perturbation (controlled)
 
-Three perturbation events per client variant. Always record the perturbation start timestamp into a local log so [KQL Q6](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q6-baseline-vs-perturbation-comparison) can isolate baseline from perturbation windows.
+Three perturbation events per client variant, **each preceded by an equal-duration baseline load run with the same client variant**. The baseline run is the explicit comparison window for the H0b primary metric (Section 3, item 2): each perturbation `LoadEnd.fail` is compared only to its **immediately preceding** baseline `LoadEnd.fail` of the same duration. Always record the perturbation start timestamp into a local log so [KQL Q6](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q6-baseline-vs-perturbation-comparison) can isolate baseline from perturbation windows.
 
 ```bash
 mkdir -p /tmp/zr-perturb
 for i in 1 2 3; do
+    # Baseline window: same client, same duration, no perturbation.
+    ./trigger.sh --load --client no-retry --duration 180 --app app-min3 \
+        | tee /tmp/zr-perturb/baseline-no-retry-app-min3-run${i}.json
+    sleep 60   # short settle so baseline LoadEnd is fully flushed
+    # Perturbation window: same client, same duration, with revision-restart.
     ./trigger.sh --combined --client no-retry --duration 180 --app app-min3 \
-        | tee /tmp/zr-perturb/no-retry-app-min3-run${i}.json
-    sleep 1800   # 30 minutes between events
+        | tee /tmp/zr-perturb/perturb-no-retry-app-min3-run${i}.json
+    sleep 1800   # 30 minutes between baseline/perturb pairs
 done
 
 for i in 1 2 3; do
+    ./trigger.sh --load --client retry-backoff --duration 180 --app app-min3 \
+        | tee /tmp/zr-perturb/baseline-retry-backoff-app-min3-run${i}.json
+    sleep 60
     ./trigger.sh --combined --client retry-backoff --duration 180 --app app-min3 \
-        | tee /tmp/zr-perturb/retry-backoff-app-min3-run${i}.json
+        | tee /tmp/zr-perturb/perturb-retry-backoff-app-min3-run${i}.json
     sleep 1800
 done
 ```
 
 | Command | Why it is used |
 |---|---|
+| `./trigger.sh --load ...` | Runs the load harness for `--duration` seconds at `--rps 10` with **no** perturbation. Produces the baseline `LoadEnd.fail / LoadEnd.total` totals that each immediately-following perturbation run is compared against for H0b. |
 | `./trigger.sh --combined ...` | Runs the load harness for `--duration` seconds at `--rps 10`, fires `az containerapp revision restart` 25% of the way through, and emits `PerturbationStart` / `LoadEnd` JSON to stdout. Pipe to a file so the timestamps are recoverable for Q6. |
 | `--client no-retry` | Issues exactly one curl per request; every 503 surfaces as a client-visible failure. Baseline for H0b. |
 | `--client retry-backoff` | Retries up to 4 times with `0.2s, 0.4s, 0.8s, 1.6s` backoff. Used to quantify the L2 mitigation. |
@@ -297,9 +312,9 @@ The lab is built to be falsifiable in two complementary directions:
 | Audit Job execution | `az containerapp job execution list --resource-group "$RG" --name "audit-sampler" --query "[].{name:name, status:properties.status}" --output table` | Confirms the audit cron fired during the window |
 | Perturbation timestamps | Contents of `/tmp/zr-perturb/*.json` | Source for Q6's `PerturbWindows` datatable |
 
-### Required KQL evidence (run the full pack)
+### Required KQL evidence
 
-- [Mass-Reschedule KQL pack](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md) Q1-Q7.
+Run [Mass-Reschedule KQL pack](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md) **Q1-Q4, Q6, Q7**. Q5 is **optional** — only meaningful if you wire App Insights (or another ingested 5xx source) to the subject apps; the default sample image does not emit ingested 5xx telemetry and the lab's H0b verdict comes from `trigger.sh` stdout (see Section 3, item 2).
 
 ### Required Portal captures
 
@@ -391,7 +406,7 @@ When a customer escalates a "zone-redundant environment had a brief 5xx outage" 
 !!! warning "Preserve evidence before cleanup"
     `./cleanup.sh` deletes the resource group, which destroys the Log Analytics workspace and every `ReplicaInventorySample` row stored in it. Before running cleanup, complete **all** of the following:
 
-    - Export every required KQL query (Q1-Q7) from the Logs editor as CSV via the **Export** button.
+    - Export the required KQL queries (Q1-Q4, Q6, Q7; plus Q5 only if you wired App Insights) from the Logs editor as CSV via the **Export** button.
     - Save the contents of `/tmp/zr-perturb/*.json` outside the lab repo (these are the `LoadEnd` totals that back the H0b verdict).
     - Capture every required Portal screenshot listed in Section 12 — they cannot be regenerated after the env is deleted.
 
