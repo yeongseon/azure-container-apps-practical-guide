@@ -271,7 +271,7 @@ az monitor log-analytics query \
 
 **[Inferred]** The `Real-time` radio appears to map to the live tail behavior triggered by `az containerapp logs show --follow` in [View Logs via CLI](#2-view-logs-via-cli). The `Category` toggle value `Application` appears consistent with the `stdout` JSON output produced by the `net.logstash.logback.encoder.LogstashEncoder` `CONSOLE` appender configured in [Logback Configuration](#1-logback-configuration). The `Based on revision` selector value `ca-java-d38538--0000001` appears consistent with the revision-scoped log stream surfaced by `az containerapp logs show` in [View Logs via CLI](#2-view-logs-via-cli). The `Successfully Connected to container: 'ca-java-d38538'` line appears consistent with the live tail connection initiated by `az containerapp logs show --follow` in [View Logs via CLI](#2-view-logs-via-cli).
 
-**[Not Proven]** The Application Insights distributed traces and live metrics described in [Application Insights Integration](#application-insights-integration) are not visible on this view. The Spring Boot Actuator endpoint payloads from [Spring Boot Actuator](#2-spring-boot-actuator) are not visible on this view. The `ContainerAppConsoleLogs_CL` KQL query results from [Query Console Logs](#query-console-logs) are not visible on this view. The `ContainerAppSystemLogs_CL` KQL query rows showing `ContainerAppUpdate`, `AssigningReplica`, and `KEDAScalersStarted` reasons from [Query System Logs (Startup Events)](#query-system-logs-startup-events) are not visible on this view.
+**[Not Proven]** Additional log query output and monitoring configuration detail are not visible on this view.
 
 ## See Also
 - [07 - Revisions and Traffic](07-revisions-traffic.md)

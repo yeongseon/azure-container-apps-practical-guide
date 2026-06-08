@@ -512,7 +512,7 @@ graph TD
 
 **[Inferred]** The immutable revision suffix on `ca-sample-d38538--0uzoi59` is consistent with the digest-or-versioned-tag guidance in [1) Using `:latest` image tag in production](#1-using-latest-image-tag-in-production), which treats mutable tags as the anti-pattern under review. The `Deployment mode` setting appears to map to the multi-revision posture called out in [7) Single revision mode in production](#7-single-revision-mode-in-production), which is consistent with treating single-revision mode as the anti-pattern. The `Active revisions` and `Inactive revisions` grouping appears to map to the rollout-history guidance referenced in the [Anti-pattern quick reference table](#anti-pattern-quick-reference-table), which is consistent with treating retained revisions as the rollback surface. The `Traffic` column with the displayed `100 %` value is consistent with the no-staged-rollout concern in [7) Single revision mode in production](#7-single-revision-mode-in-production), where all traffic on a single revision removes the canary option.
 
-**[Not Proven]** The image tag or digest used by the displayed revision is not visible on this view. The configured probes, secrets, and environment variables for this revision are not visible on this view. The scale-rule definitions and `minReplicas` value are not visible on this view. Whether multiple revision mode is currently enabled is not visible on this view.
+**[Not Proven]** Additional revision configuration detail and runtime parameters are not visible on this view.
 
 ## Advanced Topics
 

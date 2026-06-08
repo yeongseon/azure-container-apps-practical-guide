@@ -492,7 +492,7 @@ Adopt this as a release gate before promoting revisions:
 
 **[Inferred]** The selected `Accepting traffic from anywhere` radio option paired with `Target port` `80` appears to map to the `--ingress external` and `--target-port` flags shown in the `az containerapp create` example in [External ingress pattern for controlled public entry](#external-ingress-pattern-for-controlled-public-entry). The alternative `Limited to Container Apps Environment` radio option is consistent with the `--ingress internal` flag documented in [Internal ingress pattern for service APIs](#internal-ingress-pattern-for-service-apis). The `IP Security Restrictions Mode` value `Allow all traffic (default)` is consistent with the explicit allow/deny baseline discussed in [Ingress configuration guardrails](#ingress-configuration-guardrails). The unchecked `Session affinity` field is consistent with the guidance in [Session affinity considerations with revisions and scaling](#session-affinity-considerations-with-revisions-and-scaling) that recommends using session affinity only when necessary because it reduces load-distribution quality.
 
-**[Not Proven]** Concurrent request limits, request timeout, and idle timeout for the ingress are not visible on this view. Custom domain bindings, certificate references, and SNI configuration are not visible on this view. Defined IP allow or deny rules under `IP Restrictions` are not visible on this view. Whether the displayed ingress configuration was applied via CLI, Bicep, ARM, or Portal edit is not visible on this view.
+**[Not Proven]** Additional ingress configuration detail, binding detail, restriction detail, and provisioning detail are not visible on this view.
 
 ## Advanced Topics
 

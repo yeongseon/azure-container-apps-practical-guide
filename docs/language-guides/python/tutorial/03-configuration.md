@@ -315,7 +315,7 @@ graph TD
 
 **[Inferred]** The `Environment variables` tab appears to map to the same `name=value` pairs supplied via `--set-env-vars` in [Step-by-step](#step-by-step) Step 2. The left-navigation entry `Scale` is consistent with the `--scale-rule-*` levers configured in [Step-by-step](#step-by-step) Steps 4 and 5. The `Based on revision` field is consistent with the `az containerapp update` operations issued throughout [Step-by-step](#step-by-step). The `Save as a new revision` action is consistent with the revision-creating effect of `az containerapp update` invoked across [Step-by-step](#step-by-step).
 
-**[Not Proven]** The values set for `LOG_LEVEL` and `FEATURE_FLAG` are not visible on the `Properties` tab shown here. The `DB_PASSWORD` `secretref` mapping is not visible on the `Properties` tab shown here. The KEDA `http-scale` rule definition is not visible on the `Containers` blade. The Dapr `appId` and `appPort` values are not visible on the `Containers` blade.
+**[Not Proven]** Additional configuration detail, secret-binding detail, and integration detail are not visible on this view.
 
 ## Python example: read config safely
 

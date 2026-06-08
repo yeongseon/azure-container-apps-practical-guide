@@ -489,7 +489,7 @@ stateDiagram-v2
 
 **[Inferred]** The resource-type label `Container App Job` paired with the `Run now`/`Suspend` command bar entries is consistent with the long-running compute boundary discussed in [Decide correctly: Job vs App](#decide-correctly-job-vs-app), which separates short-lived task workloads from always-on Container Apps. The `Trigger Type` value `Manual` appears to map to the `--trigger-type "Manual"` flag shown in the `az containerapp job create` example in [Manual trigger (operator-controlled runs)](#manual-trigger-operator-controlled-runs). The `Replica timeout` value `300` and `Replica retry limit` value `1` are consistent with the `--replica-timeout` and `--replica-retry-limit` SLO levers documented in [Tune timeout and retry limits as SLO controls](#tune-timeout-and-retry-limits-as-slo-controls). The `Parallelism` value `1` and `Completion count` value `1` are consistent with the `--parallelism` and `--replica-completion-count` flags documented in [Parallelism and completion count patterns](#parallelism-and-completion-count-patterns).
 
-**[Not Proven]** The container image reference, command, arguments, and environment variables for this job are not visible on this view. Managed identity bindings, role assignments, and secret references are not visible on this view. Past execution history, replica logs, exit codes, and per-execution duration are not visible on this view. Whether the displayed job configuration was created via CLI, Bicep, ARM, or Portal create is not visible on this view.
+**[Not Proven]** Additional job configuration detail, access detail, execution detail, and provisioning detail are not visible on this view.
 
 ## Advanced Topics
 

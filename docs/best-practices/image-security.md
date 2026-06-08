@@ -95,7 +95,7 @@ Conservative guidance:
 
 **[Inferred]** The immutable revision suffix on `ca-sample-d38538--0uzoi59` is consistent with the version-pinning guidance in [Pin deploys to immutable versions](#pin-deploys-to-immutable-versions), which treats immutable references as the basis for predictable rollback. The `Create new revision` control appears to map to the gated-promotion guidance in [Scan images before promotion](#scan-images-before-promotion), which is consistent with separating scan approval from rollout. The `Active revisions` and `Inactive revisions` grouping is consistent with the rollback-traceability concern called out in the anti-pattern table below, which warns that `:latest` weakens rollback traceability. The `Container App` resource-type label for `ca-sample-d38538` appears to map to the registry-authentication scope in [Use Azure Container Registry with managed identity](#use-azure-container-registry-with-managed-identity), which describes the container app authenticating to ACR via managed identity.
 
-**[Not Proven]** The image registry, repository, tag, and digest used by the displayed revision are not visible on this view. Managed identity bindings and `AcrPull` role assignments are not visible on this view. Defender for Containers scan status and vulnerability findings are not visible on this view. Azure Policy registry allow-list rules are not visible on this view.
+**[Not Proven]** Additional image provenance detail, access-control detail, scan detail, and policy detail are not visible on this view.
 
 ## Common Mistakes / Anti-Patterns
 

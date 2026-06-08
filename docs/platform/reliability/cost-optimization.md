@@ -72,7 +72,7 @@ The Azure Portal **Scale** blade is the surface that names the replica range and
 
 **[Inferred]** The `Min replicas` and `Max replicas` fields appear to map to the `minReplicas` and `maxReplicas` rows of this page's [Cost Lever Matrix](#cost-lever-matrix). The `Min replicas` placeholder text `Min: 0` is consistent with the floor this page's [Scale-to-Zero for Intermittent Workloads](#scale-to-zero-for-intermittent-workloads) section sets via `az containerapp update --min-replicas 0`.
 
-**[Not Proven]** CPU and memory per replica are not shown on this blade. Workload profile selection is not shown. The HTTP scaler's threshold value is not shown. Cost in currency is not shown.
+**[Not Proven]** Additional replica sizing detail, workload profile detail, scale-rule configuration detail, and cost detail are not shown on this blade.
 
 ## Cost Lever Matrix
 

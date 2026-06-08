@@ -266,7 +266,7 @@ const jsonLogger = (req, res, next) => {
 
 **[Inferred]** The `Real-time` radio appears to map to the live tail behavior triggered by `az containerapp logs show --follow` in [Step-by-step](#step-by-step) Step 2. The `Category` toggle value `Application` appears consistent with the default console-log stream from [Step-by-step](#step-by-step) Step 2, and the `System` option appears consistent with the system-log selector exercised in [Step-by-step](#step-by-step) Step 3. The displayed log line `{"timestamp":"2026-06-04T08:33:58.655Z","level":"INFO","message":"Server started on port 8000"}` appears consistent with the `Server started on port 8000` startup log shape shown in the expected output of [Step-by-step](#step-by-step) Step 2. The displayed log line containing `"method":"GET","path":"/health","statusCode":200` appears consistent with the per-request structured JSON log shape (containing HTTP method, URL, and status fields) shown in the second expected output line of [Step-by-step](#step-by-step) Step 2.
 
-**[Not Proven]** The Log Analytics KQL query results from [Step-by-step](#step-by-step) Step 4 are not visible on this view. The error-row results returned by the KQL query in [Step-by-step](#step-by-step) Step 5 are not visible on this view. The OpenTelemetry trace export from [Step-by-step](#step-by-step) Step 6 is not visible on this view. The `az containerapp logs show` CLI invocation from [Step-by-step](#step-by-step) Step 2 is not visible on this view.
+**[Not Proven]** Additional log query output, trace export detail, and CLI command output are not visible on this view.
 
 ## See Also
 

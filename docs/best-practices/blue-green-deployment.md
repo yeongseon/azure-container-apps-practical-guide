@@ -156,7 +156,7 @@ resource app 'Microsoft.App/containerApps@2026-01-01' = {
 
 **[Inferred]** The `Deployment mode` setting appears to map to the multiple-revisions prerequisite called out in [1. Use multiple revision mode first](#1-use-multiple-revision-mode-first), which is consistent with treating multiple revision mode as the baseline for blue/green. The `Active revisions` and `Inactive revisions` grouping is consistent with the blue-warm-during-green guidance in [6. Keep blue warm for a short rollback window](#6-keep-blue-warm-for-a-short-rollback-window), which keeps the prior revision available for rollback. The `Label` column appears to map to the stable-label guidance in [3. Attach a stable label to the green revision](#3-attach-a-stable-label-to-the-green-revision), which uses a label to identify the green revision. The `Traffic` column with the displayed `100 %` value is consistent with the weight-or-label-move swap described in [5. Swap with a label move or weight change](#5-swap-with-a-label-move-or-weight-change), which shifts traffic between revisions.
 
-**[Not Proven]** The current label-to-revision binding for blue and green is not visible on this view. The traffic-split percentages across multiple revisions are not visible on this view. The image tag or digest used by the displayed revision is not visible on this view. The pre-swap validation results and health-probe status are not visible on this view.
+**[Not Proven]** Additional rollout binding detail, traffic detail, and validation detail are not visible on this view.
 
 ## Common Mistakes / Anti-Patterns
 

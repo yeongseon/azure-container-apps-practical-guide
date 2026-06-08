@@ -91,7 +91,7 @@ The Azure Portal **Revisions and replicas** blade is the surface that names the 
 
 **[Inferred]** The per-revision column `Running status` with value `Running` is consistent with this page's [Verification Steps](#verification-steps) reading revision-scoped state via `az containerapp revision list --output table`. The per-revision identifier under `Name` (`ca-sample-d38538--0uzoi59`) appears to map to the `--revision` argument shape this page's [Restart and Recovery Workflows](#restart-and-recovery-workflows) passes to `az containerapp revision restart`.
 
-**[Not Proven]** Probe configuration is not shown. Restart counts are not shown. Replica-level failure history is not shown. Whether the `Running` value reflects startup, liveness, or readiness probe results is not shown.
+**[Not Proven]** Additional probe detail, restart detail, replica failure history detail, and health-state detail are not shown on this blade.
 
 ## Restart and Recovery Workflows
 

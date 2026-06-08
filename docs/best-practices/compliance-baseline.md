@@ -222,7 +222,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 
 **[Inferred]** The `System assigned` and `User assigned` tabs appear to map to the managed-identity expectation in the [Identity](#identity) baseline checklist, which is consistent with treating managed identity as the required authentication surface. The `Status` `Off` and `On` toggle is consistent with the explicit-activation posture documented in [Start from the Microsoft baseline, then map to your platform standard](#start-from-the-microsoft-baseline-then-map-to-your-platform-standard), which treats security defaults as deliberate baseline decisions. The `Refresh` toolbar control is consistent with the periodic-attestation expectation in the [Logging and audit](#logging-and-audit) baseline checklist, which treats current-state inspection as a recurring baseline activity. The `User assigned` tab appears to map to the shared-credential scoping discussed in the [Image](#image) baseline checklist, which is consistent with binding registry pulls to a managed identity rather than admin credentials.
 
-**[Not Proven]** The Azure RBAC role assignments granted to this identity are not visible on this view. The Key Vault references and secret store bindings are not visible on this view. The registry-authentication mode and `AcrPull` assignments are not visible on this view. The Azure Policy compliance state for this resource is not visible on this view.
+**[Not Proven]** Additional identity configuration detail, secret binding detail, and policy detail are not visible on this view.
 
 ## Common Mistakes / Anti-Patterns
 

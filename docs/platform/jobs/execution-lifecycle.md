@@ -111,7 +111,7 @@ stateDiagram-v2
 
 **[Inferred]** The `Status` column of `Succeeded` appears consistent with the `Succeeded` terminal state in the [Conceptual execution states](#conceptual-execution-states) table. The `Duration`, `Start time (UTC)`, and `End time (UTC)` columns appear to surface the runtime window referenced by `replicaTimeout` in [Retry and timeout controls](#retry-and-timeout-controls). The presence of a single row alongside the `For older executions or more advanced analysis, see Logs` text is consistent with the bounded-retention point made in [History retention](#history-retention).
 
-**[Not Proven]** No `Failed` or `Stopped` row is visible in this PNG. The number of replicas per execution is not shown on this blade. Retry counts are not shown on this blade. The trigger type that started this execution is not shown on this blade.
+**[Not Proven]** Additional execution history detail, replica detail, retry detail, and trigger detail are not shown on this blade.
 
 ## See Also
 

@@ -294,7 +294,7 @@ Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schem
 
 **[Inferred]** The `Real-time` radio appears to map to the live tail behavior triggered by `az containerapp logs show --follow` in [Step-by-step](#step-by-step) Step 2. The `Category` toggle value `Application` appears consistent with the default console-log stream from [Step-by-step](#step-by-step) Step 2, and the `System` option appears consistent with the `--type system` selector exercised in [Step-by-step](#step-by-step) Step 3. The `Based on revision` selector value `ca-sample-d38538--v2` appears consistent with the `Revision:` identifier embedded inside the Step 2 expected log output line in [Step-by-step](#step-by-step) Step 2. The `Replica` selector value `ca-sample-d38538--v2-64dd6cf5b6-2wdpl` appears consistent with the `Replica:` identifier embedded inside the same Step 2 expected log output line.
 
-**[Not Proven]** The Log Analytics KQL query results from [Step-by-step](#step-by-step) Step 4 are not visible on this view. The error-row results returned by the KQL query in [Step-by-step](#step-by-step) Step 5 are not visible on this view. The OpenTelemetry trace export from [Step-by-step](#step-by-step) Step 6 is not visible on this view. The KEDA scaling telemetry correlation described in [Step-by-step](#step-by-step) Step 7 is not visible on this view.
+**[Not Proven]** Additional log query output, trace export detail, and scaling telemetry detail are not visible on this view.
 
 ## Observability practices
 
