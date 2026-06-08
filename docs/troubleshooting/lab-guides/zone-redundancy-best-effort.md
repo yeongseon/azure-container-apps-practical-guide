@@ -203,7 +203,7 @@ date -u +"%Y-%m-%dT%H:%M:%SZ" > /tmp/zr-baseline-end.txt
 
 | Command | Why it is used |
 |---|---|
-| `./verify.sh` | Health-check wrapper that confirms env zone-redundant flag, per-app scale config, audit Job presence, and ingestion of at least one `ReplicaInventorySample` row. Must pass before the 24-hour baseline window starts. |
+| `./verify.sh` | Health-check wrapper that confirms the resource group, env `zoneRedundant=true` flag, each subject app's `runningStatus == Running` + `minReplicas == N` + replica count, the audit Job's `provisioningState == Succeeded`, and the presence of a Log Analytics workspace. It does **not** query the workspace for `ReplicaInventorySample` ingestion — that signal only appears after the 5-minute audit cron has fired at least once, and is verified separately by KQL Q1 in Section 7. Wait at least one audit tick after deploy before running Q1. |
 | `date -u +"..." > /tmp/zr-baseline-start.txt` / `end.txt` | Bookend timestamps for the baseline window. Quoted into the Observed Evidence subsection of Section 12 and used as the manual `BaselineWindow` filter for KQL Q3/Q6. |
 | `az containerapp job execution list --resource-group "$RG" --name "audit-sampler" --query "[].{name:name, status:properties.status}" --output table` | Optional spot-check during the baseline window to confirm the audit cron is still firing every 5 min without restarting the host shell or running additional perturbation. |
 
