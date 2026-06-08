@@ -241,7 +241,7 @@ graph TD
 
 **[Inferred]** The `Container App` row `ca-nodejs-d38538` appears consistent with the Container App resource deployed by `az deployment group create` against the Bicep template in [Step-by-step](#step-by-step) Step 4. The `Container Apps Environment` row `cae-basics-d38538` appears consistent with the environment resource deployed by the same `az deployment group create` invocation in [Step-by-step](#step-by-step) Step 4. The `Container registry` row `acrbasicsd38538` appears consistent with the `containerRegistryName` output that [Step-by-step](#step-by-step) Step 5 retrieves via `az deployment group show --query properties.outputs`. The `Log Analytics workspace` row `law-basics-d38538` appears consistent with the workspace resource referenced by the environment module shown in [Example Bicep snippet (environment + logs)](#example-bicep-snippet-environment-logs).
 
-**[Not Proven]** The `properties.outputs` JSON payload returned by [Step-by-step](#step-by-step) Step 5 is not visible on this view. The `az deployment group validate` `status` JSON from [Step-by-step](#step-by-step) Step 2 is not visible on this view. The `az deployment group what-if` change preview from [Step-by-step](#step-by-step) Step 3 is not visible on this view. The per-deployment history record for the `az deployment group create` run from [Step-by-step](#step-by-step) Step 4 is not visible on this view.
+**[Not Proven]** Additional template validation output, change preview detail, and deployment history detail are not visible on this view.
 
 ## Example Bicep snippet (environment + logs)
 

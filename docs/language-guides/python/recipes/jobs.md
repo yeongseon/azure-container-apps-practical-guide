@@ -251,7 +251,7 @@ az containerapp job execution list \
 
 **[Inferred]** The `Trigger Type` field reading `Manual` appears to map to the `--trigger-type "Manual"` lever passed to `az containerapp job create` in [Steps](#steps) Step 1. The `Replica timeout` value `300` appears to map to the `--replica-timeout 300` lever passed to `az containerapp job create` in [Steps](#steps) Step 2. The `Replica retry limit` value `1` appears to map to the `--replica-retry-limit 1` lever passed in [Steps](#steps) Steps 1 and 2. The `Parallelism` value `1` and `Completion count` value `1` appear to map to `--parallelism 1` and `--replica-completion-count 1` passed in [Steps](#steps) Step 1. The `Run now` toolbar action is consistent with the `az containerapp job start` invocation in [Steps](#steps) Step 1.
 
-**[Not Proven]** The Service Bus scaler from [Steps](#steps) Step 2 is not visible on this Manual job view. The `--env-vars SERVICEBUS_NAMESPACE` and `SERVICEBUS_QUEUE` values from [Steps](#steps) Step 2 are not visible on this view. The dedup-table behavior described in [Steps](#steps) Step 3 is not visible on this overview blade. Individual execution exit codes are not visible on this overview blade.
+**[Not Proven]** Additional job trigger configuration, runtime parameter, and execution detail are not visible on this view.
 
 ## Next Steps / Clean Up
 

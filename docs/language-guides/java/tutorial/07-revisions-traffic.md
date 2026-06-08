@@ -223,7 +223,7 @@ az containerapp revision deactivate \
 
 **[Inferred]** The `Deployment mode` toolbar action appears to map to the same lever discussed in [Revision Modes](#revision-modes). The `Create new revision` toolbar action is consistent with the new-revision effect of `az containerapp update --image` documented in [Creating New Revisions](#creating-new-revisions). The `Active revisions` and `Inactive revisions` tabs are consistent with the `revision list` and `revision deactivate` operations in [Cleaning Up Old Revisions](#cleaning-up-old-revisions). The `Traffic` column value `100 %` for `ca-java-d38538--0000001` appears to map to the per-revision weight set by `az containerapp ingress traffic set --traffic-weight` in [Managing Traffic Splitting](#managing-traffic-splitting).
 
-**[Not Proven]** Any canary revision and weight applied in [Managing Traffic Splitting](#managing-traffic-splitting) are not visible on this view. Any 50/50 or 10/90 split target named in [Managing Traffic Splitting](#managing-traffic-splitting) is not visible on this view. The `Label` column is empty for the listed revision. The `Inactive revisions` tab contents are not visible on this view.
+**[Not Proven]** Additional revision detail and traffic-split detail are not visible on this view.
 
 ## See Also
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)

@@ -118,7 +118,7 @@ flowchart TD
 
 **[Inferred]** The `Trigger Type` field value of `Event` appears to map to the same configuration lever set by `--trigger-type "Event"` in [How event triggering works](#how-event-triggering-works). The `Replica timeout` field appears to map to the same lever set by `--replica-timeout` in that same section. The `Replica retry limit` field appears to map to the same lever set by `--replica-retry-limit` in that same section. The `Parallelism` and `Completion count` fields appear consistent with the bounded-unit-of-work model described in [Jobs vs event-driven apps](#jobs-vs-event-driven-apps).
 
-**[Not Proven]** No scale-rule name, type, or metadata is shown on this blade. No scaler authentication mode is shown on this blade. No polling interval value is shown on this blade. No execution-history rows are shown on this blade. No event-source backlog value is shown on this blade.
+**[Not Proven]** No scale-rule configuration detail, authentication detail, polling detail, execution history detail, or event-source backlog detail is shown on this blade.
 
 ## See Also
 

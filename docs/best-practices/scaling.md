@@ -429,7 +429,7 @@ Use this checklist for recurring scale reviews:
 
 **[Inferred]** The `Min replicas` `1` and `Max replicas` `3` fields appear to map to the `--min-replicas` and `--max-replicas` flags shown in the `az containerapp update` example in [Tune HTTP scaling with concurrency and response behavior in mind](#tune-http-scaling-with-concurrency-and-response-behavior-in-mind). The `http-scaler` row under `Scale rules` with `Type` `HTTP scaling` is consistent with the `--scale-rule-name "http-concurrency"` and `--scale-rule-type http` pair documented in the same section. The non-zero `Min replicas` `1` value is consistent with the `minReplicas: 1+` column in the criteria table in [Decide explicitly on scale-to-zero](#decide-explicitly-on-scale-to-zero). The presence of a single rule named `http-scaler` is consistent with the single-signal guidance in [Choose scaler types by workload signal quality](#choose-scaler-types-by-workload-signal-quality).
 
-**[Not Proven]** Concurrency targets, queue lengths, or custom metric thresholds for the `http-scaler` rule are not visible on this view. Historical scale events, replica scale-out timestamps, and per-replica resource utilization are not visible on this view. KEDA scaler authentication configuration, identity bindings, and secret references are not visible on this view. Whether the displayed values were applied via CLI, Bicep, ARM, or Portal edit is not visible on this view.
+**[Not Proven]** Additional scale-rule configuration detail, historical detail, authentication detail, and provisioning detail are not visible on this view.
 
 ## Advanced Topics
 

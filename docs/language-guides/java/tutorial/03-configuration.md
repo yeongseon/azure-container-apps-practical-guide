@@ -231,7 +231,7 @@ az containerapp secret set \
 
 **[Inferred]** The `Environment variables` tab appears to map to the `--set-env-vars` lever exercised in [Setting Environment Variables via CLI](#2-setting-environment-variables-via-cli). The mapping between any rows on the `Environment variables` tab and Spring Boot property keys appears consistent with the relaxed-binding rules described in [Mapping Properties](#1-mapping-properties). The `Secrets` left-side entry appears related to the secret-to-environment-variable flow exercised in [Map Secret to Environment Variable](#2-map-secret-to-environment-variable). The `Authentication` value `Managed identity` appears consistent with the managed-identity configuration in [Configure Managed Identity](#2-configure-managed-identity).
 
-**[Not Proven]** The values configured for `SPRING_PROFILES_ACTIVE` and similar Spring Boot environment variables are not visible on the `Properties` tab shown here. Any `secretref` mapping for Key Vault references is not visible on the `Properties` tab shown here. The Health probe paths configured for Spring Boot Actuator are not visible on the `Properties` tab. The Volume mounts for any external storage are not visible on the `Properties` tab.
+**[Not Proven]** Additional configuration detail and runtime parameter detail are not visible on this view.
 
 ## See Also
 - [Java Runtime Reference](../java-runtime.md)

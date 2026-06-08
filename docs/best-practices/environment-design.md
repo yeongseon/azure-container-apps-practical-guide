@@ -123,7 +123,7 @@ Suggested baseline tags:
 
 **[Inferred]** The `Tags (edit)` field with value `Add tags` is consistent with the baseline-tag schema discussed in [Standardize names and tags](#standardize-names-and-tags), where stable metadata such as `environment`, `workload`, and `region` is expected to be applied to the environment resource. The `Location` value `Korea Central` is consistent with the region-selection criteria listed in [Choose regions deliberately](#choose-regions-deliberately). The `Environment type` value `Workload profiles` is consistent with the workload-profile availability bullet listed under [Choose regions deliberately](#choose-regions-deliberately). The environment-scoped page header `cae-basics-d38538` paired with the `Container Apps Environment` resource type is consistent with treating the environment as a lifecycle-tier boundary as discussed in [Use one environment per lifecycle tier by default](#use-one-environment-per-lifecycle-tier-by-default).
 
-**[Not Proven]** Subnet configuration, custom DNS suffix, zone redundancy, and Log Analytics workspace bindings are not visible on this view. Workload profile mix (Consumption vs Dedicated D4/D8/E4/E8), node counts, and per-profile quotas are not visible on this view. Outbound NAT egress rules, private endpoint connections, and peered virtual networks are not visible on this view. Whether the displayed environment was provisioned via CLI, Bicep, ARM, or Portal create is not visible on this view.
+**[Not Proven]** Additional environment configuration detail, profile capacity detail, network topology detail, and provisioning detail are not visible on this view.
 
 ## Common Mistakes / Anti-Patterns
 

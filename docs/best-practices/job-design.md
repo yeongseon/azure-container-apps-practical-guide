@@ -121,7 +121,7 @@ For event-driven Jobs:
 
 **[Inferred]** The resource-type label `Container App Job` is consistent with the runtime-shape distinction discussed in [Choose Jobs vs apps based on runtime shape](#choose-jobs-vs-apps-based-on-runtime-shape), which separates bounded-exit workloads from long-running Container Apps workers. The `Trigger Type` value `Manual` appears to map to the operator-initiated replay scenario described in [Make every job idempotent](#make-every-job-idempotent), where a job can be retried or replayed manually during incident handling. The `Replica timeout` value `300` and `Replica retry limit` value `1` are consistent with the `replicaTimeout` and retry-limit guardrails called out in [Common Mistakes / Anti-Patterns](#common-mistakes-anti-patterns), which warns against omitting timeout and amplifying outages with high retry counts. The `Workload profile` value `Consumption` is consistent with the workload-specific sizing guidance in [Right-size CPU and memory](#right-size-cpu-and-memory), which treats resource choices as measured decisions and calls out GPU-oriented profiles as specialized rather than default.
 
-**[Not Proven]** Idempotency key implementations, dedup tables, and checkpoint records are not visible on this view. Structured log fields, correlation IDs, and OpenTelemetry trace exports are not visible on this view. Dead-letter routing, poison-message handlers, and replay runbook bindings are not visible on this view. Measured runtime, success rate, and retry-count history are not visible on this view.
+**[Not Proven]** Additional job implementation detail, observability detail, failure-handling detail, and historical detail are not visible on this view.
 
 ## Review Matrix
 

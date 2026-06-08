@@ -571,7 +571,7 @@ curl "https://$APP_FQDN/health"
 
 **[Inferred]** The `Status` field value of `Running` appears consistent with the `state:properties.provisioningState` of `Succeeded` returned by the CLI verification in [Step 8: Verify deployment](#step-8-verify-deployment). The `Application Url` field appears to surface the same `properties.configuration.ingress.fqdn` value queried in [Step 7: Create Container App](#step-7-create-container-app). The `Container Apps Environme...` link appears to map to the `$ENVIRONMENT_NAME` value supplied to `--environment` in [Step 7: Create Container App](#step-7-create-container-app). The left-navigation entries `Containers`, `Scale`, `Ingress`, and `Logs` are consistent with the artifacts created across [Step 5: Create Container Apps environment](#step-5-create-container-apps-environment) and [Step 7: Create Container App](#step-7-create-container-app).
 
-**[Not Proven]** The image digest is not shown on this blade. The replica count is not shown on this blade. The revision name is not shown on this blade. The health-probe status is not shown on this blade.
+**[Not Proven]** Additional deployment detail and runtime health detail are not visible on this blade.
 
 ## See Also
 - [05 - Infrastructure as Code with Bicep](05-infrastructure-as-code.md)

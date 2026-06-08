@@ -70,7 +70,7 @@ graph TD
 
 **[Inferred]** The `Container Apps Environment` `cae-basics-d38538` value with its nested `ca-sample-d38538` `Container App` row is consistent with the environment-to-app resource hierarchy summarized in [Documents](#documents).
 
-**[Not Proven]** The control-plane and data-plane components behind this environment are not visible on this view. The revision lifecycle state of the listed Container App is not visible on this view. The configured scaling rules for the listed Container App are not visible on this view. The networking and ingress controls for the environment are not visible on this view.
+**[Not Proven]** Additional platform component detail, revision detail, scale-rule configuration detail, and networking detail are not visible on this view.
 
 ## Advanced Topics
 

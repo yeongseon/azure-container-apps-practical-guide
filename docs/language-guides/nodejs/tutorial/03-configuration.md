@@ -234,7 +234,7 @@ graph TD
 
 **[Inferred]** The `Environment variables` tab appears to map to the same `name=value` pairs supplied via `--set-env-vars` in [Step-by-step](#step-by-step). The `Image` field value `nodejs-sample` and `Image tag` value `v1` appear consistent with the `--image` reference set across [Step-by-step](#step-by-step). The `Registry` field value `acrbasicsd38538.azurecr.io` is consistent with the ACR login server referenced throughout [Step-by-step](#step-by-step). The left-navigation entry `Scale` is consistent with the `--scale-rule-*` levers configurable via the operations referenced in [Step-by-step](#step-by-step).
 
-**[Not Proven]** The values configured for `NODE_ENV` and other environment variables are not visible on the `Properties` tab shown here. Any `secretref` mapping is not visible on the `Properties` tab shown here. The KEDA `http-scale` rule definition is not visible on the `Containers` blade. The Dapr `appId` and `appPort` values are not visible on the `Containers` blade.
+**[Not Proven]** Additional configuration detail, secret-binding detail, and integration detail are not visible on this view.
 
 ## Node.js example: read config safely
 

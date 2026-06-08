@@ -284,7 +284,7 @@ graph TD
 
 **[Inferred]** The `Deployment mode` toolbar action appears to map to the same lever set by `az containerapp revision set-mode --mode multiple` in [Step-by-step](#step-by-step) Step 2. The `Create new revision` toolbar action is consistent with the new-revision effect of `az containerapp update --image` in [Step-by-step](#step-by-step) Step 3. The `Active revisions` and `Inactive revisions` tabs are consistent with the `revision list` and `revision deactivate` operations in [Step-by-step](#step-by-step) Steps 4 and 8. The `Traffic` column value `100 %` for `ca-dotnet-d38538--0000001` appears to map to the per-revision weight set by `az containerapp ingress traffic set --revision-weight` in [Step-by-step](#step-by-step) Steps 5 and 6.
 
-**[Not Proven]** The canary revision and its `10 %` weight from [Step-by-step](#step-by-step) Step 5 are not visible on this view. The 90/10 split target named in [Step-by-step](#step-by-step) Step 5 is not visible on this view. The `Label` column is empty for the listed revision. The `Inactive revisions` tab contents are not visible on this view.
+**[Not Proven]** Additional revision detail and traffic-split detail are not visible on this view.
 
 ## Operational Guidance for .NET
 

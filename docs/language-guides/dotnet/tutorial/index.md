@@ -70,7 +70,7 @@ flowchart TD
 
 **[Inferred]** The `Container App` row `ca-dotnet-d38538` in the `Applications` tab appears consistent with the Container App created by [Steps](#steps) Step `02-first-deploy`, whose Purpose column states "Publish the container image and create the first Container App". The `Environment type` value `Workload profiles` appears consistent with the environment that [Steps](#steps) Step `05-infrastructure-as-code` provisions, whose Purpose column states "Provision the environment with Bicep". The `Resource group` value `rg-aca-basics-d38538` appears consistent with the resource group that hosts the environment provisioned in [Steps](#steps) Step `05-infrastructure-as-code`, whose Purpose column states "Provision the environment with Bicep". The `Status` value `Succeeded` appears consistent with the healthy provisioning end-state targeted by the Bicep run in [Steps](#steps) Step `05-infrastructure-as-code`.
 
-**[Not Proven]** The local Docker build output and container startup log output from [Steps](#steps) Step `01-local-development` are not visible on this view. The `az containerapp create` output from [Steps](#steps) Step `02-first-deploy` is not visible on this view. The `az containerapp logs show` output and Log Analytics KQL results from [Steps](#steps) Step `04-logging-monitoring` are not visible on this view. The revision list and traffic-split percentages from [Steps](#steps) Step `07-revisions-traffic` are not visible on this view.
+**[Not Proven]** Additional tutorial step output and traffic-split detail from earlier steps are not visible on this view.
 
 ## Related Guides
 

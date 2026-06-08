@@ -103,7 +103,7 @@ Microsoft Learn now recommends using the built-in Consumption profile in a Workl
 
 **[Inferred]** The `Environment type` `Workload profiles` value is consistent with the v2-recommended environment surface discussed in [Migration considerations](#migration-considerations).
 
-**[Not Proven]** Whether the displayed environment was originally provisioned as Consumption-only or Workload profiles is not visible on this view. The billing-rate breakdown (CPU-seconds, memory-seconds, request count) is not visible on this view. The configured workload-profile names and replica resource boundaries are not visible on this view. The VNet, subnet, and CIDR bindings for this environment are not visible on this view.
+**[Not Proven]** Additional environment provisioning detail, billing detail, workload profile detail, and network binding detail are not visible on this view.
 
 ## See Also
 
