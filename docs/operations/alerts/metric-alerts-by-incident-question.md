@@ -96,6 +96,11 @@ Before you commit a new metric-alert rule to production, confirm the metric is a
       --query "[?name.value=='CpuPercentage']"
     ```
 
+    | Flag | Purpose |
+    |---|---|
+    | `--resource` | Full Azure resource ID of the target container app; `metrics list-definitions` is resource-scoped, so the shorter `--name` form is not accepted here. |
+    | `--query` | JMESPath filter on the response to verify the specific metric ID (`CpuPercentage`) is actually published for this resource and not just listed in Azure-wide reference docs. |
+
 2. Dry-run the aggregation over a recent window to confirm non-empty data and a realistic baseline. The `--offset` flag accepts portable `##d##h` notation (default `1h`) and avoids OS-specific `date` substitutions:
 
     ```bash
