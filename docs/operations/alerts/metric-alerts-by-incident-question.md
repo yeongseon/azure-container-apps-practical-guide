@@ -1,11 +1,12 @@
 ---
 content_sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/alerts
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
+  references:
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/alerts
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'

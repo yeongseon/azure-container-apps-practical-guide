@@ -1,6 +1,6 @@
 ---
 content_sources:
-  text:
+  references:
     - type: mslearn-adapted
       url: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
     - type: mslearn-adapted
