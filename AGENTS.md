@@ -169,6 +169,8 @@ The helper applies replacements to text nodes **and** `aria-label` attributes ac
 | `*.onmicrosoft.com` (bare domain) | `contoso.onmicrosoft.com` | Tenant domains. Trailing negative lookahead prevents partial rewrites of longer hostnames such as `tenant.onmicrosoft.com.uk`. |
 | `ychoe` (employee alias) | `demouser` | Author alias, word-bounded so unrelated tokens are not touched. |
 | `Yeongseon Choe` (display name) | `Demo User` | Author display name. |
+| `yeongseon` (GitHub handle, bare token) | `demouser` | Author GitHub username surfaced in Deployment Center "Signed in as" panels and similar source-control integrations. Case-insensitive and word-bounded; runs AFTER the `Yeongseon Choe` rule so the full display-name form is preserved. |
+| Uppercase hex token ≥ 32 chars (Custom Domain Verification ID, other SHA-256-style identifiers) | 64-char `AAAA…A` placeholder | Custom Domain Verification IDs and similar long uppercase hex strings are real account-scoped tokens that the GUID regex does not match. Boundary-anchored so shorter hex substrings inside other tokens are not partially rewritten. |
 | Account-menu avatar (cannot be rewritten) | Native Playwright mask, `maskColor='#0078d4'` | Blends with Portal command bar. The helper throws if the avatar selector matches nothing. |
 
 The replacement scope covers text nodes, `aria-label`, `title`, and the visible value of `input` / `textarea` controls so search bars and filter chips do not leak resource names.
@@ -203,6 +205,8 @@ async (page) => {
       { re: /\\b[A-Za-z0-9-]+\\.onmicrosoft\\.com(?![A-Za-z0-9.-])/gi, val: 'contoso.onmicrosoft.com' },
       { re: /\\bychoe\\b/gi, val: 'demouser' },
       { re: /Yeongseon\\s+Choe/g, val: 'Demo User' },
+      { re: /\\byeongseon\\b/gi, val: 'demouser' },
+      { re: /\\b[0-9A-F]{32,}\\b/g, val: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' },
     ];
     const apply = (s) => { let o=s; for (const {re,val} of subs){ re.lastIndex=0; o=o.replace(re,val);} return o; };
     const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
@@ -243,6 +247,7 @@ async (page) => {
     - No `ychoe@microsoft.com` or `Yeongseon Choe` anywhere
     - Subscription ID rendered as `00000000-0000-0000-0000-000000000000`
     - Subscription name rendered as `Visual Studio Enterprise Subscription`
+    - Any Custom Domain Verification ID (or other long uppercase hex token) rendered as `AAAA…A`, never as a real value
     - Account avatar masked with solid Portal-blue (`#0078d4`), not a black rectangle
 5. **If verification fails** → fix the helper / inline snippet and re-capture. Never ship a capture with raw PII or a black-box mask.
 
