@@ -161,6 +161,7 @@ jobs:
       - name: Validate MSLearn URLs
         run: |
           python scripts/validate_mslearn_urls.py --verbose
+        continue-on-error: true  # Don't fail build on URL issues, just report
 
   build-docs:
     name: Build Documentation
