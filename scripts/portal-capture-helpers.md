@@ -1,8 +1,8 @@
 # Portal capture helpers
 
 Reusable PII-masking utilities for Azure Portal screenshots. Used across every
-troubleshooting lab capture to keep redactions consistent and to avoid leaking
-real Azure account identifiers into the documentation.
+documentation capture in this repository to keep redactions consistent and to
+avoid leaking real Azure account identifiers into the documentation.
 
 ## What it does
 
@@ -30,7 +30,7 @@ const context = await browser.newContext({ viewport: { width: 1600, height: 1000
 const page = await context.newPage();
 
 await page.goto(
-  'https://ms.portal.azure.com/#@fdpo.onmicrosoft.com/resource/' +
+  'https://ms.portal.azure.com/#@<tenant>.onmicrosoft.com/resource/' +
   'subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.App/containerApps/<app>/containerapp'
 );
 
@@ -131,7 +131,7 @@ async (page) => {
   cumulative, and leftover styles from a previous capture can leak into the
   next page (for example, the left-nav rendering as a black box).
 - **Use `ms.portal.azure.com` with the tenant hint fragment** (e.g.
-  `#@fdpo.onmicrosoft.com/...`). Plain `portal.azure.com` triggers a login
+  `#@<tenant>.onmicrosoft.com/...`). Plain `portal.azure.com` triggers a login
   redirect.
 - **Prefer the English-language Portal.** The primary avatar selector keys
   off the English `aria-label` "Account menu". A localized Portal may still
