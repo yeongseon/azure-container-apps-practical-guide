@@ -495,6 +495,22 @@ content_sources:
         - https://learn.microsoft.com/...
 ```
 
+#### Validator alignment with sibling repositories
+
+The Container Apps validator (`scripts/validate_content_sources.py`) enforces the canonical `content_sources.diagrams[…]` shape on every Mermaid page. Legacy list-form `content_sources: [...]` and dict-form `{references: [...]}` (no `diagrams:` key) are both rejected on Mermaid pages; only `content-validation-status.md` and `validation-status.md` are filename-level skips, since those are generator-owned dashboards.
+
+This repository completed migration to the canonical shape during Phase 2d (356 Mermaid pages audited, 0 validation errors as of Phase 2d Final).
+
+The sibling Azure Functions guide does NOT enforce this policy yet: its `scripts/validate_content_sources.py` has a `get_diagram_sources()` helper that accepts the dict-form `{references: [...]}` escape on Mermaid pages, because the Functions guide carries approximately 295 Mermaid pages that pre-date the per-diagram provenance schema and rely on document-level provenance only. See the [Functions Phase 2d Final audit artifact](https://github.com/yeongseon/azure-functions-practical-guide/blob/main/docs/reference/phase-2d-final-audit.md) for cross-repository state. The sibling Azure App Service guide is at the same canonical-only state as this Container Apps guide.
+
+A contributor moving a Mermaid page from the Functions guide into this repository MUST populate the canonical `diagrams:` list before opening the PR; copying a `references`-only page across will fail validation here. This is the intended cross-repo contract, not a misalignment.
+
+#### Deferred to a future phase (no committed timeline)
+
+Tightening the Functions validator to remove its `references` legacy escape — which would expose the ~295-page Functions backlog as hard errors and would block contributors who move Mermaid pages between the three sibling guides until the backlog is closed — is intentionally deferred. There is no committed timeline. That phase opens only when the Functions repository owner explicitly decides per-diagram provenance is now required policy.
+
+Doctests covering the in-scope policy live in [`scripts/lib/content_scope.py`](scripts/lib/content_scope.py) (14 tests across `is_in_scope` and `is_tautological_text`) and are wired into the `validate-content-sources.yml` workflow as the first strict gate. If the in-scope policy is ever modified, those doctests MUST be updated in the same commit. A doctest gate is also wired for `scripts/validate_content_sources.py` for forward-compatibility, even though that file currently carries no doctests in this repository (the Functions sibling has 18 doctests covering `get_diagram_sources()` behavior).
+
 ### Content Validation Tracking
 
 - See [Content Validation Status](docs/reference/content-validation-status.md) for current status
