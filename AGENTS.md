@@ -509,7 +509,7 @@ A contributor moving a Mermaid page from the Functions guide into this repositor
 
 Tightening the Functions validator to remove its `references` legacy escape — which would expose the ~295-page Functions backlog as hard errors and would block contributors who move Mermaid pages between the three sibling guides until the backlog is closed — is intentionally deferred. There is no committed timeline. That phase opens only when the Functions repository owner explicitly decides per-diagram provenance is now required policy.
 
-Doctests covering the in-scope policy live in [`scripts/lib/content_scope.py`](scripts/lib/content_scope.py) (14 tests across `is_in_scope` and `is_tautological_text`) and are wired into the `validate-content-sources.yml` workflow as the first strict gate. If the in-scope policy is ever modified, those doctests MUST be updated in the same commit. A doctest gate is also wired for `scripts/validate_content_sources.py` for forward-compatibility, even though that file currently carries no doctests in this repository (the Functions sibling has 18 doctests covering `get_diagram_sources()` behavior).
+Doctests covering the in-scope policy live in [`scripts/lib/content_scope.py`](scripts/lib/content_scope.py) (14 tests across `is_in_scope` and `is_tautological_text`) and are wired into the `validate-content-sources.yml` workflow as the first strict gate. If the in-scope policy is ever modified, those doctests MUST be updated in the same commit. A doctest gate is also wired for `scripts/validate_content_sources.py` for forward-compatibility, even though that file currently carries no doctests in this repository (the Functions sibling has its own doctests covering `get_diagram_sources()` behavior).
 
 ### Content Validation Tracking
 
