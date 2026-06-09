@@ -1,6 +1,6 @@
 ---
 content_sources:
-  documents:
+  references:
     - type: mslearn-adapted
       url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
     - type: mslearn-adapted
