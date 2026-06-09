@@ -1,15 +1,15 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
   diagrams:
-  - id: docker-hub-rate-limit-lab-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - id: docker-hub-rate-limit-lab-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,19 +20,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: 'ratelimit-limit: 100;w=21600, ratelimit-remaining: 99;w=21600 from registry-1.docker.io'
   core_claims:
-  - claim: Azure Container Apps supports registry credentials for container image pulls.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-    verified: false
-  - claim: Image-pull configuration is a common factor in container start troubleshooting.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-    verified: false
+    - claim: Azure Container Apps supports registry credentials for container image pulls.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+      verified: false
+    - claim: Image-pull configuration is a common factor in container start troubleshooting.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Docker Hub Rate Limit Lab

@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-  - id: configuration-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/aspnet/core/fundamentals/configuration/
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+    - id: configuration-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 03 - Configuration, Secrets, and Dapr
@@ -256,5 +256,5 @@ var connectionString = configuration.GetConnectionString("DefaultConnection");
 - [Recipes Index](../recipes/index.md)
 
 ## Sources
-- [Configuration in ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/aspnet/core/fundamentals/configuration/)
-- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
+- [Configuration in ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/)
+- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)

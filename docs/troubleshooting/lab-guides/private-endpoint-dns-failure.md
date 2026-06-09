@@ -1,22 +1,21 @@
 ---
 content_sources:
   sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
   diagrams:
-  - id: private-endpoint-dns-failure-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-  - id: private-endpoint-dns-failure-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: private-endpoint-dns-failure-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+    - id: private-endpoint-dns-failure-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -25,23 +24,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: "DNS zone without VNet link (empty link list); VNet link created \u2192\
-      \ LinkState=Completed"
+    notes: "DNS zone without VNet link (empty link list); VNet link created → LinkState=Completed"
   core_claims:
-  - claim: Private endpoint scenarios require service-specific private DNS zone mapping.
-    source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-    verified: false
-  - claim: Container Apps in a custom VNet can access private endpoints in that virtual
-      network.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: false
+    - claim: Private endpoint scenarios require service-specific private DNS zone mapping.
+      source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+      verified: false
+    - claim: Container Apps in a custom VNet can access private endpoints in that virtual network.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Private Endpoint DNS Failure Lab

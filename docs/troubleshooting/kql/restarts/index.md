@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: query-pipeline-overview
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/kusto/query/
+    - id: query-pipeline-overview
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/kusto/query/
 ---
 # Restarts Query Pack
 
@@ -67,6 +67,6 @@ flowchart TD
 
 ## Sources
 
-- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Kusto Query Language (KQL) overview](https://learn.microsoft.com/kusto/query/)
+- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/kusto/query/)

@@ -1,22 +1,21 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
   diagrams:
-  - id: github-actions-oidc-failure-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-  - id: github-actions-oidc-failure-lab
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-    - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
+    - id: github-actions-oidc-failure-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+    - id: github-actions-oidc-failure-lab
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+        - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -27,20 +26,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: OIDC federated credential misconfiguration confirmed, fix=correct subject
   core_claims:
-  - claim: GitHub Actions OIDC to Azure depends on a matching federated identity credential.
-    source: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-    verified: false
-  - claim: Workload identity federation compares incoming token claims with the configured
-      federated identity credential.
-    source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
-    verified: false
+    - claim: GitHub Actions OIDC to Azure depends on a matching federated identity credential.
+      source: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+      verified: false
+    - claim: Workload identity federation compares incoming token claims with the configured federated identity credential.
+      source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # GitHub Actions OIDC Failure Lab

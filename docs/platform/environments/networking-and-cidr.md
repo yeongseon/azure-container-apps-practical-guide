@@ -1,34 +1,31 @@
 ---
 content_sources:
   diagrams:
-  - id: delegated-subnet-capacity-model
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
-    - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
+    - id: delegated-subnet-capacity-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
 content_validation:
   status: verified
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Workload profiles environments require a minimum subnet size of /27 and Consumption-only environments require a
-      minimum subnet size of /23.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: true
-  - claim: When using the Workload profiles environment, the subnet must be delegated to Microsoft.App/environments, and Consumption-only
-      should not delegate the subnet.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
-    verified: true
-  - claim: The infrastructure subnet resource ID is the subnet for infrastructure components and user application containers.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
-    verified: true
-  - claim: In the /27 planning example, Container Apps reserves 11 IP addresses, Consumption assigns IPs per replica, and
-      Dedicated assigns IPs per VM node.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
-    verified: true
+    - claim: Workload profiles environments require a minimum subnet size of /27 and Consumption-only environments require a minimum subnet size of /23.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: When using the Workload profiles environment, the subnet must be delegated to Microsoft.App/environments, and Consumption-only should not delegate the subnet.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+      verified: true
+    - claim: The infrastructure subnet resource ID is the subnet for infrastructure components and user application containers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+      verified: true
+    - claim: In the /27 planning example, Container Apps reserves 11 IP addresses, Consumption assigns IPs per replica, and Dedicated assigns IPs per VM node.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+      verified: true
 ---
 # Networking and CIDR
 

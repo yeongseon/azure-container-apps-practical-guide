@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -16,28 +16,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-06-03
     az_cli_version: 2.71.0
-    notes: 'Live 50/50 split reproduced via image-swap workaround. The original
-      trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected
-      by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to
-      reproduce per-revision failure because `targetPort` is an ingress-level
-      setting shared across all revisions. Replacement pattern: keep ingress
-      targetPort stable and deploy a new revision with an image whose listening
-      port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80).
-      Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50.'
+    notes: 'Live 50/50 split reproduced via image-swap workaround. The original trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to reproduce per-revision failure because `targetPort` is an ingress-level setting shared across all revisions. Replacement pattern: keep ingress targetPort stable and deploy a new revision with an image whose listening port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80). Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50.'
   core_claims:
-  - claim: Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights.
-    source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    verified: true
-  - claim: To route traffic to more than one revision in Azure Container Apps, the app must use multiple revision mode.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+      verified: true
+    - claim: To route traffic to more than one revision in Azure Container Apps, the app must use multiple revision mode.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Traffic Routing and Canary Failure Lab
@@ -481,6 +474,6 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Traffic splitting in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Blue-green deployment for Azure Container Apps](https://learn.microsoft.com/azure/container-apps/blue-green-deployment)
+- [Traffic splitting in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Blue-green deployment for Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment)

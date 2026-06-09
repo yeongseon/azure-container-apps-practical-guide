@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-  - id: python-jobs-recipe-flow
-    type: flowchart
-    source: self-generated
-    justification: Language recipe flow synthesized from repository Python job example
-      and Microsoft Learn Jobs guidance.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/python/api/overview/azure/identity-readme
-    - https://learn.microsoft.com/python/api/overview/azure/servicebus-readme
+    - id: python-jobs-recipe-flow
+      type: flowchart
+      source: self-generated
+      justification: Language recipe flow synthesized from repository Python job example and Microsoft Learn Jobs guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/python/api/overview/azure/identity-readme
+        - https://learn.microsoft.com/en-us/python/api/overview/azure/servicebus-readme
 ---
 # Recipe: Jobs in Python on Azure Container Apps
 
@@ -258,6 +257,6 @@ az containerapp job execution list \
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Azure Identity client library for Python](https://learn.microsoft.com/python/api/overview/azure/identity-readme)
-- [Azure Service Bus client library for Python](https://learn.microsoft.com/python/api/overview/azure/servicebus-readme)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Azure Identity client library for Python](https://learn.microsoft.com/en-us/python/api/overview/azure/identity-readme)
+- [Azure Service Bus client library for Python](https://learn.microsoft.com/en-us/python/api/overview/azure/servicebus-readme)

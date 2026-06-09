@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'
@@ -24,18 +24,18 @@ content_validation:
       recovered after the link was restored. See "Observed Evidence
       (Live Azure Test - 2026-06-05)".
   core_claims:
-  - claim: ACR Premium SKU is required to host a Private Endpoint.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    verified: true
-  - claim: When ACR is reached via a Private Endpoint, the AzureContainerRegistry service tag egress rule is not required for the image data path.
-    source: https://learn.microsoft.com/azure/container-apps/firewall-integration
-    verified: true
-  - claim: A /32 Private Endpoint system route beats a 0.0.0.0/0 user-defined route, so default routing keeps PE traffic on the Azure backbone (does not traverse a firewall).
-    source: https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall
-    verified: true
-  - claim: The ACR Private Endpoint exposes one sub-resource named 'registry' whose NIC holds private IPs for the login endpoint and each region's data endpoint, all of which must resolve inside privatelink.azurecr.io for end-to-end Private Link pulls.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    verified: true
+    - claim: ACR Premium SKU is required to host a Private Endpoint.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+      verified: true
+    - claim: When ACR is reached via a Private Endpoint, the AzureContainerRegistry service tag egress rule is not required for the image data path.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+      verified: true
+    - claim: A /32 Private Endpoint system route beats a 0.0.0.0/0 user-defined route, so default routing keeps PE traffic on the Azure backbone (does not traverse a firewall).
+      source: https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall
+      verified: true
+    - claim: The ACR Private Endpoint exposes one sub-resource named 'registry' whose NIC holds private IPs for the login endpoint and each region's data endpoint, all of which must resolve inside privatelink.azurecr.io for end-to-end Private Link pulls.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-05'
@@ -438,10 +438,10 @@ ACR Premium is the dominant cost (~$1.67/day), so do not leave the lab running b
 
 ## Sources
 
-- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints)
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
-- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/how-to-use-private-endpoint)
-- [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/private-endpoint-overview)
-- [Use Azure Firewall to inspect Private Endpoint traffic (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall) — explains why default routing keeps PE traffic off the firewall
-- [Securing a custom VNET in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/firewall-integration) — egress requirements for Container Apps environments, including why AzureContainerRegistry service tag egress is not required when ACR is reached via PE
-- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication)
+- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
+- [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview)
+- [Use Azure Firewall to inspect Private Endpoint traffic (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall) — explains why default routing keeps PE traffic off the firewall
+- [Securing a custom VNET in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration) — egress requirements for Container Apps environments, including why AzureContainerRegistry service tag egress is not required when ACR is reached via PE
+- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)

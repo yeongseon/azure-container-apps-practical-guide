@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: alert-lifecycle-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/alerts
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - id: alert-lifecycle-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/alerts
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 ---
 # Alerting for Container Apps
 
@@ -255,5 +255,5 @@ az monitor activity-log alert create \
 
 ## Sources
 
-- [Set alerts in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/alerts)
-- [Monitor logs in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Set alerts in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/alerts)
+- [Monitor logs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)

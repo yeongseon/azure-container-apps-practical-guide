@@ -1,31 +1,31 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/observability
-  - id: how-observability-works-in-container-apps
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/observability
-  - id: distributed-tracing-with-dapr
-    type: sequence
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/observability
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - id: how-observability-works-in-container-apps
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - id: distributed-tracing-with-dapr
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 04 - Logging, Monitoring, and Observability
@@ -305,5 +305,5 @@ Some Log Analytics workspaces use `ContainerAppConsoleLogs_CL` (custom log schem
 - [Dapr Integration Recipe](../recipes/dapr-integration.md)
 
 ## Sources
-- [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [Observability in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/observability)
+- [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Observability in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/observability)

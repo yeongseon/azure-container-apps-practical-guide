@@ -3,36 +3,36 @@ hide:
   - toc
 content_sources:
   diagrams:
-  - id: deployment-methods
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-  - id: deployment-workflow-and-release-guardrails
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
-    - https://learn.microsoft.com/azure/container-apps/deploy-artifact
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: deployment-methods
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+    - id: deployment-workflow-and-release-guardrails
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli
+        - https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-05-23'
   reviewer: agent
   core_claims:
-  - claim: "az containerapp up supports --source for cloud build from source code"
-    source: https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
-    verified: true
-  - claim: "az containerapp up supports --artifact for JAR/WAR deployment without Dockerfile"
-    source: https://learn.microsoft.com/azure/container-apps/deploy-artifact
-    verified: true
-  - claim: "Revision-scope changes create new revisions; application-scope changes do not"
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: "Deployment labels allow routing traffic to specific revisions by name"
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: "az containerapp up supports --source for cloud build from source code"
+      source: https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli
+      verified: true
+    - claim: "az containerapp up supports --artifact for JAR/WAR deployment without Dockerfile"
+      source: https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact
+      verified: true
+    - claim: "Revision-scope changes create new revisions; application-scope changes do not"
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: "Deployment labels allow routing traffic to specific revisions by name"
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Deployment Workflows
 
@@ -392,8 +392,8 @@ az containerapp ingress traffic show \
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli)
-- [Template deployment what-if - Azure Resource Manager](https://learn.microsoft.com/azure/azure-resource-manager/templates/deploy-what-if)
-- [Deploy from an artifact (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/deploy-artifact)
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli)
+- [Template deployment what-if - Azure Resource Manager](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-what-if)
+- [Deploy from an artifact (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

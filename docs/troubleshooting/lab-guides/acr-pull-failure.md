@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: sequence
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: architecture
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -17,20 +17,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: failed to resolve registry confirmed, fixed with valid image
   core_claims:
-  - claim: A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure
-      Container Registry.
-    source: https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures
-    verified: true
-  - claim: In Azure Container Apps, revisions are immutable snapshots of a container app version.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure Container Registry.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
+      verified: true
+    - claim: In Azure Container Apps, revisions are immutable snapshots of a container app version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # ACR Image Pull Failure Lab
@@ -431,5 +430,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Troubleshoot image pull errors in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshoot-image-pull-failures)
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Troubleshoot image pull errors in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

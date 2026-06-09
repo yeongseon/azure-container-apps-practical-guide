@@ -1,11 +1,11 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -16,20 +16,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: ContainerAppInvalidHttpScaleRule confirmed, fixed concurrency=100
   core_claims:
-  - claim: Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: The minimum and maximum replica settings in Azure Container Apps define the lower and upper bounds for scaling
-      behavior.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
+    - claim: Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: The minimum and maximum replica settings in Azure Container Apps define the lower and upper bounds for scaling behavior.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Scale Rule Mismatch Lab
@@ -409,5 +408,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Set scaling rules in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Set scaling rules in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [KEDA Documentation](https://keda.sh/docs/latest/)

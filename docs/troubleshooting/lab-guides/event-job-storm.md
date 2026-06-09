@@ -1,15 +1,15 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/jobs
   diagrams:
-  - id: event-job-storm-lab-diagram
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-    - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
+    - id: event-job-storm-lab-diagram
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,19 +20,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: exit 1 = Failed, exit 0 (echo) = Succeeded
   core_claims:
-  - claim: Container Apps jobs support event-driven triggers.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-    verified: false
-  - claim: Job execution history can be listed with Azure CLI.
-    source: https://learn.microsoft.com/en-us/cli/azure/containerapp/job
-    verified: false
+    - claim: Container Apps jobs support event-driven triggers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: false
+    - claim: Job execution history can be listed with Azure CLI.
+      source: https://learn.microsoft.com/en-us/cli/azure/containerapp/job
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Event Job Storm Lab

@@ -1,22 +1,21 @@
 ---
 content_sources:
   sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
   diagrams:
-  - id: session-affinity-failure-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
-  - id: session-affinity-failure-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - id: session-affinity-failure-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+    - id: session-affinity-failure-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -27,19 +26,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: acaAffinity cookie present/absent confirmed with sticky/none toggle
   core_claims:
-  - claim: Container Apps supports sticky or none affinity modes for session affinity.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
-    verified: false
-  - claim: Session affinity is a cookie-based HTTP ingress feature.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
-    verified: false
+    - claim: Container Apps supports sticky or none affinity modes for session affinity.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+      verified: false
+    - claim: Session affinity is a cookie-based HTTP ingress feature.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Session Affinity Failure Lab

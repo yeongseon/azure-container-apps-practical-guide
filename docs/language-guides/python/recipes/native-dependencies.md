@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: handle-python-packages-with-compiled-native-components
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
-    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - id: handle-python-packages-with-compiled-native-components
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
 ---
 # Recipe: Python Native Dependencies on Azure Container Apps
 
@@ -142,4 +142,4 @@ docker run --rm "$ACR_NAME.azurecr.io/$APP_NAME:native-test" \
 ## Sources
 
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/containers)
-- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)

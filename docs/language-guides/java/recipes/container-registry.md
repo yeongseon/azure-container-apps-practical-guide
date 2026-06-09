@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: pull-private-spring-boot-images-from
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-docker-cli
+    - id: pull-private-spring-boot-images-from
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli
 ---
 # Recipe: Container Registry in Java Apps on Azure Container Apps
 
@@ -115,5 +115,5 @@ az containerapp create \
 
 ## Sources
 
-- [Managed identity image pull for Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Push and pull images with Azure Container Registry](https://learn.microsoft.com/azure/container-registry/container-registry-get-started-docker-cli)
+- [Managed identity image pull for Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Push and pull images with Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli)

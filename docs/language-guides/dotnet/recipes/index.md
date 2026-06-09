@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: integration-dependency-map
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/dotnet/azure/sdk/azure-sdk-for-dotnet
+    - id: integration-dependency-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/dotnet/azure/sdk/azure-sdk-for-dotnet
 ---
 # Recipes: Integration Patterns for Azure Container Apps (.NET)
 
@@ -123,6 +123,6 @@ az containerapp show \
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Azure SDK for .NET Documentation](https://learn.microsoft.com/dotnet/azure/sdk/azure-sdk-for-dotnet)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Azure SDK for .NET Documentation](https://learn.microsoft.com/en-us/dotnet/azure/sdk/azure-sdk-for-dotnet)
 - [Dapr documentation](https://docs.dapr.io/)

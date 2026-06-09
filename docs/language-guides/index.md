@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: tutorial-progression-model
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - id: tutorial-progression-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
 ---
 # Language Guides: Step-by-Step Implementation
 
@@ -96,7 +96,7 @@ Each language guide has a corresponding reference application in the `apps/` dir
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Python on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Python on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)
 - [Dapr documentation](https://docs.dapr.io/)
 - [KEDA documentation](https://keda.sh/)

@@ -1,30 +1,30 @@
 ---
 content_sources:
   text:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/quotas
   diagrams:
-  - id: subscription-quota-exceeded-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-    - https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
-    - https://learn.microsoft.com/en-us/azure/container-apps/environment
+    - id: subscription-quota-exceeded-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+        - https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
 content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps quota limits are enforced at least at the subscription and region scope.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
-    verified: true
-  - claim: Azure exposes Container Apps usage information for an environment through Azure CLI.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
-    verified: true
-  - claim: Quota increases can be requested through the Azure Usage + quotas experience.
-    source: https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
-    verified: true
+    - claim: Azure Container Apps quota limits are enforced at least at the subscription and region scope.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+      verified: true
+    - claim: Azure exposes Container Apps usage information for an environment through Azure CLI.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+      verified: true
+    - claim: Quota increases can be requested through the Azure Usage + quotas experience.
+      source: https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
+      verified: true
 ---
 # Subscription Quota Exceeded
 

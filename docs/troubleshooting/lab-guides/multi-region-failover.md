@@ -1,15 +1,15 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
   diagrams:
-  - id: multi-region-failover-lab-diagram
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-    - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+    - id: multi-region-failover-lab-diagram
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,20 +20,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: primary ingress disabled → HTTP 404; secondary HTTP 200 (failover); primary restored → HTTP 200
   core_claims:
-  - claim: Container Apps reliability guidance recommends planning for regional resilience when business requirements demand
-      it.
-    source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-    verified: false
-  - claim: Azure Front Door origin groups use health probes to make traffic steering decisions.
-    source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
-    verified: false
+    - claim: Container Apps reliability guidance recommends planning for regional resilience when business requirements demand it.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+      verified: false
+    - claim: Azure Front Door origin groups use health probes to make traffic steering decisions.
+      source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Multi-Region Failover Lab

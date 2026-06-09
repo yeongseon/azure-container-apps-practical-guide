@@ -6,18 +6,18 @@ content_validation:
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps publishes platform metrics under the Microsoft.App/containerapps namespace, including CPU, memory, network, replica, request, and resiliency metrics.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
-  - claim: CPU Usage Percentage and Memory Percentage metrics report consumption as a percentage of the container's configured CPU and memory limits.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
-  - claim: Container Apps metrics support Replica and Revision dimensions for splitting and filtering.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
-  - claim: Resiliency metrics are emitted by the per-app Envoy sidecar only when a resiliency policy is attached to the receiving app and traffic originates inside the same Container Apps Environment via service discovery.
-    source: https://learn.microsoft.com/azure/container-apps/service-discovery-resiliency
-    verified: true
+    - claim: Azure Container Apps publishes platform metrics under the Microsoft.App/containerapps namespace, including CPU, memory, network, replica, request, and resiliency metrics.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
+    - claim: CPU Usage Percentage and Memory Percentage metrics report consumption as a percentage of the container's configured CPU and memory limits.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
+    - claim: Container Apps metrics support Replica and Revision dimensions for splitting and filtering.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
+    - claim: Resiliency metrics are emitted by the per-app Envoy sidecar only when a resiliency policy is attached to the receiving app and traffic originates inside the same Container Apps Environment via service discovery.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/service-discovery-resiliency
+      verified: true
 ---
 # Container App Metrics (Microsoft.App/containerapps)
 
@@ -622,6 +622,6 @@ No live Portal capture is included in this pass because the test environment (`c
 
 ## Sources
 
-- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics)

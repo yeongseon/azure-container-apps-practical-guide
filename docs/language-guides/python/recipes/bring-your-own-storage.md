@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: mount-azure-files-into-your-python
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - id: mount-azure-files-into-your-python
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
 ---
 # Recipe: Bring Your Own Storage with Azure Files Mounts
 
@@ -177,7 +177,7 @@ resource storage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
 - [Storage](storage.md)
 - [Key Vault Reference](key-vault-reference.md)
 - [Environments](../../../platform/environments/index.md)
-- [Microsoft Learn: Use Azure Files in Container Apps](https://learn.microsoft.com/azure/container-apps/storage-mounts)
+- [Microsoft Learn: Use Azure Files in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
 
 ## Sources
 

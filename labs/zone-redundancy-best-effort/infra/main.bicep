@@ -10,9 +10,9 @@ targetScope = 'resourceGroup'
 // statistics against the deployed apps.
 //
 // Sources:
-// - https://learn.microsoft.com/azure/reliability/reliability-container-apps
-// - https://learn.microsoft.com/azure/container-apps/how-to-zone-redundancy
-// - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
+// - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+// - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+// - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 // =====================================================================
 
 @description('Base name used to derive resource names (lowercase, 3-15 chars).')

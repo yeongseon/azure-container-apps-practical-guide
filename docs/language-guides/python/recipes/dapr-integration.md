@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: azure-container-apps-aca-provides-native
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/dapr-overview
-    - https://learn.microsoft.com/azure/container-apps/dapr-components
+    - id: azure-container-apps-aca-provides-native
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
 ---
 # Dapr Integration (Distributed Application Runtime)
 
@@ -92,5 +92,5 @@ Configure Dapr components (like state stores or pub/sub brokers) as separate res
 - [Operations: Observability](../../../operations/monitoring/index.md)
 
 ## Sources
-- [Dapr overview for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-overview)
-- [Dapr component schema in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-components)
+- [Dapr overview for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
+- [Dapr component schema in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-components)

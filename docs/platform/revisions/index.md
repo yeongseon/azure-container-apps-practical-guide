@@ -1,32 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: when-you-deploy-a-change-the
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-  - id: revisions-progress-through-a-lifecycle-managed
-    type: state
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - id: when-you-deploy-a-change-the
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+    - id: revisions-progress-through-a-lifecycle-managed
+      type: state
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: A revision is an immutable snapshot of a Container App version.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Azure Container Apps supports single and multiple revision modes.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Azure Container Apps supports traffic splitting between revisions.
-    source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    verified: true
+    - claim: A revision is an immutable snapshot of a Container App version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Azure Container Apps supports single and multiple revision modes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Azure Container Apps supports traffic splitting between revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+      verified: true
 ---
 # Revision Lifecycle in Azure Container Apps
 
@@ -135,5 +135,5 @@ In the left navigation of any Container App, open **Application** → **Revision
 
 ## Sources
 
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)

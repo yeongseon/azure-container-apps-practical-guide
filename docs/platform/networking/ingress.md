@@ -1,46 +1,42 @@
 ---
 content_sources:
   diagrams:
-  - id: ingress-request-lifecycle
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-  - id: ingress-decision-tree
-    type: flowchart
-    source: self-generated
-    justification: Synthesized decision flow from Microsoft Learn ingress, networking, connect-apps, client certificate, and
-      rule-based routing guidance.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
-    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-    - https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing
+    - id: ingress-request-lifecycle
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: ingress-decision-tree
+      type: flowchart
+      source: self-generated
+      justification: Synthesized decision flow from Microsoft Learn ingress, networking, connect-apps, client certificate, and rule-based routing guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+        - https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps ingress supports external and internal exposure modes, where external accepts public internet
-      traffic and internal limits reachability to the environment boundary described by Microsoft Learn.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    verified: true
-  - claim: Internal service discovery uses environment-scoped names, including an internal FQDN that contains the .internal
-      segment.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
-    verified: true
-  - claim: Azure Container Apps supports transport values auto, http, http2, and tcp for ingress configuration.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
-    verified: true
-  - claim: Azure Container Apps supports additional port mappings with a maximum of five additional ports per app, and externally
-      exposed extra TCP ports must be unique across the environment.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    verified: true
-  - claim: The default request timeout for HTTP ingress is 240 seconds.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    verified: true
+    - claim: Azure Container Apps ingress supports external and internal exposure modes, where external accepts public internet traffic and internal limits reachability to the environment boundary described by Microsoft Learn.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
+    - claim: Internal service discovery uses environment-scoped names, including an internal FQDN that contains the .internal segment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+      verified: true
+    - claim: Azure Container Apps supports transport values auto, http, http2, and tcp for ingress configuration.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
+      verified: true
+    - claim: Azure Container Apps supports additional port mappings with a maximum of five additional ports per app, and externally exposed extra TCP ports must be unique across the environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
+    - claim: The default request timeout for HTTP ingress is 240 seconds.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
 ---
 # Ingress in Azure Container Apps
 

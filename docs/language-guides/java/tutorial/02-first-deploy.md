@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-  - id: deployment-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+    - id: deployment-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 02 - First Deploy to Azure
@@ -391,5 +391,5 @@ curl https://$FQDN/health
 - [Operations Guide](../../../operations/index.md)
 
 ## Sources
-- [Quickstart: Build and deploy from source to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
-- [Manage ACR from Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
+- [Quickstart: Build and deploy from source to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)
+- [Manage ACR from Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)

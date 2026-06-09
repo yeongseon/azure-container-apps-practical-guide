@@ -1,41 +1,41 @@
 ---
 content_sources:
   diagrams:
-  - id: main-triage-decision-tree
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
-    - https://learn.microsoft.com/azure/container-apps/observability
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-  - id: 5xx-branch-deep-dive-tree
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
-    - https://learn.microsoft.com/azure/container-apps/observability
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: main-triage-decision-tree
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - id: 5xx-branch-deep-dive-tree
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps provides both system logs and console logs for troubleshooting.
-    source: https://learn.microsoft.com/azure/container-apps/observability
-    verified: true
-  - claim: Health probe failures can prevent a revision from becoming healthy in Azure Container Apps.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: Azure Container Apps supports automatic scaling with HTTP and event-driven scale rules.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Azure Container Apps troubleshooting guidance recommends checking logs and deployment events during investigations.
-    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
-    verified: true
+    - claim: Azure Container Apps provides both system logs and console logs for troubleshooting.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: true
+    - claim: Health probe failures can prevent a revision from becoming healthy in Azure Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: Azure Container Apps supports automatic scaling with HTTP and event-driven scale rules.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Azure Container Apps troubleshooting guidance recommends checking logs and deployment events during investigations.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+      verified: true
 ---
 # Troubleshooting Decision Tree
 
@@ -266,8 +266,8 @@ az monitor activity-log list --resource-group $RG --offset 24h
 
 ## Sources
 
-- [Azure Container Apps overview](https://learn.microsoft.com/azure/container-apps/overview)
-- [Monitor Azure Container Apps](https://learn.microsoft.com/azure/container-apps/observability)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Scale rules in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Azure Container Apps overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Monitor Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/observability)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Scale rules in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)

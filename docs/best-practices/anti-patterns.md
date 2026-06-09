@@ -1,36 +1,34 @@
 ---
 content_sources:
   diagrams:
-  - id: anti-pattern-relationship-map
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
-    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: anti-pattern-relationship-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: A revision is an immutable snapshot of your container app.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Single revision mode automatically diverts traffic from the old revision to the new one after the new revision
-      is ready.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to
-      1 or higher.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
+    - claim: A revision is an immutable snapshot of your container app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Single revision mode automatically diverts traffic from the old revision to the new one after the new revision is ready.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to 1 or higher.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
 ---
 # Common Anti-Patterns
 
@@ -543,11 +541,11 @@ graph TD
 
 ## Sources
 
-- [Microsoft Learn source 1](https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps)
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/networking)
-- [Microsoft Learn source 5](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Microsoft Learn source 6](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Microsoft Learn source 7](https://learn.microsoft.com/azure/container-apps/networking)
-- [Microsoft Learn source 8](https://learn.microsoft.com/azure/container-apps/managed-identity)
+- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Microsoft Learn source 6](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn source 7](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Microsoft Learn source 8](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

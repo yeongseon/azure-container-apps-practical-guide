@@ -1,22 +1,21 @@
 ---
 content_sources:
   sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
   diagrams:
-  - id: emptydir-disk-full-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-  - id: emptydir-disk-full-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+    - id: emptydir-disk-full-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    - id: emptydir-disk-full-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -27,20 +26,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: ContainerAppDuplicateMountPath confirmed, fixed with /cache
   core_claims:
-  - claim: Azure Container Apps supports `EmptyDir` volumes for temporary storage.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-    verified: false
-  - claim: Ephemeral storage settings can be defined in the container resources section
-      of a Container Apps revision template.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
-    verified: false
+    - claim: Azure Container Apps supports `EmptyDir` volumes for temporary storage.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+      verified: false
+    - claim: Ephemeral storage settings can be defined in the container resources section of a Container Apps revision template.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # EmptyDir Disk Full Lab

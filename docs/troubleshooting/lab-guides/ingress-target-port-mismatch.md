@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/azure/container-apps/ingress-how-to
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -17,26 +17,25 @@ content_validation:
     az_cli_version: 2.70.0
     notes: HTTP 503 + PortMismatch + ProbeFailed confirmed; fix restored HTTP 200 in 15s
   core_claims:
-  - claim: Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app.
-    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
-    verified: true
-  - claim: When external ingress is enabled for a Container App, Azure assigns the app a publicly reachable fully qualified
-      domain name.
-    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
-    verified: true
-  - claim: Ingress is an application-scope setting that applies to all revisions; updating ingress does not create a new revision.
-    source: https://learn.microsoft.com/azure/container-apps/ingress-how-to
-    verified: true
-  - claim: When ingress is enabled and no probes are defined, Azure Container Apps adds default TCP probes that target the ingress target port.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
+    - claim: Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
+    - claim: When external ingress is enabled for a Container App, Azure assigns the app a publicly reachable fully qualified domain name.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
+    - claim: Ingress is an application-scope setting that applies to all revisions; updating ingress does not create a new revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
+      verified: true
+    - claim: When ingress is enabled and no probes are defined, Azure Container Apps adds default TCP probes that target the ingress target port.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Ingress Target Port Mismatch Lab
@@ -465,5 +464,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
-- [Configure ingress for your app](https://learn.microsoft.com/azure/container-apps/ingress-how-to)
+- [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Configure ingress for your app](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)

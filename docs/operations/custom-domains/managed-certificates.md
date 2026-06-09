@@ -1,22 +1,22 @@
 ---
 content_sources:
   diagrams:
-  - id: managed-certificate-lifecycle
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
+    - id: managed-certificate-lifecycle
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps documents a managed certificate workflow for custom domains.
-    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    verified: true
-  - claim: Hostname add and bind commands are part of the CLI-based custom domain workflow.
-    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    verified: true
+    - claim: Azure Container Apps documents a managed certificate workflow for custom domains.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+      verified: true
+    - claim: Hostname add and bind commands are part of the CLI-based custom domain workflow.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+      verified: true
 ---
 # Managed Certificates
 
@@ -106,4 +106,4 @@ flowchart TD
 
 ## Sources
 
-- [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
+- [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates)

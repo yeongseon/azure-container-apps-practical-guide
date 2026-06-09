@@ -1,15 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: experiment-architecture
-    type: flowchart
-    source: self-generated
-    justification: Lab-specific architecture showing three side-by-side
-      Container Apps with identical scale rules but different workloads,
-      designed to isolate the HPA ceiling effect from metric-source
-      divergence.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: experiment-architecture
+      type: flowchart
+      source: self-generated
+      justification: Lab-specific architecture showing three side-by-side Container Apps with identical scale rules but different workloads, designed to isolate the HPA ceiling effect from metric-source divergence.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
   last_reviewed: '2026-06-02'
@@ -20,15 +17,12 @@ content_validation:
     az_cli_version: 2.71.0
     notes: "All three scenarios reproduced in Korea Central. Scenario A held at 2 replicas with 40% MemoryPercentage; Scenario B kept scaling out and reached maxReplicas=20 because per-replica MemoryPercentage stayed at 56% even as replicas were added (HPA recomputes ceil(N * 56/50) on every sync); Scenario C held at 3 replicas with ~72% MemoryPercentage where cache dominated rss ~18MiB vs page-cache ~700MiB, refuting the assumption that KEDA reads the Portal MemoryPercentage value. Portal screenshots embedded in Expected Evidence section."
   core_claims:
-  - claim: KEDA memory scaling in Azure Container Apps follows the HPA ceiling
-      formula `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`.
-    source: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
-    verified: true
-  - claim: Azure Container Apps memory scale rules read container memory usage
-      from the Kubernetes metrics API, separate from the Azure Monitor
-      `MemoryPercentage` metric pipeline.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
+    - claim: KEDA memory scaling in Azure Container Apps follows the HPA ceiling formula `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`.
+      source: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
+      verified: true
+    - claim: Azure Container Apps memory scale rules read container memory usage from the Kubernetes metrics API, separate from the Azure Monitor `MemoryPercentage` metric pipeline.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-02'
@@ -332,7 +326,7 @@ This deletes the resource group and all child resources.
 
 ## Sources
 
-- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Available metrics - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Available metrics - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
 - [Horizontal Pod Autoscaler algorithm details - Kubernetes](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details)
 - [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)

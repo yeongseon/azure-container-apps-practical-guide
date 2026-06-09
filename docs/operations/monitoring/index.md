@@ -1,18 +1,18 @@
 ---
 content_sources:
   diagrams:
-  - id: signals-and-alerting-architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-  - id: telemetry-freshness-workflow
-    type: sequence
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
+    - id: signals-and-alerting-architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    - id: telemetry-freshness-workflow
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
 ---
 # Observability Operations
 
@@ -278,7 +278,7 @@ sequenceDiagram
 - [Cost Optimization](../../platform/reliability/cost-optimization.md)
 
 ## Sources
-- [Azure Monitor for Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Azure Monitor for Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
 - [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [ContainerAppSystemLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs)
-- [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)
+- [OpenTelemetry in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents)

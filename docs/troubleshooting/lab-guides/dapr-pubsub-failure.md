@@ -1,15 +1,15 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
   diagrams:
-  - id: dapr-pubsub-failure-lab-diagram
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - id: dapr-pubsub-failure-lab-diagram
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,19 +20,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: pubsub.azure.servicebus.queues component with fake connectionString accepted by API; removed to fix
   core_claims:
-  - claim: Azure Container Apps supports Dapr pub/sub building blocks through components.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
-    verified: false
-  - claim: Dapr component scopes can restrict which apps load a pub/sub component.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    verified: false
+    - claim: Azure Container Apps supports Dapr pub/sub building blocks through components.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+      verified: false
+    - claim: Dapr component scopes can restrict which apps load a pub/sub component.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Dapr Pub/Sub Failure Lab

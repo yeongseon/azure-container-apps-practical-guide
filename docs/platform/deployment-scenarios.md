@@ -1,56 +1,55 @@
 ---
 content_sources:
   diagrams:
-  - id: scenario-overview
-    type: flowchart
-    source: self-generated
-    justification: Synthesizes the four reference deployment scenarios used throughout this guide from MSLearn environment,
-      workload profiles, and networking topics.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/environment
-    - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
-    - https://learn.microsoft.com/azure/container-apps/networking
-  - id: scenario-a-public-consumption
-    type: flowchart
-    source: self-generated
-    justification: Illustrates the public Consumption-only scenario described in MSLearn environment and networking guidance.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/environment
-    - https://learn.microsoft.com/azure/container-apps/networking
-  - id: scenario-b-internal-vnet
-    type: flowchart
-    source: self-generated
-    justification: Illustrates the internal VNet scenario based on MSLearn vnet-custom and networking guidance.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/vnet-custom
-    - https://learn.microsoft.com/azure/container-apps/networking
-  - id: scenario-c-workload-profiles
-    type: flowchart
-    source: self-generated
-    justification: Illustrates the Workload Profiles scenario based on MSLearn workload-profiles-overview.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
-    - https://learn.microsoft.com/azure/container-apps/networking
+    - id: scenario-overview
+      type: flowchart
+      source: self-generated
+      justification: Synthesizes the four reference deployment scenarios used throughout this guide from MSLearn environment, workload profiles, and networking topics.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: scenario-a-public-consumption
+      type: flowchart
+      source: self-generated
+      justification: Illustrates the public Consumption-only scenario described in MSLearn environment and networking guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: scenario-b-internal-vnet
+      type: flowchart
+      source: self-generated
+      justification: Illustrates the internal VNet scenario based on MSLearn vnet-custom and networking guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: scenario-c-workload-profiles
+      type: flowchart
+      source: self-generated
+      justification: Illustrates the Workload Profiles scenario based on MSLearn workload-profiles-overview.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Workload profiles environments support both Consumption and Dedicated plan types.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Consumption only environments do not support user-defined routes or egress through NAT Gateway.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: An existing virtual network deployment requires a subnet dedicated exclusively to the Container Apps environment.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Managed identity can authenticate with a private Azure Container Registry without a username and password.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
+    - claim: Workload profiles environments support both Consumption and Dedicated plan types.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Consumption only environments do not support user-defined routes or egress through NAT Gateway.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: An existing virtual network deployment requires a subnet dedicated exclusively to the Container Apps environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Managed identity can authenticate with a private Azure Container Registry without a username and password.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
 ---
 # Deployment Scenarios
 
@@ -272,9 +271,9 @@ Before deploying any scenario, verify:
 
 ## Sources
 
-- [Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment)
-- [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/workload-profiles-overview)
-- [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
-- [Provide a virtual network to an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom)
-- [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Containers in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
+- [Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment)
+- [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview)
+- [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Provide a virtual network to an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom)
+- [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Containers in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)

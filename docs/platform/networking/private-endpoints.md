@@ -1,46 +1,44 @@
 ---
 content_sources:
   diagrams:
-  - id: overview
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
-    - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
-    - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
-  - id: privatelink-region-data-microsoft-com-for-the-data-endpoint-layer
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/vnet-custom-internal
-    - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
+    - id: overview
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
+    - id: privatelink-region-data-microsoft-com-for-the-data-endpoint-layer
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Workload profiles environments support creating private endpoints on the Container Apps environment.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Using an existing virtual network allows Container Apps to access resources behind private endpoints in the virtual
-      network.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Internal environments have no public endpoints and are deployed with an internal load balancer IP from the virtual
-      network's private address space.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Public network access must be disabled to create private endpoints on a Container Apps environment.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Container app ingress can be limited to traffic from within the same Container Apps environment.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
+    - claim: Workload profiles environments support creating private endpoints on the Container Apps environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Using an existing virtual network allows Container Apps to access resources behind private endpoints in the virtual network.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Internal environments have no public endpoints and are deployed with an internal load balancer IP from the virtual network's private address space.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Public network access must be disabled to create private endpoints on a Container Apps environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Container app ingress can be limited to traffic from within the same Container Apps environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 ---
 # Private Endpoints
 
@@ -287,9 +285,9 @@ Only an **internal environment** combined with **internal app ingress** gives yo
 
 Reference this guidance in Microsoft Learn:
 
-- [Integrate a virtual network with an Azure Container Apps environment](https://learn.microsoft.com/azure/container-apps/vnet-custom)
-- [Ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
-- [Communicate between container apps in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/connect-apps)
+- [Integrate a virtual network with an Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom)
+- [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Communicate between container apps in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
 
 !!! warning "Internal ingress validation requires an internal environment"
     VM, Bastion, VPN, or ExpressRoute tests validate **internal environments** because those environments are exposed through the VNet. They do **not** validate app-level `.internal.` ingress, which Microsoft Learn scopes to callers inside the same Container Apps environment. Use one of these paths to reach the VNet:
@@ -622,5 +620,5 @@ az group delete --name rg-container-apps-private --yes --no-wait
 - [Private Container Registry](../../language-guides/python/recipes/container-registry.md)
 
 ## Sources
-- [Internal ingress with VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/vnet-custom-internal)
-- [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/private-endpoint-overview)
+- [Internal ingress with VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal)
+- [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview)

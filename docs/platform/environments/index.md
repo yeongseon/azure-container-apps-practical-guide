@@ -1,29 +1,27 @@
 ---
 content_sources:
   diagrams:
-  - id: environment-boundary-and-follow-on-decisions
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/structure
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - id: environment-boundary-and-follow-on-decisions
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/structure
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: 'Azure Container Apps has two environment types: Workload profiles (v2) and Consumption-only (v1), with Workload
-      profiles as the default.'
-    source: https://learn.microsoft.com/en-us/azure/container-apps/structure
-    verified: true
-  - claim: Once you create an environment with either the default Azure network or an existing VNet, the network type can't
-      be changed.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: true
-  - claim: By default, you have access to 100 inactive revisions.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-    verified: true
+    - claim: 'Azure Container Apps has two environment types: Workload profiles (v2) and Consumption-only (v1), with Workload profiles as the default.'
+      source: https://learn.microsoft.com/en-us/azure/container-apps/structure
+      verified: true
+    - claim: Once you create an environment with either the default Azure network or an existing VNet, the network type can't be changed.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: By default, you have access to 100 inactive revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Environments in Azure Container Apps
 

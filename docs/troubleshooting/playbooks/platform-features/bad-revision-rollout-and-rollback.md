@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: In multiple revision mode, Azure Container Apps can run multiple active revisions at the same time.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: In multiple revision mode, Azure Container Apps can run multiple active revisions at the same time.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Bad Revision Rollout and Rollback
 
@@ -232,6 +232,6 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 
 ## Sources
 
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Traffic splitting in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Traffic splitting in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

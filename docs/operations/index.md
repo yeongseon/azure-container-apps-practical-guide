@@ -1,19 +1,19 @@
 ---
 content_sources:
   diagrams:
-  - id: use-a-repeatable-control-loop-so
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
+    - id: use-a-repeatable-control-loop-so
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps operations include monitoring, scaling, deployment, and recovery tasks.
-    source: https://learn.microsoft.com/azure/container-apps/
-    verified: true
+    - claim: Azure Container Apps operations include monitoring, scaling, deployment, and recovery tasks.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/
+      verified: true
 ---
 # Operations
 
@@ -185,4 +185,4 @@ For language-specific operational guidance, see:
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)

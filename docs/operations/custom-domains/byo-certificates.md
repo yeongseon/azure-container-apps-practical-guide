@@ -1,22 +1,22 @@
 ---
 content_sources:
   diagrams:
-  - id: byo-certificate-rotation-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
+    - id: byo-certificate-rotation-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps documents uploading certificates to the managed environment.
-    source: https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
-    verified: true
-  - claim: A hostname can be bound to a specific uploaded certificate.
-    source: https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
-    verified: true
+    - claim: Azure Container Apps documents uploading certificates to the managed environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+      verified: true
+    - claim: A hostname can be bound to a specific uploaded certificate.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+      verified: true
 ---
 # Bring Your Own Certificates
 
@@ -111,4 +111,4 @@ flowchart TD
 
 ## Sources
 
-- [Custom domains and certificates in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/custom-domains-certificates)
+- [Custom domains and certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates)

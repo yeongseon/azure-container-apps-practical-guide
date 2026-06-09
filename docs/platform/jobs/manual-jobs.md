@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: manual-job-trigger-to-completion
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn Jobs guidance and existing repository job examples while exact schema
-      quotes remained pending.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+    - id: manual-job-trigger-to-completion
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn Jobs guidance and existing repository job examples while exact schema quotes remained pending.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps Jobs can be started manually.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Job executions can run multiple replicas and use retry and timeout settings.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
+    - claim: Azure Container Apps Jobs can be started manually.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Job executions can run multiple replicas and use retry and timeout settings.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
 ---
 # Manual Jobs
 
@@ -142,5 +141,5 @@ flowchart TD
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#jobs)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)

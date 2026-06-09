@@ -1,24 +1,23 @@
 ---
 content_sources:
   documents:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/observability
   diagrams:
-  - id: log-analytics-ingestion-gap-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-  - id: log-analytics-ingestion-gap-lab
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - id: log-analytics-ingestion-gap-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    - id: log-analytics-ingestion-gap-lab
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -29,21 +28,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: ContainerAppConsoleLogs_CL 117 rows confirmed in KQL
   core_claims:
-  - claim: Azure Container Apps logs can be queried in Log Analytics after they are
-      ingested into Azure Monitor Logs.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-    verified: false
-  - claim: Observability for Azure Container Apps includes logs that can be reviewed
-      for operational troubleshooting.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/observability
-    verified: false
+    - claim: Azure Container Apps logs can be queried in Log Analytics after they are ingested into Azure Monitor Logs.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+      verified: false
+    - claim: Observability for Azure Container Apps includes logs that can be reviewed for operational troubleshooting.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Log Analytics Ingestion Gap Lab

@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions-manage
-    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -17,20 +17,19 @@ content_validation:
     az_cli_version: 2.71.0
     notes: ingress targetPort=9999 mismatch triggers Degraded; rollback via az containerapp ingress update --target-port 8000 restores Running without redeploy. Six Portal captures attached.
   core_claims:
-  - claim: Azure Container Apps lets you activate, deactivate, and manage revisions for a container app.
-    source: https://learn.microsoft.com/azure/container-apps/revisions-manage
-    verified: true
-  - claim: Azure Container Apps supports traffic splitting so requests can be distributed across multiple active revisions
-      by percentage.
-    source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    verified: true
+    - claim: Azure Container Apps lets you activate, deactivate, and manage revisions for a container app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
+      verified: true
+    - claim: Azure Container Apps supports traffic splitting so requests can be distributed across multiple active revisions by percentage.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Revision Failover and Rollback Lab
@@ -434,5 +433,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Manage revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions-manage)
-- [Ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
+- [Manage revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage)
+- [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)

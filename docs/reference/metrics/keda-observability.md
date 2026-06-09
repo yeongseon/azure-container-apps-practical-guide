@@ -4,9 +4,9 @@ content_validation:
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
-  - claim: KEDA scaler-level metrics are not surfaced as Azure Monitor platform metrics and are only reachable through system logs, source-side scaler metrics, or the KEDA OTel export preview.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
+    - claim: KEDA scaler-level metrics are not surfaced as Azure Monitor platform metrics and are only reachable through system logs, source-side scaler metrics, or the KEDA OTel export preview.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
 ---
 # KEDA Scaler Observability
 
@@ -104,6 +104,6 @@ For the matching KQL query pack, see [KEDA scaler metrics](../../troubleshooting
 
 ## Sources
 
-- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics)

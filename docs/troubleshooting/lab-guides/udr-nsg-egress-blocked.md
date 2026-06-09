@@ -1,22 +1,21 @@
 ---
 content_sources:
   sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
   diagrams:
-  - id: udr-nsg-egress-blocked-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
-  - id: udr-nsg-egress-blocked-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
-    - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+    - id: udr-nsg-egress-blocked-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+    - id: udr-nsg-egress-blocked-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -25,22 +24,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: "NSG deny-443 HTTP 200\u2192404\u2192200 cycle confirmed"
+    notes: "NSG deny-443 HTTP 200→404→200 cycle confirmed"
   core_claims:
-  - claim: Workload profiles environments support user-defined routes.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
-    verified: false
-  - claim: Restrictive egress must preserve required Container Apps dependencies such
-      as registry and identity endpoints.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
-    verified: false
+    - claim: Workload profiles environments support user-defined routes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+      verified: false
+    - claim: Restrictive egress must preserve required Container Apps dependencies such as registry and identity endpoints.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # UDR and NSG Egress Blocked Lab

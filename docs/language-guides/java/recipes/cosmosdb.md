@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
-    - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-java
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
+        - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-java
 ---
 # Cosmos DB Integration (Managed Identity)
 
@@ -226,5 +226,5 @@ az role assignment list \
 
 ## Sources
 
-- [Azure Cosmos DB for NoSQL RBAC](https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control)
-- [Azure Cosmos DB for NoSQL Java quickstart](https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-java)
+- [Azure Cosmos DB for NoSQL RBAC](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control)
+- [Azure Cosmos DB for NoSQL Java quickstart](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-java)

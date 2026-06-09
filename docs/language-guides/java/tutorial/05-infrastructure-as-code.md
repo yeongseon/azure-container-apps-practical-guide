@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
-    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
-  - id: iac-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec
-    - https://learn.microsoft.com/azure/templates/microsoft.app/containerapps
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
+        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
+    - id: iac-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
+        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 05 - Infrastructure as Code
@@ -363,8 +363,8 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:proper
 ## See Also
 
 - [06 - CI/CD with GitHub Actions](06-ci-cd.md)
-- [Bicep Documentation (Microsoft Learn)](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
+- [Bicep Documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/)
 
 ## Sources
-- [Bicep template for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/azure-resource-manager-api-spec)
-- [Bicep resource reference (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/containerapps)
+- [Bicep template for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec)
+- [Bicep resource reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps)

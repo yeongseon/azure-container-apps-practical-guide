@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: purpose-identifies-replicas-with-multiple-startup
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - id: purpose-identifies-replicas-with-multiple-startup
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
-    source: https://learn.microsoft.com/azure/container-apps/logging
-    verified: true
-  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
-    verified: true
+    - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/logging
+      verified: true
+    - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+      verified: true
 ---
 # Repeated Startup Attempts
 
@@ -131,6 +131,6 @@ ContainerAppConsoleLogs_CL
 
 ## Sources
 
-- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
+- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)

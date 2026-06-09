@@ -1,35 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: layered-network-isolation-stack
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/container-apps/custom-virtual-networks
-    - https://learn.microsoft.com/azure/container-apps/how-to-use-private-endpoint
-    - https://learn.microsoft.com/azure/container-apps/firewall-integration
-    - https://learn.microsoft.com/azure/container-apps/ingress-environment-configuration
+    - id: layered-network-isolation-stack
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: You can deploy a Container Apps environment into your own virtual network by using a dedicated subnet.
-    source: https://learn.microsoft.com/azure/container-apps/custom-virtual-networks
-    verified: true
-  - claim: Private endpoints provide private access to a Container Apps environment, and public network access must be disabled
-      to use them.
-    source: https://learn.microsoft.com/azure/container-apps/how-to-use-private-endpoint
-    verified: true
-  - claim: User-defined routes, Azure Firewall integration, and advanced egress control are supported for workload profiles
-      environments.
-    source: https://learn.microsoft.com/azure/container-apps/firewall-integration
-    verified: true
-  - claim: Container Apps networking guidance distinguishes internal and external environment exposure and supports environment-level
-      ingress configuration.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
+    - claim: You can deploy a Container Apps environment into your own virtual network by using a dedicated subnet.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+      verified: true
+    - claim: Private endpoints provide private access to a Container Apps environment, and public network access must be disabled to use them.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
+      verified: true
+    - claim: User-defined routes, Azure Firewall integration, and advanced egress control are supported for workload profiles environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+      verified: true
+    - claim: Container Apps networking guidance distinguishes internal and external environment exposure and supports environment-level ingress configuration.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 ---
 # Network Isolation in Azure Container Apps
 
@@ -233,8 +230,8 @@ This keeps the public boundary small while avoiding duplication of networking gu
 
 ## Sources
 
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
-- [Custom virtual networks in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/custom-virtual-networks)
-- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/how-to-use-private-endpoint)
-- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/firewall-integration)
-- [Ingress environment configuration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/ingress-environment-configuration)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Custom virtual networks in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
+- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
+- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
+- [Ingress environment configuration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration)

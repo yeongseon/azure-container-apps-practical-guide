@@ -1,25 +1,24 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/networking
   diagrams:
-  - id: subnet-cidr-exhaustion-flow
-    type: flowchart
-    source: self-generated
-    justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+    - id: subnet-cidr-exhaustion-flow
+      type: flowchart
+      source: self-generated
+      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Workload profiles environments require a minimum subnet size of /27 and Consumption-only environments require a
-      minimum subnet size of /23.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: false
-  - claim: A custom virtual network deployment requires a subnet dedicated exclusively to the Container Apps environment.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
-    verified: false
+    - claim: Workload profiles environments require a minimum subnet size of /27 and Consumption-only environments require a minimum subnet size of /23.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: false
+    - claim: A custom virtual network deployment requires a subnet dedicated exclusively to the Container Apps environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+      verified: false
 ---
 # Subnet CIDR Exhaustion
 

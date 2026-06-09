@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/monitor
-    - https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing
-  - id: how-observability-works-in-container-apps
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/monitor
-    - https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/monitor
+        - https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing
+    - id: how-observability-works-in-container-apps
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/monitor
+        - https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 04 - Logging, Monitoring, and Observability
@@ -252,5 +252,5 @@ flowchart TD
 - [Troubleshooting Methodology](../../../troubleshooting/methodology/index.md)
 
 ## Sources
-- [Monitoring Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/monitor)
-- [OpenTelemetry with ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing)
+- [Monitoring Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/monitor)
+- [OpenTelemetry with ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing)

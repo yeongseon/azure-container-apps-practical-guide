@@ -1,28 +1,28 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
   diagrams:
-  - id: memory-leak-oomkilled-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
-    - https://learn.microsoft.com/en-us/azure/container-apps/metrics
-    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - id: memory-leak-oomkilled-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/metrics
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps can terminate a container that exceeds its memory limit.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-    verified: false
-  - claim: Azure Monitor exposes memory-related metrics for Azure Container Apps.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-    verified: false
+    - claim: Azure Container Apps can terminate a container that exceeds its memory limit.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+      verified: false
+    - claim: Azure Monitor exposes memory-related metrics for Azure Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: false
 ---
 # Memory Leak OOMKilled
 

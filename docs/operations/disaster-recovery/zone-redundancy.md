@@ -1,36 +1,35 @@
 ---
 content_sources:
   diagrams:
-  - id: zone-redundancy-vs-multi-region
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
-  - id: zone-redundancy-best-effort-decision
-    type: flowchart
-    source: self-generated
-    justification: "Synthesizes Microsoft Learn best-effort scheduler guidance into an operator-facing decision flow that distinguishes platform-only guarantees from application- and topology-level mitigations."
-    based_on:
-    - https://learn.microsoft.com/azure/reliability/reliability-container-apps
-    - https://learn.microsoft.com/azure/container-apps/how-to-zone-redundancy
+    - id: zone-redundancy-vs-multi-region
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+    - id: zone-redundancy-best-effort-decision
+      type: flowchart
+      source: self-generated
+      justification: "Synthesizes Microsoft Learn best-effort scheduler guidance into an operator-facing decision flow that distinguishes platform-only guarantees from application- and topology-level mitigations."
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
 content_validation:
   status: verified
   last_reviewed: '2026-06-08'
   reviewer: agent
   core_claims:
-  - claim: Azure reliability guidance for Container Apps should be used when evaluating zone redundancy.
-    source: https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
-    verified: true
-  - claim: Zone redundancy is available to all Container Apps plans, must be enabled during environment creation, and can't
-      be changed afterward.
-    source: https://learn.microsoft.com/azure/reliability/reliability-container-apps
-    verified: true
-  - claim: "The platform scheduler distributes replicas across physical hosts while meeting your minimum replica count requirements, but per-replica zone placement is a best-effort outcome rather than a guarantee."
-    source: https://learn.microsoft.com/azure/container-apps/how-to-zone-redundancy
-    verified: true
-  - claim: "Underspecified resource requests can lead to uneven distribution across zones, so set resource requests and limits to help the scheduler make optimal placement decisions."
-    source: https://learn.microsoft.com/azure/container-apps/how-to-zone-redundancy
-    verified: true
+    - claim: Azure reliability guidance for Container Apps should be used when evaluating zone redundancy.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+      verified: true
+    - claim: Zone redundancy is available to all Container Apps plans, must be enabled during environment creation, and can't be changed afterward.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
+    - claim: "The platform scheduler distributes replicas across physical hosts while meeting your minimum replica count requirements, but per-replica zone placement is a best-effort outcome rather than a guarantee."
+      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+      verified: true
+    - claim: "Underspecified resource requests can lead to uneven distribution across zones, so set resource requests and limits to help the scheduler make optimal placement decisions."
+      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+      verified: true
 ---
 # Zone Redundancy
 
@@ -151,5 +150,5 @@ For the full decision tree, the four-layer mitigation matrix (in-ACA inputs, app
 
 ## Sources
 
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-container-apps)
-- [How to use zone redundancy in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/how-to-zone-redundancy)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
+- [How to use zone redundancy in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy)

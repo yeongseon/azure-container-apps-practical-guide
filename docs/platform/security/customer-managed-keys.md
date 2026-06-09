@@ -1,34 +1,31 @@
 ---
 content_sources:
   diagrams:
-  - id: current-encryption-and-key-management-scope
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/security/fundamentals/encryption-customer-managed-keys-support
-    - https://learn.microsoft.com/azure/security/fundamentals/encryption-atrest
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/azure/container-apps/key-vault-certificates-manage
+    - id: current-encryption-and-key-management-scope
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-customer-managed-keys-support
+        - https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-atrest
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Microsoft Learn's customer-managed keys support matrix does not list Azure Container Apps as a CMK-supported service
-      for encryption at rest.
-    source: https://learn.microsoft.com/azure/security/fundamentals/encryption-customer-managed-keys-support
-    verified: true
-  - claim: Azure encryption at rest guidance states that platform-managed keys are the default and customer-managed keys are
-      optional only for supported services.
-    source: https://learn.microsoft.com/azure/security/fundamentals/encryption-atrest
-    verified: true
-  - claim: Azure Container Apps supports Key Vault-backed secrets and Key Vault certificate import through managed identity.
-    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
-    verified: true
-  - claim: Container Apps updates Key Vault-imported certificates automatically after rotation, with changes applied within
-      up to 12 hours.
-    source: https://learn.microsoft.com/azure/container-apps/key-vault-certificates-manage
-    verified: true
+    - claim: Microsoft Learn's customer-managed keys support matrix does not list Azure Container Apps as a CMK-supported service for encryption at rest.
+      source: https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-customer-managed-keys-support
+      verified: true
+    - claim: Azure encryption at rest guidance states that platform-managed keys are the default and customer-managed keys are optional only for supported services.
+      source: https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-atrest
+      verified: true
+    - claim: Azure Container Apps supports Key Vault-backed secrets and Key Vault certificate import through managed identity.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+      verified: true
+    - claim: Container Apps updates Key Vault-imported certificates automatically after rotation, with changes applied within up to 12 hours.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage
+      verified: true
 ---
 # Customer-Managed Keys in Azure Container Apps
 
@@ -139,7 +136,7 @@ Use this table when security or compliance reviewers ask whether Container Apps 
 
 ## Sources
 
-- [Services that support customer-managed keys in Azure Key Vault and Azure Managed HSM (Microsoft Learn)](https://learn.microsoft.com/azure/security/fundamentals/encryption-customer-managed-keys-support)
-- [Azure data encryption at rest (Microsoft Learn)](https://learn.microsoft.com/azure/security/fundamentals/encryption-atrest)
-- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
-- [Import certificates from Azure Key Vault to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/key-vault-certificates-manage)
+- [Services that support customer-managed keys in Azure Key Vault and Azure Managed HSM (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-customer-managed-keys-support)
+- [Azure data encryption at rest (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-atrest)
+- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Import certificates from Azure Key Vault to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage)

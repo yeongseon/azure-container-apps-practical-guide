@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets#reference-secret-from-key-vault
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Secret and Key Vault Reference Failure
 
@@ -237,6 +237,6 @@ If a new revision is already active and behavior reflects the updated value, sta
 
 ## Sources
 
-- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
-- [Use managed identity to authenticate to Azure Key Vault from Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets#reference-secret-from-key-vault)
-- [Managed identities in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
+- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Use managed identity to authenticate to Azure Key Vault from Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

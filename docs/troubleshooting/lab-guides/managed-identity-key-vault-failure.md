@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: sequence
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/azure/key-vault/general/rbac-guide
+    - id: architecture
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide
 content_validation:
   status: verified
   last_reviewed: '2026-06-03'
@@ -17,12 +17,12 @@ content_validation:
     az_cli_version: 2.71.0
     notes: ForbiddenByRbac confirmed pre-fix; HTTP 200 confirmed after Key Vault Secrets User role assignment + revision restart. Portal captures attached.
   core_claims:
-  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: The Key Vault Secrets User built-in role permits reading secret values from Azure Key Vault.
-    source: https://learn.microsoft.com/azure/key-vault/general/rbac-guide
-    verified: true
+    - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: The Key Vault Secrets User built-in role permits reading secret values from Azure Key Vault.
+      source: https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-03'
@@ -477,5 +477,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Managed identity in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Azure Key Vault RBAC guide](https://learn.microsoft.com/azure/key-vault/general/rbac-guide)
+- [Managed identity in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Azure Key Vault RBAC guide](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide)

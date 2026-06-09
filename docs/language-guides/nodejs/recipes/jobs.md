@@ -1,15 +1,14 @@
 ---
 content_sources:
   diagrams:
-  - id: nodejs-jobs-recipe-flow
-    type: flowchart
-    source: self-generated
-    justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance
-      plus Azure SDK usage patterns.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
-    - https://learn.microsoft.com/javascript/api/overview/azure/service-bus-readme
+    - id: nodejs-jobs-recipe-flow
+      type: flowchart
+      source: self-generated
+      justification: Language recipe flow synthesized from Microsoft Learn Jobs guidance plus Azure SDK usage patterns.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme
+        - https://learn.microsoft.com/en-us/javascript/api/overview/azure/service-bus-readme
 ---
 # Recipe: Jobs in Node.js on Azure Container Apps
 
@@ -241,6 +240,6 @@ az containerapp job execution list \
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Azure Identity client library for JavaScript](https://learn.microsoft.com/javascript/api/overview/azure/identity-readme)
-- [Azure Service Bus client library for JavaScript](https://learn.microsoft.com/javascript/api/overview/azure/service-bus-readme)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Azure Identity client library for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme)
+- [Azure Service Bus client library for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/service-bus-readme)

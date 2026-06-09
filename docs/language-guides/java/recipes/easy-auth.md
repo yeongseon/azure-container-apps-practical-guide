@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: enable-easy-auth-in-azure-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/authentication
-    - https://learn.microsoft.com/azure/container-apps/authentication
+    - id: enable-easy-auth-in-azure-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
 ---
 # Recipe: Easy Auth in Java Apps on Azure Container Apps
 
@@ -93,5 +93,5 @@ public class ClientPrincipalFilter extends OncePerRequestFilter {
 
 ## Sources
 
-- [Authentication in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/azure/container-apps/authentication)
+- [Authentication in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Container Apps identity providers](https://learn.microsoft.com/en-us/azure/container-apps/authentication)

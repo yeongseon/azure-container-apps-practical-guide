@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: use-managed-identity-and-defaultazurecredential-so
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
-    - https://learn.microsoft.com/javascript/api/overview/azure/storage-blob-readme
+    - id: use-managed-identity-and-defaultazurecredential-so
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme
+        - https://learn.microsoft.com/en-us/javascript/api/overview/azure/storage-blob-readme
 ---
 # Recipe: Managed Identity in Node.js Apps on Azure Container Apps
 
@@ -115,6 +115,6 @@ az containerapp update \
 
 ## Sources
 
-- [Managed identities in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Azure Identity client library for JavaScript](https://learn.microsoft.com/javascript/api/overview/azure/identity-readme)
-- [Azure Storage Blob SDK for JavaScript](https://learn.microsoft.com/javascript/api/overview/azure/storage-blob-readme)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Azure Identity client library for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme)
+- [Azure Storage Blob SDK for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/storage-blob-readme)

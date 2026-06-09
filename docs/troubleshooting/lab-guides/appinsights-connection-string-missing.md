@@ -1,24 +1,23 @@
 ---
 content_sources:
   documents:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
   diagrams:
-  - id: appinsights-connection-string-missing-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-  - id: appinsights-connection-string-missing-lab
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-    - https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+    - id: appinsights-connection-string-missing-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    - id: appinsights-connection-string-missing-lab
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -27,24 +26,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: env var absent=no telemetry; APPLICATIONINSIGHTS_CONNECTION_STRING added=confirmed
-      present
+    notes: env var absent=no telemetry; APPLICATIONINSIGHTS_CONNECTION_STRING added=confirmed present
   core_claims:
-  - claim: Application Insights uses connection strings to associate telemetry with
-      the correct monitoring resource.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
-    verified: false
-  - claim: Azure Container Apps supports sending OpenTelemetry data to Application
-      Insights when the telemetry destination is configured.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-    verified: false
+    - claim: Application Insights uses connection strings to associate telemetry with the correct monitoring resource.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+      verified: false
+    - claim: Azure Container Apps supports sending OpenTelemetry data to Application Insights when the telemetry destination is configured.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Application Insights Connection String Missing Lab

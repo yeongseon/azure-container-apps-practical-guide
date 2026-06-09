@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: save-this-page-and-the-linked
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/cli/azure/containerapp
+    - id: save-this-page-and-the-linked
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/cli/azure/containerapp
 ---
 # Reference
 
@@ -117,5 +117,5 @@ For runtime-specific guidance, see:
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Azure Container Apps CLI reference](https://learn.microsoft.com/cli/azure/containerapp)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Azure Container Apps CLI reference](https://learn.microsoft.com/en-us/cli/azure/containerapp)

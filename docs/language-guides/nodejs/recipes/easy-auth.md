@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-container-apps-built-in-authentication-easy
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/authentication
-    - https://learn.microsoft.com/azure/container-apps/authentication
+    - id: use-container-apps-built-in-authentication-easy
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
 ---
 # Recipe: Easy Auth in Node.js Apps on Azure Container Apps
 
@@ -108,5 +108,5 @@ app.get("/me", (req, res) => {
 
 ## Sources
 
-- [Authentication in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
-- [Configure authentication providers in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
+- [Authentication in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Configure authentication providers in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)

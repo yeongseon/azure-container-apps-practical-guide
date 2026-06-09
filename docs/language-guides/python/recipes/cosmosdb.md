@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
-    - https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-python
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
+        - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-python
 ---
 # Cosmos DB Integration (Managed Identity)
 
@@ -178,5 +178,5 @@ az containerapp logs show \
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 
 ## Sources
-- [Azure Cosmos DB for NoSQL RBAC](https://learn.microsoft.com/azure/cosmos-db/nosql/how-to-connect-role-based-access-control)
-- [Azure Cosmos DB for NoSQL Python quickstart (Microsoft Learn)](https://learn.microsoft.com/azure/cosmos-db/nosql/quickstart-python)
+- [Azure Cosmos DB for NoSQL RBAC](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control)
+- [Azure Cosmos DB for NoSQL Python quickstart (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-python)

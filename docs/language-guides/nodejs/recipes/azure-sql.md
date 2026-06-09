@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
-    - https://learn.microsoft.com/sql/connect/node-js/node-js-driver-for-sql-server
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview
+        - https://learn.microsoft.com/en-us/sql/connect/node-js/node-js-driver-for-sql-server
 ---
 # Azure SQL Integration (Managed Identity)
 
@@ -192,5 +192,5 @@ az containerapp logs show \
 
 ## Sources
 
-- [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview)
-- [Connect to Azure SQL Database using Node.js](https://learn.microsoft.com/sql/connect/node-js/node-js-driver-for-sql-server)
+- [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview)
+- [Connect to Azure SQL Database using Node.js](https://learn.microsoft.com/en-us/sql/connect/node-js/node-js-driver-for-sql-server)

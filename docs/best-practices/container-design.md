@@ -1,36 +1,36 @@
 ---
 content_sources:
   diagrams:
-  - id: bad-container-defaults-slow-startup-missing
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/containers
-  - id: probe-design-in-container-apps-should
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/containers
+    - id: bad-container-defaults-slow-startup-missing
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - id: probe-design-in-container-apps-should
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Changes to the template configuration section trigger a new container app revision.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
-  - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
-  - claim: Most container apps have a single container, but Azure Container Apps also supports sidecar and init containers.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
-  - claim: If a container crashes, it automatically restarts.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
-  - claim: Using static image tags like latest can lead to caching problems and can make an app difficult to troubleshoot.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
+    - claim: Changes to the template configuration section trigger a new container app revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
+    - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
+    - claim: Most container apps have a single container, but Azure Container Apps also supports sidecar and init containers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
+    - claim: If a container crashes, it automatically restarts.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
+    - claim: Using static image tags like latest can lead to caching problems and can make an app difficult to troubleshoot.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
 ---
 # Container Design Best Practices for Azure Container Apps
 
@@ -526,4 +526,4 @@ Treat log schema as a versioned contract. Breaking schema changes should go thro
 
 ## Sources
 
-- [Microsoft Learn: Manage containers in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/containers)
+- [Microsoft Learn: Manage containers in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/containers)

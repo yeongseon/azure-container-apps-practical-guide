@@ -1,33 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: configure-startup-liveness-and-readiness-probes
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: configure-startup-liveness-and-readiness-probes
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Revisions are snapshots of each version of a container app.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Revisions are immutable once they are established.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: In single revision mode, the existing revision continues to receive traffic until the new revision is ready.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: A new revision is considered ready only after it provisions successfully, scales to match the previous replica
-      count, and its replicas pass startup and readiness probes.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Revision running status can include states such as Scale to 0, Activating, Running, Degraded, and Failed.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Revisions are snapshots of each version of a container app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Revisions are immutable once they are established.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: In single revision mode, the existing revision continues to receive traffic until the new revision is ready.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: A new revision is considered ready only after it provisions successfully, scales to match the previous replica count, and its replicas pass startup and readiness probes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Revision running status can include states such as Scale to 0, Activating, Running, Degraded, and Failed.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Health and Recovery Operations
 
@@ -182,5 +181,5 @@ Example output (PII masked):
 - [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md)
 
 ## Sources
-- [Azure Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Azure Container Apps revisions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Azure Container Apps health probes](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Azure Container Apps revisions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

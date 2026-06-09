@@ -1,24 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: custom-scaler-extension-path
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn documentation describing custom scale rules based on KEDA ScaledObject
-      scalers.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: custom-scaler-extension-path
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn documentation describing custom scale rules based on KEDA ScaledObject scalers.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports custom scale rules based on KEDA ScaledObject scalers.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Custom scale rules use a type plus metadata, and authentication can use secretRef or managed identity.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
+    - claim: Azure Container Apps supports custom scale rules based on KEDA ScaledObject scalers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Custom scale rules use a type plus metadata, and authentication can use secretRef or managed identity.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 ---
 # Custom Scalers in Azure Container Apps
 
@@ -124,4 +123,4 @@ A safe operating pattern is:
 
 ## Sources
 
-- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)

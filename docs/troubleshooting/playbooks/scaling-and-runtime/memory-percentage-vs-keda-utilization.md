@@ -1,37 +1,30 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesizes the HPA ceiling math and metric-source-mismatch
-      diagnostic flow described in the Azure Container Apps scaling docs and
-      the Kubernetes HPA algorithm reference.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesizes the HPA ceiling math and metric-source-mismatch diagnostic flow described in the Azure Container Apps scaling docs and the Kubernetes HPA algorithm reference.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
 content_validation:
   status: verified
   last_reviewed: '2026-06-02'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps memory scale rules use the standard Kubernetes
-      HPA algorithm `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`.
-    source: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
-    verified: true
-  - claim: Azure Container Apps memory scale rules use KEDA's memory scaler, which
-      reads container memory usage from the Kubernetes metrics API rather than
-      from Azure Monitor.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: The Azure Monitor `Memory Percentage (Preview)` metric reports working
-      set as a percentage of the memory limit and may include page cache.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
-  - claim: The KEDA memory scaler evaluates `Utilization` as a percentage of the
-      container's requested memory, using the Kubernetes resource-memory metric.
-    source: https://keda.sh/docs/latest/scalers/memory/
-    verified: true
+    - claim: Azure Container Apps memory scale rules use the standard Kubernetes HPA algorithm `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`.
+      source: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
+      verified: true
+    - claim: Azure Container Apps memory scale rules use KEDA's memory scaler, which reads container memory usage from the Kubernetes metrics API rather than from Azure Monitor.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: The Azure Monitor `Memory Percentage (Preview)` metric reports working set as a percentage of the memory limit and may include page cache.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
+    - claim: The KEDA memory scaler evaluates `Utilization` as a percentage of the container's requested memory, using the Kubernetes resource-memory metric.
+      source: https://keda.sh/docs/latest/scalers/memory/
+      verified: true
 ---
 # Memory Scale Rule Not Triggering Despite High Memory Percentage
 
@@ -215,7 +208,7 @@ scaler input do not map one-to-one.
 
 ## Sources
 
-- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Available metrics - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/metrics)
+- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Available metrics - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
 - [Horizontal Pod Autoscaler algorithm details - Kubernetes](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details)
 - [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)

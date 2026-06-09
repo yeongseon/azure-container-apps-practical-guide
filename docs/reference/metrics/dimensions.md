@@ -4,12 +4,12 @@ content_validation:
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
-  - claim: Container Apps metrics support Replica and Revision dimensions for splitting and filtering.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
-  - claim: The Portal Metrics blade displays friendly dimension names (e.g., "Replica") but the az CLI --filter flag requires the API key (e.g., "podName"), and using the wrong key returns BadRequest.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
+    - claim: Container Apps metrics support Replica and Revision dimensions for splitting and filtering.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
+    - claim: The Portal Metrics blade displays friendly dimension names (e.g., "Replica") but the az CLI --filter flag requires the API key (e.g., "podName"), and using the wrong key returns BadRequest.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
 ---
 # Metric Dimensions
 
@@ -115,6 +115,6 @@ Wherever a metric section in this guide refers to `podName`, that is the literal
 
 ## Sources
 
-- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics)

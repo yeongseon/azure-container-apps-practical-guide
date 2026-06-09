@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: query-pipeline
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
-    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
-    source: https://learn.microsoft.com/azure/container-apps/logging
-    verified: true
-  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
-    verified: true
+    - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/logging
+      verified: true
+    - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+      verified: true
 ---
 # Image Pull and Auth Errors
 
@@ -78,5 +78,5 @@ ContainerAppSystemLogs_CL
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/containers)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/logging)
 - [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial)

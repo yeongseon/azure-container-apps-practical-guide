@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-managed-identity-with-spring-boot
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/java/api/overview/azure/identity-readme
+    - id: use-managed-identity-with-spring-boot
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme
 ---
 # Recipe: Managed Identity in Java Apps on Azure Container Apps
 
@@ -111,5 +111,5 @@ public class BlobController {
 
 ## Sources
 
-- [Managed identities in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Azure Identity library for Java](https://learn.microsoft.com/java/api/overview/azure/identity-readme)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Azure Identity library for Java](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme)

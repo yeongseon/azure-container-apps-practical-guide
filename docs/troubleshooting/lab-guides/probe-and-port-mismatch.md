@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/ingress-how-to
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -17,19 +17,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: ProbeFailed system events confirmed, HTTP 200 on correct port
   core_claims:
-  - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: Ingress in Azure Container Apps routes incoming requests to the app's target port inside the container.
-    source: https://learn.microsoft.com/azure/container-apps/ingress-how-to
-    verified: true
+    - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: Ingress in Azure Container Apps routes incoming requests to the app's target port inside the container.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Probe and Port Mismatch Lab
@@ -435,5 +435,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Configure ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-how-to)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Configure ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)

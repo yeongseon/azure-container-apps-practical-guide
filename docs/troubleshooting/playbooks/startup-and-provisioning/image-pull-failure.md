@@ -1,36 +1,34 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/containers#container-registries
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-apps/firewall-integration
-    - https://learn.microsoft.com/azure/container-apps/user-defined-routes
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can pull container images from public and private registries, including Azure Container Registry.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
-  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: In workload profiles environments with restricted egress, outbound access to the AzureActiveDirectory service tag
-      on port 443 is required when using managed identity.
-    source: https://learn.microsoft.com/azure/container-apps/firewall-integration
-    verified: true
-  - claim: Azure Container Apps can authenticate Azure Container Registry image pulls with managed identity instead of registry
-      admin credentials.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    verified: true
+    - claim: Azure Container Apps can pull container images from public and private registries, including Azure Container Registry.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
+    - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: In workload profiles environments with restricted egress, outbound access to the AzureActiveDirectory service tag on port 443 is required when using managed identity.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+      verified: true
+    - claim: Azure Container Apps can authenticate Azure Container Registry image pulls with managed identity instead of registry admin credentials.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+      verified: true
 ---
 # Image Pull Failure
 
@@ -603,11 +601,11 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
 
 ## Sources
 
-- [Manage container registries in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/containers#container-registries)
-- [Managed identities in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Azure Container Apps image pull from Azure Container Registry with managed identity](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Securing a virtual network in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/firewall-integration)
-- [Use Azure Firewall with Azure Container Apps — outbound FQDN requirements](https://learn.microsoft.com/azure/container-apps/use-azure-firewall)
-- [Container Apps outbound traffic control with Azure Firewall](https://learn.microsoft.com/azure/container-apps/user-defined-routes)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
-- [Azure Container Registry authentication](https://learn.microsoft.com/azure/container-registry/container-registry-authentication)
+- [Manage container registries in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Azure Container Apps image pull from Azure Container Registry with managed identity](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Securing a virtual network in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
+- [Use Azure Firewall with Azure Container Apps — outbound FQDN requirements](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)
+- [Container Apps outbound traffic control with Azure Firewall](https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Azure Container Registry authentication](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)

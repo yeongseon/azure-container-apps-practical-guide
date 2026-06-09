@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -17,19 +17,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: ProbeFailed + ContainerTerminated(ProbeFailure) + revision Failed confirmed
   core_claims:
-  - claim: Azure Container Apps supports startup probes to check whether a containerized app has started successfully.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: In Azure Container Apps, revisions are immutable snapshots of a container app version.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Azure Container Apps supports startup probes to check whether a containerized app has started successfully.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: In Azure Container Apps, revisions are immutable snapshots of a container app version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Revision Provisioning Failure Lab
@@ -432,5 +432,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

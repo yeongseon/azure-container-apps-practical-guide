@@ -1,27 +1,26 @@
 ---
 content_sources:
   diagrams:
-  - id: multi-region-front-door-topology
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
-    - https://learn.microsoft.com/azure/frontdoor/front-door-overview
+    - id: multi-region-front-door-topology
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Reliability guidance for Azure Container Apps should be used when planning zonal or regional resilience.
-    source: https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps
-    verified: true
-  - claim: Azure Front Door provides a global entry point that can be used in front of regional origins.
-    source: https://learn.microsoft.com/azure/frontdoor/front-door-overview
-    verified: true
-  - claim: Container Apps is a single-region service, so multi-region resiliency requires separate regional deployments plus
-      an external load-balancing or failover service.
-    source: https://learn.microsoft.com/azure/reliability/reliability-container-apps
-    verified: true
+    - claim: Reliability guidance for Azure Container Apps should be used when planning zonal or regional resilience.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+      verified: true
+    - claim: Azure Front Door provides a global entry point that can be used in front of regional origins.
+      source: https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
+      verified: true
+    - claim: Container Apps is a single-region service, so multi-region resiliency requires separate regional deployments plus an external load-balancing or failover service.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
 ---
 # Disaster Recovery
 
@@ -99,7 +98,7 @@ flowchart TD
 
 ## Sources
 
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-azure-container-apps)
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-container-apps)
-- [Azure Front Door overview](https://learn.microsoft.com/azure/frontdoor/front-door-overview)
-- [Azure Traffic Manager overview](https://learn.microsoft.com/azure/traffic-manager/traffic-manager-overview)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
+- [Azure Front Door overview](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview)
+- [Azure Traffic Manager overview](https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview)

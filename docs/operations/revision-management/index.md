@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: revision-promotion-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
+    - id: revision-promotion-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
 ---
 # Revision Operations
 
@@ -206,5 +206,5 @@ az containerapp ingress traffic show \
 - [Observability](../monitoring/index.md)
 
 ## Sources
-- [Azure Container Apps revisions](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
+- [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)

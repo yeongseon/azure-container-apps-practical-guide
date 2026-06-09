@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/storage-mounts
-    - https://learn.microsoft.com/dotnet/api/overview/azure/storage.blobs-readme
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/dotnet/api/overview/azure/storage.blobs-readme
 ---
 # Blob Storage Integration (Managed Identity)
 
@@ -161,5 +161,5 @@ az containerapp update \
 
 ## Sources
 
-- [Use storage mounts in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/storage-mounts)
-- [Azure Storage Blob client library for .NET](https://learn.microsoft.com/dotnet/api/overview/azure/storage.blobs-readme)
+- [Use storage mounts in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
+- [Azure Storage Blob client library for .NET](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/storage.blobs-readme)

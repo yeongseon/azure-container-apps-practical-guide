@@ -1,41 +1,40 @@
 ---
 content_sources:
   diagrams:
-  - id: if-you-use-dapr-centralize-runtime
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-  - id: use-managed-identity-entra-authentication
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - id: if-you-use-dapr-centralize-runtime
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - id: use-managed-identity-entra-authentication
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: A system-assigned identity is tied to the container app and is deleted when the container app is deleted.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: A user-assigned identity is a standalone Azure resource that you can assign to a container app and other resources.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: A container app can have multiple user-assigned identities.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: Managed identities let a container app authenticate to Microsoft Entra protected resources without managing credentials
-      in the app.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
+    - claim: A system-assigned identity is tied to the container app and is deleted when the container app is deleted.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: A user-assigned identity is a standalone Azure resource that you can assign to a container app and other resources.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: A container app can have multiple user-assigned identities.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: Managed identities let a container app authenticate to Microsoft Entra protected resources without managing credentials in the app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
 ---
 # Azure Container Apps Identity and Secret Management Best Practices
 
@@ -530,4 +529,4 @@ az role assignment list \
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/managed-identity)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

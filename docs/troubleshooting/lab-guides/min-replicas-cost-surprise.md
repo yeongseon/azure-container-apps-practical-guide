@@ -1,23 +1,22 @@
 ---
 content_sources:
   text:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/billing
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/billing
   diagrams:
-  - id: min-replicas-cost-surprise-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/billing
-  - id: min-replicas-cost-surprise-lab-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/billing
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - id: min-replicas-cost-surprise-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/billing
+    - id: min-replicas-cost-surprise-lab-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/billing
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
   last_reviewed: 2026-04-29
@@ -26,23 +25,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: "minReplicas=5\u21920 confirmed, scale-to-zero enabled"
+    notes: "minReplicas=5→0 confirmed, scale-to-zero enabled"
   core_claims:
-  - claim: The minimum replica setting determines whether a revision can scale to
-      zero.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    verified: true
-  - claim: Azure Container Apps billing changes depending on whether workloads run
-      in scale-to-zero capable consumption behavior or reserved dedicated capacity.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/billing
-    verified: true
+    - claim: The minimum replica setting determines whether a revision can scale to zero.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Azure Container Apps billing changes depending on whether workloads run in scale-to-zero capable consumption behavior or reserved dedicated capacity.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/billing
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Min Replicas Cost Surprise Lab

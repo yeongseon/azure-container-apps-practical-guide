@@ -1,27 +1,27 @@
 ---
 content_sources:
   diagrams:
-  - id: http-scaler-decision-loop
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn HTTP scale-rule behavior and scale-to-zero guidance.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/tutorial-scaling
+    - id: http-scaler-decision-loop
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn HTTP scale-rule behavior and scale-to-zero guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/tutorial-scaling
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: HTTP scaling in Azure Container Apps uses the concurrentRequests metadata property.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: The default concurrentRequests value is 10 and the documented minimum is 1.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: HTTP rules can scale a revision in to zero when minReplicas is 0.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
+    - claim: HTTP scaling in Azure Container Apps uses the concurrentRequests metadata property.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: The default concurrentRequests value is 10 and the documented minimum is 1.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: HTTP rules can scale a revision in to zero when minReplicas is 0.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 ---
 # HTTP Scaler in Azure Container Apps
 
@@ -128,5 +128,5 @@ az containerapp update \
 
 ## Sources
 
-- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Tutorial: Scale an Azure Container Apps application (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/tutorial-scaling)
+- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Tutorial: Scale an Azure Container Apps application (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-scaling)

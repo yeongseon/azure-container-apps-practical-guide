@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: sequence
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
-    - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
+    - id: architecture
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -17,24 +17,21 @@ content_validation:
     az_cli_version: 2.70.0
     notes: Bad Request on duplicate role assignment confirmed
   core_claims:
-  - claim: Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition.
-    source: https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
-    verified: true
-  - claim: Container Apps GitHub Actions continuous deployment provisions role assignments for the deployment identity on
-      the Azure Container Registry and the Container App.
-    source: https://learn.microsoft.com/azure/container-apps/github-actions
-    verified: true
-  - claim: ARM deployments that create Microsoft.Authorization/roleAssignments fail with RoleAssignmentExists when a different
-      assignment name targets the same scope, principal, and role.
-    source: https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
-    verified: true
+    - claim: Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition.
+      source: https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
+      verified: true
+    - claim: Container Apps GitHub Actions continuous deployment provisions role assignments for the deployment identity on the Azure Container Registry and the Container App.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+      verified: true
+    - claim: ARM deployments that create Microsoft.Authorization/roleAssignments fail with RoleAssignmentExists when a different assignment name targets the same scope, principal, and role.
+      source: https://learn.microsoft.com/en-us/azure/role-based-access-control/troubleshooting
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-04-21'
     cli_version: 2.70.0
     result: pass
-    notes: Reproduced the exact 'RoleAssignmentExists' error with the existing role assignment ID returned by the second ARM
-      deployment. Recovery (delete + redeploy) succeeded.
+    notes: Reproduced the exact 'RoleAssignmentExists' error with the existing role assignment ID returned by the second ARM deployment. Recovery (delete + redeploy) succeeded.
   bicep:
     last_tested: '2026-04-21'
     result: pass
@@ -449,6 +446,6 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Continuous deployment with GitHub Actions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/github-actions)
-- [Manage Azure role assignments using Azure CLI](https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli)
-- [Troubleshoot Azure RBAC](https://learn.microsoft.com/azure/role-based-access-control/troubleshooting)
+- [Continuous deployment with GitHub Actions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
+- [Manage Azure role assignments using Azure CLI](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli)
+- [Troubleshoot Azure RBAC](https://learn.microsoft.com/en-us/azure/role-based-access-control/troubleshooting)

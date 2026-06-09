@@ -1,23 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
-  - id: ci-cd-pipeline-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+    - id: ci-cd-pipeline-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 06 - CI/CD with GitHub Actions
@@ -220,5 +220,5 @@ graph TD
 - [GitHub Actions for Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/github/github-actions)
 
 ## Sources
-- [GitHub Actions for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
+- [GitHub Actions for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
 - [setup-dotnet action (GitHub)](https://github.com/actions/setup-dotnet)

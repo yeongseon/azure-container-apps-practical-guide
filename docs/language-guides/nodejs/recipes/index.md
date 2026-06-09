@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: integration-dependency-map
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/javascript/api/overview/azure/identity-readme
+    - id: integration-dependency-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme
 ---
 # Recipes: Integration Patterns for Azure Container Apps (Node.js)
 
@@ -120,6 +120,6 @@ az containerapp show \
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Azure Identity client library for JavaScript](https://learn.microsoft.com/javascript/api/overview/azure/identity-readme)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Azure Identity client library for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme)
 - [Dapr documentation](https://docs.dapr.io/)

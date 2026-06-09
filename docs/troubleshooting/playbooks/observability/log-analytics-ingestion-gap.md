@@ -1,28 +1,28 @@
 ---
 content_sources:
   documents:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
   diagrams:
-  - id: log-analytics-ingestion-gap-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - id: log-analytics-ingestion-gap-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps can send console and system logs to Log Analytics for query-based troubleshooting.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-    verified: false
-  - claim: Container app console logs are stored in the ContainerAppConsoleLogs table in Azure Monitor Logs.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
-    verified: false
+    - claim: Azure Container Apps can send console and system logs to Log Analytics for query-based troubleshooting.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
+      verified: false
+    - claim: Container app console logs are stored in the ContainerAppConsoleLogs table in Azure Monitor Logs.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
+      verified: false
 ---
 # Log Analytics Ingestion Gap
 

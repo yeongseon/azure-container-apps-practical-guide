@@ -1,27 +1,27 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/authentication
   diagrams:
-  - id: easyauth-entra-id-failure-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-    - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
-    - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
+    - id: easyauth-entra-id-failure-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
+        - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps supports built-in authentication and authorization configuration.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
-    verified: false
-  - claim: A redirect URI mismatch in Microsoft Entra ID can surface as AADSTS50011.
-    source: https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
-    verified: false
+    - claim: Azure Container Apps supports built-in authentication and authorization configuration.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+      verified: false
+    - claim: A redirect URI mismatch in Microsoft Entra ID can surface as AADSTS50011.
+      source: https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
+      verified: false
 ---
 # EasyAuth Entra ID Failure
 

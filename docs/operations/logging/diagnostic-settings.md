@@ -1,25 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: diagnostic-settings-routing-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - id: diagnostic-settings-routing-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Azure Monitor diagnostic settings can route platform logs to supported destinations such as Log Analytics workspaces
-      and Event Hubs.
-    source: https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings
-    verified: true
-  - claim: Container Apps log monitoring documentation should be checked before assuming exact category names for managed
-      environments.
-    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
-    verified: true
+    - claim: Azure Monitor diagnostic settings can route platform logs to supported destinations such as Log Analytics workspaces and Event Hubs.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings
+      verified: true
+    - claim: Container Apps log monitoring documentation should be checked before assuming exact category names for managed environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+      verified: true
 ---
 # Diagnostic Settings
 
@@ -142,5 +140,5 @@ flowchart TD
 
 ## Sources
 
-- [Diagnostic settings in Azure Monitor](https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings)
-- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Diagnostic settings in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings)
+- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)

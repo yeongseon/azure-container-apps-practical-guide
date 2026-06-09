@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps jobs support manual, schedule, and event triggers.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: A job execution in Azure Container Apps runs one or more replicas of a job template.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
+    - claim: Azure Container Apps jobs support manual, schedule, and event triggers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: A job execution in Azure Container Apps runs one or more replicas of a job template.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
 ---
 # Container App Job Execution Failure
 
@@ -240,6 +240,6 @@ az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 
 ## Sources
 
-- [Jobs in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Scale jobs in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app#jobs)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Jobs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Scale jobs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

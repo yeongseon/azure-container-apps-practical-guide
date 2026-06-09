@@ -1,38 +1,36 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
-  - id: rbac-structure
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the Microsoft Learn sources cited by this page.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview
+    - id: rbac-structure
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the Microsoft Learn sources cited by this page.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: A system-assigned identity is tied to the container app and is deleted when the container app is deleted.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: A user-assigned identity is a standalone Azure resource that can be assigned to a container app and other resources.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: Managed identities let a container app connect to Microsoft Entra protected resources without managing credentials
-      in the app.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: When a managed identity is added, deleted, or modified on a running container app, the app does not automatically
-      restart and a new revision is not created.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
+    - claim: A system-assigned identity is tied to the container app and is deleted when the container app is deleted.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: A user-assigned identity is a standalone Azure resource that can be assigned to a container app and other resources.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: Managed identities let a container app connect to Microsoft Entra protected resources without managing credentials in the app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: When a managed identity is added, deleted, or modified on a running container app, the app does not automatically restart and a new revision is not created.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
 ---
 # Passwordless Access with Managed Identity
 
@@ -177,5 +175,5 @@ blob_service_client = BlobServiceClient(
 - [Blob Storage and File Mounts](../../language-guides/python/recipes/storage.md)
 
 ## Sources
-- [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [What are managed identities for Azure resources? (Microsoft Learn)](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview)
+- [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [What are managed identities for Azure resources? (Microsoft Learn)](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview)

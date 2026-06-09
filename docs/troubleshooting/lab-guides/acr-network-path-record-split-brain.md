@@ -1,14 +1,14 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/private-link/private-endpoint-dns
-    - https://learn.microsoft.com/azure/container-registry/container-registry-firewall-rules
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules
 content_validation:
   status: verified
   last_reviewed: '2026-06-06'
@@ -29,18 +29,18 @@ content_validation:
       Azure Private DNS zone-authority behavior. See "Empirical deviation
       from the original Scenario D framing" callout below.
   core_claims:
-  - claim: ACR's Private Endpoint exposes one 'registry' sub-resource whose NIC holds private IPs for the global login endpoint and the per-region data endpoint, both of which must exist as A records inside privatelink.azurecr.io for an end-to-end private pull.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    verified: true
-  - claim: Azure Private DNS Zones linked to a VNet are authoritative for their namespace from the perspective of Azure DNS at 168.63.129.16, so a query for a name in that namespace returns the zone's record if one exists and returns NXDOMAIN if no record exists - there is no automatic fallthrough to the public CNAME chain.
-    source: https://learn.microsoft.com/azure/private-link/private-endpoint-dns
-    verified: true
-  - claim: Azure Container Apps environments use the linked VNet's DNS configuration for workload-level DNS resolution, so workload calls from inside replicas follow exactly the same resolver path as any other VNet client.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: When ACR is configured with publicNetworkAccess=Disabled, the public ACR endpoint rejects unauthenticated requests from non-allow-listed source IPs with HTTP 403 from the ACR firewall - which is observably distinct from the data endpoint's default HTTP 403 response to an unauthenticated /v2/ probe on the private path, because the firewall HTTP 403 is paired with a public-IP DNS resolution while the data-endpoint HTTP 403 is paired with a PE-NIC private-IP DNS resolution.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-firewall-rules
-    verified: true
+    - claim: ACR's Private Endpoint exposes one 'registry' sub-resource whose NIC holds private IPs for the global login endpoint and the per-region data endpoint, both of which must exist as A records inside privatelink.azurecr.io for an end-to-end private pull.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+      verified: true
+    - claim: Azure Private DNS Zones linked to a VNet are authoritative for their namespace from the perspective of Azure DNS at 168.63.129.16, so a query for a name in that namespace returns the zone's record if one exists and returns NXDOMAIN if no record exists - there is no automatic fallthrough to the public CNAME chain.
+      source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+      verified: true
+    - claim: Azure Container Apps environments use the linked VNet's DNS configuration for workload-level DNS resolution, so workload calls from inside replicas follow exactly the same resolver path as any other VNet client.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: When ACR is configured with publicNetworkAccess=Disabled, the public ACR endpoint rejects unauthenticated requests from non-allow-listed source IPs with HTTP 403 from the ACR firewall - which is observably distinct from the data endpoint's default HTTP 403 response to an unauthenticated /v2/ probe on the private path, because the firewall HTTP 403 is paired with a public-IP DNS resolution while the data-endpoint HTTP 403 is paired with a PE-NIC private-IP DNS resolution.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-06'
@@ -101,7 +101,7 @@ For ACR specifically, the zone needs BOTH the `<registry>` A record (for the reg
 
 Three properties make Scenario D worth reproducing as a hands-on lab:
 
-- **Azure Private DNS Zones linked to a VNet are authoritative for their namespace.** The Private DNS Zone IP-substitution mechanism documented in [Azure Private Endpoint DNS configuration](https://learn.microsoft.com/azure/private-link/private-endpoint-dns) works at the zone level: once a VNet is linked to a private zone, Azure DNS treats every query for a name in that namespace as a query against the zone, and answers with the zone's record if one exists or with NXDOMAIN if no record exists. There is no automatic fallthrough to the public CNAME chain from Azure DNS itself. This means a missing `<registry>.<region>.data` record produces a hard DNS failure for the application (the data FQDN is unaddressable), not a silent flip to a public IP. The platform doc's older "split-brain" framing — login private, data public — is accurate only for a custom-DNS topology where a customer-managed resolver is explicitly configured to fall back to public DNS on NXDOMAIN; that is a different topology than this lab.
+- **Azure Private DNS Zones linked to a VNet are authoritative for their namespace.** The Private DNS Zone IP-substitution mechanism documented in [Azure Private Endpoint DNS configuration](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns) works at the zone level: once a VNet is linked to a private zone, Azure DNS treats every query for a name in that namespace as a query against the zone, and answers with the zone's record if one exists or with NXDOMAIN if no record exists. There is no automatic fallthrough to the public CNAME chain from Azure DNS itself. This means a missing `<registry>.<region>.data` record produces a hard DNS failure for the application (the data FQDN is unaddressable), not a silent flip to a public IP. The platform doc's older "split-brain" framing — login private, data public — is accurate only for a custom-DNS topology where a customer-managed resolver is explicitly configured to fall back to public DNS on NXDOMAIN; that is a different topology than this lab.
 - **In Azure Container Apps in this reproduction, deleting the data A record produces no immediate revision-health impact on the already-running revision.** This is the central finding of the lab, and it mirrors the Scenario E lab's central finding for a different root cause. Empirically, when the `<registry>.<region>.data` record is deleted from `privatelink.azurecr.io`, the already-running revision continues to report `healthState=Healthy` and serves traffic from the already-cached image layers. The workload, however, immediately sees the broken record — the 4-layer probe's data-FQDN DNS layer flips from `class=private` (PE NIC IP) to `class=null` with `error="gaierror: [Errno -2] Name or service not known"`, and all downstream layers (TCP, TLS, HTTP) are skipped because there is no IP to connect to.
 - **Scenario D is distinct from Scenario E in a way that matters operationally.** Scenario E breaks the resolver path so the ENTIRE ACR namespace resolves publicly; Scenario D leaves the resolver path correct but breaks a SINGLE record so only PART of the namespace fails to resolve. Both can produce workload-layer failures without revision-health impact, but they require DIFFERENT FIXES — fix the forwarder for E, fix the zone record for D. A lab that can distinguish them on the wire (this lab vs. the sibling Scenario E lab) is operationally useful because the diagnostic signal differs: Scenario E shows `topology_class=both_public` (custom DNS bypasses Azure DNS entirely), Scenario D in default Azure DNS shows `topology_class=data_nxdomain` (Azure DNS is authoritative and answers NXDOMAIN for the missing record).
 
@@ -549,10 +549,10 @@ ACR Premium is the dominant cost (~$1.67/day), so do not leave the lab running b
 
 ## Sources
 
-- [Azure Private Endpoint DNS configuration (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/private-endpoint-dns) — why Azure DNS performs IP substitution for `privatelink.*` zones and how linked private zones behave authoritatively for names in that namespace
-- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints) — ACR PE topology, sub-resource model, and the registry+data FQDN split
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking) — Container Apps VNet DNS behavior (defaults to Azure DNS when no custom DNS server is configured on the VNet)
-- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/how-to-use-private-endpoint)
-- [Configure public network access for an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks) — the ACR firewall behavior that produces HTTP 403 from `publicNetworkAccess=Disabled`
-- [Configure rules to access an Azure Container Registry behind a firewall (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-firewall-rules)
-- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication)
+- [Azure Private Endpoint DNS configuration (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns) — why Azure DNS performs IP substitution for `privatelink.*` zones and how linked private zones behave authoritatively for names in that namespace
+- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints) — ACR PE topology, sub-resource model, and the registry+data FQDN split
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking) — Container Apps VNet DNS behavior (defaults to Azure DNS when no custom DNS server is configured on the VNet)
+- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
+- [Configure public network access for an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks) — the ACR firewall behavior that produces HTTP 403 from `publicNetworkAccess=Disabled`
+- [Configure rules to access an Azure Container Registry behind a firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules)
+- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)

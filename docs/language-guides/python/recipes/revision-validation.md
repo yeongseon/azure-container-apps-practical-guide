@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: validate-new-revisions-with-direct-testing
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-    - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
-    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - id: validate-new-revisions-with-direct-testing
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 ---
 # Recipe: Revision Validation Before Production Traffic
 
@@ -190,7 +190,7 @@ az containerapp ingress traffic set \
 - [Container Registry](container-registry.md)
 - [Custom Container](custom-container.md)
 - [Revisions](../../../platform/revisions/index.md)
-- [Microsoft Learn: Revisions in Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Microsoft Learn: Revisions in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 
 ## Sources
 

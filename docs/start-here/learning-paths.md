@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: the-following-flow-helps-teams-move
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
-    - https://learn.microsoft.com/azure/container-apps/get-started
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - id: the-following-flow-helps-teams-move
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps provides quickstart tutorials for deploying containerized applications.
-    source: https://learn.microsoft.com/azure/container-apps/get-started
-    verified: true
-  - claim: Container Apps integrates with Azure Monitor for logging and monitoring.
-    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
-    verified: true
+    - claim: Azure Container Apps provides quickstart tutorials for deploying containerized applications.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/get-started
+      verified: true
+    - claim: Container Apps integrates with Azure Monitor for logging and monitoring.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+      verified: true
 ---
 # Tutorial: Azure Container Apps for Python
 
@@ -158,7 +158,7 @@ Before moving from one phase to the next, validate these checkpoints:
 
 ## Sources
 
-- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
-- [Quickstart: Deploy your first container app (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/get-started)
-- [Manage revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Monitor logs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Quickstart: Deploy your first container app (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/get-started)
+- [Manage revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Monitor logs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)

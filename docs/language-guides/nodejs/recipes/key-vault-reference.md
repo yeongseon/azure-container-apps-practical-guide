@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-key-vault-references-and-managed
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/javascript/api/overview/azure/keyvault-secrets-readme
+    - id: use-key-vault-references-and-managed
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/javascript/api/overview/azure/keyvault-secrets-readme
 ---
 # Recipe: Key Vault Reference in Node.js Apps on Azure Container Apps
 
@@ -104,5 +104,5 @@ app.get("/secret-check", async (_req, res) => {
 
 ## Sources
 
-- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
-- [Azure Key Vault SecretClient for JavaScript](https://learn.microsoft.com/javascript/api/overview/azure/keyvault-secrets-readme)
+- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Azure Key Vault SecretClient for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/keyvault-secrets-readme)

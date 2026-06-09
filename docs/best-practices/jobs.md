@@ -1,41 +1,40 @@
 ---
 content_sources:
   diagrams:
-  - id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
-    - https://learn.microsoft.com/en-us/azure/container-apps/overview
-  - id: final-status-published-to-dashboard-alert-channel
-    type: state
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
-    - https://learn.microsoft.com/en-us/azure/container-apps/overview
+    - id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+    - id: final-status-published-to-dashboard-alert-channel
+      type: state
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps jobs run containerized tasks for a finite duration and then stop.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Job executions can start manually, on a schedule, or in response to events.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Container apps and jobs run in the same environment and can share capabilities such as networking and logging.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: The execution history for scheduled and event-based jobs is limited to the most recent 100 successful and failed
-      job executions.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Ingress and related features such as custom domains and SSL certificates aren't supported for jobs.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
+    - claim: Azure Container Apps jobs run containerized tasks for a finite duration and then stop.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Job executions can start manually, on a schedule, or in response to events.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Container apps and jobs run in the same environment and can share capabilities such as networking and logging.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: The execution history for scheduled and event-based jobs is limited to the most recent 100 successful and failed job executions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Ingress and related features such as custom domains and SSL certificates aren't supported for jobs.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
 ---
 # Jobs Best Practices
 
@@ -525,4 +524,4 @@ stateDiagram-v2
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/overview)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/jobs)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/jobs)

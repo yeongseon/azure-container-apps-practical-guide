@@ -1,62 +1,62 @@
 ---
 content_sources:
   diagrams:
-  - id: create-environments-with-no-public-endpoint
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/security
-    - https://learn.microsoft.com/azure/container-apps/authentication
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-    - https://learn.microsoft.com/azure/role-based-access-control/overview
-    - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-  - id: enable-vulnerability-scanning
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/security
-    - https://learn.microsoft.com/azure/container-apps/authentication
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-    - https://learn.microsoft.com/azure/role-based-access-control/overview
-    - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-  - id: apply-least-privilege-role-assignments
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/security
-    - https://learn.microsoft.com/azure/container-apps/authentication
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction
-    - https://learn.microsoft.com/azure/role-based-access-control/overview
-    - https://learn.microsoft.com/azure/container-apps/policy-reference
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
+    - id: create-environments-with-no-public-endpoint
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/security
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-introduction
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+    - id: enable-vulnerability-scanning
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/security
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-introduction
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+    - id: apply-least-privilege-role-assignments
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/security
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-introduction
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: To create private endpoints on an Azure Container Apps environment, public network access must be set to Disabled.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: A managed identity allows a container app to access other Microsoft Entra protected resources.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: You can use role-based access control to grant specific permissions to a managed identity.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
+    - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: To create private endpoints on an Azure Container Apps environment, public network access must be set to Disabled.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: A managed identity allows a container app to access other Microsoft Entra protected resources.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: You can use role-based access control to grant specific permissions to a managed identity.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
 ---
 # Azure Container Apps Security Best Practices
 
@@ -589,11 +589,11 @@ Use this checklist before promoting to production:
 
 ## Sources
 
-- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/security)
-- [Authentication and Authorization in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/authentication)
-- [Managed Identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
-- [Microsoft Defender for Containers (Microsoft Learn)](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction)
-- [Azure RBAC Overview (Microsoft Learn)](https://learn.microsoft.com/azure/role-based-access-control/overview)
-- [Azure Policy for Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/policy-reference)
-- [Key Vault References in Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
+- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/security)
+- [Authentication and Authorization in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Managed Identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Microsoft Defender for Containers (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-introduction)
+- [Azure RBAC Overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview)
+- [Azure Policy for Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/policy-reference)
+- [Key Vault References in Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)

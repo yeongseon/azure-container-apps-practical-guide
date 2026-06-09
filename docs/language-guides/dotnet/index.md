@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: end-to-end-learning-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/container-apps/dotnet-overview
+    - id: end-to-end-learning-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/dotnet-overview
 ---
 # .NET on Azure Container Apps
 
@@ -123,5 +123,5 @@ By completing this guide, you will gain the following capabilities:
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [.NET on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dotnet-overview)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [.NET on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dotnet-overview)

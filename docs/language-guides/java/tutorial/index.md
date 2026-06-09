@@ -1,19 +1,19 @@
 ---
 content_sources:
   diagrams:
-  - id: java-tutorial-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
+    - id: java-tutorial-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Java Tutorial Index
@@ -77,5 +77,5 @@ flowchart TD
 
 ## Sources
 
-- [Microsoft Learn source 1](https://learn.microsoft.com/azure/container-apps/)
-- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)

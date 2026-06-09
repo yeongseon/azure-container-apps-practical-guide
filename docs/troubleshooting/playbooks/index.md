@@ -1,28 +1,28 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/overview
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/overview
   diagrams:
-  - id: ca-myapp-0000001-true-100-1-healthy-running
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/en-us/azure/container-apps/overview
+    - id: ca-myapp-0000001-true-100-1-healthy-running
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps provides built-in troubleshooting tools including log streaming and console access.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-    verified: true
-  - claim: Container Apps revisions are immutable snapshots that enable traffic splitting and rollback.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-    verified: true
+    - claim: Azure Container Apps provides built-in troubleshooting tools including log streaming and console access.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+      verified: true
+    - claim: Container Apps revisions are immutable snapshots that enable traffic splitting and rollback.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Troubleshooting
 

@@ -1,16 +1,16 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/authentication
   diagrams:
-  - id: easyauth-entra-id-failure-lab-diagram
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-    - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
-    - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
+    - id: easyauth-entra-id-failure-lab-diagram
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
+        - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -21,19 +21,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: HTTP 401 with WWW-Authenticate Bearer + authorization_uri; redirect URI fix in Entra app registration
   core_claims:
-  - claim: Azure Container Apps can use built-in auth with Microsoft Entra ID.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
-    verified: false
-  - claim: AADSTS50011 indicates a redirect URI or reply URL mismatch.
-    source: https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
-    verified: false
+    - claim: Azure Container Apps can use built-in auth with Microsoft Entra ID.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
+      verified: false
+    - claim: AADSTS50011 indicates a redirect URI or reply URL mismatch.
+      source: https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # EasyAuth Entra ID Failure Lab

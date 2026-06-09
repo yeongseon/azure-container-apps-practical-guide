@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-defaultazurecredential-and-asp-net-core-dependency
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme
+    - id: use-defaultazurecredential-and-asp-net-core-dependency
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme
 ---
 # Recipe: Managed Identity in .NET Apps on Azure Container Apps
 
@@ -98,5 +98,5 @@ app.Run();
 
 ## Sources
 
-- [Managed identities in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Azure SDK for .NET identity](https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Azure SDK for .NET identity](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme)

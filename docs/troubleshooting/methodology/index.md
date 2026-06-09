@@ -1,18 +1,18 @@
 ---
 content_sources:
   diagrams:
-  - id: diagnostic-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-  - id: after-applying-a-candidate-fix-run
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - id: diagnostic-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+    - id: after-applying-a-candidate-fix-run
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 ---
 # Troubleshooting Methodology
 
@@ -233,5 +233,5 @@ flowchart TD
 
 ## Sources
 
-- [Microsoft Learn: Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
-- [Microsoft Learn: Monitor Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Microsoft Learn: Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Microsoft Learn: Monitor Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)

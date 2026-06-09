@@ -1,28 +1,28 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
   diagrams:
-  - id: cpu-throttling-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-    - https://learn.microsoft.com/en-us/azure/container-apps/metrics
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - id: cpu-throttling-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+        - https://learn.microsoft.com/en-us/azure/container-apps/metrics
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps exposes CPU-related metrics that can be queried from Azure Monitor.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-    verified: false
-  - claim: Workload profile selection and environment quotas affect the CPU capacity available to Container Apps workloads.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-    verified: false
+    - claim: Azure Container Apps exposes CPU-related metrics that can be queried from Azure Monitor.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: false
+    - claim: Workload profile selection and environment quotas affect the CPU capacity available to Container Apps workloads.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+      verified: false
 ---
 # CPU Throttling
 

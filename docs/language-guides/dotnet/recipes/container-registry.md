@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: deploy-asp-net-core-images-from-private
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-registry/container-registry-get-started-azure-cli
+    - id: deploy-asp-net-core-images-from-private
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli
 ---
 # Recipe: Container Registry in .NET Apps on Azure Container Apps
 
@@ -115,5 +115,5 @@ az containerapp create \
 
 ## Sources
 
-- [Managed identity image pull for Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Create and manage Azure Container Registry](https://learn.microsoft.com/azure/container-registry/container-registry-get-started-azure-cli)
+- [Managed identity image pull for Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Create and manage Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli)

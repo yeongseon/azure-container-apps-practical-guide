@@ -179,7 +179,7 @@ resource firewallPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
 // tiers do not require this. The management NIC handles control-plane
 // traffic from the firewall to the Azure backend (status, signatures,
 // metrics) on a path independent of the data plane.
-// Reference: https://learn.microsoft.com/azure/firewall/deploy-firewall-basic-portal-policy
+// Reference: https://learn.microsoft.com/en-us/azure/firewall/deploy-firewall-basic-portal-policy
 
 resource firewallManagementPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
   name: '${firewallPublicIpName}-mgmt'

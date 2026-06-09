@@ -1,11 +1,11 @@
 ---
 content_sources:
   diagrams:
-  - id: learning-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
+    - id: learning-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
 ---
 # Azure Container Apps Practical Guide
 
@@ -72,7 +72,7 @@ flowchart TD
 
 This is an independent community project. Not affiliated with or endorsed by Microsoft.
 
-Primary product reference: [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+Primary product reference: [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
 
 ## See Also
 
@@ -86,4 +86,4 @@ Primary product reference: [Azure Container Apps documentation (Microsoft Learn)
 
 ## Sources
 
-- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)

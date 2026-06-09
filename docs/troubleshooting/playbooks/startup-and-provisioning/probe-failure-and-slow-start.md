@@ -1,24 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports startup, readiness, and liveness probes.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: If you don't define custom probes for the main app container when ingress is enabled, Azure Container Apps adds
-      default probes automatically.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
+    - claim: Azure Container Apps supports startup, readiness, and liveness probes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: If you don't define custom probes for the main app container when ingress is enabled, Azure Container Apps adds default probes automatically.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
 ---
 # Probe Failure and Slow Start
 
@@ -464,6 +463,6 @@ probes:
 
 ## Sources
 
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Configure liveness, readiness, and startup probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)

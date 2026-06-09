@@ -1,16 +1,16 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
   diagrams:
-  - id: image-size-startup-delay-lab-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - id: image-size-startup-delay-lab-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -21,19 +21,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: nginx:latest pulled in 4.09s, image size 62914560 bytes (62.9MB) confirmed from system logs
   core_claims:
-  - claim: Container start troubleshooting in Azure Container Apps includes validating startup timing and revision readiness.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-    verified: false
-  - claim: Azure Container Apps revisions run the image configured in the app template.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/containers
-    verified: false
+    - claim: Container start troubleshooting in Azure Container Apps includes validating startup timing and revision readiness.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+      verified: false
+    - claim: Azure Container Apps revisions run the image configured in the app template.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Image Size Startup Delay Lab

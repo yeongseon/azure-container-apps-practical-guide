@@ -1,15 +1,15 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
-    - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
-    - https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
-    - https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
-    - https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/governance/resource-graph/concepts/query-language
+        - https://learn.microsoft.com/en-us/azure/governance/resource-graph/samples/samples-by-category
 content_validation:
   status: verified
   last_reviewed: '2026-04-23'
@@ -24,14 +24,14 @@ content_validation:
     containerapp_extension: 1.2.0b4
     tested_date: '2026-04-22'
     outcomes:
-    - step: First connect
-      result: Workflow + 3 secrets created; manual SP with Contributor (RG) + AcrPush (ACR) required
-    - step: Disconnect
-      result: Workflow file deleted; secrets, SP, and role assignments left behind
-    - step: Reproduce conflict
-      result: PUT new role assignment with same (scope, principal, role) returned RoleAssignmentExists
-    - step: 4-step cleanup + reconnect
-      result: All artifacts cleaned and CD reconnected with fresh SP
+      - step: First connect
+        result: Workflow + 3 secrets created; manual SP with Contributor (RG) + AcrPush (ACR) required
+      - step: Disconnect
+        result: Workflow file deleted; secrets, SP, and role assignments left behind
+      - step: Reproduce conflict
+        result: PUT new role assignment with same (scope, principal, role) returned RoleAssignmentExists
+      - step: 4-step cleanup + reconnect
+        result: All artifacts cleaned and CD reconnected with fresh SP
   additional_validation_environment:
     subscription: <subscription-id>
     resource_group: rg-aca-orphan-ra-732926 / rg-rbac-cmd-verify-e727e8
@@ -41,42 +41,34 @@ content_validation:
     tested_date: '2026-04-23'
     scenario: Orphaned role-assignment lookup + diagnostic command-pattern verification
     outcomes:
-    - step: Resource Graph AuthorizationResources query (single-GUID lookup)
-      result: Returns row with full ARM `id`, `properties.scope/principalId/principalType/roleDefinitionId/createdOn` populated;
-        works for orphan principals
-    - step: Resource Graph per-principal sweep (properties.principalId == ...)
-      result: Returns all assignments held by the orphan SP; works after the principal is deleted
-    - step: az role assignment list --include-inherited at RG scope
-      result: 'Without flag: 0 rows; with flag: 18 inherited rows (flag is essential)'
-    - step: az rest --method DELETE on full ARM `id` (api-version=2022-04-01)
-      result: 200 with deleted resource body; follow-up GET returns 404 RoleAssignmentNotFound
-    - step: az rest --method GET on full ARM `id` (api-version=2022-04-01)
-      result: 200 for assignment at the queried scope; 404 RoleAssignmentNotFound for a sub-scope URL when the assignment
-        lives at RG scope (URL is scope-aware)
-    - step: az role assignment show subcommand
-      result: Does not exist on CLI 2.70 (`'show' is misspelled or not recognized`); subcommands are create/delete/list/list-changelogs/update
-        only
-    - step: az role assignment list --assignee <orphan-principalId>
-      result: Fails with `Cannot find user or service principal in graph database for '<id>'` because --assignee performs
-        a Microsoft Entra ID lookup; use Resource Graph instead
-    - step: Per-scope az role assignment list visibility for orphan RA
-      result: Row remains visible with `principalName` empty (not hidden); orphan signal is the empty principalName, not a
-        NotFound
-    - step: az ad sp create-for-rbac --years 1
-      result: Rejected by tenant credential lifetime policy (policy ID redacted); default (no --years) succeeded in 1st validation
-        environment
+      - step: Resource Graph AuthorizationResources query (single-GUID lookup)
+        result: Returns row with full ARM `id`, `properties.scope/principalId/principalType/roleDefinitionId/createdOn` populated; works for orphan principals
+      - step: Resource Graph per-principal sweep (properties.principalId == ...)
+        result: Returns all assignments held by the orphan SP; works after the principal is deleted
+      - step: az role assignment list --include-inherited at RG scope
+        result: 'Without flag: 0 rows; with flag: 18 inherited rows (flag is essential)'
+      - step: az rest --method DELETE on full ARM `id` (api-version=2022-04-01)
+        result: 200 with deleted resource body; follow-up GET returns 404 RoleAssignmentNotFound
+      - step: az rest --method GET on full ARM `id` (api-version=2022-04-01)
+        result: 200 for assignment at the queried scope; 404 RoleAssignmentNotFound for a sub-scope URL when the assignment lives at RG scope (URL is scope-aware)
+      - step: az role assignment show subcommand
+        result: Does not exist on CLI 2.70 (`'show' is misspelled or not recognized`); subcommands are create/delete/list/list-changelogs/update only
+      - step: az role assignment list --assignee <orphan-principalId>
+        result: Fails with `Cannot find user or service principal in graph database for '<id>'` because --assignee performs a Microsoft Entra ID lookup; use Resource Graph instead
+      - step: Per-scope az role assignment list visibility for orphan RA
+        result: Row remains visible with `principalName` empty (not hidden); orphan signal is the empty principalName, not a NotFound
+      - step: az ad sp create-for-rbac --years 1
+        result: Rejected by tenant credential lifetime policy (policy ID redacted); default (no --years) succeeded in 1st validation environment
   core_claims:
-  - claim: Azure RBAC enforces a unique constraint on the combination of scope, principal, and role definition for role assignments.
-    source: https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
-    verified: true
-  - claim: Container Apps GitHub Actions continuous deployment provisions a service principal or managed identity and grants
-      it AcrPush and Contributor roles on the registry and Container App.
-    source: https://learn.microsoft.com/azure/container-apps/github-actions
-    verified: true
-  - claim: Disconnecting GitHub Actions continuous deployment removes the workflow file but does not remove GitHub secrets,
-      the underlying service principal, or its role assignments.
-    source: https://learn.microsoft.com/azure/container-apps/github-actions
-    verified: true
+    - claim: Azure RBAC enforces a unique constraint on the combination of scope, principal, and role definition for role assignments.
+      source: https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
+      verified: true
+    - claim: Container Apps GitHub Actions continuous deployment provisions a service principal or managed identity and grants it AcrPush and Contributor roles on the registry and Container App.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+      verified: true
+    - claim: Disconnecting GitHub Actions continuous deployment removes the workflow file but does not remove GitHub secrets, the underlying service principal, or its role assignments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+      verified: true
 ---
 # Continuous Deployment RBAC Role Assignment Conflict
 
@@ -935,10 +927,10 @@ Delete `sp-creds.json` immediately after the reconnect succeeds — it contains 
 
 ## Sources
 
-- https://learn.microsoft.com/azure/container-apps/github-actions
-- https://learn.microsoft.com/azure/role-based-access-control/role-assignments-cli
-- https://learn.microsoft.com/azure/role-based-access-control/troubleshooting
-- https://learn.microsoft.com/azure/role-based-access-control/role-assignments-list-cli
-- https://learn.microsoft.com/azure/governance/resource-graph/concepts/query-language
-- https://learn.microsoft.com/azure/governance/resource-graph/samples/samples-by-category
-- https://learn.microsoft.com/azure/role-based-access-control/role-assignments-list-portal
+- https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+- https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
+- https://learn.microsoft.com/en-us/azure/role-based-access-control/troubleshooting
+- https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-cli
+- https://learn.microsoft.com/en-us/azure/governance/resource-graph/concepts/query-language
+- https://learn.microsoft.com/en-us/azure/governance/resource-graph/samples/samples-by-category
+- https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-portal

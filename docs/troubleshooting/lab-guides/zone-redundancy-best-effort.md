@@ -1,46 +1,46 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
   diagrams:
-  - id: experiment-architecture
-    type: flowchart
-    source: self-generated
-    justification: "No single MS Learn diagram describes a parallel-min audit topology with deterministic perturbation. Synthesized from the reliability and zone-redundancy articles."
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-    - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+    - id: experiment-architecture
+      type: flowchart
+      source: self-generated
+      justification: "No single MS Learn diagram describes a parallel-min audit topology with deterministic perturbation. Synthesized from the reliability and zone-redundancy articles."
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
 content_validation:
   status: verified
   last_reviewed: '2026-06-08'
   reviewer: agent
   lab_validation:
     status: pending_reproduction
-    tested_date: null
-    az_cli_version: null
+    tested_date:
+    az_cli_version:
     notes: Bicep + scripts authored 2026-06-08. Pending real Azure deployment for captures and metric collection.
   core_claims:
-  - claim: Container Apps zone redundancy distributes replicas across Availability Zones on a best-effort basis subject to host capacity and resource requests.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
-    verified: true
-  - claim: Container Apps may restart replicas during planned platform maintenance windows.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
-    verified: true
-  - claim: Azure Container Apps does not expose per-replica Availability Zone placement through the management plane.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/containers
-    verified: true
+    - claim: Container Apps zone redundancy distributes replicas across Availability Zones on a best-effort basis subject to host capacity and resource requests.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+      verified: true
+    - claim: Container Apps may restart replicas during planned platform maintenance windows.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
+      verified: true
+    - claim: Azure Container Apps does not expose per-replica Availability Zone placement through the management plane.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Zone Redundancy Is Best-Effort Lab

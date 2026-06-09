@@ -1,20 +1,20 @@
 ---
 content_sources:
   diagrams:
-  - id: tutorial-progression
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-    - https://learn.microsoft.com/azure/container-apps/containers#configuration
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: tutorial-progression
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers#configuration
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Node.js Tutorial Index
@@ -77,6 +77,6 @@ flowchart TD
 
 ## Sources
 
-- [Microsoft Learn source 1](https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud)
-- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/containers#configuration)
-- [Microsoft Learn source 3](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/containers#configuration)
+- [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

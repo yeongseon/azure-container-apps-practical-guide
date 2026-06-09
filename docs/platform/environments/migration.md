@@ -1,33 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: parallel-environment-cutover
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/structure
-    - https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/move-support-resources
-    - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
+    - id: parallel-environment-cutover
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/structure
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/move-support-resources
+        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
 content_validation:
   status: verified
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Workload profiles (v2) is the default environment type and is recommended for new Azure Container Apps environments.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/structure
-    verified: true
-  - claim: Once you create an environment with either the default Azure network or an existing VNet, the network type can't
-      be changed.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: true
-  - claim: Microsoft.App/managedEnvironments supports resource group and subscription moves, but not region moves.
-    source: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/move-support-resources
-    verified: true
-  - claim: The container app resource exposes environmentId and workloadProfileName for redeployment via IaC.
-    source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
-    verified: true
+    - claim: Workload profiles (v2) is the default environment type and is recommended for new Azure Container Apps environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/structure
+      verified: true
+    - claim: Once you create an environment with either the default Azure network or an existing VNet, the network type can't be changed.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Microsoft.App/managedEnvironments supports resource group and subscription moves, but not region moves.
+      source: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/move-support-resources
+      verified: true
+    - claim: The container app resource exposes environmentId and workloadProfileName for redeployment via IaC.
+      source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
+      verified: true
 ---
 # Environment Migration
 

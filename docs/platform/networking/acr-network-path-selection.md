@@ -1,30 +1,30 @@
 ---
 content_sources:
   diagrams:
-  - id: acr-path-choice
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/firewall-integration
-    - https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    - https://learn.microsoft.com/azure/private-link/private-endpoint-overview
+    - id: acr-path-choice
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
-  - claim: When ACR is reached via a Private Endpoint, the AzureContainerRegistry service tag egress rule is not required for the image data path.
-    source: https://learn.microsoft.com/azure/container-apps/firewall-integration
-    verified: true
-  - claim: Managed identity image pull still requires outbound access to Microsoft Entra ID even when ACR is reached via a Private Endpoint.
-    source: https://learn.microsoft.com/azure/container-apps/use-azure-firewall
-    verified: true
-  - claim: An ACR Private Endpoint exposes one sub-resource (`registry`) whose NIC holds separate private IPs for the global/login endpoint and for each region's dedicated data endpoint, and all of those FQDNs must resolve to private IPs (as records inside `privatelink.azurecr.io`) for image pulls to traverse Private Link end to end.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    verified: true
-  - claim: A /32 Private Endpoint system route beats a 0.0.0.0/0 user-defined route, so Private Endpoint traffic bypasses a downstream firewall unless private endpoint network policies are enabled and an explicit UDR override is configured.
-    source: https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall
-    verified: true
+    - claim: When ACR is reached via a Private Endpoint, the AzureContainerRegistry service tag egress rule is not required for the image data path.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+      verified: true
+    - claim: Managed identity image pull still requires outbound access to Microsoft Entra ID even when ACR is reached via a Private Endpoint.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+      verified: true
+    - claim: An ACR Private Endpoint exposes one sub-resource (`registry`) whose NIC holds separate private IPs for the global/login endpoint and for each region's dedicated data endpoint, and all of those FQDNs must resolve to private IPs (as records inside `privatelink.azurecr.io`) for image pulls to traverse Private Link end to end.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+      verified: true
+    - claim: A /32 Private Endpoint system route beats a 0.0.0.0/0 user-defined route, so Private Endpoint traffic bypasses a downstream firewall unless private endpoint network policies are enabled and an explicit UDR override is configured.
+      source: https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall
+      verified: true
 ---
 # ACR Network Path Selection
 
@@ -184,11 +184,11 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 
 ## Sources
 
-- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/use-azure-firewall)
-- [Firewall integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/firewall-integration)
-- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints)
-- [Configure dedicated data endpoints for Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-dedicated-data-endpoints)
-- [Configure rules to access an Azure Container Registry behind a firewall (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-firewall-rules)
-- [Use Azure Firewall to inspect Private Endpoint traffic (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall)
-- [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/disable-private-endpoint-network-policy)
-- [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/private-endpoint-overview)
+- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)
+- [Firewall integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
+- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints)
+- [Configure dedicated data endpoints for Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
+- [Configure rules to access an Azure Container Registry behind a firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules)
+- [Use Azure Firewall to inspect Private Endpoint traffic (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall)
+- [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/disable-private-endpoint-network-policy)
+- [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview)

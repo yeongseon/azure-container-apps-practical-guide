@@ -1,11 +1,11 @@
 ---
 content_sources:
   diagrams:
-  - id: use-this-ordered-checklist-when-a
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
+    - id: use-this-ordered-checklist-when-a
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
 ---
 # First 10 Minutes: Quick Triage Checklist
 
@@ -378,4 +378,4 @@ If the checklist does not isolate root cause, continue with [Troubleshooting Met
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
