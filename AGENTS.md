@@ -471,7 +471,7 @@ The `content_validation` block is **required** on factual-claim pages under thes
 | `docs/operations/` | Required (including factual subsection landing pages such as `operations/monitoring/index.md` and `operations/scaling/index.md`) | Deployment, monitoring, alerts, recovery, revision management, secret rotation |
 | `docs/troubleshooting/` | Required, except for the `EXCLUDED_SUBPATHS` and `NAVIGATION_INDEXES` listed below | Playbooks, methodology pages, first-10-minutes runbooks |
 
-The block is **forbidden** on these pages:
+The block is **out of scope** on these pages — the dashboard does not count them, the cleanup tool does not require them, and new pages added in these locations should not introduce a `content_validation` block:
 
 - **Out-of-scope sections** — any path that does not start with `platform/`, `best-practices/`, `operations/`, or `troubleshooting/`. This covers `docs/start-here/`, `docs/reference/`, `docs/contributing/`, `docs/language-guides/` (tutorials and recipes), and `docs/index.md`.
 - **`EXCLUDED_SUBPATHS`** under `troubleshooting/`:
@@ -487,6 +487,8 @@ The block is **forbidden** on these pages:
     - `troubleshooting/playbooks/index.md`
 
 Subsection landing pages that DO make factual claims (for example `platform/architecture/index.md`, `platform/networking/index.md`, `platform/security/index.md`, `operations/monitoring/index.md`, `operations/scaling/index.md`, and `troubleshooting/methodology/index.md`) are intentionally NOT in `NAVIGATION_INDEXES` — they are treated like any other factual-claim page.
+
+Legacy `content_validation` blocks may still exist on a number of out-of-scope pages (notably under `docs/reference/`, `docs/start-here/`, `docs/troubleshooting/kql/`, and `docs/troubleshooting/lab-guides/`) from before this scope policy was formalized. These blocks are accepted but are not counted by the dashboard and were not touched by the tautological-claim cleanup; they will be reviewed in a follow-up editorial pass.
 
 #### Schema
 

@@ -2,8 +2,16 @@
 
 Defines which markdown files in ``docs/`` are required to carry the
 ``content_validation:`` frontmatter block (factual-claim pages) versus those
-where it is forbidden (navigation indexes, KQL packs, lab guides, tutorials,
-reference look-ups, and other non-claim content).
+that are out of scope for the dashboard and cleanup tool (navigation indexes,
+KQL packs, lab guides, tutorials, reference look-ups, and other non-claim
+content).
+
+Out-of-scope pages are not counted by
+``scripts/generate_content_validation_status.py`` and are not required to
+carry a ``content_validation`` block. Legacy blocks may still exist on some
+out-of-scope pages from before this scope policy was formalized; they are
+accepted but not tracked, and will be reviewed in a follow-up editorial pass.
+New out-of-scope pages should not add the block.
 
 Imported by:
 
