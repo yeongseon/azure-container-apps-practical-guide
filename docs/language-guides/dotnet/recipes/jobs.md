@@ -10,15 +10,6 @@ content_sources:
     - https://learn.microsoft.com/azure/container-apps/jobs
     - https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme
     - https://learn.microsoft.com/dotnet/api/overview/azure/messaging.servicebus-readme
-content_validation:
-  status: verified
-  last_reviewed: '2026-05-23'
-  reviewer: agent
-  core_claims:
-  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
-      guidance.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
 ---
 # Recipe: Jobs in .NET on Azure Container Apps
 

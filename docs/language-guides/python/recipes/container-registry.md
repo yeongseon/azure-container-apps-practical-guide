@@ -15,15 +15,6 @@ content_sources:
     - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
     - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
     - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
-content_validation:
-  status: verified
-  last_reviewed: '2026-05-23'
-  reviewer: agent
-  core_claims:
-  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
-      guidance.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-link
-    verified: true
 ---
 # Private Container Registry (ACR with Private Endpoint)
 
