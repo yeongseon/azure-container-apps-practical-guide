@@ -7,15 +7,6 @@ content_sources:
     based_on:
     - https://learn.microsoft.com/azure/container-apps/managed-identity
     - https://learn.microsoft.com/java/api/overview/azure/identity-readme
-content_validation:
-  status: verified
-  last_reviewed: '2026-05-23'
-  reviewer: agent
-  core_claims:
-  - claim: This page uses Microsoft Learn as the primary source basis for its Azure-specific
-      guidance.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
 ---
 # Recipe: Managed Identity in Java Apps on Azure Container Apps
 
