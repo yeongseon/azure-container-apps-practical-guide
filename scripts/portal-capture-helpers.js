@@ -33,6 +33,14 @@ const PII_RULES = [
     pattern: /Yeongseon\s+Choe/g,
     replacement: 'Demo User',
   },
+  {
+    pattern: /\byeongseon\b/gi,
+    replacement: 'demouser',
+  },
+  {
+    pattern: /\b[0-9A-F]{32,}\b/g,
+    replacement: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  },
 ];
 
 const PORTAL_BLUE = '#0078d4';
