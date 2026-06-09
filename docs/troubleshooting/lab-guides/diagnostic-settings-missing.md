@@ -1,6 +1,6 @@
 ---
 content_sources:
-  documents:
+  references:
     - type: mslearn-adapted
       url: https://learn.microsoft.com/en-us/azure/container-apps/log-options
     - type: mslearn-adapted
