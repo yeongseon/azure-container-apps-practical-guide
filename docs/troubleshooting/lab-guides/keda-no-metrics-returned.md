@@ -1,15 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: experiment-architecture
-    type: flowchart
-    source: self-generated
-    justification: Lab-specific architecture showing three side-by-side
-      Container Apps with identical scale rules but different startup/crash
-      behaviors, designed to reproduce KEDA metric collection errors.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://keda.sh/docs/latest/scalers/memory/
+    - id: experiment-architecture
+      type: flowchart
+      source: self-generated
+      justification: Lab-specific architecture showing three side-by-side Container Apps with identical scale rules but different startup/crash behaviors, designed to reproduce KEDA metric collection errors.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://keda.sh/docs/latest/scalers/memory/
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'
@@ -20,14 +18,12 @@ content_validation:
     az_cli_version: 2.73.0
     notes: "All three scenarios reproduced in Korea Central. Scenario A (slow-start) produced 12 metric error entries during the first ~90 seconds then stopped. Scenario B (crash-loop) produced 29 recurring entries over 20+ minutes, correlating with container restarts. Scenario C (healthy) unexpectedly produced 10 entries during the first ~60 seconds after deployment — confirming that even healthy containers experience a brief metrics gap during initial provisioning. The DEPRECATED warning appeared for all three apps."
   core_claims:
-  - claim: KEDA/HPA logs "no metrics returned from resource metrics API" when the
-      Kubernetes Metrics Server has no data for a container that is not yet Ready.
-    source: https://github.com/kubernetes/kubernetes/issues/127169
-    verified: true
-  - claim: CrashLoopBackOff creates recurring windows where metrics are unavailable,
-      producing repeated "no metrics returned" and "invalid metrics" log entries.
-    source: https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
-    verified: true
+    - claim: KEDA/HPA logs "no metrics returned from resource metrics API" when the Kubernetes Metrics Server has no data for a container that is not yet Ready.
+      source: https://github.com/kubernetes/kubernetes/issues/127169
+      verified: true
+    - claim: CrashLoopBackOff creates recurring windows where metrics are unavailable, producing repeated "no metrics returned" and "invalid metrics" log entries.
+      source: https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
+      verified: true
 ---
 # KEDA "No Metrics Returned" Reproduction Lab
 
@@ -355,7 +351,7 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 
 ## Sources
 
-- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)
 - [HPA with container metrics fails when pod is not ready - kubernetes#127169](https://github.com/kubernetes/kubernetes/issues/127169)
 - [Deprecating parameter 'type' in CPU/Memory scaler - kedacore/keda#6348](https://github.com/kedacore/keda/discussions/6348)

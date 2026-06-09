@@ -1,22 +1,21 @@
 ---
 content_sources:
   sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
   diagrams:
-  - id: custom-domain-tls-renewal-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-  - id: custom-domain-tls-renewal-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-    - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+    - id: custom-domain-tls-renewal-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+    - id: custom-domain-tls-renewal-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -25,24 +24,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: 'InvalidCustomHostNameValidation: asuid TXT record required with domain
-      verification ID'
+    notes: 'InvalidCustomHostNameValidation: asuid TXT record required with domain verification ID'
   core_claims:
-  - claim: Managed certificates continue to renew automatically only while the app
-      keeps meeting the documented requirements.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-    verified: false
-  - claim: Customer-managed certificates are the fallback when managed certificate
-      requirements are not met or supported.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
-    verified: false
+    - claim: Managed certificates continue to renew automatically only while the app keeps meeting the documented requirements.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+      verified: false
+    - claim: Customer-managed certificates are the fallback when managed certificate requirements are not met or supported.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Custom Domain TLS Renewal Lab

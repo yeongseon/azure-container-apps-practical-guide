@@ -1,27 +1,26 @@
 ---
 content_sources:
   diagrams:
-  - id: event-scaler-pattern
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn event-scaler guidance and authentication examples for custom rules.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: event-scaler-pattern
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn event-scaler guidance and authentication examples for custom rules.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps uses KEDA-backed custom scale rules for event-driven scaling.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Microsoft Learn explicitly lists Azure Service Bus, Azure Event Hubs, Apache Kafka, and Redis as supported event
-      sources for Container Apps scaling.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Scale-rule authentication can use secretRef mappings or managed identity.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
+    - claim: Azure Container Apps uses KEDA-backed custom scale rules for event-driven scaling.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Microsoft Learn explicitly lists Azure Service Bus, Azure Event Hubs, Apache Kafka, and Redis as supported event sources for Container Apps scaling.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Scale-rule authentication can use secretRef mappings or managed identity.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 ---
 # Event Scalers in Azure Container Apps
 
@@ -144,4 +143,4 @@ Example managed identity shape from Learn:
 
 ## Sources
 
-- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)

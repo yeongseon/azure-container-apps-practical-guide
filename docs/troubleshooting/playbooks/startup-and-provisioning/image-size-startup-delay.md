@@ -1,27 +1,27 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
   diagrams:
-  - id: image-size-startup-delay-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - id: image-size-startup-delay-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: A revision can fail or start slowly when container startup conditions are not met in Azure Container Apps.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-    verified: false
-  - claim: Azure Container Apps revisions run the container image configured in the app template.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/containers
-    verified: false
+    - claim: A revision can fail or start slowly when container startup conditions are not met in Azure Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+      verified: false
+    - claim: Azure Container Apps revisions run the container image configured in the app template.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: false
 ---
 # Image Size Startup Delay
 

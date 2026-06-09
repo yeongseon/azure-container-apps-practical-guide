@@ -1,23 +1,22 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
   diagrams:
-  - id: bicep-deployment-timeout-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-  - id: bicep-deployment-timeout-lab
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - id: bicep-deployment-timeout-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+    - id: bicep-deployment-timeout-lab
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -26,24 +25,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: "startup probe port 9999 \u2192 revision Unhealthy/Failed in 45s; fix Bicep\
-      \ \u2192 Healthy/Provisioned"
+    notes: "startup probe port 9999 → revision Unhealthy/Failed in 45s; fix Bicep → Healthy/Provisioned"
   core_claims:
-  - claim: A revision-scope update creates a new revision and that revision must become
-      healthy for a successful rollout.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-    verified: false
-  - claim: Application lifecycle management behavior affects how deployment cutover
-      and revision readiness interact.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-    verified: false
+    - claim: A revision-scope update creates a new revision and that revision must become healthy for a successful rollout.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: false
+    - claim: Application lifecycle management behavior affects how deployment cutover and revision readiness interact.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Bicep Deployment Timeout Lab

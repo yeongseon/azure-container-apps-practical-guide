@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Azure Container Apps supports startup, readiness, and liveness probes.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
+    - claim: Each revision in Azure Container Apps is an immutable snapshot of a container app version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Azure Container Apps supports startup, readiness, and liveness probes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
 ---
 # Revision Provisioning Failure
 
@@ -241,6 +241,6 @@ If no probe failures appear and the container never even reaches the probe stage
 
 ## Sources
 
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

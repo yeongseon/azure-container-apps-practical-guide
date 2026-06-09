@@ -1,32 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: use-app-name-ca-myapp-for-troubleshooting-examples-in
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/cli/azure/containerapp
-    - https://learn.microsoft.com/azure/container-apps/overview
+    - id: use-app-name-ca-myapp-for-troubleshooting-examples-in
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/cli/azure/containerapp
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports revisions for deploying and managing application versions.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Azure Container Apps supports ingress configuration with a target port.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Azure Container Apps supports minimum and maximum replica settings for scaling.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Azure Container Apps provides console logs and system logs for running apps.
-    source: https://learn.microsoft.com/azure/container-apps/observability
-    verified: true
-  - claim: Azure Container Apps supports splitting traffic between active revisions.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Azure Container Apps supports revisions for deploying and managing application versions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Azure Container Apps supports ingress configuration with a target port.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Azure Container Apps supports minimum and maximum replica settings for scaling.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Azure Container Apps provides console logs and system logs for running apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: true
+    - claim: Azure Container Apps supports splitting traffic between active revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # CLI Cheatsheet
 
@@ -243,5 +243,5 @@ az group delete --name "$RG" --yes --no-wait
 
 - [Repository map](../../start-here/repository-map.md)
 ## Sources
-- [Azure CLI containerapp reference (Microsoft Learn)](https://learn.microsoft.com/cli/azure/containerapp)
-- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
+- [Azure CLI containerapp reference (Microsoft Learn)](https://learn.microsoft.com/en-us/cli/azure/containerapp)
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)

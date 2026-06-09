@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
-    - https://learn.microsoft.com/azure/key-vault/general/authentication
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-steps
+        - https://learn.microsoft.com/en-us/azure/key-vault/general/authentication
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
-  - claim: Managed identities let applications authenticate to Azure services without managing credentials in code.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity
-    verified: true
+    - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
+    - claim: Managed identities let applications authenticate to Azure services without managing credentials in code.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
 ---
 # Managed Identity Auth Failure
 
@@ -359,6 +359,6 @@ If this fails before token issuance, inspect container runtime constraints, netw
 
 ## Sources
 
-- https://learn.microsoft.com/azure/container-apps/managed-identity
-- https://learn.microsoft.com/azure/role-based-access-control/role-assignments-steps
-- https://learn.microsoft.com/azure/key-vault/general/authentication
+- https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+- https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-steps
+- https://learn.microsoft.com/en-us/azure/key-vault/general/authentication

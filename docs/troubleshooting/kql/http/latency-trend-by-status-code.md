@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: purpose-shows-p50-p95-p99-latency-trends-split
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/kusto/query/
+    - id: purpose-shows-p50-p95-p99-latency-trends-split
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/kusto/query/
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps observability supports integration with Azure Monitor and Application Insights for telemetry
-      analysis.
-    source: https://learn.microsoft.com/azure/container-apps/observability
-    verified: true
-  - claim: Log Analytics uses Kusto Query Language to query and analyze collected telemetry data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
-    verified: true
+    - claim: Azure Container Apps observability supports integration with Azure Monitor and Application Insights for telemetry analysis.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: true
+    - claim: Log Analytics uses Kusto Query Language to query and analyze collected telemetry data.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+      verified: true
 ---
 # Latency Trend by Status Code
 
@@ -113,6 +112,6 @@ ContainerAppConsoleLogs_CL
 
 ## Sources
 
-- [Application Insights for Container Apps](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)
-- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [Kusto Query Language (KQL) overview](https://learn.microsoft.com/kusto/query/)
+- [Application Insights for Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents)
+- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/kusto/query/)

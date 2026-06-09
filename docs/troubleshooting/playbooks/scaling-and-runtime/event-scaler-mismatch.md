@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/scale-app#scale-rules
-    - https://learn.microsoft.com/azure/container-apps/jobs
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#scale-rules
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can scale based on HTTP traffic, CPU, memory, and custom scale rules.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Scale rules define the conditions under which a container app scales.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
+    - claim: Azure Container Apps can scale based on HTTP traffic, CPU, memory, and custom scale rules.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Scale rules define the conditions under which a container app scales.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 ---
 # Event Scaler Mismatch
 
@@ -232,6 +232,6 @@ If scaling reacts immediately during synthetic backlog tests, polling and thresh
 
 ## Sources
 
-- [Scale applications in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Set scaling rules in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app#scale-rules)
-- [Jobs in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/jobs)
+- [Scale applications in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Set scaling rules in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#scale-rules)
+- [Jobs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/jobs)

@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: build-production-ready-python-container-images-that
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
-    - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+    - id: build-production-ready-python-container-images-that
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
 ---
 # Recipe: Custom Container Images for Python on Azure Container Apps
 
@@ -160,7 +160,7 @@ If local probes fail, fix startup behavior before creating a new revision in Con
 - [Native Dependencies](native-dependencies.md)
 - [Container Registry](container-registry.md)
 - [Revisions](../../../platform/revisions/index.md)
-- [Microsoft Learn: Container Apps containers](https://learn.microsoft.com/azure/container-apps/containers)
+- [Microsoft Learn: Container Apps containers](https://learn.microsoft.com/en-us/azure/container-apps/containers)
 
 ## Sources
 

@@ -4,9 +4,9 @@ content_validation:
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
-  - claim: NodeCount is published under Microsoft.App/managedEnvironments for environments that use managed workload profiles, and is split by the Workload Profile Name dimension.
-    source: https://learn.microsoft.com/azure/container-apps/workload-profiles-overview
-    verified: true
+    - claim: NodeCount is published under Microsoft.App/managedEnvironments for environments that use managed workload profiles, and is split by the Workload Profile Name dimension.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+      verified: true
 ---
 # Environment Metrics (Microsoft.App/managedEnvironments)
 
@@ -164,6 +164,6 @@ For the replacement workflow, see [Subscription quota exceeded playbook](../../t
 
 ## Sources
 
-- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics)

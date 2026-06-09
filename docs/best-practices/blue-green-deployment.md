@@ -1,28 +1,28 @@
 ---
 content_sources:
   diagrams:
-  - id: blue-green-label-swap
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn guidance on revisions, deployment labels, and blue/green deployment.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/blue-green-deployment
-    - https://learn.microsoft.com/azure/container-apps/deployment-labels
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: blue-green-label-swap
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn guidance on revisions, deployment labels, and blue/green deployment.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+        - https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Blue/green deployment in Azure Container Apps uses revisions, traffic weights, and deployment labels.
-    source: https://learn.microsoft.com/azure/container-apps/blue-green-deployment
-    verified: true
-  - claim: Deployment labels provide a stable URL that can be moved between revisions.
-    source: https://learn.microsoft.com/azure/container-apps/deployment-labels
-    verified: true
-  - claim: Multiple revision mode allows multiple active revisions and traffic management between them.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Blue/green deployment in Azure Container Apps uses revisions, traffic weights, and deployment labels.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
+      verified: true
+    - claim: Deployment labels provide a stable URL that can be moved between revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels
+      verified: true
+    - claim: Multiple revision mode allows multiple active revisions and traffic management between them.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Blue/Green Deployment for Azure Container Apps
 
@@ -191,7 +191,7 @@ resource app 'Microsoft.App/containerApps@2026-01-01' = {
 
 ## Sources
 
-- [Blue-Green Deployment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/blue-green-deployment)
-- [Deployment labels in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/deployment-labels)
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Microsoft.App/containerApps template reference (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps)
+- [Blue-Green Deployment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment)
+- [Deployment labels in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Microsoft.App/containerApps template reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps)

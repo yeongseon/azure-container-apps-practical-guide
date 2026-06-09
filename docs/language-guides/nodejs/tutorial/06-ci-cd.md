@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
-    - https://learn.microsoft.com/azure/developer/github/connect-from-azure
-  - id: ci-cd-pipeline-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
-    - https://learn.microsoft.com/azure/developer/github/connect-from-azure
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+        - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure
+    - id: ci-cd-pipeline-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+        - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 06 - CI/CD with GitHub Actions
@@ -231,5 +231,5 @@ graph TD
 - [Managed Identity Recipe](../../../platform/identity-and-secrets/managed-identity.md)
 
 ## Sources
-- [GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
-- [Connect GitHub Actions to Azure (Microsoft Learn)](https://learn.microsoft.com/azure/developer/github/connect-from-azure)
+- [GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
+- [Connect GitHub Actions to Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure)

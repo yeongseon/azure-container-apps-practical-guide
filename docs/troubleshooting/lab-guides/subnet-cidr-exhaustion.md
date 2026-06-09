@@ -1,22 +1,21 @@
 ---
 content_sources:
   sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/networking
   diagrams:
-  - id: subnet-cidr-exhaustion-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-  - id: subnet-cidr-exhaustion-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+    - id: subnet-cidr-exhaustion-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: subnet-cidr-exhaustion-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -27,19 +26,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: NetcfgSubnetRangesOverlap confirmed, fixed with /24 non-overlap
   core_claims:
-  - claim: Workload profiles environments require a minimum subnet size of /27.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: false
-  - claim: A Container Apps environment subnet must be dedicated to that environment.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
-    verified: false
+    - claim: Workload profiles environments require a minimum subnet size of /27.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: false
+    - claim: A Container Apps environment subnet must be dedicated to that environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Subnet CIDR Exhaustion Lab

@@ -1,54 +1,54 @@
 ---
 content_sources:
   diagrams:
-  - id: use-one-entry-app-for-public
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
-  - id: traffic-weights-are-applied-at-ingress
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
-  - id: choose-vnet-integration-when-private-networking
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
-  - id: a-common-enterprise-pattern-is-controlled
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: use-one-entry-app-for-public
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: traffic-weights-are-applied-at-ingress
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: choose-vnet-integration-when-private-networking
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: a-common-enterprise-pattern-is-controlled
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: The network type of a Container Apps environment can't be changed after the environment is created.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: In workload profiles environments, the minimum required subnet size is /27.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: In consumption-only environments, the minimum required subnet size is /23.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Traffic splitting rules can define how incoming traffic is split between different revisions of an application.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
+    - claim: The network type of a Container Apps environment can't be changed after the environment is created.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: In workload profiles environments, the minimum required subnet size is /27.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: In consumption-only environments, the minimum required subnet size is /23.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Traffic splitting rules can define how incoming traffic is split between different revisions of an application.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 ---
 # Azure Container Apps Networking Best Practices
 
@@ -561,4 +561,4 @@ az containerapp revision list \
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/networking)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/networking)

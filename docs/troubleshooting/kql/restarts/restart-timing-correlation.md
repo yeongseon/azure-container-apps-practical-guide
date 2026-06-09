@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: purpose-lists-restart-related-platform-events-to
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/kusto/query/
+    - id: purpose-lists-restart-related-platform-events-to
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/kusto/query/
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
-    source: https://learn.microsoft.com/azure/container-apps/logging
-    verified: true
-  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
-    verified: true
+    - claim: Azure Container Apps can send system logs that record platform events to a Log Analytics workspace.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/logging
+      verified: true
+    - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+      verified: true
 ---
 # Restart Timing Correlation
 
@@ -125,6 +125,6 @@ Restarts
 
 ## Sources
 
-- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Kusto Query Language (KQL) overview](https://learn.microsoft.com/kusto/query/)
+- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/kusto/query/)

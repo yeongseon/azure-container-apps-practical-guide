@@ -1,28 +1,28 @@
 ---
 content_sources:
   diagrams:
-  - id: weighted-traffic-routing
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn traffic-splitting and revision-label routing guidance.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    - https://learn.microsoft.com/azure/container-apps/deployment-labels
-    - https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps
+    - id: weighted-traffic-routing
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn traffic-splitting and revision-label routing guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels
+        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Traffic weights in Azure Container Apps can target a revision name, a label, or the latest revision.
-    source: https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps
-    verified: true
-  - claim: Traffic percentages across revisions must add up to 100.
-    source: https://learn.microsoft.com/azure/container-apps/traffic-splitting
-    verified: true
-  - claim: Labels provide a stable URL that routes to a specific revision.
-    source: https://learn.microsoft.com/azure/container-apps/deployment-labels
-    verified: true
+    - claim: Traffic weights in Azure Container Apps can target a revision name, a label, or the latest revision.
+      source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps
+      verified: true
+    - claim: Traffic percentages across revisions must add up to 100.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+      verified: true
+    - claim: Labels provide a stable URL that routes to a specific revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels
+      verified: true
 ---
 # Traffic Split in Azure Container Apps
 
@@ -165,6 +165,6 @@ configuration:
 
 ## Sources
 
-- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
-- [Deployment labels in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/deployment-labels)
-- [Microsoft.App/containerApps template reference (Microsoft Learn)](https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/containerapps)
+- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
+- [Deployment labels in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels)
+- [Microsoft.App/containerApps template reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps)

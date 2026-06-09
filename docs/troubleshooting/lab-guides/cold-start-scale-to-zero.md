@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/plans
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/plans
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -17,23 +17,22 @@ content_validation:
     az_cli_version: 2.70.0
     notes: 0 replicas confirmed after 8min idle, 19011ms cold start measured
   core_claims:
-  - claim: Azure Container Apps supports scale settings with a minimum replica count of 0, which allows a revision to scale
-      to zero.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Setting the minimum number of replicas to 1 or higher ensures that an instance of the revision is always running.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Both the Consumption and Dedicated plan types support scale-to-zero in Azure Container Apps.
-    source: https://learn.microsoft.com/azure/container-apps/plans
-    verified: true
+    - claim: Azure Container Apps supports scale settings with a minimum replica count of 0, which allows a revision to scale to zero.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Setting the minimum number of replicas to 1 or higher ensures that an instance of the revision is always running.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Both the Consumption and Dedicated plan types support scale-to-zero in Azure Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/plans
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Cold Start and Scale-to-Zero Lab
@@ -500,5 +499,5 @@ az group delete \
 - [Repository map](../../start-here/repository-map.md)
 ## Sources
 
-- [Scaling in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Azure Container Apps Plan Types](https://learn.microsoft.com/azure/container-apps/plans)
+- [Scaling in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Azure Container Apps Plan Types](https://learn.microsoft.com/en-us/azure/container-apps/plans)

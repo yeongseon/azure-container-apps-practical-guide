@@ -1,15 +1,15 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/private-link/manage-private-endpoint
-    - https://learn.microsoft.com/azure/virtual-network/virtual-networks-udr-overview
-    - https://learn.microsoft.com/azure/container-apps/use-azure-firewall
-    - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
-    - https://learn.microsoft.com/azure/firewall/firewall-diagnostics
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/private-link/manage-private-endpoint
+        - https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/en-us/azure/firewall/firewall-diagnostics
 content_validation:
   status: verified
   last_reviewed: '2026-06-06'
@@ -63,22 +63,22 @@ content_validation:
       the control-plane token-exchange confound, leaving the /32 UDR
       routes for the PE NIC IPs as the single controlled variable.
   core_claims:
-  - claim: When a Private Endpoint is provisioned in a subnet whose route table contains a `0.0.0.0/0` UDR to a firewall NVA, the default route does NOT cover traffic destined for the Private Endpoint's NIC IPs. The system-injected route for the Private Endpoint is `/32` and wins by longest-prefix match, so PE traffic bypasses the firewall unless the UDR also contains explicit `/32` routes for each PE NIC IP pointing to the firewall.
-    source: https://learn.microsoft.com/azure/virtual-network/virtual-networks-udr-overview
-    verified: true
-  - claim: An Azure Container Registry Private Endpoint exposes a single `registry` sub-resource but its NIC holds separate private IPs for the global/login endpoint (`<registry>.azurecr.io`) and for each region's data endpoint (`<registry>.<region>.data.azurecr.io`). Forced-inspection topologies must therefore add `/32` UDR routes for every PE NIC IP, or the firewall will see only one half of the pull conversation.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-link
-    verified: true
-  - claim: >-
-      Azure Firewall resource-specific Log Analytics tables
-      (`AZFWApplicationRule`, `AZFWNetworkRule`, `AZFWDnsQuery`) require
-      `logAnalyticsDestinationType: 'Dedicated'` on the
-      `Microsoft.Insights/diagnosticSettings` resource. Without this property,
-      firewall diagnostics fall back to the legacy `AzureDiagnostics` table
-      where rule rows are surfaced in a single `msg_s` text column rather
-      than as structured columns.
-    source: https://learn.microsoft.com/azure/firewall/firewall-structured-logs
-    verified: true
+    - claim: When a Private Endpoint is provisioned in a subnet whose route table contains a `0.0.0.0/0` UDR to a firewall NVA, the default route does NOT cover traffic destined for the Private Endpoint's NIC IPs. The system-injected route for the Private Endpoint is `/32` and wins by longest-prefix match, so PE traffic bypasses the firewall unless the UDR also contains explicit `/32` routes for each PE NIC IP pointing to the firewall.
+      source: https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview
+      verified: true
+    - claim: An Azure Container Registry Private Endpoint exposes a single `registry` sub-resource but its NIC holds separate private IPs for the global/login endpoint (`<registry>.azurecr.io`) and for each region's data endpoint (`<registry>.<region>.data.azurecr.io`). Forced-inspection topologies must therefore add `/32` UDR routes for every PE NIC IP, or the firewall will see only one half of the pull conversation.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+      verified: true
+    - claim: >-
+        Azure Firewall resource-specific Log Analytics tables
+        (`AZFWApplicationRule`, `AZFWNetworkRule`, `AZFWDnsQuery`) require
+        `logAnalyticsDestinationType: 'Dedicated'` on the
+        `Microsoft.Insights/diagnosticSettings` resource. Without this property,
+        firewall diagnostics fall back to the legacy `AzureDiagnostics` table
+        where rule rows are surfaced in a single `msg_s` text column rather
+        than as structured columns.
+      source: https://learn.microsoft.com/en-us/azure/firewall/firewall-structured-logs
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-06'
@@ -124,7 +124,7 @@ This lab is part of the **5-lab ACR network path series** that reproduces the fi
 | Fresh-pull behavior cleanly proven | Yes — admin credentials remove the managed-identity confound; the controlled variable is the `/32` UDR routes for the PE NIC IPs, and pull success is held constant while firewall visibility flips between the three states (baseline visible → bypass silent → recover visible) |
 
 !!! note "Observed in this lab"
-    This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (ACR Premium PE, Azure Firewall Basic with FQDN application rules for ACR login and regional data endpoints, Container Apps Consumption profile, admin-credential auth, firewall diagnostics in `Dedicated` schema mode unlocking `AZFWApplicationRule`). Treat it as **validated for this lab's specific topology, auth mode, and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. Phrases like "silently bypassed" throughout this lab refer to *this specific UDR-misconfiguration topology* (a `0.0.0.0/0` default route to a firewall NVA without explicit `/32` routes for each PE NIC IP). They are **not** a universal claim that Azure Firewall fails to inspect Private Endpoint traffic in every deployment — a different routing design (e.g. explicit `/32` UDR routes for each PE NIC IP from the start, or no `0.0.0.0/0` UDR at all) avoids the failure mode entirely; the mechanism (system-injected `/32` PE route beats `0.0.0.0/0` UDR by longest-prefix match) is documented in [Inspect private endpoint traffic with Azure Firewall](https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall).
+    This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (ACR Premium PE, Azure Firewall Basic with FQDN application rules for ACR login and regional data endpoints, Container Apps Consumption profile, admin-credential auth, firewall diagnostics in `Dedicated` schema mode unlocking `AZFWApplicationRule`). Treat it as **validated for this lab's specific topology, auth mode, and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. Phrases like "silently bypassed" throughout this lab refer to *this specific UDR-misconfiguration topology* (a `0.0.0.0/0` default route to a firewall NVA without explicit `/32` routes for each PE NIC IP). They are **not** a universal claim that Azure Firewall fails to inspect Private Endpoint traffic in every deployment — a different routing design (e.g. explicit `/32` UDR routes for each PE NIC IP from the start, or no `0.0.0.0/0` UDR at all) avoids the failure mode entirely; the mechanism (system-injected `/32` PE route beats `0.0.0.0/0` UDR by longest-prefix match) is documented in [Inspect private endpoint traffic with Azure Firewall](https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall).
 
 ## 1) Background
 
@@ -685,17 +685,17 @@ Azure Firewall Basic + its two public IPs is the dominant cost (~$24/day) — do
 - [ACR Network Path B Lab — PE Direct](./acr-network-path-pe-direct.md) — Scenario B, the Private Endpoint topology without forced inspection. Scenario C is Scenario B *plus* the forced-inspection layer. Lab 1 (Scenario B) used managed identity, which made fresh-pull proof difficult; Lab 5 uses admin credentials for the same reason Lab 4 did.
 - [ACR Network Path D Lab — Record-Level Zone Authority](./acr-network-path-record-split-brain.md) — Scenario D, the record-CONTENT failure on the Path B private path. Same managed-identity-confound caveat as Lab 1 / Lab 3.
 - [ACR Network Path E Lab — DNS Forwarder Bypass](./acr-network-path-dns-forwarder-bypass.md) — Scenario E, the resolver-topology failure on the Path B private path.
-- [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/disable-private-endpoint-network-policy) — official reference for `privateEndpointNetworkPolicies` on the PE subnet, which must be `Enabled` for UDRs to apply to PE traffic.
-- [Virtual network traffic routing (Microsoft Learn)](https://learn.microsoft.com/azure/virtual-network/virtual-networks-udr-overview) — official reference for longest-prefix-match routing semantics and the customer-route-precedence rule.
+- [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/disable-private-endpoint-network-policy) — official reference for `privateEndpointNetworkPolicies` on the PE subnet, which must be `Enabled` for UDRs to apply to PE traffic.
+- [Virtual network traffic routing (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview) — official reference for longest-prefix-match routing semantics and the customer-route-precedence rule.
 
 ## Sources
 
-- [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/disable-private-endpoint-network-policy) — the `privateEndpointNetworkPolicies` property on the PE subnet, which is the prerequisite for UDRs to apply to PE traffic. Lab 5's Bicep sets this to `'Enabled'` on `snet-pe`.
-- [Virtual network traffic routing (Microsoft Learn)](https://learn.microsoft.com/azure/virtual-network/virtual-networks-udr-overview) — longest-prefix-match semantics and the customer-route-precedence rule. The lab's central thesis (that a `0.0.0.0/0` UDR loses to system `/32` routes for Private Endpoints) is a direct consequence of these rules.
-- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/use-azure-firewall) — official guidance for the forced-egress-through-firewall pattern, including the UDR + firewall private-IP-as-next-hop requirement.
-- [Connect privately to an Azure container registry using Azure Private Link (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-link) — ACR Private Endpoint topology, including the fact that the PE NIC holds separate IPs for the login endpoint and each region's data endpoint.
-- [Azure Firewall structured logs (Microsoft Learn)](https://learn.microsoft.com/azure/firewall/firewall-structured-logs) — the `AZFWApplicationRule` resource-specific table and the `logAnalyticsDestinationType: 'Dedicated'` requirement on the diagnostic settings resource.
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking) — Container Apps VNet integration, workload-profile subnet requirements (delegation, `/23` minimum), and inheritance of UDRs.
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions) — revision lifecycle, including the cached-image-layer behavior that lets an already-running revision survive a routing change.
-- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication) — admin user vs. managed identity; the auth choice that makes this lab's single-controlled-variable design possible (same reason as Lab 4).
-- [Azure Firewall diagnostic logs (Microsoft Learn)](https://learn.microsoft.com/azure/firewall/firewall-diagnostics) — overview of the diagnostic categories (`AzureFirewallApplicationRule`, `AzureFirewallNetworkRule`, `AzureFirewallDnsProxy`) and their resource-specific dedicated tables.
+- [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/disable-private-endpoint-network-policy) — the `privateEndpointNetworkPolicies` property on the PE subnet, which is the prerequisite for UDRs to apply to PE traffic. Lab 5's Bicep sets this to `'Enabled'` on `snet-pe`.
+- [Virtual network traffic routing (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview) — longest-prefix-match semantics and the customer-route-precedence rule. The lab's central thesis (that a `0.0.0.0/0` UDR loses to system `/32` routes for Private Endpoints) is a direct consequence of these rules.
+- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall) — official guidance for the forced-egress-through-firewall pattern, including the UDR + firewall private-IP-as-next-hop requirement.
+- [Connect privately to an Azure container registry using Azure Private Link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link) — ACR Private Endpoint topology, including the fact that the PE NIC holds separate IPs for the login endpoint and each region's data endpoint.
+- [Azure Firewall structured logs (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/firewall/firewall-structured-logs) — the `AZFWApplicationRule` resource-specific table and the `logAnalyticsDestinationType: 'Dedicated'` requirement on the diagnostic settings resource.
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking) — Container Apps VNet integration, workload-profile subnet requirements (delegation, `/23` minimum), and inheritance of UDRs.
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions) — revision lifecycle, including the cached-image-layer behavior that lets an already-running revision survive a routing change.
+- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication) — admin user vs. managed identity; the auth choice that makes this lab's single-controlled-variable design possible (same reason as Lab 4).
+- [Azure Firewall diagnostic logs (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/firewall/firewall-diagnostics) — overview of the diagnostic categories (`AzureFirewallApplicationRule`, `AzureFirewallNetworkRule`, `AzureFirewallDnsProxy`) and their resource-specific dedicated tables.

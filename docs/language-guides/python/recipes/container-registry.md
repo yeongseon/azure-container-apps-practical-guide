@@ -1,20 +1,20 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
-  - id: configure-the-container-app-to-reference
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-registry/container-registry-private-link
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
+    - id: configure-the-container-app-to-reference
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
 ---
 # Private Container Registry (ACR with Private Endpoint)
 
@@ -609,6 +609,6 @@ Each requires a separate Private Endpoint and DNS A record in `privatelink.azure
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)
 
 ## Sources
-- [ACR Private Link (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-link)
-- [Managed identity for Container Apps registry auth (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [ACR authentication as ARM (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication-managed-identity)
+- [ACR Private Link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link)
+- [Managed identity for Container Apps registry auth (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [ACR authentication as ARM (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity)

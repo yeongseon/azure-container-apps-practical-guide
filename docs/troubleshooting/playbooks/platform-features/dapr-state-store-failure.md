@@ -1,26 +1,26 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
   diagrams:
-  - id: dapr-state-store-failure-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
+    - id: dapr-state-store-failure-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Dapr components in Azure Container Apps are defined at the environment scope.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    verified: false
-  - claim: Dapr component scopes can limit which apps load a component.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    verified: false
+    - claim: Dapr components in Azure Container Apps are defined at the environment scope.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+      verified: false
+    - claim: Dapr component scopes can limit which apps load a component.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+      verified: false
 ---
 # Dapr State Store Failure
 

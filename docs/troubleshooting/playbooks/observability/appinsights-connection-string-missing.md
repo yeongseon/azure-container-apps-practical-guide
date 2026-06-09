@@ -1,28 +1,28 @@
 ---
 content_sources:
   documents:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
   diagrams:
-  - id: appinsights-connection-string-missing-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - id: appinsights-connection-string-missing-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps can send OpenTelemetry data to Application Insights when telemetry destinations are configured.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
-    verified: false
-  - claim: Application Insights uses connection strings to associate telemetry with a specific resource.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
-    verified: false
+    - claim: Azure Container Apps can send OpenTelemetry data to Application Insights when telemetry destinations are configured.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+      verified: false
+    - claim: Application Insights uses connection strings to associate telemetry with a specific resource.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
+      verified: false
 ---
 # Application Insights Connection String Missing
 

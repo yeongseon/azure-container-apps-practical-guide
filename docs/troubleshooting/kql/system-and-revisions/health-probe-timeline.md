@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: query-pipeline
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports startup, readiness, and liveness probes to monitor container health.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: Container Apps revisions are immutable snapshots that can be activated and observed during deployment changes.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Azure Container Apps supports startup, readiness, and liveness probes to monitor container health.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: Container Apps revisions are immutable snapshots that can be activated and observed during deployment changes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Health Probe Timeline
 
@@ -81,5 +81,5 @@ ContainerAppSystemLogs_CL
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Microsoft Learn source 5](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

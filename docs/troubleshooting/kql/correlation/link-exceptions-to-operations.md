@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: query-pipeline
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/observability
-    - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps observability supports integration with Azure Monitor and Application Insights for telemetry
-      analysis.
-    source: https://learn.microsoft.com/azure/container-apps/observability
-    verified: true
-  - claim: Log Analytics uses Kusto Query Language to query and analyze collected telemetry data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
-    verified: true
+    - claim: Azure Container Apps observability supports integration with Azure Monitor and Application Insights for telemetry analysis.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: true
+    - claim: Log Analytics uses Kusto Query Language to query and analyze collected telemetry data.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+      verified: true
 ---
 # Link Exceptions to Operations
 
@@ -78,5 +77,5 @@ exceptions
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/observability)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/observability)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/observability)
 - [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial)

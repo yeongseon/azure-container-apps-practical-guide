@@ -1,27 +1,27 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
   diagrams:
-  - id: azure-files-mount-failure-flow
-    type: flowchart
-    source: self-generated
-    justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+    - id: azure-files-mount-failure-flow
+      type: flowchart
+      source: self-generated
+      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps requires environment storage definitions before a revision can mount an Azure file share.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-    verified: false
-  - claim: Azure Container Apps does not support identity-based access to Azure file shares for storage mounts.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-    verified: false
-  - claim: The Azure portal Diagnose and solve problems experience includes storage mount diagnostics for Container Apps.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
-    verified: false
+    - claim: Azure Container Apps requires environment storage definitions before a revision can mount an Azure file share.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+      verified: false
+    - claim: Azure Container Apps does not support identity-based access to Azure file shares for storage mounts.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+      verified: false
+    - claim: The Azure portal Diagnose and solve problems experience includes storage mount diagnostics for Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+      verified: false
 ---
 # Azure Files Mount Failure
 

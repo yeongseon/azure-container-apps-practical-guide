@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: incident-recovery-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - id: incident-recovery-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 ---
 # Recovery and Incident Readiness
 
@@ -176,5 +176,5 @@ az containerapp logs show \
 
 ## Sources
 
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)

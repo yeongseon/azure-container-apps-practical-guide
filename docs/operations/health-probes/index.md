@@ -1,27 +1,26 @@
 ---
 content_sources:
   diagrams:
-  - id: probe-lifecycle-during-revision-activation
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: probe-lifecycle-during-revision-activation
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps documents startup, readiness, and liveness probes.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: Revisions are considered ready only after successful provisioning, scale, and readiness behavior.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Azure Container Apps health probes support startup, readiness, and liveness probes over HTTP(S) or TCP, and exec
-      probes aren't supported.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
+    - claim: Azure Container Apps documents startup, readiness, and liveness probes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: Revisions are considered ready only after successful provisioning, scale, and readiness behavior.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Azure Container Apps health probes support startup, readiness, and liveness probes over HTTP(S) or TCP, and exec probes aren't supported.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
 ---
 # Health Probes
 
@@ -131,5 +130,5 @@ az containerapp logs show \
 
 ## Sources
 
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

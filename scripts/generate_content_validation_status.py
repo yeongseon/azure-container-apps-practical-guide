@@ -328,7 +328,7 @@ def generate_dashboard(
     lines.append("---")
     lines.append("content_sources:")
     lines.append("  - type: mslearn-adapted")
-    lines.append("    url: https://learn.microsoft.com/azure/container-apps/...")
+    lines.append("    url: https://learn.microsoft.com/en-us/azure/container-apps/...")
     lines.append("content_validation:")
     lines.append("  status: verified")
     lines.append("  last_reviewed: 2026-04-12")
@@ -338,7 +338,7 @@ def generate_dashboard(
         '    - claim: "Container Apps supports KEDA-based autoscaling on HTTP traffic, CPU, memory, and custom metrics."'
     )
     lines.append(
-        "      source: https://learn.microsoft.com/azure/container-apps/scale-app"
+        "      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app"
     )
     lines.append("      verified: true")
     lines.append("---")

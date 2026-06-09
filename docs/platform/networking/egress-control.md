@@ -1,46 +1,44 @@
 ---
 content_sources:
   diagrams:
-  - id: route-outbound-traffic-through-azure-firewall
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements
-    - https://learn.microsoft.com/azure/container-apps/user-defined-routes
-  - id: nat-gateway-architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements
-    - https://learn.microsoft.com/azure/container-apps/user-defined-routes
-  - id: managed-identity-acr-egress-dependencies
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/firewall-integration
-    - https://learn.microsoft.com/azure/container-apps/user-defined-routes
+    - id: route-outbound-traffic-through-azure-firewall
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking#outbound-fqdn-requirements
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+    - id: nat-gateway-architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking#outbound-fqdn-requirements
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+    - id: managed-identity-acr-egress-dependencies
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Consumption only environments do not support user-defined routes or egress through NAT Gateway.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Using an existing virtual network enables Azure Firewall integration for Container Apps.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Using a NAT Gateway or other outbound proxy for outbound traffic from a Container Apps environment is supported
-      only in a workload profiles environment.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Managed identity-based pulls from Azure Container Registry in restricted egress environments require outbound access
-      to AzureActiveDirectory, and ACR image pulls also depend on registry and regional storage endpoints.
-    source: https://learn.microsoft.com/azure/container-apps/firewall-integration
-    verified: true
+    - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Consumption only environments do not support user-defined routes or egress through NAT Gateway.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Using an existing virtual network enables Azure Firewall integration for Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Using a NAT Gateway or other outbound proxy for outbound traffic from a Container Apps environment is supported only in a workload profiles environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Managed identity-based pulls from Azure Container Registry in restricted egress environments require outbound access to AzureActiveDirectory, and ACR image pulls also depend on registry and regional storage endpoints.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+      verified: true
 ---
 # Egress Control
 
@@ -287,7 +285,7 @@ For the failure symptoms and validation steps, see [Image Pull Failure](../../tr
 - [Service-to-Service Communication](service-to-service.md)
 
 ## Sources
-- [Outbound FQDN requirements in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking#outbound-fqdn-requirements)
-- [User-defined routes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/user-defined-routes)
-- [Firewall integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/firewall-integration)
-- [Use Azure Firewall with Azure Container Apps — outbound FQDNs (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/use-azure-firewall)
+- [Outbound FQDN requirements in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking#outbound-fqdn-requirements)
+- [User-defined routes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes)
+- [Firewall integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
+- [Use Azure Firewall with Azure Container Apps — outbound FQDNs (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)

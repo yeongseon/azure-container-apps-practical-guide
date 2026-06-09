@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/opentelemetry-agents
-    - https://learn.microsoft.com/azure/container-apps/observability
-    - https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable
 content_validation:
   status: verified
   last_reviewed: '2026-04-29'
@@ -18,19 +18,19 @@ content_validation:
     az_cli_version: 2.71.0
     notes: Reproduced end-to-end in rg-aca-lab-observability (koreacentral); baseline secretRef → invalid literal → secretRef restored across revisions 0m6ek7p → 0000001 → 0000002; six Portal captures attached with PII-replacement masking. Telemetry-count claim left [Not Proven] because the baseline helloworld image ships no Application Insights SDK.
   core_claims:
-  - claim: Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability.
-    source: https://learn.microsoft.com/azure/container-apps/observability
-    verified: true
-  - claim: Application Insights uses a connection string to send telemetry to the correct monitoring resource.
-    source: https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
-    verified: true
+    - claim: Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: true
+    - claim: Application Insights uses a connection string to send telemetry to the correct monitoring resource.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Observability and Distributed Tracing Lab
@@ -481,6 +481,6 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Application Insights for Azure Container Apps](https://learn.microsoft.com/azure/container-apps/opentelemetry-agents)
-- [Observability in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/observability)
-- [Enable Azure Monitor OpenTelemetry](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable)
+- [Application Insights for Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents)
+- [Observability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/observability)
+- [Enable Azure Monitor OpenTelemetry](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable)

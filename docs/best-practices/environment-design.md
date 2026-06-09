@@ -1,35 +1,33 @@
 ---
 content_sources:
   diagrams:
-  - id: environment-boundary-patterns
-    type: flowchart
-    source: self-generated
-    justification: Synthesizes Azure Container Apps environment boundaries with Azure naming, tagging, and regional guidance.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/structure
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
-    - https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
-    - https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-tagging
-    - https://learn.microsoft.com/en-us/azure/reliability/regions-list
+    - id: environment-boundary-patterns
+      type: flowchart
+      source: self-generated
+      justification: Synthesizes Azure Container Apps environment boundaries with Azure naming, tagging, and regional guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/structure
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
+        - https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-tagging
+        - https://learn.microsoft.com/en-us/azure/reliability/regions-list
 content_validation:
   status: verified
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Workload profiles (v2) is the default Azure Container Apps environment type for new environments.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/structure
-    verified: true
-  - claim: Once created, a Container Apps environment can't change between the default Azure network and an existing VNet.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: true
-  - claim: Cloud Adoption Framework guidance says most Azure resource names can't be changed after creation and recommends
-      using tags for information that can change.
-    source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
-    verified: true
-  - claim: Cloud Adoption Framework guidance recommends using the same core tagging schema for all resources and not storing
-      sensitive values in tags.
-    source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-tagging
-    verified: true
+    - claim: Workload profiles (v2) is the default Azure Container Apps environment type for new environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/structure
+      verified: true
+    - claim: Once created, a Container Apps environment can't change between the default Azure network and an existing VNet.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Cloud Adoption Framework guidance says most Azure resource names can't be changed after creation and recommends using tags for information that can change.
+      source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
+      verified: true
+    - claim: Cloud Adoption Framework guidance recommends using the same core tagging schema for all resources and not storing sensitive values in tags.
+      source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-tagging
+      verified: true
 ---
 # Environment Design
 

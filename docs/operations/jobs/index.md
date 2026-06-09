@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: jobs-day-2-operations-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from repository job runbooks and Microsoft Learn Jobs guidance while exact CLI/log-schema quotes
-      remained pending.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - id: jobs-day-2-operations-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from repository job runbooks and Microsoft Learn Jobs guidance while exact CLI/log-schema quotes remained pending.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Job executions can be listed and inspected after they run.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Container Apps can send job-related logs to Log Analytics.
-    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
-    verified: true
+    - claim: Job executions can be listed and inspected after they run.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Container Apps can send job-related logs to Log Analytics.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+      verified: true
 ---
 # Jobs Operations
 
@@ -217,5 +216,5 @@ Use [Jobs Troubleshooting](troubleshooting.md) for symptom-based triage.
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Azure Monitor for Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Azure Monitor for Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)

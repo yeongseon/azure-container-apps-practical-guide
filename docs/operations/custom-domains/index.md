@@ -1,23 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: custom-domain-request-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    - https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
+    - id: custom-domain-request-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps supports custom domains with managed certificates and uploaded certificates.
-    source: https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    verified: true
-  - claim: Custom domain binding is tied to TLS certificate binding on the container app.
-    source: https://learn.microsoft.com/azure/container-apps/custom-domains-certificates
-    verified: true
+    - claim: Azure Container Apps supports custom domains with managed certificates and uploaded certificates.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+      verified: true
+    - claim: Custom domain binding is tied to TLS certificate binding on the container app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+      verified: true
 ---
 # Custom Domains and TLS
 
@@ -101,5 +101,5 @@ openssl s_client -connect "$HOSTNAME:443" -servername "$HOSTNAME"
 
 ## Sources
 
-- [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
-- [Custom domains and certificates in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/custom-domains-certificates)
+- [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates)
+- [Custom domains and certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates)

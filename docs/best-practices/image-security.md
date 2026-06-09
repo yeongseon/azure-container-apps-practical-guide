@@ -1,29 +1,28 @@
 ---
 content_sources:
   diagrams:
-  - id: secure-image-promotion-path
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-azure-overview
-    - https://learn.microsoft.com/azure/container-registry/policy-reference
+    - id: secure-image-promotion-path
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
+        - https://learn.microsoft.com/en-us/azure/container-registry/policy-reference
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Managed identity is a supported way for Azure Container Apps to authenticate to Azure Container Registry for image
-      pulls.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    verified: true
-  - claim: Image changes are revision-scope changes in Azure Container Apps.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Defender for Containers provides vulnerability assessment for images in Azure Container Registry.
-    source: https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-azure-overview
-    verified: true
+    - claim: Managed identity is a supported way for Azure Container Apps to authenticate to Azure Container Registry for image pulls.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+      verified: true
+    - claim: Image changes are revision-scope changes in Azure Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Defender for Containers provides vulnerability assessment for images in Azure Container Registry.
+      source: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
+      verified: true
 ---
 # Azure Container Apps Image Security Best Practices
 
@@ -127,7 +126,7 @@ Conservative guidance:
 
 ## Sources
 
-- [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Microsoft Defender for Containers overview (Microsoft Learn)](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-azure-overview)
-- [Policy reference for Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/policy-reference)
+- [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Microsoft Defender for Containers overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview)
+- [Policy reference for Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/policy-reference)

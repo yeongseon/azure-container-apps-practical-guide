@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
-    - https://learn.microsoft.com/azure/redis/nodejs-get-started
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+        - https://learn.microsoft.com/en-us/azure/redis/nodejs-get-started
 ---
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 
@@ -196,5 +196,5 @@ az containerapp logs show \
 
 ## Sources
 
-- [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
-- [Use Azure Cache for Redis with Node.js](https://learn.microsoft.com/azure/redis/nodejs-get-started)
+- [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
+- [Use Azure Cache for Redis with Node.js](https://learn.microsoft.com/en-us/azure/redis/nodejs-get-started)

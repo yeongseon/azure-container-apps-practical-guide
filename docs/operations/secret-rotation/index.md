@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: secret-rotation-lifecycle
-    type: sequence
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - id: secret-rotation-lifecycle
+      type: sequence
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Secret Rotation
 
@@ -218,5 +218,5 @@ From the Container App overview, select **Application → Revisions and replicas
 
 ## Sources
 
-- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
-- [Use managed identity in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
+- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Use managed identity in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

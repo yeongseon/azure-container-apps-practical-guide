@@ -1,33 +1,32 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/scale-app
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/revisions
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/revisions
   diagrams:
-  - id: min-replica-change-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the Microsoft Learn sources cited by this page.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: min-replica-change-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the Microsoft Learn sources cited by this page.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: 2026-05-18
   reviewer: agent
   core_claims:
-  - claim: Reducing minReplicas does not cause downtime — existing replicas continue serving until the autoscaler decides
-      to terminate them.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: KEDA applies a cooldown period (default 300s) before scaling down replicas.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Changing minReplicas creates a new revision in single-revision mode, but does not restart existing replicas.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Reducing minReplicas does not cause downtime — existing replicas continue serving until the autoscaler decides to terminate them.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: KEDA applies a cooldown period (default 300s) before scaling down replicas.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Changing minReplicas creates a new revision in single-revision mode, but does not restart existing replicas.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Min Replica Change Impact
 
@@ -170,6 +169,6 @@ If verification fails, revert only the last configuration change, capture the fa
 
 ## Sources
 
-- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [KEDA scaling behavior — cooldownPeriod](https://keda.sh/docs/latest/concepts/scaling-deployments/#cooldownperiod)

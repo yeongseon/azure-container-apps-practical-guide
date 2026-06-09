@@ -1,32 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: use-it-when-you-know-what
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/observability
-    - https://learn.microsoft.com/azure/container-apps/log-options
-    - https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics
-    - https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: use-it-when-you-know-what
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-options
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can send application console logs and system logs to Azure Monitor Log Analytics.
-    source: https://learn.microsoft.com/azure/container-apps/observability
-    verified: true
-  - claim: Azure Activity Log records subscription-level events for Azure resources.
-    source: https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log
-    verified: true
-  - claim: Azure Monitor metrics stores numeric time-series data from monitored resources.
-    source: https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics
-    verified: true
-  - claim: Azure Container Apps troubleshooting guidance uses logs and events as key evidence sources.
-    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
-    verified: true
+    - claim: Azure Container Apps can send application console logs and system logs to Azure Monitor Log Analytics.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: true
+    - claim: Azure Activity Log records subscription-level events for Azure resources.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log
+      verified: true
+    - claim: Azure Monitor metrics stores numeric time-series data from monitored resources.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics
+      verified: true
+    - claim: Azure Container Apps troubleshooting guidance uses logs and events as key evidence sources.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+      verified: true
 ---
 # Evidence Map for Container Apps Troubleshooting
 
@@ -385,8 +385,8 @@ ContainerAppSystemLogs_CL
 
 ## Sources
 
-- [Monitor Azure Container Apps](https://learn.microsoft.com/azure/container-apps/observability)
-- [Azure Container Apps logging](https://learn.microsoft.com/azure/container-apps/log-options)
-- [Azure Monitor metrics overview](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
-- [Azure Activity Log overview](https://learn.microsoft.com/azure/azure-monitor/essentials/activity-log)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Monitor Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/observability)
+- [Azure Container Apps logging](https://learn.microsoft.com/en-us/azure/container-apps/log-options)
+- [Azure Monitor metrics overview](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics)
+- [Azure Activity Log overview](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

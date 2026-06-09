@@ -1,24 +1,24 @@
 ---
 content_sources:
   - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/alerts
+    url: https://learn.microsoft.com/en-us/azure/container-apps/alerts
   - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/metrics
+    url: https://learn.microsoft.com/en-us/azure/container-apps/metrics
   - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/azure-monitor/alerts/alerts-types
+    url: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
     - claim: Azure Monitor metric alert rules evaluate platform metrics on a fixed `evaluation-frequency` and `window-size` and do not natively compute ratios between metrics.
-      source: https://learn.microsoft.com/azure/azure-monitor/alerts/alerts-types
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
       verified: true
     - claim: Container Apps publishes `ResponseTime` as an Average metric in Preview; percentile (p95/p99) latency requires Application Insights or log-based alerting.
-      source: https://learn.microsoft.com/azure/container-apps/metrics
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
       verified: true
     - claim: The `Replicas` metric splits by `revisionName` and does not attribute scale events to specific KEDA scalers; scaler attribution requires system logs.
-      source: https://learn.microsoft.com/azure/container-apps/observability
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
       verified: true
 ---
 # Metric alerts by incident question
@@ -66,7 +66,7 @@ Skip this page if you need: CLI syntax (see [Alerting for Container Apps](index.
 | Average latency degraded? | You accept an Average latency signal (not percentile) | [`ResponseTime`](../../reference/metrics/container-app-metrics.md#responsetime-average-response-time-preview) | Avg | `statusCodeCategory=2xx` (so 5xx fast-fail does not mask 2xx slowdown) | > 1500ms for 10m | sev2 | Preview metric. **Average only** — for p95/p99 use App Insights percentile alerts (see below). |
 | Replicas dropped to zero (always-on app)? | `min-replicas > 0` is the intentional design AND the app must stay warm (low-latency external ingress, etc.) | [`Replicas`](../../reference/metrics/container-app-metrics.md#replicas-replica-count) | Min | `revisionName` | == 0 for 2m | sev1 | **Skip this row entirely** if `min-replicas=0` is intentional (event-driven, idle-tolerant, batch). |
 | Replicas pinned at max (capacity saturation)? | Paired with rising `Requests`, `ResponseTime`, or CPU/memory saturation — alone it can be legitimate load | [`Replicas`](../../reference/metrics/container-app-metrics.md#replicas-replica-count) AND a saturation signal | Max | `revisionName` | `Replicas` == `max-replicas` for 15m | sev3 alone, sev2 if paired | A single-metric alert on `Replicas` at max produces false positives during legitimate load spikes; the pairing matters. |
-| Retry storm (intra-env)? | You have a [retry resiliency policy](https://learn.microsoft.com/azure/container-apps/service-discovery-resiliency) attached | [`ResiliencyRequestRetries`](../../reference/metrics/container-app-metrics.md#resiliencyrequestretries-resiliency-request-retries) | Total | `revisionName` (or none) | Large delta over 7-day rolling baseline | sev2 | Pairs with [`ResiliencyEjectionsAborted`](../../reference/metrics/container-app-metrics.md#resiliencyejectionsaborted-resiliency-ejections-aborted) (circuit breaker engaged). Tune from observed baseline, not absolute count. |
+| Retry storm (intra-env)? | You have a [retry resiliency policy](https://learn.microsoft.com/en-us/azure/container-apps/service-discovery-resiliency) attached | [`ResiliencyRequestRetries`](../../reference/metrics/container-app-metrics.md#resiliencyrequestretries-resiliency-request-retries) | Total | `revisionName` (or none) | Large delta over 7-day rolling baseline | sev2 | Pairs with [`ResiliencyEjectionsAborted`](../../reference/metrics/container-app-metrics.md#resiliencyejectionsaborted-resiliency-ejections-aborted) (circuit breaker engaged). Tune from observed baseline, not absolute count. |
 | Connection pool exhausted (downstream slow)? | You have a pool policy (`http1MaxPendingRequests`) attached | [`ResiliencyRequestsPendingConnectionPool`](../../reference/metrics/container-app-metrics.md#resiliencyrequestspendingconnectionpool-resiliency-requests-pending-connection-pool) | Maximum | `revisionName` | > N pending (tune from baseline) for 5m | sev2 | This is a queue-depth gauge; use `Maximum` to catch saturation spikes. `Avg` can hide short bursts. |
 | Per-app vCPU reservation approaching its scaling ceiling? | App uses HTTP scaler or KEDA with `max-replicas` set, AND reserved cores matter for cost/quota planning | [`TotalCoresQuotaUsed`](../../reference/metrics/container-app-metrics.md#totalcoresquotaused-total-reserved-cores-per-container-app) | Max | (none — this metric has no dimensions) | > 80% of `max-replicas × --cpu` for 5m | sev3 | Per-container-app metric, not per-environment. For environment-level quota saturation see [Rollback / Troubleshooting](#rollback-troubleshooting). |
 | Workload-profile node fleet undersized? | Env uses workload profiles (not Consumption-only) AND the profile has `min-nodes` < `max-nodes` AND apps are sensitive to scheduling delays | [`NodeCount`](../../reference/metrics/managed-environment-metrics.md#nodecount-workload-profile-node-count-preview) | Min | `workloadProfileName` | < expected baseline for 5m | sev2 | Preview metric. Does not apply to Consumption-only environments. Pair with replica-scheduling-failure log queries. |
@@ -160,8 +160,8 @@ This page is scoped to **metric-alert selection**. The following are owned by ot
 
 ## Sources
 
-- [Set alerts in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/alerts)
-- [Monitor metrics in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Service discovery and resiliency in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/service-discovery-resiliency)
-- [Types of Azure Monitor alerts](https://learn.microsoft.com/azure/azure-monitor/alerts/alerts-types)
-- [Application Insights query alerts (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/alerts/alerts-create-log-alert-rule)
+- [Set alerts in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/alerts)
+- [Monitor metrics in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Service discovery and resiliency in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/service-discovery-resiliency)
+- [Types of Azure Monitor alerts](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types)
+- [Application Insights query alerts (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule)

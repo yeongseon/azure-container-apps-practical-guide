@@ -1,31 +1,30 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
   diagrams:
-  - id: github-actions-oidc-failure-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-    - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
-    - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations
+    - id: github-actions-oidc-failure-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+        - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
+        - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: GitHub Actions can use OpenID Connect to sign in to Azure without storing long-lived secrets.
-    source: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-    verified: false
-  - claim: A federated identity credential must match the incoming issuer, audience, and subject claims for workload identity
-      federation to succeed.
-    source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
-    verified: false
-  - claim: Federated identity credential changes can be affected by propagation timing and configuration constraints.
-    source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations
-    verified: false
+    - claim: GitHub Actions can use OpenID Connect to sign in to Azure without storing long-lived secrets.
+      source: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
+      verified: false
+    - claim: A federated identity credential must match the incoming issuer, audience, and subject claims for workload identity federation to succeed.
+      source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
+      verified: false
+    - claim: Federated identity credential changes can be affected by propagation timing and configuration constraints.
+      source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations
+      verified: false
 ---
 # GitHub Actions OIDC Failure
 

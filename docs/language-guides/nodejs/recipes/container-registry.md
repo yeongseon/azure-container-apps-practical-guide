@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-azure-container-registry-acr-with
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-registry/container-registry-authentication
+    - id: use-azure-container-registry-acr-with
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication
 ---
 # Recipe: Container Registry in Node.js Apps on Azure Container Apps
 
@@ -117,5 +117,5 @@ az containerapp create \
 
 ## Sources
 
-- [Authenticate with managed identity for image pull](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Azure Container Registry authentication overview](https://learn.microsoft.com/azure/container-registry/container-registry-authentication)
+- [Authenticate with managed identity for image pull](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Azure Container Registry authentication overview](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)

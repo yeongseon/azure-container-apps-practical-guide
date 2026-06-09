@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
-    - https://learn.microsoft.com/azure/redis/java-get-started
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+        - https://learn.microsoft.com/en-us/azure/redis/java-get-started
 ---
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 
@@ -170,5 +170,5 @@ az containerapp update \
 
 ## Sources
 
-- [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
-- [Use Azure Cache for Redis with Java](https://learn.microsoft.com/azure/redis/java-get-started)
+- [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
+- [Use Azure Cache for Redis with Java](https://learn.microsoft.com/en-us/azure/redis/java-get-started)

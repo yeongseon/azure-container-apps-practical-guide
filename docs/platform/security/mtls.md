@@ -1,33 +1,31 @@
 ---
 content_sources:
   diagrams:
-  - id: aca-mtls-three-planes
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
-    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
-    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - id: aca-mtls-three-planes
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports peer-to-peer TLS encryption within the environment, and the feature is disabled by
-      default.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
-    verified: true
-  - claim: Container Apps ingress supports clientCertificateMode values require, accept, and ignore.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-    verified: true
-  - claim: Dapr service invocation in Azure Container Apps includes built-in mutual TLS.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
-    verified: true
-  - claim: Workload profiles environments support both Consumption and Dedicated plans, while Consumption-only environments
-      support only the Consumption plan.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/environment
-    verified: true
+    - claim: Azure Container Apps supports peer-to-peer TLS encryption within the environment, and the feature is disabled by default.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+      verified: true
+    - claim: Container Apps ingress supports clientCertificateMode values require, accept, and ignore.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+      verified: true
+    - claim: Dapr service invocation in Azure Container Apps includes built-in mutual TLS.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+      verified: true
+    - claim: Workload profiles environments support both Consumption and Dedicated plans, while Consumption-only environments support only the Consumption plan.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/environment
+      verified: true
 ---
 # mTLS Architecture in Azure Container Apps
 

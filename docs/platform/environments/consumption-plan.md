@@ -1,31 +1,30 @@
 ---
 content_sources:
   diagrams:
-  - id: consumption-only-execution-model
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
-    - https://learn.microsoft.com/en-us/azure/container-apps/billing
-    - https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - id: consumption-only-execution-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
+        - https://learn.microsoft.com/en-us/azure/container-apps/billing
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: The Consumption-only environment type is a legacy option and Workload profiles (v2) is the default and recommended
-      choice for new environments.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
-    verified: true
-  - claim: Apps running in a Consumption-only environment have access to 4 vCPUs with 8 GB of memory and no GPU access.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
-    verified: true
-  - claim: Consumption plan billing is based on resource consumption billed in vCPU-seconds and GiB-seconds plus HTTP requests.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/billing
-    verified: true
-  - claim: Consumption-only environments don't support UDR or NAT Gateway egress and require a minimum subnet size of /23.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: true
+    - claim: The Consumption-only environment type is a legacy option and Workload profiles (v2) is the default and recommended choice for new environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
+      verified: true
+    - claim: Apps running in a Consumption-only environment have access to 4 vCPUs with 8 GB of memory and no GPU access.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
+      verified: true
+    - claim: Consumption plan billing is based on resource consumption billed in vCPU-seconds and GiB-seconds plus HTTP requests.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/billing
+      verified: true
+    - claim: Consumption-only environments don't support UDR or NAT Gateway egress and require a minimum subnet size of /23.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 ---
 # Consumption Plan
 

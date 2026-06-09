@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/get-started
-    - https://learn.microsoft.com/azure/container-registry/container-registry-tutorial-quick-task
-  - id: deployment-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/get-started
-    - https://learn.microsoft.com/azure/container-registry/container-registry-tutorial-quick-task
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-quick-task
+    - id: deployment-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-quick-task
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 02 - First Deploy to Azure Container Apps
@@ -522,5 +522,5 @@ curl https://$FQDN/health
 - [.NET Runtime Reference](../dotnet-runtime.md)
 
 ## Sources
-- [Get started (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/get-started)
-- [Build and push an image with ACR Tasks (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-tutorial-quick-task)
+- [Get started (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/get-started)
+- [Build and push an image with ACR Tasks (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-quick-task)

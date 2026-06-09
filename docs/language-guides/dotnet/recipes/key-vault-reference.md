@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: use-key-vault-references-and-azure
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/aspnet/core/security/key-vault-configuration
-    - https://learn.microsoft.com/dotnet/api/overview/azure/security.keyvault.secrets-readme
+    - id: use-key-vault-references-and-azure
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/aspnet/core/security/key-vault-configuration
+        - https://learn.microsoft.com/en-us/dotnet/api/overview/azure/security.keyvault.secrets-readme
 ---
 # Recipe: Key Vault Reference in .NET Apps on Azure Container Apps
 
@@ -97,6 +97,6 @@ app.Run();
 
 ## Sources
 
-- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
-- [Azure Key Vault configuration provider in ASP.NET Core](https://learn.microsoft.com/aspnet/core/security/key-vault-configuration)
-- [Azure Key Vault Secrets client library for .NET](https://learn.microsoft.com/dotnet/api/overview/azure/security.keyvault.secrets-readme)
+- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Azure Key Vault configuration provider in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/security/key-vault-configuration)
+- [Azure Key Vault Secrets client library for .NET](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/security.keyvault.secrets-readme)

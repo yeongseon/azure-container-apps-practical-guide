@@ -1,25 +1,24 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/networking
   diagrams:
-  - id: egress-ip-change-flow
-    type: flowchart
-    source: self-generated
-    justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+    - id: egress-ip-change-flow
+      type: flowchart
+      source: self-generated
+      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Using a NAT Gateway or other outbound proxy for outbound traffic from a Container Apps environment is supported
-      only in a workload profiles environment.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: false
-  - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-    verified: false
+    - claim: Using a NAT Gateway or other outbound proxy for outbound traffic from a Container Apps environment is supported only in a workload profiles environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: false
+    - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: false
 ---
 # Egress IP Change
 

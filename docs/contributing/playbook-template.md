@@ -10,20 +10,20 @@
 # ─────────────────────────────────────────────────────────────────────
 content_sources:
   diagrams:
-  - id: TODO-decision-flow
-    type: flowchart
-    source: self-generated
-    justification: TODO — describe why this diagram exists and what sources inform it.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
+    - id: TODO-decision-flow
+      type: flowchart
+      source: self-generated
+      justification: TODO — describe why this diagram exists and what sources inform it.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
 content_validation:
   status: draft
   last_reviewed: 'YYYY-MM-DD'
   reviewer: TODO
   core_claims:
-  - claim: "TODO — primary claim this playbook makes"
-    source: "TODO — URL"
-    verified: false
+    - claim: "TODO — primary claim this playbook makes"
+      source: "TODO — URL"
+      verified: false
 ---
 # TODO: Playbook Title
 

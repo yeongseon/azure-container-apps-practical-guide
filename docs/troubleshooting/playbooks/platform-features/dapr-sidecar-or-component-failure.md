@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/dapr-overview
-    - https://learn.microsoft.com/azure/container-apps/dapr-components
-    - https://learn.microsoft.com/azure/container-apps/managed-identity
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps has built-in support for Dapr.
-    source: https://learn.microsoft.com/azure/container-apps/dapr-overview
-    verified: true
-  - claim: Dapr can be enabled for a container app with an app ID and app port configuration.
-    source: https://learn.microsoft.com/azure/container-apps/dapr-overview
-    verified: true
+    - claim: Azure Container Apps has built-in support for Dapr.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+      verified: true
+    - claim: Dapr can be enabled for a container app with an app ID and app port configuration.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+      verified: true
 ---
 # Dapr Sidecar or Component Failure
 
@@ -349,6 +349,6 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -
 
 ## Sources
 
-- https://learn.microsoft.com/azure/container-apps/dapr-overview
-- https://learn.microsoft.com/azure/container-apps/dapr-components
-- https://learn.microsoft.com/azure/container-apps/managed-identity
+- https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+- https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+- https://learn.microsoft.com/en-us/azure/container-apps/managed-identity

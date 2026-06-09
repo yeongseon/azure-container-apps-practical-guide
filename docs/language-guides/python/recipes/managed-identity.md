@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-managed-identity-and-defaultazurecredential-to
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - id: use-managed-identity-and-defaultazurecredential-to
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
 ---
 # Recipe: Managed Identity in Python Apps on Azure Container Apps
 
@@ -200,9 +200,9 @@ python -m flask --app src.app run --port 8000
 - [Key Vault Reference](key-vault-reference.md)
 - [Storage](storage.md)
 - [Managed Identity Platform Guide](../../../platform/identity-and-secrets/managed-identity.md)
-- [Microsoft Learn: Managed identities in Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity)
+- [Microsoft Learn: Managed identities in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 
 ## Sources
 
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
-- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)

@@ -1,22 +1,21 @@
 ---
 content_sources:
   text:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
   diagrams:
-  - id: workload-profile-mismatch-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-  - id: workload-profile-mismatch-lab-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+    - id: workload-profile-mismatch-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - id: workload-profile-mismatch-lab-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
 content_validation:
   status: verified
   last_reviewed: 2026-04-29
@@ -25,23 +24,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: 'ContainerAppContainersInvalidCpu: 8 vCPU rejected, 2 vCPU accepted on
-      D4 profile'
+    notes: 'ContainerAppContainersInvalidCpu: 8 vCPU rejected, 2 vCPU accepted on D4 profile'
   core_claims:
-  - claim: Azure Container Apps environments can contain workload profiles that are
-      managed through Azure CLI.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
-    verified: true
-  - claim: Workload profile sizing determines where dedicated replicas can be placed.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-    verified: true
+    - claim: Azure Container Apps environments can contain workload profiles that are managed through Azure CLI.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+      verified: true
+    - claim: Workload profile sizing determines where dedicated replicas can be placed.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Workload Profile Mismatch Lab

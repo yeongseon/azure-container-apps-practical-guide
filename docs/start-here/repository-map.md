@@ -1,31 +1,31 @@
 ---
 content_sources:
   diagrams:
-  - id: navigation-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
-    - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
-  - id: visual-repository-topology
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
-    - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
+    - id: navigation-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli
+    - id: visual-repository-topology
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps documentation covers platform concepts, deployment tutorials, and operational guidance.
-    source: https://learn.microsoft.com/azure/container-apps/
-    verified: true
-  - claim: The Azure Well-Architected Framework provides service-specific guidance for Container Apps.
-    source: https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps
-    verified: true
+    - claim: Azure Container Apps documentation covers platform concepts, deployment tutorials, and operational guidance.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/
+      verified: true
+    - claim: The Azure Well-Architected Framework provides service-specific guidance for Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
+      verified: true
 ---
 # Repository Map
 
@@ -159,6 +159,6 @@ graph TD
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Well-Architected Framework for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps)
-- [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Well-Architected Framework for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps)
+- [Deploy to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli)

@@ -1,16 +1,16 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
   diagrams:
-  - id: multi-arch-image-mismatch-lab-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - id: multi-arch-image-mismatch-lab-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -21,19 +21,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: 'ARM64 digest → ContainerAppContainersInvalidCpu: image OS/Arc must be linux/amd64 but found linux/arm64'
   core_claims:
-  - claim: Azure Container Registry supports publishing multi-architecture images.
-    source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-    verified: false
-  - claim: Azure Container Apps revisions use the container image reference configured for the app.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-    verified: false
+    - claim: Azure Container Registry supports publishing multi-architecture images.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+      verified: false
+    - claim: Azure Container Apps revisions use the container image reference configured for the app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Multi-Arch Image Mismatch Lab

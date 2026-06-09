@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: scaling-decision-framework
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/scale-app#scale-triggers
+    - id: scaling-decision-framework
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#scale-triggers
 ---
 # Scaling Operations
 
@@ -223,5 +223,5 @@ az containerapp logs show \
 - [Scaling with KEDA (Concepts)](../../platform/scaling/index.md)
 
 ## Sources
-- [Azure Container Apps scaling](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [KEDA scalers reference (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#scale-triggers)
+- [Azure Container Apps scaling](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [KEDA scalers reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#scale-triggers)

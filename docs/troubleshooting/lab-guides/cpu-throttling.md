@@ -1,16 +1,16 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
   diagrams:
-  - id: cpu-throttling-lab-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/metrics
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - id: cpu-throttling-lab-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/metrics
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -21,19 +21,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: CpuPercentage metric path confirmed; cpu 0.25→1.0 fix applied and verified
   core_claims:
-  - claim: Azure Container Apps supports configurable scale settings and replica limits.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    verified: false
-  - claim: Azure Monitor exposes CPU-related metrics for Azure Container Apps.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-    verified: false
+    - claim: Azure Container Apps supports configurable scale settings and replica limits.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: false
+    - claim: Azure Monitor exposes CPU-related metrics for Azure Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # CPU Throttling Lab

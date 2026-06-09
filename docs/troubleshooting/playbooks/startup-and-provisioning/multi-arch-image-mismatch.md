@@ -1,27 +1,27 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
   diagrams:
-  - id: multi-arch-image-mismatch-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+    - id: multi-arch-image-mismatch-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Registry supports publishing multi-architecture images by using manifest lists.
-    source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-    verified: false
-  - claim: Azure Container Apps uses the configured container image reference when creating revisions.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-    verified: false
+    - claim: Azure Container Registry supports publishing multi-architecture images by using manifest lists.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
+      verified: false
+    - claim: Azure Container Apps uses the configured container image reference when creating revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
+      verified: false
 ---
 # Multi-Arch Image Mismatch
 

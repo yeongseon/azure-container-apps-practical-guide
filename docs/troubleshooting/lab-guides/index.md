@@ -1,38 +1,38 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/troubleshooting
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/revisions
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/scale-app
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
   diagrams:
-  - id: use-this-section-when-you-want
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: use-this-section-when-you-want
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps supports log streaming and console access for live troubleshooting.
-    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
-    verified: true
-  - claim: Revisions allow traffic splitting and rollback to a previous known-good state.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Azure Container Apps supports log streaming and console access for live troubleshooting.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+      verified: true
+    - claim: Revisions allow traffic splitting and rollback to a previous known-good state.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Lab Guides
@@ -249,6 +249,6 @@ flowchart TD
 
 ## Sources
 
-- [Azure Container Apps troubleshooting overview](https://learn.microsoft.com/azure/container-apps/troubleshooting)
-- [Azure Container Apps revisions](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Azure Container Apps scale behavior](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Azure Container Apps troubleshooting overview](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Azure Container Apps scale behavior](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)

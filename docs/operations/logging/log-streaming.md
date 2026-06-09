@@ -1,23 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: log-streaming-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-streaming
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
+    - id: log-streaming-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-streaming
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps supports live log streaming with az containerapp logs show.
-    source: https://learn.microsoft.com/azure/container-apps/log-streaming
-    verified: true
-  - claim: Live streaming is different from querying retained logs in Log Analytics.
-    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
-    verified: true
+    - claim: Azure Container Apps supports live log streaming with az containerapp logs show.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-streaming
+      verified: true
+    - claim: Live streaming is different from querying retained logs in Log Analytics.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+      verified: true
 ---
 # Log Streaming
 
@@ -147,5 +147,5 @@ flowchart TD
 
 ## Sources
 
-- [Stream logs in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-streaming)
-- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Stream logs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-streaming)
+- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)

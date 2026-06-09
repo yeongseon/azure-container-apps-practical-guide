@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: image-pull-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/containers
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - id: image-pull-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
 ---
 # Image Pull and Registry Operations
 
@@ -168,5 +168,5 @@ az containerapp show \
 
 ## Sources
 
-- [Manage containers in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/containers)
-- [Authenticate with managed identity in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
+- [Manage containers in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Authenticate with managed identity in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)

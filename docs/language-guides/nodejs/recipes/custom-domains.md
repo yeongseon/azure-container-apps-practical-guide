@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
 ---
 # Custom Domains and Certificates
 
@@ -182,5 +182,5 @@ curl --verbose https://www.contoso.com/
 
 ## Sources
 
-- [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
-- [Configure custom DNS suffix for Azure Container Apps environment](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
+- [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates)
+- [Configure custom DNS suffix for Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)

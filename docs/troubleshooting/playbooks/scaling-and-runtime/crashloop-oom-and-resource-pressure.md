@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/containers
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports startup, readiness, and liveness probes.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: A container app template defines one or more containers.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
+    - claim: Azure Container Apps supports startup, readiness, and liveness probes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: A container app template defines one or more containers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
 ---
 # CrashLoop OOM and Resource Pressure
 
@@ -351,6 +351,6 @@ ContainerAppConsoleLogs_CL
 
 ## Sources
 
-- [Set up health probes for a container app](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Manage resource allocation in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/containers)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Set up health probes for a container app](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Manage resource allocation in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

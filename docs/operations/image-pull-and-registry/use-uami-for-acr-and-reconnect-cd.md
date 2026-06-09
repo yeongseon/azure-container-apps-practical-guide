@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: uami-acr-pull-flow
-    type: flowchart
-    source: mslearn-adapted
-    mslearn_url: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
+    - id: uami-acr-pull-flow
+      type: flowchart
+      source: mslearn-adapted
+      mslearn_url: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
 content_validation:
   status: verified
   last_reviewed: 2026-05-06
   reviewer: agent
   core_claims:
-  - claim: Container Apps can use a user-assigned managed identity to pull images from Azure Container Registry.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    verified: true
-  - claim: The AcrPull role grants read-only access to pull container images from a registry.
-    source: https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#acrpull
-    verified: true
-  - claim: User-assigned managed identities can be assigned to a Container App after creation.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity#add-a-user-assigned-identity
-    verified: true
+    - claim: Container Apps can use a user-assigned managed identity to pull images from Azure Container Registry.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+      verified: true
+    - claim: The AcrPull role grants read-only access to pull container images from a registry.
+      source: https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#acrpull
+      verified: true
+    - claim: User-assigned managed identities can be assigned to a Container App after creation.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity#add-a-user-assigned-identity
+      verified: true
 ---
 # Use a User-Assigned Managed Identity for ACR Image Pull
 
@@ -225,6 +225,6 @@ az group delete --name $RG --yes --no-wait
 
 ## Sources
 
-- [Use managed identity for image pull — Microsoft Learn](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Managed identities in Azure Container Apps — Microsoft Learn](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [AcrPull built-in role — Microsoft Learn](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#acrpull)
+- [Use managed identity for image pull — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Managed identities in Azure Container Apps — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [AcrPull built-in role — Microsoft Learn](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#acrpull)

@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-managed-identity-and-key-vault
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
-    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+    - id: use-managed-identity-and-key-vault
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Recipe: Key Vault Secret References in Azure Container Apps
 
@@ -193,7 +193,7 @@ az containerapp logs show \
 - [Managed Identity](managed-identity.md)
 - [Revision Validation](revision-validation.md)
 - [Key Vault](../../../platform/identity-and-secrets/key-vault.md)
-- [Microsoft Learn: Manage secrets in Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
+- [Microsoft Learn: Manage secrets in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
 
 ## Sources
 

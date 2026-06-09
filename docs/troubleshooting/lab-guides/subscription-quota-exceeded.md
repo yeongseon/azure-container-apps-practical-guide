@@ -1,22 +1,21 @@
 ---
 content_sources:
   text:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/quotas
   diagrams:
-  - id: subscription-quota-exceeded-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-  - id: subscription-quota-lab-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-    - https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
+    - id: subscription-quota-exceeded-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+    - id: subscription-quota-lab-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+        - https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
 content_validation:
   status: verified
   last_reviewed: 2026-04-29
@@ -27,19 +26,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: list-usages returns quota dimensions; 3.25/500 vCPU measured
   core_claims:
-  - claim: Azure Container Apps exposes environment usage through Azure CLI.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
-    verified: true
-  - claim: Quota increases can be requested through Azure portal Usage + quotas.
-    source: https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
-    verified: true
+    - claim: Azure Container Apps exposes environment usage through Azure CLI.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+      verified: true
+    - claim: Quota increases can be requested through Azure portal Usage + quotas.
+      source: https://learn.microsoft.com/en-us/azure/quotas/quickstart-increase-quota-portal
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Subscription Quota Exceeded Lab

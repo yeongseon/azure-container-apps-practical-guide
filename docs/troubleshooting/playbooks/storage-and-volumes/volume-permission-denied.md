@@ -1,28 +1,27 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
   diagrams:
-  - id: volume-permission-denied-flow
-    type: flowchart
-    source: self-generated
-    justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+    - id: volume-permission-denied-flow
+      type: flowchart
+      source: self-generated
+      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps supports mount options on Azure Files volume definitions.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-    verified: false
-  - claim: Linux CIFS mount options such as `dir_mode`, `file_mode`, `uid`, and `gid` control file-access behavior for Azure
-      Files SMB mounts.
-    source: https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
-    verified: false
-  - claim: Azure Container Apps storage troubleshooting includes Azure Files mount-failure workflows.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
-    verified: false
+    - claim: Azure Container Apps supports mount options on Azure Files volume definitions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+      verified: false
+    - claim: Linux CIFS mount options such as `dir_mode`, `file_mode`, `uid`, and `gid` control file-access behavior for Azure Files SMB mounts.
+      source: https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
+      verified: false
+    - claim: Azure Container Apps storage troubleshooting includes Azure Files mount-failure workflows.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+      verified: false
 ---
 # Volume Permission Denied
 

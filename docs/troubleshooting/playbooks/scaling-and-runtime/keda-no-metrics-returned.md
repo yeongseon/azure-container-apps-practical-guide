@@ -1,33 +1,28 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesizes the KEDA/HPA metric collection lifecycle and
-      the conditions under which the Kubernetes Metrics Server returns no data,
-      based on Kubernetes HPA docs and KEDA troubleshooting references.
-    based_on:
-    - https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
-    - https://keda.sh/docs/latest/scalers/memory/
-    - https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesizes the KEDA/HPA metric collection lifecycle and the conditions under which the Kubernetes Metrics Server returns no data, based on Kubernetes HPA docs and KEDA troubleshooting references.
+      based_on:
+        - https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
+        - https://keda.sh/docs/latest/scalers/memory/
+        - https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'
   reviewer: ai-agent
   core_claims:
-  - claim: KEDA CPU/Memory scalers rely on the Kubernetes Resource Metrics API
-      (metrics-server) to collect per-container utilization data.
-    source: https://keda.sh/docs/latest/scalers/memory/
-    verified: true
-  - claim: The Kubernetes Metrics Server cannot return data for pods that are
-      not yet in Ready state, causing "no metrics returned" errors in the HPA.
-    source: https://github.com/kubernetes/kubernetes/issues/127169
-    verified: true
-  - claim: The KEDA memory scaler metadata field 'type' was deprecated in
-      v2.7 in favor of trigger-level 'metricType' and removed in v2.18.
-    source: https://github.com/kedacore/keda/discussions/6348
-    verified: true
+    - claim: KEDA CPU/Memory scalers rely on the Kubernetes Resource Metrics API (metrics-server) to collect per-container utilization data.
+      source: https://keda.sh/docs/latest/scalers/memory/
+      verified: true
+    - claim: The Kubernetes Metrics Server cannot return data for pods that are not yet in Ready state, causing "no metrics returned" errors in the HPA.
+      source: https://github.com/kubernetes/kubernetes/issues/127169
+      verified: true
+    - claim: The KEDA memory scaler metadata field 'type' was deprecated in v2.7 in favor of trigger-level 'metricType' and removed in v2.18.
+      source: https://github.com/kedacore/keda/discussions/6348
+      verified: true
 ---
 # KEDA "No Metrics Returned from Resource Metrics API"
 
@@ -238,7 +233,7 @@ platform versions.
 
 ## Sources
 
-- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)
 - [Horizontal Pod Autoscaler algorithm details - Kubernetes](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details)
 - [HPA with container metrics fails when pod is not ready - kubernetes#127169](https://github.com/kubernetes/kubernetes/issues/127169)

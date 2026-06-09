@@ -1,28 +1,27 @@
 ---
 content_sources:
   diagrams:
-  - id: jobs-document-map
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from existing repository Jobs content and Microsoft Learn Jobs/scale guidance while quote collection
-      remained incomplete.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+    - id: jobs-document-map
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from existing repository Jobs content and Microsoft Learn Jobs/scale guidance while quote collection remained incomplete.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps Jobs are designed for finite background execution rather than continuously serving traffic.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Azure Container Apps Jobs support manual, schedule, and event triggers.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Scheduled and event-driven job history is retained only for a limited number of recent executions.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
+    - claim: Azure Container Apps Jobs are designed for finite background execution rather than continuously serving traffic.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Azure Container Apps Jobs support manual, schedule, and event triggers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Scheduled and event-driven job history is retained only for a limited number of recent executions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
 ---
 # Container Apps Jobs
 
@@ -108,5 +107,5 @@ flowchart TD
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#jobs)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)

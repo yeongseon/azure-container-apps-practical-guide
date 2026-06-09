@@ -1,35 +1,35 @@
 ---
 content_sources:
   diagrams:
-  - id: guide-structure
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/container-apps/environment
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/revisions
-  - id: conceptual-platform-view
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
-    - https://learn.microsoft.com/azure/container-apps/
-    - https://learn.microsoft.com/azure/container-apps/environment
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: guide-structure
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - id: conceptual-platform-view
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps is a fully managed environment for running containerized applications.
-    source: https://learn.microsoft.com/azure/container-apps/overview
-    verified: true
-  - claim: Container Apps supports automatic scaling including scale to zero.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
+    - claim: Azure Container Apps is a fully managed environment for running containerized applications.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/overview
+      verified: true
+    - claim: Container Apps supports automatic scaling including scale to zero.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 ---
 # Azure Container Apps Practical Guide
 
@@ -153,8 +153,8 @@ The diagram above highlights the operating loop:
 
 ## Sources
 
-- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
-- [Azure Container Apps documentation hub (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
-- [Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment)
-- [Scale applications in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Azure Container Apps documentation hub (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment)
+- [Scale applications in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

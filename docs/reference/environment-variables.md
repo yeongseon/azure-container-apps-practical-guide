@@ -1,22 +1,22 @@
 ---
 content_sources:
   diagrams:
-  - id: environment-variable-resolution-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/environment-variables
+    - id: environment-variable-resolution-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps injects runtime environment variables into running containers.
-    source: https://learn.microsoft.com/azure/container-apps/environment-variables
-    verified: true
-  - claim: Environment variables can reference secrets stored in Container Apps.
-    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
-    verified: true
+    - claim: Azure Container Apps injects runtime environment variables into running containers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
+      verified: true
+    - claim: Environment variables can reference secrets stored in Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+      verified: true
 ---
 # Container Apps Environment Variables Reference
 
@@ -162,4 +162,4 @@ def runtime_info():
 
 ## Sources
 
-- [Microsoft Learn: Environment variables in Container Apps](https://learn.microsoft.com/azure/container-apps/environment-variables)
+- [Microsoft Learn: Environment variables in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/environment-variables)

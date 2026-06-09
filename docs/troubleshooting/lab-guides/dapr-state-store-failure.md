@@ -1,15 +1,15 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
   diagrams:
-  - id: dapr-state-store-failure-lab-diagram
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
+    - id: dapr-state-store-failure-lab-diagram
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,19 +20,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: state.redis component with nonexistent Redis host accepted by API; fails at Dapr sidecar init
   core_claims:
-  - claim: Dapr components are environment-scoped in Azure Container Apps.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    verified: false
-  - claim: Component scopes control which apps load a Dapr component.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-    verified: false
+    - claim: Dapr components are environment-scoped in Azure Container Apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+      verified: false
+    - claim: Component scopes control which apps load a Dapr component.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Dapr State Store Failure Lab

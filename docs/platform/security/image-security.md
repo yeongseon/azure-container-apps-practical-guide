@@ -1,36 +1,32 @@
 ---
 content_sources:
   diagrams:
-  - id: image-pull-auth-and-activation-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/containers
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/security
-    - https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-azure-overview
+    - id: image-pull-auth-and-activation-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/security
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can pull images from a private Azure Container Registry by using a managed identity instead
-      of registry credentials.
-    source: https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    verified: true
-  - claim: To use managed identity with a registry, the identity must be enabled on the app and assigned the AcrPull role
-      on the registry.
-    source: https://learn.microsoft.com/azure/container-apps/containers
-    verified: true
-  - claim: Changes to the container app template, including container image changes, are revision-scope changes that create
-      a new revision.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Defender for Containers provides vulnerability assessment for container images in Azure Container Registry, which
-      is registry-side coverage rather than a native ACA image scanner.
-    source: https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-azure-overview
-    verified: true
+    - claim: Azure Container Apps can pull images from a private Azure Container Registry by using a managed identity instead of registry credentials.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+      verified: true
+    - claim: To use managed identity with a registry, the identity must be enabled on the app and assigned the AcrPull role on the registry.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+      verified: true
+    - claim: Changes to the container app template, including container image changes, are revision-scope changes that create a new revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Defender for Containers provides vulnerability assessment for container images in Azure Container Registry, which is registry-side coverage rather than a native ACA image scanner.
+      source: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
+      verified: true
 ---
 # Image Security in Azure Container Apps
 
@@ -176,8 +172,8 @@ For the operational side of pull failures, registry DNS, and rollout troubleshoo
 
 ## Sources
 
-- [Manage containers in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
-- [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/security)
-- [Microsoft Defender for Containers overview (Microsoft Learn)](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-azure-overview)
+- [Manage containers in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/security)
+- [Microsoft Defender for Containers overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview)

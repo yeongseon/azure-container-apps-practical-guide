@@ -1,29 +1,29 @@
 ---
 content_sources:
   diagrams:
-  - id: query-pipeline
-    type: flowchart
-    source: self-generated
-    justification: "Synthesized from MS Learn KQL guidance plus the audit-Job schema introduced in labs/zone-redundancy-best-effort. No single MS Learn article describes this pipeline because the ReplicaInventorySample event is lab-emitted, not platform-emitted."
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/log-monitoring
-    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
-    - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
-    - https://learn.microsoft.com/kusto/query/parse-json-function
+    - id: query-pipeline
+      type: flowchart
+      source: self-generated
+      justification: "Synthesized from MS Learn KQL guidance plus the audit-Job schema introduced in labs/zone-redundancy-best-effort. No single MS Learn article describes this pipeline because the ReplicaInventorySample event is lab-emitted, not platform-emitted."
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
+        - https://learn.microsoft.com/en-us/kusto/query/parse-json-function
 content_validation:
   status: verified
   last_reviewed: '2026-06-08'
   reviewer: agent
   core_claims:
-  - claim: Container Apps ships container stdout to Log Analytics under ContainerAppConsoleLogs_CL, including output from Jobs.
-    source: https://learn.microsoft.com/azure/container-apps/log-monitoring
-    verified: true
-  - claim: Container Apps emits platform system events (restart, ProbeFailed, ContainerStarted) to ContainerAppSystemLogs_CL.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
-    verified: true
-  - claim: Kusto's parse_json function extracts structured fields from JSON-formatted log lines.
-    source: https://learn.microsoft.com/kusto/query/parse-json-function
-    verified: true
+    - claim: Container Apps ships container stdout to Log Analytics under ContainerAppConsoleLogs_CL, including output from Jobs.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+      verified: true
+    - claim: Container Apps emits platform system events (restart, ProbeFailed, ContainerStarted) to ContainerAppSystemLogs_CL.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
+      verified: true
+    - claim: Kusto's parse_json function extracts structured fields from JSON-formatted log lines.
+      source: https://learn.microsoft.com/en-us/kusto/query/parse-json-function
+      verified: true
 ---
 # Zone-Redundancy Mass-Reschedule KQL Pack
 
@@ -400,9 +400,9 @@ MinConfig
 
 ## Sources
 
-- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/log-monitoring)
+- [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
 - [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [ContainerAppSystemLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs)
 - [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
 - [Set up zone redundancy in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy)
-- [Kusto parse_json function](https://learn.microsoft.com/kusto/query/parse-json-function)
+- [Kusto parse_json function](https://learn.microsoft.com/en-us/kusto/query/parse-json-function)

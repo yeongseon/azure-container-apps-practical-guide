@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-easy-auth-to-handle-identity
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/authentication
-    - https://learn.microsoft.com/azure/container-apps/authentication
+    - id: use-easy-auth-to-handle-identity
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
 ---
 # Recipe: Easy Auth in .NET Apps on Azure Container Apps
 
@@ -98,5 +98,5 @@ app.Run();
 
 ## Sources
 
-- [Authentication in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/azure/container-apps/authentication)
+- [Authentication in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Container Apps identity providers](https://learn.microsoft.com/en-us/azure/container-apps/authentication)

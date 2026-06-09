@@ -1,29 +1,29 @@
 ---
 content_sources:
   diagrams:
-  - id: use-this-page-as-a-quick
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/quotas
-    - https://learn.microsoft.com/azure/container-apps/scale-app
+    - id: use-this-page-as-a-quick
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can scale to zero when the minimum replica count is set to 0.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Azure Container Apps revisions are immutable snapshots of a container app version.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Azure Container Apps supports splitting traffic between active revisions.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
-  - claim: Azure Container Apps documents quotas and limits for the service.
-    source: https://learn.microsoft.com/azure/container-apps/quotas
-    verified: true
+    - claim: Azure Container Apps can scale to zero when the minimum replica count is set to 0.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Azure Container Apps revisions are immutable snapshots of a container app version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Azure Container Apps supports splitting traffic between active revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Azure Container Apps documents quotas and limits for the service.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+      verified: true
 ---
 # Platform Limits
 
@@ -107,5 +107,5 @@ For architecture-level implications, see [How Container Apps Works](../../start-
 
 - [Repository map](../../start-here/repository-map.md)
 ## Sources
-- [Azure Container Apps quotas and limits (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/quotas)
-- [Container Apps scale rules and replicas (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
+- [Azure Container Apps quotas and limits (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/quotas)
+- [Container Apps scale rules and replicas (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)

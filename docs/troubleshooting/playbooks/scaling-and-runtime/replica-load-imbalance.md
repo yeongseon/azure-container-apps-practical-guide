@@ -1,27 +1,27 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
   diagrams:
-  - id: replica-load-imbalance-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+    - id: replica-load-imbalance-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps supports scale rules that determine how replicas scale for an app.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    verified: false
-  - claim: Azure Container Apps supports ingress configuration features such as traffic management and sticky sessions.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    verified: false
+    - claim: Azure Container Apps supports scale rules that determine how replicas scale for an app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: false
+    - claim: Azure Container Apps supports ingress configuration features such as traffic management and sticky sessions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: false
 ---
 # Replica Load Imbalance
 

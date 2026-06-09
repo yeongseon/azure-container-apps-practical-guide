@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/dapr-overview
-    - https://learn.microsoft.com/azure/container-apps/dapr-components
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
 content_validation:
   status: verified
   last_reviewed: '2026-06-03'
@@ -17,20 +17,19 @@ content_validation:
     az_cli_version: 2.71.0
     notes: appPort flip 8000→8081 observed in Portal; revision Degraded under both states because bundled helloworld image listens on port 80 — service-invocation breakage [Not Proven]
   core_claims:
-  - claim: Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol.
-    source: https://learn.microsoft.com/azure/container-apps/dapr-overview
-    verified: true
-  - claim: Dapr components in Azure Container Apps are defined at the Container Apps environment scope and can be used by
-      apps in that environment.
-    source: https://learn.microsoft.com/azure/container-apps/dapr-components
-    verified: true
+    - claim: Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+      verified: true
+    - claim: Dapr components in Azure Container Apps are defined at the Container Apps environment scope and can be used by apps in that environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
+      verified: true
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Dapr Integration Troubleshooting Lab
@@ -423,5 +422,5 @@ az group delete --name "$RG" --yes --no-wait
 
 ## Sources
 
-- [Dapr integration with Azure Container Apps](https://learn.microsoft.com/azure/container-apps/dapr-overview)
-- [Dapr components in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/dapr-components)
+- [Dapr integration with Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
+- [Dapr components in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-components)

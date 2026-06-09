@@ -1,23 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
-  - id: ci-cd-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/github-actions
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+    - id: ci-cd-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 06 - CI/CD with GitHub Actions
@@ -211,7 +211,7 @@ jobs:
 - [x] Deployment is verified by a health check endpoint
 
 !!! info "Using Federated Credentials (OIDC)"
-    For enhanced security, consider using [Workload Identity Federation](https://learn.microsoft.com/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux) (OIDC) instead of storing secrets in GitHub. This removes the need for long-lived service principal keys.
+    For enhanced security, consider using [Workload Identity Federation](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux) (OIDC) instead of storing secrets in GitHub. This removes the need for long-lived service principal keys.
 
 ### Verify deployment activity in Azure Portal
 
@@ -226,8 +226,8 @@ jobs:
 ## See Also
 - [07 - Revisions and Traffic](07-revisions-traffic.md)
 - [02 - First Deploy to Azure](02-first-deploy.md)
-- [GitHub Actions for Azure (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
+- [GitHub Actions for Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
 
 ## Sources
-- [Deploy to Azure Container Apps with GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/github-actions)
+- [Deploy to Azure Container Apps with GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
 - [Setup Java Action (GitHub Marketplace)](https://github.com/marketplace/actions/setup-java-jdk-binaries)

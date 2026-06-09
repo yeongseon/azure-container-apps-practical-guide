@@ -1,27 +1,27 @@
 ---
 content_sources:
   diagrams:
-  - id: aca-client-cert-ingress-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
+    - id: aca-client-cert-ingress-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Ingress passes the client certificate to the container app if clientCertificateMode is set to require or accept.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-    verified: true
-  - claim: Azure Container Apps uses the X-Forwarded-Client-Cert header to forward client certificate information to the application.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    verified: true
-  - claim: The ARM template schema for container app ingress includes clientCertificateMode values accept, ignore, and require.
-    source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
-    verified: true
+    - claim: Ingress passes the client certificate to the container app if clientCertificateMode is set to require or accept.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+      verified: true
+    - claim: Azure Container Apps uses the X-Forwarded-Client-Cert header to forward client certificate information to the application.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
+    - claim: The ARM template schema for container app ingress includes clientCertificateMode values accept, ignore, and require.
+      source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
+      verified: true
 ---
 # Ingress Client Certificates
 

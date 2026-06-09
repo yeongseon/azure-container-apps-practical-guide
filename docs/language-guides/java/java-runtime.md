@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: azure-container-apps-uses-the-eclipse
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/quickstart-code-to-cloud
-    - https://learn.microsoft.com/en-us/azure/container-apps/containers
-    - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - id: azure-container-apps-uses-the-eclipse
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 ---
 # Java Runtime Reference
 
@@ -127,7 +127,7 @@ curl https://$FQDN/info
 ## See Also
 - [01 - Local Development](./tutorial/01-local-development.md)
 - [04 - Logging and Monitoring](./tutorial/04-logging-monitoring.md)
-- [Java on Azure (Microsoft Learn)](https://learn.microsoft.com/azure/developer/java/)
+- [Java on Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/java/)
 
 ## Sources
 - [Eclipse Temurin Container Images](https://hub.docker.com/_/eclipse-temurin)

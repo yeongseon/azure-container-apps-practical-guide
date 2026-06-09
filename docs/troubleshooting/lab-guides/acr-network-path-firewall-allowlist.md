@@ -1,14 +1,14 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/use-azure-firewall
-    - https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks
-    - https://learn.microsoft.com/azure/firewall/snat-private-range
-    - https://learn.microsoft.com/azure/container-registry/container-registry-firewall-rules
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks
+        - https://learn.microsoft.com/en-us/azure/firewall/snat-private-range
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules
 content_validation:
   status: verified
   last_reviewed: '2026-06-06'
@@ -48,18 +48,18 @@ content_validation:
       next-hop must be read from the firewall resource property" in
       the lab guide for the full explanation.
   core_claims:
-  - claim: ACR's `networkRuleSet.ipRules` selected-networks IP allowlist is keyed on the *source IP that ACR observes on the inbound TCP connection*, which for a Container Apps replica egressing through Azure Firewall is the firewall's outbound SNAT public IP — not the replica's RFC1918 internal IP, which Azure Firewall replaces with its public IP on every outbound flow.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks
-    verified: true
-  - claim: Azure Container Apps environments deployed into a customer VNet inherit the VNet's user-defined routes for outbound traffic from the workload-profile subnet (`snet-aca`), so a `0.0.0.0/0 -> Azure Firewall` UDR forces every replica's outbound HTTPS connection through the firewall, where it is SNAT'd to the firewall's public IP.
-    source: https://learn.microsoft.com/azure/container-apps/use-azure-firewall
-    verified: true
-  - claim: When ACR rejects an inbound request because the source IP is not in `networkRuleSet.ipRules`, the response is HTTP 403 with a body containing `{"errors":[{"code":"DENIED","message":"client with IP '<observed-ip>' is not allowed access, refer https://aka.ms/acr/firewall to grant access"}]}`. This response payload is captured verbatim by Azure Container Apps and surfaced in `ContainerAppSystemLogs_CL` rows with `Reason_s == "ContainerTerminated"` when the pull fails — making the SNAT public IP directly observable from Container Apps system logs.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-firewall-rules
-    verified: true
-  - claim: Container Apps revisions running on already-pulled image layers continue to serve traffic with `healthState=Healthy` even when ACR's network rules would reject a fresh pull from the same registry. This is the operationally-significant asymmetry — image-pull failures only affect *new* revision provisioning, not in-flight cached revisions — and it is reproducible by toggling a single entry in ACR's `networkRuleSet.ipRules`.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: ACR's `networkRuleSet.ipRules` selected-networks IP allowlist is keyed on the *source IP that ACR observes on the inbound TCP connection*, which for a Container Apps replica egressing through Azure Firewall is the firewall's outbound SNAT public IP — not the replica's RFC1918 internal IP, which Azure Firewall replaces with its public IP on every outbound flow.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks
+      verified: true
+    - claim: Azure Container Apps environments deployed into a customer VNet inherit the VNet's user-defined routes for outbound traffic from the workload-profile subnet (`snet-aca`), so a `0.0.0.0/0 -> Azure Firewall` UDR forces every replica's outbound HTTPS connection through the firewall, where it is SNAT'd to the firewall's public IP.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+      verified: true
+    - claim: When ACR rejects an inbound request because the source IP is not in `networkRuleSet.ipRules`, the response is HTTP 403 with a body containing `{"errors":[{"code":"DENIED","message":"client with IP '<observed-ip>' is not allowed access, refer https://aka.ms/acr/firewall to grant access"}]}`. This response payload is captured verbatim by Azure Container Apps and surfaced in `ContainerAppSystemLogs_CL` rows with `Reason_s == "ContainerTerminated"` when the pull fails — making the SNAT public IP directly observable from Container Apps system logs.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules
+      verified: true
+    - claim: Container Apps revisions running on already-pulled image layers continue to serve traffic with `healthState=Healthy` even when ACR's network rules would reject a fresh pull from the same registry. This is the operationally-significant asymmetry — image-pull failures only affect *new* revision provisioning, not in-flight cached revisions — and it is reproducible by toggling a single entry in ACR's `networkRuleSet.ipRules`.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-06'
@@ -600,16 +600,16 @@ Azure Firewall Basic + its two public IPs is the dominant cost (~$24/day) — do
 - [ACR Network Path B Lab — PE Direct](./acr-network-path-pe-direct.md) — the Private Endpoint topology that is the realistic alternative to this lab's public-with-firewall topology. Path B removes the firewall from the image-pull data path entirely (PE traffic does not traverse the firewall by default), at the cost of requiring `privatelink.azurecr.io` zone management and a PE NIC subnet.
 - [ACR Network Path D Lab — Record-Level Zone Authority](./acr-network-path-record-split-brain.md) — Scenario D, the record-CONTENT failure on the Path B private path. Lab 3 used managed identity for ACR auth, which prevented a clean broken-window fresh-pull proof; this Path A lab is the first in the series to *cleanly* prove fresh-pull behavior because admin-credential auth removes the control-plane token-exchange confound.
 - [ACR Network Path E Lab — DNS Forwarder Bypass](./acr-network-path-dns-forwarder-bypass.md) — Scenario E, the resolver-topology failure on the Path B private path. Same managed-identity-confound caveat as Lab 3.
-- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/use-azure-firewall) — official reference for the firewall-integration pattern this lab implements.
-- [Configure public network access for an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks) — official reference for ACR's `networkRuleSet` selected-networks model.
+- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall) — official reference for the firewall-integration pattern this lab implements.
+- [Configure public network access for an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks) — official reference for ACR's `networkRuleSet` selected-networks model.
 
 ## Sources
 
-- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/use-azure-firewall) — official guidance for the Path A pattern, including the UDR + firewall private-IP-as-next-hop requirement.
-- [Configure public network access for an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks) — ACR's `networkRuleSet` model, including `defaultAction`, `ipRules`, and `networkRuleBypassOptions`.
-- [Configure rules to access an Azure Container Registry behind a firewall (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-firewall-rules) — the FQDN list a firewall must allow for ACR pulls (login server, regional data endpoint).
-- [Azure Firewall SNAT private IP address ranges (Microsoft Learn)](https://learn.microsoft.com/azure/firewall/snat-private-range) — explains Azure Firewall's SNAT behavior, why every outbound flow's source IP becomes the firewall's public IP from ACR's perspective.
-- [Deploy and configure Azure Firewall Basic and policy (Microsoft Learn)](https://learn.microsoft.com/azure/firewall/deploy-firewall-basic-portal-policy) — the Basic SKU's `AzureFirewallManagementSubnet` requirement and management-NIC behavior.
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking) — Container Apps VNet integration, workload-profile subnet requirements (delegation, `/23` minimum), and inheritance of UDRs.
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions) — revision lifecycle, including the cached-image-layer behavior that lets an already-running revision survive an ACR firewall change.
-- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication) — admin user vs. managed identity; the auth choice that makes this lab's single-controlled-variable design possible.
+- [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall) — official guidance for the Path A pattern, including the UDR + firewall private-IP-as-next-hop requirement.
+- [Configure public network access for an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks) — ACR's `networkRuleSet` model, including `defaultAction`, `ipRules`, and `networkRuleBypassOptions`.
+- [Configure rules to access an Azure Container Registry behind a firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules) — the FQDN list a firewall must allow for ACR pulls (login server, regional data endpoint).
+- [Azure Firewall SNAT private IP address ranges (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/firewall/snat-private-range) — explains Azure Firewall's SNAT behavior, why every outbound flow's source IP becomes the firewall's public IP from ACR's perspective.
+- [Deploy and configure Azure Firewall Basic and policy (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/firewall/deploy-firewall-basic-portal-policy) — the Basic SKU's `AzureFirewallManagementSubnet` requirement and management-NIC behavior.
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking) — Container Apps VNet integration, workload-profile subnet requirements (delegation, `/23` minimum), and inheritance of UDRs.
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions) — revision lifecycle, including the cached-image-layer behavior that lets an already-running revision survive an ACR firewall change.
+- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication) — admin user vs. managed identity; the auth choice that makes this lab's single-controlled-variable design possible.

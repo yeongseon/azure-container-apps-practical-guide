@@ -1,26 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: jobs-vs-apps-decision-tree
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn Jobs, scaling, and Container Apps overview guidance for workload selection.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
-    - https://learn.microsoft.com/azure/container-apps/overview
+    - id: jobs-vs-apps-decision-tree
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn Jobs, scaling, and Container Apps overview guidance for workload selection.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Jobs are designed for finite execution while Container Apps are designed for continuously running services and
-      workers.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Container Apps can scale long-running replicas, while Jobs create separate executions.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app#jobs
-    verified: true
+    - claim: Jobs are designed for finite execution while Container Apps are designed for continuously running services and workers.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Container Apps can scale long-running replicas, while Jobs create separate executions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+      verified: true
 ---
 # Jobs vs Apps
 
@@ -110,6 +109,6 @@ flowchart TD
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#jobs)
-- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)

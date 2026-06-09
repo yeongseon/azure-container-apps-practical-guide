@@ -1,31 +1,29 @@
 ---
 content_sources:
   diagrams:
-  - id: internal-resolution-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/connect-apps
-    - https://learn.microsoft.com/azure/container-apps/ingress-overview
+    - id: internal-resolution-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports internal ingress and service discovery for secure internal-only endpoints with built-in
-      DNS-based service discovery.
-    source: https://learn.microsoft.com/azure/container-apps/overview
-    verified: true
-  - claim: Container app ingress can be limited to traffic from within the same Container Apps environment.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Azure Container Apps supports building microservices with Dapr.
-    source: https://learn.microsoft.com/azure/container-apps/overview
-    verified: true
-  - claim: A Container Apps environment creates a secure boundary around a group of container apps that are deployed in the
-      same virtual network.
-    source: https://learn.microsoft.com/azure/container-apps/vnet-custom
-    verified: true
+    - claim: Azure Container Apps supports internal ingress and service discovery for secure internal-only endpoints with built-in DNS-based service discovery.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/overview
+      verified: true
+    - claim: Container app ingress can be limited to traffic from within the same Container Apps environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Azure Container Apps supports building microservices with Dapr.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/overview
+      verified: true
+    - claim: A Container Apps environment creates a secure boundary around a group of container apps that are deployed in the same virtual network.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+      verified: true
 ---
 # Service-to-Service Communication
 
@@ -178,5 +176,5 @@ def get_data():
 - [Egress Control](egress-control.md)
 
 ## Sources
-- [Connect apps in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/connect-apps)
-- [Ingress overview in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/ingress-overview)
+- [Connect apps in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
+- [Ingress overview in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)

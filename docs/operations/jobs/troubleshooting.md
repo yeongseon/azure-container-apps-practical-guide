@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: jobs-troubleshooting-path
-    type: flowchart
-    source: self-generated
-    justification: Symptom-driven troubleshooting flow synthesized from repository job playbooks and Microsoft Learn Jobs
-      guidance.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: jobs-troubleshooting-path
+      type: flowchart
+      source: self-generated
+      justification: Symptom-driven troubleshooting flow synthesized from repository job playbooks and Microsoft Learn Jobs guidance.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: Job executions can fail because of startup, configuration, runtime, or timeout problems.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Container Apps troubleshooting relies on execution inspection and log analysis.
-    source: https://learn.microsoft.com/azure/container-apps/troubleshooting
-    verified: true
+    - claim: Job executions can fail because of startup, configuration, runtime, or timeout problems.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Container Apps troubleshooting relies on execution inspection and log analysis.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+      verified: true
 ---
 # Jobs Troubleshooting
 
@@ -163,5 +162,5 @@ If verification fails, revert only the last configuration change, capture the fa
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Troubleshoot Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Troubleshoot Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

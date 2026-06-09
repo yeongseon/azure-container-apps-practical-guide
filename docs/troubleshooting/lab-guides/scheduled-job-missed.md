@@ -1,15 +1,15 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/jobs
   diagrams:
-  - id: scheduled-job-missed-lab-diagram
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/jobs
-    - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
+    - id: scheduled-job-missed-lab-diagram
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -20,19 +20,19 @@ content_validation:
     az_cli_version: 2.70.0
     notes: Succeeded every minute; cron 0 0 31 2 * stops executions; restored * * * * * resumes Succeeded
   core_claims:
-  - claim: Scheduled Container Apps jobs evaluate cron schedules in UTC.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-    verified: false
-  - claim: Container Apps jobs can be started manually for troubleshooting.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-    verified: false
+    - claim: Scheduled Container Apps jobs evaluate cron schedules in UTC.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: false
+    - claim: Container Apps jobs can be started manually for troubleshooting.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Scheduled Job Missed Lab

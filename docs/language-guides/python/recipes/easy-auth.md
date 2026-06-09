@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: use-container-apps-authentication-easy-auth
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-    - https://learn.microsoft.com/azure/container-apps/authentication
+    - id: use-container-apps-authentication-easy-auth
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
 ---
 # Recipe: Easy Auth (Built-in Authentication) for Python Apps
 
@@ -181,9 +181,9 @@ def require_role(required_role: str):
 - [Managed Identity](managed-identity.md)
 - [Key Vault Reference](key-vault-reference.md)
 - [Identity and Secrets](../../../platform/identity-and-secrets/managed-identity.md)
-- [Microsoft Learn: Authentication in Container Apps](https://learn.microsoft.com/azure/container-apps/authentication)
+- [Microsoft Learn: Authentication in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
 
 ## Sources
 
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
-- [Microsoft Learn source 2](https://learn.microsoft.com/azure/container-apps/authentication)
+- [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/authentication)

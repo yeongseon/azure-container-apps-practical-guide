@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
-    - https://learn.microsoft.com/sql/connect/jdbc/connecting-to-an-azure-sql-database
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview
+        - https://learn.microsoft.com/en-us/sql/connect/jdbc/connecting-to-an-azure-sql-database
 ---
 # Azure SQL Integration (Managed Identity)
 
@@ -157,5 +157,5 @@ az containerapp update \
 
 ## Sources
 
-- [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview)
-- [Connect to Azure SQL Database by using JDBC](https://learn.microsoft.com/sql/connect/jdbc/connecting-to-an-azure-sql-database)
+- [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview)
+- [Connect to Azure SQL Database by using JDBC](https://learn.microsoft.com/en-us/sql/connect/jdbc/connecting-to-an-azure-sql-database)

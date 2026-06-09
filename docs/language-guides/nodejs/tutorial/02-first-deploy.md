@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/get-started
-    - https://learn.microsoft.com/cli/azure/containerapp#az-containerapp-up
-  - id: deployment-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/get-started
-    - https://learn.microsoft.com/cli/azure/containerapp#az-containerapp-up
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+        - https://learn.microsoft.com/en-us/cli/azure/containerapp#az-containerapp-up
+    - id: deployment-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/get-started
+        - https://learn.microsoft.com/en-us/cli/azure/containerapp#az-containerapp-up
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 02 - First Deploy to Azure Container Apps
@@ -544,5 +544,5 @@ curl "https://$APP_FQDN/health"
 - [Networking VNet Recipe](../../../platform/networking/vnet-integration.md)
 
 ## Sources
-- [Get started (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/get-started)
-- [az containerapp up reference (Microsoft Learn)](https://learn.microsoft.com/cli/azure/containerapp#az-containerapp-up)
+- [Get started (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/get-started)
+- [az containerapp up reference (Microsoft Learn)](https://learn.microsoft.com/en-us/cli/azure/containerapp#az-containerapp-up)

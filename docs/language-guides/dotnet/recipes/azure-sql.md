@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
-    - https://learn.microsoft.com/sql/connect/ado-net/sql/azure-active-directory-authentication
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview
+        - https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication
 ---
 # Azure SQL Integration (Managed Identity)
 
@@ -144,5 +144,5 @@ az containerapp update \
 
 ## Sources
 
-- [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview)
-- [Microsoft Entra authentication with SqlClient](https://learn.microsoft.com/sql/connect/ado-net/sql/azure-active-directory-authentication)
+- [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview)
+- [Microsoft Entra authentication with SqlClient](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication)

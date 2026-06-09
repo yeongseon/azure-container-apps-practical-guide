@@ -1,23 +1,23 @@
 ---
 content_sources:
   diagrams:
-  - id: probe-debugging-loop
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/health-probes
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: probe-debugging-loop
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: agent
   core_claims:
-  - claim: Probe failures surface in Container Apps system logs and revision behavior.
-    source: https://learn.microsoft.com/azure/container-apps/health-probes
-    verified: true
-  - claim: Readiness and startup behavior affect whether a revision becomes ready for traffic.
-    source: https://learn.microsoft.com/azure/container-apps/revisions
-    verified: true
+    - claim: Probe failures surface in Container Apps system logs and revision behavior.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: Readiness and startup behavior affect whether a revision becomes ready for traffic.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 # Probe Tuning
 
@@ -93,6 +93,6 @@ flowchart TD
 
 ## Sources
 
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Revisions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/azure/reliability/reliability-container-apps)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)

@@ -1,34 +1,33 @@
 ---
 content_sources:
   diagrams:
-  - id: production-security-baseline-control-stack
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/security/benchmark/azure/baselines/azure-container-apps-security-baseline
-    - https://learn.microsoft.com/azure/container-apps/security
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull
-    - https://learn.microsoft.com/azure/container-apps/policy-reference
+    - id: production-security-baseline-control-stack
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/azure-container-apps-security-baseline
+        - https://learn.microsoft.com/en-us/azure/container-apps/security
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
 content_validation:
   status: verified
   last_reviewed: '2026-04-25'
   reviewer: ai-agent
   core_claims:
-  - claim: Microsoft publishes an Azure security baseline for Azure Container Apps that maps benchmark controls to the service.
-    source: https://learn.microsoft.com/security/benchmark/azure/baselines/azure-container-apps-security-baseline
-    verified: true
-  - claim: Azure Container Apps supports managed identity, Key Vault-backed secrets, and revision-based configuration updates.
-    source: https://learn.microsoft.com/azure/container-apps/manage-secrets
-    verified: true
-  - claim: Container Apps networking documentation supports internal environments, custom VNets, private endpoints, and supported
-      egress control patterns.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Container Apps policy reference documents built-in Azure Policy coverage for the service.
-    source: https://learn.microsoft.com/azure/container-apps/policy-reference
-    verified: true
+    - claim: Microsoft publishes an Azure security baseline for Azure Container Apps that maps benchmark controls to the service.
+      source: https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/azure-container-apps-security-baseline
+      verified: true
+    - claim: Azure Container Apps supports managed identity, Key Vault-backed secrets, and revision-based configuration updates.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+      verified: true
+    - claim: Container Apps networking documentation supports internal environments, custom VNets, private endpoints, and supported egress control patterns.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Container Apps policy reference documents built-in Azure Policy coverage for the service.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
+      verified: true
 ---
 # Azure Container Apps Compliance Baseline
 
@@ -261,9 +260,9 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 
 ## Sources
 
-- [Azure security baseline for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/security/benchmark/azure/baselines/azure-container-apps-security-baseline)
-- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/security)
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
-- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/manage-secrets)
-- [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull)
-- [Policy reference for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/policy-reference)
+- [Azure security baseline for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/azure-container-apps-security-baseline)
+- [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/security)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Policy reference for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/policy-reference)

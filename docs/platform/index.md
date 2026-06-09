@@ -1,11 +1,11 @@
 ---
 content_sources:
   diagrams:
-  - id: documents
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/
+    - id: documents
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
 ---
 # Concepts
 
@@ -85,4 +85,4 @@ For language-specific implementation details, see:
 
 ## Sources
 
-- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/)
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)

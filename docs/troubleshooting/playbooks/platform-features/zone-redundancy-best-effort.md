@@ -1,39 +1,39 @@
 ---
 content_sources:
   references:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
   diagrams:
-  - id: best-effort-decision-flow
-    type: flowchart
-    source: self-generated
-    justification: "No single MS Learn article presents a four-layer mitigation decision flow for ACA zone redundancy. Synthesized from the reliability, zone-redundancy, planned-maintenance, and Front Door articles."
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-    - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
-    - https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
-    - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
+    - id: best-effort-decision-flow
+      type: flowchart
+      source: self-generated
+      justification: "No single MS Learn article presents a four-layer mitigation decision flow for ACA zone redundancy. Synthesized from the reliability, zone-redundancy, planned-maintenance, and Front Door articles."
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+        - https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
+        - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
 content_validation:
   status: verified
   last_reviewed: '2026-06-08'
   reviewer: agent
   core_claims:
-  - claim: Container Apps zone redundancy is implemented by the platform scheduler and is described in Microsoft Learn as a best-effort distribution across physical hosts while meeting the minimum replica count.
-    source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-    verified: true
-  - claim: Setting resource requests and limits helps the Container Apps scheduler make optimal placement decisions across zones, and underspecified resource requirements can lead to uneven distribution.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
-    verified: true
-  - claim: Container Apps may pause or restart replicas during planned platform maintenance windows.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
-    verified: true
-  - claim: For higher availability targets than a single zone-redundant environment provides, Microsoft Learn directs operators to multi-region designs fronted by Azure Front Door.
-    source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-    verified: true
+    - claim: Container Apps zone redundancy is implemented by the platform scheduler and is described in Microsoft Learn as a best-effort distribution across physical hosts while meeting the minimum replica count.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
+    - claim: Setting resource requests and limits helps the Container Apps scheduler make optimal placement decisions across zones, and underspecified resource requirements can lead to uneven distribution.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+      verified: true
+    - claim: Container Apps may pause or restart replicas during planned platform maintenance windows.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
+      verified: true
+    - claim: For higher availability targets than a single zone-redundant environment provides, Microsoft Learn directs operators to multi-region designs fronted by Azure Front Door.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
 ---
 # Zone Redundancy Is Best-Effort
 

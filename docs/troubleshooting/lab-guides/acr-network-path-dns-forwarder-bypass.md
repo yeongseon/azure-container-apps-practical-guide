@@ -1,14 +1,14 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/virtual-network/what-is-ip-address-168-63-129-16
-    - https://learn.microsoft.com/azure/private-link/private-endpoint-dns
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'
@@ -28,18 +28,18 @@ content_validation:
       workload-side resolution back to the PE NIC. See "Observed Evidence
       (Live Azure Test - 2026-06-05)".
   core_claims:
-  - claim: Azure DNS at 168.63.129.16 is the only resolver that consults Private DNS Zones linked to the VNet, so custom DNS forwarders must send privatelink.azurecr.io queries to 168.63.129.16 for the PE NIC IP to be returned.
-    source: https://learn.microsoft.com/azure/virtual-network/what-is-ip-address-168-63-129-16
-    verified: true
-  - claim: Azure Private DNS Zones perform IP substitution for Private Endpoint FQDNs only when queried through Azure DNS by a VNet that is linked to the zone.
-    source: https://learn.microsoft.com/azure/private-link/private-endpoint-dns
-    verified: true
-  - claim: ACR's Private Endpoint exposes one 'registry' sub-resource whose NIC holds private IPs for the global login endpoint and the per-region data endpoint, both of which must resolve inside privatelink.azurecr.io for an end-to-end private pull.
-    source: https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints
-    verified: true
-  - claim: Azure Container Apps environments can be configured to use a custom DNS server defined on the linked VNet, and workload DNS resolution from inside replicas follows that custom DNS server.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
+    - claim: Azure DNS at 168.63.129.16 is the only resolver that consults Private DNS Zones linked to the VNet, so custom DNS forwarders must send privatelink.azurecr.io queries to 168.63.129.16 for the PE NIC IP to be returned.
+      source: https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16
+      verified: true
+    - claim: Azure Private DNS Zones perform IP substitution for Private Endpoint FQDNs only when queried through Azure DNS by a VNet that is linked to the zone.
+      source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+      verified: true
+    - claim: ACR's Private Endpoint exposes one 'registry' sub-resource whose NIC holds private IPs for the global login endpoint and the per-region data endpoint, both of which must resolve inside privatelink.azurecr.io for an end-to-end private pull.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+      verified: true
+    - claim: Azure Container Apps environments can be configured to use a custom DNS server defined on the linked VNet, and workload DNS resolution from inside replicas follows that custom DNS server.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-05'
@@ -95,7 +95,7 @@ Azure Container Apps can reach ACR through several network paths — public via 
 
 Three properties make Scenario E worth reproducing as a hands-on lab:
 
-- **`168.63.129.16` is the only resolver that consults VNet-linked Private DNS Zones.** Any custom DNS server in the path must conditionally forward `privatelink.azurecr.io` (or use it as default upstream) to `168.63.129.16`, or the zone substitution does not happen. This is the [Azure DNS infrastructure address](https://learn.microsoft.com/azure/virtual-network/what-is-ip-address-168-63-129-16) and is reachable from every Azure VNet without explicit routing.
+- **`168.63.129.16` is the only resolver that consults VNet-linked Private DNS Zones.** Any custom DNS server in the path must conditionally forward `privatelink.azurecr.io` (or use it as default upstream) to `168.63.129.16`, or the zone substitution does not happen. This is the [Azure DNS infrastructure address](https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16) and is reachable from every Azure VNet without explicit routing.
 - **In Azure Container Apps in this reproduction, breaking the VNet custom DNS forwarder produces no immediate revision-health impact on the already-running revision.** This is the central finding of the lab. Empirically, when dnsmasq forwards ACR queries to `8.8.8.8` and dnsmasq is verifiably the only recursive DNS on the VNet, the already-running revision continues to report `healthState=Healthy` and serves traffic from the already-cached image layers. The workload, however, immediately sees the broken resolver — so the failure surfaces in application traffic first.
 - **Scenario E is distinct from Scenario D.** Scenario D (a separate lab) is the **record-level** split-brain case: the resolver path is correct (Azure DNS gets the query), but the Private DNS Zone is missing one or more records — for example the `<registry>.<region>.data` record — so part of the ACR namespace resolves privately and part does not. Scenario E breaks the entire namespace because the resolver path itself is wrong.
 
@@ -552,10 +552,10 @@ ACR Premium is the dominant cost (~$1.67/day), so do not leave the lab running b
 
 ## Sources
 
-- [What is IP address 168.63.129.16? (Microsoft Learn)](https://learn.microsoft.com/azure/virtual-network/what-is-ip-address-168-63-129-16) — Azure DNS infrastructure address; required upstream for any custom DNS server that needs to consult VNet-linked Private DNS Zones
-- [Azure Private Endpoint DNS configuration (Microsoft Learn)](https://learn.microsoft.com/azure/private-link/private-endpoint-dns) — why Azure DNS performs IP substitution for `privatelink.*` zones and why custom DNS servers must forward to it
-- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints) — ACR PE topology, sub-resource model, and the registry+data FQDN split
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking) — Container Apps custom VNet DNS server configuration
-- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/how-to-use-private-endpoint)
-- [Securing a custom VNET in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/firewall-integration) — egress requirements for Container Apps environments
-- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/azure/container-registry/container-registry-authentication)
+- [What is IP address 168.63.129.16? (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16) — Azure DNS infrastructure address; required upstream for any custom DNS server that needs to consult VNet-linked Private DNS Zones
+- [Azure Private Endpoint DNS configuration (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns) — why Azure DNS performs IP substitution for `privatelink.*` zones and why custom DNS servers must forward to it
+- [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints) — ACR PE topology, sub-resource model, and the registry+data FQDN split
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking) — Container Apps custom VNet DNS server configuration
+- [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
+- [Securing a custom VNET in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration) — egress requirements for Container Apps environments
+- [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)

@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: runtime-execution-model
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/containers
-    - https://learn.microsoft.com/azure/container-apps/connect-apps
+    - id: runtime-execution-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 ---
 # Python Runtime
 
@@ -112,5 +112,5 @@ ps aux
 - [Container Design Best Practices](../../best-practices/container-design.md)
 
 ## Sources
-- [Azure Container Apps containers reference (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/containers)
-- [Connect to services in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/connect-apps)
+- [Azure Container Apps containers reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Connect to services in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)

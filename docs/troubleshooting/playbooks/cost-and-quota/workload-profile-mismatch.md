@@ -1,30 +1,30 @@
 ---
 content_sources:
   text:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
   diagrams:
-  - id: workload-profile-mismatch-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
-    - https://learn.microsoft.com/en-us/azure/container-apps/billing
+    - id: workload-profile-mismatch-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+        - https://learn.microsoft.com/en-us/azure/container-apps/billing
 content_validation:
   status: verified
   last_reviewed: 2026-04-29
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps supports workload profiles inside an environment.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-    verified: true
-  - claim: Workload profile node counts can be managed through Azure CLI.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
-    verified: true
-  - claim: Dedicated workload profile cost is tied to reserved profile capacity rather than only request-driven execution.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/billing
-    verified: true
+    - claim: Azure Container Apps supports workload profiles inside an environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+      verified: true
+    - claim: Workload profile node counts can be managed through Azure CLI.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+      verified: true
+    - claim: Dedicated workload profile cost is tied to reserved profile capacity rather than only request-driven execution.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/billing
+      verified: true
 ---
 # Workload Profile Mismatch
 

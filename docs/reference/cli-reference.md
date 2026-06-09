@@ -1,22 +1,22 @@
 ---
 content_sources:
   diagrams:
-  - id: cli-workflow-map
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/cli/azure/containerapp
+    - id: cli-workflow-map
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/cli/azure/containerapp
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure CLI provides the containerapp command group for managing Container Apps resources.
-    source: https://learn.microsoft.com/cli/azure/containerapp
-    verified: true
-  - claim: The Container Apps CLI extension must be installed separately from the base Azure CLI.
-    source: https://learn.microsoft.com/azure/container-apps/get-started
-    verified: true
+    - claim: Azure CLI provides the containerapp command group for managing Container Apps resources.
+      source: https://learn.microsoft.com/en-us/cli/azure/containerapp
+      verified: true
+    - claim: The Container Apps CLI extension must be installed separately from the base Azure CLI.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/get-started
+      verified: true
 ---
 # Azure Container Apps CLI Reference
 
@@ -583,4 +583,4 @@ Example output (PII scrubbed):
 
 ## Sources
 
-- [Microsoft Learn: Azure Container Apps CLI](https://learn.microsoft.com/cli/azure/containerapp)
+- [Microsoft Learn: Azure Container Apps CLI](https://learn.microsoft.com/en-us/cli/azure/containerapp)

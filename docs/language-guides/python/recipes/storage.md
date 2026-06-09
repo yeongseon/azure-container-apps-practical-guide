@@ -1,20 +1,20 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/storage-mounts
-    - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
-    - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
-  - id: container-apps-containers-are-ephemeral-by
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/storage-mounts
-    - https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme
-    - https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/python/api/overview/azure/storage-blob-readme
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts#storage-types
+    - id: container-apps-containers-are-ephemeral-by
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/python/api/overview/azure/storage-blob-readme
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts#storage-types
 ---
 # Storage: Volume Mounts and Blob Storage
 
@@ -588,6 +588,6 @@ See [Key Vault Secrets Management](../../../platform/identity-and-secrets/key-va
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 
 ## Sources
-- [Azure Files in Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/storage-mounts)
-- [Azure Storage Blob SDK for Python](https://learn.microsoft.com/python/api/overview/azure/storage-blob-readme)
-- [Container Apps volume mount types (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/storage-mounts#storage-types)
+- [Azure Files in Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
+- [Azure Storage Blob SDK for Python](https://learn.microsoft.com/en-us/python/api/overview/azure/storage-blob-readme)
+- [Container Apps volume mount types (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts#storage-types)

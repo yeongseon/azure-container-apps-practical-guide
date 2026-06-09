@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps supports both external and internal ingress modes.
-    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
-    verified: true
-  - claim: Azure Container Apps environments support networking features that depend on the environment type and network configuration.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
+    - claim: Azure Container Apps supports both external and internal ingress modes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
+    - claim: Azure Container Apps environments support networking features that depend on the environment type and network configuration.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 ---
 # Service-to-Service Connectivity Failure
 
@@ -235,6 +235,6 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 
 ## Sources
 
-- [Ingress overview in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
-- [Container Apps environment custom DNS](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Ingress overview in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Container Apps environment custom DNS](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

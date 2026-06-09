@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: accelerate-your-development-process-with-these
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/developer/java/spring-framework/spring-cloud-azure
-    - https://learn.microsoft.com/azure/developer/java/sdk/overview
+    - id: accelerate-your-development-process-with-these
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/spring-cloud-azure
+        - https://learn.microsoft.com/en-us/azure/developer/java/sdk/overview
 ---
 # Java Recipes Overview
 
@@ -74,5 +74,5 @@ Azure Container Apps provides a flexible platform for building distributed syste
 
 ## Sources
 
-- [Spring Cloud Azure Documentation (Microsoft Learn)](https://learn.microsoft.com/azure/developer/java/spring-framework/spring-cloud-azure)
-- [Azure SDK for Java (Microsoft Learn)](https://learn.microsoft.com/azure/developer/java/sdk/overview)
+- [Spring Cloud Azure Documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/spring-cloud-azure)
+- [Azure SDK for Java (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/java/sdk/overview)

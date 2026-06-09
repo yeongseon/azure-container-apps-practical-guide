@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/azure/container-apps/health-probes
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Ingress must be enabled on a container app before it can accept HTTP or TCP traffic.
-    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
-    verified: true
-  - claim: Azure Container Apps supports both external and internal ingress modes.
-    source: https://learn.microsoft.com/azure/container-apps/ingress-overview
-    verified: true
+    - claim: Ingress must be enabled on a container app before it can accept HTTP or TCP traffic.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
+    - claim: Azure Container Apps supports both external and internal ingress modes.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+      verified: true
 ---
 # Ingress Not Reachable
 
@@ -347,6 +347,6 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
 
 ## Sources
 
-- [Ingress in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/ingress-overview)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
-- [Health probes in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/health-probes)
+- [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)

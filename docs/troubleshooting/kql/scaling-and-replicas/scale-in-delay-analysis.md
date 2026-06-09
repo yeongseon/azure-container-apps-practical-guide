@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: query-pipeline
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-    - https://learn.microsoft.com/en-us/azure/container-apps/observability
-    - https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: For custom scale rules, Azure Container Apps uses default KEDA values of 30 seconds polling interval and 300 seconds
-      cooldown.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Azure Container Apps observability includes Log Analytics for querying and analyzing system logs.
-    source: https://learn.microsoft.com/azure/container-apps/observability
-    verified: true
+    - claim: For custom scale rules, Azure Container Apps uses default KEDA values of 30 seconds polling interval and 300 seconds cooldown.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Azure Container Apps observability includes Log Analytics for querying and analyzing system logs.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+      verified: true
 ---
 # Scale In Delay Analysis
 
@@ -90,5 +89,5 @@ ContainerAppSystemLogs_CL
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/observability)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Microsoft Learn source 5](https://learn.microsoft.com/azure/container-apps/observability)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/container-apps/observability)

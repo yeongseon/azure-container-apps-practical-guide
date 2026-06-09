@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: spring-xfcc-validation-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
-    - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-    - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+    - id: spring-xfcc-validation-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 ---
 # Recipe: mTLS Client Certificates in Java Apps on Azure Container Apps
 

@@ -1,22 +1,22 @@
 ---
 content_sources:
   diagrams:
-  - id: limits-hierarchy-and-blast-radius
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/quotas
+    - id: limits-hierarchy-and-blast-radius
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/quotas
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps has quotas and limits at the subscription, environment, and app levels.
-    source: https://learn.microsoft.com/azure/container-apps/quotas
-    verified: true
-  - claim: Some Container Apps limits are fixed platform constraints while others are adjustable quotas.
-    source: https://learn.microsoft.com/azure/container-apps/quotas
-    verified: true
+    - claim: Azure Container Apps has quotas and limits at the subscription, environment, and app levels.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+      verified: true
+    - claim: Some Container Apps limits are fixed platform constraints while others are adjustable quotas.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
+      verified: true
 ---
 # Azure Container Apps Platform Limits and Quotas
 
@@ -169,4 +169,4 @@ Job snapshot from `az containerapp job show`:
 
 ## Sources
 
-- [Microsoft Learn: Azure Container Apps limits and quotas](https://learn.microsoft.com/azure/container-apps/quotas)
+- [Microsoft Learn: Azure Container Apps limits and quotas](https://learn.microsoft.com/en-us/azure/container-apps/quotas)

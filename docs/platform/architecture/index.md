@@ -1,43 +1,41 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture-overview
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn pages on Container Apps overview, environments, networking, scaling, revisions,
-      and Dapr integration
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
-    - https://learn.microsoft.com/azure/container-apps/environment
-    - https://learn.microsoft.com/azure/container-apps/networking
-    - https://learn.microsoft.com/azure/container-apps/scale-app
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/dapr-overview
-  - id: control-data-plane
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from Microsoft Learn pages distinguishing management operations from runtime traffic
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/overview
-    - https://learn.microsoft.com/azure/container-apps/environment
+    - id: architecture-overview
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn pages on Container Apps overview, environments, networking, scaling, revisions, and Dapr integration
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - id: control-data-plane
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from Microsoft Learn pages distinguishing management operations from runtime traffic
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
 content_validation:
   status: verified
   last_reviewed: '2026-04-27'
   reviewer: agent
   core_claims:
-  - claim: Azure Container Apps is powered by KEDA for autoscaling.
-    source: https://learn.microsoft.com/azure/container-apps/scale-app
-    verified: true
-  - claim: Container Apps uses an HTTP edge proxy (Envoy) that terminates TLS and routes requests.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: A Container Apps environment is a secure boundary that manages OS upgrades, scale operations, failover procedures,
-      and resource balancing.
-    source: https://learn.microsoft.com/azure/container-apps/environment
-    verified: true
-  - claim: Dapr integration provides service-to-service invocation, state management, and pub/sub messaging.
-    source: https://learn.microsoft.com/azure/container-apps/dapr-overview
-    verified: true
+    - claim: Azure Container Apps is powered by KEDA for autoscaling.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Container Apps uses an HTTP edge proxy (Envoy) that terminates TLS and routes requests.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: A Container Apps environment is a secure boundary that manages OS upgrades, scale operations, failover procedures, and resource balancing.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/environment
+      verified: true
+    - claim: Dapr integration provides service-to-service invocation, state management, and pub/sub messaging.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+      verified: true
 ---
 # How Container Apps Works
 
@@ -458,12 +456,12 @@ Use this page as a quick architecture review guide before you deploy a new workl
 - [Scaling](../scaling/index.md)
 
 ## Sources
-- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/overview)
-- [Environment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/environment)
-- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/networking)
-- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app)
-- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Dapr integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dapr-overview)
-- [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/managed-identity)
-- [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/ingress-overview)
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
+- [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Environment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Dapr integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
+- [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)

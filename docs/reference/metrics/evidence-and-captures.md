@@ -4,12 +4,12 @@ content_validation:
   last_reviewed: '2026-06-05'
   reviewer: agent
   core_claims:
-  - claim: The numeric samples in the metrics reference were produced from a deliberate load test environment with a specific app topology and load profile.
-    source: Lab environment observation
-    verified: true
-  - claim: az monitor metrics list returns the same data as the Portal Metrics blade and can be used for scripted dashboards, CI checks, or alert validation.
-    source: https://learn.microsoft.com/azure/container-apps/metrics
-    verified: true
+    - claim: The numeric samples in the metrics reference were produced from a deliberate load test environment with a specific app topology and load profile.
+      source: Lab environment observation
+      verified: true
+    - claim: az monitor metrics list returns the same data as the Portal Metrics blade and can be used for scripted dashboards, CI checks, or alert validation.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
+      verified: true
 ---
 # Evidence, Captures, and Lab Environment
 
@@ -130,6 +130,6 @@ az monitor metrics list \
 
 ## Sources
 
-- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/metrics)
-- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/essentials/data-platform-metrics)
+- [Supported metrics for Microsoft.App/containerapps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Supported metrics for Microsoft.App/managedEnvironments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Azure Monitor metrics overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics)

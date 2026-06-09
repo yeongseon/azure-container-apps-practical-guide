@@ -233,14 +233,14 @@ For an in-scope page, add a `content_validation` block to its frontmatter:
 ---
 content_sources:
   - type: mslearn-adapted
-    url: https://learn.microsoft.com/azure/container-apps/...
+    url: https://learn.microsoft.com/en-us/azure/container-apps/...
 content_validation:
   status: verified
   last_reviewed: 2026-04-12
   reviewer: ai-agent
   core_claims:
     - claim: "Container Apps supports KEDA-based autoscaling on HTTP traffic, CPU, memory, and custom metrics."
-      source: https://learn.microsoft.com/azure/container-apps/scale-app
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
 ---
 ```

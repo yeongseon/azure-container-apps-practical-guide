@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: runtime-execution-model
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/dotnet-overview
-    - https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints
-    - https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector
+    - id: runtime-execution-model
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dotnet-overview
+        - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints
+        - https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector
 ---
 # .NET Runtime Reference
 
@@ -127,6 +127,6 @@ ps aux
 - [Container Design Best Practices](../../best-practices/container-design.md)
 
 ## Sources
-- [ASP.NET Core on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/dotnet-overview)
-- [Configure Kestrel (Microsoft Learn)](https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints)
-- [.NET Garbage Collection in Containers (Microsoft Learn)](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector)
+- [ASP.NET Core on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dotnet-overview)
+- [Configure Kestrel (Microsoft Learn)](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints)
+- [.NET Garbage Collection in Containers (Microsoft Learn)](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector)

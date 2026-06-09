@@ -3,34 +3,34 @@ hide:
   - toc
 content_sources:
   diagrams:
-  - id: deployment-methods-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
-    - https://learn.microsoft.com/azure/container-apps/deploy-artifact
-    - https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli
-  - id: change-scope-decision
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/revisions
+    - id: deployment-methods-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact
+        - https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli
+    - id: change-scope-decision
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
   last_reviewed: 2026-04-21
   reviewer: agent
   core_claims:
     - claim: "Revision-scope changes trigger a new revision; application-scope changes apply globally without creating a revision"
-      source: https://learn.microsoft.com/azure/container-apps/revisions
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
     - claim: "In single revision mode, old revision stays active until new revision is ready (zero-downtime)"
-      source: https://learn.microsoft.com/azure/container-apps/revisions
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
     - claim: "Artifact deployment supports JAR/WAR files without requiring a Dockerfile"
-      source: https://learn.microsoft.com/azure/container-apps/deploy-artifact
+      source: https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact
       verified: true
     - claim: "Deployment labels allow URL-based routing to specific revisions"
-      source: https://learn.microsoft.com/azure/container-apps/revisions
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
 ---
 
@@ -277,8 +277,8 @@ Inactive revisions:
 
 ## Sources
 
-- [Update and deploy changes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/revisions)
-- [Deploy an artifact file to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/deploy-artifact)
-- [Deploy your first container app (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/tutorial-deploy-first-app-cli)
-- [Blue-green deployment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/blue-green-deployment)
-- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
+- [Update and deploy changes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Deploy an artifact file to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact)
+- [Deploy your first container app (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli)
+- [Blue-green deployment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment)
+- [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)

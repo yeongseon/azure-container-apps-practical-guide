@@ -1,12 +1,12 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview
-    - https://learn.microsoft.com/azure/azure-sql/database/connect-query-python
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview
+        - https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-python
 ---
 # Azure SQL Integration (Managed Identity)
 
@@ -159,5 +159,5 @@ az containerapp logs show \
 - [Private Endpoints](../../../platform/networking/private-endpoints.md)
 
 ## Sources
-- [Azure SQL + Microsoft Entra authentication](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-overview)
-- [Connect to Azure SQL with Python (Microsoft Learn)](https://learn.microsoft.com/azure/azure-sql/database/connect-query-python)
+- [Azure SQL + Microsoft Entra authentication](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview)
+- [Connect to Azure SQL with Python (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-python)

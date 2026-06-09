@@ -1,25 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: job-execution-state-model
-    type: state
-    source: self-generated
-    justification: Conceptual state model synthesized from existing repository job troubleshooting evidence and Microsoft
-      Learn Jobs guidance pending final quote verification.
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/jobs
-    - https://learn.microsoft.com/azure/container-apps/scale-app#jobs
+    - id: job-execution-state-model
+      type: state
+      source: self-generated
+      justification: Conceptual state model synthesized from existing repository job troubleshooting evidence and Microsoft Learn Jobs guidance pending final quote verification.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
 content_validation:
   status: pending_review
   last_reviewed: '2026-04-26'
   reviewer: ai-agent
   core_claims:
-  - claim: A Container Apps Job execution can run one or more replicas.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
-  - claim: Scheduled and event-based jobs keep only a limited recent execution history.
-    source: https://learn.microsoft.com/azure/container-apps/jobs
-    verified: true
+    - claim: A Container Apps Job execution can run one or more replicas.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
+    - claim: Scheduled and event-based jobs keep only a limited recent execution history.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
+      verified: true
 ---
 # Execution Lifecycle
 
@@ -123,5 +122,5 @@ stateDiagram-v2
 
 ## Sources
 
-- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/jobs)
-- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/scale-app#jobs)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)

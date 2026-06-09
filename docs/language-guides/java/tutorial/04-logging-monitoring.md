@@ -1,25 +1,25 @@
 ---
 content_sources:
   diagrams:
-  - id: this-tutorial-assumes-a-production-ready-container
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
-    - https://learn.microsoft.com/azure/container-apps/monitor
-  - id: monitoring-workflow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent
-    - https://learn.microsoft.com/azure/container-apps/monitor
+    - id: this-tutorial-assumes-a-production-ready-container
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent
+        - https://learn.microsoft.com/en-us/azure/container-apps/monitor
+    - id: monitoring-workflow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent
+        - https://learn.microsoft.com/en-us/azure/container-apps/monitor
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # 04 - Logging and Monitoring
@@ -141,7 +141,7 @@ Azure Monitor's Application Insights provides distributed tracing, performance m
 
 ### 1. Enable Application Insights
 
-The easiest way to enable Application Insights for Spring Boot is using the [Java In-Process Agent](https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent).
+The easiest way to enable Application Insights for Spring Boot is using the [Java In-Process Agent](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent).
 
 ```bash
 # Add Application Insights Connection String
@@ -270,6 +270,6 @@ az monitor log-analytics query \
 - [KQL Query Pack](../../../troubleshooting/kql/index.md)
 
 ## Sources
-- [Azure Monitor Application Insights for Java (Microsoft Learn)](https://learn.microsoft.com/azure/azure-monitor/app/java-in-process-agent)
+- [Azure Monitor Application Insights for Java (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent)
 - [Spring Boot Logging (Documentation)](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.logging)
-- [Monitor Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/monitor)
+- [Monitor Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/monitor)

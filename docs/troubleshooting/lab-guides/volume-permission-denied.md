@@ -1,22 +1,21 @@
 ---
 content_sources:
   sources:
-  - type: mslearn-adapted
-    url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+    - type: mslearn-adapted
+      url: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
   diagrams:
-  - id: volume-permission-denied-page-flow
-    type: flowchart
-    source: self-generated
-    justification: Synthesized from the page structure and Microsoft Learn sources
-      listed in this document.
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-  - id: volume-permission-denied-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-    - https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
+    - id: volume-permission-denied-page-flow
+      type: flowchart
+      source: self-generated
+      justification: Synthesized from the page structure and Microsoft Learn sources listed in this document.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+    - id: volume-permission-denied-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+        - https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
 content_validation:
   status: pending_review
   last_reviewed: 2026-04-29
@@ -25,24 +24,21 @@ content_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: emptyDir readOnly API behavior documented; Azure Files permission scenario
-      corroborated
+    notes: emptyDir readOnly API behavior documented; Azure Files permission scenario corroborated
   core_claims:
-  - claim: Azure Container Apps Azure Files volumes accept `mountOptions` values in
-      the revision template.
-    source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-    verified: false
-  - claim: Azure Files SMB permission behavior can be influenced by Linux mount options
-      such as `uid`, `gid`, `dir_mode`, and `file_mode`.
-    source: https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
-    verified: false
+    - claim: Azure Container Apps Azure Files volumes accept `mountOptions` values in the revision template.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+      verified: false
+    - claim: Azure Files SMB permission behavior can be influenced by Linux mount options such as `uid`, `gid`, `dir_mode`, and `file_mode`.
+      source: https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
+      verified: false
 validation:
   az_cli:
-    last_tested: null
-    cli_version: null
+    last_tested:
+    cli_version:
     result: not_tested
   bicep:
-    last_tested: null
+    last_tested:
     result: not_tested
 ---
 # Volume Permission Denied Lab

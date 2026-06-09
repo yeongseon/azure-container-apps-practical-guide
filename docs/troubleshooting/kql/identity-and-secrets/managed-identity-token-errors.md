@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: query-pipeline
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-    - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-    - https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - id: query-pipeline
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps can send application console logs to a Log Analytics workspace for querying.
-    source: https://learn.microsoft.com/azure/container-apps/logging
-    verified: true
-  - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
-    source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
-    verified: true
+    - claim: Azure Container Apps can send application console logs to a Log Analytics workspace for querying.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/logging
+      verified: true
+    - claim: Log Analytics uses Kusto Query Language to filter, summarize, and visualize collected log data.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
+      verified: true
 ---
 # Managed Identity Token Errors
 
@@ -78,5 +78,5 @@ ContainerAppConsoleLogs_CL
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/observability)
-- [Microsoft Learn source 4](https://learn.microsoft.com/azure/container-apps/logging)
+- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/logging)
 - [Microsoft Learn source 5](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial)

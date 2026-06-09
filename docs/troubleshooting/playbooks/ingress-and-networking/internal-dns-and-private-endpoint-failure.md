@@ -1,24 +1,24 @@
 ---
 content_sources:
   diagrams:
-  - id: troubleshooting-decision-flow
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
-    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
-    - https://learn.microsoft.com/azure/container-apps/troubleshooting
+    - id: troubleshooting-decision-flow
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
   last_reviewed: '2026-04-12'
   reviewer: ai-agent
   core_claims:
-  - claim: Azure Container Apps environments support networking features that depend on the environment type and network configuration.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
-  - claim: Azure Container Apps supports private networking capabilities through environment networking configuration.
-    source: https://learn.microsoft.com/azure/container-apps/networking
-    verified: true
+    - claim: Azure Container Apps environments support networking features that depend on the environment type and network configuration.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
+    - claim: Azure Container Apps supports private networking capabilities through environment networking configuration.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 ---
 # Internal DNS and Private Endpoint Failure
 
@@ -255,6 +255,6 @@ For the full validated procedure, see: [On-Premises DNS to ACA Internal Environm
 
 ## Sources
 
-- [Container Apps environment custom DNS](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
-- [Private endpoints in Azure Container Apps environments](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
-- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Container Apps environment custom DNS](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Private endpoints in Azure Container Apps environments](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)

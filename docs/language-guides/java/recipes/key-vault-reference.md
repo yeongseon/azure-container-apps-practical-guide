@@ -1,13 +1,13 @@
 ---
 content_sources:
   diagrams:
-  - id: use-azure-key-vault-with-managed
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/manage-secrets
-    - https://learn.microsoft.com/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault
-    - https://learn.microsoft.com/java/api/overview/azure/security-keyvault-secrets-readme
+    - id: use-azure-key-vault-with-managed
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault
+        - https://learn.microsoft.com/en-us/java/api/overview/azure/security-keyvault-secrets-readme
 ---
 # Recipe: Key Vault Reference in Java Apps on Azure Container Apps
 
@@ -110,6 +110,6 @@ String password = client.getSecret("db-password").getValue();
 
 ## Sources
 
-- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/manage-secrets)
-- [Spring Cloud Azure Key Vault secrets](https://learn.microsoft.com/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault)
-- [Azure Key Vault Secrets SDK for Java](https://learn.microsoft.com/java/api/overview/azure/security-keyvault-secrets-readme)
+- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Spring Cloud Azure Key Vault secrets](https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault)
+- [Azure Key Vault Secrets SDK for Java](https://learn.microsoft.com/en-us/java/api/overview/azure/security-keyvault-secrets-readme)

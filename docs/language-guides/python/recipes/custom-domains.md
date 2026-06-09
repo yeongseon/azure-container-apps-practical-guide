@@ -1,18 +1,18 @@
 ---
 content_sources:
   diagrams:
-  - id: architecture
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
-  - id: digi-cert-managed-certificate-issued
-    type: flowchart
-    source: mslearn-adapted
-    based_on:
-    - https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates
-    - https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns
+    - id: architecture
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+    - id: digi-cert-managed-certificate-issued
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
 ---
 # Custom Domains and Certificates
 
@@ -200,5 +200,5 @@ curl --verbose https://www.contoso.com/
 - [Networking](../../../platform/networking/vnet-integration.md)
 
 ## Sources
-- [Container Apps custom domains and managed certificates (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
-- [Container Apps environment custom DNS (Microsoft Learn)](https://learn.microsoft.com/azure/container-apps/private-endpoints-with-dns)
+- [Container Apps custom domains and managed certificates (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates)
+- [Container Apps environment custom DNS (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
