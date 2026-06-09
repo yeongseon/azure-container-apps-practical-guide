@@ -4,12 +4,30 @@ on:
   pull_request:
     paths:
       - 'apps/java-springboot/**'
+      - 'apps/**/*.sh'
+      - 'jobs/**/*.sh'
+      - 'labs/**/*.sh'
+      - 'infra/**/*.sh'
+      - 'scripts/**/*.sh'
+      - 'apps/**/*.bicep'
+      - 'jobs/**/*.bicep'
+      - 'labs/**/*.bicep'
+      - 'infra/**/*.bicep'
       - '.github/workflows/app-tests.yml'
   push:
     branches:
       - main
     paths:
       - 'apps/java-springboot/**'
+      - 'apps/**/*.sh'
+      - 'jobs/**/*.sh'
+      - 'labs/**/*.sh'
+      - 'infra/**/*.sh'
+      - 'scripts/**/*.sh'
+      - 'apps/**/*.bicep'
+      - 'jobs/**/*.bicep'
+      - 'labs/**/*.bicep'
+      - 'infra/**/*.bicep'
       - '.github/workflows/app-tests.yml'
   workflow_dispatch:
 
@@ -17,6 +35,42 @@ permissions:
   contents: read
 
 jobs:
+  scripts:
+    name: Shell Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        run: |
+          find apps jobs labs infra scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
+
+      - name: Run ShellCheck (errors block)
+        run: |
+          find apps jobs labs infra scripts -type f -name '*.sh' -print0 | xargs -0 -r shellcheck --severity=error
+
+      - name: Report ShellCheck backlog (advisory)
+        run: |
+          find apps jobs labs infra scripts -type f -name '*.sh' -print0 | xargs -0 -r shellcheck
+        continue-on-error: true  # Lenient: surfaces pre-existing warning/info/style backlog without blocking PRs.
+
+  bicep:
+    name: Bicep Templates
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Bicep templates
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            find apps jobs labs infra -type f -name '*.bicep' -print | sort | while IFS= read -r file; do
+              echo "Building ${file}"
+              az bicep build --file "${file}" --stdout >/dev/null
+            done
+
   java-springboot:
     name: Java Spring Boot
     runs-on: ubuntu-latest

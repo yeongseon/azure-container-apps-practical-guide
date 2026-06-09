@@ -80,6 +80,11 @@ jobs:
         run: |
           python scripts/validate_content_sources.py
       
+      - name: Validate CLI explanation tables
+        run: |
+          python scripts/validate_cli_explanations.py
+        continue-on-error: true  # Lenient: surfaces backlog without blocking PRs.
+      
       - name: Check frontmatter YAML style (canonical ruamel.yaml format)
         run: |
           python scripts/normalize_yaml_frontmatter.py --check
