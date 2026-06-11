@@ -43,8 +43,20 @@ exec_in_pty() {
   fi
 }
 
-now_ms() { date -u +%s%3N; }
-now_iso() { date -u +"%Y-%m-%dT%H:%M:%S.%3NZ"; }
+now_ms() {
+  if date -u +%s%3N | grep -qE '^[0-9]+$'; then
+    date -u +%s%3N
+  else
+    python3 -c 'import time; print(int(time.time()*1000))'
+  fi
+}
+now_iso() {
+  if date -u +"%Y-%m-%dT%H:%M:%S.%3NZ" | grep -qE '\.[0-9]{3}Z$'; then
+    date -u +"%Y-%m-%dT%H:%M:%S.%3NZ"
+  else
+    python3 -c 'import time, datetime as dt; n=dt.datetime.now(dt.timezone.utc); print(n.strftime("%Y-%m-%dT%H:%M:%S.")+f"{n.microsecond//1000:03d}Z")'
+  fi
+}
 
 emit_meta_line() {
   local stage="$1" detail="$2"
