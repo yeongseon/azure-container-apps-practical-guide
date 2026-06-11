@@ -479,8 +479,11 @@ When a customer escalates "my Dedicated D8 app keeps restarting all my replicas 
 ## See Also
 
 - [Zone Redundancy Is Best-Effort Lab](./zone-redundancy-best-effort.md) — companion lab applying the same proxy-signal + epistemic discipline to AZ placement
+- [Zone Redundancy Best-Effort Playbook](../playbooks/platform-features/zone-redundancy-best-effort.md) — four-layer mitigation matrix that operationalizes this lab's findings
 - [Replica Load Imbalance Lab](./replica-load-imbalance.md) — KEDA scale-rule tuning when replicas are spread but unevenly utilized
 - [Workload Profile Mismatch Lab](./workload-profile-mismatch.md) — operator-side decision tree for picking Consumption vs Dedicated
+- [Reliability Best Practices — minReplicas is a capacity floor](../../best-practices/reliability.md#minreplicas-is-a-capacity-floor-not-a-placement-constraint) — the operational distillation of this lab's findings
+- [Min Replica Change Impact (Operations)](../../operations/scaling/min-replica-change-impact.md) — replacement scenarios (revision update vs lost-replica reclaim) that interact with this lab's placement findings
 - [Plans and Workload Profiles](../../platform/environments/plans-and-workload-profiles.md) — platform reference for the Consumption / dedicated distinction
 - [Consumption Plan](../../platform/environments/consumption-plan.md) — platform reference for the Consumption-only environment variant
 
