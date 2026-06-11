@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "baseName": {
+      "value": "rnslab"
+    },
+    "expiryHours": {
+      "value": 24
+    },
+    "diagImage": {
+      "value": "mcr.microsoft.com/azure-cli:2.83.0"
+    },
+    "replicaCpu": {
+      "value": "0.25"
+    },
+    "replicaMemory": {
+      "value": "0.5Gi"
+    },
+    "dedicatedProfileType": {
+      "value": "D8"
+    },
+    "consumptionInitialReplicas": {
+      "value": 1
+    },
+    "dedicatedInitialReplicas": {
+      "value": 1
+    }
+  }
+}
