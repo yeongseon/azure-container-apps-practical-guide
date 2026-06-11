@@ -26,7 +26,7 @@ set -uo pipefail
 RUN_LABEL="${RUN_LABEL:-unlabeled}"
 SCALE_AT_SAMPLE="${SCALE_AT_SAMPLE:-0}"
 PROFILE_LABEL="${PROFILE_LABEL:-unknown}"
-MAX_EXEC_RETRIES="${MAX_EXEC_RETRIES:-3}"
+MAX_EXEC_RETRIES="${MAX_EXEC_RETRIES:-5}"
 PER_REPLICA_DELAY="${PER_REPLICA_DELAY:-0}"
 
 mkdir -p "$(dirname "$OUT_FILE")"
@@ -121,17 +121,19 @@ while IFS= read -r REPLICA <&3; do
   SUCCESS=0
   LAST_ERR=""
   OUT=""
+  RAW=""
   LOCAL_TS_MS=""
   while [[ $ATTEMPT -lt $MAX_EXEC_RETRIES ]]; do
     ATTEMPT=$((ATTEMPT + 1))
     LOCAL_TS_MS="$(now_ms)"
-    OUT=$(exec_in_pty az containerapp exec \
+    RAW=$(exec_in_pty az containerapp exec \
       --resource-group "$RG" \
       --name "$APP_NAME" \
       --revision "$REVISION" \
       --replica "$REPLICA" \
       --container diag \
-      --command "/usr/local/bin/diag.sh" 2>/dev/null \
+      --command "/usr/local/bin/diag.sh" 2>&1)
+    OUT=$(echo "$RAW" \
       | tr -d '\r' \
       | sed -E 's/\x1b\[[0-9;?]*[a-zA-Z]//g' \
       | grep -E '^\{' \
@@ -140,8 +142,16 @@ while IFS= read -r REPLICA <&3; do
       SUCCESS=1
       break
     fi
-    LAST_ERR="exec_attempt_${ATTEMPT}_no_parseable_json"
-    sleep 2
+    if echo "$RAW" | grep -qi "429 Too Many Requests"; then
+      LAST_ERR="exec_attempt_${ATTEMPT}_handshake_429_throttled"
+    elif echo "$RAW" | grep -qi "Handshake status"; then
+      LAST_ERR="exec_attempt_${ATTEMPT}_handshake_non_200"
+    else
+      LAST_ERR="exec_attempt_${ATTEMPT}_no_parseable_json"
+    fi
+    BACKOFF=$(( 2 ** ATTEMPT ))
+    [[ $BACKOFF -gt 30 ]] && BACKOFF=30
+    sleep "$BACKOFF"
   done
 
   if [[ $SUCCESS -eq 1 ]]; then
@@ -187,5 +197,6 @@ while IFS= read -r REPLICA <&3; do
   fi
 done 3<<< "$REPLICA_NAMES"
 
-ACTUAL_LINES=$(grep -c "\"run_label\":\"${RUN_LABEL}\".*\"event\":\"ReplicaDiag\(Sample\|Failure\)\"" "$OUT_FILE" 2>/dev/null || echo 0)
+ACTUAL_LINES=$(grep -cE "\"run_label\":\"${RUN_LABEL}\".*\"event\":\"ReplicaDiag(Sample|Failure)\"" "$OUT_FILE" 2>/dev/null | head -n1)
+ACTUAL_LINES="${ACTUAL_LINES:-0}"
 echo ">> Wrote $ACTUAL_LINES sample line(s) (target=$REPLICA_COUNT) to $OUT_FILE"
