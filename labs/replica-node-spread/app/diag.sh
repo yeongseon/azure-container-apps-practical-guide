@@ -26,6 +26,10 @@
 
 set -uo pipefail
 
+# Pure-bash field extractor; avoids dependency on awk/gawk inside the
+# container. cbl-mariner base does not ship awk by default and pulling
+# gawk in just for two `awk -F:` calls is wasteful.
+
 read_or_default() {
   local path="$1" default="$2"
   if [[ -r "$path" ]]; then
@@ -35,24 +39,53 @@ read_or_default() {
   fi
 }
 
+# Extract the value after `<key>:` from /proc/cpuinfo for the first
+# matching line. Returns "unknown" if the key is missing.
+proc_cpuinfo_field() {
+  local key="$1"
+  local line
+  line=$(grep -m1 "^${key}" /proc/cpuinfo 2>/dev/null || true)
+  if [[ -z "$line" ]]; then
+    printf 'unknown'
+    return
+  fi
+  local value="${line#*:}"
+  # Strip leading/trailing whitespace via bash parameter expansion.
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  if [[ -z "$value" ]]; then
+    printf 'unknown'
+  else
+    printf '%s' "$value"
+  fi
+}
+
 boot_id=$(read_or_default /proc/sys/kernel/random/boot_id "unknown")
 machine_id=$(read_or_default /etc/machine-id "")
 kernel_release=$(uname -r 2>/dev/null || printf 'unknown')
 
 # /proc/uptime first field is seconds since boot, as a float.
-uptime_seconds=$(awk '{print $1; exit}' /proc/uptime 2>/dev/null || printf '0')
+# Read the whole line, then split on whitespace.
+if [[ -r /proc/uptime ]]; then
+  read -r uptime_first _ </proc/uptime
+  uptime_seconds="${uptime_first:-0}"
+else
+  uptime_seconds="0"
+fi
 
 # microcode is per-CPU; the first occurrence is representative for our
 # experiment (host nodes are homogeneous within a workload profile).
-microcode=$(grep -m1 '^microcode' /proc/cpuinfo 2>/dev/null | awk -F: '{gsub(/^ +| +$/, "", $2); print $2}' || printf 'unknown')
-cpu_model=$(grep -m1 '^model name' /proc/cpuinfo 2>/dev/null | awk -F: '{gsub(/^ +| +$/, "", $2); print $2}' || printf 'unknown')
+microcode=$(proc_cpuinfo_field "microcode")
+cpu_model=$(proc_cpuinfo_field "model name")
 
 # Millisecond-precision wall clock. Containers share the host's clock,
 # but we still capture it for cross-check against the operator-side
 # stamp recorded by sample.sh.
 inner_ts_ms=$(date -u +%s%3N 2>/dev/null || date -u +%s000)
 
-hostname_val=$(hostname 2>/dev/null || printf 'unknown')
+# Prefer /etc/hostname (always present) over `hostname` binary, which
+# is not installed in the cbl-mariner base.
+hostname_val=$(read_or_default /etc/hostname "${HOSTNAME:-unknown}")
 
 jq -cn \
   --arg event "ReplicaDiagSample" \

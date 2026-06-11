@@ -31,6 +31,18 @@ PER_REPLICA_DELAY="${PER_REPLICA_DELAY:-0}"
 
 mkdir -p "$(dirname "$OUT_FILE")"
 
+# `az containerapp exec` requires a PTY (knack/CLI calls
+# tty.setcbreak(stdin)) and aborts non-interactively. We wrap it with
+# script(1) to allocate a pseudo-terminal. BSD form (macOS) takes the
+# output file before the command; GNU form (Linux) needs `-c`.
+exec_in_pty() {
+  if script --version >/dev/null 2>&1; then
+    script -q -c "$*" /dev/null
+  else
+    script -q /dev/null "$@"
+  fi
+}
+
 now_ms() { date -u +%s%3N; }
 now_iso() { date -u +"%Y-%m-%dT%H:%M:%S.%3NZ"; }
 
@@ -96,7 +108,7 @@ while IFS= read -r REPLICA; do
   while [[ $ATTEMPT -lt $MAX_EXEC_RETRIES ]]; do
     ATTEMPT=$((ATTEMPT + 1))
     LOCAL_TS_MS="$(now_ms)"
-    OUT=$(az containerapp exec \
+    OUT=$(exec_in_pty az containerapp exec \
       --resource-group "$RG" \
       --name "$APP_NAME" \
       --revision "$REVISION" \

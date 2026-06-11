@@ -11,6 +11,15 @@ RG="${RG:-rg-aca-rns-lab}"
 CONSUMPTION_APP="${CONSUMPTION_APP:-ca-diag-consumption}"
 DEDICATED_APP="${DEDICATED_APP:-ca-diag-dedicated}"
 
+# az containerapp exec requires a PTY. See sample.sh for full rationale.
+exec_in_pty() {
+  if script --version >/dev/null 2>&1; then
+    script -q -c "$*" /dev/null
+  else
+    script -q /dev/null "$@"
+  fi
+}
+
 pass=0
 fail=0
 
@@ -63,7 +72,7 @@ FIRST_REV=$(az containerapp revision list --resource-group "$RG" --name "$CONSUM
 FIRST_REPLICA=$(az containerapp replica list --resource-group "$RG" --name "$CONSUMPTION_APP" --revision "$FIRST_REV" --query '[0].name' --output tsv 2>/dev/null)
 if [[ -n "$FIRST_REPLICA" ]]; then
   echo "   Replica: $FIRST_REPLICA"
-  OUT=$(az containerapp exec \
+  OUT=$(exec_in_pty az containerapp exec \
     --resource-group "$RG" \
     --name "$CONSUMPTION_APP" \
     --revision "$FIRST_REV" \
