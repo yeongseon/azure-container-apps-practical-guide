@@ -74,7 +74,7 @@ flowchart TD
     I --> J[Append to evidence JSONL]
     J --> K[analyze.py JSONL to summary md<br/>boot_id histogram + clusters]
     L[h3-falsification.sh] --> M[Part A same replica twice<br/>proxy idempotence]
-    L --> N[Part B az containerapp revision restart 3x<br/>proxy detects new replica]
+    L --> N[Part B revision restart 3x<br/>proxy detects new replica]
     M --> O[H3 proxy validation gate]
     N --> O
     O --> P[Gate PASS = trust the boot_id histograms]
