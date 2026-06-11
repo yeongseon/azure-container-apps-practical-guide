@@ -19,7 +19,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-06-08'
+  last_reviewed: '2026-06-11'
   reviewer: agent
   core_claims:
     - claim: Container Apps zone redundancy is implemented by the platform scheduler and is described in Microsoft Learn as a best-effort distribution across physical hosts while meeting the minimum replica count.
@@ -32,6 +32,9 @@ content_validation:
       source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
       verified: true
     - claim: For higher availability targets than a single zone-redundant environment provides, Microsoft Learn directs operators to multi-region designs fronted by Azure Front Door.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
+    - claim: Microsoft Learn recommends over-provisioning the minimum replica count for workloads that cannot tolerate any period with fewer than the configured minimum number of replicas, because replacing a lost replica requires the platform to detect the loss, start a new replica, and wait for it to return a healthy readiness probe status.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
 ---
@@ -119,6 +122,7 @@ az containerapp show \
 |---|---|---|
 | Explicit `resources.requests` and `resources.limits` | Set both for every container, sized to your real working set. | Per MS Learn, the scheduler uses these values to make placement decisions. Vague resource shapes are the leading documented cause of uneven distribution. |
 | `minReplicas >= 3` (when the budget allows) | Larger `minReplicas` dilutes the impact of any single clustered-churn event. | Q7 in the KQL pack measures the per-app churn frequency at `min={2,3,6}`. Higher minimums reduce — but do not eliminate — clustered churn. |
+| **Over-provision `minReplicas` above steady-state need** | Set `minReplicas` so the running replica count still meets your floor *after* a lost-replica reclaim cycle, not just at steady state. Size the headroom to absorb the largest simultaneous replica loss you are designing for (for example, one node's or one zone's worth of co-located replicas). Treat the headroom as the cost of the reliability target. | MS Learn states the principle directly: "consider over-provisioning to keep your application performant even if a zone becomes unavailable." This is the **only documented in-platform mitigation** for the dip-below-`minReplicas` window during the detect → schedule → image-pull → start → readiness sequence. See [Min Replica Change Impact — Lost-replica reclaim](../../../operations/scaling/min-replica-change-impact.md#scenario-b-lost-replica-reclaim-zone-outage-node-loss-maintenance-eviction) for the failure profile. |
 | Startup, readiness, and liveness probes that reflect dependency readiness | Don't pass the readiness probe before the app can actually serve traffic. | A probe that lies green during cold start lets the ingress send traffic to a replica that will 503. |
 | Pre-pull the image into the second zone | Force at least one scale-out event during deploy validation. | Avoids the documented "first scheduling into a zone pulls the image" delay during a real failure. |
 
@@ -135,7 +139,7 @@ az containerapp show \
 | Lever | What to do | Why it helps |
 |---|---|---|
 | Active-passive multi-region with Azure Front Door | Deploy the app in a second region; let Front Door probe both and shift traffic. | Survives **regional** incidents that no single zone-redundant environment can. See the [Multi-Region Failover Playbook](./multi-region-failover.md) and [Lab](../../lab-guides/multi-region-failover.md). |
-| **Escalate to AKS** when zone placement must be operator-controlled | Move the workload to Azure Kubernetes Service with `topologySpreadConstraints`. | ACA does not surface per-replica zone placement to operators. If your reliability requirements demand explicit zone placement guarantees, you have outgrown what ACA's best-effort scheduler can offer. |
+| **Escalate to AKS** when zone placement must be operator-controlled | Move the workload to Azure Kubernetes Service with placement primitives such as `topologySpreadConstraints` and `podAntiAffinity`, plus voluntary-disruption control via `PodDisruptionBudget`. The sibling [AKS Practical Guide](https://github.com/yeongseon/azure-kubernetes-service-practical-guide) is [tracking this ACA-to-AKS escalation content in planning issue #6](https://github.com/yeongseon/azure-kubernetes-service-practical-guide/issues/6) — a landing page plus focused playbooks for placement and disruption failure modes; this row will be updated to point at the specific landing page once that content lands. | ACA does not surface per-replica zone placement to operators. If your reliability requirements demand explicit zone placement guarantees, you have outgrown what ACA's best-effort scheduler can offer. AKS exposes the scheduling and disruption primitives, but does **not** eliminate involuntary-disruption windows — those are still operator-managed trade-offs, not platform guarantees. |
 
 ### L4 — Observability and SLO honesty
 
@@ -156,11 +160,14 @@ az containerapp show \
 ## See Also
 
 - [Lab: Zone redundancy is best-effort](../../lab-guides/zone-redundancy-best-effort.md)
+- [Lab: Replica node spread (Consumption vs Dedicated D8)](../../lab-guides/replica-node-spread.md)
 - [KQL: Mass-Reschedule pack](../../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md)
 - [Multi-Region Failover Playbook](./multi-region-failover.md)
 - [Multi-Region Failover Lab](../../lab-guides/multi-region-failover.md)
 - [Replica Load Imbalance Playbook](../scaling-and-runtime/replica-load-imbalance.md)
 - [Replica Load Imbalance Lab](../../lab-guides/replica-load-imbalance.md)
+- [Min Replica Change Impact (Operations)](../../../operations/scaling/min-replica-change-impact.md)
+- [Reliability Best Practices — minReplicas is a capacity floor](../../../best-practices/reliability.md#minreplicas-is-a-capacity-floor-not-a-placement-constraint)
 
 ## Sources
 

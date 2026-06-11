@@ -1,0 +1,24 @@
+>> Resource group rg-aca-rns-lab
+  [PASS] Resource group exists
+
+>> Environment + workload profiles
+   Environment: cae-rnslab-g67mtf
+  [PASS] Consumption profile present
+  [PASS] Dedicated profile present
+
+>> App ca-diag-consumption
+  [PASS] ca-diag-consumption runningStatus = Running
+  [PASS] ca-diag-consumption has at least 1 replica
+
+>> App ca-diag-dedicated
+  [PASS] ca-diag-dedicated runningStatus = Running
+  [PASS] ca-diag-dedicated has at least 1 replica
+
+>> Probing diag.sh on first Consumption replica
+   Replica: ca-diag-consumption--5h5m4g3-5f5d8dcd56-66xw4
+  [FAIL] diag.sh did not return parseable JSON
+         raw output: 
+
+================================================================
+Summary: 7 passed, 1 failed
+================================================================

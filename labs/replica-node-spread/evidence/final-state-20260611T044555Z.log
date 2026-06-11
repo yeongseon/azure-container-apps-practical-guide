@@ -1,0 +1,77 @@
+=== final-state capture: 20260611T044555Z ===
+
+## Environment workload profiles (cae-rnslab-g67mtf)
+Name          ResourceGroup
+------------  ---------------
+Consumption   rg-aca-rns-lab
+dedicated-d8  rg-aca-rns-lab
+
+## Environment details (provisioning, region, profile types)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "location": "Korea Central",
+  "name": "cae-rnslab-g67mtf",
+  "provisioningState": "Succeeded",
+  "workloadProfiles": [
+    {
+      "enableFips": false,
+      "name": "Consumption",
+      "workloadProfileType": "Consumption"
+    },
+    {
+      "enableFips": false,
+      "maximumCount": 1,
+      "minimumCount": 1,
+      "name": "dedicated-d8",
+      "workloadProfileType": "D8"
+    }
+  ],
+  "zoneRedundant": false
+}
+
+## Consumption app: revisions
+Name                          Active    Replicas    CreatedTime                TrafficWeight
+----------------------------  --------  ----------  -------------------------  ---------------
+ca-diag-consumption--0000008  True      30          2026-06-11T03:39:57+00:00  0
+
+## Consumption app: scale + workload profile
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "activeRevision": "ca-diag-consumption--0000008",
+  "cpu": 0.25,
+  "latestRevision": "ca-diag-consumption--0000008",
+  "maxReplicas": 30,
+  "memory": "0.5Gi",
+  "minReplicas": 30,
+  "name": "ca-diag-consumption",
+  "workloadProfileName": "Consumption"
+}
+
+## Consumption app: replica list (current revision)
+Active revision: WARNING:Thebehaviorofthiscommandhasbeenalteredbythefollowingextension:containerappca-diag-consumption--0000008
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+ERROR: (ContainerAppInvalidRevisionName) Revision name has an invalid value 'WARNING:Thebehaviorofthiscommandhasbeenalteredbythefollowingextension:containerappca-diag-consumption--0000008'. A revision name must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length of the revision name must not be more than a combined 54 characters with the container app name.
+
+## Dedicated app: revisions
+Name                        Active    Replicas    CreatedTime                TrafficWeight
+--------------------------  --------  ----------  -------------------------  ---------------
+ca-diag-dedicated--0000003  True      10          2026-06-11T04:07:37+00:00  0
+ca-diag-dedicated--0000004  True      24          2026-06-11T04:14:53+00:00  0
+
+## Dedicated app: scale + workload profile
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "activeRevision": "ca-diag-dedicated--0000003",
+  "cpu": 0.25,
+  "latestRevision": "ca-diag-dedicated--0000004",
+  "maxReplicas": 24,
+  "memory": "0.5Gi",
+  "minReplicas": 24,
+  "name": "ca-diag-dedicated",
+  "workloadProfileName": "dedicated-d8"
+}
+
+## Dedicated app: replica list (current revision)
+Active revision: WARNING:Thebehaviorofthiscommandhasbeenalteredbythefollowingextension:containerappca-diag-dedicated--0000003
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+ERROR: (ContainerAppInvalidRevisionName) Revision name has an invalid value 'WARNING:Thebehaviorofthiscommandhasbeenalteredbythefollowingextension:containerappca-diag-dedicated--0000003'. A revision name must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length of the revision name must not be more than a combined 54 characters with the container app name.

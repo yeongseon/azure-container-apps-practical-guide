@@ -24,8 +24,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
-  reviewer: ai-agent
+  last_reviewed: '2026-06-11'
+  reviewer: agent
   core_claims:
     - claim: When you deploy a container app for the first time, an initial revision is automatically created.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -38,6 +38,12 @@ content_validation:
       verified: true
     - claim: In single revision mode, if an update fails, traffic remains pointed to the old revision.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Microsoft Learn describes zone-redundant Container Apps placement as a scheduler that ensures optimal distribution across physical hosts while meeting the minimum replica count requirements, which is best-effort language and not a per-replica zone guarantee.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
+    - claim: Microsoft Learn recommends setting the minimum replica count to at least two to ensure distribution across multiple availability zones in a zone-redundant Container Apps environment.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
 ---
 # Azure Container Apps Reliability Best Practices
@@ -206,6 +212,17 @@ Trade-offs:
 
 !!! warning "Zone placement is best-effort, not a per-replica guarantee"
     Microsoft Learn describes zone-redundant Container Apps as relying on a scheduler that "ensures optimal distribution across physical hosts while meeting your minimum replica count requirements." That is a **best-effort** behavior — setting `minReplicas=N` in a zone-redundant environment does **not** guarantee one replica in each of N distinct zones at every moment. Underspecified resource requests, host capacity, and maintenance events can all skew distribution. When your SLO depends on stronger zonal guarantees than this, combine zone redundancy with the four-layer mitigation matrix in the [Zone Redundancy Best-Effort playbook](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) — explicit resource requests, app-layer retries and circuit breakers, multi-region or AKS topology escalation, and replica-inventory observability.
+
+#### `minReplicas` is a capacity floor, not a placement constraint
+
+A common operator mental model is that `minReplicas=N` combined with `zoneRedundant=true` will produce N replicas, one in each of N distinct Availability Zones. This is **not** what the platform contract says.
+
+- `minReplicas` is a **capacity floor**: the autoscaler is expected to keep at least N running replicas.
+- `minReplicas` is **not** a **placement constraint**: it makes no per-replica guarantee about which node, fault domain, or Availability Zone a given replica lands on.
+
+Container Apps does not surface Kubernetes-style hard placement primitives (`topologySpreadConstraints`, `podAntiAffinity`, `nodeAffinity`) to operators. The scheduler's distribution behavior is documented as "optimal distribution" — best-effort language, not a guarantee. The [Replica Node Spread Lab](../troubleshooting/lab-guides/replica-node-spread.md) measured an extreme of this on the Dedicated D8 workload profile: 24 replicas of a single app shared one observable kernel context (`boot_id`) across 58 consecutive proxy samples, consistent with placement on a single underlying node. The same lab observed Consumption-profile replicas spreading across multiple kernel contexts, demonstrating that distribution is profile- and capacity-dependent, not a property of `minReplicas` alone.
+
+Operationally, treat `minReplicas` as **how many replicas you are paying to keep warm**, not as **how many fault domains you are insulated against**. If your reliability target requires hard placement guarantees — one replica per AZ, replicas on distinct nodes, replicas across distinct hardware generations — the four-layer mitigation matrix in the [Zone Redundancy Best-Effort playbook](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) is the operating contract. Over-provision `minReplicas` above your steady-state need, add app-layer retries and circuit breakers, and escalate to multi-region or AKS when the L1/L2 layers are insufficient. The sibling [AKS Practical Guide](https://github.com/yeongseon/azure-kubernetes-service-practical-guide) is [tracking this ACA-to-AKS escalation path in planning issue #6](https://github.com/yeongseon/azure-kubernetes-service-practical-guide/issues/6) — a landing page that frames the control trade-off (more knobs, more operator responsibility, and disruption windows that still exist for involuntary failures) plus focused playbooks for topology-spread skew, desired-vs-ready replica drop, `PodDisruptionBudget` and drain behavior, and AZ-imbalanced node pools. The cross-link will be updated to the specific landing page once that content lands.
 
 Check environment profile:
 

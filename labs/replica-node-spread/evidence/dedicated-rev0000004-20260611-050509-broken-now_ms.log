@@ -1,0 +1,97 @@
+>> Sampling 24 replica(s) of ca-diag-dedicated revision=ca-diag-dedicated--0000004 (run: rev0000004-scale-24)
+   [ 1/24] ca-diag-dedicated--0000004-6fc54b4bc4-5qr8n ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_no_parseable_json)
+   [ 2/24] ca-diag-dedicated--0000004-6fc54b4bc4-66stk ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [ 3/24] ca-diag-dedicated--0000004-6fc54b4bc4-87vft ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [ 4/24] ca-diag-dedicated--0000004-6fc54b4bc4-9w9kv ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [ 5/24] ca-diag-dedicated--0000004-6fc54b4bc4-bzzf2 ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [ 6/24] ca-diag-dedicated--0000004-6fc54b4bc4-ck9g9 ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [ 7/24] ca-diag-dedicated--0000004-6fc54b4bc4-dmhks ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 2)
+   [ 8/24] ca-diag-dedicated--0000004-6fc54b4bc4-dvssb ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [ 9/24] ca-diag-dedicated--0000004-6fc54b4bc4-dw5zc ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_handshake_429_throttled)
+   [10/24] ca-diag-dedicated--0000004-6fc54b4bc4-jhk6j ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_handshake_429_throttled)
+   [11/24] ca-diag-dedicated--0000004-6fc54b4bc4-kgdkq ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [12/24] ca-diag-dedicated--0000004-6fc54b4bc4-l2vmx ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 2)
+   [13/24] ca-diag-dedicated--0000004-6fc54b4bc4-l99f4 ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 2)
+   [14/24] ca-diag-dedicated--0000004-6fc54b4bc4-lb9b6 ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_handshake_429_throttled)
+   [15/24] ca-diag-dedicated--0000004-6fc54b4bc4-ldk4d ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_handshake_429_throttled)
+   [16/24] ca-diag-dedicated--0000004-6fc54b4bc4-lhb75 ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [17/24] ca-diag-dedicated--0000004-6fc54b4bc4-lzqgh ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [18/24] ca-diag-dedicated--0000004-6fc54b4bc4-mm4sf ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 2)
+   [19/24] ca-diag-dedicated--0000004-6fc54b4bc4-npv5l ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_handshake_429_throttled)
+   [20/24] ca-diag-dedicated--0000004-6fc54b4bc4-phdnp ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_handshake_429_throttled)
+   [21/24] ca-diag-dedicated--0000004-6fc54b4bc4-qkxmm ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 2)
+   [22/24] ca-diag-dedicated--0000004-6fc54b4bc4-rjr59 ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 2)
+   [23/24] ca-diag-dedicated--0000004-6fc54b4bc4-rsr9t ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+ok (attempt 1)
+   [24/24] ca-diag-dedicated--0000004-6fc54b4bc4-zhqb2 ... jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
+FAIL after 3 attempts (exec_attempt_3_no_parseable_json)

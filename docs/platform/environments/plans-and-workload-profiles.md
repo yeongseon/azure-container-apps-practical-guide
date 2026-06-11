@@ -124,6 +124,7 @@ The Workload profiles blade on an existing v2 environment shows the built-in Con
 - [Workload Profiles](workload-profiles.md)
 - [Networking and CIDR](networking-and-cidr.md)
 - [Limits and Quotas](limits-and-quotas.md)
+- [Lab: Replica Node Spread](../../troubleshooting/lab-guides/replica-node-spread.md) — Empirical Consumption vs Dedicated D8 replica-distribution test using `boot_id`/`uptime` proxy signals.
 
 ## Sources
 
