@@ -107,7 +107,12 @@ echo ">> Sampling $REPLICA_COUNT replica(s) of $APP_NAME (run: $RUN_LABEL)"
 
 REPLICA_NAMES=$(echo "$REPLICAS_JSON" | jq -r '.[].name')
 INDEX=0
-while IFS= read -r REPLICA; do
+# Read replica names from FD 3 instead of stdin. `script` (used by
+# exec_in_pty) attaches its child to a PTY but inherits FD 0 from
+# the loop body; with a here-string on FD 0 the child consumes the
+# remaining names and the loop exits after iteration 1. FD 3 keeps
+# the iteration source isolated from the exec child's stdin.
+while IFS= read -r REPLICA <&3; do
   [[ -z "$REPLICA" ]] && continue
   INDEX=$((INDEX + 1))
   printf "   [%2d/%2d] %s ... " "$INDEX" "$REPLICA_COUNT" "$REPLICA"
@@ -180,6 +185,7 @@ while IFS= read -r REPLICA; do
   if [[ "$PER_REPLICA_DELAY" != "0" ]]; then
     sleep "$PER_REPLICA_DELAY"
   fi
-done <<< "$REPLICA_NAMES"
+done 3<<< "$REPLICA_NAMES"
 
-echo ">> Wrote $REPLICA_COUNT line(s) to $OUT_FILE"
+ACTUAL_LINES=$(grep -c "\"run_label\":\"${RUN_LABEL}\".*\"event\":\"ReplicaDiag\(Sample\|Failure\)\"" "$OUT_FILE" 2>/dev/null || echo 0)
+echo ">> Wrote $ACTUAL_LINES sample line(s) (target=$REPLICA_COUNT) to $OUT_FILE"
