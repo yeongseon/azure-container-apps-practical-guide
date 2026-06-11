@@ -148,12 +148,23 @@ def h3_check_part_a(rows):
 def h3_check_part_b(rows):
     pre = {}
     post = {}
+    iterations = defaultdict(lambda: {"pre": None, "post": None})
     for r in rows:
         label = r.get("run_label", "")
         if label.startswith("h3b-pre-"):
             pre[r.get("replica", "?")] = r
+            try:
+                idx = int(label.rsplit("-", 1)[-1])
+                iterations[idx]["pre"] = r
+            except ValueError:
+                pass
         elif label.startswith("h3b-post-"):
             post[r.get("replica", "?")] = r
+            try:
+                idx = int(label.rsplit("-", 1)[-1])
+                iterations[idx]["post"] = r
+            except ValueError:
+                pass
 
     pre_replicas = set(pre.keys())
     post_replicas = set(post.keys())
@@ -172,6 +183,52 @@ def h3_check_part_b(rows):
         else:
             new_with_fresh_boot.append(entry)
 
+    # Iteration-by-iteration view (handles chained pre/post where the
+    # post of iteration N becomes the pre of iteration N+1).
+    iteration_findings = []
+    fresh_iter = 0
+    recycled_iter = 0
+    incomplete_iter = 0
+    for idx in sorted(iterations.keys()):
+        slot = iterations[idx]
+        pre_r = slot["pre"]
+        post_r = slot["post"]
+        if pre_r is None or post_r is None:
+            incomplete_iter += 1
+            iteration_findings.append(
+                {
+                    "iteration": idx,
+                    "has_pre": pre_r is not None,
+                    "has_post": post_r is not None,
+                    "verdict": "INCOMPLETE",
+                }
+            )
+            continue
+        pre_bid = pre_r.get("boot_id")
+        post_bid = post_r.get("boot_id")
+        pre_replica = pre_r.get("replica")
+        post_replica = post_r.get("replica")
+        replica_changed = pre_replica != post_replica
+        boot_id_changed = pre_bid != post_bid
+        if boot_id_changed:
+            fresh_iter += 1
+            verdict = "PASS"
+        else:
+            recycled_iter += 1
+            verdict = "FAIL"
+        iteration_findings.append(
+            {
+                "iteration": idx,
+                "pre_replica": pre_replica,
+                "post_replica": post_replica,
+                "pre_boot_id": pre_bid,
+                "post_boot_id": post_bid,
+                "replica_changed": replica_changed,
+                "boot_id_changed": boot_id_changed,
+                "verdict": verdict,
+            }
+        )
+
     return {
         "pre_replica_count": len(pre_replicas),
         "post_replica_count": len(post_replicas),
@@ -179,13 +236,17 @@ def h3_check_part_b(rows):
         "persisted_replica_count": len(persisted_replicas),
         "new_with_fresh_boot_id": new_with_fresh_boot,
         "new_with_recycled_boot_id": new_with_recycled_boot,
+        "iteration_findings": iteration_findings,
+        "iteration_pass": fresh_iter,
+        "iteration_fail": recycled_iter,
+        "iteration_incomplete": incomplete_iter,
         "verdict": (
             "PASS"
-            if (len(new_replicas) > 0 and not new_with_recycled_boot)
+            if (fresh_iter > 0 and recycled_iter == 0)
             else (
-                "INCONCLUSIVE — no new replica observed"
-                if len(new_replicas) == 0
-                else "FAIL — some new replica reused a pre-existing boot_id"
+                "INCONCLUSIVE — no complete iteration observed"
+                if (fresh_iter == 0 and recycled_iter == 0)
+                else "FAIL — some iteration reused a pre-existing boot_id"
             )
         ),
     }
@@ -303,6 +364,8 @@ def main():
         lines.append("## H3 Part B — single-replica restart, new boot_id expected")
         lines.append("")
         result = h3_check_part_b(rows)
+        lines.append("### Set-based view (all pre vs all post)")
+        lines.append("")
         lines.append(f"- Pre-restart replicas: {result['pre_replica_count']}")
         lines.append(f"- Post-restart replicas: {result['post_replica_count']}")
         lines.append(
@@ -314,7 +377,41 @@ def main():
         lines.append(
             f"- New replicas with **recycled** boot_id: {len(result['new_with_recycled_boot_id'])}"
         )
-        lines.append(f"- Verdict: **{result['verdict']}**")
+        lines.append("")
+        lines.append("### Iteration-by-iteration view (chained pre/post)")
+        lines.append("")
+        lines.append(
+            f"- Iterations PASS (boot_id changed): **{result['iteration_pass']}**"
+        )
+        lines.append(
+            f"- Iterations FAIL (boot_id recycled): {result['iteration_fail']}"
+        )
+        lines.append(
+            f"- Iterations INCOMPLETE (missing pre or post): {result['iteration_incomplete']}"
+        )
+        if result["iteration_findings"]:
+            lines.append("")
+            lines.append(
+                "| iter | pre replica | post replica | pre boot_id | post boot_id | replica changed | boot_id changed | verdict |"
+            )
+            lines.append("|---|---|---|---|---|---|---|---|")
+            for f in result["iteration_findings"]:
+                if f["verdict"] == "INCOMPLETE":
+                    lines.append(
+                        f"| {f['iteration']} | (incomplete: has_pre={f['has_pre']}, has_post={f['has_post']}) | | | | | | **INCOMPLETE** |"
+                    )
+                    continue
+                pre_short = (
+                    (f["pre_boot_id"][:8] + "...") if f["pre_boot_id"] else "n/a"
+                )
+                post_short = (
+                    (f["post_boot_id"][:8] + "...") if f["post_boot_id"] else "n/a"
+                )
+                lines.append(
+                    f"| {f['iteration']} | `{f['pre_replica']}` | `{f['post_replica']}` | `{pre_short}` | `{post_short}` | {f['replica_changed']} | {f['boot_id_changed']} | **{f['verdict']}** |"
+                )
+        lines.append("")
+        lines.append(f"- Overall verdict: **{result['verdict']}**")
 
     out_text = "\n".join(lines) + "\n"
     if args.output:
