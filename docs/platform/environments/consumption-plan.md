@@ -111,6 +111,7 @@ Microsoft Learn now recommends using the built-in Consumption profile in a Workl
 - [Networking and CIDR](networking-and-cidr.md)
 - [Migration](migration.md)
 - [Limits and Quotas](limits-and-quotas.md)
+- [Lab: Replica Node Spread](../../troubleshooting/lab-guides/replica-node-spread.md) — Side-by-side test of Consumption vs Dedicated D8 replica distribution using kernel-context proxy signals.
 
 ## Sources
 

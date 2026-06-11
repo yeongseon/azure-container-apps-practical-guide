@@ -1,0 +1,24 @@
+>> Resource group rg-aca-rns-lab
+  [PASS] Resource group exists
+
+>> Environment + workload profiles
+   Environment: cae-rnslab-g67mtf
+  [PASS] Consumption profile present
+  [PASS] Dedicated profile present
+
+>> App ca-diag-consumption
+  [PASS] ca-diag-consumption runningStatus = Running
+  [PASS] ca-diag-consumption has at least 1 replica
+
+>> App ca-diag-dedicated
+  [PASS] ca-diag-dedicated runningStatus = Running
+  [PASS] ca-diag-dedicated has at least 1 replica
+
+>> Probing diag.sh on first Consumption replica
+   Replica: ca-diag-consumption--0000001-78b467ff8c-ng8b4
+  [PASS] diag.sh returns parseable JSON with boot_id
+         {"event":"ReplicaDiagSample","replica_hostname":"ca-diag-consumption--0000001-78b467ff8c-ng8b4","boot_id":"9707751f-fe0a-4b5c-aa6a-f7f010ded1df","uptime_seconds":264.35,"machine_id":"","kerne
+
+================================================================
+Summary: 8 passed, 0 failed
+================================================================

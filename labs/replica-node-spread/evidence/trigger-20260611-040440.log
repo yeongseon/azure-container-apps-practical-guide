@@ -1,0 +1,56 @@
+[04:04:40] >> trigger.sh started at 20260611-040440
+[04:04:40] >> RG=rg-aca-rns-lab
+[04:04:40] >> CONSUMPTION_LADDER=1 3 10 30
+[04:04:40] >> DEDICATED_LADDER=1 3 10 24
+[04:04:40] >> TOP_SCALE_REPEATS=3
+[04:04:40] >> SKIP_CONSUMPTION=1, skipping Consumption track
+[04:04:40] ================================================================
+[04:04:40] PROFILE: Dedicated-D8  APP: ca-diag-dedicated  LADDER: 1 3 10 24
+[04:04:41] OUT FILE: /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/dedicated-20260611-040440.jsonl
+[04:04:41] ================================================================
+[04:04:41] >> scaling ca-diag-dedicated to min=max=1
+[04:04:59]    waiting up to 300s for ca-diag-dedicated to reach 1 replicas
+[04:05:04]    ... replicas=1 target=1
+[04:05:04]    ... stable at 1 replicas
+[04:05:19] >> SAMPLE: intermediate step=1
+[04:05:32] >> scaling ca-diag-dedicated to min=max=3
+[04:05:49]    waiting up to 300s for ca-diag-dedicated to reach 3 replicas
+[04:05:54]    ... replicas=1 target=3
+[04:06:40]    ... replicas=3 target=3
+[04:06:40]    ... stable at 3 replicas
+[04:06:55] >> SAMPLE: intermediate step=3
+[04:07:28] >> scaling ca-diag-dedicated to min=max=10
+[04:07:44]    waiting up to 300s for ca-diag-dedicated to reach 10 replicas
+[04:07:48]    ... replicas=3 target=10
+[04:08:35]    ... replicas=10 target=10
+[04:08:35]    ... stable at 10 replicas
+[04:08:50] >> SAMPLE: intermediate step=10
+[04:14:43] >> scaling ca-diag-dedicated to min=max=24
+[04:14:59]    waiting up to 300s for ca-diag-dedicated to reach 24 replicas
+[04:15:04]    ... replicas=10 target=24
+[04:20:00]    WARNING: did not stabilize at 24 within 300s (last=10)
+[04:20:00] >> SAMPLE: top-scale step=24 run=1/3
+[04:23:53] >> inter-run pause 30s
+[04:24:23] >> SAMPLE: top-scale step=24 run=2/3
+[04:30:51] >> inter-run pause 30s
+[04:31:21] >> SAMPLE: top-scale step=24 run=3/3
+[04:38:11] >> trigger.sh complete
+[04:38:11] >> Evidence files:
+total 320
+drwxr-xr-x@ 17 <user>  <group>    544 Jun 11 13:05 .
+drwxr-xr-x@ 13 <user>  <group>    416 Jun 11 11:45 ..
+-rw-r--r--@  1 <user>  <group>   1076 Jun 11 11:45 README.md
+-rw-r--r--@  1 <user>  <group>   6533 Jun 11 12:28 consumption-20260611-032122-buggy-stdin.jsonl
+-rw-r--r--@  1 <user>  <group>  57767 Jun 11 13:00 consumption-20260611-033404.jsonl
+-rw-r--r--@  1 <user>  <group>  32953 Jun 11 13:38 dedicated-20260611-040440.jsonl
+-rw-r--r--@  1 <user>  <group>   7386 Jun 11 11:57 deploy-20260611T025051Z.log
+-rw-r--r--@  1 <user>  <group>   6498 Jun 11 12:16 h3-restart-20260611-030836.jsonl
+-rw-r--r--@  1 <user>  <group>   2154 Jun 11 12:09 h3-same-replica-20260611-030836.jsonl
+-rw-r--r--@  1 <user>  <group>   3831 Jun 11 12:11 h3-trigger-20260611T030835Z.log
+-rw-r--r--@  1 <user>  <group>    511 Jun 11 12:20 h3a-summary.md
+-rw-r--r--@  1 <user>  <group>   1312 Jun 11 12:20 h3b-summary.md
+-rw-r--r--@  1 <user>  <group>   3127 Jun 11 12:28 trigger-20260611-032122-buggy-stdin.log
+-rw-r--r--@  1 <user>  <group>   3242 Jun 11 13:00 trigger-20260611-033404.log
+-rw-r--r--@  1 <user>  <group>   1982 Jun 11 13:38 trigger-20260611-040440.log
+-rw-r--r--@  1 <user>  <group>    801 Jun 11 11:59 verify-20260611T025916Z.log
+-rw-r--r--@  1 <user>  <group>    986 Jun 11 12:06 verify-postfix-20260611T030539Z.log

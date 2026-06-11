@@ -1,0 +1,37 @@
+[03:08:38] ================================================================
+[03:08:38] H3 PART A — same-replica idempotence (boot_id stable, uptime monotonic)
+[03:08:38] ================================================================
+>> Sampling 1 replica(s) of ca-diag-consumption (run: h3a-t0)
+   [ 1/ 1] ca-diag-consumption--0000001-78b467ff8c-ng8b4 ... ok (attempt 1)
+>> Wrote 1 line(s) to /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/h3-same-replica-20260611-030836.jsonl
+[03:08:45] >> Pausing 45s before second sample
+>> Sampling 1 replica(s) of ca-diag-consumption (run: h3a-t1)
+   [ 1/ 1] ca-diag-consumption--0000001-78b467ff8c-ng8b4 ... ok (attempt 1)
+>> Wrote 1 line(s) to /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/h3-same-replica-20260611-030836.jsonl
+[03:09:39] >> Part A complete. Output: /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/h3-same-replica-20260611-030836.jsonl
+[03:09:39] ================================================================
+[03:09:39] H3 PART B — single-replica restart, expect new boot_id
+[03:09:39] ================================================================
+/path/to/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/path/to/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+[03:09:42] WARNING: only 1 replicas available; reducing RESTART_COUNT to 1
+[03:09:42] >> H3B sample 1/1 — pre-restart probe of ca-diag-consumption--0000001-78b467ff8c-ng8b4
+>> Sampling 1 replica(s) of ca-diag-consumption (run: h3b-pre-0)
+   [ 1/ 1] ca-diag-consumption--0000001-78b467ff8c-ng8b4 ... ok (attempt 2)
+>> Wrote 1 line(s) to /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/h3-restart-20260611-030836.jsonl
+[03:09:54] >> Restarting replica ca-diag-consumption--0000001-78b467ff8c-ng8b4
+[03:10:10]    (replica restart command unavailable in this CLI; falling back to revision restart)
+[03:10:12]    waiting 90s for replacement replica to be Running
+>> Sampling 1 replica(s) of ca-diag-consumption (run: h3b-post-0)
+   [ 1/ 1] ca-diag-consumption--0000001-56f7f6cd88-vrpfv ... ok (attempt 1)
+>> Wrote 1 line(s) to /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/h3-restart-20260611-030836.jsonl
+[03:11:53] >> Part B complete. Output: /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/h3-restart-20260611-030836.jsonl
+[03:11:53] ================================================================
+[03:11:53] >> NEXT: run analyze.py against the two JSONL files to confirm:
+[03:11:53] >>   - Part A: same replica name => same boot_id, uptime strictly increasing
+[03:11:53] >>   - Part B: any post-sample replica with a name not in pre-set
+[03:11:53] >>            must have a boot_id distinct from the pre-set
+[03:11:53] ================================================================

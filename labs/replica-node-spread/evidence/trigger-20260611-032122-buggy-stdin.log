@@ -1,0 +1,54 @@
+[03:21:22] >> trigger.sh started at 20260611-032122
+[03:21:22] >> RG=rg-aca-rns-lab
+[03:21:22] >> CONSUMPTION_LADDER=1 3 10 30
+[03:21:22] >> DEDICATED_LADDER=1 3 10 24
+[03:21:22] >> TOP_SCALE_REPEATS=3
+[03:21:22] ================================================================
+[03:21:22] PROFILE: Consumption  APP: ca-diag-consumption  LADDER: 1 3 10 30
+[03:21:22] OUT FILE: /path/to/GitHub/azure-container-apps-practical-guide/labs/replica-node-spread/evidence/consumption-20260611-032122.jsonl
+[03:21:22] ================================================================
+[03:21:22] >> scaling ca-diag-consumption to min=max=1
+[03:21:40]    waiting up to 90s for ca-diag-consumption to reach 1 replicas
+[03:21:45]    ... replicas=1 target=1
+[03:21:45]    ... stable at 1 replicas
+[03:22:00] >> SAMPLE: intermediate step=1
+[03:22:09] >> scaling ca-diag-consumption to min=max=3
+[03:22:26]    waiting up to 90s for ca-diag-consumption to reach 3 replicas
+[03:22:30]    ... replicas=1 target=3
+[03:23:17]    ... replicas=3 target=3
+[03:23:17]    ... stable at 3 replicas
+[03:23:32] >> SAMPLE: intermediate step=3
+[03:23:42] >> scaling ca-diag-consumption to min=max=10
+[03:23:59]    waiting up to 90s for ca-diag-consumption to reach 10 replicas
+[03:24:03]    ... replicas=3 target=10
+[03:24:58]    ... replicas=10 target=10
+[03:24:58]    ... stable at 10 replicas
+[03:25:13] >> SAMPLE: intermediate step=10
+[03:25:21] >> scaling ca-diag-consumption to min=max=30
+[03:25:38]    waiting up to 90s for ca-diag-consumption to reach 30 replicas
+[03:25:42]    ... replicas=10 target=30
+[03:26:38]    ... replicas=30 target=30
+[03:26:38]    ... stable at 30 replicas
+[03:26:53] >> SAMPLE: top-scale step=30 run=1/3
+[03:27:03] >> inter-run pause 30s
+[03:27:33] >> SAMPLE: top-scale step=30 run=2/3
+[03:27:44] >> inter-run pause 30s
+[03:28:14] >> SAMPLE: top-scale step=30 run=3/3
+[03:28:29] >> SKIP_DEDICATED=1, skipping Dedicated track
+[03:28:29] >> trigger.sh complete
+[03:28:29] >> Evidence files:
+total 112
+drwxr-xr-x@ 14 <user>  <group>   448 Jun 11 12:22 .
+drwxr-xr-x@ 13 <user>  <group>   416 Jun 11 11:45 ..
+-rw-r--r--@  1 <user>  <group>  1076 Jun 11 11:45 README.md
+-rw-r--r--@  1 <user>  <group>  6533 Jun 11 12:28 consumption-20260611-032122.jsonl
+-rw-r--r--@  1 <user>  <group>  7386 Jun 11 11:57 deploy-20260611T025051Z.log
+-rw-r--r--@  1 <user>  <group>  6498 Jun 11 12:16 h3-restart-20260611-030836.jsonl
+-rw-r--r--@  1 <user>  <group>  2154 Jun 11 12:09 h3-same-replica-20260611-030836.jsonl
+-rw-r--r--@  1 <user>  <group>  3831 Jun 11 12:11 h3-trigger-20260611T030835Z.log
+-rw-r--r--@  1 <user>  <group>   511 Jun 11 12:20 h3a-summary.md
+-rw-r--r--@  1 <user>  <group>  1312 Jun 11 12:20 h3b-summary.md
+-rw-r--r--@  1 <user>  <group>  2004 Jun 11 12:28 trigger-20260611-032122.log
+-rw-r--r--@  1 <user>  <group>     0 Jun 11 12:21 trigger-consumption-20260611T032122Z.log
+-rw-r--r--@  1 <user>  <group>   801 Jun 11 11:59 verify-20260611T025916Z.log
+-rw-r--r--@  1 <user>  <group>   986 Jun 11 12:06 verify-postfix-20260611T030539Z.log
