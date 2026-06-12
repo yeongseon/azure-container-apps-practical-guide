@@ -1,0 +1,3 @@
+ErrorSamples    ExpectedOkSamples    FirstSample                   HealthRatio    LastSample                    OkSamples    TableName      TotalSamples    UniqueApps
+--------------  -------------------  ----------------------------  -------------  ----------------------------  -----------  -------------  --------------  ------------
+0               864                  2026-06-12T11:50:23.2280828Z  0.02           2026-06-12T12:15:24.6705993Z  21           PrimaryResult  21              3
