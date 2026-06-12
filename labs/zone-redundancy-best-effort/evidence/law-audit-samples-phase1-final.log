@@ -1,0 +1,11 @@
+App       MinConfigured    ObservedReplicas    TableName      TimeGenerated
+--------  ---------------  ------------------  -------------  ----------------------------
+app-min2  2                2                   PrimaryResult  2026-06-12T11:50:23.2280828Z
+app-min6  6                6                   PrimaryResult  2026-06-12T11:50:24.3153945Z
+app-min3  3                3                   PrimaryResult  2026-06-12T11:50:24.3153945Z
+app-min2  2                2                   PrimaryResult  2026-06-12T11:52:31.5527731Z
+app-min6  6                6                   PrimaryResult  2026-06-12T11:52:32.6410968Z
+app-min3  3                3                   PrimaryResult  2026-06-12T11:52:32.6410968Z
+app-min2  2                2                   PrimaryResult  2026-06-12T11:55:23.6763722Z
+app-min3  3                3                   PrimaryResult  2026-06-12T11:55:24.1954673Z
+app-min6  6                6                   PrimaryResult  2026-06-12T11:55:24.1954673Z

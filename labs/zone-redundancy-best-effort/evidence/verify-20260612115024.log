@@ -1,0 +1,27 @@
+>> Resource group rg-aca-zr-lab-260612114313
+  [PASS] Resource group exists
+
+>> Environment
+   Environment: cae-zrlab-5yi4px
+  [PASS] Zone redundancy enabled
+
+>> Subject apps
+  [PASS] app-min2 runningStatus = Running
+  [PASS] app-min2 minReplicas = 2
+  [PASS] app-min2 has at least 2 running replicas
+  [PASS] app-min3 runningStatus = Running
+  [PASS] app-min3 minReplicas = 3
+  [PASS] app-min3 has at least 3 running replicas
+  [PASS] app-min6 runningStatus = Running
+  [PASS] app-min6 minReplicas = 6
+  [PASS] app-min6 has at least 6 running replicas
+
+>> Audit job
+  [PASS] Audit job provisioned
+
+>> Log Analytics
+  [PASS] Log Analytics workspace exists
+
+================================================================
+Summary: 13 passed, 0 failed
+================================================================

@@ -1,0 +1,7 @@
+App       MinConfigured    ObservedReplicas    SampleKind    TableName      TimeGenerated
+--------  ---------------  ------------------  ------------  -------------  ----------------------------
+app-min6  6                6                   baseline      PrimaryResult  2026-06-12T11:52:32.6410968Z
+app-min3  3                3                   baseline      PrimaryResult  2026-06-12T11:52:32.6410968Z
+app-min6  6                6                   baseline      PrimaryResult  2026-06-12T11:50:24.3153945Z
+app-min3  3                3                   baseline      PrimaryResult  2026-06-12T11:50:24.3153945Z
+app-min2  2                2                   baseline      PrimaryResult  2026-06-12T11:50:23.2280828Z
