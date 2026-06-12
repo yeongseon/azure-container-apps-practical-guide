@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "baseName": {
+      "value": "sdlab"
+    },
+    "expiryHours": {
+      "value": 48
+    },
+    "vnetAddressPrefix": {
+      "value": "10.60.0.0/16"
+    },
+    "infrastructureSubnetPrefix": {
+      "value": "10.60.0.0/23"
+    },
+    "subjectStartupDelaySeconds": {
+      "value": 25
+    },
+    "subjectRequestDelayMs": {
+      "value": 0
+    }
+  }
+}
