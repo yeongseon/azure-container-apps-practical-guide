@@ -43,6 +43,14 @@
 #   --sampler-job           Perturbation sampler Job name (default: perturbation-sampler)
 #   --rps                   k6 target RPS (default: 200)
 #   --duration              k6 duration in seconds (default: 1800)
+#
+# Known CLI bug: az CLI 2.83 + containerapp extension silently ignores
+# 'az containerapp job start --env-vars'. Job runs the Bicep template
+# defaults instead of the requested overrides. The start_*_job helpers
+# below work around this by mutating the job template via
+# 'az containerapp job update --set-env-vars' before calling
+# 'az containerapp job start' without flags. Sequential trigger.sh
+# modes prevent race conditions between concurrent template mutations.
 
 set -euo pipefail
 
@@ -98,17 +106,22 @@ start_loadgen_job() {
   local perturbation_id="$2"
   local duration_s="$3"
 
-  echo ">>>> Starting $LOADGEN_JOB (run_id=$run_id, perturbation_id=$perturbation_id, duration=${duration_s}s)"
-  az containerapp job start \
+  echo ">>>> Mutating $LOADGEN_JOB template (run_id=$run_id, perturbation_id=$perturbation_id, duration=${duration_s}s)"
+  az containerapp job update \
     --resource-group "$RG" \
     --name "$LOADGEN_JOB" \
-    --env-vars \
+    --set-env-vars \
       "SUBJECT_URL=${SUBJECT_URL}" \
       "TARGET_RPS=${TARGET_RPS}" \
       "DURATION_SECONDS=${duration_s}" \
       "PERTURBATION_ID=${perturbation_id}" \
       "RUN_ID=${run_id}" \
       "K6_NO_USAGE_REPORT=true" \
+    --output none
+  echo ">>>> Starting $LOADGEN_JOB execution"
+  az containerapp job start \
+    --resource-group "$RG" \
+    --name "$LOADGEN_JOB" \
     --output json \
     | jq --compact-output '{name: .name, status: .properties.status, start: .properties.startTime}'
 }
@@ -117,14 +130,19 @@ start_sampler_job() {
   local perturbation_id="$1"
   local sample_duration_s="${2:-600}"
 
-  echo ">>>> Starting $SAMPLER_JOB (perturbation_id=$perturbation_id, duration=${sample_duration_s}s)"
-  az containerapp job start \
+  echo ">>>> Mutating $SAMPLER_JOB template (perturbation_id=$perturbation_id, duration=${sample_duration_s}s)"
+  az containerapp job update \
     --resource-group "$RG" \
     --name "$SAMPLER_JOB" \
-    --env-vars \
+    --set-env-vars \
       "PERTURBATION_ID=${perturbation_id}" \
       "SAMPLE_INTERVAL_SECONDS=5" \
       "SAMPLE_DURATION_SECONDS=${sample_duration_s}" \
+    --output none
+  echo ">>>> Starting $SAMPLER_JOB execution"
+  az containerapp job start \
+    --resource-group "$RG" \
+    --name "$SAMPLER_JOB" \
     --output json \
     | jq --compact-output '{name: .name, status: .properties.status, start: .properties.startTime}'
 }
