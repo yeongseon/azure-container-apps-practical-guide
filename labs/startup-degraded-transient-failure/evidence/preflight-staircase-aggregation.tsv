@@ -1,0 +1,8 @@
+# Preflight staircase aggregation (issue #205, Stage B)
+# Generated: 2026-06-12T13:36:32Z
+# Oracle binding #2: 200 RPS must consume nontrivial headroom
+# Per-request aggregation (kind=req) across 3 staircase steps
+
+PrimaryResult	0	0	42.6	6001	5.6	16.2	22.9	6001	preflight-100rps
+PrimaryResult	0	0	1909.8	10169	102.6	503.4	810	10169	preflight-200rps
+PrimaryResult	0	0	3012.2	10865	167.6	804.5	1304.8	10865	preflight-400rps

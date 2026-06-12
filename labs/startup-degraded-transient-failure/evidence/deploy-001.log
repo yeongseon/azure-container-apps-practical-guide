@@ -1,0 +1,100 @@
+>> Deploying startup-degraded-transient-failure lab (issue #205)
+   Resource group       : rg-aca-sdlab-260612125433
+   Location             : koreacentral
+   Base name            : sdlab
+   Expiry hours         : 48
+   Startup delay (sec)  : 25
+   Request delay (ms)   : 0
+   ACR                  : acrsdlab260612125433
+
+>> Submitting deployment sdlab-20260612125803
+WARNING: A new Bicep release is available: v0.44.1. Upgrade now by running "az bicep upgrade".
+>> Deployment complete. Outputs:
+{
+  "auditJobName": {
+    "type": "String",
+    "value": "audit-sampler"
+  },
+  "environmentId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-sdlab-260612125433/providers/Microsoft.App/managedEnvironments/cae-sdlab-wxxzoc"
+  },
+  "environmentName": {
+    "type": "String",
+    "value": "cae-sdlab-wxxzoc"
+  },
+  "expiresAt": {
+    "type": "String",
+    "value": "2026-06-14T12:58:11Z"
+  },
+  "loadgenJobName": {
+    "type": "String",
+    "value": "loadgen-k6"
+  },
+  "logAnalyticsWorkspaceId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-sdlab-260612125433/providers/Microsoft.OperationalInsights/workspaces/log-sdlab-wxxzoc"
+  },
+  "logAnalyticsWorkspaceName": {
+    "type": "String",
+    "value": "log-sdlab-wxxzoc"
+  },
+  "perturbationSamplerJobName": {
+    "type": "String",
+    "value": "perturbation-sampler"
+  },
+  "subjectAppFqdn": {
+    "type": "String",
+    "value": "subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io"
+  },
+  "subjectAppHealthzUrl": {
+    "type": "String",
+    "value": "https://subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io/healthz"
+  },
+  "subjectAppName": {
+    "type": "String",
+    "value": "subject-app"
+  },
+  "subjectAppUrl": {
+    "type": "String",
+    "value": "https://subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io/"
+  },
+  "uamiClientId": {
+    "type": "String",
+    "value": "2faae934-af9a-4bef-a3e2-67c190343408"
+  },
+  "uamiPrincipalId": {
+    "type": "String",
+    "value": "b2b6ca58-641e-4ed1-bff4-42fdb6b8f1a5"
+  },
+  "uamiResourceId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-sdlab-260612125433/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-sdlab-wxxzoc"
+  }
+}
+
+Next steps:
+  1. (Recommended) Build all three custom images into your ACR:
+       az acr build --registry "$ACR_NAME" --image startup-degraded/subject:latest               ./subject
+       az acr build --registry "$ACR_NAME" --image startup-degraded/audit:latest                 ./audit
+       az acr build --registry "$ACR_NAME" --image startup-degraded/perturbation-sampler:latest  ./perturbation-sampler
+       az acr build --registry "$ACR_NAME" --image startup-degraded/loadgen:latest               ./loadgen
+     Then redeploy with --parameters subjectImage=... auditImage=... perturbationSamplerImage=... loadgenImage=...
+
+  2. Verify the deployment:
+       ./verify.sh
+
+  3. Run preflight calibration (proves 200 RPS consumes nontrivial headroom):
+       ./trigger.sh --preflight
+
+  4. Run baseline (30 min, no perturbation):
+       ./trigger.sh --baseline --duration 1800
+
+  5. Run perturbation phase (12 events over ~2 hours):
+       ./trigger.sh --perturbation --events 12 --interval 600
+
+  6. Run supplemental revision-restart phase (optional):
+       ./trigger.sh --supplemental-restart --events 3 --interval 600
+
+  7. Cleanup:
+       ./cleanup.sh

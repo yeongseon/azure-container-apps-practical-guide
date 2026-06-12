@@ -1,0 +1,24 @@
+Baseline start: 2026-06-12T13:38:28Z
+Mode: --baseline --duration 1800
+=========================================
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+>> Mode: baseline
+   RG: rg-aca-sdlab-260612125433
+   Subject FQDN: subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io
+   Subject URL : https://subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io/
+   Target RPS  : 200
+   Duration    : 1800 sec
+>>>> Mutating loadgen-k6 template (run_id=baseline-20260612133832, perturbation_id=none, duration=1800s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting loadgen-k6 execution
+{"name":"loadgen-k6-zea64gh","status":null,"start":null}
+>>>> Baseline k6 run launched. Wait 1800 seconds for completion.
+=========================================
