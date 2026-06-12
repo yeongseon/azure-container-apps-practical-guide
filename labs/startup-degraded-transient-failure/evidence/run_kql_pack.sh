@@ -168,7 +168,7 @@ q3() {
   q=$(cat <<KQL
 ContainerAppConsoleLogs_CL
 | where TimeGenerated >= ago(3h)
-| where ContainerName_s == "perturbation-sampler"
+| where ContainerName_s == "sampler"
 | extend payload = parse_json(Log_s)
 | extend event_kind = tostring(payload.kind)
 | extend perturbation_id = tostring(payload.perturbation_id)

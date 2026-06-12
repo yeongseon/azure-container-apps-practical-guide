@@ -361,7 +361,7 @@ The asymmetry of the verdict — H0-confirmed is "weak / conservative", H0-falsi
 | `evidence/q5-falsification-<timestamp>.tsv` | Pending | Q5 falsification verdict. |
 | `evidence/q6-baseline-vs-perturb-<timestamp>.tsv` | Pending | Q6 phase-level comparison. |
 | `evidence/q7-system-events-<timestamp>.tsv` | Pending | Q7 rollout milestones from platform events. |
-| `evidence/perturbation-001.log` | Pending | Per-event PerturbationSubmitted log lines. |
+| `evidence/perturbation-002.log` | Pending | Per-event PerturbationSubmitted log lines (run 002; run 001 was discarded — collected before the audit/perturbation-sampler IMDS-vs-IDENTITY_ENDPOINT bug was fixed in commit `176aeec`). |
 | `evidence/supplemental-001.log` | Pending | Per-event restart log lines. |
 
 ### Provenance

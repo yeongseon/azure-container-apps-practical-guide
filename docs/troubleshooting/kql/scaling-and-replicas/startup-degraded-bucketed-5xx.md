@@ -47,7 +47,7 @@ content_validation:
 ```mermaid
 flowchart TD
     A[k6 Job stdout<br/>req + bucket JSON<br/>embedded client ts] --> B[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'k6']
-    C[perturbation-sampler stdout<br/>RevisionStateSample every 5s<br/>PerturbationWindowMarker] --> D[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'perturbation-sampler']
+    C[perturbation-sampler stdout<br/>RevisionStateSample every 5s<br/>PerturbationWindowMarker] --> D[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'sampler']
     E[audit Job stdout<br/>ReplicaInventorySample every 5min] --> F[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'audit']
     G[Platform events<br/>ContainerStarted, AssigningReplica, RevisionReady] --> H[ContainerAppSystemLogs_CL]
     B --> I[Q1 per-run summary<br/>err_pct, percentiles]
@@ -173,7 +173,7 @@ ContainerAppConsoleLogs_CL
 ```kusto
 ContainerAppConsoleLogs_CL
 | where TimeGenerated >= ago(3h)
-| where ContainerName_s == "perturbation-sampler"
+| where ContainerName_s == "sampler"
 | extend payload = parse_json(Log_s)
 | extend event_kind = tostring(payload.kind)
 | extend perturbation_id = tostring(payload.perturbation_id)
