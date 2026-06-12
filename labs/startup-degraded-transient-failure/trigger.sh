@@ -181,7 +181,7 @@ case "$MODE" in
   preflight)
     echo ">>>> Preflight calibration: 100/200/400 RPS staircase, 60s each"
     for rps in 100 200 400; do
-      start_loadgen_job "preflight-${rps}rps" "none" 60
+      TARGET_RPS="$rps" start_loadgen_job "preflight-${rps}rps" "none" 60
       echo "    Waiting 90s before next staircase step..."
       sleep 90
     done
