@@ -1,0 +1,54 @@
+{
+  "auditJobName": {
+    "type": "String",
+    "value": "audit-sampler"
+  },
+  "environmentId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-zr-lab-260612114313/providers/Microsoft.App/managedEnvironments/cae-zrlab-5yi4px"
+  },
+  "environmentName": {
+    "type": "String",
+    "value": "cae-zrlab-5yi4px"
+  },
+  "expiresAt": {
+    "type": "String",
+    "value": "2026-06-14T11:45:48Z"
+  },
+  "logAnalyticsWorkspaceId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-zr-lab-260612114313/providers/Microsoft.OperationalInsights/workspaces/log-zrlab-5yi4px"
+  },
+  "logAnalyticsWorkspaceName": {
+    "type": "String",
+    "value": "log-zrlab-5yi4px"
+  },
+  "subjectAppFqdns": {
+    "type": "Array",
+    "value": [
+      "app-min2.bravefield-51ee5cb1.koreacentral.azurecontainerapps.io",
+      "app-min3.bravefield-51ee5cb1.koreacentral.azurecontainerapps.io",
+      "app-min6.bravefield-51ee5cb1.koreacentral.azurecontainerapps.io"
+    ]
+  },
+  "subjectAppNames": {
+    "type": "Array",
+    "value": [
+      "app-min2",
+      "app-min3",
+      "app-min6"
+    ]
+  },
+  "uamiClientId": {
+    "type": "String",
+    "value": "44444444-4444-4444-4444-444444444444"
+  },
+  "uamiPrincipalId": {
+    "type": "String",
+    "value": "33333333-3333-3333-3333-333333333333"
+  },
+  "uamiResourceId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-zr-lab-260612114313/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-zrlab-5yi4px"
+  }
+}
