@@ -43,20 +43,24 @@ ingestion delay applies.
 
 ## Subscription / tenant note
 
-- Original plan target: `ASM Kustodian Corp` subscription (corp tenant)
-- Actual deploy target: **`Visual Studio Enterprise Subscription`** (personal MSDN sub)
-- Reason: `ychoe@microsoft.com` does NOT have `Microsoft.Resources/subscriptions/resourcegroups/write` permission on either `ASM Kustodian Corp` or `Container Apps Test Resources` (corp-managed subscriptions)
-- Tested 3 candidate subs in parallel ([rg-creation.log](rg-creation.log) for full trace):
+- Original plan target: a corp-managed subscription on the corp tenant
+- Actual deploy target: **`Visual Studio Enterprise Subscription`** (personal MSDN sub on a personal tenant)
+- Reason: the deploying user did NOT have `Microsoft.Resources/subscriptions/resourcegroups/write` permission on the two corp-managed subscriptions that were the original candidates
+- Four candidate subscriptions were tested in parallel for RG-write access
+  (real names redacted; full trace including AuthorizationFailed error bodies
+  lives in gitignored `.local/rg-creation-raw.log`):
 
-    | Subscription | Result |
-    |---|---|
-    | `Container Apps Test Resources` | AuthorizationFailed |
-    | `Microsoft Azure Internal Consumption (nbrady)` | AuthorizationFailed |
-    | `MCAPS-Support-REQ-78031-2024-ychoe` | Write granted |
-    | `Visual Studio Enterprise Subscription` | Write granted (chosen) |
+    | Candidate | Tenant class | Result |
+    |---|---|---|
+    | Corp-managed Subscription A | Corp tenant | AuthorizationFailed |
+    | Corp-managed Subscription B | Corp tenant | AuthorizationFailed |
+    | Corp-managed Subscription C (MCAPS Support class) | Corp tenant | Write granted |
+    | `Visual Studio Enterprise Subscription` | Personal MSDN tenant | Write granted (chosen) |
 
-Personal sub chosen because it has full owner permissions and is self-funded
-(cost: ~$9-12 estimated for 24h baseline + 2h perturbation).
+Personal sub chosen because it has full owner permissions, is self-funded,
+and isolates the lab from any corp policy or budget. Cost estimate revised
+upward to ~$14-17 for 24h baseline + 2h perturbation (see "Cost incurred so
+far" below).
 
 ## Cost incurred so far (Phase 1)
 
@@ -112,18 +116,20 @@ Q1 (audit completeness) and expect:
 
 ## PII sanitization applied
 
-All committed files have real GUIDs masked:
+All real Azure GUIDs in committed evidence files are replaced with
+placeholder values:
 
-| Real value | Mask |
+| Identifier type | Placeholder |
 |---|---|
-| Subscription ID `75ad149b-...` | `00000000-0000-0000-0000-000000000000` |
-| Tenant ID `4fa3f5ac-...` | `11111111-1111-1111-1111-111111111111` |
-| LAW customer ID `70a2f200-...` | `22222222-2222-2222-2222-222222222222` |
-| UAMI principal `951b427b-...` | `33333333-3333-3333-3333-333333333333` |
-| UAMI client `be2f7865-...` | `44444444-4444-4444-4444-444444444444` |
+| Subscription ID | `00000000-0000-0000-0000-000000000000` |
+| Tenant ID | `11111111-1111-1111-1111-111111111111` |
+| LAW customer ID | `22222222-2222-2222-2222-222222222222` |
+| UAMI principal ID | `33333333-3333-3333-3333-333333333333` |
+| UAMI client ID | `44444444-4444-4444-4444-444444444444` |
 
-Real values for resumption are in gitignored `.local/deploy-env.local.sh`
-and re-fetchable via `az account show` / `az monitor log-analytics workspace show`.
+Real values for resumption live in gitignored `.local/deploy-env.local.sh`
+and are re-fetchable via `az account show` and
+`az monitor log-analytics workspace show --query customerId`.
 
 ## See also
 
