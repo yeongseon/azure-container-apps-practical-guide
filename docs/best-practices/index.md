@@ -43,6 +43,7 @@ flowchart TD
 | [Networking](networking.md) | Design secure inbound/outbound connectivity | Controlled traffic paths and reliable DNS behavior |
 | [Identity and Secrets](identity-and-secrets.md) | Apply managed identity and secret management patterns | Reduced attack surface and stronger secret hygiene |
 | [Reliability](reliability.md) | Build resilience for transient failures and outages | Improved availability and clearer failure handling |
+| [Availability and Non-Guarantees](availability-and-non-guarantees.md) | Document the five most-commonly-violated platform contracts (node spread, zone redundancy, planned maintenance, rolling rollout, single-region cap) and the compensating controls operators must add | Aligned operator expectations with documented best-effort contracts |
 | [Cost Optimization](cost.md) | Right-size profiles, registries, and log retention | Lower operational cost without sacrificing reliability |
 | [Jobs](jobs.md) | Design job triggers, retry, and execution patterns | Reliable batch and event-driven processing |
 | [Anti-Patterns](anti-patterns.md) | Identify common Container Apps design mistakes early | Fewer avoidable incidents and refactoring cycles |

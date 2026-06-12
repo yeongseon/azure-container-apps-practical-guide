@@ -88,3 +88,9 @@ htmlcov/
 coverage.xml
 *.cover
 labs/keda-no-metrics-returned/evidence/
+
+# Lab evidence local-only files (real subscription/tenant/object IDs, never commit)
+labs/*/evidence/.local/
+
+# Lab background-process PID files (ephemeral, not source-controlled)
+labs/*/evidence/*.pid

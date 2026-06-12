@@ -1,0 +1,47 @@
+Preflight start: 2026-06-12T13:25:35Z
+RG=rg-aca-sdlab-260612125433
+Az CLI: azure-cli                         2.79.0 *
+Mode: --preflight
+=========================================
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+>> Mode: preflight
+   RG: rg-aca-sdlab-260612125433
+   Subject FQDN: subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io
+   Subject URL : https://subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io/
+   Target RPS  : 200
+   Duration    : 1800 sec
+>>>> Preflight calibration: 100/200/400 RPS staircase, 60s each
+>>>> Mutating loadgen-k6 template (run_id=preflight-100rps, perturbation_id=none, duration=60s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting loadgen-k6 execution
+{"name":"loadgen-k6-fwl26az","status":null,"start":null}
+    Waiting 90s before next staircase step...
+>>>> Mutating loadgen-k6 template (run_id=preflight-200rps, perturbation_id=none, duration=60s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting loadgen-k6 execution
+{"name":"loadgen-k6-q3w0tet","status":null,"start":null}
+    Waiting 90s before next staircase step...
+>>>> Mutating loadgen-k6 template (run_id=preflight-400rps, perturbation_id=none, duration=60s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting loadgen-k6 execution
+{"name":"loadgen-k6-nm43meu","status":null,"start":null}
+    Waiting 90s before next staircase step...
+>>>> Preflight done. Query ContainerAppConsoleLogs_CL for kind=bucket lines tagged run_id=preflight-*
+=========================================
+Preflight end: 2026-06-12T13:31:23Z

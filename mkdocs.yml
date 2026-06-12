@@ -173,6 +173,7 @@ nav:
     - Image Security: best-practices/image-security.md
     - Compliance Baseline: best-practices/compliance-baseline.md
     - Reliability: best-practices/reliability.md
+    - Availability and Non-Guarantees: best-practices/availability-and-non-guarantees.md
     - Cost Optimization: best-practices/cost.md
     - Jobs: best-practices/jobs.md
     - Job Design: best-practices/job-design.md
@@ -437,6 +438,7 @@ nav:
         - Replica Distribution by Revision: troubleshooting/kql/scaling-and-replicas/replica-distribution-by-revision.md
         - Scale-In Delay Analysis: troubleshooting/kql/scaling-and-replicas/scale-in-delay-analysis.md
         - Zone Redundancy Mass Reschedule: troubleshooting/kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md
+        - Startup-Degraded Bucketed 5xx: troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md
       - Identity and Secrets:
         - Managed Identity Token Errors: troubleshooting/kql/identity-and-secrets/managed-identity-token-errors.md
         - Secret Reference Failures: troubleshooting/kql/identity-and-secrets/secret-reference-failures.md
@@ -502,6 +504,7 @@ nav:
       - EasyAuth Entra ID Failure Lab: troubleshooting/lab-guides/easyauth-entra-id-failure.md
       - Multi-Region Failover Lab: troubleshooting/lab-guides/multi-region-failover.md
       - Zone Redundancy Best-Effort Lab: troubleshooting/lab-guides/zone-redundancy-best-effort.md
+      - Startup-Degraded Transient Failure Lab: troubleshooting/lab-guides/startup-degraded-transient-failure.md
   - Reference:
     - reference/index.md
     - Content Validation: reference/content-validation-status.md
