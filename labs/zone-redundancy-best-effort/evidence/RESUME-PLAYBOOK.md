@@ -78,17 +78,17 @@ ContainerAppConsoleLogs_CL
 cd labs/zone-redundancy-best-effort
 
 # Variant A: restart-only on app-min3 (single-app clustered churn — core Claim 3 signal)
-RG="$RG" APP="app-min3" ./trigger.sh --restart-only --client no-retry --duration 180 2>&1 | tee evidence/perturbation-variant-a-restart-only.log
+RG="$RG" APP="app-min3" ./trigger.sh --perturb restart 2>&1 | tee evidence/perturbation-variant-a-restart-only.log
 
-# Wait 10 min between variants for recovery
+# Wait 10 min between variants for recovery + LAW ingestion latency
 sleep 600
 
-# Variant B: restart + load
+# Variant B: restart + load (no-retry client surfaces raw 503s)
 RG="$RG" APP="app-min3" ./trigger.sh --combined --client no-retry --duration 180 2>&1 | tee evidence/perturbation-variant-b-restart-load.log
 
 sleep 600
 
-# Variant C: restart + load + retry-backoff client
+# Variant C: restart + load + retry-backoff client (quantifies L2 mitigation)
 RG="$RG" APP="app-min3" ./trigger.sh --combined --client retry-backoff --duration 180 2>&1 | tee evidence/perturbation-variant-c-retry-backoff.log
 ```
 
