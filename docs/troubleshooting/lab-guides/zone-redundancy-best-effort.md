@@ -20,10 +20,10 @@ content_validation:
   last_reviewed: '2026-06-08'
   reviewer: agent
   lab_validation:
-    status: pending_reproduction
-    tested_date:
+    status: reproduced_partial
+    tested_date: '2026-06-08'
     az_cli_version:
-    notes: Bicep + scripts authored 2026-06-08. Pending real Azure deployment for captures and metric collection.
+    notes: 'Partial reproduction completed 2026-06-08 (10-minute perturbation window only, koreacentral, commit 997e093). Section 12 evidence is from a single ~10-minute run, NOT the 24-hour baseline mandated by Phase 1 of pre-registered hypothesis H0a. Raw artifacts under /tmp/zr-phase2-*.log were not committed and have been lost. A full 24-hour reproduction + durable raw evidence corpus is tracked in issue #204 (Hybrid A per Oracle session ses_144f3ce9cffeyOLLgO8doWTal3).'
   core_claims:
     - claim: Container Apps zone redundancy distributes replicas across Availability Zones on a best-effort basis subject to host capacity and resource requests.
       source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
@@ -355,7 +355,17 @@ These captures add depth but are not required to validate H0a. Capture only if t
 
 ### Observed Evidence (Live Azure Reproduction)
 
-> **Run scope.** This evidence comes from a short reproduction window (~10 minutes of perturbation, not the full 24-hour baseline mandated in Phase 1). Replace these numbers when you run the lab end-to-end against your own subscription. The full-baseline `BaselineChurnEvents` slot is left as `TBD` because a 10-minute window cannot meaningfully estimate a 24-hour baseline rate.
+!!! warning "Run scope — partial reproduction (`reproduced_partial`)"
+    This evidence comes from a single ~10-minute perturbation window (2026-06-08, koreacentral), **not** the full 24-hour baseline mandated by Phase 1 of pre-registered hypothesis H0a. The frontmatter's `lab_validation.status` is therefore `reproduced_partial`, not `reproduced`.
+
+    **Constraints on what this run proves:**
+
+    - **H0a is NOT confirmed.** A 10-minute window cannot test a 24-hour baseline rate. The `[Strongly Suggested]` row below is downgraded from `[Inferred]` accordingly.
+    - **Claim 2 ("zone redundancy distributes replicas evenly across zones") is capped at `[Strongly Suggested]`** and cannot be raised further from ACA alone. The ARM `revisions/{rev}/replicas` API does not expose per-replica zone identity, so even a perfect spread cannot be empirically proven from the management plane.
+    - **Claim 3 ("multiple replicas of the same app can be affected simultaneously during platform events") is supported at `[Strongly Suggested]`** by the clustered same-app churn observation below (3-of-3 replicas terminated within a 60-second window for `app-min3`).
+    - **Raw artifacts under `/tmp/zr-phase2-*.log` were NOT committed and have been lost** (file deletion after lab teardown). The numeric values quoted below are transcribed from those logs into this page and into merge commit `36054e8`; they cannot be re-verified against source files until the rerun lands.
+
+    A full 24-hour reproduction with a committed durable raw evidence corpus is tracked in [issue #204](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/204) (Hybrid A path per Oracle session `ses_144f3ce9cffeyOLLgO8doWTal3`). When that work lands, replace this admonition with a `success` block and flip the frontmatter to `lab_validation.status: reproduced`.
 
 **Reproduction window**: 2026-06-08 16:41:11Z – 16:51:31Z UTC (koreacentral), commit `997e093` + Bicep audit-Job fix described in this PR.
 
@@ -368,13 +378,13 @@ These captures add depth but are not required to validate H0a. Capture only if t
 | `[Measured]` | BaselineChurnEvents per app over 24 h | TBD (run scope = 10 min) | — |
 | `[Observed]` | PerturbationChurnEvents (Phase 2B no-retry, app-min3) | 1 cluster of **3 replicas** terminated 16:46:00Z (revision `app-min3--qk3yg73-546bf86bc8`) | Q3, `07-log-analytics-q3-clustered-churn.png` |
 | `[Observed]` | PerturbationChurnEvents (Phase 2C retry-backoff, app-min3) | 1 cluster of **2 replicas** terminated 16:49:00Z (revision `app-min3--qk3yg73-7bc8fc9d8c`) | Q3, `07-log-analytics-q3-clustered-churn.png` |
-| `[Measured]` | Client-visible failure rate (Phase 2A baseline no-retry) | **0 / 270** failures, avg latency 519 ms | `trigger.sh` stdout, `/tmp/zr-phase2-baseline-no-retry.log` |
-| `[Measured]` | Client-visible failure rate (Phase 2B combined no-retry) | **0 / 270** failures, avg latency 520 ms | `trigger.sh` stdout, `/tmp/zr-phase2-combined-no-retry.log` |
-| `[Measured]` | Client-visible failure rate (Phase 2C combined retry-backoff) | **0 / 270** failures, avg latency 522 ms | `trigger.sh` stdout, `/tmp/zr-phase2-combined-retry-backoff.log` |
+| `[Measured]` | Client-visible failure rate (Phase 2A baseline no-retry) | **0 / 270** failures, avg latency 519 ms | `trigger.sh` stdout (raw log lost — see #204) |
+| `[Measured]` | Client-visible failure rate (Phase 2B combined no-retry) | **0 / 270** failures, avg latency 520 ms | `trigger.sh` stdout (raw log lost — see #204) |
+| `[Measured]` | Client-visible failure rate (Phase 2C combined retry-backoff) | **0 / 270** failures, avg latency 522 ms | `trigger.sh` stdout (raw log lost — see #204) |
 | `[Observed]` | Max replica count (app-min3, perturbation window) | **4** (transient peak during restart, baseline = 3) | Metrics, `11-app-min3-metrics-replicas.png` |
 | `[Measured]` | MaxReplacementFraction app-min2 / app-min3 / app-min6 | TBD (Q7 not yet executed; requires longer run) | — |
 | `[Measured]` | RecoverySecs p50 / p95 | TBD (Q4 not yet executed; requires longer run) | — |
-| `[Inferred]` | Under `minReplicas=3` + zone-redundant env, a single revision restart produces clustered termination of all 3 replicas within a 60-second window, but the surviving replicas (plus the new ones spinning up) absorb 10 RPS without any client-visible 503 — even without client-side retry | H0a confirmed, H0b confirmed under this load profile | `07-log-analytics-q3-clustered-churn.png`, `11-app-min3-metrics-replicas.png` |
+| `[Strongly Suggested]` | Under `minReplicas=3` + zone-redundant env, a single revision restart produces clustered termination of all 3 replicas within a 60-second window, but the surviving replicas (plus the new ones spinning up) absorb 10 RPS without any client-visible 503 — even without client-side retry | **H0a NOT confirmed** (10-min window cannot test 24-h baseline); H0b supported under this single load profile only | `07-log-analytics-q3-clustered-churn.png`, `11-app-min3-metrics-replicas.png` |
 | `[Not Proven]` | Per-replica AZ placement (the ARM `revisions/{rev}/replicas` API does not expose `zone`, so this lab measures temporal clustering only, not zone distribution) | — | — |
 
 > **Caveat on H0b.** The 0/270 failure rate under this load profile (10 RPS, single revision restart, 3 replicas) is a positive signal that `minReplicas=3` is sufficient to absorb single-revision churn for low-traffic apps. It does **not** generalize to higher load or simultaneous multi-revision events. Re-run with `trigger.sh --rps 50` (or stop all replicas concurrently) before claiming `app-min3` is "503-safe under all clustered-churn scenarios".
