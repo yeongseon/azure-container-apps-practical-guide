@@ -314,15 +314,30 @@ KQL
 case "${1:-help}" in
   q1) q1 "${2:?run_id pattern required}" ;;
   q2) q2 "${2:?run_id pattern required}" ;;
-  q3) q3 "${2:?perturbation_id pattern required}" ;;
+  q3) q3 "${2:?perturbation_id pattern required (e.g. rollout-event-, restart-event-)}" ;;
   q4) q4 "${2:-24}" ;;
   q5) q5 "${2:?run_id pattern required}" ;;
   q6) q6 ;;
   q7) q7 "${2:-3}" ;;
   all)
-    pattern="${2:?run_id pattern prefix required (e.g. baseline-, perturbation-)}"
+    pattern="${2:?run_id pattern prefix required (e.g. baseline-, perturbation-, supplemental-restart-)}"
+    # Derive perturbation_id pattern from run_id prefix so q3 can run as part
+    # of `all`. trigger.sh tags perturbation events as rollout-event-N for the
+    # perturbation phase and restart-event-N for the supplemental-restart phase;
+    # baseline runs have no per-event perturbation_id and skip q3.
+    case "$pattern" in
+      perturbation-*) perturb_pattern="rollout-event-" ;;
+      supplemental-restart-*) perturb_pattern="restart-event-" ;;
+      *) perturb_pattern="" ;;
+    esac
     q1 "$pattern"
     q2 "$pattern"
+    if [[ -n "$perturb_pattern" ]]; then
+      q3 "$perturb_pattern"
+    else
+      echo "=== Q3: SKIPPED (no perturbation_id mapping for run_id prefix '$pattern') ==="
+      echo ""
+    fi
     q5 "$pattern"
     q4 24
     q6
