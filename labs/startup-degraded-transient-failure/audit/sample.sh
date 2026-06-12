@@ -33,13 +33,30 @@ set -euo pipefail
 SAMPLE_INTERVAL_SECONDS="${SAMPLE_INTERVAL_SECONDS:-30}"
 RUN_LABEL="${RUN_LABEL:-stage-b-audit}"
 
-IMDS_URL="http://169.254.169.254/metadata/identity/oauth2/token"
 ARM_RESOURCE="https://management.azure.com/"
 
+# Container Apps does NOT expose IMDS at 169.254.169.254. It uses the
+# App Service-style identity endpoint exposed via the IDENTITY_ENDPOINT
+# and IDENTITY_HEADER environment variables, which the platform injects
+# into every container bound to a managed identity. The endpoint is
+# typically http://localhost:42356/msi/token and rejects requests
+# without the X-IDENTITY-HEADER token.
+#
+# Mirrors labs/zone-redundancy-best-effort/audit/sample.sh which uses
+# the same pattern and is proven to work in this environment.
 acquire_token() {
-  curl --silent --fail \
-    --header "Metadata: true" \
-    "${IMDS_URL}?api-version=2018-02-01&resource=${ARM_RESOURCE}&client_id=${MANAGED_IDENTITY_CLIENT_ID}" \
+  local endpoint header
+  endpoint="${IDENTITY_ENDPOINT:-}"
+  header="${IDENTITY_HEADER:-}"
+
+  if [[ -z "$endpoint" || -z "$header" ]]; then
+    echo "ERROR: IDENTITY_ENDPOINT / IDENTITY_HEADER not set inside container; managed identity not bound or platform did not inject env vars" >&2
+    return 1
+  fi
+
+  curl --silent --show-error --fail \
+    --header "X-IDENTITY-HEADER: ${header}" \
+    "${endpoint}?api-version=2019-08-01&resource=${ARM_RESOURCE}&client_id=${MANAGED_IDENTITY_CLIENT_ID}" \
     | jq --raw-output '.access_token'
 }
 
