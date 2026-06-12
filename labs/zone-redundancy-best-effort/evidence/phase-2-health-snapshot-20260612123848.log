@@ -1,0 +1,24 @@
+Phase 2 Health Snapshot
+Captured: 2026-06-12T12:38:48Z
+Baseline start: 2026-06-12T11:51:46Z
+Elapsed: ~0h 50m of 24h
+
+=== Last 12 audit-sampler executions (target: every 5 min, all Succeeded) ===
+Name                    Status     StartTime
+----------------------  ---------  -------------------------
+audit-sampler-29687795  Succeeded  2026-06-12T12:35:00+00:00
+audit-sampler-29687790  Succeeded  2026-06-12T12:30:00+00:00
+audit-sampler-29687785  Succeeded  2026-06-12T12:25:00+00:00
+audit-sampler-29687780  Succeeded  2026-06-12T12:20:00+00:00
+audit-sampler-29687775  Succeeded  2026-06-12T12:15:00+00:00
+audit-sampler-29687770  Succeeded  2026-06-12T12:10:00+00:00
+audit-sampler-29687765  Succeeded  2026-06-12T12:05:00+00:00
+audit-sampler-29687760  Succeeded  2026-06-12T12:00:00+00:00
+audit-sampler-29687755  Succeeded  2026-06-12T11:55:00+00:00
+audit-sampler-w64hent   Succeeded  2026-06-12T11:52:05+00:00
+audit-sampler-29687750  Succeeded  2026-06-12T11:50:00+00:00
+
+=== Subject app replica counts (target: 2/3/6 all Running) ===
+  app-min2: count=2 states=   2 Running 
+  app-min3: count=3 states=   3 Running 
+  app-min6: count=6 states=   6 Running 
