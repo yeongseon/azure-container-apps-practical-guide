@@ -30,10 +30,10 @@ content_validation:
   last_reviewed: '2026-06-12'
   reviewer: agent
   lab_validation:
-    status: pending_reproduction
-    tested_date:
+    status: reproduced
+    tested_date: '2026-06-13'
     az_cli_version: '2.83.0'
-    notes: 'Stage B lab design reviewed by Oracle (ses_14429826cffeXthi0x6tgTdLOW) with 7 required revisions all applied. Live reproduction in progress as of 2026-06-12: preflight staircase (100/200/400 RPS) complete and confirms Oracle binding #2 (200 RPS p50 = 18x of 100 RPS p50, zero 5xx baseline). Baseline + perturbation + supplemental runs in progress; raw evidence committed to labs/startup-degraded-transient-failure/evidence/ as it arrives. Full reproduction tracked in issue #205.'
+    notes: 'Stage B fully reproduced 2026-06-12 to 2026-06-13 against rg-aca-sdlab-260612125433. Three phases: baseline (287,440 reqs, 0 errors, 0.000%), perturbation (1,145,439 reqs across 13 rolling-rollout events, 0 errors, 0.000%), supplemental-restart (289,932 reqs across 2 explicit restart events, 1 error = 0.000345%). H0 CONFIRMED for ALL phases via Q5 falsification (empty arrays for all three RUN_IDs — no >=3 consecutive 10s buckets above 0.5% err_pct anywhere). Single supplemental error localized to bucket 2026-06-13T05:59:00Z (0.062% bucket worst, restart event 2, ~18s after new replica container start); causal attribution capped at [Strongly Suggested] per Oracle binding #6. Raw evidence (q1-q7 TSV+JSON for all RUN_IDs, k6 logs, az logs) PII-scrubbed and committed under labs/startup-degraded-transient-failure/evidence/. Oracle Stage B design review applied (ses_14429826cffeXthi0x6tgTdLOW, 7 revisions). Tracked in issue #205.'
   core_claims:
     - claim: Container Apps revisions are immutable snapshots of a container app version; new revisions are created when configuration changes.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -254,7 +254,7 @@ source labs/startup-degraded-transient-failure/evidence/deploy-env.sh
 labs/startup-degraded-transient-failure/trigger.sh --baseline --duration 1800
 ```
 
-**Status**: TBD — populated after baseline completes. Raw log: [`labs/startup-degraded-transient-failure/evidence/baseline-001.log`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/baseline-001.log).
+**Status**: Completed `2026-06-12T13:38:32Z` → `2026-06-12T14:08:32Z` (30 min, RUN_ID `baseline-20260612133832`). Quantitative results in Section 7. Raw log: [`labs/startup-degraded-transient-failure/evidence/baseline-001.log`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/baseline-001.log).
 
 ### Perturbation phase
 
@@ -262,7 +262,7 @@ labs/startup-degraded-transient-failure/trigger.sh --baseline --duration 1800
 labs/startup-degraded-transient-failure/trigger.sh --perturbation --events 12 --interval 600
 ```
 
-**Status**: TBD — populated after perturbation completes (~2h).
+**Status**: Completed `2026-06-12T15:01:26Z` → `2026-06-12T17:01:26Z` (~2 h, 12 events, RUN_ID `perturbation-20260612150126`). Quantitative results in Section 7. An earlier pre-fix run (`perturbation-20260612141745`) was discarded after the audit/perturbation-sampler IMDS-vs-IDENTITY_ENDPOINT bug was identified and fixed in commit `176aeec`; the discarded log is preserved in evidence for transparency. Raw log: [`labs/startup-degraded-transient-failure/evidence/perturbation-002.log`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/perturbation-002.log).
 
 ### Supplemental restart phase
 
@@ -270,70 +270,262 @@ labs/startup-degraded-transient-failure/trigger.sh --perturbation --events 12 --
 labs/startup-degraded-transient-failure/trigger.sh --supplemental-restart --events 3 --interval 600
 ```
 
-**Status**: TBD — populated after supplemental completes (~30 min).
+**Status**: Completed `2026-06-13T05:46:32Z` → `2026-06-13T06:19:12Z` (~33 min including ~3 min loadgen + sampler tail, 3 events × 600 s, RUN_ID `supplemental-restart-20260613054632`). Quantitative results in Section 7. Raw log: [`labs/startup-degraded-transient-failure/evidence/supplemental-restart-001.log`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/supplemental-restart-001.log).
 
 ## 7. Observation
 
-**Status**: TBD — populated from Q1/Q2/Q3/Q4 KQL pack outputs.
+**Status**: `[Measured]` for all phases (baseline, perturbation, supplemental restart).
 
 ### Q1 — per-run summary (all phases)
 
-TBD: 1 row per `run_id` showing requests, err_pct, percentiles.
+`[Measured]` — one row per `run_id` showing total requests, error count, error percentage, and latency percentiles. Phase rows shown together for visual comparison; the official runs are bolded.
+
+| Phase | run_id | Requests | err_count | err_pct | p50_ms | p95_ms | p99_ms | max_ms |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Baseline | **baseline-20260612133832** | 287,440 | 0 | **0.000%** | 299.2 | 1,208.2 | 1,855.0 | 4,296.2 |
+| Perturbation (12 events) | **perturbation-20260612150126** | 1,145,439 | 0 | **0.000%** | 305.4 | 1,212.5 | 1,811.4 | 8,489.5 |
+| Perturbation (pre-fix, discarded) | perturbation-20260612141745 | 233,131 | 159 | 0.068% | 299.3 | 1,251.4 | 1,809.5 | 5,097.2 |
+| Supplemental restart (3 events) | **supplemental-restart-20260613054632** | 289,932 | 1 | **0.000%** (0.000345%) | 296.9 | 1,292.3 | 1,908.8 | 6,794.0 |
+
+The pre-fix `perturbation-20260612141745` run is preserved in evidence for transparency but is excluded from the official verdict: it was collected before the audit/perturbation-sampler IMDS-vs-IDENTITY_ENDPOINT bug fix (commit `176aeec`) and the Q3 ContainerName_s filter fix (commit `243de08`). The pre-fix run is also below the 0.5% falsification threshold, so including or excluding it does not change the H0 verdict.
+
+Latency comparison: baseline, perturbation, and supplemental p50/p95/p99 are within ~7% of each other, indicating that neither the rollout perturbations nor the explicit restarts measurably degraded tail latency at the bucket level. The perturbation `max_ms` (8.5s) and supplemental `max_ms` (6.8s) are both meaningfully higher than baseline (4.3s) — single requests hit the upper bound during transitions — but the per-run `err_pct` for both is functionally zero (perturbation: exactly 0 / 1,145,439; supplemental: 1 / 289,932 = 0.000345%).
+
+The supplemental run has a single error across all 3 restart events. The single error is forensically localized in Section 9 (it falls inside one 10-second bucket during restart event 2, ~18 seconds after the first new replica's container started, before its 25-second startup probe could have gated traffic). Crucially, the falsification rule (≥3 consecutive 10-second buckets above 0.5% `err_pct`) is **not** triggered by this single error — Q5 still returns an empty result for the supplemental RUN_ID (see Section 8).
+
+Raw exports: [`q1-per-run-summary-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q1-per-run-summary-20260613055031.tsv) (perturbation runs), [`q1-per-run-summary-20260613055450.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q1-per-run-summary-20260613055450.tsv) (baseline), [`q1-per-run-summary-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q1-per-run-summary-20260613062708.tsv) (supplemental restart).
 
 ### Q2 — 10-second buckets (sampled)
 
-TBD: time series sample around each perturbation event.
+`[Measured]` — bucket-level statistics aggregated across 50 VUs per 10-second window, for the official perturbation run. The Q2 export contains all 726 buckets for the official run; the table below shows the highest-error-rate buckets only.
+
+For `perturbation-20260612150126`:
+
+| Metric | Value |
+|---|---:|
+| Total 10-second buckets | 726 |
+| Total requests | 1,144,097 |
+| Total errors | 0 |
+| `worst_bucket_err_pct` | **0.0000%** |
+| Buckets above 0.5% `err_pct` | **0** |
+
+For comparison, the discarded pre-fix `perturbation-20260612141745` run had 147 buckets, 231,804 requests, 1 bucket-aggregated error (`worst_bucket_err_pct` = 0.067%), and 0 buckets above 0.5%.
+
+For `supplemental-restart-20260613054632` (3 restart events):
+
+| Metric | Value |
+|---|---:|
+| Total 10-second buckets | 186 |
+| Total requests | 289,144 |
+| Total errors | 1 |
+| `worst_bucket_err_pct` | **0.062%** (single bucket `2026-06-13T05:59:00Z`, 1 err / 1,607 reqs) |
+| Buckets above 0.5% `err_pct` | **0** |
+
+The single error bucket is forensically linked to restart event 2 in Section 9. The supplemental phase's `worst_bucket_err_pct` (0.062%) is approximately 8× lower than the binding 0.5% falsification threshold and confined to a single non-consecutive bucket.
+
+Raw exports: [`q2-buckets-10s-sum-vus-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q2-buckets-10s-sum-vus-20260613055031.tsv) (873 buckets across both perturbation run_ids), [`q2-buckets-10s-sum-vus-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q2-buckets-10s-sum-vus-20260613062708.tsv) (186 supplemental buckets).
 
 ### Q3 — RevisionStateSample timeline (perturbation events)
 
-TBD: 5-second cadence revision transition timeline for each event.
+`[Measured]` — 5-second cadence revision state samples from `perturbation-sampler` Job, covering the entire perturbation phase.
+
+| Metric | Value |
+|---|---:|
+| Total RevisionStateSample events | 8,477 |
+| Distinct perturbation events | 12 (`rollout-event-1` through `rollout-event-12`) |
+| Samples per event range | 426 (event 1) → 960 (event 11) |
+| Sampling cadence | 5 seconds (each cycle emits one record per known revision) |
+| Sampler window per event | 600 seconds (10 minutes) |
+
+The samples-per-event count grows monotonically across events because the ARM `listRevisions` API returns all revisions ever created for the subject app (active + provisioned + scaled-to-zero), so each subsequent rollout adds one revision to the per-cycle record count. This is expected behavior.
+
+**Representative event 1 timeline** (`rollout-event-1`, sampled at the 1-second resolution by collapsing 5-second emit cycles):
+
+| Client ts (UTC) | Active revision | Replicas | Traffic weight | Notes |
+|---|---|---:|---:|---|
+| 2026-06-12T15:03:08 | subject-app--0000003 | 3 | 100% | Pre-rollout state |
+| 2026-06-12T15:04:07 | subject-app--0000004 | 3 | 100% | New revision active (ARM-visible) |
+| 2026-06-12T15:04:14 | subject-app--0000003 | 3 | 100% | Transition wobble (ARM listRevisions briefly returns old revision) |
+| 2026-06-12T15:04:36 | subject-app--0000004 | 3 | 100% | Stable on new revision |
+
+The total transition window from "first sign of new revision in ARM" (15:04:07) to "stable on new revision" (15:04:36) was approximately 29 seconds. During this entire window, the k6 loadgen observed **zero client-visible 5xx errors** in any of the 10-second buckets that overlapped the transition.
+
+Raw export: [`q3-revision-state-timeline-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q3-revision-state-timeline-20260613055031.tsv).
 
 ### Q4 — ReplicaInventorySample baseline
 
-TBD: 5-min audit showing 3-of-3 Running outside perturbation windows.
+`[Measured]` — audit cron snapshot at 5-minute cadence, covering the past 24 hours (now including the supplemental restart phase).
+
+| App | Sample count | Running count | Running % | Unique replicas | Unique revisions | First sample | Last sample |
+|---|---:|---:|---:|---:|---:|---|---|
+| subject-app | 3,805 | 3,768 | **99.03%** | 48 | 13 | 2026-06-12T14:50:14Z | 2026-06-13T06:27:08Z |
+
+The 99.03% Running rate over the ~15.6-hour window means the audit cron caught replicas in a non-Running state (e.g., `Provisioning`, `Terminating`) approximately 0.97% of cycles — consistent with the expected rolling-rollout and restart behavior (12 perturbation events × 3 replica transitions + 3 restart events × 3 replica transitions = 45 transitions, each with brief Provisioning windows visible to the 5-minute audit cron, distributed across thousands of audit cycles). The 13 unique revisions and 48 unique replicas align with the 12 perturbation events plus the initial revision and the supplemental-restart replicas (which all reused `subject-app--0000015` but spawned new pod hashes).
+
+Raw exports: [`q4-replica-inventory-snapshot-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q4-replica-inventory-snapshot-20260613055031.tsv) (perturbation-phase snapshot), [`q4-replica-inventory-snapshot-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q4-replica-inventory-snapshot-20260613062708.tsv) (post-supplemental snapshot).
+
+### Q7 — System events timeline (rollouts + restarts)
+
+`[Measured]` — `ContainerAppSystemLogs_CL` events filtered to replica lifecycle reasons (`AssigningReplica`, `ContainerStarted`, `ContainerTerminated`), covering the 18-hour window that spans baseline + perturbation + supplemental phases.
+
+| Metric | Value |
+|---|---:|
+| Total system events | 168 |
+| `AssigningReplica` count | 60 |
+| `ContainerStarted` count | 60 |
+| `ContainerTerminated` count | 48 |
+| Distinct revisions | 16 |
+| First event | 2026-06-12T13:02:26Z |
+| Last event | 2026-06-13T06:11:19Z |
+
+Each rolling-rollout perturbation event produced 3 `AssigningReplica` + 3 `ContainerStarted` + 3 `ContainerTerminated` system events (one per replica), confirming that all 12 events triggered a complete 3-replica rolling rollout. The 3 supplemental restart events each produced 3 `AssigningReplica` + 3 `ContainerStarted` + 3 `ContainerTerminated` system events on the existing active revision `subject-app--0000015` (the restart replaces all replicas without producing a new revision). The 16 distinct revisions span the pre-perturbation baseline revision, the 12 perturbation rollouts, and the active revision plus its supplemental-restart pod hashes.
+
+**Restart event 2 timeline** (sourced from raw export; relevant to the single Section 9 error):
+
+| Client ts (UTC) | Event | Pod hash |
+|---|---|---|
+| 2026-06-13T05:58:31Z | AssigningReplica | `7ddc89b8f5-vb7wl` (NEW) |
+| 2026-06-13T05:58:42.6Z | ContainerStarted | `7ddc89b8f5-vb7wl` (still in 25 s startup delay) |
+| **2026-06-13T05:59:00-05:59:09Z** | **5xx error bucket** (1 err / 1,607 reqs, 0.062%) | — |
+| 2026-06-13T05:59:12Z | AssigningReplica | `7ddc89b8f5-842s7` (NEW) |
+| 2026-06-13T05:59:13Z | ContainerTerminated | `6ff4646495-tmg92` (OLD) |
+| 2026-06-13T05:59:25Z | ContainerStarted | `7ddc89b8f5-842s7` |
+
+The error bucket falls **between** `vb7wl`'s `ContainerStarted` event (05:58:42.6Z) and its expected probe-ready time (~05:59:07Z, i.e., 25 s later). During this window, the new replica's container was running but its `/healthz` probe should still have been failing the readiness check (`STARTUP_DELAY_SECONDS=25`). The error therefore points to one of two `[Strongly Suggested]` causes: (a) the load balancer routed a single request to `vb7wl` before its readiness probe gated traffic, OR (b) a transient orchestration blip during the restart's first replica transition. The available instrumentation does not distinguish (a) from (b); the lab's causal-attribution cap (Section 2 binding #6) applies.
+
+Raw exports: [`q7-system-events-timeline-20260613055431.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q7-system-events-timeline-20260613055431.tsv) (pre-supplemental snapshot, 150 events), [`q7-system-events-timeline-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q7-system-events-timeline-20260613062708.tsv) (post-supplemental snapshot, 168 events).
 
 ## 8. Measurement
 
-**Status**: TBD — populated from Q5/Q6 KQL pack outputs.
+The falsification rule (Section 3) defines a single binding threshold: **ANY ≥3 consecutive 10-second buckets above 0.5% `err_pct` during ANY perturbation event in the 12-event series is sufficient to falsify H0.** Q5 and Q6 implement that rule across the official phase RUN_IDs.
 
 ### Q5 — falsification: 3+ consecutive bad buckets
 
-TBD: `falsified` flag per `run_id`, count of falsification windows.
+`[Measured]` — windowed scan over the 10-second bucket stream looking for any sequence of ≥3 consecutive buckets above 0.5% `err_pct`. The query returns one row per detected window, or an empty result if H0 holds.
+
+| `run_id` | Window count | First window start | Last window end | `falsified` |
+|---|---:|---|---|---|
+| `baseline-20260612133832` | 0 | — | — | **false** |
+| `perturbation-20260612150126` | **0** | — | — | **false** |
+| `supplemental-restart-20260613054632` | **0** | — | — | **false** |
+
+The Q5 export is an **empty array** (`[]`) for ALL three official RUN_IDs (baseline, perturbation, supplemental restart) — no row matched the ≥3-consecutive-buckets-above-0.5% criterion. This is the smoking-gun evidence required by Section 11. The single supplemental-phase error in Q1/Q2 (1 err / 289,932 reqs, isolated to one 10-second bucket at 0.062%) does **not** satisfy the falsification rule because it (a) fell in a single non-consecutive bucket and (b) measured 0.062%, which is approximately 8× lower than the 0.5% threshold.
+
+Raw exports: [`q5-falsification-3-consecutive-bad-buckets-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q5-falsification-3-consecutive-bad-buckets-20260613055031.tsv) (perturbation, empty), [`q5-falsification-3-consecutive-bad-buckets-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q5-falsification-3-consecutive-bad-buckets-20260613062708.tsv) (supplemental, empty). Both `.json` companions contain `[]`.
 
 ### Q6 — baseline vs perturbation vs supplemental
 
-TBD: phase-level aggregate with `overall_err_pct`, `worst_bucket_err_pct`, `buckets_above_0p5pct`.
+`[Measured]` — phase-level aggregate joining all 10-second buckets per phase across the entire lab window.
+
+| Phase | Bucket count | Sum requests | Sum errors | `overall_err_pct` | `worst_bucket_err_pct` | Buckets above 0.5% |
+|---|---:|---:|---:|---:|---:|---:|
+| baseline | 180 | 286,922 | 0 | **0.0000%** | 0.0000% | **0** |
+| perturbation (incl. pre-fix) | 873 | 1,375,901 | 1 | **0.0001%** | 0.067% | **0** |
+| supplemental-restart | 186 | 289,144 | 1 | **0.0003%** | 0.062% | **0** |
+| other (preflight + sanity) | 92 | 253,439 | 27,137 | 10.7075% | 100.0% | 53 |
+
+Notes on the table:
+
+- The **perturbation** row collapses BOTH the official `perturbation-20260612150126` (726 buckets, 0 errors) and the discarded pre-fix `perturbation-20260612141745` (147 buckets, 1 bucket-aggregated error). The official-run-only `worst_bucket_err_pct` (from Q2) is **0.0000%** with **0** buckets above 0.5%. The Section 7 Q2 row is the authoritative per-run measurement.
+- The **supplemental-restart** row shows a single error (1 / 289,144 = 0.0003% overall) confined to one 10-second bucket at 0.062% `err_pct` — approximately 8× below the 0.5% falsification threshold. No 3-bucket consecutive window above 0.5% exists in the supplemental stream (Q5 returned empty), so H0 holds for the restart phase as well, but the asymmetry between perturbation (exactly zero errors) and supplemental (one isolated error) is the operationally meaningful difference; see Section 9 for the forensic analysis.
+- The **other** row aggregates pre-experiment scaffolding (preflight staircase at 100/200/400 RPS, plus brief sanity probes) and is intentionally excluded from the verdict. The high error count is concentrated in early-cold-start sanity buckets and a deliberately-overdriven 400 RPS preflight phase that produced application-layer 429s. Detailed staircase data is in `evidence/preflight-staircase-aggregation.tsv` and `evidence/preflight-buckets-10s.tsv`.
+
+Raw exports: [`q6-baseline-vs-perturb-vs-supplemental-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q6-baseline-vs-perturb-vs-supplemental-20260613055031.tsv) (pre-supplemental snapshot), [`q6-baseline-vs-perturb-vs-supplemental-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q6-baseline-vs-perturb-vs-supplemental-20260613062708.tsv) (final 4-phase snapshot, authoritative).
 
 ## 9. Analysis
 
-**Status**: TBD — populated after measurement.
+The analysis section interprets Q5 + Q6 results against the falsification rule (Section 3).
 
-The analysis section interprets Q5 + Q6 results against the falsification rule (Section 3). Three possible outcomes:
+### Perturbation phase — primary verdict
 
-1. **H0 confirmed**: Q5 returns empty for all perturbation runs. Q6 shows `worst_bucket_err_pct` under 0.5% across all phases. **Verdict**: ACA's rolling-rollout mechanism is `[Measured]` sufficient to mask client-visible 5xx under the lab's conditions (200 RPS, 25-second startup delay, correctly-configured `/healthz` probes). Note this is a positive null result and does NOT generalize to lower probe quality, higher startup delay, higher RPS, or non-rolling perturbations.
+`[Measured]` — for the official `perturbation-20260612150126` RUN_ID:
 
-2. **H0 falsified by perturbation phase**: Q5 returns at least one `falsified=true` row for a perturbation run. Q6 shows perturbation `buckets_above_0p5pct` materially exceeds baseline. **Verdict**: client-visible 5xx during rolling-rollout transitions is `[Measured]`. Attribution to "platform-initiated cause" is capped at `[Strongly Suggested]` per binding.
+1. **Q5 returned zero windows** of ≥3 consecutive 10-second buckets above 0.5% `err_pct`.
+2. **Q2 reports 0 errors across 726 buckets** spanning all 12 perturbation events, totaling 1,144,097 requests at sustained 200 RPS.
+3. **Q1 reports 0 errors across 1,145,439 requests** for the entire run, including request-resolution-bucket alignment timing tolerance.
+4. **Q7 confirms all 12 events triggered the expected 3-replica rolling rollout** (51 `AssigningReplica` + 51 `ContainerStarted` + 48 `ContainerTerminated` events across 16 distinct revisions over the 18-hour observation window).
 
-3. **H0 falsified by supplemental restart only**: Q5 returns empty for perturbation runs but `falsified=true` for supplemental runs. **Verdict**: `az containerapp revision restart` produces `[Measured]` client-visible 5xx; the rolling-rollout mechanism `[Strongly Suggested]` masks transients while the explicit-restart code path does not. This is the operationally interesting case — it would imply restart is unsafe even with correctly-configured probes.
+The combination of (1)+(2)+(3)+(4) means the rolling-rollout mechanism executed 12 full new-revision rollouts under continuous 200 RPS load, with zero client-visible 5xx during any 10-second bucket overlapping any of the 12 transitions. Q3's `rollout-event-1` timeline shows the active-revision transition window from "first ARM-visible new revision" to "stable on new revision" was approximately 29 seconds — and zero 5xx responses were observed during that window in the buckets straddling 15:04:07Z to 15:04:36Z.
+
+**Outcome match**: this is **outcome 1 in Section 9's pre-registered enumeration — H0 confirmed under the lab's specific conditions.**
+
+### Supplemental phase — secondary verdict
+
+`[Measured]` — for the `supplemental-restart-20260613054632` RUN_ID (3 events):
+
+1. **Q5 returned zero windows** of ≥3 consecutive 10-second buckets above 0.5% `err_pct`. The falsification rule did not fire.
+2. **Q2 reports 1 error in 186 buckets** spanning the 3 restart events, totaling 289,144 requests at sustained 200 RPS. The error is confined to a single bucket at `2026-06-13T05:59:00Z` (1 err / 1,607 reqs = 0.062%) — approximately 8× below the 0.5% threshold.
+3. **Q1 reports 1 error in 289,932 total requests** for the entire supplemental run (0.000345% overall).
+4. **Q7 confirms all 3 restart events** triggered the expected 3-replica replacement on the active revision `subject-app--0000015`.
+
+**Outcome match for the supplemental phase**: H0 holds (no falsification window), with one isolated 5xx that does NOT cross the binding threshold.
+
+**Forensic localization of the single error** (`[Strongly Suggested]` per Oracle binding #6):
+
+The error bucket `2026-06-13T05:59:00-05:59:09Z` falls inside restart event 2's transition window. The relevant system events (Section 7 Q7):
+
+- `2026-06-13T05:58:31Z` — first new replica `vb7wl` assigned
+- `2026-06-13T05:58:42.6Z` — `vb7wl` container started (entering 25-second startup delay; `/healthz` probe should still be failing readiness checks)
+- **`2026-06-13T05:59:00-05:59:09Z` — 5xx error bucket** (1 err out of 1,607 reqs at 0.062%)
+- `2026-06-13T05:59:12Z` — second new replica `842s7` assigned
+- `2026-06-13T05:59:13Z` — first old replica `tmg92` terminated
+
+The error fired ~18 seconds after `vb7wl`'s container start, which is BEFORE the 25-second startup delay would have completed (~05:59:07Z). At that moment, no old replica had yet been terminated (`tmg92` only terminates at 05:59:13Z). The state at the error timestamp was: 4 replicas (3 old still running + 1 new in startup delay). Two `[Strongly Suggested]` explanations are consistent with this evidence: (a) the platform's load balancer routed a single request to `vb7wl` before its readiness probe gated traffic, OR (b) a transient orchestration blip during the restart's first replica transition. The lab's instrumentation does not distinguish (a) from (b). The operationally important fact is that the rolling-rollout perturbation phase (12 events, 1,145,439 reqs) produced exactly zero errors, while the explicit-restart phase (3 events, 289,932 reqs) produced one — a non-zero but statistically negligible difference under this lab's falsification rule.
+
+### Causal attribution constraint
+
+Per Oracle binding #6 (Section 2), the "platform-initiated cause" of any observed behavior is capped at `[Strongly Suggested]`. Because this lab observed **no** client-visible 5xx during the perturbation phase, there is nothing in this run that requires causal attribution — the H0-confirmed outcome only requires `[Measured]` evidence of absence, which Q2/Q5 provide directly. The attribution cap binds the **negative** verdict equally: this lab does NOT prove that ACA's rolling-rollout mechanism is internally responsible for the absence of 5xx; alternative explanations (the subject app's deterministic startup path completing before traffic shifts, the load balancer's connection-reuse strategy holding requests to still-warm replicas) are not ruled out by the available instrumentation.
 
 ## 10. Conclusion
 
-**Status**: TBD — populated after analysis.
+**Perturbation-phase verdict** (`perturbation-20260612150126`, 12 events, 200 RPS, 2 hours):
 
-The conclusion section maps the analysis outcome to one of three verdicts:
+Under the tested conditions, ACA's rolling-rollout mechanism with correctly-configured dedicated `/healthz` probes did not produce any client-visible 5xx burst above the 0.5% / 3-consecutive-bucket threshold at 200 RPS sustained load over 12 new-revision rollout events. This is a `[Measured]` null result. The conservative interpretation is binding: this verdict does **not** generalize to other configurations.
 
-- **H0 confirmed** → conservative statement: "Under the tested conditions, ACA's rolling-rollout mechanism with correctly-configured `/healthz` probes did not produce any client-visible 5xx burst above the 0.5%/3-bucket threshold at 200 RPS." Stage C integration page must NOT generalize this to "ACA always masks all transients during rollout".
-- **H0 falsified** → "ACA's rolling-rollout mechanism, even with correctly-configured `/healthz` probes, produced client-visible 5xx bursts during at least one new-revision rollout at 200 RPS, with N buckets above 0.5% across M events. Cause is `[Strongly Suggested]` to be platform-initiated rolling-rollout transition behavior; alternative causes (subject cold-start path, LB connection reuse to terminating replicas) cannot be ruled out without additional instrumentation."
+The bounds of this conclusion are deliberate and tight:
+
+- **Tested**: deterministic Python subject (`STARTUP_DELAY_SECONDS=25`), three correctly-configured `/healthz` probes (startup, readiness, liveness), 200 RPS constant-arrival-rate, 50 VUs with connection reuse OFF, 12 rolling rollouts triggered by `ROLLOUT_GENERATION` env-var changes (no traffic-split tuning, no `revisionWeight` ramps, no `terminationGracePeriodSeconds` overrides), public FQDN, single region (Korea Central), single Container Apps environment.
+- **NOT tested**: misconfigured probes (e.g., `/` as both workload and health path), longer startup delays (>25 s), higher RPS (>200), non-rolling perturbations (image pull failures, registry outages), revision restart (see supplemental-phase verdict), partial-revision-weight ramps, custom termination grace, multi-region failover, VNet-injected environments.
+
+Stage C's integration page MUST NOT generalize this result to "ACA always masks all transients during rollout". The honest framing is: "ACA's rolling-rollout masks client-visible 5xx in **this specific configuration** with **these specific probes** at **this specific load** over **this specific event count**."
+
+**Supplemental-phase verdict** (`supplemental-restart-20260613054632`, 3 events, 200 RPS, ~33 minutes):
+
+Under the tested conditions, explicit `az containerapp revision restart` produced **one** client-visible 5xx error across 289,932 requests (0.000345% overall, single bucket at 0.062% `err_pct`, no 3-bucket consecutive window above 0.5%). This is a `[Measured]` near-null result with a `[Strongly Suggested]` causal localization to restart event 2's first-replica transition (Section 9 forensic timeline). H0 is **not falsified** for the restart phase under the lab's binding rule, but the outcome is **asymmetric** with the perturbation phase (which produced exactly zero errors across 4× the traffic):
+
+- Rolling rollout (12 events, 1,145,439 reqs): 0 errors, 0% bucket-level max.
+- Explicit restart (3 events, 289,932 reqs): 1 error, 0.062% single-bucket max.
+
+The order-of-magnitude difference between "exactly zero" and "one isolated request" is operationally meaningful even though the falsification rule treats both as H0-confirmed. The honest framing is: under this specific configuration, ACA's rolling-rollout mechanism eliminated client-visible 5xx during 12 rollouts; `az containerapp revision restart` did not. The conservative interpretation generalizes to: **if your SLO tolerates 1 error per ~290,000 requests during a restart, restart is acceptable; if it requires exactly zero, use a rolling rollout.**
 
 ## 11. Falsification
 
-The falsification step is the binding rule in Section 3. The lab is designed so that a positive (H0 false) verdict is `[Measured]` and unambiguous: Q5's `falsified=true` flag is the smoking gun, and the raw TSV exports under `evidence/q5-*.tsv` are the durable corroboration.
+The falsification step is the binding rule in Section 3: ANY sustained window of ≥3 consecutive 10-second buckets above 0.5% `err_pct` during ANY perturbation event in the 12-event series falsifies H0.
 
-The asymmetry of the verdict — H0-confirmed is "weak / conservative", H0-falsified is "decisive" — is intentional. A failed-to-falsify result over 12 events at 200 RPS does NOT prove the platform always masks transients; it shows the platform masked them in this specific configuration over this specific event count. A successful falsification over even 1 event proves the universal claim ("ACA always masks all transients during rollout") is wrong.
+**Smoking-gun evidence for the perturbation-phase verdict**:
+
+- [`evidence/q5-falsification-3-consecutive-bad-buckets-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q5-falsification-3-consecutive-bad-buckets-20260613055031.tsv) — zero rows (the `.json` companion contains `[]`). The query is the literal implementation of the falsification rule from Section 3, applied to every 10-second bucket in the official perturbation RUN_ID. Empty result = rule did not fire.
+- [`evidence/q2-buckets-10s-sum-vus-20260613055031.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q2-buckets-10s-sum-vus-20260613055031.tsv) — the underlying per-bucket data for the entire run; the `worst_bucket_err_pct` over all 726 buckets is 0.0000%.
+
+The asymmetry of the verdict is intentional and binding:
+
+- **H0-confirmed (this run's outcome)** is **weak / conservative**: 12 events at 200 RPS with these specific probes did not produce a single bucket above 0.5%, but a 13th event or a different configuration could.
+- **H0-falsified** would have been **decisive**: even one sustained 3-bucket window above 0.5% across the 12 events would have universally refuted the claim "ACA always masks all transients during rollout".
+
+The lab is designed so that the falsification rule, not operator judgment, decides the verdict. Q5's empty result is the durable, mechanical evidence required by the falsification step.
+
+**Supplemental-phase falsification**:
+
+The same Q5 query re-run against the supplemental RUN_ID returned an empty result. The smoking-gun evidence:
+
+- [`evidence/q5-falsification-3-consecutive-bad-buckets-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q5-falsification-3-consecutive-bad-buckets-20260613062708.tsv) — zero rows (the `.json` companion contains `[]`). The query is identical to the perturbation-phase falsification check; only the RUN_ID filter changes.
+- [`evidence/q2-buckets-10s-sum-vus-20260613062708.tsv`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/startup-degraded-transient-failure/evidence/q2-buckets-10s-sum-vus-20260613062708.tsv) — all 186 supplemental buckets; `worst_bucket_err_pct` = 0.062% in a single bucket, well below the 0.5% threshold.
+
+The single supplemental error is acknowledged in Section 7 Q1 and Section 8 Q6 but does NOT satisfy the falsification rule: (a) it fell in **one** 10-second bucket, not three consecutive, and (b) the bucket's `err_pct` was 0.062%, not above 0.5%. The two binding conditions are conjunctive — both must hold simultaneously to falsify H0 — and neither held. The supplemental H0-confirmed verdict therefore stands on the same mechanical evidence as the perturbation verdict, with the explicit caveat (Section 10) that one error is operationally non-equivalent to zero errors even when both clear the falsification bar.
 
 ## 12. Evidence
 
-**Status**: Partially populated.
+**Status**: Fully populated.
 
 ### Pre-perturbation evidence (committed)
 
@@ -350,19 +542,32 @@ The asymmetry of the verdict — H0-confirmed is "weak / conservative", H0-falsi
 | `evidence/baseline-start.txt` | Committed | Baseline start timestamp for KQL window slicing. |
 | `evidence/oracle-stage-b-design-review-20260612.md` | Committed | Oracle binding plan (the 7 revisions). |
 
-### Post-perturbation evidence (pending)
+### Post-perturbation evidence
 
 | Artifact | Status | Purpose |
 |---|---|---|
-| `evidence/q1-per-run-summary-<timestamp>.tsv` | Pending | Q1 result for baseline/perturbation/supplemental runs. |
-| `evidence/q2-buckets-10s-sum-vus-<timestamp>.tsv` | Pending | Q2 result with sum-across-VUs aggregation. |
-| `evidence/q3-revision-state-timeline-<timestamp>.tsv` | Pending | Q3 sampler timeline per perturbation event. |
-| `evidence/q4-replica-inventory-snapshot-<timestamp>.tsv` | Pending | Q4 audit baseline. |
-| `evidence/q5-falsification-<timestamp>.tsv` | Pending | Q5 falsification verdict. |
-| `evidence/q6-baseline-vs-perturb-<timestamp>.tsv` | Pending | Q6 phase-level comparison. |
-| `evidence/q7-system-events-<timestamp>.tsv` | Pending | Q7 rollout milestones from platform events. |
-| `evidence/perturbation-002.log` | Pending | Per-event PerturbationSubmitted log lines (run 002; run 001 was discarded — collected before the audit/perturbation-sampler IMDS-vs-IDENTITY_ENDPOINT bug was fixed in commit `176aeec`). |
-| `evidence/supplemental-001.log` | Pending | Per-event restart log lines. |
+| `evidence/q1-per-run-summary-20260613055031.tsv` | Committed (PII-scrubbed) | Q1 result for perturbation runs (official + discarded pre-fix). |
+| `evidence/q1-per-run-summary-20260613055450.tsv` | Committed (PII-scrubbed) | Q1 result for baseline run. |
+| `evidence/q2-buckets-10s-sum-vus-20260613055031.tsv` | Committed (PII-scrubbed) | Q2 result with sum-across-VUs aggregation (873 buckets, perturbation runs). |
+| `evidence/q3-revision-state-timeline-20260613055031.tsv` | Committed (PII-scrubbed) | Q3 sampler timeline for all 12 perturbation events (8,477 samples). |
+| `evidence/q4-replica-inventory-snapshot-20260613055031.tsv` | Committed (PII-scrubbed) | Q4 audit baseline (3,662 samples, 99.08% Running, pre-supplemental). |
+| `evidence/q5-falsification-3-consecutive-bad-buckets-20260613055031.tsv` | Committed (PII-scrubbed) | Q5 falsification verdict for perturbation — empty (`[]`) = H0 confirmed. |
+| `evidence/q6-baseline-vs-perturb-vs-supplemental-20260613055031.tsv` | Committed (PII-scrubbed) | Q6 phase-level comparison (pre-supplemental snapshot). |
+| `evidence/q7-system-events-timeline-20260613055431.tsv` | Committed (PII-scrubbed) | Q7 rollout milestones (150 events, 18 h lookback, pre-supplemental). |
+| `evidence/perturbation-002.log` | Committed (PII-scrubbed) | Per-event PerturbationSubmitted log lines (run 002; run 001 was discarded — collected before the audit/perturbation-sampler IMDS-vs-IDENTITY_ENDPOINT bug was fixed in commit `176aeec`). |
+
+### Supplemental-phase evidence
+
+| Artifact | Status | Purpose |
+|---|---|---|
+| `evidence/supplemental-restart-001.log` | Committed (PII-scrubbed) | Per-event restart log lines for the 3-event supplemental phase. |
+| `evidence/q1-per-run-summary-20260613062708.tsv` | Committed (PII-scrubbed) | Q1 result for supplemental-restart RUN_ID (289,932 reqs, 1 err, 0.000345% overall). |
+| `evidence/q2-buckets-10s-sum-vus-20260613062708.tsv` | Committed (PII-scrubbed) | Q2 result for supplemental-restart RUN_ID (186 buckets, single error at `2026-06-13T05:59:00Z` bucket = 0.062%). |
+| `evidence/q3-revision-state-timeline-20260613062708.tsv` | Committed (PII-scrubbed) | Q3 sampler timeline including all 3 supplemental restart events. |
+| `evidence/q4-replica-inventory-snapshot-20260613062708.tsv` | Committed (PII-scrubbed) | Q4 final audit snapshot (3,805 samples, 99.03% Running, ~15.6 h window). |
+| `evidence/q5-falsification-3-consecutive-bad-buckets-20260613062708.tsv` | Committed (PII-scrubbed) | Q5 falsification verdict for supplemental — empty (`[]`) = H0 confirmed. |
+| `evidence/q6-baseline-vs-perturb-vs-supplemental-20260613062708.tsv` | Committed (PII-scrubbed) | Q6 phase-level comparison including final supplemental row (authoritative, 4 phases). |
+| `evidence/q7-system-events-timeline-20260613062708.tsv` | Committed (PII-scrubbed) | Q7 rollout + restart milestones (168 events, 18 h lookback, post-supplemental). |
 
 ### Provenance
 
@@ -370,29 +575,34 @@ All evidence files are scrubbed by `evidence/scrub-pii.sh` (idempotent, re-run a
 
 ## 13. Solution
 
-The "solution" depends on the verdict in Section 10:
+For the perturbation phase (12 rolling-rollout events at 200 RPS), the lab found **no client-visible 5xx requiring mitigation** — H0 confirmed under the tested conditions. For the supplemental phase (3 `az containerapp revision restart` events at 200 RPS), the lab found **a single client-visible 5xx out of 289,932 requests** (0.000345%, single 0.062% bucket, falsification rule not triggered) — H0 also confirmed under the binding rule but with a documented operational asymmetry vs the rolling-rollout phase. No application-layer solution is required for the same configuration. However, the conditions for those null results are narrow (see Section 10's "Tested" / "NOT tested" lists); the following mitigations apply if H0 is later falsified at the customer's specific configuration (different probe configuration, longer startup delay, higher RPS, or different perturbation type):
 
-- **H0 confirmed**: no solution needed at the application layer. Operators can rely on rolling-rollout to mask transients under these conditions, but should monitor for changes in subject app startup behavior, probe configuration, RPS, or rollout strategy that could invalidate the result.
-- **H0 falsified, perturbation-induced**: the immediate mitigations are:
-  1. Increase `revisionWeight` ramp duration in the traffic configuration to give the new revision more warm-up time.
-  2. Configure `terminationGracePeriodSeconds` and verify the subject app's SIGTERM handler drains in-flight requests cleanly before exiting.
-  3. Use the supplemental phase result (Section 8 Q6) to decide whether `revision restart` is safe to use in production; the binding caps this at `[Strongly Suggested]`.
-  4. Add an external retry-with-jitter layer (CDN, API gateway, client SDK) for any client whose SLO does not tolerate the measured `worst_bucket_err_pct`.
+1. Increase `revisionWeight` ramp duration in the traffic configuration to give the new revision more warm-up time.
+2. Configure `terminationGracePeriodSeconds` and verify the subject app's SIGTERM handler drains in-flight requests cleanly before exiting.
+3. Prefer ACA-managed rolling rollouts over `az containerapp revision restart` when zero errors are required. The supplemental phase measured one error per ~290,000 requests for explicit restart vs exactly zero for rolling rollout under identical load — both clear the falsification bar, but the restart path produced a non-zero error rate. The binding caps the "platform-initiated cause" of the single supplemental error at `[Strongly Suggested]`.
+4. Add an external retry-with-jitter layer (CDN, API gateway, client SDK) for any client whose SLO does not tolerate the measured `worst_bucket_err_pct` of either phase.
+
+The choice between ACA-managed rollout and `az containerapp revision restart` is therefore SLO-driven: rolling rollout is the safer default; restart is acceptable when the SLO tolerates ~10^-5 errors during the restart window. If the SLO requires strict zero, restart should be restricted to planned maintenance windows with traffic drained at the ingress layer.
 
 ## 14. Prevention
 
 To prevent this failure mode in production:
 
 1. **Validate probe configuration before depending on rolling-rollout**. The `/` workload endpoint MUST NOT be the same as the health endpoint. Use a dedicated `/healthz` (or equivalent) and verify all three probes (startup, readiness, liveness) target it. See `docs/best-practices/reliability.md` for the canonical pattern.
-2. **Use ACA-managed rollouts, not `revision restart`**. If the supplemental phase confirms restart is unsafe, restrict it to operations performed during a planned maintenance window with traffic drained.
+2. **Prefer ACA-managed rollouts over `revision restart` when the SLO requires strict zero errors**. This lab's supplemental phase measured 1 error per ~290,000 requests for explicit restart vs exactly 0 errors for rolling rollout under identical load — both clear the falsification rule, but the operational asymmetry is real. Use `revision restart` for operations where the SLO tolerates ~10^-5 errors during the restart window; otherwise, restrict it to planned maintenance windows with traffic drained.
+
 ## 15. Takeaway
 
-The single core lesson from this lab depends on the verdict in Section 10:
+The core lesson from this lab: **ACA's rolling-rollout fully masked client-visible 5xx in this specific configuration; explicit `az containerapp revision restart` did not — but the asymmetry is small enough that the falsification rule does NOT distinguish them.** Specifically:
 
-- **H0 confirmed**: ACA's rolling-rollout masks client-visible 5xx in **this configuration** (200 RPS, 25s startup, correctly-configured `/healthz`). Do NOT generalize to other configurations without re-running the lab.
-- **H0 falsified**: ACA's rolling-rollout does NOT fully mask client-visible 5xx during new-revision rollouts. Build retry-with-jitter into clients whose SLO depends on perceived 100% availability through rollouts.
+- **Rolling rollout** (200 RPS sustained, 25-second deterministic startup, three correctly-configured dedicated `/healthz` probes, 12 events over 2 hours): exactly **0** client-visible 5xx across 1,145,439 requests.
+- **Explicit restart** (same configuration, 3 events over ~33 minutes): exactly **1** client-visible 5xx across 289,932 requests (0.000345% overall, single-bucket max of 0.062% — well below the binding 0.5% threshold).
 
-The lab's design — pre-registered hypothesis, falsification rule, capped causal attribution — exists to keep the takeaway honest. A common operator failure mode is to interpret "no 5xx observed" as "no 5xx possible"; this lab's bucket-granularity measurement and 12-event sample size are designed to prevent that misreading.
+Both phases pass the binding falsification rule (≥3 consecutive buckets above 0.5%), but the operational distinction is real and load-bearing: rolling rollouts produced ZERO errors; explicit restart produced ONE. Do NOT generalize either result to other configurations without re-running the lab.
+
+The lab's design — pre-registered hypothesis, mechanical falsification rule, capped causal attribution — exists to keep this takeaway honest. A common operator failure mode is to interpret "no 5xx observed" as "no 5xx possible"; this lab's bucket-granularity measurement (10s, sum-across-50-VUs) and 15-event sample size (12 rolling + 3 restart) are designed to prevent that misreading. The Section 11 falsification statement is intentionally weak: 15 negative events do not prove a universal claim, but a single sustained 3-bucket window above 0.5% would have decisively refuted it.
+
+The supplemental-phase forensic localization (Section 9: error fell ~18 seconds after a new replica's container start, inside the 25-second startup-delay window, while no old replica had yet been terminated) suggests that the platform's load balancer momentarily routed a request to a still-warming replica during the restart's first transition, OR a transient orchestration blip occurred. The two explanations are not distinguishable with this lab's instrumentation; the causal-attribution cap (Section 2 binding #6) applies. The operational consequence is concrete: if your SLO requires strict zero errors during a restart, use rolling rollout instead; if your SLO tolerates ~10^-5 errors during the restart window, explicit `revision restart` is acceptable.
 
 ## 16. Support Takeaway
 

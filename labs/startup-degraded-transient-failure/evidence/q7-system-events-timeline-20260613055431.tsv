@@ -1,0 +1,150 @@
+Replica 'subject-app--bxdkxgx-85c54486bf-9vms4' has been scheduled to run on a node.	AssigningReplica	subject-app--bxdkxgx-85c54486bf-9vms4	subject-app--bxdkxgx	PrimaryResult	2026-06-12T13:02:26.2411954Z
+Replica 'subject-app--bxdkxgx-85c54486bf-4fwnm' has been scheduled to run on a node.	AssigningReplica	subject-app--bxdkxgx-85c54486bf-4fwnm	subject-app--bxdkxgx	PrimaryResult	2026-06-12T13:02:26.2411954Z
+Replica 'subject-app--bxdkxgx-85c54486bf-h6mfj' has been scheduled to run on a node.	AssigningReplica	subject-app--bxdkxgx-85c54486bf-h6mfj	subject-app--bxdkxgx	PrimaryResult	2026-06-12T13:02:26.2411954Z
+Started container 'subject'	ContainerStarted	subject-app--bxdkxgx-85c54486bf-4fwnm	subject-app--bxdkxgx	PrimaryResult	2026-06-12T13:02:43.2573249Z
+Started container 'subject'	ContainerStarted	subject-app--bxdkxgx-85c54486bf-9vms4	subject-app--bxdkxgx	PrimaryResult	2026-06-12T13:02:43.2573249Z
+Started container 'subject'	ContainerStarted	subject-app--bxdkxgx-85c54486bf-h6mfj	subject-app--bxdkxgx	PrimaryResult	2026-06-12T13:02:43.2573249Z
+Replica 'subject-app--0000001-74788b76bc-9vlbp' has been scheduled to run on a node.	AssigningReplica	subject-app--0000001-74788b76bc-9vlbp	subject-app--0000001	PrimaryResult	2026-06-12T14:19:30.7727247Z
+Replica 'subject-app--0000001-74788b76bc-lwh9g' has been scheduled to run on a node.	AssigningReplica	subject-app--0000001-74788b76bc-lwh9g	subject-app--0000001	PrimaryResult	2026-06-12T14:19:30.7727247Z
+Replica 'subject-app--0000001-74788b76bc-lgjnp' has been scheduled to run on a node.	AssigningReplica	subject-app--0000001-74788b76bc-lgjnp	subject-app--0000001	PrimaryResult	2026-06-12T14:19:30.7727247Z
+Started container 'subject'	ContainerStarted	subject-app--0000001-74788b76bc-9vlbp	subject-app--0000001	PrimaryResult	2026-06-12T14:19:46.5992499Z
+Started container 'subject'	ContainerStarted	subject-app--0000001-74788b76bc-lgjnp	subject-app--0000001	PrimaryResult	2026-06-12T14:19:46.5992499Z
+Started container 'subject'	ContainerStarted	subject-app--0000001-74788b76bc-lwh9g	subject-app--0000001	PrimaryResult	2026-06-12T14:19:47.4810238Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--bxdkxgx-85c54486bf-9vms4	subject-app--bxdkxgx	PrimaryResult	2026-06-12T14:20:52.6048993Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--bxdkxgx-85c54486bf-h6mfj	subject-app--bxdkxgx	PrimaryResult	2026-06-12T14:20:52.6048993Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--bxdkxgx-85c54486bf-4fwnm	subject-app--bxdkxgx	PrimaryResult	2026-06-12T14:20:52.6048993Z
+Replica 'subject-app--0000002-64b585b6c7-5ddps' has been scheduled to run on a node.	AssigningReplica	subject-app--0000002-64b585b6c7-5ddps	subject-app--0000002	PrimaryResult	2026-06-12T14:30:25.1330896Z
+Replica 'subject-app--0000002-64b585b6c7-r9242' has been scheduled to run on a node.	AssigningReplica	subject-app--0000002-64b585b6c7-r9242	subject-app--0000002	PrimaryResult	2026-06-12T14:30:25.1330896Z
+Replica 'subject-app--0000002-64b585b6c7-fwvkt' has been scheduled to run on a node.	AssigningReplica	subject-app--0000002-64b585b6c7-fwvkt	subject-app--0000002	PrimaryResult	2026-06-12T14:30:25.1330896Z
+Started container 'subject'	ContainerStarted	subject-app--0000002-64b585b6c7-fwvkt	subject-app--0000002	PrimaryResult	2026-06-12T14:30:41.5842781Z
+Started container 'subject'	ContainerStarted	subject-app--0000002-64b585b6c7-r9242	subject-app--0000002	PrimaryResult	2026-06-12T14:30:42.5834403Z
+Started container 'subject'	ContainerStarted	subject-app--0000002-64b585b6c7-5ddps	subject-app--0000002	PrimaryResult	2026-06-12T14:30:42.5834403Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000001-74788b76bc-9vlbp	subject-app--0000001	PrimaryResult	2026-06-12T14:31:52.1797787Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000001-74788b76bc-lgjnp	subject-app--0000001	PrimaryResult	2026-06-12T14:31:52.1797787Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000001-74788b76bc-lwh9g	subject-app--0000001	PrimaryResult	2026-06-12T14:31:52.1797787Z
+Replica 'subject-app--0000003-5fdd676994-v5vj8' has been scheduled to run on a node.	AssigningReplica	subject-app--0000003-5fdd676994-v5vj8	subject-app--0000003	PrimaryResult	2026-06-12T14:41:21.5286367Z
+Replica 'subject-app--0000003-5fdd676994-xqj7s' has been scheduled to run on a node.	AssigningReplica	subject-app--0000003-5fdd676994-xqj7s	subject-app--0000003	PrimaryResult	2026-06-12T14:41:21.5286367Z
+Replica 'subject-app--0000003-5fdd676994-jbtjg' has been scheduled to run on a node.	AssigningReplica	subject-app--0000003-5fdd676994-jbtjg	subject-app--0000003	PrimaryResult	2026-06-12T14:41:21.5286367Z
+Started container 'subject'	ContainerStarted	subject-app--0000003-5fdd676994-jbtjg	subject-app--0000003	PrimaryResult	2026-06-12T14:41:36.3463042Z
+Started container 'subject'	ContainerStarted	subject-app--0000003-5fdd676994-v5vj8	subject-app--0000003	PrimaryResult	2026-06-12T14:41:36.3463042Z
+Started container 'subject'	ContainerStarted	subject-app--0000003-5fdd676994-xqj7s	subject-app--0000003	PrimaryResult	2026-06-12T14:41:39.5339152Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000002-64b585b6c7-r9242	subject-app--0000002	PrimaryResult	2026-06-12T14:42:42.3737204Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000002-64b585b6c7-5ddps	subject-app--0000002	PrimaryResult	2026-06-12T14:42:42.3737204Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000002-64b585b6c7-fwvkt	subject-app--0000002	PrimaryResult	2026-06-12T14:42:42.3737204Z
+Replica 'subject-app--0000004-db697cb47-q696p' has been scheduled to run on a node.	AssigningReplica	subject-app--0000004-db697cb47-q696p	subject-app--0000004	PrimaryResult	2026-06-12T15:03:10.648543Z
+Replica 'subject-app--0000004-db697cb47-bffg2' has been scheduled to run on a node.	AssigningReplica	subject-app--0000004-db697cb47-bffg2	subject-app--0000004	PrimaryResult	2026-06-12T15:03:10.648543Z
+Replica 'subject-app--0000004-db697cb47-8lvfb' has been scheduled to run on a node.	AssigningReplica	subject-app--0000004-db697cb47-8lvfb	subject-app--0000004	PrimaryResult	2026-06-12T15:03:10.648543Z
+Started container 'subject'	ContainerStarted	subject-app--0000004-db697cb47-bffg2	subject-app--0000004	PrimaryResult	2026-06-12T15:03:21.2246299Z
+Started container 'subject'	ContainerStarted	subject-app--0000004-db697cb47-8lvfb	subject-app--0000004	PrimaryResult	2026-06-12T15:03:22.2286347Z
+Started container 'subject'	ContainerStarted	subject-app--0000004-db697cb47-q696p	subject-app--0000004	PrimaryResult	2026-06-12T15:03:26.4277734Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000003-5fdd676994-v5vj8	subject-app--0000003	PrimaryResult	2026-06-12T15:04:32.2784332Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000003-5fdd676994-xqj7s	subject-app--0000003	PrimaryResult	2026-06-12T15:04:32.2784332Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000003-5fdd676994-jbtjg	subject-app--0000003	PrimaryResult	2026-06-12T15:04:32.2784332Z
+Replica 'subject-app--0000005-587b64fd9f-l5v29' has been scheduled to run on a node.	AssigningReplica	subject-app--0000005-587b64fd9f-l5v29	subject-app--0000005	PrimaryResult	2026-06-12T15:14:04.213601Z
+Replica 'subject-app--0000005-587b64fd9f-64wpz' has been scheduled to run on a node.	AssigningReplica	subject-app--0000005-587b64fd9f-64wpz	subject-app--0000005	PrimaryResult	2026-06-12T15:14:04.213601Z
+Replica 'subject-app--0000005-587b64fd9f-cs9tg' has been scheduled to run on a node.	AssigningReplica	subject-app--0000005-587b64fd9f-cs9tg	subject-app--0000005	PrimaryResult	2026-06-12T15:14:04.213601Z
+Started container 'subject'	ContainerStarted	subject-app--0000005-587b64fd9f-cs9tg	subject-app--0000005	PrimaryResult	2026-06-12T15:14:19.3259923Z
+Started container 'subject'	ContainerStarted	subject-app--0000005-587b64fd9f-64wpz	subject-app--0000005	PrimaryResult	2026-06-12T15:14:20.3445997Z
+Started container 'subject'	ContainerStarted	subject-app--0000005-587b64fd9f-l5v29	subject-app--0000005	PrimaryResult	2026-06-12T15:14:21.3901246Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000004-db697cb47-bffg2	subject-app--0000004	PrimaryResult	2026-06-12T15:15:27.43141Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000004-db697cb47-q696p	subject-app--0000004	PrimaryResult	2026-06-12T15:15:27.43141Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000004-db697cb47-8lvfb	subject-app--0000004	PrimaryResult	2026-06-12T15:15:27.43141Z
+Replica 'subject-app--0000006-b59dcd8cf-zt7hm' has been scheduled to run on a node.	AssigningReplica	subject-app--0000006-b59dcd8cf-zt7hm	subject-app--0000006	PrimaryResult	2026-06-12T15:24:58.2568674Z
+Replica 'subject-app--0000006-b59dcd8cf-ttv66' has been scheduled to run on a node.	AssigningReplica	subject-app--0000006-b59dcd8cf-ttv66	subject-app--0000006	PrimaryResult	2026-06-12T15:24:58.2568674Z
+Replica 'subject-app--0000006-b59dcd8cf-f6kq9' has been scheduled to run on a node.	AssigningReplica	subject-app--0000006-b59dcd8cf-f6kq9	subject-app--0000006	PrimaryResult	2026-06-12T15:24:58.2568674Z
+Started container 'subject'	ContainerStarted	subject-app--0000006-b59dcd8cf-f6kq9	subject-app--0000006	PrimaryResult	2026-06-12T15:25:13.2025278Z
+Started container 'subject'	ContainerStarted	subject-app--0000006-b59dcd8cf-ttv66	subject-app--0000006	PrimaryResult	2026-06-12T15:25:13.2025278Z
+Started container 'subject'	ContainerStarted	subject-app--0000006-b59dcd8cf-zt7hm	subject-app--0000006	PrimaryResult	2026-06-12T15:25:15.1644142Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000005-587b64fd9f-cs9tg	subject-app--0000005	PrimaryResult	2026-06-12T15:26:21.158161Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000005-587b64fd9f-l5v29	subject-app--0000005	PrimaryResult	2026-06-12T15:26:21.158161Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000005-587b64fd9f-64wpz	subject-app--0000005	PrimaryResult	2026-06-12T15:26:21.158161Z
+Replica 'subject-app--0000007-84f8df4c4b-mw7mx' has been scheduled to run on a node.	AssigningReplica	subject-app--0000007-84f8df4c4b-mw7mx	subject-app--0000007	PrimaryResult	2026-06-12T15:35:54.3762283Z
+Replica 'subject-app--0000007-84f8df4c4b-8b8fq' has been scheduled to run on a node.	AssigningReplica	subject-app--0000007-84f8df4c4b-8b8fq	subject-app--0000007	PrimaryResult	2026-06-12T15:35:54.3762283Z
+Replica 'subject-app--0000007-84f8df4c4b-f4psz' has been scheduled to run on a node.	AssigningReplica	subject-app--0000007-84f8df4c4b-f4psz	subject-app--0000007	PrimaryResult	2026-06-12T15:35:54.3762283Z
+Started container 'subject'	ContainerStarted	subject-app--0000007-84f8df4c4b-mw7mx	subject-app--0000007	PrimaryResult	2026-06-12T15:36:10.6575639Z
+Started container 'subject'	ContainerStarted	subject-app--0000007-84f8df4c4b-8b8fq	subject-app--0000007	PrimaryResult	2026-06-12T15:36:10.6575639Z
+Started container 'subject'	ContainerStarted	subject-app--0000007-84f8df4c4b-f4psz	subject-app--0000007	PrimaryResult	2026-06-12T15:36:16.502761Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000006-b59dcd8cf-zt7hm	subject-app--0000006	PrimaryResult	2026-06-12T15:37:15.479732Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000006-b59dcd8cf-ttv66	subject-app--0000006	PrimaryResult	2026-06-12T15:37:15.479732Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000006-b59dcd8cf-f6kq9	subject-app--0000006	PrimaryResult	2026-06-12T15:37:15.479732Z
+Replica 'subject-app--0000008-6d8fcbd44f-9vpxf' has been scheduled to run on a node.	AssigningReplica	subject-app--0000008-6d8fcbd44f-9vpxf	subject-app--0000008	PrimaryResult	2026-06-12T15:46:49.3157895Z
+Replica 'subject-app--0000008-6d8fcbd44f-wgsl8' has been scheduled to run on a node.	AssigningReplica	subject-app--0000008-6d8fcbd44f-wgsl8	subject-app--0000008	PrimaryResult	2026-06-12T15:46:49.3157895Z
+Replica 'subject-app--0000008-6d8fcbd44f-65slq' has been scheduled to run on a node.	AssigningReplica	subject-app--0000008-6d8fcbd44f-65slq	subject-app--0000008	PrimaryResult	2026-06-12T15:46:49.3157895Z
+Started container 'subject'	ContainerStarted	subject-app--0000008-6d8fcbd44f-65slq	subject-app--0000008	PrimaryResult	2026-06-12T15:47:04.3086712Z
+Started container 'subject'	ContainerStarted	subject-app--0000008-6d8fcbd44f-9vpxf	subject-app--0000008	PrimaryResult	2026-06-12T15:47:04.3086712Z
+Started container 'subject'	ContainerStarted	subject-app--0000008-6d8fcbd44f-wgsl8	subject-app--0000008	PrimaryResult	2026-06-12T15:47:06.1890085Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000007-84f8df4c4b-mw7mx	subject-app--0000007	PrimaryResult	2026-06-12T15:48:11.2286492Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000007-84f8df4c4b-f4psz	subject-app--0000007	PrimaryResult	2026-06-12T15:48:11.2286492Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000007-84f8df4c4b-8b8fq	subject-app--0000007	PrimaryResult	2026-06-12T15:48:11.2286492Z
+Replica 'subject-app--0000009-df9bcddcf-jhn7h' has been scheduled to run on a node.	AssigningReplica	subject-app--0000009-df9bcddcf-jhn7h	subject-app--0000009	PrimaryResult	2026-06-12T15:57:43.2142504Z
+Replica 'subject-app--0000009-df9bcddcf-54lnq' has been scheduled to run on a node.	AssigningReplica	subject-app--0000009-df9bcddcf-54lnq	subject-app--0000009	PrimaryResult	2026-06-12T15:57:43.2142504Z
+Replica 'subject-app--0000009-df9bcddcf-v85n6' has been scheduled to run on a node.	AssigningReplica	subject-app--0000009-df9bcddcf-v85n6	subject-app--0000009	PrimaryResult	2026-06-12T15:57:43.2142504Z
+Started container 'subject'	ContainerStarted	subject-app--0000009-df9bcddcf-jhn7h	subject-app--0000009	PrimaryResult	2026-06-12T15:57:58.5906343Z
+Started container 'subject'	ContainerStarted	subject-app--0000009-df9bcddcf-v85n6	subject-app--0000009	PrimaryResult	2026-06-12T15:57:59.2384289Z
+Started container 'subject'	ContainerStarted	subject-app--0000009-df9bcddcf-54lnq	subject-app--0000009	PrimaryResult	2026-06-12T15:57:59.2384289Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000008-6d8fcbd44f-65slq	subject-app--0000008	PrimaryResult	2026-06-12T15:59:05.1939123Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000008-6d8fcbd44f-wgsl8	subject-app--0000008	PrimaryResult	2026-06-12T15:59:05.1939123Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000008-6d8fcbd44f-9vpxf	subject-app--0000008	PrimaryResult	2026-06-12T15:59:05.1939123Z
+Replica 'subject-app--0000010-547f8648b9-f84q8' has been scheduled to run on a node.	AssigningReplica	subject-app--0000010-547f8648b9-f84q8	subject-app--0000010	PrimaryResult	2026-06-12T16:08:41.6127137Z
+Replica 'subject-app--0000010-547f8648b9-ntkdg' has been scheduled to run on a node.	AssigningReplica	subject-app--0000010-547f8648b9-ntkdg	subject-app--0000010	PrimaryResult	2026-06-12T16:08:41.6127137Z
+Replica 'subject-app--0000010-547f8648b9-wjdmt' has been scheduled to run on a node.	AssigningReplica	subject-app--0000010-547f8648b9-wjdmt	subject-app--0000010	PrimaryResult	2026-06-12T16:08:41.6127137Z
+Started container 'subject'	ContainerStarted	subject-app--0000010-547f8648b9-wjdmt	subject-app--0000010	PrimaryResult	2026-06-12T16:08:56.6347703Z
+Started container 'subject'	ContainerStarted	subject-app--0000010-547f8648b9-ntkdg	subject-app--0000010	PrimaryResult	2026-06-12T16:08:57.2885714Z
+Started container 'subject'	ContainerStarted	subject-app--0000010-547f8648b9-f84q8	subject-app--0000010	PrimaryResult	2026-06-12T16:08:57.2885714Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000009-df9bcddcf-v85n6	subject-app--0000009	PrimaryResult	2026-06-12T16:09:57.316686Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000009-df9bcddcf-54lnq	subject-app--0000009	PrimaryResult	2026-06-12T16:09:58.1941362Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000009-df9bcddcf-jhn7h	subject-app--0000009	PrimaryResult	2026-06-12T16:09:58.1941362Z
+Replica 'subject-app--0000011-698d76d7-hlqgv' has been scheduled to run on a node.	AssigningReplica	subject-app--0000011-698d76d7-hlqgv	subject-app--0000011	PrimaryResult	2026-06-12T16:19:37.2182252Z
+Replica 'subject-app--0000011-698d76d7-gzm48' has been scheduled to run on a node.	AssigningReplica	subject-app--0000011-698d76d7-gzm48	subject-app--0000011	PrimaryResult	2026-06-12T16:19:37.2182252Z
+Replica 'subject-app--0000011-698d76d7-fz5tt' has been scheduled to run on a node.	AssigningReplica	subject-app--0000011-698d76d7-fz5tt	subject-app--0000011	PrimaryResult	2026-06-12T16:19:37.2182252Z
+Started container 'subject'	ContainerStarted	subject-app--0000011-698d76d7-gzm48	subject-app--0000011	PrimaryResult	2026-06-12T16:19:52.2182862Z
+Started container 'subject'	ContainerStarted	subject-app--0000011-698d76d7-fz5tt	subject-app--0000011	PrimaryResult	2026-06-12T16:19:52.2182862Z
+Started container 'subject'	ContainerStarted	subject-app--0000011-698d76d7-hlqgv	subject-app--0000011	PrimaryResult	2026-06-12T16:19:53.7020481Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000010-547f8648b9-wjdmt	subject-app--0000010	PrimaryResult	2026-06-12T16:20:59.2150673Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000010-547f8648b9-f84q8	subject-app--0000010	PrimaryResult	2026-06-12T16:20:59.2150673Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000010-547f8648b9-ntkdg	subject-app--0000010	PrimaryResult	2026-06-12T16:20:59.2150673Z
+Replica 'subject-app--0000012-5468fdc5dc-t5krf' has been scheduled to run on a node.	AssigningReplica	subject-app--0000012-5468fdc5dc-t5krf	subject-app--0000012	PrimaryResult	2026-06-12T16:30:32.4919565Z
+Replica 'subject-app--0000012-5468fdc5dc-5g6k8' has been scheduled to run on a node.	AssigningReplica	subject-app--0000012-5468fdc5dc-5g6k8	subject-app--0000012	PrimaryResult	2026-06-12T16:30:32.4919565Z
+Replica 'subject-app--0000012-5468fdc5dc-42ccn' has been scheduled to run on a node.	AssigningReplica	subject-app--0000012-5468fdc5dc-42ccn	subject-app--0000012	PrimaryResult	2026-06-12T16:30:32.4919565Z
+Started container 'subject'	ContainerStarted	subject-app--0000012-5468fdc5dc-t5krf	subject-app--0000012	PrimaryResult	2026-06-12T16:30:46.2482109Z
+Started container 'subject'	ContainerStarted	subject-app--0000012-5468fdc5dc-5g6k8	subject-app--0000012	PrimaryResult	2026-06-12T16:30:48.5388918Z
+Started container 'subject'	ContainerStarted	subject-app--0000012-5468fdc5dc-42ccn	subject-app--0000012	PrimaryResult	2026-06-12T16:30:54.4135188Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000011-698d76d7-hlqgv	subject-app--0000011	PrimaryResult	2026-06-12T16:31:55.4058819Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000011-698d76d7-fz5tt	subject-app--0000011	PrimaryResult	2026-06-12T16:31:55.4058819Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000011-698d76d7-gzm48	subject-app--0000011	PrimaryResult	2026-06-12T16:31:55.4058819Z
+Replica 'subject-app--0000013-6c4d7867c-v8szx' has been scheduled to run on a node.	AssigningReplica	subject-app--0000013-6c4d7867c-v8szx	subject-app--0000013	PrimaryResult	2026-06-12T16:41:25.1863716Z
+Replica 'subject-app--0000013-6c4d7867c-8sz46' has been scheduled to run on a node.	AssigningReplica	subject-app--0000013-6c4d7867c-8sz46	subject-app--0000013	PrimaryResult	2026-06-12T16:41:25.1863716Z
+Replica 'subject-app--0000013-6c4d7867c-2dbj8' has been scheduled to run on a node.	AssigningReplica	subject-app--0000013-6c4d7867c-2dbj8	subject-app--0000013	PrimaryResult	2026-06-12T16:41:25.1863716Z
+Started container 'subject'	ContainerStarted	subject-app--0000013-6c4d7867c-v8szx	subject-app--0000013	PrimaryResult	2026-06-12T16:41:37.312729Z
+Started container 'subject'	ContainerStarted	subject-app--0000013-6c4d7867c-8sz46	subject-app--0000013	PrimaryResult	2026-06-12T16:41:40.1284882Z
+Started container 'subject'	ContainerStarted	subject-app--0000013-6c4d7867c-2dbj8	subject-app--0000013	PrimaryResult	2026-06-12T16:41:41.1395608Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000012-5468fdc5dc-5g6k8	subject-app--0000012	PrimaryResult	2026-06-12T16:42:48.1574363Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000012-5468fdc5dc-t5krf	subject-app--0000012	PrimaryResult	2026-06-12T16:42:48.1574363Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000012-5468fdc5dc-42ccn	subject-app--0000012	PrimaryResult	2026-06-12T16:42:48.1574363Z
+Replica 'subject-app--0000014-548b9d859b-vhp98' has been scheduled to run on a node.	AssigningReplica	subject-app--0000014-548b9d859b-vhp98	subject-app--0000014	PrimaryResult	2026-06-12T16:52:22.2135158Z
+Replica 'subject-app--0000014-548b9d859b-gbbzv' has been scheduled to run on a node.	AssigningReplica	subject-app--0000014-548b9d859b-gbbzv	subject-app--0000014	PrimaryResult	2026-06-12T16:52:22.2135158Z
+Replica 'subject-app--0000014-548b9d859b-gvn5m' has been scheduled to run on a node.	AssigningReplica	subject-app--0000014-548b9d859b-gvn5m	subject-app--0000014	PrimaryResult	2026-06-12T16:52:22.2135158Z
+Started container 'subject'	ContainerStarted	subject-app--0000014-548b9d859b-vhp98	subject-app--0000014	PrimaryResult	2026-06-12T16:52:37.2017724Z
+Started container 'subject'	ContainerStarted	subject-app--0000014-548b9d859b-gvn5m	subject-app--0000014	PrimaryResult	2026-06-12T16:52:44.3534115Z
+Started container 'subject'	ContainerStarted	subject-app--0000014-548b9d859b-gbbzv	subject-app--0000014	PrimaryResult	2026-06-12T16:52:45.5634695Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000013-6c4d7867c-2dbj8	subject-app--0000013	PrimaryResult	2026-06-12T16:53:45.6015296Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000013-6c4d7867c-8sz46	subject-app--0000013	PrimaryResult	2026-06-12T16:53:45.6015296Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000013-6c4d7867c-v8szx	subject-app--0000013	PrimaryResult	2026-06-12T16:53:45.6015296Z
+Replica 'subject-app--0000015-dd5c78f9-6kw4l' has been scheduled to run on a node.	AssigningReplica	subject-app--0000015-dd5c78f9-6kw4l	subject-app--0000015	PrimaryResult	2026-06-12T17:03:19.2152775Z
+Replica 'subject-app--0000015-dd5c78f9-xwc8p' has been scheduled to run on a node.	AssigningReplica	subject-app--0000015-dd5c78f9-xwc8p	subject-app--0000015	PrimaryResult	2026-06-12T17:03:19.2152775Z
+Replica 'subject-app--0000015-dd5c78f9-j7w6n' has been scheduled to run on a node.	AssigningReplica	subject-app--0000015-dd5c78f9-j7w6n	subject-app--0000015	PrimaryResult	2026-06-12T17:03:19.2152775Z
+Started container 'subject'	ContainerStarted	subject-app--0000015-dd5c78f9-6kw4l	subject-app--0000015	PrimaryResult	2026-06-12T17:03:34.8391163Z
+Started container 'subject'	ContainerStarted	subject-app--0000015-dd5c78f9-xwc8p	subject-app--0000015	PrimaryResult	2026-06-12T17:03:35.3170782Z
+Started container 'subject'	ContainerStarted	subject-app--0000015-dd5c78f9-j7w6n	subject-app--0000015	PrimaryResult	2026-06-12T17:03:35.3170782Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000014-548b9d859b-gvn5m	subject-app--0000014	PrimaryResult	2026-06-12T17:04:42.3008229Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000014-548b9d859b-gbbzv	subject-app--0000014	PrimaryResult	2026-06-12T17:04:42.3008229Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000014-548b9d859b-vhp98	subject-app--0000014	PrimaryResult	2026-06-12T17:04:42.3008229Z
+Replica 'subject-app--0000015-6ff4646495-df5qx' has been scheduled to run on a node.	AssigningReplica	subject-app--0000015-6ff4646495-df5qx	subject-app--0000015	PrimaryResult	2026-06-13T05:47:55.5614811Z
+Started container 'subject'	ContainerStarted	subject-app--0000015-6ff4646495-df5qx	subject-app--0000015	PrimaryResult	2026-06-13T05:48:12.7262058Z
+Replica 'subject-app--0000015-6ff4646495-p97rh' has been scheduled to run on a node.	AssigningReplica	subject-app--0000015-6ff4646495-p97rh	subject-app--0000015	PrimaryResult	2026-06-13T05:48:39.3806142Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000015-dd5c78f9-6kw4l	subject-app--0000015	PrimaryResult	2026-06-13T05:48:40.6181988Z
+Started container 'subject'	ContainerStarted	subject-app--0000015-6ff4646495-p97rh	subject-app--0000015	PrimaryResult	2026-06-13T05:48:54.226333Z
+Replica 'subject-app--0000015-6ff4646495-tmg92' has been scheduled to run on a node.	AssigningReplica	subject-app--0000015-6ff4646495-tmg92	subject-app--0000015	PrimaryResult	2026-06-13T05:49:21.4811635Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000015-dd5c78f9-j7w6n	subject-app--0000015	PrimaryResult	2026-06-13T05:49:22.5232312Z
+Started container 'subject'	ContainerStarted	subject-app--0000015-6ff4646495-tmg92	subject-app--0000015	PrimaryResult	2026-06-13T05:49:36.2741148Z
+Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'	ContainerTerminated	subject-app--0000015-dd5c78f9-xwc8p	subject-app--0000015	PrimaryResult	2026-06-13T05:50:04.3853791Z

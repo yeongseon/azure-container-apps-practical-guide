@@ -1,0 +1,14 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "err_count": "1",
+    "err_pct": "0",
+    "max_ms": "6794",
+    "ok_count": "289931",
+    "p50_ms": "296.9",
+    "p95_ms": "1292.3",
+    "p99_ms": "1908.8",
+    "requests": "289932",
+    "run_id": "supplemental-restart-20260613054632"
+  }
+]

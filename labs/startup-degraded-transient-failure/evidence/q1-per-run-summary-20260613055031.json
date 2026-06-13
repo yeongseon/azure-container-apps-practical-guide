@@ -1,0 +1,26 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "err_count": "159",
+    "err_pct": "0.068",
+    "max_ms": "5097.2",
+    "ok_count": "232972",
+    "p50_ms": "299.3",
+    "p95_ms": "1251.4",
+    "p99_ms": "1809.5",
+    "requests": "233131",
+    "run_id": "perturbation-20260612141745"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "err_count": "0",
+    "err_pct": "0",
+    "max_ms": "8489.5",
+    "ok_count": "1145439",
+    "p50_ms": "305.4",
+    "p95_ms": "1212.5",
+    "p99_ms": "1811.4",
+    "requests": "1145439",
+    "run_id": "perturbation-20260612150126"
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "app": "subject-app",
+    "first_sample": "2026-06-12T14:50:14Z",
+    "last_sample": "2026-06-13T06:27:08Z",
+    "running_count": "3768",
+    "running_pct": "99.03",
+    "sample_count": "3805",
+    "unique_replicas": "48",
+    "unique_revisions": "13"
+  }
+]

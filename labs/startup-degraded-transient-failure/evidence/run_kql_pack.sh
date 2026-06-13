@@ -29,6 +29,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTDIR="$SCRIPT_DIR"
 TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
 
+# KQL_LOOKBACK_HOURS overrides the default 3h window used by q1/q2/q5/q7.
+# Set this to a larger value (e.g. 18) when querying a run that ended more
+# than 3 hours ago. q4 (audit cron) takes its own hours arg and is unaffected.
+LOOKBACK_HOURS="${KQL_LOOKBACK_HOURS:-3}"
+
 if [[ -z "${RG:-}" || -z "${LAW_NAME:-}" ]]; then
   source "${SCRIPT_DIR}/deploy-env.sh"
 fi
@@ -86,7 +91,7 @@ q1() {
   local q
   q=$(cat <<KQL
 ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(3h)
+| where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | where Log_s has "${run_pattern}"
 | extend body_raw = extract(@'msg="(.+)" source=console', 1, Log_s)
@@ -120,7 +125,7 @@ q2() {
   local q
   q=$(cat <<KQL
 let req = ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(3h)
+| where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | where Log_s has "${run_pattern}"
 | extend body_raw = extract(@'msg="(.+)" source=console', 1, Log_s)
@@ -138,7 +143,7 @@ let req = ContainerAppConsoleLogs_CL
             p99_ms = round(percentile(dur_ms, 99), 1)
         by run_id, bucket_iso;
 ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(3h)
+| where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | where Log_s has "${run_pattern}"
 | extend body_raw = extract(@'msg="(.+)" source=console', 1, Log_s)
@@ -167,7 +172,7 @@ q3() {
   local q
   q=$(cat <<KQL
 ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(3h)
+| where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "sampler"
 | extend payload = parse_json(Log_s)
 | extend event_kind = tostring(payload.kind)
@@ -222,7 +227,7 @@ q5() {
   local q
   q=$(cat <<KQL
 let buckets = ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(3h)
+| where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | where Log_s has "${run_pattern}"
 | extend body_raw = extract(@'msg="(.+)" source=console', 1, Log_s)
@@ -259,9 +264,9 @@ KQL
 
 q6() {
   local q
-  q=$(cat <<'KQL'
+  q=$(cat <<KQL
 let allBuckets = ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(6h)
+| where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | extend body_raw = extract(@'msg="(.+)" source=console', 1, Log_s)
 | where isnotempty(body_raw)
@@ -341,7 +346,7 @@ case "${1:-help}" in
     q5 "$pattern"
     q4 24
     q6
-    q7 6
+    q7 "$LOOKBACK_HOURS"
     ;;
   help|*) sed -n '1,30p' "$0"; exit 0 ;;
 esac
