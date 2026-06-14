@@ -201,10 +201,17 @@ resource env 'Microsoft.App/managedEnvironments@2024-03-01' = {
 //   - app-consumption uses the Consumption (multi-tenant) profile
 //   - app-dedicated-d8 uses the d8-dedicated (Dedicated D8) profile
 //
-// Per Issue #202 design (Oracle-modified):
+// Per Issue #202 design (Oracle-modified, top targets revised after
+// empirical D8 capacity-ceiling finding 2026-06-14):
 //   - Per-replica resources: 0.25 vCPU / 0.5 Gi (smallest Consumption alloc)
-//   - Top scale targets: Consumption=30, Dedicated D8=24 (D8 has 8 vCPU total;
-//     24 * 0.25 = 6 vCPU < 8 with headroom for system overhead)
+//   - Top scale targets used by trigger.sh: Consumption=30, Dedicated D8=10
+//     (D8 ceiling note: a single 8 vCPU / 32 GiB D8 node could not
+//     provision N=24 of 0.25 vCPU replicas within the 600s scale window
+//     because of system overhead; lab now tops at 10 to fit the 3-repeat
+//     protocol)
+//   - Bicep maxReplicas headroom remains intentionally wider than the
+//     scripted targets so operators can experiment past 30 / 10 manually
+//     without redeploying — actual scaling is driven by `scale.sh`
 //   - Deployed at min=max=1; scale.sh perturbs both up to top during the
 //     experiment so we can reuse the same deployment across all scale steps
 // ---------------------------------------------------------------------

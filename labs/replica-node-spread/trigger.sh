@@ -24,11 +24,26 @@
 #   TOP_REPEATS=3    Number of repeats at top scale (default 3)
 #   SETTLE_SECS=20   Pause after scale before sampling (default 20)
 #
+# Required env:
+#   RG               Resource group with the deployed lab.
+#   SUBSCRIPTION_ID  Exact Azure subscription this lab targets (defensive).
+#
 # Usage:
-#   export RG="rg-aca-rns-lab"
+#   source /tmp/rns-lab.env   # exports SUBSCRIPTION_ID, RG, ...
 #   ./trigger.sh
 
 set -euo pipefail
+
+# Defensive guard: prevent accidental cross-subscription trigger runs.
+: "${SUBSCRIPTION_ID:?SUBSCRIPTION_ID must be exported (e.g. source /tmp/rns-lab.env)}"
+ACTIVE_SUB=$(az account show --query id --output tsv 2>/dev/null || true)
+if [[ "$ACTIVE_SUB" != "$SUBSCRIPTION_ID" ]]; then
+  echo "ERROR: az active subscription mismatch" >&2
+  echo "  expected: $SUBSCRIPTION_ID" >&2
+  echo "  active  : $ACTIVE_SUB" >&2
+  echo "  fix     : az account set --subscription $SUBSCRIPTION_ID" >&2
+  exit 1
+fi
 
 RG="${RG:-rg-aca-rns-lab}"
 TOP_REPEATS="${TOP_REPEATS:-3}"
@@ -65,9 +80,22 @@ else
   echo ">> SKIP_FALSIFY=1 — skipping H3 gate (do not publish H1/H2 results)"
 fi
 
-# Scale sequence per profile (top differs because D8 caps at 8 vCPU).
+# Scale sequences per profile.
+#
+# CONS_SCALES walks Consumption 1 -> 3 -> 10 -> 30. The top of 30 is the
+# repeat target.
+#
+# DED_SCALES walks Dedicated D8 1 -> 3 -> 10. The top of 10 is the
+# repeat target. The empirically validated capacity ceiling on a single
+# D8 node (8 vCPU, 32 GiB) with 0.25 vCPU / 0.5 GiB per replica is
+# ~10 replicas — earlier exploratory runs that attempted 24 replicas
+# could not provision them within a 600s window because system overhead
+# (control-plane sidecars, DaemonSet pods, kubelet headroom) consumes
+# meaningful vCPU. The D8 ceiling itself is documented as a sidebar
+# finding in the lab guide; the main H1/H2 experiment uses the
+# provisionable top so the 3-repeat protocol completes within budget.
 declare -a CONS_SCALES=(1 3 10 30)
-declare -a DED_SCALES=(1 3 10 24)
+declare -a DED_SCALES=(1 3 10)
 
 # Per-step oversample factor and overrides for the small steps.
 samples_for() {

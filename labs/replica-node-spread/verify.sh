@@ -8,11 +8,27 @@
 #   4. Both apps have at least one ready replica
 #   5. /diag responds 200 on each app FQDN
 #
+# Required env:
+#   RG               Resource group with the deployed lab.
+#   SUBSCRIPTION_ID  Exact Azure subscription this lab targets (defensive).
+#
 # Usage:
-#   export RG="rg-aca-rns-lab"
+#   source /tmp/rns-lab.env   # exports SUBSCRIPTION_ID, RG, ...
 #   ./verify.sh
 
 set -euo pipefail
+
+# Defensive guard: verify is read-only but the per-check output would be
+# confusing (all PASS or all FAIL) if it ran on the wrong subscription.
+: "${SUBSCRIPTION_ID:?SUBSCRIPTION_ID must be exported (e.g. source /tmp/rns-lab.env)}"
+ACTIVE_SUB=$(az account show --query id --output tsv 2>/dev/null || true)
+if [[ "$ACTIVE_SUB" != "$SUBSCRIPTION_ID" ]]; then
+  echo "ERROR: az active subscription mismatch" >&2
+  echo "  expected: $SUBSCRIPTION_ID" >&2
+  echo "  active  : $ACTIVE_SUB" >&2
+  echo "  fix     : az account set --subscription $SUBSCRIPTION_ID" >&2
+  exit 1
+fi
 
 RG="${RG:-rg-aca-rns-lab}"
 SUBJECT_APPS=("app-consumption" "app-dedicated-d8")

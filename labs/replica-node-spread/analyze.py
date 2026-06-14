@@ -136,13 +136,20 @@ def analyze_run(path: Path) -> RunStats:
 
 
 def verdict_for(stats: RunStats) -> str:
-    """Map raw counts to an evidence-ceiling-aware verdict string."""
+    """Map raw counts to an evidence-ceiling-aware verdict string.
+
+    Only kernel-context wording is allowed here. Node-placement
+    interpretation is reserved for `[Strongly Suggested]` prose in the
+    lab guide; the ACA management plane does not expose per-replica
+    Microsoft.Compute node identity, so this function MUST NOT emit
+    "node" / "nodes" claims.
+    """
     if stats.unique_replicas == 0:
         return "no-data"
     if stats.unique_boot_ids <= 1:
-        return "single-kernel-context (consistent with same node)"
+        return "single kernel context"
     if stats.boot_time_clusters >= 2:
-        return f"{stats.boot_time_clusters} distinct kernel contexts (consistent with {stats.boot_time_clusters} nodes)"
+        return f"{stats.boot_time_clusters} distinct kernel contexts"
     return f"{stats.unique_boot_ids} boot_ids in 1 boot_time cluster (ambiguous)"
 
 

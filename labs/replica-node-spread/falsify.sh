@@ -43,11 +43,26 @@
 #     actually the H1/H2 research question on Consumption (expected yes)
 #     vs Dedicated D8 (expected no, all on one shared kernel).
 #
+# Required env:
+#   RG               Resource group with the deployed lab.
+#   SUBSCRIPTION_ID  Exact Azure subscription this lab targets (defensive).
+#
 # Usage:
-#   export RG="rg-aca-rns-lab"
+#   source /tmp/rns-lab.env   # exports SUBSCRIPTION_ID, RG, ...
 #   ./falsify.sh
 
 set -euo pipefail
+
+# Defensive guard: prevent accidental cross-subscription falsification runs.
+: "${SUBSCRIPTION_ID:?SUBSCRIPTION_ID must be exported (e.g. source /tmp/rns-lab.env)}"
+ACTIVE_SUB=$(az account show --query id --output tsv 2>/dev/null || true)
+if [[ "$ACTIVE_SUB" != "$SUBSCRIPTION_ID" ]]; then
+  echo "ERROR: az active subscription mismatch" >&2
+  echo "  expected: $SUBSCRIPTION_ID" >&2
+  echo "  active  : $ACTIVE_SUB" >&2
+  echo "  fix     : az account set --subscription $SUBSCRIPTION_ID" >&2
+  exit 1
+fi
 
 RG="${RG:-rg-aca-rns-lab}"
 APP="app-consumption"

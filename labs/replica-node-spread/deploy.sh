@@ -17,8 +17,29 @@
 #   export EXPIRY_HOURS=24
 #   export ACR_NAME="myexistingacr"   # bring your own ACR
 #   export SKIP_IMAGE_BUILD=1         # reuse the existing image tag
+#
+# REQUIRED env (defensive subscription guard):
+#   SUBSCRIPTION_ID  Exact Azure subscription ID this lab targets.
+#                    The script fails fast if `az account show` does not
+#                    match. This prevents the failure mode where the
+#                    operator's active subscription drifts from the lab
+#                    record (e.g. left over from another project) and the
+#                    deployment lands in the wrong account.
 
 set -euo pipefail
+
+# Defensive guard: prevent accidental cross-subscription deployment.
+# All downstream az commands run against whatever subscription is active;
+# this check fails fast if the operator's SUBSCRIPTION_ID does not match.
+: "${SUBSCRIPTION_ID:?SUBSCRIPTION_ID must be exported (e.g. source /tmp/rns-lab.env)}"
+ACTIVE_SUB=$(az account show --query id --output tsv 2>/dev/null || true)
+if [[ "$ACTIVE_SUB" != "$SUBSCRIPTION_ID" ]]; then
+  echo "ERROR: az active subscription mismatch" >&2
+  echo "  expected: $SUBSCRIPTION_ID" >&2
+  echo "  active  : $ACTIVE_SUB" >&2
+  echo "  fix     : az account set --subscription $SUBSCRIPTION_ID" >&2
+  exit 1
+fi
 
 RG="${RG:-rg-aca-rns-lab}"
 LOCATION="${LOCATION:-koreacentral}"
@@ -109,7 +130,7 @@ Next steps:
   2. Run the H3 falsification check (MUST pass before H1/H2 analysis):
        ./falsify.sh
 
-  3. Run the full experiment (~2 hours, repeats top scale 3x per profile):
+  3. Run the full experiment (~40-70 minutes, repeats top scale 3x per profile):
        ./trigger.sh
 
   4. Analyze evidence:

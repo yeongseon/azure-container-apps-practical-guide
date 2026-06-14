@@ -124,6 +124,7 @@ The Workload profiles blade on an existing v2 environment shows the built-in Con
 - [Workload Profiles](workload-profiles.md)
 - [Networking and CIDR](networking-and-cidr.md)
 - [Limits and Quotas](limits-and-quotas.md)
+- [Replica Node-Spread Lab](../../troubleshooting/lab-guides/replica-node-spread.md) — reproducible lab measuring Consumption vs Dedicated D8 placement spread using kernel-signal proxies
 
 ## Sources
 

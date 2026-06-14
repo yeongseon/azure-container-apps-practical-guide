@@ -483,6 +483,7 @@ nav:
       - CPU Throttling Lab: troubleshooting/lab-guides/cpu-throttling.md
       - Memory Leak OOMKilled Lab: troubleshooting/lab-guides/memory-leak-oomkilled.md
       - Replica Load Imbalance Lab: troubleshooting/lab-guides/replica-load-imbalance.md
+      - Replica Node-Spread Lab: troubleshooting/lab-guides/replica-node-spread.md
       - Memory Percentage vs KEDA Utilization Lab: troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md
       - KEDA No Metrics Returned Lab: troubleshooting/lab-guides/keda-no-metrics-returned.md
       - Docker Hub Rate Limit Lab: troubleshooting/lab-guides/docker-hub-rate-limit.md
