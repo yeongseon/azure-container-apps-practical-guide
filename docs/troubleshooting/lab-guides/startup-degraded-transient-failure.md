@@ -124,6 +124,11 @@ az account set --subscription "$SUBSCRIPTION_ID"
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az account set --subscription "$SUBSCRIPTION_ID"` | Selects the subscription that will host all lab resources, so subsequent `az` commands do not require `--subscription`. |
+| `az extension add --name containerapp --upgrade` | Installs or upgrades the Container Apps CLI extension; required for `az containerapp ...` commands used by `deploy.sh` and `verify.sh`. |
+
 ### Resource provisioning
 
 ```bash
@@ -149,6 +154,12 @@ export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 ./deploy.sh
 ./verify.sh
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az group create --resource-group "$RG" --location "$LOCATION" --tags expires-at=...` | Creates the lab resource group with a 48-hour expires-at tag for cost hygiene; every other lab resource is scoped inside it. |
+| `az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic --admin-enabled true` | Provisions a Basic ACR with admin user enabled (same pattern as the sibling `zone-redundancy-best-effort` lab); Premium ACR with private endpoints is intentionally out of scope. |
+| `az acr build --registry "$ACR_NAME" --image startup-degraded/<component>:latest ./<component>` (×4, parallel) | Builds the four lab container images (subject, audit, perturbation-sampler, loadgen) in parallel inside ACR Tasks; `wait` blocks until all four finish before exporting the image variables. |
 
 `verify.sh` runs 9 health checks. All 9 must pass before proceeding to Section 3.
 
