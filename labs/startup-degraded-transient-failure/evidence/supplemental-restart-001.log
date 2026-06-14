@@ -1,0 +1,33 @@
+>> Mode: supplemental-restart
+   RG: rg-aca-sdlab-260612125433
+   Subject FQDN: subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io
+   Subject URL : https://subject-app.niceglacier-27358013.koreacentral.azurecontainerapps.io/
+   Target RPS  : 200
+   Duration    : 1800 sec
+>>>> Starting continuous loadgen for 1860s spanning 3 restart events
+>>>> Mutating loadgen-k6 template (run_id=supplemental-restart-20260613054632, perturbation_id=spans-all-restart-events, duration=1860s)
+/ Running ..| Running ..[K>>>> Starting loadgen-k6 execution
+{"name":"loadgen-k6-tecih9d","status":null,"start":null}
+
+>>>> ==== Restart event 1/3: restart-event-1 ====
+>>>> Mutating perturbation-sampler template (perturbation_id=restart-event-1, duration=600s)
+/ Running ..| Running ..[K>>>> Starting perturbation-sampler execution
+{"name":"perturbation-sampler-af8h2p1","status":null,"start":null}
+>>>> Restarting active revision: subject-app--0000015
+>>>> Waiting 600 seconds before next restart...
+
+>>>> ==== Restart event 2/3: restart-event-2 ====
+>>>> Mutating perturbation-sampler template (perturbation_id=restart-event-2, duration=600s)
+/ Running ..| Running ..[K>>>> Starting perturbation-sampler execution
+{"name":"perturbation-sampler-d6ecnsy","status":null,"start":null}
+>>>> Restarting active revision: subject-app--0000015
+>>>> Waiting 600 seconds before next restart...
+
+>>>> ==== Restart event 3/3: restart-event-3 ====
+>>>> Mutating perturbation-sampler template (perturbation_id=restart-event-3, duration=600s)
+/ Running ..| Running ..[K>>>> Starting perturbation-sampler execution
+{"name":"perturbation-sampler-wh7g11d","status":null,"start":null}
+>>>> Restarting active revision: subject-app--0000015
+
+>>>> Supplemental restart phase complete. RUN_ID=supplemental-restart-20260613054632
+>>>> NOTE: Cap conclusions about platform-initiated restart causes at [Strongly Suggested] (Oracle binding #1).

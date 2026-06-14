@@ -504,6 +504,7 @@ az monitor metrics list \
 
 ## See Also
 
+- [Availability and Non-Guarantees](./availability-and-non-guarantees.md) — the five most-commonly-violated platform contracts (node spread, zone redundancy, planned maintenance, rolling rollout, single-region cap) and the compensating controls operators must add.
 - [Health and Recovery (Platform)](../platform/reliability/health-recovery.md)
 - [Revisions (Platform)](../platform/revisions/index.md)
 - [Scaling (Platform)](../platform/scaling/index.md)

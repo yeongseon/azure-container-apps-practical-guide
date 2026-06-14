@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-06"
+  last_reviewed: "2026-06-13"
   reviewer: ai-agent
   core_claims:
     - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
@@ -21,21 +21,21 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-06-06*
+*Generated: 2026-06-13*
 
 | Metric | Count |
 |---|---:|
-| Total tutorials | 78 |
+| Total tutorials | 80 |
 | ✅ Validated | 8 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 70 |
+| ➖ Not tested | 72 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
     "Validated" : 8
-    "Not Tested" : 70
+    "Not Tested" : 72
 ```
 
 ## Validation Matrix
@@ -135,6 +135,7 @@ pie title Tutorial Validation Status
 | [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Scheduled Job Missed](../troubleshooting/lab-guides/scheduled-job-missed.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Session Affinity Failure](../troubleshooting/lab-guides/session-affinity-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Startup Degraded Transient Failure](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Subnet Cidr Exhaustion](../troubleshooting/lab-guides/subnet-cidr-exhaustion.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Subscription Quota Exceeded](../troubleshooting/lab-guides/subscription-quota-exceeded.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
@@ -142,6 +143,7 @@ pie title Tutorial Validation Status
 | [Volume Permission Denied](../troubleshooting/lab-guides/volume-permission-denied.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Websocket Grpc Ingress](../troubleshooting/lab-guides/websocket-grpc-ingress.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Workload Profile Mismatch](../troubleshooting/lab-guides/workload-profile-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Zone Redundancy Best Effort](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 
 ## How to Update
 

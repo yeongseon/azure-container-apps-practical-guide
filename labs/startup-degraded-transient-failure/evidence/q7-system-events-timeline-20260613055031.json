@@ -1,0 +1,74 @@
+[
+  {
+    "Log_s": "Replica 'subject-app--0000015-6ff4646495-df5qx' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "ReplicaName_s": "subject-app--0000015-6ff4646495-df5qx",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:47:55.5614811Z"
+  },
+  {
+    "Log_s": "Started container 'subject'",
+    "Reason_s": "ContainerStarted",
+    "ReplicaName_s": "subject-app--0000015-6ff4646495-df5qx",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:48:12.7262058Z"
+  },
+  {
+    "Log_s": "Replica 'subject-app--0000015-6ff4646495-p97rh' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "ReplicaName_s": "subject-app--0000015-6ff4646495-p97rh",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:48:39.3806142Z"
+  },
+  {
+    "Log_s": "Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'",
+    "Reason_s": "ContainerTerminated",
+    "ReplicaName_s": "subject-app--0000015-dd5c78f9-6kw4l",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:48:40.6181988Z"
+  },
+  {
+    "Log_s": "Started container 'subject'",
+    "Reason_s": "ContainerStarted",
+    "ReplicaName_s": "subject-app--0000015-6ff4646495-p97rh",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:48:54.226333Z"
+  },
+  {
+    "Log_s": "Replica 'subject-app--0000015-6ff4646495-tmg92' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "ReplicaName_s": "subject-app--0000015-6ff4646495-tmg92",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:49:21.4811635Z"
+  },
+  {
+    "Log_s": "Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'",
+    "Reason_s": "ContainerTerminated",
+    "ReplicaName_s": "subject-app--0000015-dd5c78f9-j7w6n",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:49:22.5232312Z"
+  },
+  {
+    "Log_s": "Started container 'subject'",
+    "Reason_s": "ContainerStarted",
+    "ReplicaName_s": "subject-app--0000015-6ff4646495-tmg92",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:49:36.2741148Z"
+  },
+  {
+    "Log_s": "Container 'subject' was terminated with exit code '' and reason 'ManuallyStopped'",
+    "Reason_s": "ContainerTerminated",
+    "ReplicaName_s": "subject-app--0000015-dd5c78f9-xwc8p",
+    "RevisionName_s": "subject-app--0000015",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-13T05:50:04.3853791Z"
+  }
+]

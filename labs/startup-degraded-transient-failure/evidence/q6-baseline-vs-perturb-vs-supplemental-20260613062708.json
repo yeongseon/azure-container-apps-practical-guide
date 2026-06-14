@@ -1,0 +1,42 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "buckets": "180",
+    "buckets_above_0p5pct": "0",
+    "overall_err_pct": "0",
+    "phase": "baseline",
+    "total_errors": "0",
+    "total_requests": "286922",
+    "worst_bucket_err_pct": "0"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "buckets": "92",
+    "buckets_above_0p5pct": "53",
+    "overall_err_pct": "10.7075",
+    "phase": "other",
+    "total_errors": "27137",
+    "total_requests": "253439",
+    "worst_bucket_err_pct": "100"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "buckets": "873",
+    "buckets_above_0p5pct": "0",
+    "overall_err_pct": "0.0001",
+    "phase": "perturbation",
+    "total_errors": "1",
+    "total_requests": "1375901",
+    "worst_bucket_err_pct": "0.067"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "buckets": "186",
+    "buckets_above_0p5pct": "0",
+    "overall_err_pct": "0.0003",
+    "phase": "supplemental-restart",
+    "total_errors": "1",
+    "total_requests": "289144",
+    "worst_bucket_err_pct": "0.062"
+  }
+]

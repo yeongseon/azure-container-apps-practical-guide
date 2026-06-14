@@ -1,0 +1,14 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "err_count": "0",
+    "err_pct": "0",
+    "max_ms": "4296.2",
+    "ok_count": "287440",
+    "p50_ms": "299.2",
+    "p95_ms": "1208.2",
+    "p99_ms": "1855",
+    "requests": "287440",
+    "run_id": "baseline-20260612133832"
+  }
+]
