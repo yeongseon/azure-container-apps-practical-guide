@@ -240,7 +240,7 @@ build_q6_perturb_table() {
     # Match JSON event lines, extract timestamp + app
     while IFS= read -r line; do
       local ts app
-      ts=$(echo "$line" | sed -n 's/.*"timestamp":"\([^"]*\)".*/\1/p' | sed 's/\..*Z$/Z/' | head -c 20 | awk '{print $1 "Z"}')
+      ts=$(echo "$line" | sed -n 's/.*"timestamp":"\([^"]*\)".*/\1/p' | sed 's/\..*Z$/Z/')
       app=$(echo "$line" | sed -n 's/.*"app":"\([^"]*\)".*/\1/p')
       if [[ -n "$ts" && -n "$app" ]]; then
         # Convert ISO to KQL datetime(YYYY-MM-DDTHH:MM:SSZ) form
