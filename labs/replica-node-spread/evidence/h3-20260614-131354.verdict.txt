@@ -1,0 +1,13 @@
+H3 falsification verdict — run h3-20260614-131354
+----------------------------------------------------------------
+H3a (same-replica boot_id stability + monotonic uptime): no
+    boot_id CHANGED between samples 30s apart (boot1=c4711943-b2d2-4f63-abc8-6a55e75a02b6, boot2=7cb77933-4ccc-44c4-bee3-e044d9254cb4) — proxy invalid
+H3b (restart-induced boot_id rotation):                  no
+    boot_id UNCHANGED across restart — proxy may conflate container restart with shared host
+----------------------------------------------------------------
+Overall: FAIL
+
+Raw samples:
+  pre1   boot_id=c4711943-b2d2-4f63-abc8-6a55e75a02b6  uptime=412.27
+  pre2   boot_id=7cb77933-4ccc-44c4-bee3-e044d9254cb4  uptime=607.08
+  post   boot_id=7cb77933-4ccc-44c4-bee3-e044d9254cb4  uptime=719.39
