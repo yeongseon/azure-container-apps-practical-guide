@@ -1,0 +1,6 @@
+ContainerAppName_s    ContainerName_s    TableName      Count_
+--------------------  -----------------  -------------  --------
+app-min6              app                PrimaryResult  6
+app-min2              app                PrimaryResult  2
+app-min3              app                PrimaryResult  3
+                      audit              PrimaryResult  5

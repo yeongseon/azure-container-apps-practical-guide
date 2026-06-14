@@ -1,0 +1,4 @@
+WARNING: A new Bicep release is available: v0.44.1. Upgrade now by running "az bicep upgrade".
+Name                  State      Timestamp                         Mode         ResourceGroup
+--------------------  ---------  --------------------------------  -----------  --------------------------
+zrlab-20260612114539  Succeeded  2026-06-12T11:49:38.580167+00:00  Incremental  rg-aca-zr-lab-260612114313

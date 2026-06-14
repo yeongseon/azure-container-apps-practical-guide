@@ -1,0 +1,11 @@
+{
+  "cron": {
+    "cronExpression": "*/5 * * * *",
+    "parallelism": 1,
+    "replicaCompletionCount": 1
+  },
+  "name": "audit-sampler",
+  "replicaTimeout": 180,
+  "retryLimit": 1,
+  "type": "Schedule"
+}

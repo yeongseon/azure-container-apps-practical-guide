@@ -1,0 +1,4 @@
+{"event":"LoadStart","timestamp":"2026-06-14T11:14:59.871Z","app":"app-min3","client":"no-retry","url":"https://app-min3.bravefield-51ee5cb1.koreacentral.azurecontainerapps.io/","rps":10,"durationSec":180}
+{"event":"PerturbationStart","timestamp":"2026-06-14T11:15:44.433Z","app":"app-min3","client":"no-retry","type":"revision-restart","revision":"app-min3--2xnup8i"}
+{"event":"PerturbationSubmitted","timestamp":"2026-06-14T11:15:46.704Z","app":"app-min3","client":"no-retry","type":"revision-restart","revision":"app-min3--2xnup8i"}
+{"event":"LoadEnd","timestamp":"2026-06-14T11:18:00.388Z","app":"app-min3","client":"no-retry","total":990,"success":990,"fail":0,"avgLatencyMs":65}

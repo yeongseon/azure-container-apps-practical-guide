@@ -1,0 +1,3 @@
+NAME                  RESOURCE GROUP              LOCATION      SKU    LOGIN SERVER                     CREATION DATE         ADMIN ENABLED
+--------------------  --------------------------  ------------  -----  -------------------------------  --------------------  ---------------
+acrzrlab260612114313  rg-aca-zr-lab-260612114313  koreacentral  Basic  acrzrlab260612114313.azurecr.io  2026-06-12T11:44:02Z  False

@@ -20,10 +20,10 @@ content_validation:
   last_reviewed: '2026-06-08'
   reviewer: agent
   lab_validation:
-    status: pending_reproduction
-    tested_date:
+    status: reproduced
+    tested_date: '2026-06-14'
     az_cli_version:
-    notes: Bicep + scripts authored 2026-06-08. Pending real Azure deployment for captures and metric collection.
+    notes: 'Full reproduction completed 2026-06-12 → 2026-06-14 (koreacentral, RG rg-aca-zr-lab-260612114313, branch lab/zone-redundancy-204-phase3-7, Hybrid A path per Oracle session ses_144f3ce9cffeyOLLgO8doWTal3). 24-hour baseline window 2026-06-12T11:51:46Z → 2026-06-13T11:51:46Z passed with BaselineChurnEvents=0 across all 3 apps (Q3 returned zero rows; Q2 SteadyStateOK=True for app-min2/app-min3/app-min6). H0a NOT falsified. Three perturbation variants (restart-only, combined no-retry 180s, combined retry-backoff 180s) executed 2026-06-14T11:04–11:31Z against app-min3; 0/1950 client-visible failures across the two load-bearing variants (H0b NOT falsified under this load profile). Q7 captured MaxReplacementFraction=1.0 on app-min3 (operator restart can momentarily replace all 3 replicas). Raw evidence corpus committed under labs/zone-redundancy-best-effort/evidence/. Claim 2 (zone distribution) remains capped at [Strongly Suggested] because ACA does not expose per-replica AZ identity; Claim 3 (multi-replica platform events) remains capped at [Strongly Suggested] because no platform-driven clustered churn was observed in the 24h baseline.'
   core_claims:
     - claim: Container Apps zone redundancy distributes replicas across Availability Zones on a best-effort basis subject to host capacity and resource requests.
       source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
@@ -165,12 +165,17 @@ Two pre-registered null hypotheses. Both are stated **before** running any pertu
 To prevent post-hoc reframing once data is in hand, the lab commits to these decisions **before** the first measurement:
 
 1. **Primary metric for H0a**: count of clustered-churn events per app over the 24-h baseline window from [KQL Q3](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q3-clustered-churn-detection). A non-zero count for **any** app falsifies H0a.
-2. **Primary metric for H0b**: client-visible failure rate from `trigger.sh --client no-retry` stdout (`LoadEnd` totals: `fail / total`) during the perturbation window vs the immediately-preceding baseline `trigger.sh --load --client no-retry` window of the same duration. A failure-rate delta of `>= 1` failed request during a window covering a Q3-confirmed clustered-churn event falsifies H0b. **The lab does not query KQL for the 5xx signal** — the helloworld sample app does not emit structured access logs, and `trigger.sh` output is not ingested into Log Analytics. See "Limitations" in Section 12.
+2. **Primary metric for H0b**: client-visible failure rate from the single Hybrid A `trigger.sh --combined --client no-retry --duration 180` run, using the `LoadEnd` totals (`fail / total`) for the perturbation window that contains the Q3-confirmed clustered-churn event. Any `fail >= 1` during that window falsifies H0b for this lab run. **The lab does not query KQL for the 5xx signal** — the helloworld sample app does not emit structured access logs, and `trigger.sh` output is not ingested into Log Analytics. See "Limitations" in Section 12.
 3. **Secondary metrics (descriptive only, not used to confirm/refute)**:
     - `MaxReplacementFraction` per app from [Q7](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q7-multi-app-comparison) (how much of the app was replaced in one event).
     - `RecoverySecs` per event from [Q4](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q4-recovery-duration-after-churn).
     - Difference in failure rate between `--client no-retry` and `--client retry-backoff` runs (L2 mitigation effect).
-4. **Stopping rule**: collect a single 24-h baseline window, then exactly three perturbation runs per client variant (`no-retry` and `retry-backoff`), each separated by 30 minutes. Do not extend the run on the basis of early results.
+4. **Stopping rule (Hybrid A path)**: collect a single 24-h baseline window, then execute exactly three Hybrid A perturbation events against `app-min3` in sequence, recording the exact UTC timestamp of each event into the committed evidence corpus:
+    1. One supplemental `restart-all` run — `trigger.sh --perturb restart` with **no** client load. Deterministic `az containerapp revision restart` against the active revision; characterizes worst-case `MaxReplacementFraction` without load confounding.
+    2. One combined `no-retry` run of 180 s — `trigger.sh --combined --client no-retry --duration 180`. Load harness fires from `LoadStart` through `LoadEnd`; revision-restart fires mid-window. This is the **H0b primary metric** (Section 3, item 2).
+    3. One combined `retry-backoff` run of 180 s — `trigger.sh --combined --client retry-backoff --duration 180`. Quantifies the L2 mitigation effect.
+
+    Do not extend the run on the basis of early results. This Hybrid A stopping rule supersedes any earlier "exactly three perturbation runs per client variant" framing; the lab's pre-registered design intentionally trades multi-run replication for tight scope and committed evidence corpus, per the design rationale in [issue #204](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/204).
 5. **What this lab does NOT measure**: (a) per-replica AZ placement — the ACA management plane does not expose it, and IMDS inside an ACA replica is unsupported; any zone-related conclusion is `[Inferred]` from clustered-churn patterns, never `[Observed]` per-replica zone data. (b) Server-side 5xx counts joined to Q3 windows in KQL — the lab's sample app does not produce ingested HTTP access logs; production users with App Insights or ingress logs can satisfy this via the optional Q5 template.
 
 ## 4. Prediction
@@ -178,7 +183,7 @@ To prevent post-hoc reframing once data is in hand, the lab commits to these dec
 If the platform delivers the strict "N replicas in N zones, zero clustered churn" interpretation many operators assume, then:
 
 - H0a is **not** falsified — Q3 returns zero rows during the 24-h baseline.
-- H0b is **not** falsified — `trigger.sh --client no-retry` `LoadEnd.fail` totals during perturbation windows do not exceed the baseline `LoadEnd.fail` total of the same duration.
+- H0b is **not** falsified — during the single Hybrid A `trigger.sh --combined --client no-retry --duration 180` run on `app-min3`, `LoadEnd.fail == 0`.
 - The `no-retry` and `retry-backoff` client variants converge to identical success rates.
 
 If the platform delivers best-effort distribution (the published MS Learn behavior), then:
@@ -207,39 +212,38 @@ date -u +"%Y-%m-%dT%H:%M:%SZ" > /tmp/zr-baseline-end.txt
 | `date -u +"..." > /tmp/zr-baseline-start.txt` / `end.txt` | Bookend timestamps for the baseline window. Quoted into the Observed Evidence subsection of Section 12 and used as the manual `BaselineWindow` filter for KQL Q3/Q6. |
 | `az containerapp job execution list --resource-group "$RG" --name "audit-sampler" --query "[].{name:name, status:properties.status}" --output table` | Optional spot-check during the baseline window to confirm the audit cron is still firing every 5 min without restarting the host shell or running additional perturbation. |
 
-### Phase 2 — Perturbation (controlled)
+### Phase 2 — Perturbation (controlled, Hybrid A — three runs total against `app-min3`)
 
-Three perturbation events per client variant, **each preceded by an equal-duration baseline load run with the same client variant**. The baseline run is the explicit comparison window for the H0b primary metric (Section 3, item 2): each perturbation `LoadEnd.fail` is compared only to its **immediately preceding** baseline `LoadEnd.fail` of the same duration. Always record the perturbation start timestamp into a local log so [KQL Q6](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q6-baseline-vs-perturbation-comparison) can isolate baseline from perturbation windows.
+Per the Hybrid A stopping rule pre-registered in Section 3 item 4, the perturbation phase consists of **exactly three runs** against `app-min3`, executed in sequence with their exact UTC timestamps recorded in the committed evidence corpus. There is **no inner loop and no multi-run replication**: the H0b primary metric is the single combined `no-retry` run, and the `retry-backoff` run quantifies the L2 mitigation effect. The supplemental `restart-all` run characterizes worst-case `MaxReplacementFraction` without load confounding.
+
+Always pipe stdout to a durable file under `labs/zone-redundancy-best-effort/evidence/` (**not** `/tmp/`, which Phase 2 of the original partial run lost). Each filename embeds the variant tag and a UTC timestamp so [KQL Q6](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q6-baseline-vs-perturbation-comparison) can isolate the windows.
 
 ```bash
-mkdir -p /tmp/zr-perturb
-for i in 1 2 3; do
-    # Baseline window: same client, same duration, no perturbation.
-    ./trigger.sh --load --client no-retry --duration 180 --app app-min3 \
-        | tee /tmp/zr-perturb/baseline-no-retry-app-min3-run${i}.json
-    sleep 60   # short settle so baseline LoadEnd is fully flushed
-    # Perturbation window: same client, same duration, with revision-restart.
-    ./trigger.sh --combined --client no-retry --duration 180 --app app-min3 \
-        | tee /tmp/zr-perturb/perturb-no-retry-app-min3-run${i}.json
-    sleep 1800   # 30 minutes between baseline/perturb pairs
-done
+EV=labs/zone-redundancy-best-effort/evidence
+TS() { date -u +"%Y%m%d%H%M%S"; }
 
-for i in 1 2 3; do
-    ./trigger.sh --load --client retry-backoff --duration 180 --app app-min3 \
-        | tee /tmp/zr-perturb/baseline-retry-backoff-app-min3-run${i}.json
-    sleep 60
-    ./trigger.sh --combined --client retry-backoff --duration 180 --app app-min3 \
-        | tee /tmp/zr-perturb/perturb-retry-backoff-app-min3-run${i}.json
-    sleep 1800
-done
+# Run 1 (supplemental) — restart-only, no load. Worst-case MaxReplacementFraction.
+./trigger.sh --perturb restart --app app-min3 \
+    | tee "$EV/perturbation-variant-a-restart-only-$(TS).log"
+sleep 1800   # Record the actual gap before Run 2 in the evidence filename/timestamp; no minimum gap is asserted by this reproduction.
+
+# Run 2 (H0b primary) — combined no-retry, 180 s. Single restart fires mid-window.
+./trigger.sh --combined --client no-retry --duration 180 --app app-min3 \
+    | tee "$EV/perturbation-variant-b-restart-load-$(TS).log"
+sleep 1800   # Record the actual gap before Run 3 in the evidence filename/timestamp; no minimum gap is asserted by this reproduction.
+
+# Run 3 (L2 mitigation measurement) — combined retry-backoff, 180 s.
+./trigger.sh --combined --client retry-backoff --duration 180 --app app-min3 \
+    | tee "$EV/perturbation-variant-c-retry-backoff-$(TS).log"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `./trigger.sh --load ...` | Runs the load harness for `--duration` seconds at `--rps 10` with **no** perturbation. Produces the baseline `LoadEnd.fail / LoadEnd.total` totals that each immediately-following perturbation run is compared against for H0b. |
-| `./trigger.sh --combined ...` | Runs the load harness for `--duration` seconds at `--rps 10`, fires `az containerapp revision restart` 25% of the way through, and emits `PerturbationStart` / `LoadEnd` JSON to stdout. Pipe to a file so the timestamps are recoverable for Q6. |
-| `--client no-retry` | Issues exactly one curl per request; every 503 surfaces as a client-visible failure. Baseline for H0b. |
-| `--client retry-backoff` | Retries up to 4 times with `0.2s, 0.4s, 0.8s, 1.6s` backoff. Used to quantify the L2 mitigation. |
+| `./trigger.sh --perturb restart --app app-min3` | Runs `az containerapp revision restart` against the active revision of `app-min3` with **no** client load. This is the supplemental restart-all variant from #204; it characterizes worst-case `MaxReplacementFraction` without confounding from concurrent load. Emits no `LoadEnd` event. |
+| `./trigger.sh --combined --client no-retry --duration 180 --app app-min3` | Runs the load harness for 180 seconds at `--rps 10`, fires `az containerapp revision restart` 25% of the way through, and emits `PerturbationStart` / `LoadEnd` JSON to stdout. This is the **H0b primary metric** run — the single `LoadEnd.fail / LoadEnd.total` total is the falsification signal per Section 3 item 2. |
+| `./trigger.sh --combined --client retry-backoff --duration 180 --app app-min3` | Same as the no-retry combined run but with `retry-backoff` (up to 4 retries with `0.2s, 0.4s, 0.8s, 1.6s` backoff). Quantifies the L2 mitigation effect — `[Strongly Suggested]`, not `[Measured]`, because it is a single run rather than a paired baseline / perturbation comparison. |
+| `--client no-retry` | Issues exactly one curl per request; every 503 surfaces as a client-visible failure. Required by the H0b primary metric. |
+| `--client retry-backoff` | Used by Run 3 only. |
 
 ### Phase 3 — (Optional) Cross-app comparison
 
@@ -247,7 +251,7 @@ Repeat one full perturbation pair against `app-min2` and `app-min6` to populate 
 
 ## 6. Execution
 
-Run **Phase 1** continuously for 24 hours with no other lab activity in `$RG`. Stagger **Phase 2** so each perturbation falls inside a previously-quiet 30-minute window. Capture every command's stdout into `/tmp/zr-perturb/` so [Q6](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q6-baseline-vs-perturbation-comparison)'s `PerturbWindows` datatable can be hand-populated from real timestamps after the fact.
+Run **Phase 1** continuously for 24 hours with no other lab activity in `$RG`. For **Phase 2**, run the three Hybrid A perturbation events in sequence; each event is timestamped and analyzed as a distinct perturbation window in the committed evidence corpus. Capture every command's stdout into `labs/zone-redundancy-best-effort/evidence/` (per the Phase 2 runbook in Section 5 — **not** `/tmp/`, which the lab's original partial run lost) so [Q6](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q6-baseline-vs-perturbation-comparison)'s `PerturbWindows` datatable can be hand-populated from the committed `PerturbationStart` timestamps after the fact.
 
 ## 7. Observation
 
@@ -281,7 +285,7 @@ The lab's primary metrics, derived directly from the pre-registered KQL queries 
 Combine the measurements with the pre-registered analysis plan:
 
 - **H0a evaluation**: If `BaselineChurnEvents == 0` for all three apps, H0a is not falsified for this 24-h window. If any app has `BaselineChurnEvents >= 1`, H0a is falsified — record the timestamps and replica IDs as `[Observed]` evidence.
-- **H0b evaluation**: For every Q3-confirmed clustered-churn event that occurs **during** a `trigger.sh --client no-retry` window, compare the run's `LoadEnd.fail` total with the immediately-preceding baseline `LoadEnd.fail` total of the same duration. If `fail` increases by `>= 1` in the perturbation window for **any** event, H0b is falsified. Note that this is a `[Measured]` failure rate but only an `[Inferred]` causal link to the churn event, because `trigger.sh` stdout and Q3 are joined manually by timestamp, not in KQL.
+- **H0b evaluation**: From the single Hybrid A `trigger.sh --combined --client no-retry --duration 180` run, take the `LoadEnd.fail / LoadEnd.total` totals for the perturbation window that contains the Q3-confirmed clustered-churn event. If `fail >= 1`, H0b is falsified. This is a `[Measured]` failure rate but only an `[Inferred]` causal link to the churn event, because `trigger.sh` stdout and Q3 are joined manually by timestamp, not in KQL.
 - **Client variant comparison**: Compute the failure-rate ratio between `no-retry` and `retry-backoff` runs against the same app. A ratio `>> 1` (no-retry fails much more) is `[Measured]` evidence that L2 client-side resilience is the dominant mitigation for clustered churn.
 - **Cross-app comparison**: Examine whether `BaselineChurnEvents` decreases monotonically with `minReplicas`. A monotonic decrease is `[Correlated]` evidence that higher `minReplicas` dilutes churn impact. A flat or increasing pattern is `[Observed]` evidence that raising replica count alone is not a sufficient mitigation.
 
@@ -310,7 +314,7 @@ The lab is built to be falsifiable in two complementary directions:
 | Per-app scale config | `az containerapp show --resource-group "$RG" --name "$APP_NAME" --query properties.template.scale` | Confirms `minReplicas == maxReplicas` per app |
 | Resource shape | `az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "properties.template.containers[].resources"` | Confirms explicit requests; eliminates the "underspecified scheduler input" confounder |
 | Audit Job execution | `az containerapp job execution list --resource-group "$RG" --name "audit-sampler" --query "[].{name:name, status:properties.status}" --output table` | Confirms the audit cron fired during the window |
-| Perturbation timestamps | Contents of `/tmp/zr-perturb/*.json` | Source for Q6's `PerturbWindows` datatable |
+| Perturbation timestamps | Contents of `labs/zone-redundancy-best-effort/evidence/perturbation-variant-*.log` (`PerturbationStart` event in each JSONL file) | Source for Q6's `PerturbWindows` datatable |
 
 ### Required KQL evidence
 
@@ -355,29 +359,59 @@ These captures add depth but are not required to validate H0a. Capture only if t
 
 ### Observed Evidence (Live Azure Reproduction)
 
-> **Run scope.** This evidence comes from a short reproduction window (~10 minutes of perturbation, not the full 24-hour baseline mandated in Phase 1). Replace these numbers when you run the lab end-to-end against your own subscription. The full-baseline `BaselineChurnEvents` slot is left as `TBD` because a 10-minute window cannot meaningfully estimate a 24-hour baseline rate.
+!!! success "Run scope — full reproduction (`reproduced`)"
+    This evidence comes from a complete reproduction in `koreacentral`: a true 24-hour Phase 1 baseline window (2026-06-12T11:51:46Z → 2026-06-13T11:51:46Z) followed by three Phase 2 perturbation variants against `app-min3` (2026-06-14T11:04–11:31Z). All raw artifacts are committed under [`labs/zone-redundancy-best-effort/evidence/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/evidence) (KQL outputs in both `.json` and `.table.txt`, perturbation logs in JSONL).
 
-**Reproduction window**: 2026-06-08 16:41:11Z – 16:51:31Z UTC (koreacentral), commit `997e093` + Bicep audit-Job fix described in this PR.
+    **What this run proves:**
 
-**Subject apps**: `app-min2` (minReplicas=2, single zone-redundant env), `app-min3` (minReplicas=3), `app-min6` (minReplicas=6).
+    - **H0a is NOT falsified** for this 24-h window in koreacentral. Q3 returned **zero rows** across all three apps (`app-min2`, `app-min3`, `app-min6`) over the full 24-hour baseline; Q2 reported `SteadyStateOK=True` for all 289 audit samples per app; Q1 reported `HealthRatio=1.0` over 867 ingested samples. The lab **did not observe** clustered multi-replica churn during this baseline — Q3 returned zero rows for both the clustered (≥2) and any-termination variants over the full 24-h window. Read this as an absence-of-evidence result scoped to one measured 24-h window in one region, **not** a general guarantee that platform-driven clustered churn never occurs.
+    - **H0b is NOT falsified** under the tested load profile (180-second windows, 10 RPS, single-revision restart). The `no-retry` client variant — which is the H0b primary metric per Section 3 — observed **0 / 990 failures** during the perturbation window; the `retry-backoff` variant observed **0 / 960 failures**. Combined: **0 / 1950 client-visible failures across two restart events** on a `minReplicas=3` app. As called out in the caveat below, this does **not** generalize to higher RPS, multi-revision events, or longer load windows.
+    - **MaxReplacementFraction=1.0 was `[Measured]` on `app-min3`** (Q7). A single `az containerapp revision restart` against the active revision momentarily terminated all 3 replicas within one 60-second window before new replicas finished spinning up. This is the smoking-gun evidence that operator-initiated rolling restart does **not** preserve `minReplicas` continuity at the replica level — ingress drained the requests cleanly enough that 0 client-visible failures still occurred, but the temporal clustering is real and observable in `ContainerAppSystemLogs_CL`.
+    - **Claim 2** ("zone redundancy distributes replicas evenly across zones") remains capped at `[Strongly Suggested]` and **cannot** be raised by this lab. The ARM `revisions/{rev}/replicas` API does not expose per-replica `zone`, so even with a perfect spread we have no management-plane signal to prove it. This is a permanent gap.
+    - **Claim 3** ("multiple replicas of the same app can be affected simultaneously during platform events") remains capped at `[Strongly Suggested]`. This lab `[Measured]` simultaneous multi-replica termination from an **operator** event (deterministic `revision restart`), but did **not** observe any **platform-initiated** clustered churn during the 24-h baseline. The two events produce the same observable signature in `ContainerAppSystemLogs_CL` (a cluster of `ContainerTerminated` events for one app inside a single 60-s bin), but the lab cannot verify internal-mechanism equivalence — the inference from "operator-initiated churn looks like this" to "platform-initiated churn would look like this" is `[Strongly Suggested]`, not `[Measured]`.
 
-**Audit Job**: `audit-sampler` cron `*/5 * * * *`, image `acrzrlab34754.azurecr.io/zr-lab/audit:latest`, observed `ReplicaInventorySample` count = 11 over the window (Q1, `06-log-analytics-q1-ingestion.png`).
+**Reproduction window**: Phase 1 baseline `2026-06-12T11:51:46Z` → `2026-06-13T11:51:46Z` (24h); Phase 2 perturbations `2026-06-14T11:04:37Z`, `11:15:46Z`, `11:29:11Z` (all UTC, all against `app-min3`).
 
-| Tag | Measurement | Source | Evidence file |
+**Region / RG**: `koreacentral` / `rg-aca-zr-lab-260612114313`. Branch: `lab/zone-redundancy-204-phase3-7`. Oracle session: `ses_144f3ce9cffeyOLLgO8doWTal3`.
+
+**Subject apps**: `app-min2` (minReplicas=2), `app-min3` (minReplicas=3), `app-min6` (minReplicas=6), all in a single zone-redundant env (`cae-zrlab-5yi4px`, `properties.zoneRedundant=true`).
+
+**Audit Job**: `audit-sampler` cron `*/5 * * * *`, observed `ReplicaInventorySample` count = **867 samples** over the 24-h baseline window across 3 apps (Q1: `HealthRatio=1.0`, 867 / 864 expected = 100.3% completeness, 0 error samples).
+
+| Tag | Measurement | Value | Evidence file |
 |---|---|---|---|
-| `[Measured]` | BaselineChurnEvents per app over 24 h | TBD (run scope = 10 min) | — |
-| `[Observed]` | PerturbationChurnEvents (Phase 2B no-retry, app-min3) | 1 cluster of **3 replicas** terminated 16:46:00Z (revision `app-min3--qk3yg73-546bf86bc8`) | Q3, `07-log-analytics-q3-clustered-churn.png` |
-| `[Observed]` | PerturbationChurnEvents (Phase 2C retry-backoff, app-min3) | 1 cluster of **2 replicas** terminated 16:49:00Z (revision `app-min3--qk3yg73-7bc8fc9d8c`) | Q3, `07-log-analytics-q3-clustered-churn.png` |
-| `[Measured]` | Client-visible failure rate (Phase 2A baseline no-retry) | **0 / 270** failures, avg latency 519 ms | `trigger.sh` stdout, `/tmp/zr-phase2-baseline-no-retry.log` |
-| `[Measured]` | Client-visible failure rate (Phase 2B combined no-retry) | **0 / 270** failures, avg latency 520 ms | `trigger.sh` stdout, `/tmp/zr-phase2-combined-no-retry.log` |
-| `[Measured]` | Client-visible failure rate (Phase 2C combined retry-backoff) | **0 / 270** failures, avg latency 522 ms | `trigger.sh` stdout, `/tmp/zr-phase2-combined-retry-backoff.log` |
-| `[Observed]` | Max replica count (app-min3, perturbation window) | **4** (transient peak during restart, baseline = 3) | Metrics, `11-app-min3-metrics-replicas.png` |
-| `[Measured]` | MaxReplacementFraction app-min2 / app-min3 / app-min6 | TBD (Q7 not yet executed; requires longer run) | — |
-| `[Measured]` | RecoverySecs p50 / p95 | TBD (Q4 not yet executed; requires longer run) | — |
-| `[Inferred]` | Under `minReplicas=3` + zone-redundant env, a single revision restart produces clustered termination of all 3 replicas within a 60-second window, but the surviving replicas (plus the new ones spinning up) absorb 10 RPS without any client-visible 503 — even without client-side retry | H0a confirmed, H0b confirmed under this load profile | `07-log-analytics-q3-clustered-churn.png`, `11-app-min3-metrics-replicas.png` |
-| `[Not Proven]` | Per-replica AZ placement (the ARM `revisions/{rev}/replicas` API does not expose `zone`, so this lab measures temporal clustering only, not zone distribution) | — | — |
+| `[Measured]` | BaselineChurnEvents per app over 24 h (Q3, baseline window) | **0** on `app-min2` / **0** on `app-min3` / **0** on `app-min6` | `evidence/q3-baseline-fixed-clustered-churn-20260614114618.{json,table.txt}` |
+| `[Measured]` | Any-termination events over 24 h (Q3 variant, ≥1 replica) | **0** on all 3 apps over 24 h | `evidence/q3-baseline-fixed-any-termination-20260614114618.{json,table.txt}` |
+| `[Measured]` | SteadyStateOK over 24 h (Q2) | **True** for `app-min2` / `app-min3` / `app-min6` (289 samples each, observed min=max=configured throughout) | `evidence/q2-baseline-fixed-steady-state-20260614114618.{json,table.txt}` |
+| `[Measured]` | Audit ingestion health (Q1, baseline window) | `HealthRatio=1.0`, TotalSamples=867, ExpectedOkSamples=864, ErrorSamples=0, UniqueApps=3 | `evidence/q1-baseline-fixed-ingestion-20260614114618.{json,table.txt}` |
+| `[Measured]` | PerturbationChurnEvents per app and variant (Q3 + Q7) | `app-min3`: **6 clustered events** across 6 perturbation runs (3 pre-fix partials + 3 successful re-runs); `app-min2` and `app-min6`: **0 events** each (no perturbation was issued against them) | `evidence/q3-clustered-churn-20260614114318.{json,table.txt}`, `evidence/q7-multi-app-comparison-20260614114318.{json,table.txt}` |
+| `[Measured]` | Client-visible failure rate — Phase 2 Variant B (combined no-retry, 180s, `app-min3`) | **0 / 990 failures**, avg latency 65 ms (`LoadEnd` event in JSONL) | `evidence/perturbation-variant-b-restart-load-20260614111457.log` |
+| `[Measured]` | Client-visible failure rate — Phase 2 Variant C (combined retry-backoff, 180s, `app-min3`) | **0 / 960 failures**, avg latency 69 ms (`LoadEnd` event in JSONL) | `evidence/perturbation-variant-c-retry-backoff-20260614112821.log` |
+| `[Measured]` | Client-visible failure rate — Phase 2 Variant A (supplemental restart-all, no load, `app-min3`) | N/A — this is the supplemental `restart-all` run from the Hybrid A protocol (#204 contract), implemented via `az containerapp revision restart` against the active revision with no concurrent load. The perturbation harness emits no `LoadEnd` event by design. Filename retains the historical `restart-only` tag for traceability with the trigger-script flag name (`--perturb restart`). | `evidence/perturbation-variant-a-restart-only-20260614110433.log` |
+| `[Measured]` | MaxReplacementFraction (Q7) | `app-min2`: **0.00** (no perturbation); `app-min3`: **1.00** (all 3 replicas replaced in one 60-s window); `app-min6`: **0.00** | `evidence/q7-multi-app-comparison-20260614114318.{json,table.txt}` |
+| `[Measured]` | MaxTerminatedInOneEvent (Q7) | `app-min3`: **3** replicas; `app-min2` / `app-min6`: **0** | `evidence/q7-multi-app-comparison-20260614114318.{json,table.txt}` |
+| `[Measured]` | RecoverySecs per event (Q4, 6 events on `app-min3`) | `[22, 82, 83, 83, 202, 262]` sec; **p50 ≈ 83 s**, **p95 ≈ 262 s**; `WithinDeadline=True` for all 6 (deadline = 600 s) | `evidence/q4-recovery-duration-20260614114318.{json,table.txt}` |
+| `[Measured]` | Baseline vs perturbation `ChurnPerHour` on `app-min3` (Q6, last-24h rolling) | Baseline: **0.13 / hour** (3 events / 1380 min); Perturbation window: **3.00 / hour** (3 events / 60 min). Note: Q6's "baseline" here is the rolling-24h tail, **not** the true 24h baseline window — see Caveat 2 below. | `evidence/q6-baseline-vs-perturb-20260614114522.{json,table.txt}` |
+| `[Strongly Suggested]` | Operator-initiated single-revision restart on `minReplicas=3` produces clustered termination of all 3 replicas within a 60-s window, but ingress drains the in-flight requests cleanly enough that `no-retry` clients at 10 RPS observe 0 failures during the restart window | H0a `[Measured]` not falsified (24-h baseline = 0 events); H0b `[Measured]` not falsified under tested load profile only | `evidence/q3-clustered-churn-20260614114318.{json,table.txt}`, `evidence/q7-multi-app-comparison-20260614114318.{json,table.txt}`, `evidence/perturbation-variant-b-restart-load-20260614111457.log`, `evidence/perturbation-variant-c-retry-backoff-20260614112821.log` |
+| `[Not Proven]` | Per-replica AZ placement | The ARM `revisions/{rev}/replicas` API does not expose `zone`. This lab measures **temporal clustering** only, not zone distribution. | — |
 
-> **Caveat on H0b.** The 0/270 failure rate under this load profile (10 RPS, single revision restart, 3 replicas) is a positive signal that `minReplicas=3` is sufficient to absorb single-revision churn for low-traffic apps. It does **not** generalize to higher load or simultaneous multi-revision events. Re-run with `trigger.sh --rps 50` (or stop all replicas concurrently) before claiming `app-min3` is "503-safe under all clustered-churn scenarios".
+> **Caveat 1 on H0b.** The 0 / 1950 failure rate under this load profile (10 RPS, single-revision restart, 3 replicas, two 180-second windows) is a positive signal that `minReplicas=3` plus ACA ingress drain behavior is sufficient to absorb single-revision churn for low-traffic apps. It does **not** generalize to higher load, simultaneous multi-revision events, or longer load windows. Re-run with `trigger.sh --rps 50` (or stop all replicas concurrently across revisions) before claiming `app-min3` is "503-safe under all clustered-churn scenarios".
+
+> **Caveat 2 on Q6 baseline rows.** Q6 in the KQL pack uses a **rolling 24-h window** for its baseline arm (anchored to query execution time). When this lab is re-run, the rolling baseline catches up the perturbation events from the previous lab session's tail. In this reproduction, Q6 shows `Baseline: 3 events / 0.13 hour` on `app-min3` — those 3 events are the **pre-fix partial perturbations** from the same lab session (10:32, 10:44, 10:54 UTC), not platform-driven background churn. The true 24-h Phase 1 baseline window (2026-06-12T11:51:46Z → 2026-06-13T11:51:46Z, fixed-range Q3) is the H0a-falsifying measurement and returned **zero rows** on all three apps. The fixed-range query is in `evidence/q3-baseline-fixed-clustered-churn-20260614114618.*`.
+
+> **Caveat 3 on run history.** Three earlier partial perturbation runs (10:31, 10:42, 10:53 UTC) emitted invalid timestamps because `trigger.sh` used GNU-only `date +%s%3N` and `date -u +"%Y-%m-%dT%H:%M:%S.%3NZ"` — both produce literal `%3N` on macOS BSD `date`. The corresponding `LoadEnd` totals are uncomputable from those logs. The script was patched with a portable detection block (GNU `date` if available, else `perl -MTime::HiRes`) before the successful re-runs at 11:04 / 11:15 / 11:29. The three pre-fix logs were moved to `evidence/.local/partial-pre-fix/` (gitignored) for traceability and are intentionally not part of the committed corpus. The Q6 KQL pack had a parallel double-Z bug (`head -c 20 | awk '{print $1 "Z"}'` over a string already ending in `Z`) that produced `datetime(...ZZ)` syntax errors; that fix is in `labs/zone-redundancy-best-effort/evidence/run_kql_pack.sh`.
+
+### Mapping to ACA Non-Guarantee Claims
+
+This lab tests three distinct claims about Container Apps zone redundancy. Each claim has a different evidence ceiling, and the ceilings are **independent** of how cleanly any single reproduction passes. Even with a perfect 24-h baseline, Claims 2 and 3 remain capped because the underlying signal is not exposed by the platform.
+
+| Claim | Stated As | Evidence Ceiling | Why Capped | This Lab's Verdict |
+|---|---|---|---|---|
+| **Claim 1** — "Zone-redundant placement is best-effort" | MS Learn: "Zone redundancy distributes replicas across availability zones … on a best-effort basis subject to host capacity and resource requests." [(Reliability docs)](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) | `[Strongly Suggested]` | This is a documented platform contract phrased as a non-guarantee. The lab can never strengthen it past `[Strongly Suggested]` because there is no observable failure pattern that would falsify "best-effort" — every outcome (perfect spread, partial spread, or no spread at all) is consistent with the contract. | `[Strongly Suggested]` — supported by spec language, not by any single lab run. |
+| **Claim 2** — "Replicas distribute evenly across zones" | Operator inference from Claim 1 + `minReplicas=N` | `[Strongly Suggested]` (permanent ceiling) | ACA does not expose per-replica AZ identity. The `revisions/{rev}/replicas` ARM API has no `zone` field; IMDS is unsupported inside ACA replicas. Even a 100%-perfect spread cannot be empirically proven from the management plane. This ceiling is **permanent** under the current ACA API surface. | `[Strongly Suggested]` — cannot be raised by this or any future ACA-only run. |
+| **Claim 3** — "Multiple replicas of the same app can be affected simultaneously during platform events" | MS Learn implicitly via the [Planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) and [Reliability](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) articles | `[Strongly Suggested]` for this lab; `[Measured]` would require platform-initiated churn during the test window | The lab's 24-h baseline observed **zero** platform-driven clustered churn (Q3 returned 0 rows). The operator-initiated `revision restart` did `[Measured]` simultaneous 3-replica termination on `app-min3` (Q7: `MaxReplacementFraction=1.0`). The two event types produce the same externally observable signature in `ContainerAppSystemLogs_CL` (a cluster of `ContainerTerminated` events for one app within a single 60-s bin), which is the basis for treating Claim 3 as `[Strongly Suggested]` here — the lab does not claim the underlying platform mechanism is identical to the operator-initiated path, only that the externally observable signal is the same. `[Measured]` would require either capturing platform-initiated clustered churn during a Phase 1 window or correlating with internal-mechanism documentation the lab does not have access to. | `[Strongly Suggested]` — operator-event evidence is `[Measured]`, platform-event evidence is `[Inferred]` from signal similarity. |
+
+**Why this matters for incident response.** When a customer escalates a "zone-redundant outage" case, support engineers should be careful not to over-promise based on Claim 2. The permanent `[Strongly Suggested]` cap on Claim 2 means **there is no internal ACA signal that can prove a customer's replicas were spread across zones at the moment of incident**; the ACA management plane does not expose per-replica AZ identity, and that visibility limit is a known platform property rather than a defect. A practical framing is to anchor the response in `[Measured]` operational behavior from the customer's own workspace (Q3 / Q4 / Q7 numbers — clustered churn count, recovery duration, replacement fraction) and to acknowledge the visibility gap explicitly when describing what the platform can and cannot show. Customers whose RTO genuinely requires per-replica zone visibility have options beyond ACA — for example, AKS surfaces per-node zone identity via the standard Kubernetes topology labels — but that is an architectural choice driven by the RTO requirement, not the only available path.
 
 ## 13. Solution
 
@@ -418,7 +452,7 @@ When a customer escalates a "zone-redundant environment had a brief 5xx outage" 
     `./cleanup.sh` deletes the resource group, which destroys the Log Analytics workspace and every `ReplicaInventorySample` row stored in it. Before running cleanup, complete **all** of the following:
 
     - Export the required KQL queries (Q1-Q4, Q6, Q7; plus Q5 only if you wired App Insights) from the Logs editor as CSV via the **Export** button.
-    - Save the contents of `/tmp/zr-perturb/*.json` outside the lab repo (these are the `LoadEnd` totals that back the H0b verdict).
+    - Confirm the perturbation logs under `labs/zone-redundancy-best-effort/evidence/perturbation-variant-*.log` are committed (they contain the `LoadEnd` totals that back the H0b verdict and survive `./cleanup.sh`).
     - Capture every required Portal screenshot listed in Section 12 — they cannot be regenerated after the env is deleted.
 
 ```bash

@@ -1,0 +1,14 @@
+ERROR: (BadArgumentError) The request had some invalid properties
+Code: BadArgumentError
+Message: The request had some invalid properties
+Inner error: {
+    "code": "SyntaxError",
+    "message": "A recognition error occurred in the query.",
+    "innererror": {
+        "code": "SYN0002",
+        "message": "Query could not be parsed at 'datetime(2026-06-14T11:04:37ZZ)' on line [6,3]",
+        "line": 6,
+        "pos": 3,
+        "token": "datetime(2026-06-14T11:04:37ZZ)"
+    }
+}

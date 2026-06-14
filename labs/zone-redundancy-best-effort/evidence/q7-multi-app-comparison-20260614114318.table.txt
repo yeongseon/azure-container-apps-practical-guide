@@ -1,0 +1,5 @@
+App       AvgTerminatedPerEvent    ClusteredChurnEvents    ConfiguredMin    MaxReplacementFraction    MaxTerminatedInOneEvent    TableName
+--------  -----------------------  ----------------------  ---------------  ------------------------  -------------------------  -------------
+app-min2  0                        0                       2                0                         0                          PrimaryResult
+app-min3  2.33                     6                       3                1                         3                          PrimaryResult
+app-min6  0                        0                       6                0                         0                          PrimaryResult

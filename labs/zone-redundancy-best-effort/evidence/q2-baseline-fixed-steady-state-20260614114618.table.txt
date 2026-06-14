@@ -1,0 +1,5 @@
+ConfiguredMin    ObservedAvg    ObservedMax    ObservedMin    Samples    SteadyStateOK    TableName      App
+---------------  -------------  -------------  -------------  ---------  ---------------  -------------  --------
+2                2              2              2              289        True             PrimaryResult  app-min2
+3                3              3              3              289        True             PrimaryResult  app-min3
+6                6              6              6              289        True             PrimaryResult  app-min6

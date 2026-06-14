@@ -1,0 +1,4 @@
+App       Bucket                 ChurnEvents    ChurnPerHour    TableName      WindowMinutes
+--------  ---------------------  -------------  --------------  -------------  ---------------
+app-min3  Baseline (no perturb)  3              0.13            PrimaryResult  1380
+app-min3  Perturbation window    3              3               PrimaryResult  60

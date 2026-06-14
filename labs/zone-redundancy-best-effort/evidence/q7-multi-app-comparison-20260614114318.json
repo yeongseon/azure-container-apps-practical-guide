@@ -1,0 +1,29 @@
+[
+  {
+    "App": "app-min2",
+    "AvgTerminatedPerEvent": "0",
+    "ClusteredChurnEvents": "0",
+    "ConfiguredMin": "2",
+    "MaxReplacementFraction": "0",
+    "MaxTerminatedInOneEvent": "0",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "App": "app-min3",
+    "AvgTerminatedPerEvent": "2.33",
+    "ClusteredChurnEvents": "6",
+    "ConfiguredMin": "3",
+    "MaxReplacementFraction": "1",
+    "MaxTerminatedInOneEvent": "3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "App": "app-min6",
+    "AvgTerminatedPerEvent": "0",
+    "ClusteredChurnEvents": "0",
+    "ConfiguredMin": "6",
+    "MaxReplacementFraction": "0",
+    "MaxTerminatedInOneEvent": "0",
+    "TableName": "PrimaryResult"
+  }
+]

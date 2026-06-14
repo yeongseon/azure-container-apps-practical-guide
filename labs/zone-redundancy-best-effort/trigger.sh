@@ -61,10 +61,25 @@ if [[ "$CLIENT" != "no-retry" && "$CLIENT" != "retry-backoff" ]]; then
   exit 2
 fi
 
+# Portable millisecond timestamps. GNU date supports +%s%3N (Unix epoch in ms)
+# and +%Y-%m-%dT%H:%M:%S.%3NZ (ISO-8601 with ms) via the %N (nanoseconds)
+# extension, but BSD date (macOS default) does not — %N is emitted literally.
+# Detect once at startup and fall back to perl with Time::HiRes (POSIX
+# standard, ~20 ms subprocess overhead) on systems without GNU date.
+if date +%s%3N 2>/dev/null | grep -qE '^[0-9]{13}$'; then
+  ts_ms()  { date +%s%3N; }
+  iso_ts() { date -u +%Y-%m-%dT%H:%M:%S.%3NZ; }
+else
+  ts_ms()  { perl -MTime::HiRes -e 'printf "%d\n", Time::HiRes::time()*1000'; }
+  iso_ts() {
+    perl -MTime::HiRes -MPOSIX -e 'my $t=Time::HiRes::time(); my $ms=int(($t-int($t))*1000); printf "%s.%03dZ\n", POSIX::strftime("%Y-%m-%dT%H:%M:%S", gmtime(int($t))), $ms'
+  }
+fi
+
 emit_event() {
   local event="$1" extra="$2"
   printf '{"event":"%s","timestamp":"%s","app":"%s","client":"%s",%s}\n' \
-    "$event" "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" "$APP" "$CLIENT" "$extra"
+    "$event" "$(iso_ts)" "$APP" "$CLIENT" "$extra"
 }
 
 get_fqdn() {
@@ -102,7 +117,7 @@ run_load() {
   while (( $(date +%s) < end_ts )); do
     for _ in $(seq 1 "$REQS_PER_SEC"); do
       local t0 code dt attempts=1
-      t0=$(date +%s%3N)
+      t0=$(ts_ms)
       if [[ "$CLIENT" == "retry-backoff" ]]; then
         for attempt in 1 2 3 4 5; do
           code=$(curl --silent --output /dev/null --write-out '%{http_code}' \
@@ -121,7 +136,7 @@ run_load() {
         code=$(curl --silent --output /dev/null --write-out '%{http_code}' \
           --max-time 5 "$url" || echo "000")
       fi
-      dt=$(( $(date +%s%3N) - t0 ))
+      dt=$(( $(ts_ms) - t0 ))
       total=$((total + 1))
       latency_sum=$((latency_sum + dt))
       if [[ "$code" == "200" ]]; then success=$((success + 1)); else fail=$((fail + 1)); fi

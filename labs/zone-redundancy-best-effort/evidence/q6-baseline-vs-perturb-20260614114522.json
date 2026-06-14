@@ -1,0 +1,18 @@
+[
+  {
+    "App": "app-min3",
+    "Bucket": "Baseline (no perturb)",
+    "ChurnEvents": "3",
+    "ChurnPerHour": "0.13",
+    "TableName": "PrimaryResult",
+    "WindowMinutes": "1380"
+  },
+  {
+    "App": "app-min3",
+    "Bucket": "Perturbation window",
+    "ChurnEvents": "3",
+    "ChurnPerHour": "3",
+    "TableName": "PrimaryResult",
+    "WindowMinutes": "60"
+  }
+]

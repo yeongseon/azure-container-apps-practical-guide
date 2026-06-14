@@ -1,0 +1,115 @@
+WARNING: Packing source code into tar to upload...
+WARNING: Uploading archived source code from '/var/folders/2m/2h26lv7d1n7f01ptx_cw0k800000gn/T/build_archive_144e35691121432683ebe5bc5e91aea7.tar.gz'...
+WARNING: Sending context (2.657 KiB) to registry: acrzrlab260612114313...
+WARNING: Queued a build with ID: de1
+WARNING: Waiting for an agent...
+2026/06/12 11:44:32 Downloading source code...
+2026/06/12 11:44:33 Finished downloading source code
+2026/06/12 11:44:33 Using acb_vol_5c1914ed-0f91-4eb0-80ae-06c3f0c5d433 as the home volume
+2026/06/12 11:44:33 Setting up Docker configuration...
+2026/06/12 11:44:34 Successfully set up Docker configuration
+2026/06/12 11:44:34 Logging in to registry: acrzrlab260612114313.azurecr.io
+2026/06/12 11:44:35 Successfully logged into acrzrlab260612114313.azurecr.io
+2026/06/12 11:44:35 Executing step ID: build. Timeout(sec): 28800, Working directory: '', Network: ''
+2026/06/12 11:44:35 Scanning for dependencies...
+2026/06/12 11:44:35 Successfully scanned dependencies
+2026/06/12 11:44:35 Launching container with name: build
+Sending build context to Docker daemon  10.75kB
+Step 1/5 : FROM mcr.microsoft.com/cbl-mariner/base/core:2.0
+2.0: Pulling from cbl-mariner/base/core
+64bac4cf3f77: Pulling fs layer
+4c1817b5ea06: Pulling fs layer
+4c1817b5ea06: Verifying Checksum
+4c1817b5ea06: Download complete
+64bac4cf3f77: Verifying Checksum
+64bac4cf3f77: Download complete
+64bac4cf3f77: Pull complete
+4c1817b5ea06: Pull complete
+Digest: sha256:c833841d2dcfd3081d2ee807050d19368854f70d9b6faef027463e2c6f45ee41
+Status: Downloaded newer image for mcr.microsoft.com/cbl-mariner/base/core:2.0
+ ---> 2440c7a36004
+Step 2/5 : RUN tdnf install -y         bash         ca-certificates         curl         jq         coreutils     && tdnf clean all
+ ---> Running in 0c03f172df8a
+Loaded plugin: tdnfrepogpgcheck
+Refreshing metadata for: 'CBL-Mariner Official Base 2.0 x86_64'
+
+Refreshing metadata for: 'CBL-Mariner Official Extras 2.0 x86_64'
+Refreshing metadata for: 'CBL-Mariner Official Microsoft 2.0 x86_64'
+Package bash is already installed.
+Package curl is already installed.
+Package coreutils is already installed.
+
+Installing:
+oniguruma        x86_64       6.9.7.1-2.cm2    mariner-official-base 595.97k   198.73k
+jq               x86_64       1.6-5.cm2        mariner-official-base 405.61k   196.23k
+ca-certificates  noarch       1:2.0.0-25.cm2   mariner-official-base   1.36M   545.00k
+
+Total installed size:   2.33M
+Total download size: 939.96k
+
+importing key from file:///etc/pki/rpm-gpg/MICROSOFT-RPM-GPG-KEY
+importing key from file:///etc/pki/rpm-gpg/MICROSOFT-METADATA-GPG-KEY
+
+
+Testing transaction
+Running transaction
+Installing/Updating: oniguruma-6.9.7.1-2.cm2.x86_64
+Installing/Updating: jq-1.6-5.cm2.x86_64
+Installing/Updating: ca-certificates-1:2.0.0-25.cm2.noarch
+Loaded plugin: tdnfrepogpgcheck
+cleaning mariner-official-base-source: metadata dbcache packages keys expire-cache
+cleaning mariner-official-base-debuginfo: metadata dbcache packages keys expire-cache
+cleaning mariner-official-base: metadata dbcache packages keys expire-cache
+cleaning mariner-official-extras: metadata dbcache packages keys expire-cache
+cleaning mariner-official-microsoft: metadata dbcache packages keys expire-cache
+Done.
+Removing intermediate container 0c03f172df8a
+ ---> 1015ca624d96
+Step 3/5 : COPY sample.sh /usr/local/bin/sample.sh
+ ---> 40078eb89677
+Step 4/5 : RUN chmod +x /usr/local/bin/sample.sh
+ ---> Running in dfb73639265f
+Removing intermediate container dfb73639265f
+ ---> 179d970d1a45
+Step 5/5 : ENTRYPOINT ["/usr/local/bin/sample.sh"]
+ ---> Running in 348d53e7d37e
+Removing intermediate container 348d53e7d37e
+ ---> b874bdd56e93
+Successfully built b874bdd56e93
+Successfully tagged acrzrlab260612114313.azurecr.io/zr-lab/audit:latest
+2026/06/12 11:45:14 Successfully executed container: build
+2026/06/12 11:45:14 Executing step ID: push. Timeout(sec): 3600, Working directory: '', Network: ''
+2026/06/12 11:45:14 Pushing image: acrzrlab260612114313.azurecr.io/zr-lab/audit:latest, attempt 1
+The push refers to repository [acrzrlab260612114313.azurecr.io/zr-lab/audit]
+0a110bac2044: Preparing
+6446f4e08a5e: Preparing
+29d70bf63bbe: Preparing
+f1af5881aaf6: Preparing
+652765791837: Preparing
+6446f4e08a5e: Pushed
+0a110bac2044: Pushed
+f1af5881aaf6: Pushed
+29d70bf63bbe: Pushed
+652765791837: Pushed
+latest: digest: sha256:ee17c17a6617d8d315655c60806c5e16795fa3dc2895396ae715aebea0f79559 size: 1364
+2026/06/12 11:45:23 Successfully pushed image: acrzrlab260612114313.azurecr.io/zr-lab/audit:latest
+2026/06/12 11:45:23 Step ID: build marked as successful (elapsed time in seconds: 39.074960)
+2026/06/12 11:45:23 Populating digests for step ID: build...
+2026/06/12 11:45:24 Successfully populated digests for step ID: build
+2026/06/12 11:45:24 Step ID: push marked as successful (elapsed time in seconds: 9.592688)
+2026/06/12 11:45:24 The following dependencies were found:
+2026/06/12 11:45:24 
+- image:
+    registry: acrzrlab260612114313.azurecr.io
+    repository: zr-lab/audit
+    tag: latest
+    digest: sha256:ee17c17a6617d8d315655c60806c5e16795fa3dc2895396ae715aebea0f79559
+  runtime-dependency:
+    registry: mcr.microsoft.com
+    repository: cbl-mariner/base/core
+    tag: "2.0"
+    digest: sha256:c833841d2dcfd3081d2ee807050d19368854f70d9b6faef027463e2c6f45ee41
+  git: {}
+
+
+Run ID: de1 was successful after 52s

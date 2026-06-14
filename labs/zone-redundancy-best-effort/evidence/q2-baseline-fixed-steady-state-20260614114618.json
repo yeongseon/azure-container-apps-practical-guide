@@ -1,0 +1,32 @@
+[
+  {
+    "ConfiguredMin": "2",
+    "ObservedAvg": "2",
+    "ObservedMax": "2",
+    "ObservedMin": "2",
+    "Samples": "289",
+    "SteadyStateOK": "True",
+    "TableName": "PrimaryResult",
+    "app": "app-min2"
+  },
+  {
+    "ConfiguredMin": "3",
+    "ObservedAvg": "3",
+    "ObservedMax": "3",
+    "ObservedMin": "3",
+    "Samples": "289",
+    "SteadyStateOK": "True",
+    "TableName": "PrimaryResult",
+    "app": "app-min3"
+  },
+  {
+    "ConfiguredMin": "6",
+    "ObservedAvg": "6",
+    "ObservedMax": "6",
+    "ObservedMin": "6",
+    "Samples": "289",
+    "SteadyStateOK": "True",
+    "TableName": "PrimaryResult",
+    "app": "app-min6"
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "ErrorSamples": "0",
+    "ExpectedOkSamples": "864",
+    "FirstSample": "2026-06-12T11:52:31.5527731Z",
+    "HealthRatio": "1",
+    "LastSample": "2026-06-13T11:50:20.0274651Z",
+    "OkSamples": "867",
+    "TableName": "PrimaryResult",
+    "TotalSamples": "867",
+    "UniqueApps": "3"
+  }
+]

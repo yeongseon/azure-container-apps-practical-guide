@@ -11,12 +11,12 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-06-09*
+*Generated: 2026-06-14*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 443 | 443 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 153 | 104 | 39 | 0 | 10 |
+| Mermaid Diagrams | 447 | 447 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 154 | 105 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 104
+    "Verified" : 105
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -90,6 +90,7 @@ pie title In-Scope Document Validation Status
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
 | [Anti Patterns](../best-practices/anti-patterns.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Availability And Non Guarantees](../best-practices/availability-and-non-guarantees.md) | ✅ | ✅ Verified | 5/5 | 2026-06-12 |
 | [Blue Green Deployment](../best-practices/blue-green-deployment.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Canary Deployment](../best-practices/canary-deployment.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Compliance Baseline](../best-practices/compliance-baseline.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |

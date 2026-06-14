@@ -1,0 +1,50 @@
+[
+  {
+    "App": "app-min3",
+    "ChurnStart": "2026-06-14T11:29:00Z",
+    "FirstRecoveryAt": "2026-06-14T11:30:23.5801932Z",
+    "RecoverySecs": "83",
+    "TableName": "PrimaryResult",
+    "WithinDeadline": "True"
+  },
+  {
+    "App": "app-min3",
+    "ChurnStart": "2026-06-14T11:16:00Z",
+    "FirstRecoveryAt": "2026-06-14T11:20:22.0209784Z",
+    "RecoverySecs": "262",
+    "TableName": "PrimaryResult",
+    "WithinDeadline": "True"
+  },
+  {
+    "App": "app-min3",
+    "ChurnStart": "2026-06-14T11:05:00Z",
+    "FirstRecoveryAt": "2026-06-14T11:05:22.3550735Z",
+    "RecoverySecs": "22",
+    "TableName": "PrimaryResult",
+    "WithinDeadline": "True"
+  },
+  {
+    "App": "app-min3",
+    "ChurnStart": "2026-06-14T10:54:00Z",
+    "FirstRecoveryAt": "2026-06-14T10:55:22.2076857Z",
+    "RecoverySecs": "82",
+    "TableName": "PrimaryResult",
+    "WithinDeadline": "True"
+  },
+  {
+    "App": "app-min3",
+    "ChurnStart": "2026-06-14T10:44:00Z",
+    "FirstRecoveryAt": "2026-06-14T10:45:23.6978923Z",
+    "RecoverySecs": "83",
+    "TableName": "PrimaryResult",
+    "WithinDeadline": "True"
+  },
+  {
+    "App": "app-min3",
+    "ChurnStart": "2026-06-14T10:32:00Z",
+    "FirstRecoveryAt": "2026-06-14T10:35:22.8897216Z",
+    "RecoverySecs": "202",
+    "TableName": "PrimaryResult",
+    "WithinDeadline": "True"
+  }
+]
