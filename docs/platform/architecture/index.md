@@ -454,6 +454,7 @@ Use this page as a quick architecture review guide before you deploy a new workl
 - [Resource Relationships](resource-relationships.md)
 - [Networking](../networking/index.md)
 - [Scaling](../scaling/index.md)
+- [Availability and Non-Guarantees](../../best-practices/availability-and-non-guarantees.md) — the five best-effort contracts the platform scheduler and rollout mechanism do NOT promise, with the Microsoft Learn disclosure for each.
 
 ## Sources
 - [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)

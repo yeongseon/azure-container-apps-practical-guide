@@ -179,6 +179,7 @@ Example output (PII masked):
 - [Health Probes](../../operations/health-probes/index.md)
 - [Zone Redundancy (Operations)](../../operations/disaster-recovery/zone-redundancy.md)
 - [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md)
+- [Availability and Non-Guarantees](../../best-practices/availability-and-non-guarantees.md) — operator-facing enumeration of the five best-effort contracts (zone redundancy, node spread, clustered restart, rolling-rollout transient masking, single-region availability cap) with the Microsoft Learn disclosure for each.
 
 ## Sources
 - [Azure Container Apps health probes](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
