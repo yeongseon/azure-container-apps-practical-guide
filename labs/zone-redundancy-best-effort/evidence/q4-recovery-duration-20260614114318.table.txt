@@ -1,0 +1,8 @@
+App       ChurnStart            FirstRecoveryAt               RecoverySecs    TableName      WithinDeadline
+--------  --------------------  ----------------------------  --------------  -------------  ----------------
+app-min3  2026-06-14T11:29:00Z  2026-06-14T11:30:23.5801932Z  83              PrimaryResult  True
+app-min3  2026-06-14T11:16:00Z  2026-06-14T11:20:22.0209784Z  262             PrimaryResult  True
+app-min3  2026-06-14T11:05:00Z  2026-06-14T11:05:22.3550735Z  22              PrimaryResult  True
+app-min3  2026-06-14T10:54:00Z  2026-06-14T10:55:22.2076857Z  82              PrimaryResult  True
+app-min3  2026-06-14T10:44:00Z  2026-06-14T10:45:23.6978923Z  83              PrimaryResult  True
+app-min3  2026-06-14T10:32:00Z  2026-06-14T10:35:22.8897216Z  202             PrimaryResult  True

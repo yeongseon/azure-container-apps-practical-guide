@@ -1,0 +1,44 @@
+[
+  {
+    "App": "app-min3",
+    "ClusterStart": "2026-06-14T11:29:00Z",
+    "ReplicaList": "[\"app-min3--2xnup8i-6985d55597-488mv\",\"app-min3--2xnup8i-6985d55597-cpn59\"]",
+    "TableName": "PrimaryResult",
+    "TerminatedReplicas": "2"
+  },
+  {
+    "App": "app-min3",
+    "ClusterStart": "2026-06-14T11:16:00Z",
+    "ReplicaList": "[\"app-min3--2xnup8i-687c9898fc-rg496\",\"app-min3--2xnup8i-687c9898fc-rg7hg\",\"app-min3--2xnup8i-687c9898fc-jgttr\"]",
+    "TableName": "PrimaryResult",
+    "TerminatedReplicas": "3"
+  },
+  {
+    "App": "app-min3",
+    "ClusterStart": "2026-06-14T11:05:00Z",
+    "ReplicaList": "[\"app-min3--2xnup8i-6cc4689564-b2vwm\",\"app-min3--2xnup8i-6cc4689564-z4qt9\"]",
+    "TableName": "PrimaryResult",
+    "TerminatedReplicas": "2"
+  },
+  {
+    "App": "app-min3",
+    "ClusterStart": "2026-06-14T10:54:00Z",
+    "ReplicaList": "[\"app-min3--2xnup8i-5dd77886f6-6rmcg\",\"app-min3--2xnup8i-5dd77886f6-shk66\"]",
+    "TableName": "PrimaryResult",
+    "TerminatedReplicas": "2"
+  },
+  {
+    "App": "app-min3",
+    "ClusterStart": "2026-06-14T10:44:00Z",
+    "ReplicaList": "[\"app-min3--2xnup8i-5b8f844d5d-s2jt4\",\"app-min3--2xnup8i-5b8f844d5d-gbqj8\"]",
+    "TableName": "PrimaryResult",
+    "TerminatedReplicas": "2"
+  },
+  {
+    "App": "app-min3",
+    "ClusterStart": "2026-06-14T10:32:00Z",
+    "ReplicaList": "[\"app-min3--2xnup8i-5dd7dc8858-kn4lk\",\"app-min3--2xnup8i-5dd7dc8858-l9sq6\",\"app-min3--2xnup8i-5dd7dc8858-bxlwb\"]",
+    "TableName": "PrimaryResult",
+    "TerminatedReplicas": "3"
+  }
+]
