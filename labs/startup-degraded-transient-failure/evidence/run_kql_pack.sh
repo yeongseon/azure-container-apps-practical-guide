@@ -142,7 +142,7 @@ let req = ContainerAppConsoleLogs_CL
             p95_ms = round(percentile(dur_ms, 95), 1),
             p99_ms = round(percentile(dur_ms, 99), 1)
         by run_id, bucket_iso;
-ContainerAppConsoleLogs_CL
+let rawBuckets = ContainerAppConsoleLogs_CL
 | where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | where Log_s has "${run_pattern}"
@@ -157,8 +157,18 @@ ContainerAppConsoleLogs_CL
 | extend count_ = toint(payload.count)
 | extend ok_ = toint(payload.ok)
 | extend err_ = toint(payload.err)
-| summarize total_count = sum(count_), total_ok = sum(ok_), total_err = sum(err_) by run_id, bucket_iso
-| extend err_pct = round(100.0 * total_err / total_count, 3)
+| summarize total_count = sum(count_), total_ok = sum(ok_), total_err = sum(err_) by run_id, bucket_iso;
+let bucketBounds = rawBuckets
+| summarize start_bucket = min(bucket_iso), end_bucket = max(bucket_iso) by run_id;
+let control = bucketBounds
+| mv-expand bucket_iso = range(start_bucket, end_bucket, 10s) to typeof(datetime)
+| project run_id, bucket_iso;
+control
+| join kind=leftouter rawBuckets on run_id, bucket_iso
+| extend total_count = coalesce(total_count, 0),
+         total_ok = coalesce(total_ok, 0),
+         total_err = coalesce(total_err, 0)
+| extend err_pct = iff(total_count == 0, 0.0, round(100.0 * total_err / total_count, 3))
 | join kind=leftouter (req) on run_id, bucket_iso
 | project run_id, bucket_iso, total_count, total_ok, total_err, err_pct, p50_ms, p95_ms, p99_ms
 | order by run_id asc, bucket_iso asc
@@ -226,7 +236,7 @@ q5() {
   local run_pattern="${1:?usage: q5 <run_id_pattern>}"
   local q
   q=$(cat <<KQL
-let buckets = ContainerAppConsoleLogs_CL
+let rawBuckets = ContainerAppConsoleLogs_CL
 | where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | where Log_s has "${run_pattern}"
@@ -240,8 +250,17 @@ let buckets = ContainerAppConsoleLogs_CL
 | extend bucket_iso = todatetime(payload.bucket_start_iso)
 | extend count_ = toint(payload.count)
 | extend err_ = toint(payload.err)
-| summarize total_count = sum(count_), total_err = sum(err_) by run_id, bucket_iso
-| extend err_pct = round(100.0 * total_err / total_count, 3)
+| summarize total_count = sum(count_), total_err = sum(err_) by run_id, bucket_iso;
+let bucketBounds = rawBuckets
+| summarize start_bucket = min(bucket_iso), end_bucket = max(bucket_iso) by run_id;
+let control = bucketBounds
+| mv-expand bucket_iso = range(start_bucket, end_bucket, 10s) to typeof(datetime)
+| project run_id, bucket_iso;
+let buckets = control
+| join kind=leftouter rawBuckets on run_id, bucket_iso
+| extend total_count = coalesce(total_count, 0),
+         total_err = coalesce(total_err, 0)
+| extend err_pct = iff(total_count == 0, 0.0, round(100.0 * total_err / total_count, 3))
 | extend bad_bucket = iff(err_pct > 0.5, 1, 0)
 | order by run_id asc, bucket_iso asc;
 buckets
@@ -265,7 +284,7 @@ KQL
 q6() {
   local q
   q=$(cat <<KQL
-let allBuckets = ContainerAppConsoleLogs_CL
+let rawBuckets = ContainerAppConsoleLogs_CL
 | where TimeGenerated >= ago(${LOOKBACK_HOURS}h)
 | where ContainerName_s == "k6"
 | extend body_raw = extract(@'msg="(.+)" source=console', 1, Log_s)
@@ -279,8 +298,18 @@ let allBuckets = ContainerAppConsoleLogs_CL
 | extend count_ = toint(payload.count)
 | extend ok_ = toint(payload.ok)
 | extend err_ = toint(payload.err)
-| summarize total_count = sum(count_), total_ok = sum(ok_), total_err = sum(err_) by run_id, bucket_iso
-| extend err_pct = round(100.0 * total_err / total_count, 3);
+| summarize total_count = sum(count_), total_ok = sum(ok_), total_err = sum(err_) by run_id, bucket_iso;
+let bucketBounds = rawBuckets
+| summarize start_bucket = min(bucket_iso), end_bucket = max(bucket_iso) by run_id;
+let control = bucketBounds
+| mv-expand bucket_iso = range(start_bucket, end_bucket, 10s) to typeof(datetime)
+| project run_id, bucket_iso;
+let allBuckets = control
+| join kind=leftouter rawBuckets on run_id, bucket_iso
+| extend total_count = coalesce(total_count, 0),
+         total_ok = coalesce(total_ok, 0),
+         total_err = coalesce(total_err, 0)
+| extend err_pct = iff(total_count == 0, 0.0, round(100.0 * total_err / total_count, 3));
 allBuckets
 | extend phase = case(
     run_id startswith "baseline-", "baseline",
