@@ -1,0 +1,15 @@
+H3 falsification verdict — run h3-20260614-143432
+----------------------------------------------------------------
+H3a-replica-consistent:  yes  (all 5 samples hit replica=app-consumption--0000001-65f97bcd78-k4j8r)
+H3a-boot-consistent:     yes  (boot_id stable at 6c70d7c6-d797-4c74-8d6d-40bede5858ea across all 5 samples)
+H3a-uptime-monotonic:    yes  (uptime monotonically increased from 2054.0s to 2094.48s)
+H3b-boot-nontrivial:     yes  (boot_id=6c70d7c6-d797-4c74-8d6d-40bede5858ea is a non-trivial UUID)
+----------------------------------------------------------------
+Overall: PASS
+
+Raw samples (replica_name | boot_id | uptime_seconds):
+  sample 1  app-consumption--0000001-65f97bcd78-k4j8r  6c70d7c6-d797-4c74-8d6d-40bede5858ea  2054.0
+  sample 2  app-consumption--0000001-65f97bcd78-k4j8r  6c70d7c6-d797-4c74-8d6d-40bede5858ea  2064.13
+  sample 3  app-consumption--0000001-65f97bcd78-k4j8r  6c70d7c6-d797-4c74-8d6d-40bede5858ea  2074.24
+  sample 4  app-consumption--0000001-65f97bcd78-k4j8r  6c70d7c6-d797-4c74-8d6d-40bede5858ea  2084.36
+  sample 5  app-consumption--0000001-65f97bcd78-k4j8r  6c70d7c6-d797-4c74-8d6d-40bede5858ea  2094.48
