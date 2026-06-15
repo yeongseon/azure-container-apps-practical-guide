@@ -401,6 +401,38 @@ These captures add depth but are not required to validate H0a. Capture only if t
 
 > **Caveat 3 on run history.** Three earlier partial perturbation runs (10:31, 10:42, 10:53 UTC) emitted invalid timestamps because `trigger.sh` used GNU-only `date +%s%3N` and `date -u +"%Y-%m-%dT%H:%M:%S.%3NZ"` — both produce literal `%3N` on macOS BSD `date`. The corresponding `LoadEnd` totals are uncomputable from those logs. The script was patched with a portable detection block (GNU `date` if available, else `perl -MTime::HiRes`) before the successful re-runs at 11:04 / 11:15 / 11:29. The three pre-fix logs were moved to `evidence/.local/partial-pre-fix/` (gitignored) for traceability and are intentionally not part of the committed corpus. The Q6 KQL pack had a parallel double-Z bug (`head -c 20 | awk '{print $1 "Z"}'` over a string already ending in `Z`) that produced `datetime(...ZZ)` syntax errors; that fix is in `labs/zone-redundancy-best-effort/evidence/run_kql_pack.sh`.
 
+#### Portal captures (2026-06-14 reproduction)
+
+The seven captures specified in the **Required Portal captures** table above were taken during this reproduction and committed under [`docs/assets/troubleshooting/zone-redundancy-best-effort/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/docs/assets/troubleshooting/zone-redundancy-best-effort). All captures were processed through the standard PII helper before commit (see [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules)).
+
+[Observed] **C1 — Container Apps environment Overview.** The environment `cae-zrlab-5yi4px` displays its zone-redundant status alongside the `koreacentral` region in the Essentials tile, confirming `properties.zoneRedundant=true` at the environment level.
+
+![Container Apps environment Overview blade showing zone-redundant status alongside the koreacentral region](../../assets/troubleshooting/zone-redundancy-best-effort/01-env-overview-zone-redundant.png)
+
+[Observed] **C2 — Container Apps environment Workload profiles tab.** The Consumption workload profile is provisioned inside this workload-profile environment, which is the host context for `app-min3`. Zone redundancy is configured at the environment level (per C1) and not per profile.
+
+![Container Apps environment Workload profiles tab showing the Consumption profile inside the workload-profile environment](../../assets/troubleshooting/zone-redundancy-best-effort/02-env-workload-profiles.png)
+
+[Observed] **C3 — app-min3 Overview blade.** The subject app `app-min3` is in `Running` state, and the Configuration tile shows `Min replicas = Max replicas = 3`, which is the `minReplicas` value the H0a and H0b hypotheses are framed around.
+
+![app-min3 Overview blade showing Running state and Min replicas equals Max replicas equals 3 in the Configuration tile](../../assets/troubleshooting/zone-redundancy-best-effort/03-app-min3-overview.png)
+
+[Observed] **C4 — app-min3 Revisions and replicas tab (baseline).** Before any perturbation, all 3 replicas are listed under a single active revision in the green Running state. This is the steady-state baseline that Q2 confirmed at `SteadyStateOK=True` for all 289 audit samples over the 24-h baseline window.
+
+![app-min3 Revisions and replicas tab showing 3 replicas under one active revision in Running state](../../assets/troubleshooting/zone-redundancy-best-effort/04-app-min3-revisions-replicas-baseline.png)
+
+[Observed] **C6 — Log Analytics Q1 ingestion check.** The Q1 ingestion-check query is pasted into the Log Analytics Logs editor and returns `HealthRatio` near 1.0 (lab measurement: `1.0` over 867 samples), confirming the `audit-sampler` cron emitted `ReplicaInventorySample` events into `ContainerAppConsoleLogs_CL` reliably across the 24-h baseline window.
+
+![Log Analytics Logs editor running Q1 ingestion-check query and returning HealthRatio near 1.0](../../assets/troubleshooting/zone-redundancy-best-effort/06-log-analytics-q1-ingestion.png)
+
+[Observed] **C7 — Log Analytics Q3 clustered-churn result.** The Q3 clustered-churn query returns the perturbation-induced row for `app-min3` — the smoking-gun signal that `az containerapp revision restart` produced a cluster of `ContainerTerminated` events within a single 60-s bin, which is the `MaxReplacementFraction=1.0` measurement summarized in the table above.
+
+![Log Analytics Logs editor running Q3 clustered-churn query and returning the perturbation row for app-min3](../../assets/troubleshooting/zone-redundancy-best-effort/07-log-analytics-q3-clustered-churn.png)
+
+[Observed] **C11 — app-min3 Metrics blade (Replica Count plus Restart Count).** The Metrics blade chart shows the perturbation dip in `Replica Count` and the corresponding spike in `Restart Count` for `app-min3`, plus the recovery to steady-state within the 600-s deadline (Q4: `RecoverySecs` p50 approximately 83 s, p95 approximately 262 s, all 6 events `WithinDeadline=True`).
+
+![app-min3 Metrics blade chart showing Replica Count dip and Restart Count spike during perturbation, plus recovery to steady-state](../../assets/troubleshooting/zone-redundancy-best-effort/11-app-min3-metrics-replicas.png)
+
 ### Mapping to ACA Non-Guarantee Claims
 
 This lab tests three distinct claims about Container Apps zone redundancy. Each claim has a different evidence ceiling, and the ceilings are **independent** of how cleanly any single reproduction passes. Even with a perfect 24-h baseline, Claims 2 and 3 remain capped because the underlying signal is not exposed by the platform.
