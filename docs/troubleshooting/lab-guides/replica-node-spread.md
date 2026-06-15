@@ -328,6 +328,30 @@ These five captures are required to make the H1 / H2 verdicts UI-verifiable. Sav
 
 **Subject apps**: `app-consumption` (workload profile: Consumption, max replicas 30, FQDN `app-consumption.purplebush-69d6d99a.koreacentral.azurecontainerapps.io`), `app-dedicated-d8` (workload profile: Dedicated D8, max replicas 10, FQDN `app-dedicated-d8.purplebush-69d6d99a.koreacentral.azurecontainerapps.io`).
 
+#### Portal captures (2026-06-14 reproduction)
+
+The five captures specified in the **Required Portal captures** table above were taken during this reproduction and committed under [`docs/assets/troubleshooting/replica-node-spread/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/docs/assets/troubleshooting/replica-node-spread). All captures were processed through the standard PII helper before commit (see [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules)).
+
+[Observed] **C1 — Resource group Overview.** Both subject apps, the Container Apps environment, the ACR, the Log Analytics workspace, and the user-assigned managed identity are all listed under the single resource group `rg-aca-rns-lab-202606141423`. This eliminates the "deployment split across multiple resource groups" confounder.
+
+![Resource group Overview blade showing both subject apps, the Container Apps environment, ACR, Log Analytics workspace, and user-assigned managed identity in the same resource group](../../assets/troubleshooting/replica-node-spread/01-rg-overview.png)
+
+[Observed] **C2 — Container Apps environment Workload profiles tab.** Both **Consumption** and **Dedicated D8** profiles are provisioned on the same environment `cae-rnslab-khefip`. Both subject apps are bound to this one environment; the only differentiator between them is the per-app `workloadProfileName` value set in `infra/main.bicep`.
+
+![Container Apps environment Workload profiles tab showing both Consumption and Dedicated D8 profiles provisioned on the same environment](../../assets/troubleshooting/replica-node-spread/02-env-workload-profiles.png)
+
+[Observed] **C3 — app-consumption Active revisions tab at N=30.** The single active revision row shows the running replica count = 30 under the Consumption profile.
+
+![app-consumption Active revisions tab showing the active revision with running replica count of 30](../../assets/troubleshooting/replica-node-spread/03-app-consumption-30-replicas.png)
+
+[Observed] **C4 — app-dedicated-d8 Active revisions tab at N=10.** The single active revision row shows the running replica count = 10 under the Dedicated D8 profile. (D8's practical replica ceiling within the 600 s scale window is `~10`; see the **D8 capacity ceiling** bullet above.)
+
+![app-dedicated-d8 Active revisions tab showing the active revision with running replica count of 10 under the Dedicated D8 profile](../../assets/troubleshooting/replica-node-spread/04-app-dedicated-d8-10-replicas.png)
+
+[Observed] **C5 — app-consumption Overview Essentials.** The Essentials section shows `Environment type: Workload profiles` for the parent environment, which is the prerequisite for the per-app `workloadProfileName: Consumption` binding declared in `infra/main.bicep`. The app-level binding itself is captured by the Bicep template (committed) plus the `az containerapp show --query "properties.workloadProfileName"` CLI evidence, not by this blade.
+
+![app-consumption Overview Essentials section showing Environment type Workload profiles for the parent environment](../../assets/troubleshooting/replica-node-spread/05-app-consumption-workload-profile.png)
+
 | Tag | Measurement | Value | Evidence file |
 |---|---|---|---|
 | `[Measured]` | H3a-replica-consistent | `yes` (5/5 samples hit `app-consumption--0000001-65f97bcd78-k4j8r`) | `evidence/h3-20260614-143432.verdict.txt` |
