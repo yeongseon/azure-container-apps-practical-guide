@@ -442,20 +442,6 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 Save PNGs to `docs/assets/troubleshooting/managed-identity-key-vault-failure/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-Add image references inside the **Observed Evidence (Live Azure Reproduction)** subsection above, paired with `[Observed]` evidence tags:
-
-```markdown
-[Observed] The Container App identity existed, but the vault had no effective secret-read RBAC assignment for that principal:
-
-![Missing Key Vault role assignment for the Container App identity](../../assets/troubleshooting/managed-identity-key-vault-failure/02-kv-iam-no-role-for-app-principal.png)
-
-[Observed] After `Key Vault Secrets User` was assigned at the vault scope, the Requests metric showed the 2xx recovery alongside the earlier 5xx population:
-
-![Metrics blade after fix showing 2xx recovery alongside the earlier 5xx population](../../assets/troubleshooting/managed-identity-key-vault-failure/06-metrics-requests-2xx-after-fix.png)
-```
-
 ## Clean Up
 
 ```bash

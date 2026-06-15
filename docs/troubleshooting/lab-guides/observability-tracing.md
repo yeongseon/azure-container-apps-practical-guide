@@ -456,10 +456,6 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 Save PNGs to `docs/assets/troubleshooting/observability-tracing/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-Pair each PNG with a single `[Observed]` paragraph (screenshot-visible facts only) and follow it with a separate `[Inferred]` paragraph that does the cross-capture reasoning. Do **not** mix the two tags inside the same paragraph. See the six per-capture blocks above for the canonical pattern.
-
 ## Clean Up
 
 ```bash
