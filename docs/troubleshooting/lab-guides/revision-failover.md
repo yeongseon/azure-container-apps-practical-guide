@@ -398,20 +398,6 @@ The 2026-06-03 reproduction above used this set of six captures. Reuse the same 
 
 Save PNGs to `docs/assets/troubleshooting/revision-failover/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-The 2026-06-03 reproduction above already embeds all six captures with `[Observed]` evidence tags. Use that block as the template when adding new reproductions: pair each `[Observed]` line with the specific Portal blade text it cites, and immediately follow it with the corresponding image reference. Example pattern:
-
-```markdown
-[Observed] The latest rollout created a bad revision while an older healthy revision remained available for failover:
-
-![Healthy and unhealthy revisions before rollback](../../assets/troubleshooting/revision-failover/02-revisions-and-replicas-blade.png)
-
-[Observed] Traffic was moved back to the healthy revision before the bad configuration was repaired:
-
-![Revisions blade post-rollback with green Running status](../../assets/troubleshooting/revision-failover/05-revisions-after-rollback-healthy.png)
-```
-
 ## Clean Up
 
 ```bash

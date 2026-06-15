@@ -394,20 +394,6 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 Save PNGs to `docs/assets/troubleshooting/acr-pull-failure/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
-
-```markdown
-[Observed] The latest revision failed at provisioning time because the image reference could not be pulled from ACR:
-
-![Failed revision detail for missing image tag](../../assets/troubleshooting/acr-pull-failure/acr-pull-failure-revision-detail.png)
-
-[Observed] After publishing a valid `v1` image and updating the app, the newest revision reached a healthy state:
-
-![Healthy revision after valid image update](../../assets/troubleshooting/acr-pull-failure/acr-pull-failure-after-fix.png)
-```
-
 ## Clean Up
 
 ```bash

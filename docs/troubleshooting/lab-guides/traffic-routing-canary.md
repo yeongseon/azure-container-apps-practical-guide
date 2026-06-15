@@ -441,18 +441,6 @@ The 6 captures committed under `docs/assets/troubleshooting/traffic-routing-cana
 
 Save PNGs to `docs/assets/troubleshooting/traffic-routing-canary/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-Add image references inside the **Observed Evidence (Live Azure Reproduction)** subsection above, paired with `[Observed]` evidence tags that quote only what is visible in the screenshot, with adjacent `[Inferred]` paragraphs for any conclusions. Example:
-
-```markdown
-[Observed] The Container App Overview blade displayed the bad revision under the "Revisions with Issues" tab with the verbatim platform error text: "The TargetPort 80 does not match the listening port 8080. 1/1 Container crashing: app".
-
-![Container App Overview blade showing the Revisions with Issues tab](../../assets/troubleshooting/traffic-routing-canary/01-overview-multi-revision-mode.png)
-
-[Inferred] The platform attributes the failure to a listening-port mismatch on this specific revision, not to ingress misconfiguration.
-```
-
 ## Clean Up
 
 ```bash

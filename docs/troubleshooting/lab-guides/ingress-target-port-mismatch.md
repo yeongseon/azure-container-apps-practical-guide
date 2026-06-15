@@ -429,20 +429,6 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 Save PNGs to `docs/assets/troubleshooting/ingress-target-port-mismatch/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
-
-```markdown
-[Observed] Ingress was configured to forward traffic to the wrong container port even though the replica itself stayed running:
-
-![Wrong ingress target port before fix](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-target-port-mismatch-ingress-before.png)
-
-[Observed] After restoring the correct target port, the same endpoint started succeeding again in Portal metrics:
-
-![Recovered request success after ingress fix](../../assets/troubleshooting/ingress-target-port-mismatch/ingress-target-port-mismatch-requests-recovered.png)
-```
-
 ## Clean Up
 
 ```bash

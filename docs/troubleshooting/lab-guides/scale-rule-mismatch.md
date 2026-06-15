@@ -373,20 +373,6 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 Save PNGs to `docs/assets/troubleshooting/scale-rule-mismatch/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-Add image references inside the **Observed Evidence (Live Azure Test)** subsection above, paired with `[Observed]` evidence tags:
-
-```markdown
-[Observed] Replica count held at 1 under sustained 80-concurrent load while `concurrentRequests=500`:
-
-![Replica count flat under load with concurrentRequests=500](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-load-stuck.png)
-
-[Observed] After applying `concurrentRequests=10` and `maxReplicas=10`, the same load drove replicas above 1:
-
-![Replica count scaling out after fix](../../assets/troubleshooting/scale-rule-mismatch/scale-rule-mismatch-after-fix.png)
-```
-
 ## Clean Up
 
 ```bash

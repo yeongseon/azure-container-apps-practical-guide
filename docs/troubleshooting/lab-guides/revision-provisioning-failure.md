@@ -401,16 +401,6 @@ The reproduction performed on 2026-06-03 (see **Observed Evidence (Portal Captur
 
 Save PNGs to `docs/assets/troubleshooting/revision-provisioning-failure/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-Add image references inside the **Observed Evidence (Portal Captures)** subsection above, paired with `[Observed]` evidence tags. Example pattern (see the 2026-06-03 captures above for a full worked example):
-
-```markdown
-[Observed] The new revision was created, but it never became ready because the startup probe configuration kept failing:
-
-![Failed revision caused by startup probe misconfiguration](../../assets/troubleshooting/revision-provisioning-failure/01-overview-revisions-with-issues.png)
-```
-
 ## Clean Up
 
 ```bash

@@ -403,10 +403,6 @@ Apply the inline PII helper from [AGENTS.md](https://github.com/yeongseon/azure-
 
 Save PNGs to `docs/assets/troubleshooting/cd-reconnect-rbac-conflict/` (create the directory if it does not exist).
 
-### Reference captures in Observed Evidence
-
-The captures above are referenced inline from the **Observed Evidence (Portal Captures — 2026-06-03)** subsection. New captures from future re-runs should be added as additional dated subsections rather than overwriting these files, so that prior evidence remains traceable.
-
 ## Clean Up
 
 ```bash
