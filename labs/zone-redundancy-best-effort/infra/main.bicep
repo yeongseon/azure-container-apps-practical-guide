@@ -43,6 +43,9 @@ param auditImage string = 'mcr.microsoft.com/azure-cli:2.83.0'
 @description('Optional Azure Container Registry name (without ".azurecr.io" suffix) in the same resource group. When set, the deployment grants the audit Job UAMI AcrPull on this registry and wires a registries block so the Job can pull the custom audit image. Leave empty when using the default placeholder auditImage.')
 param auditAcrName string = ''
 
+@description('Optional Azure Container Registry name (without ".azurecr.io" suffix) in the same resource group. When set, the deployment grants the subject-app UAMI AcrPull on this registry and wires a registries block so the apps can pull a custom OpenTelemetry-instrumented image (see labs/zone-redundancy-best-effort/apps/README.md). Leave empty when using the default helloworld appImage. Can be set to the same value as auditAcrName when both images live in the same registry.')
+param appAcrName string = ''
+
 @description('UTC timestamp captured at deployment start. Required as a parameter because utcNow() is only valid as a parameter default.')
 param deploymentTime string = utcNow()
 
@@ -57,6 +60,7 @@ var names = {
   vnet: 'vnet-${baseName}-${suffix}'
   subnet: 'snet-aca-${baseName}'
   law: 'log-${baseName}-${suffix}'
+  appi: 'appi-${baseName}-${suffix}'
   env: 'cae-${baseName}-${suffix}'
   uami: 'id-${baseName}-${suffix}'
   jobName: 'audit-sampler'
@@ -142,6 +146,20 @@ resource law 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: names.appi
+  location: location
+  tags: commonTags
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: law.id
+    IngestionMode: 'LogAnalytics'
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+  }
+}
+
 // ---------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------
@@ -177,6 +195,25 @@ resource auditAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing =
 resource uamiAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(auditAcrName)) {
   name: guid(resourceGroup().id, uami.id, acrPullRoleId, auditAcrName)
   scope: auditAcr
+  properties: {
+    principalId: uami.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
+  }
+}
+
+// Optional: AcrPull on a customer-supplied ACR so the subject apps can pull
+// the custom OpenTelemetry-instrumented image. Only created when
+// appAcrName is non-empty. The guid disambiguator 'subjectApps' ensures
+// the role-assignment name differs from `uamiAcrPull` even when
+// appAcrName == auditAcrName.
+resource appAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = if (!empty(appAcrName)) {
+  name: appAcrName
+}
+
+resource uamiAppAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(appAcrName)) {
+  name: guid(resourceGroup().id, uami.id, acrPullRoleId, appAcrName, 'subjectApps')
+  scope: appAcr
   properties: {
     principalId: uami.properties.principalId
     principalType: 'ServicePrincipal'
@@ -225,6 +262,9 @@ resource apps 'Microsoft.App/containerApps@2024-03-01' = [for app in subjectApps
     role: 'subject'
     minReplicas: string(app.minReplicas)
   })
+  dependsOn: empty(appAcrName) ? [] : [
+    uamiAppAcrPull
+  ]
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
@@ -236,6 +276,18 @@ resource apps 'Microsoft.App/containerApps@2024-03-01' = [for app in subjectApps
     workloadProfileName: 'Consumption'
     configuration: {
       activeRevisionsMode: 'Single'
+      secrets: [
+        {
+          name: 'appinsights-connection-string'
+          value: appInsights.properties.ConnectionString
+        }
+      ]
+      registries: empty(appAcrName) ? [] : [
+        {
+          server: '${appAcrName}.azurecr.io'
+          identity: uami.id
+        }
+      ]
       ingress: {
         external: true
         targetPort: 80
@@ -260,6 +312,12 @@ resource apps 'Microsoft.App/containerApps@2024-03-01' = [for app in subjectApps
             cpu: json('0.5')
             memory: '1Gi'
           }
+          env: [
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              secretRef: 'appinsights-connection-string'
+            }
+          ]
           probes: [
             {
               type: 'Startup'
@@ -410,6 +468,9 @@ output environmentName string = env.name
 output environmentId string = env.id
 output logAnalyticsWorkspaceName string = law.name
 output logAnalyticsWorkspaceId string = law.id
+@secure()
+output appInsightsConnectionString string = appInsights.properties.ConnectionString
+output appInsightsName string = appInsights.name
 output uamiResourceId string = uami.id
 output uamiClientId string = uami.properties.clientId
 output uamiPrincipalId string = uami.properties.principalId

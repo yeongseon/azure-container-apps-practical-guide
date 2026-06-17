@@ -19,6 +19,15 @@
 #   RG       Resource group with the deployed lab.
 #   APP      Subject app to perturb (default: app-min3).
 #
+# Optional env (applied only by --perturb redeploy mode, to preserve image
+# overrides from the original deployment):
+#   AUDIT_IMAGE     Custom audit image (overrides default placeholder).
+#   AUDIT_ACR_NAME  ACR short name for AcrPull grant on audit Job.
+#   APP_IMAGE       Custom subject-app image (overrides helloworld default).
+#   APP_ACR_NAME    ACR short name for AcrPull grant on subject apps.
+# Without these, --perturb redeploy reverts the deployment to the default
+# placeholder audit image and helloworld subject app.
+#
 # Usage examples:
 #   export RG="rg-aca-zr-lab"
 #   ./trigger.sh --perturb restart                       # mass-reschedule
@@ -44,7 +53,7 @@ while [[ $# -gt 0 ]]; do
     --rps) REQS_PER_SEC="$2"; shift 2 ;;
     --app) APP="$2"; shift 2 ;;
     --help|-h)
-      sed -n '2,28p' "$0"
+      sed -n '2,35p' "$0"
       exit 0
       ;;
     *) echo "Unknown arg: $1"; exit 2 ;;
@@ -97,11 +106,22 @@ perturb_restart() {
 }
 
 perturb_redeploy() {
+  # Build az deployment group create args. Optional env vars (AUDIT_IMAGE,
+  # AUDIT_ACR_NAME, APP_IMAGE, APP_ACR_NAME) are forwarded as --parameters
+  # overrides only when set. If unset, the deployment reverts to the
+  # defaults declared in ./infra/main.parameters.json and main.bicep.
+  local args=(
+    --resource-group "$RG"
+    --template-file ./infra/main.bicep
+    --parameters ./infra/main.parameters.json
+  )
+  [[ -n "${AUDIT_IMAGE:-}" ]] && args+=(--parameters "auditImage=$AUDIT_IMAGE")
+  [[ -n "${AUDIT_ACR_NAME:-}" ]] && args+=(--parameters "auditAcrName=$AUDIT_ACR_NAME")
+  [[ -n "${APP_IMAGE:-}" ]] && args+=(--parameters "appImage=$APP_IMAGE")
+  [[ -n "${APP_ACR_NAME:-}" ]] && args+=(--parameters "appAcrName=$APP_ACR_NAME")
+
   emit_event "PerturbationStart" "\"type\":\"redeploy\""
-  az deployment group create --resource-group "$RG" \
-    --template-file ./infra/main.bicep \
-    --parameters ./infra/main.parameters.json \
-    --output none
+  az deployment group create "${args[@]}" --output none
   emit_event "PerturbationSubmitted" "\"type\":\"redeploy\""
 }
 
