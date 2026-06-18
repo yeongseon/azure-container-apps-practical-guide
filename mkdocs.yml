@@ -419,6 +419,7 @@ nav:
         - Replica Crash Signals: troubleshooting/kql/system-and-revisions/replica-crash-signals.md
         - Health Probe Timeline: troubleshooting/kql/system-and-revisions/health-probe-timeline.md
         - Deployment Progression: troubleshooting/kql/system-and-revisions/deployment-progression.md
+        - Target Port Mismatch Detection: troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md
       - Console and Runtime:
         - Latest Errors and Exceptions: troubleshooting/kql/console-and-runtime/latest-errors-and-exceptions.md
         - Request Latency from Logs: troubleshooting/kql/console-and-runtime/request-latency-from-logs.md

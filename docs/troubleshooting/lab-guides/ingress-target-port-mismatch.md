@@ -396,6 +396,153 @@ RunningStatus: Running   (PR-A: Failed)
 
 [Inferred] The remaining causal chain consistent with both PR-A and PR-B observations is: ingress `targetPort` mismatch caused edge routing failures and, simultaneously, default TCP health probes targeting the wrong port marked the revision Unhealthy. Correcting `targetPort` resolves both at once on the same revision. (This causal chain combines the observed [Observed] revision-state and edge-response flip with documented Container Apps ingress and probe behavior; it is an inference, not a direct observation.)
 
+### Observed Evidence (Portal Captures — 2026-06-18, production case pattern)
+
+This subsection captures the same hypothesis a second time, with two changes that make it more useful as a support-engineer training artifact:
+
+1. **Eight failure captures are paired one-to-one with eight fix captures** taken from the same blades after the only-`targetPort` change. Each pair isolates a single Portal surface and shows what flips between the two states — what to look for, and what to stop seeing.
+2. **The mismatched port mirrors a production case pattern** seen in the field (a deployment manifest set `httpOptions.port=8001` while the container listened on `:8000`). The lab uses `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` (which listens on `:80`) and an ingress `targetPort=8001`, which produces the same Portal surfaces and the same `Reason_s: TargetPortMismatch` system-log message.
+
+**Environment:** `rg-aca-lab-port-mismatch-repro` / `cae-portmismatch-f7ijzp`, `koreacentral`, Consumption plan.
+**App:** `ca-portmismatch-f7ijzp` — image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`, container listens on `:80`.
+**Trigger (failure state):** initial deployment with ingress `targetPort=8001` (the only field that differs from a healthy deployment).
+**Fix:** `az containerapp ingress update --name ca-portmismatch-f7ijzp --resource-group rg-aca-lab-port-mismatch-repro --target-port 80`.
+**Verification CLI at capture time:**
+
+```text
+# Failure state (pre-fix window)
+HTTP 503  (curl https://${FQDN}/, sampled in series)
+TargetPort: 8001  (ingress configuration)
+LatestRevisionName: ca-portmismatch-f7ijzp--nedy7dz
+RunningStatus: Failed
+
+# Fixed state (post-fix window, same revision name)
+HTTP 200  (curl https://${FQDN}/, 200+ requests across two bursts)
+TargetPort: 80   (ingress configuration after the update)
+LatestRevisionName: ca-portmismatch-f7ijzp--nedy7dz   (unchanged)
+RunningStatus: Running
+```
+
+#### Pair 1 — Container App overview: Running platform status hides a degraded revision
+
+[Observed] During the failure window, the Overview blade renders the platform-level `Status: Running` even while the revision is unhealthy, and a fourth top-level tab labeled **"Issues"** appears alongside `Essentials`, `Properties`, and `Capabilities`:
+
+![Container App overview blade during the failure window showing Status Running alongside the four tabs Essentials, Properties, Capabilities, and Issues](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-01-overview-running-but-degraded.png)
+
+[Observed] After the fix, the same Overview blade renders only three tabs — the **"Issues"** tab is gone:
+
+![Container App overview blade after the fix, with only three tabs (Essentials, Properties, Capabilities)](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-09-overview-fixed-no-issues-tab.png)
+
+[Inferred] The platform-level `Status: Running` is what makes this failure class confusing — it tells you the resource is provisioned, not that traffic is being served. The presence or absence of the `Issues` tab is the **fastest single Portal signal** that a revision-level problem exists. It does not by itself say what the problem is — it only says one exists — which is why it pairs with the more specific surfaces below.
+
+#### Pair 2 — Revisions and replicas: Degraded vs. Healthy
+
+[Observed] The Revisions and replicas blade shows the active revision in a **Degraded** state with the warning icon during the failure window:
+
+![Revisions and replicas blade showing the active revision in Degraded state during the failure window](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-02-revisions-degraded.png)
+
+[Observed] After the fix, the same blade shows the **same revision name** (`ca-portmismatch-f7ijzp--nedy7dz`) now in **Healthy / Running** state with the success icon:
+
+![Revisions and replicas blade after the fix, showing the same revision in Healthy/Running state](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-10-revisions-healthy-fixed.png)
+
+[Inferred] No new revision was created. The revision identity is unchanged across the failure and fix windows; only its health state flipped. This is consistent with the documented Container Apps behavior that ingress is an application-scope setting and ingress updates do not create new revisions.
+
+#### Pair 3 — Revision status details flyout: the smoking gun message
+
+[Observed] The "View details" flyout on the failing revision renders the exact platform message identifying the mismatch:
+
+![Revision status details flyout during the failure window, showing the verbatim TargetPort 8001 does not match listening port 80 message](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-03-revision-status-details-flyout.png)
+
+The verbatim text is:
+
+```text
+The TargetPort 8001 does not match the listening port 80. 1/1 Container crashing: containerapps-helloworld
+```
+
+[Observed] After the fix, the same flyout on the same revision shows the platform's "all clear" placeholder:
+
+![Revision status details flyout after the fix, showing "There are no additional running status details at this time"](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-11-revision-detail-fixed.png)
+
+The verbatim post-fix text is:
+
+```text
+There are no additional running status details at this time.
+```
+
+[Inferred] The pre-fix flyout is the **single highest-signal Portal artifact** for this failure class — it directly attributes the failure to the mismatch and quotes both numbers (ingress port and container listening port). The post-fix "no additional running status details" placeholder is the **negative-evidence counterpart**: when the failure clears, the platform actively reports that nothing is wrong.
+
+#### Pair 4 — Ingress blade: the actual configuration value
+
+[Observed] The Ingress blade during the failure window reads `Target port: 8001`:
+
+![Ingress blade showing Target port set to 8001 during the failure window](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-04-ingress-targetport-8001.png)
+
+[Observed] After the fix, the same blade reads `Target port: 80`:
+
+![Ingress blade after the fix, showing Target port set to 80](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-12-ingress-targetport-80-fixed.png)
+
+[Inferred] These are the two values that pair 3's verbatim message quotes. The flyout text is generated from this field plus the container's actual listening port — confirming that the failure is configuration, not runtime regression.
+
+#### Pair 5 — Containers blade: the image and listening port are unchanged
+
+[Observed] The Containers blade shows the same image (`mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`) before and after the fix:
+
+![Containers blade during the failure window showing the helloworld image](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-05-containers-image-config.png)
+
+![Containers blade after the fix showing the same helloworld image (identical to capture 05)](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-13-containers-fixed.png)
+
+[Inferred] The image is the **control variable** in the falsification argument. Because the image — and therefore the listening port `:80` — is identical across the failure and fix windows, the only thing that could have changed the outcome is the ingress `targetPort`. This rules out theories of the form "the container started listening on a different port" or "the image regressed".
+
+#### Pair 6 — Metrics: 503 spike vs. 200 spike
+
+[Observed] The Metrics blade `Requests` chart during the failure window shows a sustained 5xx spike:
+
+![Metrics blade Requests chart showing a 5xx spike during the failure window](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-06-metrics-503-spike.png)
+
+[Observed] After the fix, the same `Requests` chart on the same blade shows a 200 spike — `Sum Requests = 327` over the post-fix burst window:
+
+![Metrics blade Requests chart after the fix showing Sum Requests 327 from the post-fix burst](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-14-metrics-200-fixed.png)
+
+[Measured] The post-fix Sum Requests value (`327`) covers the entire post-fix sampling window (the lab's verify-step probes plus the two follow-up bursts). All sampled responses returned HTTP 200 — no residual 5xx after the ingress update landed.
+
+[Inferred] The metric-level recovery is **not instant** because the chart aggregation window includes the pre-fix 5xx tail; once the fix lands, the 5xx series drops to zero and the 2xx series carries the burst. Reading the chart end-to-end is what makes the recovery visible.
+
+#### Pair 7 — Log stream: the container has been listening on :80 the entire time
+
+[Observed] During the failure window, the Log stream blade shows the container emitting `Listening on :80`:
+
+![Log stream blade during the failure window showing the container emitting Listening on :80 messages](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-07-logstream-listening-port-80.png)
+
+[Observed] After the fix, the same Log stream shows the same `Listening on :80` line:
+
+![Log stream blade after the fix showing the container still emitting Listening on :80 messages](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-15-logstream-fixed.png)
+
+[Inferred] This pair is the **dog that did not bark**: the listener output is identical across both windows. The container never stopped listening on `:80`. Combined with pair 4 (ingress `targetPort` was the only thing that changed), this is what proves the failure was an ingress-to-container plumbing issue, not a container regression.
+
+#### Pair 8 — Log Analytics KQL: the smoking-gun row appears and disappears
+
+[Observed] Running the [Target Port Mismatch Detection](../kql/system-and-revisions/target-port-mismatch-detection.md) KQL query over the failure window returns the platform's verbatim mismatch attribution:
+
+![Log Analytics blade showing the KQL query result with the verbatim TargetPort 8001 does not match listening port 80 row](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-08-loganalytics-kql-targetport.png)
+
+[Observed] Running the **same KQL query** over a `ago(5m)` window that starts after the fix lands returns **No results found**:
+
+![Log Analytics blade showing the same KQL query returning "No results found" over the post-fix window](../../assets/troubleshooting/ingress-target-port-mismatch/case-trap-16-loganalytics-fixed.png)
+
+[Inferred] The transition from "row present" to "No results found" with an unchanged query is the **machine-readable falsification artifact**. Pairs 1–7 are visual; pair 8 is the form you can alert on, scope-back, or paste into an incident postmortem. See [Target Port Mismatch Detection](../kql/system-and-revisions/target-port-mismatch-detection.md) for the query body, schema notes, and limitations.
+
+### Production case pattern — falsification summary
+
+| Independent variable changed | Dependent variables that flipped on the same revision | Variables held constant |
+|---|---|---|
+| Ingress `targetPort`: `8001` → `80` | Overview `Issues` tab (present → gone), revision health (Degraded → Healthy/Running), revision status details (verbatim mismatch message → "no additional running status details"), edge response (503 → 200), KQL `Reason_s contains "TargetPort"` rows (present → "No results found" in the post-fix window) | Revision name, container image, container listening port (`:80`), ingress transport |
+
+[Inferred] Holding the revision name, container image, listening port, and ingress transport constant and flipping only the ingress `targetPort`, the eight Portal surfaces above all transition together. The transition rules out the alternative theories the case originally enumerated:
+
+- *"The container is broken / image regressed"* — falsified by pair 5 (same image) and pair 7 (same `Listening on :80` log output).
+- *"It's a transient platform issue, retry will fix it"* — falsified by pair 8: the row stops appearing **deterministically on the ingress update**, not on time elapsed.
+- *"It's a probe configuration issue"* — falsified by the verbatim flyout message in pair 3, which directly attributes the failure to the port mismatch, not to probe timing or path.
+
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.

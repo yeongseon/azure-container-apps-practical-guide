@@ -457,6 +457,8 @@ az group delete --name "$RG" --yes --no-wait
 
 ## See Also
 
+- [Ingress Target Port Mismatch Lab](./ingress-target-port-mismatch.md) — the single-revision form of the same TargetPort/listening-port mismatch failure class; the "Production case pattern" subsection there walks through 8 failure↔fix Portal capture pairs that share the same `Reason_s: TargetPortMismatch` smoking gun
+- [Target Port Mismatch Detection KQL](../kql/system-and-revisions/target-port-mismatch-detection.md) — the query pack for the verbatim "TargetPort N does not match the listening port M" platform message, applicable to both this canary failure and the single-revision form
 - [Revision Failover Lab](./revision-failover.md)
 - [Revision Provisioning Failure Lab](./revision-provisioning-failure.md)
 

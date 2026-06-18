@@ -342,6 +342,7 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
 - [Probe Failure and Slow Start](../startup-and-provisioning/probe-failure-and-slow-start.md)
 - [Service-to-Service Connectivity Failure](service-to-service-connectivity-failure.md)
 - [Ingress Error Analysis KQL](../../kql/ingress-and-networking/ingress-error-analysis.md)
+- [Target Port Mismatch Detection KQL](../../kql/system-and-revisions/target-port-mismatch-detection.md) — directly resolves H4 ("Target port mismatch") in the decision flow above with the verbatim `Reason_s: TargetPortMismatch` system log
 - [HTTP Query Pack](../../kql/http/index.md)
 - [Ingress Target Port Mismatch Lab](../../lab-guides/ingress-target-port-mismatch.md)
 
