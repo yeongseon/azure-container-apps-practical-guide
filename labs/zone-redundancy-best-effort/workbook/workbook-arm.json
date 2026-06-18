@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workbookDisplayName": {
+      "type": "string",
+      "defaultValue": "Zone Redundancy Mass Reschedule",
+      "metadata": {
+        "description": "The friendly name of the workbook resource."
+      }
+    },
+    "workbookSourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The Log Analytics workspace resource ID associated with the workbook."
+      }
+    },
+    "workbookType": {
+      "type": "string",
+      "defaultValue": "workbook",
+      "metadata": {
+        "description": "The workbook gallery category."
+      }
+    },
+    "workbookId": {
+      "type": "string",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": "The GUID name of the workbook resource."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/workbooks",
+      "apiVersion": "2022-04-01",
+      "name": "[parameters('workbookId')]",
+      "location": "[resourceGroup().location]",
+      "kind": "shared",
+      "properties": {
+        "displayName": "[parameters('workbookDisplayName')]",
+        "serializedData": "{\"version\": \"Notebook/1.0\", \"items\": [{\"type\": 1, \"content\": {\"json\": \"## Panel 1 \\u2014 Q3 Clustered Churn Detection\\n\\nShows each 60-second window where the same app had two or more terminated replicas, making concentrated churn events easy to spot.\"}, \"name\": \"text-panel-1\"}, {\"type\": 3, \"content\": {\"version\": \"KqlItem/1.0\", \"query\": \"let Window = 24h;\\nlet ClusterSecs = 60;\\nlet ReplicaEvents =\\n    ContainerAppSystemLogs_CL\\n    | where TimeGenerated > ago(Window)\\n    | where ContainerAppName_s in (\\\"app-min2\\\", \\\"app-min3\\\", \\\"app-min6\\\")\\n    | where Reason_s in (\\\"ContainerTerminated\\\", \\\"ContainerStarted\\\", \\\"AssigningReplica\\\")\\n    | project TimeGenerated, ContainerAppName_s, RevisionName_s, ReplicaName_s, Reason_s;\\nReplicaEvents\\n| where Reason_s == \\\"ContainerTerminated\\\"\\n| extend BinEnd = TimeGenerated + (ClusterSecs * 1s)\\n| summarize TerminatedReplicas = dcount(ReplicaName_s),\\n            ReplicaList = make_set(ReplicaName_s)\\n            by ContainerAppName_s, bin(TimeGenerated, ClusterSecs * 1s)\\n| where TerminatedReplicas >= 2\\n| project ClusterStart = TimeGenerated,\\n          App = ContainerAppName_s,\\n          TerminatedReplicas,\\n          ReplicaList\\n| order by ClusterStart desc, App asc\", \"size\": 0, \"queryType\": 0, \"resourceType\": \"microsoft.operationalinsights/workspaces\", \"visualization\": \"table\", \"title\": \"Q3 clustered churn\"}, \"name\": \"query-panel-1\"}, {\"type\": 1, \"content\": {\"json\": \"## Panel 2 \\u2014 Q4 Recovery Duration After Churn\\n\\nPlots the first observed recovery point after each clustered churn event so you can compare recovery timing across apps and incidents.\"}, \"name\": \"text-panel-2\"}, {\"type\": 3, \"content\": {\"version\": \"KqlItem/1.0\", \"query\": \"let Window = 24h;\\nlet ClusterSecs = 60;\\nlet RecoveryDeadlineSecs = 600;\\nlet Churns =\\n    ContainerAppSystemLogs_CL\\n    | where TimeGenerated > ago(Window)\\n    | where ContainerAppName_s in (\\\"app-min2\\\", \\\"app-min3\\\", \\\"app-min6\\\")\\n    | where Reason_s == \\\"ContainerTerminated\\\"\\n    | summarize TerminatedReplicas = dcount(ReplicaName_s)\\n              by ContainerAppName_s, bin(TimeGenerated, ClusterSecs * 1s)\\n    | where TerminatedReplicas >= 2\\n    | project ChurnStart = TimeGenerated, App = ContainerAppName_s;\\nlet Recoveries =\\n    ContainerAppConsoleLogs_CL\\n    | where TimeGenerated > ago(Window)\\n    | extend JobNameVal = coalesce(column_ifexists(\\\"ContainerJobName_s\\\", \\\"\\\"), column_ifexists(\\\"JobName_s\\\", \\\"\\\"))\\n    | where JobNameVal == \\\"audit-sampler\\\"\\n    | extend parsed = parse_json(Log_s)\\n    | where tostring(parsed.event) == \\\"ReplicaInventorySample\\\"\\n    | where tostring(parsed.resolutionStatus) == \\\"ok\\\"\\n    | extend App = tostring(parsed.app),\\n             observed = toint(parsed.observedReplicaCount),\\n             configured = toint(parsed.configuredMinReplicas)\\n    | where observed >= configured\\n    | project RecoverySample = TimeGenerated, App, observed, configured;\\nChurns\\n| join kind=leftouter Recoveries on App\\n| where RecoverySample > ChurnStart\\n| summarize FirstRecoveryAt = min(RecoverySample) by ChurnStart, App\\n| extend RecoverySecs = datetime_diff('second', FirstRecoveryAt, ChurnStart)\\n| extend WithinDeadline = (RecoverySecs <= RecoveryDeadlineSecs)\\n| order by ChurnStart desc\", \"size\": 0, \"queryType\": 0, \"resourceType\": \"microsoft.operationalinsights/workspaces\", \"visualization\": \"linechart\", \"title\": \"Q4 recovery duration\", \"chartSettings\": {\"xAxis\": \"ChurnStart\", \"yAxis\": [\"RecoverySecs\"], \"group\": \"App\", \"showLegend\": true}}, \"name\": \"query-panel-2\"}, {\"type\": 1, \"content\": {\"json\": \"## Panel 3 \\u2014 Q7 Multi-App Comparison\\n\\nCompares clustered churn frequency by configured minimum replica count so differences between app-min2, app-min3, and app-min6 stand out immediately.\"}, \"name\": \"text-panel-3\"}, {\"type\": 3, \"content\": {\"version\": \"KqlItem/1.0\", \"query\": \"let Window = 24h;\\nlet ClusterSecs = 60;\\nlet ChurnEvents =\\n    ContainerAppSystemLogs_CL\\n    | where TimeGenerated > ago(Window)\\n    | where ContainerAppName_s in (\\\"app-min2\\\", \\\"app-min3\\\", \\\"app-min6\\\")\\n    | where Reason_s == \\\"ContainerTerminated\\\"\\n    | summarize TerminatedReplicas = dcount(ReplicaName_s)\\n              by ContainerAppName_s, bin(TimeGenerated, ClusterSecs * 1s)\\n    | where TerminatedReplicas >= 2\\n    | summarize ClusteredChurnEvents = count(),\\n                MaxTerminatedInOneEvent = max(TerminatedReplicas),\\n                AvgTerminatedPerEvent = round(avg(TerminatedReplicas), 2)\\n                by ContainerAppName_s;\\nlet MinConfig = datatable(App: string, ConfiguredMin: int)\\n[\\n  \\\"app-min2\\\", 2,\\n  \\\"app-min3\\\", 3,\\n  \\\"app-min6\\\", 6,\\n];\\nMinConfig\\n| join kind=leftouter ChurnEvents on $left.App == $right.ContainerAppName_s\\n| project App,\\n          ConfiguredMin,\\n          ClusteredChurnEvents = coalesce(ClusteredChurnEvents, 0),\\n          MaxTerminatedInOneEvent = coalesce(MaxTerminatedInOneEvent, 0),\\n          AvgTerminatedPerEvent = coalesce(AvgTerminatedPerEvent, 0.0)\\n| extend MaxReplacementFraction = round(todouble(MaxTerminatedInOneEvent) / todouble(ConfiguredMin), 2)\\n| order by ConfiguredMin asc\", \"size\": 0, \"queryType\": 0, \"resourceType\": \"microsoft.operationalinsights/workspaces\", \"visualization\": \"barchart\", \"title\": \"Q7 multi-app comparison\", \"chartSettings\": {\"xAxis\": \"App\", \"yAxis\": [\"ClusteredChurnEvents\"], \"showLegend\": false}}, \"name\": \"query-panel-3\"}], \"isLocked\": false}",
+        "sourceId": "[parameters('workbookSourceId')]",
+        "category": "[parameters('workbookType')]",
+        "version": "Notebook/1.0"
+      }
+    }
+  ],
+  "outputs": {
+    "workbookResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Insights/workbooks', parameters('workbookId'))]"
+    }
+  }
+}

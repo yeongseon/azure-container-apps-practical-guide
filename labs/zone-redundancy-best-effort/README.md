@@ -11,11 +11,20 @@ loss during platform-driven replica reschedule events.
 ```text
 labs/zone-redundancy-best-effort/
 ├── infra/
-│   ├── main.bicep                # Zone-redundant env + 3 subject apps + audit Job
+│   ├── main.bicep                # Zone-redundant env + 3 subject apps + audit Job + App Insights
 │   └── main.parameters.json
 ├── audit/
 │   ├── Dockerfile                # Mariner-base image with bash + curl + jq
 │   └── sample.sh                 # ARM REST poller, emits ReplicaInventorySample JSON
+├── apps/                         # Optional custom subject-app image (Python Flask + OpenTelemetry)
+│   ├── Dockerfile
+│   ├── app.py
+│   ├── requirements.txt
+│   └── README.md
+├── workbook/                     # Optional 3-panel Azure Monitor workbook (Q3 + Q4 + Q7)
+│   ├── workbook.json
+│   ├── workbook-arm.json
+│   └── README.md
 ├── deploy.sh                     # Resource group + Bicep deployment wrapper
 ├── verify.sh                     # Health checks on env + 3 apps + audit Job
 ├── trigger.sh                    # Perturbation harness (restart / load / combined)
@@ -69,8 +78,16 @@ az deployment group create \
   --resource-group "$RG" \
   --template-file ./infra/main.bicep \
   --parameters ./infra/main.parameters.json \
-  --parameters auditImage="${ACR}/zr-lab/audit:latest"
+  --parameters auditImage="${ACR}/zr-lab/audit:latest" \
+  --parameters auditAcrName="$(basename "$ACR" .azurecr.io)"
 ```
+
+`auditAcrName` is required when `auditImage` points to a private ACR image so
+the Bicep grants the audit Job's UAMI `AcrPull` and emits the `registries`
+block. Without it, the Job replica cannot authenticate to the registry and
+the first image pull fails with `401 Unauthorized`. The Bicep looks up the
+ACR as an `existing` resource in the same resource group, so the ACR must
+live in `$RG` (or you must adapt the Bicep to scope to a different RG).
 
 The audit Job runs every 5 minutes and writes one JSON line per subject app
 to stdout. The Container Apps Environment ships stdout to Log Analytics

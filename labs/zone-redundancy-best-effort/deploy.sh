@@ -53,19 +53,37 @@ az deployment group show \
 cat <<'EOF'
 
 Next steps:
-  1. (Optional) Build the audit image:
-       cd audit && docker build -t <acr-or-local-tag> . && docker push <acr-or-local-tag>
-     Then redeploy with --parameters auditImage=<that-tag>.
+  1. (Optional) Build the audit image and redeploy to enable real
+     ReplicaInventorySample events (otherwise the placeholder Job
+     just emits a single notice JSON):
+       export ACR="<your-acr>.azurecr.io"
+       az acr build --registry "$(basename "$ACR" .azurecr.io)" \
+         --image "zr-lab/audit:latest" ./audit
+       az deployment group create \
+         --resource-group "$RG" --template-file ./infra/main.bicep \
+         --parameters ./infra/main.parameters.json \
+         --parameters auditImage="${ACR}/zr-lab/audit:latest" \
+         --parameters auditAcrName="$(basename "$ACR" .azurecr.io)"
+     The Bicep looks up the ACR as an existing resource in the current
+     resource group, so the ACR must live in $RG. Without auditAcrName
+     the Job has no AcrPull role assignment and the first image pull
+     fails with 401 Unauthorized.
 
-  2. Verify the deployment:
+  2. (Optional) Build the custom subject-app image and redeploy to
+     populate AppRequests for KQL pack Q5 and capture C9. See
+     labs/zone-redundancy-best-effort/apps/README.md for the full
+     az acr build + az deployment group create flow (including the
+     required appAcrName parameter for private ACR images).
+
+  3. Verify the deployment:
        ./verify.sh
 
-  3. Start collecting placement samples (wait at least one cron tick, ~5 min).
+  4. Start collecting placement samples (wait at least one cron tick, ~5 min).
 
-  4. When ready to perturb:
+  5. When ready to perturb:
        ./trigger.sh --combined --client no-retry --duration 180 --app app-min3
        ./trigger.sh --combined --client retry-backoff --duration 180 --app app-min3
 
-  5. When done, clean up:
+  6. When done, clean up:
        ./cleanup.sh
 EOF

@@ -49,8 +49,8 @@ flowchart TD
     B --> F[Q2 Per-app baseline]
     D --> G[Q3 Clustered churn detection]
     D --> H[Q4 Recovery duration]
-    P[App Insights instrumentation<br/>production traffic only<br/>not provisioned by lab] --> Q[AppRequests / requests table]
-    Q --> I[Q5 503 correlation - optional template]
+    P[App Insights instrumentation<br/>provisioned by lab<br/>requires opt-in custom image] --> Q[AppRequests / requests table]
+    Q --> I[Q5 app-handled 5xx correlation - opt-in]
     D --> J[Q6 Baseline vs perturbation]
     D --> K[Q7 Multi-app comparison]
     B --> J
@@ -215,12 +215,12 @@ Churns
 - `WithinDeadline == false` (>10 min recovery) indicates a slow path that warrants escalation review.
 - Use this column to set realistic SLOs: do not promise sub-recovery-window availability solely from `zoneRedundant=true`.
 
-## Q5 — 503 Correlation During Churn (production template — optional)
+## Q5 — App-Handled 5xx Correlation During Churn (requires custom subject-app image)
 
-Overlay HTTP 5xx incidence against clustered-churn windows from Q3. Provides the production-traffic equivalent of the lab's H0b verdict for apps that are instrumented with Application Insights.
+Overlay app-handled HTTP 5xx incidence against clustered-churn windows from Q3. This surfaces app-emitted 5xx telemetry (the `/error` route plus unhandled exceptions) correlated to platform churn events, using the optional custom image at [`labs/zone-redundancy-best-effort/apps/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) (Python Flask + Azure Monitor OpenTelemetry Distro). **This is not a replacement for the lab's H0b verdict** — `AppRequests` only captures requests that reach the Flask process, so ingress-generated `503`s returned by ACA before the request reaches the app produce no telemetry row. The H0b verdict continues to use `trigger.sh` stdout `LoadEnd.fail / LoadEnd.total` totals, which capture client-visible failures including ingress 503s.
 
-!!! warning "Lab does not generate this signal"
-    The companion lab does **not** ship an Application Insights resource, and the default sample image (`mcr.microsoft.com/azuredocs/containerapps-helloworld`) does not emit structured access logs into `ContainerAppConsoleLogs_CL`. The lab's H0b primary metric is the client-visible failure rate printed by `trigger.sh --client no-retry` (`LoadEnd.fail / LoadEnd.total`), correlated by hand to Q3 timestamps. Use Q5 only when you have a production app whose requests are visible in `AppRequests` (App Insights) or an equivalent ingested 5xx source.
+!!! info "Requires the optional custom subject-app image"
+    The lab ships an opt-in [custom subject-app image](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) and provisions a workspace-based Application Insights resource in `infra/main.bicep` (linked to the existing `law` workspace via `APPLICATIONINSIGHTS_CONNECTION_STRING` injected as a secret-backed env var on each subject app). To populate this query, override the lab's `appImage` parameter with the custom image (see [`apps/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) for the `az deployment group create --parameters appImage=...` command). Without that opt-in, the default sample image (`mcr.microsoft.com/azuredocs/containerapps-helloworld`) emits no `AppRequests`, and Q5 will return zero rows. **Scope of this query**: Q5 detects app-emitted 5xx telemetry only (requests that reached the Flask process and either hit `/error` or raised an unhandled exception). It does **not** detect ingress-side 503s returned by ACA before the request reaches the app — those are the dominant failure mode during clustered churn. The lab's H0b verdict — regardless of whether the custom image is deployed — remains the client-visible failure rate printed by `trigger.sh --client no-retry` (`LoadEnd.fail / LoadEnd.total`), which captures both ingress 503s and app-handled 5xx as the client sees them.
 
 ```kusto
 let Window = 6h;
@@ -236,17 +236,13 @@ let Churns =
     | where TerminatedReplicas >= 2
     | project ChurnBin = TimeGenerated, App = ContainerAppName_s, TerminatedReplicas;
 let Errors =
-    // Replace this block with your production 5xx source.
-    // Example for Application Insights:
-    //   AppRequests
-    //   | where TimeGenerated > ago(Window)
-    //   | where Properties has_any (SubjectApps)
-    //   | where ResultCode startswith "5"
-    //   | extend App = tostring(Properties["containerapps.io/app"])
-    //   | summarize ErrorCount = count() by App, bin(TimeGenerated, ClusterSecs * 1s)
-    //   | project ErrorBin = TimeGenerated, App, ErrorCount
-    // Placeholder rows so the join compiles even without instrumentation:
-    datatable(ErrorBin: datetime, App: string, ErrorCount: long) [];
+    AppRequests
+    | where TimeGenerated > ago(Window)
+    | where AppRoleName in (SubjectApps)
+    | where ResultCode startswith "5"
+    | summarize ErrorCount = count()
+              by AppRoleName, bin(TimeGenerated, ClusterSecs * 1s)
+    | project ErrorBin = TimeGenerated, App = AppRoleName, ErrorCount;
 Churns
 | join kind=leftouter (Errors) on App, $left.ChurnBin == $right.ErrorBin
 | project TimeWindow = ChurnBin, App, TerminatedReplicas, ErrorCount = coalesce(ErrorCount, 0)
@@ -254,12 +250,12 @@ Churns
 | order by TimeWindow desc
 ```
 
-**Interpretation** (only valid when the `Errors` block is wired to a real ingested source):
+**Interpretation** (valid when subject apps are running the custom OpenTelemetry image and `AppRequests` is populated):
 
 - `CorrelationStrong == true` across multiple churn windows is `[Correlated]` evidence that clustered churn produces client-visible failures.
-- `CorrelationStrong == false` across all churn windows is consistent with H0b (no client impact), but only if the load generator (or production traffic) was actively driving requests during the churn window.
+- `CorrelationStrong == false` across all churn windows is consistent with H0b (no client impact), but only if traffic was actively driving requests during the churn window. Verify by running `AppRequests | where AppRoleName in ("app-min2", "app-min3", "app-min6") | summarize count() by bin(TimeGenerated, 1m)` over the same window and confirming non-zero request counts.
 - Causation requires the `trigger.sh --perturb restart` control: see Q6.
-- When the `Errors` block is left as the empty placeholder datatable, every row will report `ErrorCount = 0` and `CorrelationStrong = false`. **This is not evidence in favor of H0b** — it is evidence that no 5xx source is connected.
+- Zero rows in the `Errors` CTE means either the custom image is not deployed or telemetry routing is broken. **This is not evidence in favor of H0b** — it is evidence that the data source is not connected. Verify the image is wired by running `AppRequests | where AppRoleName startswith "app-min" | take 10` and confirming at least one row. If empty, check that `APPLICATIONINSIGHTS_CONNECTION_STRING` is set on the subject app's container env (via the secret named `appinsights-connection-string`).
 
 ## Q6 — Baseline vs Perturbation Comparison
 
@@ -388,7 +384,7 @@ MinConfig
 - `ContainerAppSystemLogs_CL` `Reason_s` values vary across runtime versions. If the queries return zero rows even after restart, check the actual `Reason_s` values via `ContainerAppSystemLogs_CL | distinct Reason_s | take 100`.
 - `parse_json(Log_s)` fails silently when the audit container emits malformed JSON. Q1's `HealthRatio` is the canary for this.
 - Replica-level AZ placement is **not measurable** through the management plane or IMDS from inside an ACA replica. Treat all "zone-related" conclusions as `[Inferred]` from churn-pattern observation, not as `[Observed]` per-replica zone data.
-- Q5 is an optional production template; the companion lab's H0b verdict comes from `trigger.sh` local stdout totals (`LoadEnd.fail / LoadEnd.total`) compared against an immediately-preceding baseline run of the same client variant and duration. The default sample image does **not** emit ingested 5xx telemetry into `ContainerAppConsoleLogs_CL`, so Q5's placeholder `datatable` returns zero rows in the lab environment — that is a missing-data result, not evidence in favor of H0b. Use Q5 only after you wire `AppRequests` (App Insights) or another ingested 5xx source.
+- Q5 is an opt-in evidence path that requires deploying the custom subject-app image at [`labs/zone-redundancy-best-effort/apps/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps). The lab's Bicep provisions Application Insights and injects `APPLICATIONINSIGHTS_CONNECTION_STRING` as a secret env var on each subject app, but the default `helloworld` image does not emit OpenTelemetry signals, so `AppRequests` remains empty until the custom image is deployed. **Scope gap**: Q5 only detects app-emitted 5xx (`/error` route plus unhandled exceptions). Ingress-side 503s returned by ACA before requests reach the Flask process never appear in `AppRequests`, so Q5 cannot serve as a KQL-backed H0b verdict on its own. The companion lab's H0b verdict (with or without the opt-in image) comes from `trigger.sh` local stdout totals (`LoadEnd.fail / LoadEnd.total`) compared against an immediately-preceding baseline run of the same client variant and duration; a true KQL-backed H0b would require ingesting client-side or ingress-side 5xx telemetry, which this lab defers to a follow-up.
 
 ## See Also
 

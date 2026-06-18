@@ -127,13 +127,14 @@ az deployment group create \
     --resource-group "$RG" \
     --template-file ./infra/main.bicep \
     --parameters ./infra/main.parameters.json \
-    --parameters auditImage="${ACR}/zr-lab/audit:latest"
+    --parameters auditImage="${ACR}/zr-lab/audit:latest" \
+    --parameters auditAcrName="$(basename "$ACR" .azurecr.io)"
 ```
 
 | Command | Why it is used |
 |---|---|
 | `az acr build ...` | Builds the audit container (Mariner + bash + curl + jq) from the `audit/` directory and pushes to your ACR in one cloud-side step. |
-| `az deployment group create ... auditImage=...` | Re-deploys the Bicep template with the real audit image; idempotent so the env and apps are not recreated. |
+| `az deployment group create ... auditImage=... auditAcrName=...` | Re-deploys the Bicep template with the real audit image. `auditAcrName` is required so the Bicep grants the Job's UAMI `AcrPull` on the registry and emits a `registries` block; without it the first image pull fails with `401 Unauthorized`. The ACR must live in the same resource group as the lab (the Bicep looks it up as an `existing` resource in `resourceGroup()`). Idempotent so the env and apps are not recreated. |
 
 ## 3. Hypothesis
 
@@ -347,15 +348,19 @@ These captures add depth but are not required to validate H0a. Capture only if t
 
 | # | Condition | Portal blade | Filename |
 |---|---|---|---|
-| C9 | Only after you wire App Insights (or another ingested 5xx data source) to the subject apps and update Q5 to query that source. Without this, Q5 has no data to display. | Log Analytics → Logs editor | `09-log-analytics-q5-503-correlation.png` |
-| C13 | Only if you build the optional 3-panel workbook covering Q3 + Q4 + Q7. No artifact is shipped in this branch — see "Future work" below. | Azure Monitor → Workbooks | `13-workbook-3-panel-overview.png` |
+| C9 | Only after you deploy the optional custom subject-app image (see [Optional setup](#optional-setup-custom-subject-app-image-azure-monitor-workbook) below). With the default `helloworld` image, the `AppRequests` table has no rows to display. | Log Analytics → Logs editor | `09-log-analytics-q5-503-correlation.png` |
+| C13 | Only after you deploy the optional 3-panel workbook covering Q3 + Q4 + Q7 (see [Optional setup](#optional-setup-custom-subject-app-image-azure-monitor-workbook) below). The workbook ARM template ships at [`labs/zone-redundancy-best-effort/workbook/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/workbook). | Azure Monitor → Workbooks | `13-workbook-3-panel-overview.png` |
 | C6a | If your reviewer also asks for the result-table-only screenshot separated from the editor view | Log Analytics → Logs editor (result pane) | `06a-log-analytics-q1-ingestion-table.png` |
 | C14 | Only if you wire up an Azure Monitor alert on Q3 during the lab and need to evidence the firing alert | Azure Monitor → Alerts | `14-azure-monitor-alert.png` |
 
-### Future work (out of scope for this PR)
+### Optional setup: Custom subject-app image + Azure Monitor workbook
 
-- Wire App Insights to subject apps and re-publish Q5 against `AppRequests`. This is the cleanest path to a KQL-backed H0b verdict.
-- Author the Q3 + Q4 + Q7 Azure Monitor workbook and ship the ARM template under `labs/zone-redundancy-best-effort/workbook/`.
+This lab ships two opt-in components for richer evidence beyond the default `helloworld` image. The infrastructure for both components is committed under `labs/zone-redundancy-best-effort/`; measured evidence (`AppRequests` rows for Q5 + C9/C13 Portal captures) will be added in a follow-up reproduction run.
+
+- **Custom subject-app image** at [`labs/zone-redundancy-best-effort/apps/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) (Python Flask + Azure Monitor OpenTelemetry Distro). Override the `appImage` parameter on `az deployment group create` to deploy — for a private ACR image, you must also pass `appAcrName` so the Bicep wires up `AcrPull` and the `registries` block (otherwise the first image pull fails with `401 Unauthorized`); see [`apps/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/zone-redundancy-best-effort/apps/README.md) for the full `az acr build` + `az deployment group create` flow. Populates `AppRequests` with `AppRoleName` equal to the container app name (auto-injected by ACA via `CONTAINER_APP_NAME`) and the `/error` route returns HTTP 500 for Q5 validation. Once running, [KQL pack Q5](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md#q5-app-handled-5xx-correlation-during-churn-requires-custom-subject-app-image) surfaces app-handled 5xx telemetry (validates telemetry plumbing and exposes the `/error` route exception path) and capture C9 becomes capturable. The H0b verdict continues to rely on `trigger.sh --client no-retry` stdout totals (`LoadEnd.fail / LoadEnd.total`) — ingress-generated 503s during clustered churn never reach the Flask process and therefore produce no `AppRequests` row, so Q5 alone is not a KQL-backed H0b verdict. A true KQL-backed H0b would require ingesting ingress-side or client-side 5xx telemetry, which this lab defers to a follow-up.
+- **Azure Monitor workbook** at [`labs/zone-redundancy-best-effort/workbook/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/workbook) (3-panel: Q3 clustered churn table, Q4 recovery duration line chart, Q7 multi-app comparison bar chart). Deploy from the `labs/zone-redundancy-best-effort/workbook/` directory via `az deployment group create --resource-group $RG --template-file workbook-arm.json --parameters workbookSourceId=$LAW_ID` (where `$LAW_ID` is the lab Log Analytics workspace resource ID; see [`workbook/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/zone-redundancy-best-effort/workbook/README.md) for the full deploy flow). Once deployed, the workbook becomes visible in the workspace gallery and capture C13 becomes capturable.
+
+The `infra/main.bicep` template now provisions a workspace-based Application Insights resource (`appi-zrlab-${suffix}`, linked to the existing `law` Log Analytics workspace) and injects `APPLICATIONINSIGHTS_CONNECTION_STRING` as a secret-backed environment variable on each of the three subject Container Apps. The default `appImage` remains `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` so existing reproductions continue to work unchanged; the connection string is harmlessly ignored by the helloworld image.
 
 ### Observed Evidence (Live Azure Reproduction)
 
