@@ -229,6 +229,9 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 - [Revision Provisioning Failure](../startup-and-provisioning/revision-provisioning-failure.md)
 - [Container Start Failure](../startup-and-provisioning/container-start-failure.md)
 - [Errors by Revision KQL](../../kql/correlation/errors-by-revision.md)
+- [Target Port Mismatch Detection KQL](../../kql/system-and-revisions/target-port-mismatch-detection.md) — confirm or rule out the `Reason_s: TargetPortMismatch` failure class when a newly rolled-out revision is stuck Unhealthy with sustained 5xx
+- [Ingress Target Port Mismatch Lab](../../lab-guides/ingress-target-port-mismatch.md) — the falsifiable single-revision form of the mismatch (including a "Production case pattern" subsection with 8 failure↔fix Portal capture pairs)
+- [Traffic Routing and Canary Failure Lab](../../lab-guides/traffic-routing-canary.md) — the same mismatch reproduced as a 50/50 canary so a bad revision can be rolled back without taking down the good revision
 
 ## Sources
 
