@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps quick reference — CLI commands, environment variables, platform limits, and quotas for fast operational lookup.
 content_sources:
   diagrams:
     - id: save-this-page-and-the-linked

@@ -305,6 +305,44 @@ content_sources:
 
 If [`scripts/lib/yaml_style.py`](scripts/lib/yaml_style.py) changes (different indent, width, or quoting policy), the table above MUST be updated in the same commit. The shared library is the source of truth; this section is the human-readable mirror.
 
+### Per-Page SEO Description
+
+MkDocs Material reads the `description:` field from page frontmatter and emits it as the page-level `<meta name="description">`, `<meta property="og:description">`, and `<meta name="twitter:description">` tags. Without this field, every page falls back to the global `site_description` from `mkdocs.yml`, which makes search engine and social card previews indistinguishable across pages.
+
+**Required for:**
+
+- All section landing pages (`docs/index.md`, `docs/<section>/index.md`, and subsection index pages).
+- Top-level navigation hubs that are not literal `index.md` files (for example `docs/start-here/overview.md` is the canonical entry into the `start-here/` section even though it is not named `index.md`).
+- Top-traffic content pages (homepage, learning paths, evidence-rich playbooks and labs as they get high-value Portal captures).
+
+**Optional for:**
+
+- Detail/reference pages — adding a unique description is encouraged but not required. The fallback to `site_description` is acceptable for low-traffic deep pages.
+
+**Style:**
+
+- 1-2 sentences, 120-160 characters preferred. Search engines truncate around 155-160 characters on desktop.
+- Lead with the concrete topic ("Azure Container Apps platform concepts", "Day-2 production operations for Azure Container Apps") so the page is distinguishable from the homepage.
+- Use plain prose, not keyword stuffing. The description is shown verbatim in search results.
+- Place `description:` as the FIRST key in frontmatter (above `content_sources`, `content_validation`, etc.) for grep-ability.
+
+**Example:**
+
+```yaml
+---
+description: Azure Container Apps platform concepts — architecture, environments, revisions, scaling rules, networking, jobs, identity, and security.
+content_sources:
+  diagrams:
+    - id: documents
+      type: flowchart
+      source: mslearn-adapted
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/
+---
+```
+
+After adding or changing descriptions, rebuild with `mkdocs build --strict` and verify the resulting `<meta name=description>` in `site/<page>/index.html` matches the frontmatter.
+
 ### Admonition Indentation Rule
 
 For MkDocs admonitions (`!!!` / `???`), every line in the body must be indented by **4 spaces**.

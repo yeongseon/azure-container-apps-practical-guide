@@ -1,4 +1,5 @@
 ---
+description: Hands-on Azure Container Apps guide — architecture, scaling, networking, monitoring, KQL queries, troubleshooting playbooks, and Bicep labs.
 content_sources:
   diagrams:
     - id: learning-flow

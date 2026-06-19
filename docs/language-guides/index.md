@@ -1,4 +1,5 @@
 ---
+description: Step-by-step Azure Container Apps tutorials for Python (Flask), Node.js (Express), Java (Spring Boot), and .NET — local dev to production.
 content_sources:
   diagrams:
     - id: tutorial-progression-model

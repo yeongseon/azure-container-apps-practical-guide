@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps troubleshooting field guide — playbooks, hands-on reproduction labs, KQL query packs, and evidence-driven incident diagnosis.
 content_sources:
   diagrams:
     - id: how-it-works

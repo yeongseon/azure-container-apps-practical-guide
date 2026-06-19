@@ -1,4 +1,5 @@
 ---
+description: Day-2 production operations for Azure Container Apps — monitoring, scaling, deployment, alerts, secret rotation, recovery, and revision management.
 content_sources:
   diagrams:
     - id: use-a-repeatable-control-loop-so
