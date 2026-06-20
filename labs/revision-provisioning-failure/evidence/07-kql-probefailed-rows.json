@@ -1,0 +1,452 @@
+[
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:22:52.4535724Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:22:52.4535724Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:22:47.387023Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:22:43.2940461Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:17:42.6314444Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:17:42.6314444Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:17:37.2945138Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:17:32.5334251Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:12:32.1973751Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:12:32.1973751Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:12:27.8446463Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:12:22.2291817Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:07:21.2886706Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:07:21.2886706Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:07:16.5543019Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:07:11.2400646Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:02:11.5579617Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:02:11.5579617Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:02:06.2306987Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T14:02:01.3161329Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:57:01.3444613Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:57:01.3444613Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:56:56.3657169Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:56:51.5306452Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:51:50.3768906Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:51:50.3768906Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:51:45.230795Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:51:40.3143535Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:46:40.6579633Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:46:40.6579633Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:46:35.3769469Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:46:30.6028816Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:41:30.6693234Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:41:30.6693234Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:41:25.3703805Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:41:20.2842615Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:38:39.2619089Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:38:39.2619089Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:38:34.6803832Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:38:29.5191548Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:37:09.6276705Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:37:09.6276705Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:37:04.7274697Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:36:59.3206847Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:36:19.2868144Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:36:19.2868144Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:36:14.6635986Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: ",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:36:09.4389682Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Container app failed startup probe, will be restarted",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:35:49.4260408Z",
+    "Type_s": "Warning"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 404",
+    "Reason_s": "ProbeFailed",
+    "ReplicaName_s": "ca-labrevprov-e2upm2--badpath2-779b85697c-2bckf",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T13:35:49.4260408Z",
+    "Type_s": "Warning"
+  }
+]

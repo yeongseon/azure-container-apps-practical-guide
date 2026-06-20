@@ -63,7 +63,7 @@ flowchart TD
     D --> E[Startup probe targets bad path or port]
     E --> F[Probe fails repeatedly]
     F --> G[Revision never becomes Ready]
-    G --> H[Fix: Disable startup probe]
+    G --> H[Fix: Repair startup probe path]
     H --> I[New revision becomes Healthy]
 ```
 
@@ -161,23 +161,39 @@ CreatedTime                Active    Replicas    TrafficWeight    HealthState   
 ./labs/revision-provisioning-failure/trigger.sh
 ```
 
-The trigger script adds a startup probe targeting a non-existent path:
+The trigger script patches the Container App via YAML to add a startup probe targeting a non-existent path:
 
 ```bash
+cat > /tmp/probe-trigger.yaml <<EOF
+properties:
+  template:
+    revisionSuffix: badpath$(date +%s)
+    containers:
+    - name: app
+      image: nginx:alpine
+      resources:
+        cpu: 0.5
+        memory: 1Gi
+      probes:
+      - type: Startup
+        httpGet:
+          path: /nonexistent-health-endpoint
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        failureThreshold: 3
+        timeoutSeconds: 2
+EOF
+
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --set-env-vars "PROBE_TRIGGER=$(date +%s)" \
-    --container-name app \
-    --startup-probe-path "/nonexistent-health-endpoint" \
-    --startup-probe-port 80 \
-    --startup-probe-failure-threshold 3 \
-    --startup-probe-period-seconds 5
+    --yaml /tmp/probe-trigger.yaml
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update --yaml` | Patches the Container App via a YAML document. The `--startup-probe-*` CLI flags (e.g. `--startup-probe-path`, `--startup-probe-port`) do **not** exist on `az containerapp update`; the only supported way to configure probes is the `--yaml` path. The image is also swapped to `nginx:alpine` so the probe target (`/nonexistent-health-endpoint`) cleanly returns HTTP 404 instead of a connection refusal. |
 
 ### Observe the failure
 
@@ -226,22 +242,44 @@ ContainerRestart     Container 'app' was restarted
 
 ### Fix the issue
 
-Remove the bad probe configuration by deploying without the startup probe:
+Recover by replacing the bad startup probe path with `/` (which `nginx:alpine` serves with HTTP 200):
 
 ```bash
 ./labs/revision-provisioning-failure/verify.sh
 ```
 
-The verify script removes the startup probe and confirms recovery:
+The verify script patches the Container App via YAML so the startup probe targets a healthy path on the same `nginx:alpine` image:
 
 ```bash
+cat > /tmp/probe-recovery.yaml <<EOF
+properties:
+  template:
+    revisionSuffix: healthy$(date +%s)
+    containers:
+    - name: app
+      image: nginx:alpine
+      resources:
+        cpu: 0.5
+        memory: 1Gi
+      probes:
+      - type: Startup
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        failureThreshold: 3
+        timeoutSeconds: 2
+EOF
+
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --set-env-vars "PROBE_FIX=$(date +%s)" \
-    --container-name app \
-    --startup-probe-disabled
+    --yaml /tmp/probe-recovery.yaml
 ```
+
+!!! note "Why not `--startup-probe-disabled`?"
+    The `az containerapp update` command does **not** expose a `--startup-probe-disabled` flag. To remove a probe you must patch the `probes:` array via `--yaml` — either by replacing the bad probe (this lab's approach) or by submitting an empty `probes: []` list.
 
 ### Verify recovery
 
@@ -366,6 +404,203 @@ Reason=ContainerTerminated Msg=Container 'app' was terminated with reason 'Probe
 
 [Inferred] For customer-facing support, the **Availability and Performance → Health Probe Check** tile is the recommended single-click entry point for this failure mode — it consolidates revision health, probe configuration, and recent probe failures into one Microsoft-managed diagnostic panel.
 
+### Observed Evidence (Portal Captures — 2026-06-20)
+
+Reproduced in `rg-aca-lab-revprov` / `cae-labrevprov-e2upm2`, `koreacentral`, Consumption plan. App: `ca-labrevprov-e2upm2`. This second reproduction exercises the **wrong-path (HTTP 404)** variant: startup probe set to `httpGet.path=/nonexistent-health-endpoint`, `port=80`, `failureThreshold=3`, `periodSeconds=5`, against an `nginx:alpine` container that correctly responds 404 for unknown paths. Failed revision: `ca-labrevprov-e2upm2--badpath2`. Recovery applied via `az containerapp update --yaml` with corrected probe `path=/`, producing healthy revision `ca-labrevprov-e2upm2--badpath3`.
+
+!!! note "Why two reproductions"
+    The 2026-06-03 reproduction (captures 01-06) covered the **wrong-port (connection refused)** variant on a different environment. This 2026-06-20 reproduction (captures 07-40) covers the **wrong-path (HTTP 404)** variant with comprehensive log evidence including nginx access logs, KQL query packs, and post-fix recovery verification. Together both reproductions confirm the same failure mode — startup probe never succeeds — across the two main variants.
+
+#### Baseline (healthy)
+
+[Observed] Before triggering the failure, the resource group contains the deployed lab infrastructure: Container App Environment, Container App, Log Analytics workspace, and ACR.
+
+![Resource group overview showing baseline lab infrastructure](../../assets/troubleshooting/revision-provisioning-failure/07-resource-group-overview.png)
+
+[Observed] Container App **Overview** blade in baseline state showing `Status: Running`, traffic at 100% to the healthy `badpath` revision.
+
+![Container App overview in baseline healthy state](../../assets/troubleshooting/revision-provisioning-failure/08-ca-overview-baseline.png)
+
+[Observed] **Revisions and replicas** grid showing the baseline `badpath` revision as `Healthy` with `Provisioned` status, single replica running.
+
+![Revisions list showing baseline healthy revision](../../assets/troubleshooting/revision-provisioning-failure/09-revisions-baseline-healthy.png)
+
+[Observed] **Containers** blade showing the baseline configuration with no startup probe configured.
+
+![Containers blade baseline with no probe](../../assets/troubleshooting/revision-provisioning-failure/10-containers-baseline-noprobe.png)
+
+[Observed] **Containers → Health Probes** tab empty in baseline — no probes configured.
+
+![Health probes tab empty in baseline](../../assets/troubleshooting/revision-provisioning-failure/11-containers-baseline-healthprobes-empty.png)
+
+#### Failure state
+
+[Observed] After the trigger applies the bad startup probe, the **Overview** blade now shows the failed revision and the `Revisions with Issues` tab highlights `ca-labrevprov-e2upm2--badpath2`.
+
+![Container App overview showing failure state](../../assets/troubleshooting/revision-provisioning-failure/12-overview-failure-state.png)
+
+[Observed] **Revisions and replicas** grid showing two active revisions: `badpath2` (`Failed`, `Unhealthy`, `0/1 replicas`, traffic configured at 100%) and `badpath` (`Healthy`, `0% traffic`).
+
+![Revisions list showing failed badpath2 vs healthy badpath](../../assets/troubleshooting/revision-provisioning-failure/13-revisions-failed-state.png)
+
+[Observed] Revision detail flyout for `badpath2` showing `Health state: Unhealthy`, `Provisioning state: Failed`, `Running status: Container crashing: app`.
+
+![Revision detail flyout for failed badpath2](../../assets/troubleshooting/revision-provisioning-failure/14-revision-detail-badpath2-failed.png)
+
+[Observed] Revision detail **Logs** tab on the failed revision with **Real-time + Application** selected shows the empty state `No replica running — Try selecting Historical display option`. The failing container is never alive long enough for the realtime stream to attach to a replica, which itself is diagnostic evidence of the restart loop.
+
+![Revision detail Logs tab — Real-time Application shows No replica running](../../assets/troubleshooting/revision-provisioning-failure/15-revision-detail-logs-tab.png)
+
+[Inferred] When investigators see this empty state on a known-failing revision, the next click should be **Historical** (capture 16) — that pane carries the actual `ProbeFailed → ContainerTerminated(ProbeFailure)` evidence emitted by the platform's system log channel.
+
+[Observed] **Historical System logs** for the failed revision showing the complete `ProbeFailed → ContainerTerminated(ProbeFailure)` cascade across multiple restart attempts.
+
+![Revision historical system logs](../../assets/troubleshooting/revision-provisioning-failure/16-revision-historical-system-logs.png)
+
+[Strongly Suggested] This is the **gold-standard smoking gun** for revision provisioning failure caused by probe misconfiguration. The `ProbeFailed` → `ContainerTerminated(ProbeFailure)` sequence directly attributes the container termination to the probe failure, ruling out OOM, exit code, image pull, scaling, or network as root causes.
+
+[Observed] **Containers** blade showing the failed revision with `nginx:alpine` image.
+
+![Containers blade showing nginx:alpine image on failed revision](../../assets/troubleshooting/revision-provisioning-failure/17-containers-failure-nginx-image.png)
+
+[Observed] **Containers → Health Probes** tab on revision `badpath2` shows the **Liveness** probe (TCP, port 80, failure threshold 3) and **Readiness** probe (TCP, port 80, failure threshold 48) inherited from the baseline, plus the **Startup probes** section header with **Enable Startup probes** checked — confirming a Startup probe was added by the trigger. The Startup probe's path/port/threshold fields are below the visible fold; the configured path (`/nonexistent-health-endpoint`) is captured separately in the trigger script and the corresponding ARM payload.
+
+![Health probes tab showing the bad path probe configuration](../../assets/troubleshooting/revision-provisioning-failure/18-containers-health-probes-bad-path.png)
+
+[Inferred] Even with the Startup probe details below the fold, this view is the **fastest configuration-level confirmation path** — the presence of an Enabled Startup probes section on a revision that previously had none (capture 11) is itself the configuration delta that introduced the failure. Combined with the realtime log stream evidence (captures 19 and 20), the investigator can confirm root cause within 60 seconds.
+
+#### Log evidence (Portal Log Stream)
+
+[Observed] **Application Log Stream** captured during the restart loop shows the nginx graceful-shutdown sequence on the failing replica: `signal 3 (SIGQUIT) received, shutting down`, `worker process 30..33 exited with code 0`, `signal 17 (SIGCHLD) received` from each worker. The probe-induced 404 responses arrive between SIGTERM cycles and are captured in the Log Analytics `ContainerAppConsoleLogs_CL` table (see Falsification subsection below and `labs/revision-provisioning-failure/evidence/10-kql-console-logs.json` for the full nginx 404 + SIGCHLD trail).
+
+![Application log stream showing nginx worker shutdown sequence from probe-induced container kills](../../assets/troubleshooting/revision-provisioning-failure/19-log-stream-failure.png)
+
+[Strongly Suggested] The nginx graceful-shutdown trail (SIGQUIT followed by per-worker exits) is **direct evidence** that the platform IS killing the container — not that the container is crashing on its own. This rules out application crashes, OOM, and segfaults; the container's process tree is being torn down externally by the kubelet in response to consecutive probe failures.
+
+[Observed] **System Log Stream** in realtime showing platform-emitted lifecycle events as the kubelet kills and recreates the container repeatedly: `Reason=ProbeFailed`, `Reason=Killing`, `Reason=ContainerTerminated`.
+
+![System log stream realtime showing platform lifecycle events](../../assets/troubleshooting/revision-provisioning-failure/20-log-stream-system-realtime.png)
+
+#### Activity Log
+
+[Observed] **Activity log** entries showing the `Create or Update Container App` deployment events from the trigger script and the recovery patch.
+
+![Activity log showing deployment events](../../assets/troubleshooting/revision-provisioning-failure/21-activity-log-deployment-event.png)
+
+#### Diagnose and solve problems
+
+[Observed] **Diagnose and solve problems** landing blade showing all troubleshooting category tiles.
+
+![Diagnose and solve problems landing blade](../../assets/troubleshooting/revision-provisioning-failure/22-diagnose-solve-problems-overview.png)
+
+[Observed] **Availability and Performance** category showing the full list of detectors that apply to Container Apps runtime issues.
+
+![Availability and Performance detector list](../../assets/troubleshooting/revision-provisioning-failure/23-availability-performance-detectors.png)
+
+[Observed] **Container Exit Events** detector summary cards showing `Container Exits: 1 exit event(s)`, `Backoff-Restarts: None detected`, and `Port Mismatch: No mismatch`, plus the Microsoft-managed assessment `Health probes causing container restarts` with the recommended action pointing to the Health Probe Failures detector. The Container Exits drilldown tab and exit-code chart are below the fold of this capture; the explicit per-restart counts are in capture 26.
+
+![Container Exit Events detector during failure](../../assets/troubleshooting/revision-provisioning-failure/24-detector-container-exit-events.png)
+
+[Observed] **Container Create Failures** detector showing checks executed against the failing revision.
+
+![Container Create Failures detector](../../assets/troubleshooting/revision-provisioning-failure/25-detector-container-create-failures.png)
+
+[Observed] **Health Probe Failures** detector — the most directly applicable detector for this failure mode — visible above the fold shows the app-level summary header `Probe failures restarted container(s) 4 time(s) in this window — availability is impacted`, with `Total probe failure events: 36 over 23.8h (~2/hr)` and `Default probes in use: No — explicit probes are defined`. Per-revision attribution to `badpath2` is confirmed by the KQL evidence below (capture 39) and the raw artifact `labs/revision-provisioning-failure/evidence/10-kql-console-logs.json`, not by this above-the-fold view alone — the `Per revision` tab is available in this blade but is not the active tab in this capture.
+
+![Health Probe Failures detector](../../assets/troubleshooting/revision-provisioning-failure/26-detector-health-probe-failures.png)
+
+[Observed] **Image Pull Failures** detector showing no image pull failures — ruling out image pull as the root cause and isolating the issue to probe failure (not image registry, ACR pull credentials, or network).
+
+![Image Pull Failures detector](../../assets/troubleshooting/revision-provisioning-failure/27-detector-image-pull-failures.png)
+
+[Inferred] The detector panel acts as a **structured triage tool** — checking all detectors at once gives the investigator a Microsoft-recommended elimination path: rule out image pull, scaling, and port mismatch first, then drill into probe configuration.
+
+#### Metrics
+
+[Observed] **Metrics** blade overview showing the available Container Apps platform metrics.
+
+![Metrics blade overview](../../assets/troubleshooting/revision-provisioning-failure/28-metrics-blade-overview.png)
+
+[Observed] **Replica count** metric (Max aggregation, Last 24 hours, 5-minute granularity) showing the max replica count flat at `0` for most of the window, then rising to `1` near the reproduction period — evidence that the platform did create a replica, although this Max-aggregated view smooths over the restart cycles. Per-restart visibility lives in the `ContainerAppSystemLogs_CL` event stream (captures 30, 31, 33) and in the Container Exit Events detector (capture 24), not in this chart.
+
+![Replica count metric (Max, Last 24 hours) showing the post-reproduction step from 0 to 1](../../assets/troubleshooting/revision-provisioning-failure/29-metrics-replica-count.png)
+
+#### KQL evidence (Log Analytics)
+
+[Observed] **KQL query** in Logs blade querying `ContainerAppSystemLogs_CL` for `Reason_s == "ProbeFailed"` returns 56 ProbeFailed events with `Log_s` showing `"HTTP probe failed with status code: 404"`.
+
+![KQL ProbeFailed query returning 56 events](../../assets/troubleshooting/revision-provisioning-failure/30-kql-probefailed-query.png)
+
+[Observed] **KQL event correlation query** showing the full lifecycle sequence across `ContainerCreated → PullingImage → ContainerStarted → ProbeFailed → ContainerTerminated` over a 14-iteration restart loop.
+
+![KQL event correlation query](../../assets/troubleshooting/revision-provisioning-failure/31-kql-event-correlation.png)
+
+[Observed] **KQL editor pitfall** captured when two stacked queries were submitted in a single tab without a blank line separator — the Logs editor concatenates them and rejects the merged input with `A syntax error has been identified in the query. Query could not be parsed at 'ContainerAppConsoleLogs_CL' on line [10,30]`. The screenshot is preserved here as a teaching example for the most common Logs-blade authoring mistake; the **actual application-level evidence** (nginx 404 access logs and SIGCHLD trail) was collected via the Azure CLI and saved verbatim to [`labs/revision-provisioning-failure/evidence/10-kql-console-logs.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/revision-provisioning-failure/evidence/10-kql-console-logs.json).
+
+![KQL Logs editor showing the syntax error from stacking two queries without a blank-line separator](../../assets/troubleshooting/revision-provisioning-failure/32-kql-console-logs.png)
+
+[Strongly Suggested] The raw evidence file is the **application-level smoking gun**: it contains the nginx access-log entries `"GET /nonexistent-health-endpoint HTTP/1.1" 404 153`, the matching nginx error-log entries `open() "/usr/share/nginx/html/nonexistent-health-endpoint" failed (2: No such file or directory)`, and the graceful-shutdown SIGCHLD trail per worker. This proves the container is alive, accepting connections, and processing probe requests — but responding `404 Not Found` because the startup-probe path does not exist on disk. The diagnostic distinction matters: this is NOT a "container dead" failure; it is a "container alive but probe contract violated" failure. Authoring tip: when chaining multiple table queries in one Logs tab, separate them with a blank line so the editor treats each block as an independent query, or open a second tab.
+
+[Observed] **KQL summary by reason** showing the restart loop pattern: 14 each of `ContainerCreated`, `PullingImage`, `ContainerStarted`, plus 56 `ProbeFailed` events (= 4 probe attempts per restart x 14 restarts).
+
+![KQL summary by reason showing restart loop pattern](../../assets/troubleshooting/revision-provisioning-failure/33-kql-summary-by-reason.png)
+
+#### Falsification (KQL)
+
+[Observed] **KQL falsification query** filtering to the **previously healthy** `badpath` revision shows ZERO `ProbeFailed` events — proving the failure is revision-scoped, not environment-scoped.
+
+![KQL falsification showing healthy revision has zero ProbeFailed events](../../assets/troubleshooting/revision-provisioning-failure/34-kql-falsification-healthy.png)
+
+[Inferred] Falsifying the alternative hypothesis ("the environment itself is broken") confirms the failure mode is **isolated to the misconfigured probe on the new revision**. The environment is healthy; only the new revision's probe path is wrong.
+
+[Observed] **KQL timechart** rendering of probe failures over time showing the bursting pattern of probe failures every ~5 seconds (matching `periodSeconds=5`).
+
+![KQL timechart of probe failures over time](../../assets/troubleshooting/revision-provisioning-failure/35-kql-timechart-failures.png)
+
+#### Recovery (post-fix evidence)
+
+[Observed] After applying the recovery YAML patch (`az containerapp update --yaml`) with corrected probe path `/`, the **Overview** blade shows `Status: Running` and a new healthy revision `badpath3`.
+
+![Container App overview after recovery showing Running status](../../assets/troubleshooting/revision-provisioning-failure/36-overview-recovered-healthy.png)
+
+[Observed] **Revisions and replicas** grid showing `badpath3` as the new active revision: `Healthy`, `Provisioned`, `1/1 replicas`, `100% traffic`. The previously failed `badpath2` revision is auto-deactivated.
+
+![Revisions list after recovery with badpath3 healthy](../../assets/troubleshooting/revision-provisioning-failure/37-revisions-recovered-badpath3-healthy.png)
+
+[Observed] **Log stream** after recovery with `Category: Application` selected and `Based on revision: ca-labrevprov-e2upm2--badpath3`, showing clean nginx startup output (epoll event method, worker processes 30–33 started) and a single successful probe request `"GET / HTTP/1.1" 200 896` — no 404s, no SIGCHLD, no worker process exits. The probe is succeeding at `/` (nginx default index page returns 200 OK).
+
+![Log stream Application category for the recovered badpath3 revision showing clean nginx output](../../assets/troubleshooting/revision-provisioning-failure/38-log-stream-recovered-clean.png)
+
+[Observed] **KQL post-fix verification query** summarizing `ProbeFailed`, `ContainerStarted`, and `ContainerTerminated` counts per revision. The recovered revision `ca-labrevprov-e2upm2--badpath3` shows `ProbeFailed=0`, `ContainerStarted=1`, `ContainerTerminated=0`, while the failed revision `ca-labrevprov-e2upm2--badpath2` retains `ProbeFailed=56`, `ContainerStarted=14`, `ContainerTerminated=14` from the reproduction window. The two pre-existing healthy revisions (`badpath`, `imbdhlv`) each show `ProbeFailed=0` — confirming the probe-failure mode is isolated to `badpath2`.
+
+![KQL post-fix verification: badpath3 has zero ProbeFailed events while badpath2 retains 56](../../assets/troubleshooting/revision-provisioning-failure/39-kql-postfix-verification-by-revision.png)
+
+[Observed] **Container Exit Events detector — Container Exits drilldown tab** showing the historical exit events still visible from `badpath2` in the 24-hour window, but NO new exit events from `badpath3`.
+
+![Container Exit Events detector post-fix drilldown view](../../assets/troubleshooting/revision-provisioning-failure/40-detector-container-exit-events-postfix.png)
+
+[Strongly Suggested] The recovery sequence (captures 36-40) **falsifies the original failure hypothesis in reverse**: by changing only the startup probe path (everything else identical: same nginx:alpine image, same resource limits, same environment), the revision becomes Healthy. This causal isolation confirms the startup probe path was the sole root cause.
+
+### Operator Takeaway
+
+For this failure mode (revision provisioning failure due to misconfigured startup probe):
+
+1. **First diagnosis stop**: Overview blade -> `Revisions with Issues` tab — see the failing revision name within seconds.
+2. **Configuration verification**: Containers -> Health Probes tab — confirms the bad probe path or port in plain text.
+3. **Application-level proof**: Log Stream -> Application — shows the live HTTP requests from the kubelet probe and the application's responses (404 here).
+4. **Platform-level proof**: Log Stream -> System — shows `ProbeFailed -> ContainerTerminated(ProbeFailure)` cascade.
+5. **Historical proof for tickets**: Log Analytics KQL — `ContainerAppSystemLogs_CL | where Reason_s == "ProbeFailed"`.
+6. **Microsoft-managed triage**: Diagnose and solve problems -> Availability and Performance -> Health Probe Failures detector.
+
+### Support Takeaway
+
+For support engineers handling tickets where a customer reports "my new revision keeps failing":
+
+1. Ask: "What changed in the most recent deployment? Specifically, did you add or modify a health probe?"
+2. Have the customer share the output of: `az containerapp revision show --name <revision-name> --resource-group <rg> --query "properties.template.containers[].probes"`.
+3. If a startup probe is configured, verify the `path` returns 200 by exec-ing into the container or running the equivalent HTTP request against the app's container port from a co-located test container.
+4. Recovery: provide the customer with the corrected probe YAML or instruct them to remove the probe via the Portal Containers blade.
+
 ## Portal Evidence Capture Guide
 
 Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
@@ -386,7 +621,11 @@ Engineers reproducing this lab should attach Azure Portal screenshots to the **O
 
 ### Captures to take
 
-The reproduction performed on 2026-06-03 (see **Observed Evidence (Portal Captures)** above) produced the following 6 canonical captures. Reuse the same filenames when re-reproducing on a fresh environment.
+Two reproductions of this lab have produced complementary capture sets. Reuse the same filenames when re-reproducing on a fresh environment.
+
+#### 2026-06-03 reproduction (port variant — 6 captures)
+
+The first reproduction triggered the failure with a startup probe on a wrong **port**. See [**Observed Evidence (Portal Captures — 2026-06-03)**](#observed-evidence-portal-captures-2026-06-03) above.
 
 | # | When | Portal blade | View / filters | Filename |
 |---|---|---|---|---|
@@ -396,6 +635,89 @@ The reproduction performed on 2026-06-03 (see **Observed Evidence (Portal Captur
 | 4 | During diagnosis | Revision detail → Logs tab | System + Historical logs showing `ProbeFailed → ContainerTerminated(ProbeFailure)` cascade | `04-revision-detail-logs-tab.png` |
 | 5 | During diagnosis | Container App → Activity log | `Create or Update Container App` events from the revision update | `05-activity-log.png` |
 | 6 | During diagnosis | Container App → Diagnose and solve problems | Container Apps Diagnostics landing — Availability and Performance / Deployment categories | `06-diagnose-and-solve-problems.png` |
+
+#### 2026-06-20 reproduction (path variant — 34 captures)
+
+The second reproduction triggered the failure with a startup probe on a wrong **path** (image swapped to `nginx:alpine`, which correctly returns 404 for unknown paths). See [**Observed Evidence (Portal Captures — 2026-06-20)**](#observed-evidence-portal-captures-2026-06-20) above.
+
+**Baseline (healthy) — captures 07-11**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 7 | Before trigger | Resource Group → Overview | Resource list (Container App, environment, Log Analytics, ACR) | `07-resource-group-overview.png` |
+| 8 | Before trigger | Container App → Overview | Status `Running`, **Revisions with issues** tab empty | `08-ca-overview-baseline.png` |
+| 9 | Before trigger | Container App → Revisions and replicas | Single Healthy revision row | `09-revisions-baseline-healthy.png` |
+| 10 | Before trigger | Container App → Containers | Image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`, no probes | `10-containers-baseline-noprobe.png` |
+| 11 | Before trigger | Containers → Health probes | Empty health-probes pane (baseline has none) | `11-containers-baseline-healthprobes-empty.png` |
+
+**Failure state — captures 12-18**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 12 | After trigger | Container App → Overview | Status banner with revisions-with-issues tab populated | `12-overview-failure-state.png` |
+| 13 | After trigger | Container App → Revisions and replicas | Failed revision `badpath2` listed | `13-revisions-failed-state.png` |
+| 14 | After trigger | Revisions → `badpath2` detail | Revision detail flyout `Provisioning Failed`, `0/1 replicas` | `14-revision-detail-badpath2-failed.png` |
+| 15 | After trigger | Revision detail → Logs tab | Real-time + Application selected; shows `No replica running — Try selecting Historical display option` (diagnostic of the restart loop) | `15-revision-detail-logs-tab.png` |
+| 16 | After trigger | Revision detail → Logs → Historical system logs | `ProbeFailed → ContainerTerminated(ProbeFailure)` cascade (GOLD) | `16-revision-historical-system-logs.png` |
+| 17 | After trigger | Container App → Containers | Image swapped to `nginx:alpine` | `17-containers-failure-nginx-image.png` |
+| 18 | After trigger | Containers → Health probes | Liveness + Readiness fully visible; Startup probes section enabled (config fields below the fold) | `18-containers-health-probes-bad-path.png` |
+
+**Log evidence (Portal Log Stream) — captures 19-20**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 19 | After trigger | Container App → Log stream → Application | Nginx graceful-shutdown sequence (SIGQUIT + per-worker exits) on the failing replica; raw 404 entries captured to `evidence/10-kql-console-logs.json` | `19-log-stream-failure.png` |
+| 20 | After trigger | Container App → Log stream → System | Live system log stream showing real-time probe failure events (GOLD) | `20-log-stream-system-realtime.png` |
+
+**Activity Log — capture 21**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 21 | After trigger | Container App → Activity log | `Create or Update Container App` deployment event from trigger | `21-activity-log-deployment-event.png` |
+
+**Diagnose and solve problems — captures 22-27**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 22 | After trigger | Container App → Diagnose and solve problems | Diagnostics landing — Availability and Performance / Deployment categories | `22-diagnose-solve-problems-overview.png` |
+| 23 | After trigger | Diagnose → Availability and Performance | Detector list for the Availability and Performance category | `23-availability-performance-detectors.png` |
+| 24 | After trigger | Detector: **Container Exit Events** | Default view — recent container exits with exit codes | `24-detector-container-exit-events.png` |
+| 25 | After trigger | Detector: **Container Create Failures** | Container-create failure summary | `25-detector-container-create-failures.png` |
+| 26 | After trigger | Detector: **Health Probe Failures** | Probe failure summary | `26-detector-health-probe-failures.png` |
+| 27 | After trigger | Detector: **Image Pull Failures** | Image-pull failure summary | `27-detector-image-pull-failures.png` |
+
+**Metrics — captures 28-29**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 28 | After trigger | Container App → Metrics | Metrics blade landing | `28-metrics-blade-overview.png` |
+| 29 | After trigger | Metrics → Replica Count | Replica-count time series during failure window | `29-metrics-replica-count.png` |
+
+**KQL evidence (Log Analytics) — captures 30-33**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 30 | After trigger | Log Analytics → Logs | `ContainerAppSystemLogs_CL` filtered to `Reason == "ProbeFailed"` (GOLD) | `30-kql-probefailed-query.png` |
+| 31 | After trigger | Log Analytics → Logs | Probe-failure to container-termination correlation join | `31-kql-event-correlation.png` |
+| 32 | After trigger | Log Analytics → Logs | KQL editor pitfall: two stacked queries with no blank-line separator → syntax error. Actual nginx 404 + SIGCHLD evidence captured to `labs/revision-provisioning-failure/evidence/10-kql-console-logs.json` (GOLD raw artifact) | `32-kql-console-logs.png` |
+| 33 | After trigger | Log Analytics → Logs | Summary aggregated by `Reason` | `33-kql-summary-by-reason.png` |
+
+**Falsification (KQL) — captures 34-35**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 34 | After fix | Log Analytics → Logs | KQL proving the healthy revision produces zero probe failures | `34-kql-falsification-healthy.png` |
+| 35 | After fix | Log Analytics → Logs | Time-chart of failures over the failure → recovery window | `35-kql-timechart-failures.png` |
+
+**Recovery (post-fix evidence) — captures 36-40**
+
+| # | When | Portal blade | View / filters | Filename |
+|---|---|---|---|---|
+| 36 | After fix | Container App → Overview | Status `Running`, 100% traffic on the recovered revision | `36-overview-recovered-healthy.png` |
+| 37 | After fix | Container App → Revisions and replicas | New healthy revision `badpath3` with 100% traffic | `37-revisions-recovered-badpath3-healthy.png` |
+| 38 | After fix | Container App → Log stream → Application | Application category, revision `badpath3`: clean nginx startup + `GET / HTTP/1.1 200 896` probe success (GOLD) | `38-log-stream-recovered-clean.png` |
+| 39 | After fix | Log Analytics → Logs | Post-fix KQL grouped by revision showing zero failures on the recovered revision (GOLD) | `39-kql-postfix-verification-by-revision.png` |
+| 40 | After fix | Detector: **Container Exit Events** → Container Exits drilldown | Per-revision exit-code breakdown showing the failed revision is no longer producing exits | `40-detector-container-exit-events-postfix.png` |
 
 ### Asset path
 

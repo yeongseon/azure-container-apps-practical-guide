@@ -1,0 +1,284 @@
+[
+  {
+    "EventCount": "56",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "16",
+    "Reason_s": "ContainerAppReady",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "14",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "14",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "14",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "14",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "14",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "12",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "10",
+    "Reason_s": "RevisionDeactivating",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "9",
+    "Reason_s": "RollingRevisionCompleted",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "6",
+    "Reason_s": "ScaledObjectCheckFailed",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "ContainerAppFailure",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ProbeFailure",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath3",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath2",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--imbdhlv",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labrevprov-e2upm2--badpath",
+    "TableName": "PrimaryResult"
+  }
+]
