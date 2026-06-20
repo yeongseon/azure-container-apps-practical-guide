@@ -1,0 +1,75 @@
+========================================================
+Memory Leak OOMKilled Lab — Evidence Report
+========================================================
+App:       ca-oom-healthy
+RG:        rg-aca-memleak-lab
+Lookback:  PT30M
+Timestamp: 20260620T042045Z
+========================================================
+
+=== 0. Tool versions ===
+{
+  "azure-cli": "2.79.0",
+  "azure-cli-core": "2.79.0",
+  "azure-cli-telemetry": "1.1.0",
+  "extensions": {
+    "account": "0.2.5",
+    "application-insights": "2.0.0b1",
+    "azure-firewall": "2.2.0",
+    "containerapp": "1.3.0b4",
+    "log-analytics": "1.0.0b1",
+    "webpubsub": "1.7.2"
+  }
+}
+{
+  "name": "containerapp",
+  "version": "1.3.0b4"
+}
+
+=== 1. App configuration ===
+{
+  "cpu": 0.5,
+  "envVars": [
+    {
+      "name": "MODE",
+      "value": "healthy"
+    }
+  ],
+  "location": "Korea Central",
+  "maxReplicas": 1,
+  "memory": "1Gi",
+  "minReplicas": 1,
+  "name": "ca-oom-healthy",
+  "provisioningState": "Succeeded",
+  "revisionMode": "Single"
+}
+
+=== 1b. Container name ===
+Container name: ca-oom-healthy
+
+=== 2. Active revision(s) ===
+Active revisions: ca-oom-healthy--dfl8p2o
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-20T04:13:17+00:00",
+    "healthState": "Healthy",
+    "name": "ca-oom-healthy--dfl8p2o",
+    "provisioningState": "Provisioned",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+
+=== 3. Replica list (all active revisions) ===
+--- Replicas for revision: ca-oom-healthy--dfl8p2o ---
+Name                                     ResourceGroup
+---------------------------------------  ------------------
+ca-oom-healthy--dfl8p2o-f786d4bf9-ln5rt  rg-aca-memleak-lab
+
+=== 4. Log Analytics workspace ===
+Workspace ID (customerId): 00000000-0000-0000-0000-000000000000
+
+=== 5. System logs: exit code 137 / OOM / ProcessExited / ContainerTerminated ===
+(Log Analytics ingestion delay: 5-10 min)

@@ -1,0 +1,242 @@
+========================================================
+Memory Leak OOMKilled Lab — Evidence Report
+========================================================
+App:       ca-oom-leak
+RG:        rg-aca-memleak-lab
+Lookback:  PT30M
+Timestamp: 20260620T042200Z
+========================================================
+
+=== 0. Tool versions ===
+{
+  "azure-cli": "2.79.0",
+  "azure-cli-core": "2.79.0",
+  "azure-cli-telemetry": "1.1.0",
+  "extensions": {
+    "account": "0.2.5",
+    "application-insights": "2.0.0b1",
+    "azure-firewall": "2.2.0",
+    "containerapp": "1.3.0b4",
+    "log-analytics": "1.0.0b1",
+    "webpubsub": "1.7.2"
+  }
+}
+{
+  "name": "containerapp",
+  "version": "1.3.0b4"
+}
+
+=== 1. App configuration ===
+{
+  "cpu": 0.25,
+  "envVars": [
+    {
+      "name": "MODE",
+      "value": "leak"
+    },
+    {
+      "name": "LEAK_MB_PER_TICK",
+      "value": "30"
+    },
+    {
+      "name": "LEAK_INTERVAL_SECONDS",
+      "value": "20"
+    }
+  ],
+  "location": "Korea Central",
+  "maxReplicas": 1,
+  "memory": "0.5Gi",
+  "minReplicas": 1,
+  "name": "ca-oom-leak",
+  "provisioningState": "Succeeded",
+  "revisionMode": "Single"
+}
+
+=== 1b. Container name ===
+Container name: ca-oom-leak
+
+=== 2. Active revision(s) ===
+Active revisions: ca-oom-leak--y1hn6jn
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-20T04:11:30+00:00",
+    "healthState": "Healthy",
+    "name": "ca-oom-leak--y1hn6jn",
+    "provisioningState": "Provisioned",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+
+=== 3. Replica list (all active revisions) ===
+--- Replicas for revision: ca-oom-leak--y1hn6jn ---
+Name                                   ResourceGroup
+-------------------------------------  ------------------
+ca-oom-leak--y1hn6jn-5f44b556bc-qqmhv  rg-aca-memleak-lab
+
+=== 4. Log Analytics workspace ===
+Workspace ID (customerId): 00000000-0000-0000-0000-000000000000
+
+=== 5. System logs: exit code 137 / OOM / ProcessExited / ContainerTerminated ===
+(Log Analytics ingestion delay: 5-10 min)
+Log_s                                                                                                              Reason_s                  TableName      TimeGenerated
+-----------------------------------------------------------------------------------------------------------------  ------------------------  -------------  ----------------------------
+Created container 'ca-oom-leak'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:17:17.709044Z
+Started container 'ca-oom-leak'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:17:17.709044Z
+Container 'ca-oom-leak' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:17:07.9590478Z
+Created container 'ca-oom-leak'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:11:46.4424209Z
+Started container 'ca-oom-leak'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:11:46.4424209Z
+Successfully updated containerApp: ca-oom-leak                                                                     ContainerAppReady         PrimaryResult  2026-06-20T04:11:32.3993199Z
+Successfully updated containerApp: ca-oom-leak                                                                     ContainerAppReady         PrimaryResult  2026-06-20T04:11:32.3993199Z
+Deactivating old revisions for ContainerApp 'ca-oom-leak'                                                          RevisionDeactivating      PrimaryResult  2026-06-20T04:11:32.3993199Z
+Deactivating old revisions for ContainerApp 'ca-oom-leak'                                                          RevisionDeactivating      PrimaryResult  2026-06-20T04:11:32.3993199Z
+Setting traffic weight of '100%' for revision 'ca-oom-leak--y1hn6jn'                                               RevisionUpdate            PrimaryResult  2026-06-20T04:11:32.3993199Z
+Setting traffic weight of '100%' for revision 'ca-oom-leak--y1hn6jn'                                               RevisionUpdate            PrimaryResult  2026-06-20T04:11:32.3993199Z
+Revision 'ca-oom-leak--y1hn6jn' updated. No new revision was provisioned.                                          RevisionUpdate            PrimaryResult  2026-06-20T04:11:32.3993199Z
+KEDA is starting a watch for revision 'ca-oom-leak--y1hn6jn' to monitor scale operations for this revision         KEDAScalersStarted        PrimaryResult  2026-06-20T04:11:31.3155803Z
+Successfully updated running state to Running for containerApp: ca-oom-leak                                        ContainerAppReady         PrimaryResult  2026-06-20T04:11:31.3155803Z
+Rolling Transition: Successfully completed rolling over existing to latest revision for containerApp: ca-oom-leak  RollingRevisionCompleted  PrimaryResult  2026-06-20T04:11:31.3155803Z
+Replica 'ca-oom-leak--y1hn6jn-5f44b556bc-qqmhv' has been scheduled to run on a node.                               AssigningReplica          PrimaryResult  2026-06-20T04:11:31.3155803Z
+
+=== 6. OOM event count timeline (5-min bins) ===
+EventCount    TableName      TimeGenerated
+------------  -------------  --------------------
+13            PrimaryResult  2026-06-20T04:10:00Z
+3             PrimaryResult  2026-06-20T04:15:00Z
+
+=== 7. Console logs (last 50 lines) ===
+{"TimeStamp": "2026-06-20T04:22:22.8512", "Log": "Connecting to the container 'ca-oom-leak'..."}
+{"TimeStamp": "2026-06-20T04:22:22.87105", "Log": "Successfully Connected to container: 'ca-oom-leak' [Revision: 'ca-oom-leak--y1hn6jn', Replica: 'ca-oom-leak--y1hn6jn-5f44b556bc-qqmhv']"}
+{"TimeStamp": "2026-06-20T04:17:17.4053289+00:00", "Log": "F [app] listening on :8000[leak] tick 1: +30 MiB, total retained 30 MiB"}
+{"TimeStamp": "2026-06-20T04:17:17.405373+00:00", "Log": "F"}
+{"TimeStamp": "2026-06-20T04:17:37.4180841+00:00", "Log": "F [leak] tick 2: +30 MiB, total retained 60 MiB"}
+{"TimeStamp": "2026-06-20T04:17:57.4311091+00:00", "Log": "F [leak] tick 3: +30 MiB, total retained 90 MiB"}
+{"TimeStamp": "2026-06-20T04:18:17.4437841+00:00", "Log": "F [leak] tick 4: +30 MiB, total retained 120 MiB"}
+{"TimeStamp": "2026-06-20T04:18:37.4567936+00:00", "Log": "F [leak] tick 5: +30 MiB, total retained 150 MiB"}
+{"TimeStamp": "2026-06-20T04:18:57.4700615+00:00", "Log": "F [leak] tick 6: +30 MiB, total retained 180 MiB"}
+{"TimeStamp": "2026-06-20T04:19:17.4848538+00:00", "Log": "F [leak] tick 7: +30 MiB, total retained 210 MiB"}
+{"TimeStamp": "2026-06-20T04:19:37.4972493+00:00", "Log": "F [leak] tick 8: +30 MiB, total retained 240 MiB"}
+{"TimeStamp": "2026-06-20T04:19:57.5098674+00:00", "Log": "F [leak] tick 9: +30 MiB, total retained 270 MiB"}
+{"TimeStamp": "2026-06-20T04:20:17.522365+00:00", "Log": "F [leak] tick 10: +30 MiB, total retained 300 MiB"}
+{"TimeStamp": "2026-06-20T04:20:37.5347969+00:00", "Log": "F [leak] tick 11: +30 MiB, total retained 330 MiB"}
+{"TimeStamp": "2026-06-20T04:20:57.5475381+00:00", "Log": "F [leak] tick 12: +30 MiB, total retained 360 MiB"}
+{"TimeStamp": "2026-06-20T04:21:17.5599215+00:00", "Log": "F [leak] tick 13: +30 MiB, total retained 390 MiB"}
+{"TimeStamp": "2026-06-20T04:21:37.5725452+00:00", "Log": "F [leak] tick 14: +30 MiB, total retained 420 MiB"}
+{"TimeStamp": "2026-06-20T04:21:57.5849928+00:00", "Log": "F [leak] tick 15: +30 MiB, total retained 450 MiB"}
+{"TimeStamp": "2026-06-20T04:22:17.5979755+00:00", "Log": "F [leak] tick 16: +30 MiB, total retained 480 MiB"}
+
+=== 8. Console logs from Log Analytics (last 50) ===
+Log_s                                                                  TableName      TimeGenerated
+---------------------------------------------------------------------  -------------  ----------------------------
+[leak] tick 15: +30 MiB, total retained 450 MiB                        PrimaryResult  2026-06-20T04:21:58.5441186Z
+[leak] tick 14: +30 MiB, total retained 420 MiB                        PrimaryResult  2026-06-20T04:21:38.5280798Z
+[leak] tick 13: +30 MiB, total retained 390 MiB                        PrimaryResult  2026-06-20T04:21:18.6527017Z
+[leak] tick 12: +30 MiB, total retained 360 MiB                        PrimaryResult  2026-06-20T04:20:58.907572Z
+[leak] tick 11: +30 MiB, total retained 330 MiB                        PrimaryResult  2026-06-20T04:20:38.7066265Z
+[leak] tick 10: +30 MiB, total retained 300 MiB                        PrimaryResult  2026-06-20T04:20:18.8156984Z
+[leak] tick 9: +30 MiB, total retained 270 MiB                         PrimaryResult  2026-06-20T04:19:58.7219549Z
+[leak] tick 8: +30 MiB, total retained 240 MiB                         PrimaryResult  2026-06-20T04:19:38.5179232Z
+[leak] tick 7: +30 MiB, total retained 210 MiB                         PrimaryResult  2026-06-20T04:19:18.5886821Z
+[leak] tick 6: +30 MiB, total retained 180 MiB                         PrimaryResult  2026-06-20T04:18:58.506619Z
+[leak] tick 5: +30 MiB, total retained 150 MiB                         PrimaryResult  2026-06-20T04:18:38.566055Z
+[leak] tick 4: +30 MiB, total retained 120 MiB                         PrimaryResult  2026-06-20T04:18:18.4865005Z
+[leak] tick 3: +30 MiB, total retained 90 MiB                          PrimaryResult  2026-06-20T04:17:58.8459363Z
+[leak] tick 2: +30 MiB, total retained 60 MiB                          PrimaryResult  2026-06-20T04:17:38.5245248Z
+[app] listening on :8000[leak] tick 1: +30 MiB, total retained 30 MiB  PrimaryResult  2026-06-20T04:17:18.6046301Z
+                                                                       PrimaryResult  2026-06-20T04:17:18.6046301Z
+[leak] tick 16: +30 MiB, total retained 480 MiB                        PrimaryResult  2026-06-20T04:16:46.6313252Z
+[leak] tick 15: +30 MiB, total retained 450 MiB                        PrimaryResult  2026-06-20T04:16:26.8827488Z
+[leak] tick 14: +30 MiB, total retained 420 MiB                        PrimaryResult  2026-06-20T04:16:06.5050225Z
+[leak] tick 13: +30 MiB, total retained 390 MiB                        PrimaryResult  2026-06-20T04:15:46.7742434Z
+[leak] tick 12: +30 MiB, total retained 360 MiB                        PrimaryResult  2026-06-20T04:15:26.8359605Z
+[leak] tick 11: +30 MiB, total retained 330 MiB                        PrimaryResult  2026-06-20T04:15:07.0053787Z
+[leak] tick 10: +30 MiB, total retained 300 MiB                        PrimaryResult  2026-06-20T04:14:46.8477693Z
+[leak] tick 9: +30 MiB, total retained 270 MiB                         PrimaryResult  2026-06-20T04:14:26.5192821Z
+[leak] tick 8: +30 MiB, total retained 240 MiB                         PrimaryResult  2026-06-20T04:14:06.5029083Z
+[leak] tick 7: +30 MiB, total retained 210 MiB                         PrimaryResult  2026-06-20T04:13:46.4765728Z
+[leak] tick 6: +30 MiB, total retained 180 MiB                         PrimaryResult  2026-06-20T04:13:26.4825601Z
+[leak] tick 5: +30 MiB, total retained 150 MiB                         PrimaryResult  2026-06-20T04:13:06.6458038Z
+[leak] tick 4: +30 MiB, total retained 120 MiB                         PrimaryResult  2026-06-20T04:12:47.0802188Z
+[leak] tick 3: +30 MiB, total retained 90 MiB                          PrimaryResult  2026-06-20T04:12:26.6123547Z
+[leak] tick 2: +30 MiB, total retained 60 MiB                          PrimaryResult  2026-06-20T04:12:06.5760558Z
+[leak] tick 1: +30 MiB, total retained 30 MiB                          PrimaryResult  2026-06-20T04:11:47.9809459Z
+[app] listening on :8000                                               PrimaryResult  2026-06-20T04:11:47.9809459Z
+
+=== 9. System logs: lifecycle events ===
+Log_s                                                                                                       TableName      TimeGenerated
+----------------------------------------------------------------------------------------------------------  -------------  ----------------------------
+Probe of StartUp failed with status code: 1                                                                 PrimaryResult  2026-06-20T04:17:18.3223843Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                      PrimaryResult  2026-06-20T04:17:17.709044Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 22ms. Image size: 44040192 bytes.     PrimaryResult  2026-06-20T04:17:17.709044Z
+Started container 'ca-oom-leak'                                                                             PrimaryResult  2026-06-20T04:17:17.709044Z
+Started container 'ca-oom-leak'                                                                             PrimaryResult  2026-06-20T04:11:46.4424209Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                      PrimaryResult  2026-06-20T04:11:45.218535Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 1.65s. Image size: 44040192 bytes.    PrimaryResult  2026-06-20T04:11:45.218535Z
+KEDA is starting a watch for revision 'ca-oom-leak--y1hn6jn' to monitor scale operations for this revision  PrimaryResult  2026-06-20T04:11:31.3155803Z
+
+=== 10a. Memory Percentage (Avg, PT1M) ===
+
+=== 10b. Memory Working Set Bytes (Avg, PT1M) ===
+
+=== 10c. Restart count (Total, PT5M) ===
+
+=== 10d. Replica count (Max, PT1M) ===
+
+=== 10e. CPU Percentage (Avg, PT1M) ===
+
+=== 11. cgroup memory.stat from live replica (best effort) ===
+Replica: ca-oom-leak--y1hn6jn-5f44b556bc-qqmhv
+ERROR: The command failed with an unexpected error. Here is the traceback:
+ERROR: (19, 'Operation not supported by device')
+Traceback (most recent call last):
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+    cmd_result = self.invocation.execute(args)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+    raise ex
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
+    results.append(self._run_job(expanded_arg, cmd_copy))
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
+    result = cmd_copy(params)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
+    return self.handler(*args, **kwargs)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 120, in handler
+    return op(**command_args)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3536, in containerapp_ssh
+    writer = get_stdin_writer(conn)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/_ssh_utils.py", line 187, in get_stdin_writer
+    tty.setcbreak(sys.stdin.fileno())  # needed to prevent printing arrow key characters
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/tty.py", line 32, in setcbreak
+    mode = tcgetattr(fd)
+termios.error: (19, 'Operation not supported by device')
+To check existing issues, please visit: https://github.com/Azure/azure-cli/issues
+INFO: Connecting to the container 'ca-oom-leak'...
+(exec failed — replica may be crash-looping or not exec-capable)
+
+=== 12. Activity log (resource group, last 1h) ===
+Time                          Operation                                        Status
+----------------------------  -----------------------------------------------  ---------
+2026-06-20T04:20:39.1445539Z  Microsoft.App/containerApps/getAuthToken/action  Succeeded
+2026-06-20T04:20:39.0976801Z  Microsoft.App/containerApps/getAuthToken/action  Started
+2026-06-20T04:20:19.3314909Z  Microsoft.App/containerApps/getAuthToken/action  Succeeded
+2026-06-20T04:20:19.2845988Z  Microsoft.App/containerApps/getAuthToken/action  Started
+2026-06-20T04:11:41.1686535Z  Microsoft.App/containerApps/write                Succeeded
+2026-06-20T04:11:24.0754563Z  Microsoft.App/containerApps/write                Accepted
+2026-06-20T04:11:23.6536175Z  Microsoft.App/containerApps/write                Started
+
+========================================================
+Evidence collection complete for ca-oom-leak
+Report saved to: /Users/yeongseonchoe/GitHub/azure-container-apps-practical-guide/labs/memory-leak-oomkilled/evidence/ca-oom-leak/report-20260620T042200Z.txt
+========================================================
+
+Portal screenshots to capture manually for this scenario:
+  1. Container App overview blade (ProvisioningState / Status)
+  2. System logs blade (filter: exit code, OOM, ProcessExited)
+  3. Console logs blade (allocation prints)
+  4. Revisions blade (HealthState / RestartCount / running replicas)
+  5. Metrics blade → MemoryPercentage
+  6. Metrics blade → WorkingSetBytes
+  7. Metrics blade → RestartCount
+
+Save screenshots to: docs/assets/troubleshooting/memory-leak-oomkilled/

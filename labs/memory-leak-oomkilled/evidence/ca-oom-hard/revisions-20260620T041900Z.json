@@ -1,0 +1,12 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-20T04:10:35+00:00",
+    "healthState": "Unhealthy",
+    "name": "ca-oom-hard--18xosgl",
+    "provisioningState": "Failed",
+    "replicas": 1,
+    "runningState": "Failed",
+    "trafficWeight": 0
+  }
+]

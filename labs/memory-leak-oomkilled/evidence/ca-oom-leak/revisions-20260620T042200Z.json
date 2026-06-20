@@ -1,0 +1,12 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-20T04:11:30+00:00",
+    "healthState": "Healthy",
+    "name": "ca-oom-leak--y1hn6jn",
+    "provisioningState": "Provisioned",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]

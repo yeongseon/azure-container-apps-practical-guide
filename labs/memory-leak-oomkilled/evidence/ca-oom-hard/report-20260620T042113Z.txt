@@ -1,0 +1,278 @@
+========================================================
+Memory Leak OOMKilled Lab — Evidence Report
+========================================================
+App:       ca-oom-hard
+RG:        rg-aca-memleak-lab
+Lookback:  PT30M
+Timestamp: 20260620T042113Z
+========================================================
+
+=== 0. Tool versions ===
+{
+  "azure-cli": "2.79.0",
+  "azure-cli-core": "2.79.0",
+  "azure-cli-telemetry": "1.1.0",
+  "extensions": {
+    "account": "0.2.5",
+    "application-insights": "2.0.0b1",
+    "azure-firewall": "2.2.0",
+    "containerapp": "1.3.0b4",
+    "log-analytics": "1.0.0b1",
+    "webpubsub": "1.7.2"
+  }
+}
+{
+  "name": "containerapp",
+  "version": "1.3.0b4"
+}
+
+=== 1. App configuration ===
+{
+  "cpu": 0.25,
+  "envVars": [
+    {
+      "name": "MODE",
+      "value": "hard-oom"
+    },
+    {
+      "name": "HARD_OOM_MB",
+      "value": "600"
+    }
+  ],
+  "location": "Korea Central",
+  "maxReplicas": 1,
+  "memory": "0.5Gi",
+  "minReplicas": 1,
+  "name": "ca-oom-hard",
+  "provisioningState": "Succeeded",
+  "revisionMode": "Single"
+}
+
+=== 1b. Container name ===
+Container name: ca-oom-hard
+
+=== 2. Active revision(s) ===
+Active revisions: ca-oom-hard--18xosgl
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-20T04:10:35+00:00",
+    "healthState": "Unhealthy",
+    "name": "ca-oom-hard--18xosgl",
+    "provisioningState": "Failed",
+    "replicas": 1,
+    "runningState": "Failed",
+    "trafficWeight": 0
+  }
+]
+
+=== 3. Replica list (all active revisions) ===
+--- Replicas for revision: ca-oom-hard--18xosgl ---
+Name                                   ResourceGroup
+-------------------------------------  ------------------
+ca-oom-hard--18xosgl-75cb985f8f-fckdq  rg-aca-memleak-lab
+
+=== 4. Log Analytics workspace ===
+Workspace ID (customerId): 00000000-0000-0000-0000-000000000000
+
+=== 5. System logs: exit code 137 / OOM / ProcessExited / ContainerTerminated ===
+(Log Analytics ingestion delay: 5-10 min)
+Log_s                                                                                                              Reason_s                  TableName      TimeGenerated
+-----------------------------------------------------------------------------------------------------------------  ------------------------  -------------  ----------------------------
+Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:21:15.3608059Z
+Created container 'ca-oom-hard'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:21:13.3789733Z
+Started container 'ca-oom-hard'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:21:13.3789733Z
+Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:16:13.1055161Z
+Created container 'ca-oom-hard'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:16:11.2112515Z
+Started container 'ca-oom-hard'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:16:11.2112515Z
+Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:13:31.2179296Z
+Started container 'ca-oom-hard'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:13:29.2936593Z
+Created container 'ca-oom-hard'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:13:29.2936593Z
+Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:12:08.2745932Z
+Started container 'ca-oom-hard'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:12:06.4477365Z
+Created container 'ca-oom-hard'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:12:06.4477365Z
+Container 'ca-oom-hard' was terminated with exit code '137'                                                        ProcessExited             PrimaryResult  2026-06-20T04:11:32.3993199Z
+Container 'ca-oom-hard' was terminated with exit code '137'                                                        ProcessExited             PrimaryResult  2026-06-20T04:11:32.3993199Z
+Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:11:26.1648997Z
+Created container 'ca-oom-hard'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:11:24.2246231Z
+Started container 'ca-oom-hard'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:11:24.2246231Z
+Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:11:04.2874281Z
+Started container 'ca-oom-hard'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:11:02.4340564Z
+Created container 'ca-oom-hard'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:11:02.4340564Z
+Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'                             ContainerTerminated       PrimaryResult  2026-06-20T04:10:52.1597439Z
+Started container 'ca-oom-hard'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:10:51.2104727Z
+Created container 'ca-oom-hard'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:10:51.2104727Z
+Revision 'ca-oom-hard--18xosgl' updated. No new revision was provisioned.                                          RevisionUpdate            PrimaryResult  2026-06-20T04:10:37.4598479Z
+Deactivating old revisions for ContainerApp 'ca-oom-hard'                                                          RevisionDeactivating      PrimaryResult  2026-06-20T04:10:37.4598479Z
+Successfully updated containerApp: ca-oom-hard                                                                     ContainerAppReady         PrimaryResult  2026-06-20T04:10:37.4598479Z
+Successfully updated containerApp: ca-oom-hard                                                                     ContainerAppReady         PrimaryResult  2026-06-20T04:10:37.4598479Z
+Successfully updated containerApp: ca-oom-hard                                                                     ContainerAppReady         PrimaryResult  2026-06-20T04:10:37.4598479Z
+Deactivating old revisions for ContainerApp 'ca-oom-hard'                                                          RevisionDeactivating      PrimaryResult  2026-06-20T04:10:37.4598479Z
+Deactivating old revisions for ContainerApp 'ca-oom-hard'                                                          RevisionDeactivating      PrimaryResult  2026-06-20T04:10:37.4598479Z
+Replica 'ca-oom-hard--18xosgl-75cb985f8f-fckdq' has been scheduled to run on a node.                               AssigningReplica          PrimaryResult  2026-06-20T04:10:36.9450426Z
+Rolling Transition: Successfully completed rolling over existing to latest revision for containerApp: ca-oom-hard  RollingRevisionCompleted  PrimaryResult  2026-06-20T04:10:36.9450426Z
+
+=== 6. OOM event count timeline (5-min bins) ===
+EventCount    TableName      TimeGenerated
+------------  -------------  --------------------
+26            PrimaryResult  2026-06-20T04:10:00Z
+3             PrimaryResult  2026-06-20T04:15:00Z
+3             PrimaryResult  2026-06-20T04:20:00Z
+
+=== 7. Console logs (last 50 lines) ===
+{"TimeStamp": "2026-06-20T04:21:33.43118", "Log": "Connecting to the container 'ca-oom-hard'..."}
+{"TimeStamp": "2026-06-20T04:21:33.46507", "Log": "Successfully Connected to container: 'ca-oom-hard' [Revision: 'ca-oom-hard--18xosgl', Replica: 'ca-oom-hard--18xosgl-75cb985f8f-fckdq']"}
+{"TimeStamp": "2026-06-20T04:21:13.5671779+00:00", "Log": "F [hard-oom] allocating 600 MiB at startup (will exceed cgroup limit)"}
+{"TimeStamp": "2026-06-20T04:21:13.6641678+00:00", "Log": "F [hard-oom] allocated 50/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:13.7486396+00:00", "Log": "F [hard-oom] allocated 100/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:13.846874+00:00", "Log": "F [hard-oom] allocated 150/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:13.9464669+00:00", "Log": "F [hard-oom] allocated 200/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:14.0432539+00:00", "Log": "F [hard-oom] allocated 250/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:14.1392613+00:00", "Log": "F [hard-oom] allocated 300/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:14.2358064+00:00", "Log": "F [hard-oom] allocated 350/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:14.2671804+00:00", "Log": "F [hard-oom] allocated 400/600 MiB"}
+{"TimeStamp": "2026-06-20T04:21:14.3643992+00:00", "Log": "F [hard-oom] allocated 450/600 MiB"}
+
+=== 8. Console logs from Log Analytics (last 50) ===
+Log_s                                                                TableName      TimeGenerated
+-------------------------------------------------------------------  -------------  ----------------------------
+[hard-oom] allocated 450/600 MiB                                     PrimaryResult  2026-06-20T04:21:15.3562637Z
+[hard-oom] allocated 300/600 MiB                                     PrimaryResult  2026-06-20T04:21:15.3562637Z
+[hard-oom] allocated 400/600 MiB                                     PrimaryResult  2026-06-20T04:21:15.3562637Z
+[hard-oom] allocated 350/600 MiB                                     PrimaryResult  2026-06-20T04:21:15.3562637Z
+[hard-oom] allocated 250/600 MiB                                     PrimaryResult  2026-06-20T04:21:14.3338259Z
+[hard-oom] allocated 50/600 MiB                                      PrimaryResult  2026-06-20T04:21:14.3338259Z
+[hard-oom] allocating 600 MiB at startup (will exceed cgroup limit)  PrimaryResult  2026-06-20T04:21:14.3338259Z
+[hard-oom] allocated 100/600 MiB                                     PrimaryResult  2026-06-20T04:21:14.3338259Z
+[hard-oom] allocated 200/600 MiB                                     PrimaryResult  2026-06-20T04:21:14.3338259Z
+[hard-oom] allocated 150/600 MiB                                     PrimaryResult  2026-06-20T04:21:14.3338259Z
+[hard-oom] allocated 400/600 MiB                                     PrimaryResult  2026-06-20T04:16:13.312299Z
+[hard-oom] allocated 350/600 MiB                                     PrimaryResult  2026-06-20T04:16:13.312299Z
+[hard-oom] allocated 450/600 MiB                                     PrimaryResult  2026-06-20T04:16:13.312299Z
+[hard-oom] allocated 300/600 MiB                                     PrimaryResult  2026-06-20T04:16:12.4894189Z
+[hard-oom] allocated 100/600 MiB                                     PrimaryResult  2026-06-20T04:16:12.4894189Z
+[hard-oom] allocated 50/600 MiB                                      PrimaryResult  2026-06-20T04:16:12.4894189Z
+[hard-oom] allocating 600 MiB at startup (will exceed cgroup limit)  PrimaryResult  2026-06-20T04:16:12.4894189Z
+[hard-oom] allocated 150/600 MiB                                     PrimaryResult  2026-06-20T04:16:12.4894189Z
+[hard-oom] allocated 250/600 MiB                                     PrimaryResult  2026-06-20T04:16:12.4894189Z
+[hard-oom] allocated 200/600 MiB                                     PrimaryResult  2026-06-20T04:16:12.4894189Z
+[hard-oom] allocated 100/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 400/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 200/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 350/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocating 600 MiB at startup (will exceed cgroup limit)  PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 150/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 50/600 MiB                                      PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 300/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 250/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 450/600 MiB                                     PrimaryResult  2026-06-20T04:13:30.400516Z
+[hard-oom] allocated 300/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 150/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 350/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 200/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 250/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 100/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 400/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 450/600 MiB                                     PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 50/600 MiB                                      PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocating 600 MiB at startup (will exceed cgroup limit)  PrimaryResult  2026-06-20T04:12:08.3432532Z
+[hard-oom] allocated 300/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 400/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 200/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 450/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 50/600 MiB                                      PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 100/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 350/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 250/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocated 150/600 MiB                                     PrimaryResult  2026-06-20T04:11:26.4467905Z
+[hard-oom] allocating 600 MiB at startup (will exceed cgroup limit)  PrimaryResult  2026-06-20T04:11:26.4467905Z
+
+=== 9. System logs: lifecycle events ===
+Log_s                                                                                                     TableName      TimeGenerated
+--------------------------------------------------------------------------------------------------------  -------------  ----------------------------
+Started container 'ca-oom-hard'                                                                           PrimaryResult  2026-06-20T04:21:13.3789733Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 18ms. Image size: 44040192 bytes.   PrimaryResult  2026-06-20T04:21:13.3789733Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                    PrimaryResult  2026-06-20T04:21:13.3789733Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                    PrimaryResult  2026-06-20T04:16:11.2112515Z
+Started container 'ca-oom-hard'                                                                           PrimaryResult  2026-06-20T04:16:11.2112515Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 18ms. Image size: 44040192 bytes.   PrimaryResult  2026-06-20T04:16:11.2112515Z
+Started container 'ca-oom-hard'                                                                           PrimaryResult  2026-06-20T04:13:29.2936593Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                    PrimaryResult  2026-06-20T04:13:29.2936593Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 17ms. Image size: 44040192 bytes.   PrimaryResult  2026-06-20T04:13:29.2936593Z
+Started container 'ca-oom-hard'                                                                           PrimaryResult  2026-06-20T04:12:06.4477365Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                    PrimaryResult  2026-06-20T04:12:06.4477365Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 17ms. Image size: 44040192 bytes.   PrimaryResult  2026-06-20T04:12:06.4477365Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                    PrimaryResult  2026-06-20T04:11:24.2246231Z
+Started container 'ca-oom-hard'                                                                           PrimaryResult  2026-06-20T04:11:24.2246231Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 17ms. Image size: 44040192 bytes.   PrimaryResult  2026-06-20T04:11:24.2246231Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                    PrimaryResult  2026-06-20T04:11:02.4340564Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 28ms. Image size: 44040192 bytes.   PrimaryResult  2026-06-20T04:11:02.4340564Z
+Started container 'ca-oom-hard'                                                                           PrimaryResult  2026-06-20T04:11:02.4340564Z
+Started container 'ca-oom-hard'                                                                           PrimaryResult  2026-06-20T04:10:51.2104727Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 1.71s. Image size: 44040192 bytes.  PrimaryResult  2026-06-20T04:10:50.2104306Z
+Pulling image 'acrmemleak3ii4nr.azurecr.io/memleak:v1'                                                    PrimaryResult  2026-06-20T04:10:50.2104306Z
+
+=== 10a. Memory Percentage (Avg, PT1M) ===
+
+=== 10b. Memory Working Set Bytes (Avg, PT1M) ===
+
+=== 10c. Restart count (Total, PT5M) ===
+
+=== 10d. Replica count (Max, PT1M) ===
+
+=== 10e. CPU Percentage (Avg, PT1M) ===
+
+=== 11. cgroup memory.stat from live replica (best effort) ===
+Replica: ca-oom-hard--18xosgl-75cb985f8f-fckdq
+ERROR: The command failed with an unexpected error. Here is the traceback:
+ERROR: (19, 'Operation not supported by device')
+Traceback (most recent call last):
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+    cmd_result = self.invocation.execute(args)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+    raise ex
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
+    results.append(self._run_job(expanded_arg, cmd_copy))
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
+    result = cmd_copy(params)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
+    return self.handler(*args, **kwargs)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 120, in handler
+    return op(**command_args)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3536, in containerapp_ssh
+    writer = get_stdin_writer(conn)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/_ssh_utils.py", line 187, in get_stdin_writer
+    tty.setcbreak(sys.stdin.fileno())  # needed to prevent printing arrow key characters
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/tty.py", line 32, in setcbreak
+    mode = tcgetattr(fd)
+termios.error: (19, 'Operation not supported by device')
+To check existing issues, please visit: https://github.com/Azure/azure-cli/issues
+INFO: Connecting to the container 'ca-oom-hard'...
+(exec failed — replica may be crash-looping or not exec-capable)
+
+=== 12. Activity log (resource group, last 1h) ===
+Time                          Operation                                        Status
+----------------------------  -----------------------------------------------  ---------
+2026-06-20T04:19:40.6748867Z  Microsoft.App/containerApps/getAuthToken/action  Succeeded
+2026-06-20T04:19:40.6124095Z  Microsoft.App/containerApps/getAuthToken/action  Started
+2026-06-20T04:19:21.7378681Z  Microsoft.App/containerApps/getAuthToken/action  Succeeded
+2026-06-20T04:19:21.6597108Z  Microsoft.App/containerApps/getAuthToken/action  Started
+2026-06-20T04:10:45.7874281Z  Microsoft.App/containerApps/write                Succeeded
+2026-06-20T04:10:29.0704269Z  Microsoft.App/containerApps/write                Accepted
+2026-06-20T04:10:28.6953903Z  Microsoft.App/containerApps/write                Started
+
+========================================================
+Evidence collection complete for ca-oom-hard
+Report saved to: /Users/yeongseonchoe/GitHub/azure-container-apps-practical-guide/labs/memory-leak-oomkilled/evidence/ca-oom-hard/report-20260620T042113Z.txt
+========================================================
+
+Portal screenshots to capture manually for this scenario:
+  1. Container App overview blade (ProvisioningState / Status)
+  2. System logs blade (filter: exit code, OOM, ProcessExited)
+  3. Console logs blade (allocation prints)
+  4. Revisions blade (HealthState / RestartCount / running replicas)
+  5. Metrics blade → MemoryPercentage
+  6. Metrics blade → WorkingSetBytes
+  7. Metrics blade → RestartCount
+
+Save screenshots to: docs/assets/troubleshooting/memory-leak-oomkilled/
