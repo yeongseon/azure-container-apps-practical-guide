@@ -80,6 +80,7 @@ docker-compose.override.yml
 
 # Playwright MCP artifacts
 .playwright-mcp/
+.playwright-scripts/
 
 # Coverage
 htmlcov/

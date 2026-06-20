@@ -1,17 +1,46 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Triggering revision failure by adding a startup probe to a non-existent path..."
+# Trigger revision provisioning failure by applying a YAML patch that swaps the
+# image to nginx:alpine (which returns 404 on unknown paths) and configures a
+# Startup probe against a non-existent path. The CLI does not expose
+# --startup-probe-* flags, so probes must be configured through the YAML API.
 
+: "${APP_NAME:?APP_NAME must be set}"
+: "${RG:?RG must be set}"
+
+PROBE_TIMESTAMP="$(date +%s)"
+REVISION_SUFFIX="badpath${PROBE_TIMESTAMP}"
+PATCH_FILE="$(mktemp -t revprov-trigger-XXXXXX.yaml)"
+trap 'rm -f "$PATCH_FILE"' EXIT
+
+cat > "$PATCH_FILE" <<EOF
+properties:
+  template:
+    revisionSuffix: ${REVISION_SUFFIX}
+    containers:
+    - name: app
+      image: nginx:alpine
+      resources:
+        cpu: 0.5
+        memory: 1Gi
+      probes:
+      - type: Startup
+        httpGet:
+          path: /nonexistent-health-endpoint
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        failureThreshold: 3
+        timeoutSeconds: 2
+EOF
+
+echo "Triggering revision failure by applying YAML patch (revision suffix: ${REVISION_SUFFIX})..."
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --set-env-vars "PROBE_TRIGGER=$(date +%s)" \
-    --container-name app \
-    --startup-probe-path "/nonexistent-health-endpoint" \
-    --startup-probe-port 80 \
-    --startup-probe-failure-threshold 3 \
-    --startup-probe-period-seconds 5
+    --yaml "$PATCH_FILE" \
+    --output none
 
 echo ""
 echo "Waiting for revision update..."

@@ -1,0 +1,56 @@
+{
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-revprov/providers/Microsoft.App/containerApps/ca-labrevprov-e2upm2/revisions/ca-labrevprov-e2upm2--badpath2",
+  "name": "ca-labrevprov-e2upm2--badpath2",
+  "properties": {
+    "active": true,
+    "createdTime": "2026-06-20T13:34:58+00:00",
+    "fqdn": "ca-labrevprov-e2upm2--badpath2.REDACTED-ENV-DOMAIN.koreacentral.azurecontainerapps.io",
+    "healthState": "Unhealthy",
+    "provisioningError": "Container crashing: app",
+    "provisioningState": "Failed",
+    "replicas": 1,
+    "runningState": "Failed",
+    "runningStateDetails": "1/1 Container crashing: app",
+    "template": {
+      "containers": [
+        {
+          "image": "nginx:alpine",
+          "name": "app",
+          "probes": [
+            {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/nonexistent-health-endpoint",
+                "port": 80,
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "timeoutSeconds": 1,
+              "type": "Startup"
+            }
+          ],
+          "resources": {
+            "cpu": 0.5,
+            "memory": "1Gi"
+          }
+        }
+      ],
+      "initContainers": null,
+      "revisionSuffix": null,
+      "scale": {
+        "cooldownPeriod": null,
+        "maxReplicas": 1,
+        "minReplicas": 1,
+        "pollingInterval": null,
+        "rules": null
+      },
+      "serviceBinds": null,
+      "terminationGracePeriodSeconds": null,
+      "volumes": null
+    },
+    "trafficWeight": 100
+  },
+  "resourceGroup": "rg-aca-lab-revprov",
+  "type": "Microsoft.App/containerapps/revisions"
+}
