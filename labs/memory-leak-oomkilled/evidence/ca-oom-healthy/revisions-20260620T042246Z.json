@@ -1,0 +1,12 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-20T04:13:17+00:00",
+    "healthState": "Healthy",
+    "name": "ca-oom-healthy--dfl8p2o",
+    "provisioningState": "Provisioned",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]

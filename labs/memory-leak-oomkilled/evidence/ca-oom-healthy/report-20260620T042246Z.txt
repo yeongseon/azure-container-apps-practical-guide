@@ -1,0 +1,176 @@
+========================================================
+Memory Leak OOMKilled Lab — Evidence Report
+========================================================
+App:       ca-oom-healthy
+RG:        rg-aca-memleak-lab
+Lookback:  PT30M
+Timestamp: 20260620T042246Z
+========================================================
+
+=== 0. Tool versions ===
+{
+  "azure-cli": "2.79.0",
+  "azure-cli-core": "2.79.0",
+  "azure-cli-telemetry": "1.1.0",
+  "extensions": {
+    "account": "0.2.5",
+    "application-insights": "2.0.0b1",
+    "azure-firewall": "2.2.0",
+    "containerapp": "1.3.0b4",
+    "log-analytics": "1.0.0b1",
+    "webpubsub": "1.7.2"
+  }
+}
+{
+  "name": "containerapp",
+  "version": "1.3.0b4"
+}
+
+=== 1. App configuration ===
+{
+  "cpu": 0.5,
+  "envVars": [
+    {
+      "name": "MODE",
+      "value": "healthy"
+    }
+  ],
+  "location": "Korea Central",
+  "maxReplicas": 1,
+  "memory": "1Gi",
+  "minReplicas": 1,
+  "name": "ca-oom-healthy",
+  "provisioningState": "Succeeded",
+  "revisionMode": "Single"
+}
+
+=== 1b. Container name ===
+Container name: ca-oom-healthy
+
+=== 2. Active revision(s) ===
+Active revisions: ca-oom-healthy--dfl8p2o
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-20T04:13:17+00:00",
+    "healthState": "Healthy",
+    "name": "ca-oom-healthy--dfl8p2o",
+    "provisioningState": "Provisioned",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+
+=== 3. Replica list (all active revisions) ===
+--- Replicas for revision: ca-oom-healthy--dfl8p2o ---
+Name                                     ResourceGroup
+---------------------------------------  ------------------
+ca-oom-healthy--dfl8p2o-f786d4bf9-ln5rt  rg-aca-memleak-lab
+
+=== 4. Log Analytics workspace ===
+Workspace ID (customerId): 00000000-0000-0000-0000-000000000000
+
+=== 5. System logs: exit code 137 / OOM / ProcessExited / ContainerTerminated ===
+(Log Analytics ingestion delay: 5-10 min)
+Log_s                                                                                                                 Reason_s                  TableName      TimeGenerated
+--------------------------------------------------------------------------------------------------------------------  ------------------------  -------------  ----------------------------
+Created container 'ca-oom-healthy'                                                                                    ContainerCreated          PrimaryResult  2026-06-20T04:13:33.3617092Z
+Started container 'ca-oom-healthy'                                                                                    ContainerStarted          PrimaryResult  2026-06-20T04:13:33.3617092Z
+Successfully updated containerApp: ca-oom-healthy                                                                     ContainerAppReady         PrimaryResult  2026-06-20T04:13:20.4744503Z
+Setting traffic weight of '100%' for revision 'ca-oom-healthy--dfl8p2o'                                               RevisionUpdate            PrimaryResult  2026-06-20T04:13:19.4140474Z
+Deactivating old revisions for ContainerApp 'ca-oom-healthy'                                                          RevisionDeactivating      PrimaryResult  2026-06-20T04:13:19.4140474Z
+Revision 'ca-oom-healthy--dfl8p2o' updated. No new revision was provisioned.                                          RevisionUpdate            PrimaryResult  2026-06-20T04:13:19.4140474Z
+Replica 'ca-oom-healthy--dfl8p2o-f786d4bf9-ln5rt' has been scheduled to run on a node.                                AssigningReplica          PrimaryResult  2026-06-20T04:13:19.4140474Z
+Deactivating old revisions for ContainerApp 'ca-oom-healthy'                                                          RevisionDeactivating      PrimaryResult  2026-06-20T04:13:19.4140474Z
+Successfully updated containerApp: ca-oom-healthy                                                                     ContainerAppReady         PrimaryResult  2026-06-20T04:13:19.4140474Z
+Setting traffic weight of '100%' for revision 'ca-oom-healthy--dfl8p2o'                                               RevisionUpdate            PrimaryResult  2026-06-20T04:13:19.4140474Z
+Setting traffic weight of '100%' for revision 'ca-oom-healthy--dfl8p2o'                                               RevisionUpdate            PrimaryResult  2026-06-20T04:13:19.4140474Z
+Rolling Transition: Successfully completed rolling over existing to latest revision for containerApp: ca-oom-healthy  RollingRevisionCompleted  PrimaryResult  2026-06-20T04:13:18.5185093Z
+KEDA is starting a watch for revision 'ca-oom-healthy--dfl8p2o' to monitor scale operations for this revision         KEDAScalersStarted        PrimaryResult  2026-06-20T04:13:18.5185093Z
+Successfully updated running state to Running for containerApp: ca-oom-healthy                                        ContainerAppReady         PrimaryResult  2026-06-20T04:13:18.5185093Z
+
+=== 6. OOM event count timeline (5-min bins) ===
+EventCount    TableName      TimeGenerated
+------------  -------------  --------------------
+14            PrimaryResult  2026-06-20T04:10:00Z
+
+=== 7. Console logs (last 50 lines) ===
+{"TimeStamp": "2026-06-20T04:23:09.73847", "Log": "Connecting to the container 'ca-oom-healthy'..."}
+{"TimeStamp": "2026-06-20T04:23:09.83683", "Log": "Successfully Connected to container: 'ca-oom-healthy' [Revision: 'ca-oom-healthy--dfl8p2o', Replica: 'ca-oom-healthy--dfl8p2o-f786d4bf9-ln5rt']"}
+{"TimeStamp": "2026-06-20T04:13:33.0468691+00:00", "Log": "F [app] listening on :8000"}
+
+=== 8. Console logs from Log Analytics (last 50) ===
+Log_s                     TableName      TimeGenerated
+------------------------  -------------  ----------------------------
+[app] listening on :8000  PrimaryResult  2026-06-20T04:13:34.3224062Z
+
+=== 9. System logs: lifecycle events ===
+Log_s                                                                                                          TableName      TimeGenerated
+-------------------------------------------------------------------------------------------------------------  -------------  ----------------------------
+Started container 'ca-oom-healthy'                                                                             PrimaryResult  2026-06-20T04:13:33.3617092Z
+Successfully pulled image "acrmemleak3ii4nr.azurecr.io/memleak:v1" in 1.77s. Image size: 44040192 bytes.       PrimaryResult  2026-06-20T04:13:32.1933611Z
+KEDA is starting a watch for revision 'ca-oom-healthy--dfl8p2o' to monitor scale operations for this revision  PrimaryResult  2026-06-20T04:13:18.5185093Z
+
+=== 10a. Memory Percentage (Avg, PT1M) ===
+
+=== 10b. Memory Working Set Bytes (Avg, PT1M) ===
+
+=== 10c. Restart count (Total, PT5M) ===
+
+=== 10d. Replica count (Max, PT1M) ===
+
+=== 10e. CPU Percentage (Avg, PT1M) ===
+
+=== 11. cgroup memory.stat from live replica (best effort) ===
+Replica: ca-oom-healthy--dfl8p2o-f786d4bf9-ln5rt
+ERROR: The command failed with an unexpected error. Here is the traceback:
+ERROR: (19, 'Operation not supported by device')
+Traceback (most recent call last):
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+    cmd_result = self.invocation.execute(args)
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+    raise ex
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
+    results.append(self._run_job(expanded_arg, cmd_copy))
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
+    result = cmd_copy(params)
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
+    return self.handler(*args, **kwargs)
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 120, in handler
+    return op(**command_args)
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3536, in containerapp_ssh
+    writer = get_stdin_writer(conn)
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/_ssh_utils.py", line 187, in get_stdin_writer
+    tty.setcbreak(sys.stdin.fileno())  # needed to prevent printing arrow key characters
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/tty.py", line 32, in setcbreak
+    mode = tcgetattr(fd)
+termios.error: (19, 'Operation not supported by device')
+To check existing issues, please visit: https://github.com/Azure/azure-cli/issues
+INFO: Connecting to the container 'ca-oom-healthy'...
+(exec failed — replica may be crash-looping or not exec-capable)
+
+=== 12. Activity log (resource group, last 1h) ===
+Time                          Operation                          Status     Message
+----------------------------  ---------------------------------  ---------  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2026-06-20T04:13:26.5247238Z  Microsoft.App/containerApps/write  Succeeded
+2026-06-20T04:13:10.5949594Z  Microsoft.App/containerApps/write  Accepted
+2026-06-20T04:13:10.2980521Z  Microsoft.App/containerApps/write  Started
+2026-06-20T04:12:14.7179729Z  Microsoft.App/containerApps/write  Failed     {"error":{"code":"ContainerAppInvalidResourceTotal","message":"The total requested CPU and memory resources for this application (CPU: 0.25, memory: 1.0) is invalid. Total CPU and memory for all containers defined in a Consumption Container App must add up to one of the following CPU - Memory combinations: [cpu: 0.25, memory: 0.5Gi]; [cpu: 0.5, memory: 1.0Gi]; [cpu: 0.75, memory: 1.5Gi]; [cpu: 1.0, memory: 2.0Gi]; [cpu: 1.25, memory: 2.5Gi]; [cpu: 1.5, memory: 3.0Gi]; [cpu: 1.75, memory: 3.5Gi]; [cpu: 2.0, memory: 4.0Gi]; [cpu: 2.25, memory: 4.5Gi]; [cpu: 2.5, memory: 5.0Gi]; [cpu: 2.75, memory: 5.5Gi]; [cpu: 3, memory: 6.0Gi]; [cpu: 3.25, memory: 6.5Gi]; [cpu: 3.5, memory: 7Gi]; [cpu: 3.75, memory: 7.5Gi]; [cpu: 4, memory: 8Gi]"}}
+2026-06-20T04:12:14.4523433Z  Microsoft.App/containerApps/write  Started
+
+========================================================
+Evidence collection complete for ca-oom-healthy
+Report saved to: <local-path>/GitHub/azure-container-apps-practical-guide/labs/memory-leak-oomkilled/evidence/ca-oom-healthy/report-20260620T042246Z.txt
+========================================================
+
+Portal screenshots to capture manually for this scenario:
+  1. Container App overview blade (ProvisioningState / Status)
+  2. System logs blade (filter: exit code, OOM, ProcessExited)
+  3. Console logs blade (allocation prints)
+  4. Revisions blade (HealthState / RestartCount / running replicas)
+  5. Metrics blade → MemoryPercentage
+  6. Metrics blade → WorkingSetBytes
+  7. Metrics blade → RestartCount
+
+Save screenshots to: docs/assets/troubleshooting/memory-leak-oomkilled/
