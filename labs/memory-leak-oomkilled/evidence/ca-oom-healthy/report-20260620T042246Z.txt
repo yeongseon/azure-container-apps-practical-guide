@@ -127,21 +127,21 @@ Replica: ca-oom-healthy--dfl8p2o-f786d4bf9-ln5rt
 ERROR: The command failed with an unexpected error. Here is the traceback:
 ERROR: (19, 'Operation not supported by device')
 Traceback (most recent call last):
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
     cmd_result = self.invocation.execute(args)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
     raise ex
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
     results.append(self._run_job(expanded_arg, cmd_copy))
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
     result = cmd_copy(params)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
     return self.handler(*args, **kwargs)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 120, in handler
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 120, in handler
     return op(**command_args)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3536, in containerapp_ssh
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3536, in containerapp_ssh
     writer = get_stdin_writer(conn)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/_ssh_utils.py", line 187, in get_stdin_writer
+  File "<local-path>/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/_ssh_utils.py", line 187, in get_stdin_writer
     tty.setcbreak(sys.stdin.fileno())  # needed to prevent printing arrow key characters
   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/tty.py", line 32, in setcbreak
     mode = tcgetattr(fd)
@@ -161,7 +161,7 @@ Time                          Operation                          Status     Mess
 
 ========================================================
 Evidence collection complete for ca-oom-healthy
-Report saved to: /Users/yeongseonchoe/GitHub/azure-container-apps-practical-guide/labs/memory-leak-oomkilled/evidence/ca-oom-healthy/report-20260620T042246Z.txt
+Report saved to: <local-path>/GitHub/azure-container-apps-practical-guide/labs/memory-leak-oomkilled/evidence/ca-oom-healthy/report-20260620T042246Z.txt
 ========================================================
 
 Portal screenshots to capture manually for this scenario:

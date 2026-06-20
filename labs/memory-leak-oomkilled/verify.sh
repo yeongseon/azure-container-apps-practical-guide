@@ -230,11 +230,28 @@ if [[ -n "$ACTIVE_REV" ]]; then
     --revision "$ACTIVE_REV" --query '[0].name' -o tsv 2>/dev/null)" || true
   if [[ -n "$REPLICA" ]]; then
     echo "Replica: $REPLICA"
-    az containerapp exec \
-      --name "$APP_NAME" --resource-group "$RG" \
-      --replica "$REPLICA" --container "$CONTAINER_NAME" \
-      --command "/bin/sh -c 'echo --- memory.current ---; cat /sys/fs/cgroup/memory.current 2>/dev/null || cat /sys/fs/cgroup/memory/memory.usage_in_bytes; echo; echo --- memory.max ---; cat /sys/fs/cgroup/memory.max 2>/dev/null || cat /sys/fs/cgroup/memory/memory.limit_in_bytes; echo; echo --- memory.stat (top 20 fields) ---; (cat /sys/fs/cgroup/memory.stat 2>/dev/null || cat /sys/fs/cgroup/memory/memory.stat) | head -20'" \
-      2>&1 || echo "(exec failed — replica may be crash-looping or not exec-capable)"
+    # `az containerapp exec` requires an interactive TTY on both stdin and
+    # stdout. Because this script writes its report through `{ ... } 2>&1 |
+    # tee_report`, stdout is always a pipe inside this block — so the TTY
+    # check below will always be false during normal `bash verify.sh` runs.
+    # That is intentional: when `exec` is called without a TTY the Azure CLI
+    # emits a Python traceback (with local site-packages paths) into the
+    # report, which is the PII leak path the AGENTS PII rules forbid. To
+    # actually collect cgroup stats, run the printed command manually in an
+    # interactive terminal.
+    if [[ -t 0 && -t 1 ]]; then
+      az containerapp exec \
+        --name "$APP_NAME" --resource-group "$RG" \
+        --replica "$REPLICA" --container "$CONTAINER_NAME" \
+        --command "/bin/sh -c 'echo --- memory.current ---; cat /sys/fs/cgroup/memory.current 2>/dev/null || cat /sys/fs/cgroup/memory/memory.usage_in_bytes; echo; echo --- memory.max ---; cat /sys/fs/cgroup/memory.max 2>/dev/null || cat /sys/fs/cgroup/memory/memory.limit_in_bytes; echo; echo --- memory.stat (top 20 fields) ---; (cat /sys/fs/cgroup/memory.stat 2>/dev/null || cat /sys/fs/cgroup/memory/memory.stat) | head -20'" \
+        2>&1 || echo "(exec failed — replica may be crash-looping or not exec-capable)"
+    else
+      echo "(skipped: az containerapp exec requires an interactive TTY, and this script always pipes through tee for reporting)"
+      echo "  To collect cgroup memory stats, run this command manually in an interactive terminal:"
+      echo "    az containerapp exec --name $APP_NAME --resource-group $RG --replica $REPLICA --container $CONTAINER_NAME --command \"/bin/sh\""
+      echo "  Then inside the replica shell:"
+      echo "    cat /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max"
+    fi
   else
     echo "(no replica found — container may be restarting)"
   fi
@@ -252,7 +269,7 @@ az monitor activity-log list \
 echo
 echo "========================================================"
 echo "Evidence collection complete for $APP_NAME"
-echo "Report saved to: $REPORT"
+echo "Report saved to: labs/memory-leak-oomkilled/evidence/${APP_NAME}/report-${TS}.txt"
 echo "========================================================"
 echo
 echo "Portal screenshots to capture manually for this scenario:"
@@ -298,5 +315,5 @@ cat > "$SUMMARY" <<MDEOF
 MDEOF
 
 echo
-echo "Full report: $REPORT"
-echo "Summary: $SUMMARY"
+echo "Full report: labs/memory-leak-oomkilled/evidence/${APP_NAME}/report-${TS}.txt"
+echo "Summary: labs/memory-leak-oomkilled/evidence/${APP_NAME}/summary-${TS}.md"

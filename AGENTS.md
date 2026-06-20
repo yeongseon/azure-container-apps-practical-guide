@@ -60,24 +60,30 @@ The documentation is organized by intent and lifecycle stage:
 
 ### Troubleshooting Experiments (Labs)
 
-All labs in `docs/troubleshooting/lab-guides/` must follow this 16-section structure:
+Lab guides in `docs/troubleshooting/lab-guides/` MUST cover all 16 methodology concepts below. **These are *conceptual elements*** (the scientific-method skeleton of a reproducible experiment), **not literal Markdown headings.** The canonical H2 heading structure is the **Lab Guides template** in [Canonical Document Templates](#canonical-document-templates) below — that template lists the actual heading names AND the two evidence-section variants the repository accepts today (legacy: `## Expected Evidence`; richer: `## 5) Verification Queries` + `## 6) Portal Evidence`). The 16 methodology concepts below are distributed across whichever variant the lab uses.
 
-1. **Question**: The specific problem being investigated.
-2. **Setup**: Infrastructure and environment preparation.
-3. **Hypothesis**: The expected cause and behavior.
-4. **Prediction**: What should happen if the hypothesis is true.
-5. **Experiment**: The steps taken to reproduce the issue.
-6. **Execution**: The actual running of the experiment.
-7. **Observation**: Raw data and logs collected.
-8. **Measurement**: Quantified metrics (e.g., latency, error rates).
-9. **Analysis**: Interpreting the observations and measurements.
-10. **Conclusion**: Confirming or refuting the hypothesis.
-11. **Falsification**: Proving that the fix works and the original theory was correct.
-12. **Evidence**: Compiled logs, screenshots, or KQL results.
-13. **Solution**: The final fix or mitigation.
-14. **Prevention**: How to avoid this issue in the future.
-15. **Takeaway**: The core lesson learned.
-16. **Support Takeaway**: Key points for support engineers or developers.
+The 16 methodology concepts (with the canonical section that typically carries each — section names below assume the richer evidence-section variant, parenthetical notes mark where the legacy variant differs):
+
+1. **Question**: The specific problem being investigated. *(Page title + intro paragraph.)*
+2. **Setup**: Infrastructure and environment preparation. *(`## 3) Runbook` → "Deploy infrastructure" subsection.)*
+3. **Hypothesis**: The expected cause and behavior. *(`## 2) Hypothesis`.)*
+4. **Prediction**: What should happen if the hypothesis is true. *(`## 2) Hypothesis`, "IF ... THEN ..." clauses.)*
+5. **Experiment**: The steps taken to reproduce the issue. *(`## 3) Runbook`.)*
+6. **Execution**: The actual running of the experiment. *(`## 4) Experiment Log`.)*
+7. **Observation**: Raw data and logs collected. *(`## 4) Experiment Log` per-scenario evidence blocks tagged `[Observed]`.)*
+8. **Measurement**: Quantified metrics (e.g., latency, error rates). *(Richer variant: `## 5) Verification Queries` KQL results + `## 6) Portal Evidence` metric captures. Legacy variant: `## Expected Evidence` table rows.)*
+9. **Analysis**: Interpreting the observations and measurements. *(`## 4) Experiment Log` post-evidence prose; richer variant adds `## 6) Portal Evidence` Diagnose-and-Solve captures.)*
+10. **Conclusion**: Confirming or refuting the hypothesis. *(`## 4) Experiment Log` summary.)*
+11. **Falsification**: Proving that the fix works and the original theory was correct. *(`## 4) Experiment Log` → "Post-fix evidence" subsection. **Required.**)*
+12. **Evidence**: Compiled logs, screenshots, or KQL results. *(Richer variant: `## 6) Portal Evidence` + `## 5) Verification Queries`. Legacy variant: `## Expected Evidence`. Both cite raw artifacts in `labs/<lab>/evidence/`.)*
+13. **Solution**: The final fix or mitigation. *(`## 3) Runbook` → "Apply the fix" subsection or the fix trigger script.)*
+14. **Prevention**: How to avoid this issue in the future. *(Richer variant: `## 6) Portal Evidence` operator takeaways. Both variants: the linked playbook.)*
+15. **Takeaway**: The core lesson learned. *(`## Related Playbook` cross-link and/or the lab's `README.md` "Operator Takeaway".)*
+16. **Support Takeaway**: Key points for support engineers or developers. *(`## Related Playbook` cross-link or `README.md` "Support Takeaway".)*
+
+> Why this two-axis framing: every lab is both a Markdown document (needs a consistent heading structure for navigation, search, and CI link-checking) and a reproducible experiment (needs the scientific-method skeleton above). Restructuring all existing labs to use the 16 concepts as literal H2 headings would break the established navigation pattern that 19+ lab guides already follow. The methodology is enforced by reviewing whether each concept is *present*, not by counting H2 headings.
+>
+> Why two evidence-section variants: most labs (~27) use the legacy single `## Expected Evidence` section. Newer labs (memory-leak-oomkilled, keda-no-metrics-returned) split evidence into `## 5) Verification Queries` (KQL packs) and `## 6) Portal Evidence` (annotated screenshots) for richer reader UX. New labs SHOULD prefer the richer variant; existing labs MAY stay on the legacy variant.
 
 ### Evidence Levels
 
@@ -467,6 +473,10 @@ Brief introduction
 
 #### Lab Guides
 
+A lab guide accepts one of two evidence-section variants. New labs SHOULD prefer the richer variant.
+
+**Legacy variant** (used by ~27 existing labs):
+
 ```text
 # Title
 Brief introduction
@@ -481,6 +491,26 @@ Brief introduction
 ## See Also
 ## Sources
 ```
+
+**Richer variant** (used by `memory-leak-oomkilled`, `keda-no-metrics-returned`; recommended for new labs):
+
+```text
+# Title
+Brief introduction
+## Lab Metadata (table: difficulty, duration, tier, etc.)
+## 1) Background
+## 2) Hypothesis
+## 3) Runbook
+## 4) Experiment Log
+## 5) Verification Queries   ← KQL pack with rule + falsification
+## 6) Portal Evidence         ← annotated screenshots in docs/assets/troubleshooting/<lab>/
+## Clean Up
+## Related Playbook
+## See Also
+## Sources
+```
+
+A lab MAY include both `## Expected Evidence` AND `## 5) Verification Queries` + `## 6) Portal Evidence` (as `keda-no-metrics-returned.md` does). When a lab uses both, `## Expected Evidence` carries the pass/fail rule table and the richer sections carry the KQL + Portal artifacts.
 
 #### Reference docs
 

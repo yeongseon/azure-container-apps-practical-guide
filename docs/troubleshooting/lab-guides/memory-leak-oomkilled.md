@@ -222,7 +222,7 @@ RestartCount:     0
 
 ```text
 # verify.sh output for ca-oom-healthy (2026-06-20T04:22:46Z)
-Active revisions: ca-oom-healthy--00000<X>
+Active revisions: ca-oom-healthy--dfl8p2o
 HealthState:      Healthy
 ProvisioningState: Provisioned
 RunningState:     RunningAtMaxScale
