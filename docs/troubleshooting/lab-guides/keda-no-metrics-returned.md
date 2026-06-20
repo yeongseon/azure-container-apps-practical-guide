@@ -289,30 +289,60 @@ Azure Portal screenshots to collect for each scenario. Save to
 !!! note "Portal evidence — System logs"
     System logs show "no metrics returned" entries in the first ~90
     seconds after deployment. After the container becomes Ready, the
-    errors stop. RestartCount remains 0. Replicas hold steady.
+    errors stop. Replica Count remains 1. Memory Percentage stays low
+    during the slow-start window because the container is still
+    sleeping/initializing and not yet serving requests.
+
+    ![Scenario A: System logs showing KEDA "no metrics returned" during startup probe failure](../../assets/troubleshooting/keda-no-metrics-returned/scenario-a-slow-system-logs.png)
+
+    ![Scenario A: Memory Percentage and Replica Count metrics during the slow-start window](../../assets/troubleshooting/keda-no-metrics-returned/scenario-a-slow-metrics.png)
 
 ### Scenario B — `ca-nometrics-crash` (recurring metric gaps from CrashLoopBackOff)
 
-!!! note "Portal evidence — System logs + RestartCount"
+!!! note "Portal evidence — System logs + Total Replica Restart Count"
     System logs show recurring "no metrics returned" and "invalid
-    metrics" entries. The pattern repeats with increasing intervals as
-    Kubernetes applies CrashLoopBackOff exponential backoff.
-    RestartCount metric rises steadily.
+    metrics" entries plus container exit code 1 (`ProcessExited`)
+    events. The pattern repeats with increasing intervals as
+    Kubernetes applies CrashLoopBackOff exponential backoff. The
+    **Total Replica Restart Count** platform metric records the
+    matching restart trace.
+
+    ![Scenario B: System logs showing container exit code 1 and crash-loop](../../assets/troubleshooting/keda-no-metrics-returned/scenario-b-crash-system-logs.png)
+
+    ![Scenario B: Total Replica Restart Count metric showing restart trace](../../assets/troubleshooting/keda-no-metrics-returned/scenario-b-crash-restart-count.png)
 
 ### Scenario C — `ca-nometrics-healthy` (brief deployment gap)
 
 !!! note "Portal evidence — System logs"
-    10 metric error entries during the first ~60 seconds after
+    ~10 metric error entries during the first ~60 seconds after
     deployment, then no further errors. The container started instantly
     but the Kubernetes Metrics Server needed ~60s to warm up for the
-    new pod. RestartCount is 0.
+    new pod. Total Replica Restart Count is 0. This is the most
+    important screenshot in the lab: it proves the error appears even
+    when nothing is wrong with the container.
+
+    ![Scenario C: System logs showing transient "no metrics returned" on a healthy app](../../assets/troubleshooting/keda-no-metrics-returned/scenario-c-healthy-system-logs.png)
 
 ### All scenarios — DEPRECATED warning
 
-!!! note "Portal evidence — System logs"
-    The `type` DEPRECATED warning appears for all three apps,
-    confirming it is triggered by the scale rule configuration
-    (`metadata.type=Utilization`), not by container health state.
+!!! note "Portal evidence — Log Analytics KQL"
+    A KQL `summarize` across all three apps shows exactly one
+    `type` DEPRECATED warning per app, confirming it is triggered
+    by the scale rule configuration (`metadata.type=Utilization`),
+    not by container health state.
+
+    ![DEPRECATED warning count by app — 1 per app across all three scenarios](../../assets/troubleshooting/keda-no-metrics-returned/all-deprecated-warning.png)
+
+### All scenarios — Error timeline (KQL)
+
+!!! note "Portal evidence — Log Analytics timechart"
+    A `render timechart` of "no metrics returned" / "invalid metrics"
+    / "failed to get" entries bucketed by 5-minute bins, broken out by
+    `ContainerAppName_s`. The initial deployment burst is concentrated
+    in the first bin (~25 errors) and tails off to a baseline of ~1
+    error per 5-minute bin afterward, dominated by the crash-loop app.
+
+    ![Error timeline timechart — initial burst then crash-loop baseline](../../assets/troubleshooting/keda-no-metrics-returned/kql-error-timeline.png)
 
 ### Screenshot capture checklist
 
@@ -321,13 +351,13 @@ When re-running the lab, capture the following screenshots and save to
 
 | Screenshot | File name | Source |
 |---|---|---|
-| Scenario A: system logs | `scenario-a-slow-system-logs.png` | Log stream → System logs |
-| Scenario A: metrics | `scenario-a-slow-metrics.png` | Metrics → MemoryPercentage + Replicas |
-| Scenario B: system logs | `scenario-b-crash-system-logs.png` | Log stream → System logs |
-| Scenario B: restart count | `scenario-b-crash-restart-count.png` | Metrics → RestartCount |
-| Scenario C: system logs | `scenario-c-healthy-system-logs.png` | Log stream → System logs |
-| DEPRECATED warning | `all-deprecated-warning.png` | Log stream → filter "DEPRECATED" |
-| KQL error timeline | `kql-error-timeline.png` | Log Analytics → run verification query |
+| Scenario A: system logs | `scenario-a-slow-system-logs.png` | Log stream → Historical + System |
+| Scenario A: metrics | `scenario-a-slow-metrics.png` | Metrics → Memory Percentage + Replica Count |
+| Scenario B: system logs | `scenario-b-crash-system-logs.png` | Log stream → Historical + System |
+| Scenario B: restart count | `scenario-b-crash-restart-count.png` | Metrics → Total Replica Restart Count |
+| Scenario C: system logs | `scenario-c-healthy-system-logs.png` | Log stream → Historical + System |
+| DEPRECATED warning | `all-deprecated-warning.png` | Log Analytics → KQL `summarize count() by ContainerAppName_s` |
+| KQL error timeline | `kql-error-timeline.png` | Log Analytics → KQL `render timechart` |
 
 ## Clean Up
 
