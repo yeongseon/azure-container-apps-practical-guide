@@ -1,0 +1,44 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:07.5222016Z",
+    "perturbation_id": "rollout-event-1",
+    "phase": "start",
+    "trigger": ""
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:43.7406861Z",
+    "perturbation_id": "rollout-event-2",
+    "phase": "start",
+    "trigger": ""
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:16:05.4902514Z",
+    "perturbation_id": "rollout-event-1",
+    "phase": "end",
+    "trigger": ""
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:40.620471Z",
+    "perturbation_id": "rollout-event-3",
+    "phase": "start",
+    "trigger": ""
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:21:43.7369664Z",
+    "perturbation_id": "rollout-event-2",
+    "phase": "end",
+    "trigger": ""
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:27:43.5230605Z",
+    "perturbation_id": "rollout-event-3",
+    "phase": "end",
+    "trigger": ""
+  }
+]

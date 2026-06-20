@@ -1,0 +1,81 @@
+LAW customer ID: a6f9de71...
+Output dir:      /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence
+Timestamp:       20260620222220
+
+=== Q1: per-run-summary ===
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}
+WARN: q1 TSV render failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q1-per-run-summary-20260620222220.tsv
+WARN: q1 JSON capture failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q1-per-run-summary-20260620222220.json
+
+=== Q2: buckets-10s-sum-vus ===
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}
+WARN: q2 TSV render failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q2-buckets-10s-sum-vus-20260620222220.tsv
+WARN: q2 JSON capture failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q2-buckets-10s-sum-vus-20260620222220.json
+
+=== Q3: revision-state-timeline ===
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}
+WARN: q3 TSV render failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q3-revision-state-timeline-20260620222220.tsv
+WARN: q3 JSON capture failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q3-revision-state-timeline-20260620222220.json
+
+=== Q5: falsification-3-consecutive-bad-buckets ===
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}
+WARN: q5 TSV render failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q5-falsification-3-consecutive-bad-buckets-20260620222220.tsv
+WARN: q5 JSON capture failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q5-falsification-3-consecutive-bad-buckets-20260620222220.json
+
+=== Q4: replica-inventory-snapshot ===
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}
+WARN: q4 TSV render failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q4-replica-inventory-snapshot-20260620222220.tsv
+WARN: q4 JSON capture failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q4-replica-inventory-snapshot-20260620222220.json
+
+=== Q6: baseline-vs-perturb-vs-supplemental ===
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}
+WARN: q6 TSV render failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q6-baseline-vs-perturb-vs-supplemental-20260620222220.tsv
+WARN: q6 JSON capture failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q6-baseline-vs-perturb-vs-supplemental-20260620222220.json
+
+=== Q7: system-events-timeline ===
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}
+WARN: q7 TSV render failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q7-system-events-timeline-20260620222220.tsv
+WARN: q7 JSON capture failed; check /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/startup-degraded-transient-failure/evidence/q7-system-events-timeline-20260620222220.json
+

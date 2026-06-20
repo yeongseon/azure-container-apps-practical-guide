@@ -1,0 +1,7 @@
+ERROR: (InvalidTokenError) The provided authentication is not valid for this resource
+Code: InvalidTokenError
+Message: The provided authentication is not valid for this resource
+Inner error: {
+    "code": "InvalidAuthenticationTokenTenant",
+    "message": "The access token is from the wrong issuer 'https://sts.windows.net/00000000-0000-0000-0000-000000000000/'. It must match the tenant 'https://sts.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf/' associated with this subscription. Please use the authority (URL) 'https://login.windows.net/4fa3f5ac-f8d6-48f2-b647-4aeea0a79faf' to get the token. Note, if the subscription is transferred to another tenant there is no impact to the services, but information about new tenant could take time to propagate (up to an hour). If you just transferred your subscription and see this error message, please try back later."
+}

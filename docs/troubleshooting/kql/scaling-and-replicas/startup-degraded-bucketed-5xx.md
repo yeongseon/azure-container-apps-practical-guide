@@ -34,10 +34,16 @@ content_validation:
 
 | Table | Used for |
 |---|---|
-| `ContainerAppConsoleLogs_CL` (`k6`) | Per-request and per-bucket JSON lines from the k6 loadgen Job. |
-| `ContainerAppConsoleLogs_CL` (`perturbation-sampler`) | `RevisionStateSample` JSON lines every 5 seconds around each rollout event. |
-| `ContainerAppConsoleLogs_CL` (`audit`) | `ReplicaInventorySample` JSON lines every 5 minutes (slow baseline). |
+| `ContainerAppConsoleLogs_CL` (`ContainerName_s == "k6"`) | Per-request and per-bucket JSON lines from the k6 loadgen Job (k6 wraps each line in a `time="..." msg="..."` logfmt envelope; see "Why `extract` + `replace_string` precede `parse_json`" below). |
+| `ContainerAppConsoleLogs_CL` (`ContainerName_s == "sampler"`) | `RevisionStateSample` + `PerturbationWindowMarker` JSON lines every 5 seconds around each rollout event (emitted by the perturbation-sampler Job's `sampler` container — plain JSON, no logfmt wrapper). |
+| `ContainerAppConsoleLogs_CL` (`ContainerName_s == "audit"`) | `ReplicaInventorySample` JSON lines on a slow baseline cadence (emitted by the audit-sampler Job's `audit` container — plain JSON, no logfmt wrapper). |
 | `ContainerAppSystemLogs_CL` | Platform-emitted `ContainerStarted` / `ContainerTerminated` / `RevisionReady` events for subject app. |
+
+!!! note "Container name vs Job name"
+    `ContainerName_s` is the container name from the Bicep `containers[].name` field, NOT the Job/Container App name. A query that filters on `ContainerName_s == "perturbation-sampler"` (the Job name) returns **zero rows**; the correct filter is `ContainerName_s == "sampler"`. Same for `audit-sampler` → `audit` and `loadgen-k6` → `k6`. See the companion lab guide's "Known issues observed in this repro" subsection for the full mapping table.
+
+!!! note "Custom `_CL` tables do not exist for this lab"
+    The lab does NOT create custom Log Analytics tables (no `LoadgenSample_CL`, `RevisionStateSample_CL`, `ReplicaInventorySample_CL`, or `PerturbationWindowMarker_CL`). All structured data is shipped as JSON inside `ContainerAppConsoleLogs_CL.Log_s` and must be parsed with `parse_json(Log_s)` (or the k6 `extract`+`replace_string`+`parse_json` chain). Any pre-existing operator query that references `*Sample_CL` tables for this lab is stale and will return zero rows.
 
 **Companion lab**: [Startup-degraded transient failure](../../lab-guides/startup-degraded-transient-failure.md).
 
@@ -204,9 +210,12 @@ ContainerAppConsoleLogs_CL
 
 The perturbation-sampler is unlike the slow audit Job — it does not emit `event` (which `parse_json` parses cleanly out of raw stdout) but emits `kind` directly. The shell script writes JSON to stdout via `jq --null-input`, so the ACA log shipper records the raw JSON in `Log_s` without the Logrus wrapper. That is why this query uses `parse_json(Log_s)` directly, while Q1/Q2 use the `extract`+`replace_string`+`parse_json` chain.
 
-## Q4 — Replica Inventory Snapshot (5-Minute Audit)
+## Q4 — Replica Inventory Snapshot (Continuous Daemon Sampling)
 
-`[Correlated]` evidence — slow-cadence baseline running 24/7 from the audit Job. Use to establish that subject-app replicas are reliably 3-of-3 Running OUTSIDE perturbation windows, and to detect any drift that would invalidate the lab's pre-perturbation steady-state assumption.
+`[Correlated]` evidence — continuous-cadence baseline running from the audit-sampler Job (the `audit` container samples replica inventory every 30 seconds for the duration of each execution). Use to establish that subject-app replicas are reliably 3-of-3 Running OUTSIDE perturbation windows, and to detect any drift that would invalidate the lab's pre-perturbation steady-state assumption.
+
+!!! warning "Audit-sampler job executions appear `Failed` in the Portal"
+    The audit-sampler is a cron-triggered job (`*/5 * * * *`) with `replicaTimeout=240`s, but the `audit` container runs as a long-lived sampler daemon. The platform sends SIGTERM at 240s, the container exits non-zero, and ACA marks the execution as `Failed`. **Data ingestion is unaffected** — every audit container's first ~240 seconds of `ReplicaInventorySample` rows are present in `ContainerAppConsoleLogs_CL`. Operators must NOT alert on audit-sampler execution failure count. See the companion lab guide's "audit-sampler 'Failed' executions are benign" subsection.
 
 ```kusto
 ContainerAppConsoleLogs_CL

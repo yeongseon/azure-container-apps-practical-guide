@@ -20,6 +20,10 @@ pip-delete-this-directory.txt
 .env.local
 !.env.example
 
+# Lab-local context (per-session deployment state, gitignored by convention)
+*.local.sh
+.local/
+
 # Node.js
 node_modules/
 npm-debug.log*
