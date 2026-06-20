@@ -248,14 +248,25 @@ async (page) => {
 1. **Navigate** to the target blade URL (`https://ms.portal.azure.com/#@<tenant>.onmicrosoft.com/resource/...`). Always re-navigate; never reuse a stale page.
 2. **Wait** for blade-specific text (`browser_wait_for` with stable text on the blade) before applying replacements. The 500 ms post-replacement pause inside the snippet is not a substitute.
 3. **Run the inline snippet** above via `browser_run_code_unsafe`. Replace `<lab>`, `<NN>`, `<blade>`, `<state>` in the screenshot path.
-4. **Verify** with the `read` tool on the PNG. Confirm visually:
+4. **Verify** with the `read` tool on the PNG — this step is mandatory, not optional, and must happen before the PNG is referenced by any markdown file in the same change. Read the image **one PNG per Read call**; reading multiple large PNGs in parallel will exceed the provider's media-attachment size limit and the verification will silently truncate. Confirm visually:
+    - **Blade content matches the caption claim.** The blade renders the resource named in the markdown caption (not a 401 "You don't have access" page, not a 403 "Forbidden" page, not a generic Portal error blade, not a different resource than claimed, not an empty/scaled-to-zero state when the caption claims populated content). A 401/403/blank-error capture is a hard P0 failure even when PII rules pass.
     - No `MICROSOFT NON-PRODUCTION` badge in top-right
     - No `ychoe@microsoft.com` or `Yeongseon Choe` anywhere
     - Subscription ID rendered as `00000000-0000-0000-0000-000000000000`
     - Subscription name rendered as `Visual Studio Enterprise Subscription`
     - Any Custom Domain Verification ID (or other long uppercase hex token) rendered as `AAAA…A`, never as a real value
     - Account avatar masked with solid Portal-blue (`#0078d4`), not a black rectangle
-5. **If verification fails** → fix the helper / inline snippet and re-capture. Never ship a capture with raw PII or a black-box mask.
+5. **If verification fails** → fix the helper / inline snippet / Portal navigation and re-capture. Never ship a capture with raw PII, a black-box mask, a 401/403 error page, or content that does not match what the markdown caption claims.
+
+#### Text-only review disclosure
+
+If a referenced PNG cannot be visually verified for any reason — `look_at` tool unavailable, Read tool repeatedly failing, multimodal model offline — that PNG is **not approved**. Three options, in order of preference:
+
+1. **Block the merge** until visual verification is possible. This is the default.
+2. **Remove the affected PNG reference** from the markdown and replace the visual evidence with structured prose plus reproducible `az` CLI commands. The PNG file may stay in the repo as raw evidence; the rule is about markdown-referenced captures only.
+3. **Merge with explicit disclosure** in the PR description: state which PNG(s) were not visually verified, why, and what the follow-up plan is. This option exists for emergencies (urgent security fix, time-boxed customer escalation) and creates a debt that must be closed in a follow-up PR.
+
+Oracle text-only review (Oracle reading the markdown caption and surrounding prose without seeing the PNG) is **not** a substitute for visual verification of the PNG itself. If Oracle approved a PR before visual verification happened, that approval is conditional on the visual step being completed before merge, and the PR author is responsible for explicitly confirming that step in the PR description.
 
 **What the helper does NOT mask (and why it is acceptable):**
 

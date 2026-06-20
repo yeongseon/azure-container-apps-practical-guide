@@ -610,7 +610,7 @@ The 2026-06-20 repro reaches the same verdict as the original Stage B verdict �
 
 ### Observed Evidence (Portal Captures — 2026-06-20)
 
-Reproduced in `rg-aca-startup-degraded` / `cae-sdlab-j2fs74`, `koreacentral`, Consumption profile inside a zone-redundant environment. Subject app: `subject-app`, 3 replicas (min=max=3), `STARTUP_DELAY_SECONDS=25`, dedicated `/healthz` probe path. Initial revision `subject-app--bhly9qa`; 3 perturbation events promoted revisions `0000001` → `0000002` → `0000003` (the final active revision at capture time). The 44 captures below document the lab end-to-end: baseline state → 3 perturbation events → post-experiment LAW queries → companion job lifecycles.
+Reproduced in `rg-aca-startup-degraded` / `cae-sdlab-j2fs74`, `koreacentral`, Consumption profile inside a zone-redundant environment. Subject app: `subject-app`, 3 replicas (min=max=3), `STARTUP_DELAY_SECONDS=25`, dedicated `/healthz` probe path. Initial revision `subject-app--bhly9qa`; 3 perturbation events promoted revisions `0000001` → `0000002` → `0000003` (the final active revision at capture time). The captures below document the lab end-to-end: baseline state → 3 perturbation events → post-experiment LAW queries → companion job lifecycles. The Resource Group Overview and Container Apps Environment Overview baseline views are described as structured prose plus `az` CLI commands instead of Portal screenshots, since the original captures of those two blades did not render correctly.
 
 The captures are grouped into clusters. Each cluster opens with the operator question it answers; individual captures carry the `[Observed]` / `[Strongly Suggested]` / `[Inferred]` evidence tag that matches Section 12's evidence-level taxonomy.
 
@@ -618,8 +618,23 @@ The captures are grouped into clusters. Each cluster opens with the operator que
 
 [Observed] Pre-perturbation baseline state — the lab infrastructure provisioned, the subject app running at min=max=3 replicas on the initial revision `subject-app--bhly9qa`, and the loadgen-k6 job's `baseline-20260620213447` run completing successfully.
 
-![Resource group overview showing baseline infrastructure](../../assets/troubleshooting/startup-degraded-transient-failure/01-resource-group-overview.png)
-![Container App environment overview](../../assets/troubleshooting/startup-degraded-transient-failure/02-environment-overview.png)
+**Resource Group `rg-aca-startup-degraded`** (region `koreacentral`) provisions the lab's networking, Log Analytics workspace, user-assigned managed identity, the Container Apps Environment, the subject Container App, and the three companion Container Apps Jobs. The exact resource list is defined in `labs/startup-degraded-transient-failure/infra/main.bicep` and can be re-listed live with:
+
+```bash
+az resource list --resource-group rg-aca-startup-degraded \
+  --query "[].{name:name, type:type}" \
+  --output table
+```
+
+**Container Apps Environment `cae-sdlab-j2fs74`** uses the Workload profiles plan with the Consumption profile, runs zone-redundant inside `koreacentral`, and has the Log Analytics workspace `log-sdlab-j2fs74` attached for ingestion:
+
+```bash
+az containerapp env show --name cae-sdlab-j2fs74 \
+  --resource-group rg-aca-startup-degraded \
+  --query "{location:location, zoneRedundant:properties.vnetConfiguration.zoneRedundant, workloadProfiles:properties.workloadProfiles[].{name:name, type:workloadProfileType}}" \
+  --output yaml
+```
+
 ![Subject app overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/03-subject-app-overview.png)
 ![Subject app revisions baseline](../../assets/troubleshooting/startup-degraded-transient-failure/04-subject-app-revisions.png)
 ![Subject app replicas expanded baseline](../../assets/troubleshooting/startup-degraded-transient-failure/05-subject-app-replicas-expanded.png)
@@ -645,11 +660,10 @@ The captures are grouped into clusters. Each cluster opens with the operator que
 
 ![Subject app revisions during perturbation event 1](../../assets/troubleshooting/startup-degraded-transient-failure/19-subject-app-revisions-during-perturbation.png)
 ![Subject app log stream during perturbation event 1](../../assets/troubleshooting/startup-degraded-transient-failure/20-subject-app-log-stream-during-perturbation.png)
-![Subject app metrics during perturbation event 1](../../assets/troubleshooting/startup-degraded-transient-failure/21-subject-app-metrics-during-perturbation.png)
+![Subject app Metrics blade — navigation context during event 1; the metric series in this capture is not yet selected, so the chart is intentionally empty. See captures 11 and 12 for the populated default and response-time charts.](../../assets/troubleshooting/startup-degraded-transient-failure/21-subject-app-metrics-during-perturbation.png)
 ![Subject app activity log during perturbation](../../assets/troubleshooting/startup-degraded-transient-failure/22-subject-app-activity-log-during-perturbation.png)
 ![Subject app revisions event2 transition](../../assets/troubleshooting/startup-degraded-transient-failure/23-subject-app-revisions-event2-transition.png)
 ![Subject app revisions event2 refreshed](../../assets/troubleshooting/startup-degraded-transient-failure/24-subject-app-revisions-event2-refreshed.png)
-![Subject app revisions event2 replicas expanded](../../assets/troubleshooting/startup-degraded-transient-failure/25-subject-app-revisions-event2-replicas-expanded.png)
 ![Subject app Diagnose-and-Solve home](../../assets/troubleshooting/startup-degraded-transient-failure/26-subject-app-diagnose-solve-home.png)
 
 #### Perturbation event 3 + post-experiment state (captures 27-32)
@@ -658,7 +672,6 @@ The captures are grouped into clusters. Each cluster opens with the operator que
 
 ![Subject app revisions pre-event3](../../assets/troubleshooting/startup-degraded-transient-failure/27-subject-app-revisions-pre-event3.png)
 ![Subject app revisions event3 deprovisioning](../../assets/troubleshooting/startup-degraded-transient-failure/28-subject-app-revisions-event3-deprovisioning.png)
-![Subject app revisions event3 replicas expanded](../../assets/troubleshooting/startup-degraded-transient-failure/29-subject-app-revisions-event3-replicas-expanded.png)
 ![Subject app Diagnose-and-Solve Availability and Performance](../../assets/troubleshooting/startup-degraded-transient-failure/30-subject-app-ds-availability-performance.png)
 ![Subject app log stream post-event3](../../assets/troubleshooting/startup-degraded-transient-failure/31-subject-app-log-stream-post-event3.png)
 ![Subject app event logs post-perturbation](../../assets/troubleshooting/startup-degraded-transient-failure/32-subject-app-event-logs-post-perturbation.png)
