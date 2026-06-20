@@ -585,6 +585,179 @@ The single supplemental error is acknowledged in Section 7 Q1 and Section 8 Q6 b
 
 All evidence files are scrubbed by `evidence/scrub-pii.sh` (idempotent, re-run after each new file is added). The script's behavior is documented in its 25-line header. PII rules align with `scripts/portal-capture-helpers.js` PII_RULES, adapted for plaintext logs.
 
+### Today's repro evidence (2026-06-20)
+
+On 2026-06-20 the lab was re-run end-to-end against a freshly-provisioned resource group `rg-aca-startup-degraded` (env `cae-sdlab-j2fs74`, suffix `j2fs74`) to validate that the Stage B verdict (H0 held) still holds under the current toolchain, and to capture the Portal-level evidence catalogued in the next subsection. The repro produced its own raw evidence pack (`qA`-`qG`), preserved alongside the original Stage B exports:
+
+| Artifact | Rows | Purpose |
+|---|---:|---|
+| `evidence/qA-revision-state-20260620T223951Z.json` | 862 | `RevisionStateSample` 5s cadence covering all 3 perturbation events (`rollout-event-1` through `rollout-event-3`), parsed from `ContainerAppConsoleLogs_CL` where `ContainerName_s == "sampler"`. |
+| `evidence/qB-replica-inventory-20260620T223955Z.json` | 342 | `ReplicaInventorySample` 30s cadence, parsed from `ContainerAppConsoleLogs_CL` where `ContainerName_s == "audit"`. Captures all 4 revisions (`bhly9qa`, `0000001`, `0000002`, `0000003`) × Running/NotRunning summary. |
+| `evidence/qC-k6-buckets-20260620T224056Z.json` | 126 | k6 10-second bucket aggregate (sum across VUs) from `ContainerAppConsoleLogs_CL` where `ContainerName_s == "k6"`. **All 126 buckets show `err_total == 0` across baseline + all 3 perturbation events** — the falsification rule did not fire. |
+| `evidence/qD-system-events-20260620T224002Z.json` | 51 | System event Reason/Type/Revision breakdown from `ContainerAppSystemLogs_CL`, confirming all 3 rolling rollouts completed cleanly. |
+| `evidence/qE-perturbation-markers-20260620T224143Z.json` | 6 | `PerturbationWindowMarker` start/end pairs for the 3 sampler runs, parsed from `ContainerAppConsoleLogs_CL` where `ContainerName_s == "sampler"` AND `kind == "PerturbationWindowMarker"`. Overlapping windows (each sampler is 600s, fired every 300s) confirm the per-event procedure executed as designed. |
+| `evidence/qF-run-summary-20260620T224149Z.json` | 2 | Per-run falsification verdict (one row per `run_id`: `baseline-20260620213447`, `perturbation-20260620220432`). Both rows: `falsified == false`. |
+| `evidence/qG-audit-sampler-quirk-20260620T225143Z.json` | — | Documentation of the audit-sampler "Failed" status quirk — see Known issues subsection below. |
+
+**Per-run verdict (this repro)**:
+
+| `run_id` | OK | Err | Buckets | `worst_bucket_err_pct` | `falsified` |
+|---|---:|---:|---:|---:|---|
+| `baseline-20260620213447` | 47,506 | **0** | 9,637 (per-VU) | 0.000% | **false** |
+| `perturbation-20260620220432` | 149,699 | **0** | 36,069 (per-VU) | 0.000% | **false** |
+
+The 2026-06-20 repro reaches the same verdict as the original Stage B verdict — H0 held — with a smaller event count (3 vs 12) but the same falsification rule and the same KQL methodology. The repro adds Portal-level evidence (next subsection) that the Stage B run did not collect.
+
+### Observed Evidence (Portal Captures — 2026-06-20)
+
+Reproduced in `rg-aca-startup-degraded` / `cae-sdlab-j2fs74`, `koreacentral`, Consumption profile inside a zone-redundant environment. Subject app: `subject-app`, 3 replicas (min=max=3), `STARTUP_DELAY_SECONDS=25`, dedicated `/healthz` probe path. Initial revision `subject-app--bhly9qa`; 3 perturbation events promoted revisions `0000001` → `0000002` → `0000003` (the final active revision at capture time). The 44 captures below document the lab end-to-end: baseline state → 3 perturbation events → post-experiment LAW queries → companion job lifecycles.
+
+The captures are grouped into clusters. Each cluster opens with the operator question it answers; individual captures carry the `[Observed]` / `[Strongly Suggested]` / `[Inferred]` evidence tag that matches Section 12's evidence-level taxonomy.
+
+#### Baseline (captures 01-18)
+
+[Observed] Pre-perturbation baseline state — the lab infrastructure provisioned, the subject app running at min=max=3 replicas on the initial revision `subject-app--bhly9qa`, and the loadgen-k6 job's `baseline-20260620213447` run completing successfully.
+
+![Resource group overview showing baseline infrastructure](../../assets/troubleshooting/startup-degraded-transient-failure/01-resource-group-overview.png)
+![Container App environment overview](../../assets/troubleshooting/startup-degraded-transient-failure/02-environment-overview.png)
+![Subject app overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/03-subject-app-overview.png)
+![Subject app revisions baseline](../../assets/troubleshooting/startup-degraded-transient-failure/04-subject-app-revisions.png)
+![Subject app replicas expanded baseline](../../assets/troubleshooting/startup-degraded-transient-failure/05-subject-app-replicas-expanded.png)
+![Subject app ingress baseline](../../assets/troubleshooting/startup-degraded-transient-failure/06-subject-app-ingress.png)
+![Subject app scale baseline min max 3](../../assets/troubleshooting/startup-degraded-transient-failure/07-subject-app-scale.png)
+![Subject app containers baseline](../../assets/troubleshooting/startup-degraded-transient-failure/08-subject-app-containers.png)
+![Subject app health probes /healthz](../../assets/troubleshooting/startup-degraded-transient-failure/09-subject-app-health-probes.png)
+![Subject app log stream baseline](../../assets/troubleshooting/startup-degraded-transient-failure/10-subject-app-log-stream.png)
+![Subject app metrics default panel baseline](../../assets/troubleshooting/startup-degraded-transient-failure/11-subject-app-metrics-default.png)
+![Subject app metrics response time baseline](../../assets/troubleshooting/startup-degraded-transient-failure/12-subject-app-metrics-response-time.png)
+![Container App environment workload profiles](../../assets/troubleshooting/startup-degraded-transient-failure/13-env-workload-profiles.png)
+![Audit-sampler job overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/14-job-audit-sampler-overview.png)
+![Perturbation-sampler job overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/15-job-perturbation-sampler-overview.png)
+![Loadgen-k6 job overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/16-job-loadgen-k6-overview.png)
+![Loadgen-k6 baseline execution history](../../assets/troubleshooting/startup-degraded-transient-failure/17-job-loadgen-k6-execution-history-baseline.png)
+![LAW overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/18-law-overview.png)
+
+[Strongly Suggested] The baseline cluster is the **negative control**: it documents that the lab infrastructure is provisioned correctly, the probes target the dedicated `/healthz` path (not the workload `/` path — the most common probe misconfiguration), and the baseline loadgen run produced zero 5xx. Without this control, a zero-5xx perturbation result would be inconclusive.
+
+#### Perturbation events 1 & 2 in flight (captures 19-26)
+
+[Observed] During perturbation events 1 and 2, the subject app's Revisions and Replicas grid shows the rolling rollout in progress — old revision scaling down while new revision scales up — and the Activity log records the `Microsoft.App/containerApps/write` operation that triggered the new revision via `ROLLOUT_GENERATION` env-var change.
+
+![Subject app revisions during perturbation event 1](../../assets/troubleshooting/startup-degraded-transient-failure/19-subject-app-revisions-during-perturbation.png)
+![Subject app log stream during perturbation event 1](../../assets/troubleshooting/startup-degraded-transient-failure/20-subject-app-log-stream-during-perturbation.png)
+![Subject app metrics during perturbation event 1](../../assets/troubleshooting/startup-degraded-transient-failure/21-subject-app-metrics-during-perturbation.png)
+![Subject app activity log during perturbation](../../assets/troubleshooting/startup-degraded-transient-failure/22-subject-app-activity-log-during-perturbation.png)
+![Subject app revisions event2 transition](../../assets/troubleshooting/startup-degraded-transient-failure/23-subject-app-revisions-event2-transition.png)
+![Subject app revisions event2 refreshed](../../assets/troubleshooting/startup-degraded-transient-failure/24-subject-app-revisions-event2-refreshed.png)
+![Subject app revisions event2 replicas expanded](../../assets/troubleshooting/startup-degraded-transient-failure/25-subject-app-revisions-event2-replicas-expanded.png)
+![Subject app Diagnose-and-Solve home](../../assets/troubleshooting/startup-degraded-transient-failure/26-subject-app-diagnose-solve-home.png)
+
+#### Perturbation event 3 + post-experiment state (captures 27-32)
+
+[Observed] Event 3 transition + post-perturbation views: the final revision `subject-app--0000003` becomes the active revision; the Log Stream blade shows no error-level entries during the transition; the Event logs blade shows the platform's `RollingRevisionCompleted` markers.
+
+![Subject app revisions pre-event3](../../assets/troubleshooting/startup-degraded-transient-failure/27-subject-app-revisions-pre-event3.png)
+![Subject app revisions event3 deprovisioning](../../assets/troubleshooting/startup-degraded-transient-failure/28-subject-app-revisions-event3-deprovisioning.png)
+![Subject app revisions event3 replicas expanded](../../assets/troubleshooting/startup-degraded-transient-failure/29-subject-app-revisions-event3-replicas-expanded.png)
+![Subject app Diagnose-and-Solve Availability and Performance](../../assets/troubleshooting/startup-degraded-transient-failure/30-subject-app-ds-availability-performance.png)
+![Subject app log stream post-event3](../../assets/troubleshooting/startup-degraded-transient-failure/31-subject-app-log-stream-post-event3.png)
+![Subject app event logs post-perturbation](../../assets/troubleshooting/startup-degraded-transient-failure/32-subject-app-event-logs-post-perturbation.png)
+
+[Strongly Suggested] The Log Stream and Event log captures during and after the 3 rolling rollouts contain no error-level entries from the subject container — consistent with the [Measured] zero-5xx verdict in Section 7 Q2.
+
+#### LAW Logs evidence — the ZERO-ERRORS smoking gun (captures 33-39)
+
+[Observed] The LAW Logs blade results for the KQL queries documented in Section 7-8. **Capture 37 is the gold visual**: 126 buckets across both `baseline-20260620213447` and `perturbation-20260620220432` runs, all with `err_total == 0`, including the 3 perturbation events. This is the Portal-level confirmation of the Section 8 Q5 falsification verdict.
+
+![LAW Logs tables list — Custom Tables Gap](../../assets/troubleshooting/startup-degraded-transient-failure/33-law-logs-tables-list-custom-gap.png)
+![LAW Logs system events summary](../../assets/troubleshooting/startup-degraded-transient-failure/34-law-logs-system-events-summary.png)
+![LAW Logs ProbeFailed timechart](../../assets/troubleshooting/startup-degraded-transient-failure/35-law-logs-probefailed-timechart.png)
+![LAW Logs revision lifecycle timeline](../../assets/troubleshooting/startup-degraded-transient-failure/36-law-logs-revision-lifecycle-timeline.png)
+![LAW Logs k6 buckets ZERO ERRORS](../../assets/troubleshooting/startup-degraded-transient-failure/37-law-logs-k6-buckets-zero-errors.png)
+![LAW Logs sampler RevisionState with perturbation_id](../../assets/troubleshooting/startup-degraded-transient-failure/38-law-logs-sampler-revisionstate-perturbation-id.png)
+![LAW Logs audit ReplicaInventory summary](../../assets/troubleshooting/startup-degraded-transient-failure/39-law-logs-audit-replica-inventory.png)
+
+[Strongly Suggested] The combination of captures 33, 35, and 37 is corroborative evidence: capture 37 visually confirms zero client-visible bucket errors, while capture 35 suggests probe failures occurred server-side without corresponding client-visible 5xx. The binding falsification verdict still comes from Q5/Q2 in Sections 8 and 11, not from the Portal timechart.
+
+#### Companion job lifecycles (captures 40-42)
+
+[Observed] All three companion jobs (perturbation-sampler, loadgen-k6, audit-sampler) execution-history blades. The perturbation-sampler ran 3 times (one per event) and all 3 are `Succeeded`. The loadgen-k6 ran twice (baseline + continuous) and both are `Succeeded`. The audit-sampler shows 15 prior executions as `Failed` and 1 currently `Running` — see Known issues below for the explanation.
+
+![Perturbation-sampler execution history](../../assets/troubleshooting/startup-degraded-transient-failure/40-job-perturbation-sampler-execution-history.png)
+![Loadgen-k6 execution history](../../assets/troubleshooting/startup-degraded-transient-failure/41-job-loadgen-k6-execution-history.png)
+![Audit-sampler execution history](../../assets/troubleshooting/startup-degraded-transient-failure/42-job-audit-sampler-execution-history.png)
+
+#### Final state (captures 43-44)
+
+[Observed] Post-experiment state: subject-app overview shows the final active revision `subject-app--0000003` after all 3 rollouts completed; LAW overview shows post-ingestion state with the lab's data plane volume.
+
+![Subject app overview final](../../assets/troubleshooting/startup-degraded-transient-failure/43-subject-app-overview-final.png)
+![LAW overview post-ingestion](../../assets/troubleshooting/startup-degraded-transient-failure/44-law-overview-post-ingestion.png)
+
+### Known issues observed in this repro
+
+The 2026-06-20 repro surfaced four operator-relevant quirks that are NOT failure modes of the lab's hypothesis but could mislead operators during Portal or KQL analysis. They are documented here so operators do not waste time chasing benign artifacts or zero-row queries.
+
+#### Custom tables `_CL` gap
+
+[Observed] Capture 33 shows the LAW Logs blade's left-rail Tables list. **Only 3 base tables exist**: `ContainerAppConsoleLogs_CL`, `ContainerAppSystemLogs_CL`, and the platform `Usage` table. No `LoadgenSample_CL`, `RevisionStateSample_CL`, `ReplicaInventorySample_CL`, or `PerturbationWindowMarker_CL` custom tables exist.
+
+[Inferred] This means all structured lab data is shipped through `ContainerAppConsoleLogs_CL.Log_s` as JSON-encoded text, and every KQL query in the lab must use `parse_json(Log_s)` (or for k6, the `extract`+`replace_string`+`parse_json` chain documented in the next subsection). The custom-tables shape that would let an operator write `LoadgenSample_CL | where err_pct > 0.5` does not exist; the equivalent query is the one captured in 37 (the k6 bucket aggregate against `ContainerAppConsoleLogs_CL`).
+
+[Strongly Suggested] Any KQL pack documentation that references `*_CL` custom tables specific to this lab (e.g., `LoadgenSample_CL`) is **stale** and MUST be rewritten to use `ContainerAppConsoleLogs_CL` + `parse_json` against `ContainerName_s` filtered to the relevant container (`k6`, `sampler`, `audit`, `subject`). The companion KQL reference doc [Startup-Degraded Bucketed 5xx KQL Pack](../kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md) is the operative reference; queries that pre-date this repro should be cross-checked against the live tables list.
+
+#### `ContainerName_s` actual values differ from job names
+
+[Observed] When parsing `ContainerAppConsoleLogs_CL`, the `ContainerName_s` values do NOT match the job names. The actual values for this lab:
+
+| Job/App name | `ContainerName_s` value | Records (this repro) |
+|---|---|---:|
+| `loadgen-k6` | `k6` | 244,374 |
+| `subject-app` | `subject` | 203,334 |
+| `perturbation-sampler` | `sampler` | 1,921 |
+| `audit-sampler` | `audit` | 583 |
+
+[Inferred] The mapping is `ContainerName_s` = the container name from the Bicep template's `containers[].name` field, not the Job/Container App name from the parent ARM resource. KQL queries that filter on `ContainerName_s == "audit-sampler"` (using the job name) will return zero rows; the correct filter is `ContainerName_s == "audit"`.
+
+#### k6 logs are wrapped in `time="..." msg="..."` format
+
+[Observed] The k6 container emits structured JSON to stdout, but k6's logger wraps each line in a logfmt envelope: `time="2026-06-20T22:04:35Z" level=info msg="{\"kind\":\"bucket\",\"window_s\":10,...}" source=console`. The wrapped JSON cannot be `parse_json`-ed directly from `Log_s`.
+
+[Strongly Suggested] The working KQL pattern (captured in 37) extracts the inner JSON, unescapes the backslash-escaped quotes, then parses:
+
+```kusto
+ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(3h)
+| where ContainerName_s == "k6"
+| extend msg = extract("msg=\"(\\{.*\\})\"", 1, Log_s)
+| extend msg = replace_string(msg, "\\\"", "\"")
+| extend p = parse_json(msg)
+| where tostring(p.kind) == "bucket"
+| ...
+```
+
+The `sampler` and `audit` containers emit plain JSON (no logfmt wrapper) so `parse_json(Log_s)` works directly for them.
+
+#### audit-sampler "Failed" executions are benign
+
+[Observed] Capture 42 shows the audit-sampler Execution history blade: 15 prior executions all marked `Failed` (one every 5 minutes from 21:30:25Z to 22:40:00Z), with the current 22:45:00Z execution still `Running`. The `endTime` for the most-recent Failed execution is `null` (verified via `az containerapp job execution show`).
+
+[Inferred] The audit-sampler job spec has `replicaTimeout=240` (4 minutes), but the audit container runs as a long-lived sampler daemon that emits a `ReplicaInventorySample` every 30 seconds. The platform sends SIGTERM at the 240-second mark, the container exits with a non-zero code, and ACA marks the execution as `Failed`. Data ingestion is **unaffected**: the audit container's first ~240 seconds always succeed, and the next execution at the next 5-minute cron mark continues sampling.
+
+[Strongly Suggested] Evidence that this is benign:
+
+- `audit` container produced 583 records in `ContainerAppConsoleLogs_CL` during the repro window — covering all 4 revisions × Running/NotRunning state (capture 39).
+- The `qB-replica-inventory-*.json` raw export shows 342 unique sample rows with complete revision/replica/state attribution.
+- The audit-sampler's purpose (cross-correlating revision state against replica inventory at a 5-minute coarse cadence) is fulfilled despite the "Failed" status badge.
+
+[Strongly Suggested] Operators MUST NOT alert on `audit-sampler` execution failure count. The "Failed" status is a Portal-level artifact of the timeout-eviction lifecycle, not a data-ingestion failure. Remediation options (documented in `evidence/qG-audit-sampler-quirk-*.json`):
+
+1. **Accept Failed status** (current design; this lab) — data is complete, only the Portal badge is misleading.
+2. **Trap SIGTERM in the container script and exit 0** — would mask the "Failed" badge but also mask any real (non-timeout) container failures. Not recommended.
+3. **Change job semantics from cron-daemon to one-shot snapshot** — would lose the continuous sampling cadence that the lab's analysis depends on. Not recommended.
+
+This is **NOT** a finding about ACA's reliability — it is a documented interaction between long-running container daemons and ACA's job replicaTimeout semantics, and it does not affect the lab's H0 verdict.
+
 ## 13. Solution
 
 For the perturbation phase (12 rolling-rollout events at 200 RPS), the lab found **no client-visible 5xx requiring mitigation** — H0 held under tested conditions. For the supplemental phase (3 `az containerapp revision restart` events at 200 RPS), the lab found **a single client-visible 5xx out of 289,932 requests** (0.000345%, single 0.062% bucket, falsification rule not triggered) — H0 also held under tested conditions per the binding rule, but with a documented operational asymmetry vs the rolling-rollout phase. No application-layer solution is required for the same configuration. However, the conditions for those null results are narrow (see Section 10's "Tested" / "NOT tested" lists); the following mitigations apply if H0 is later falsified at the customer's specific configuration (different probe configuration, longer startup delay, higher RPS, or different perturbation type):

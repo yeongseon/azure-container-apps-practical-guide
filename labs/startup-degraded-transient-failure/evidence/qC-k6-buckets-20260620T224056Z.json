@@ -1,0 +1,1262 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:35:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1403",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1403"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:35:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1646",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1646"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:35:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1585",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1585"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:35:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1597",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1597"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:36:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1609",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1609"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:36:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1557",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1557"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:36:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1672",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1672"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:36:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1538",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1538"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:36:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1669",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1669"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:36:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1532",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1532"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:37:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1700",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1700"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:37:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1589",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1589"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:37:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1583",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1583"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:37:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1529",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1529"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:37:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1693",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1693"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:37:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1545",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1545"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:38:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1509",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1509"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:38:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1607",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1607"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:38:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1637",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1637"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:38:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1507",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1507"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:38:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1734",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1734"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:38:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1429",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1429"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:39:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1712",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1712"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:39:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1500",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1500"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:39:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1574",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1574"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:39:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1683",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1683"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:39:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1550",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1550"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:39:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1600",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1600"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:40:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1541",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1541"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T21:40:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1476",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447",
+    "total": "1476"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:05:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "984",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "984"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:05:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1701",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1701"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:05:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1595",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1595"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:05:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1594",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1594"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:05:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1614",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1614"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:06:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1534",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1534"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:06:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1629",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1629"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:06:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1598",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1598"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:06:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1528",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1528"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:06:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1634",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1634"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:06:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1621",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1621"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:07:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1540",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1540"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:07:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1647",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1647"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:07:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1623",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1623"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:07:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1533",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1533"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:07:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1537",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1537"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:07:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1551",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1551"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:08:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1604",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1604"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:08:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1646",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1646"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:08:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1499",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1499"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:08:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1581",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1581"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:08:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1687",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1687"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:08:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1512",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1512"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:09:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1627",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1627"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:09:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1296",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1296"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:09:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1748",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1748"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:09:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1536",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1536"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:09:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1528",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1528"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:09:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1532",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1532"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:10:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1451",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1451"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:10:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1512",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1512"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:10:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1500",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1500"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:10:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1447",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1447"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:10:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1685",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1685"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:10:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1509",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1509"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:11:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1476",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1476"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:11:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1593",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1593"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:11:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1556",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1556"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:11:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1421",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1421"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:11:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1448",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1448"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:11:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1526",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1526"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:12:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1470",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1470"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:12:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1514",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1514"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:12:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1657",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1657"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:12:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1425",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1425"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:12:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1448",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1448"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:12:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1664",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1664"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:13:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1640",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1640"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:13:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1423",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1423"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:13:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1521",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1521"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:13:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1730",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1730"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:13:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1534",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1534"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:13:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1655",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1655"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:14:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1505",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1505"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:14:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1530",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1530"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:14:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1519",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1519"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:14:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1709",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1709"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:14:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1453",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1453"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:14:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1627",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1627"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:15:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1499",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1499"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:15:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1471",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1471"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:15:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1611",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1611"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:15:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1489",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1489"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:15:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1572",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1572"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:15:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1664",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1664"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:16:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1565",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1565"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:16:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1595",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1595"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:16:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1516",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1516"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:16:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1666",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1666"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:16:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1561",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1561"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:16:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1532",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1532"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:17:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1567",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1567"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:17:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1615",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1615"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:17:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1583",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1583"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:17:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1576",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1576"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:17:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1509",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1509"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:17:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1701",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1701"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:18:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1611",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1611"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:18:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1524",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1524"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:18:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1586",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1586"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:18:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1605",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1605"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:18:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1522",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1522"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:18:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1641",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1641"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:19:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1611",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1611"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:19:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1436",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1436"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:19:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1642",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1642"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:19:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1643",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1643"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:19:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1541",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1541"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:19:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1629",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1629"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:20:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1556",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1556"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:20:10.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1407",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1407"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:20:20.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1538",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1538"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:20:30.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1754",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1754"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:20:40.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1631",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1631"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:20:50.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1550",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1550"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "bucket_iso": "2026-06-20T22:21:00.0000000Z",
+    "err_pct": "0",
+    "err_total": "0",
+    "ok_total": "1573",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432",
+    "total": "1573"
+  }
+]

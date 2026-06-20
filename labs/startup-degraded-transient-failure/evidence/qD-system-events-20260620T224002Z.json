@@ -1,0 +1,359 @@
+[
+  {
+    "EventCount": "35",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "24",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "24",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "24",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "14",
+    "Reason_s": "ContainerAppReady",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "11",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "9",
+    "Reason_s": "RevisionDeactivating",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "7",
+    "Reason_s": "RollingRevisionCompleted",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "6",
+    "Reason_s": "ScaledObjectCheckFailed",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "6",
+    "Reason_s": "ScaledObjectCheckFailed",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "6",
+    "Reason_s": "ScaledObjectCheckFailed",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "subject-app--0000003",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "subject-app--0000001",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "subject-app--0000002",
+    "TableName": "PrimaryResult",
+    "Type_s": "Normal"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "subject-app--bhly9qa",
+    "TableName": "PrimaryResult",
+    "Type_s": "Warning"
+  }
+]

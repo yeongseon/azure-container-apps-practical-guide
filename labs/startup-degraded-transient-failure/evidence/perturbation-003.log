@@ -1,0 +1,76 @@
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+>> Mode: perturbation
+   RG: rg-aca-startup-degraded
+   Subject FQDN: subject-app.redcoast-9a428547.koreacentral.azurecontainerapps.io
+   Subject URL : https://subject-app.redcoast-9a428547.koreacentral.azurecontainerapps.io/
+   Target RPS  : 200
+   Duration    : 1800 sec
+>>>> Starting continuous loadgen for 960s spanning 3 events
+>>>> Mutating loadgen-k6 template (run_id=perturbation-20260620220432, perturbation_id=spans-all-events, duration=960s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting loadgen-k6 execution
+{"name":"loadgen-k6-vh0pmiw","status":null,"start":null}
+
+>>>> ==== Event 1/3: rollout-event-1 ====
+>>>> Mutating perturbation-sampler template (perturbation_id=rollout-event-1, duration=600s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting perturbation-sampler execution
+{"name":"perturbation-sampler-k8ctxn3","status":null,"start":null}
+>>>> Triggering rollout (ROLLOUT_GENERATION=1781993151-rollout-event-1) on subject-app
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..\ Running ..- Running ../ Running ..| Running ..\ Running ..[K>>>> Active revisions after rollout: 2
+>>>> Waiting 300 seconds before next event...
+
+>>>> ==== Event 2/3: rollout-event-2 ====
+>>>> Mutating perturbation-sampler template (perturbation_id=rollout-event-2, duration=600s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting perturbation-sampler execution
+{"name":"perturbation-sampler-c8mc885","status":null,"start":null}
+>>>> Triggering rollout (ROLLOUT_GENERATION=1781993498-rollout-event-2) on subject-app
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..\ Running ..- Running ../ Running ..| Running ..\ Running ..[K>>>> Active revisions after rollout: 2
+>>>> Waiting 300 seconds before next event...
+
+>>>> ==== Event 3/3: rollout-event-3 ====
+>>>> Mutating perturbation-sampler template (perturbation_id=rollout-event-3, duration=600s)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..[K>>>> Starting perturbation-sampler execution
+{"name":"perturbation-sampler-8xo51ct","status":null,"start":null}
+>>>> Triggering rollout (ROLLOUT_GENERATION=1781993845-rollout-event-3) on subject-app
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/demouser/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..\ Running ..- Running ../ Running ..| Running ..\ Running ..[K>>>> Active revisions after rollout: 2
+
+>>>> Perturbation phase complete. RUN_ID=perturbation-20260620220432
+>>>> k6 loadgen will continue for ~60s past the last event, then exit cleanly.

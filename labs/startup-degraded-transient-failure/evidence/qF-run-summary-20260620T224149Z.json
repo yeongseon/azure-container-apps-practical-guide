@@ -1,0 +1,22 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "buckets": "9637",
+    "err_pct": "0",
+    "err_total": "0",
+    "falsification_triggered": "False",
+    "ok_total": "47506",
+    "perturbation_id": "none",
+    "run_id": "baseline-20260620213447"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "buckets": "36069",
+    "err_pct": "0",
+    "err_total": "0",
+    "falsification_triggered": "False",
+    "ok_total": "149699",
+    "perturbation_id": "spans-all-events",
+    "run_id": "perturbation-20260620220432"
+  }
+]

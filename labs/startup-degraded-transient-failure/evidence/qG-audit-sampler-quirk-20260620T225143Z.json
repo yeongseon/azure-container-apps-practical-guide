@@ -1,0 +1,23 @@
+{
+  "finding": "audit-sampler execution status 'Failed' is BENIGN",
+  "discovered_at": "2026-06-20T22:50Z",
+  "root_cause": "replicaTimeout=240s but audit container runs as long-lived sampler daemon; platform sends SIGTERM at 240s, container exit code != 0, ACA marks execution as Failed",
+  "evidence": {
+    "job_spec_replica_timeout_s": 240,
+    "job_spec_cron": "*/5 * * * *",
+    "job_spec_container_count": 1,
+    "container_name": "audit",
+    "container_image": "acrsdlab990613.azurecr.io/startup-degraded/audit:latest",
+    "data_ingestion_verified": true,
+    "law_records_audit_container": 583,
+    "law_kinds_observed": ["ReplicaInventorySample", "RevisionStateSample"],
+    "observation": "All 4 subject-app revisions captured with replica state; data is COMPLETE despite all 15 prior executions marked Failed in Portal executionHistory blade"
+  },
+  "operational_impact": "NONE — data ingestion is unaffected. Operators must NOT alert on audit-sampler executionHistory failure count. The Failed status is a Portal-level artifact of the timeout-eviction lifecycle.",
+  "remediation_options": [
+    "Accept Failed status (current design; documented in lab guide)",
+    "Add explicit trap on SIGTERM in container script to exit 0 (would mask other real failures)",
+    "Change job semantics from cron-daemon to one-shot snapshot (would lose continuous sampling cadence)"
+  ],
+  "lab_guide_section_to_add": "Known issue: audit-sampler execution status"
+}

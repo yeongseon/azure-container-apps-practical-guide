@@ -1,0 +1,2738 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:30:51.3457714Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:30:51.3457714Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:30:51.3457714Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:31:22.1980871Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:31:22.1980871Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:31:22.1980871Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:31:53.5873613Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:31:53.5873613Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:31:54.2348364Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:32:25.2014333Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:32:25.2014333Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:32:25.2014333Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:32:57.0813087Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:32:57.0813087Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:32:57.0813087Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:33:27.1001288Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:33:27.1001288Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:33:27.1001288Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:33:58.1843472Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:33:58.1843472Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:33:59.540961Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:35:23.0463639Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:35:23.0463639Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:35:23.0463639Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:35:54.8515847Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:35:54.8515847Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:35:54.8515847Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:36:25.1978371Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:36:25.1978371Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:36:26.2197741Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:36:57.0879517Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:36:57.0879517Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:36:57.0879517Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:37:28.1837144Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:37:28.1837144Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:37:28.1837144Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:37:59.1092036Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:38:00.2937698Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:38:00.2937698Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:38:31.1249213Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:38:31.1249213Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:38:31.1249213Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:40:16.7004072Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:40:16.7004072Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:40:16.7004072Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:40:47.6505849Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:40:47.6505849Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:40:47.6505849Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:41:19.4229478Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:41:19.4229478Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:41:19.4229478Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:41:50.3099471Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:41:50.3099471Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:41:50.3099471Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:42:21.5042608Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:42:21.5042608Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:42:21.5042608Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:42:53.3880841Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:42:53.3880841Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:42:53.3880841Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:43:24.4210685Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:43:24.4210685Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:43:24.4210685Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:43:56.4680241Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:43:56.4680241Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:43:56.4680241Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:45:23.3430082Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:45:23.3430082Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:45:23.3430082Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:45:54.1579899Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:45:54.1579899Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:45:54.1579899Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:46:25.5460751Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:46:26.5670997Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:46:26.5670997Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:46:56.2757358Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:46:57.3851672Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:46:57.3851672Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:47:28.3644245Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:47:28.3644245Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:47:28.3644245Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:47:59.182697Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:47:59.182697Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:47:59.182697Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:48:30.0993733Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:48:30.0993733Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:48:30.0993733Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:50:21.7139209Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:50:21.7139209Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:50:21.7139209Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:50:53.7517708Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:50:53.7517708Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:50:53.7517708Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:51:24.9592959Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:51:24.9592959Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:51:24.9592959Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:51:55.8755825Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:51:55.8755825Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:51:56.9720506Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:52:27.8824505Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:52:27.8824505Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:52:27.8824505Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:52:58.8938445Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:52:58.8938445Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:52:58.8938445Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:53:30.1268248Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:53:30.1268248Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:53:31.1384417Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:54:01.6304882Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:54:01.6304882Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:54:01.6304882Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:55:16.8797962Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:55:16.8797962Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:55:16.8797962Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:55:47.7863413Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:55:47.7863413Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:55:47.7863413Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:56:18.9184499Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:56:18.9184499Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:56:18.9184499Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:56:50.5540032Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:56:50.5540032Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:56:52.2677166Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:57:21.9195668Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:57:21.9195668Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:57:21.9195668Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:57:52.7039898Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:57:52.7039898Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:57:53.8095971Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:58:24.7496284Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:58:24.7496284Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:58:24.7496284Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:58:55.8068482Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:58:55.8068482Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T21:58:55.8068482Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:00:25.3089943Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:00:25.3089943Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:00:25.3089943Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:00:55.6990937Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:00:55.6990937Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:00:55.6990937Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:01:26.0056541Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:01:26.0056541Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:01:26.952357Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:01:57.9084043Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:01:57.9084043Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:01:57.9084043Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:02:28.6977395Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:02:28.6977395Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:02:28.6977395Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:03:00.7369073Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:03:00.7369073Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:03:00.7369073Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:03:32.0164678Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:03:32.0164678Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:03:32.0164678Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:05:22.1907079Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:05:22.1907079Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:05:22.1907079Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:05:53.4769293Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:05:53.4769293Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:05:53.4769293Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:24.5536066Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:24.5536066Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:24.5536066Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:25.5910914Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:25.5910914Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:25.5910914Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:56.3589048Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:56.3589048Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:56.3589048Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:56.3589048Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:56.3589048Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:06:56.3589048Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:28.2004322Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-z4vff",
+    "revision": "subject-app--bhly9qa",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:28.2004322Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:28.2004322Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-rhnft",
+    "revision": "subject-app--bhly9qa",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:28.2004322Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:28.2004322Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:28.2004322Z",
+    "created": "2026-06-20T21:29:51.0000000Z",
+    "replica": "subject-app--bhly9qa-54f488fb5f-8mvrt",
+    "revision": "subject-app--bhly9qa",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:59.3986656Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:59.3986656Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:07:59.3986656Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:08:30.2746401Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:08:31.3587417Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:08:31.3587417Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:09:03.7400569Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:09:03.7400569Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:09:03.7400569Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:10:22.8306315Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:10:22.8306315Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:10:22.8306315Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:10:53.440818Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:10:53.440818Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:10:53.440818Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:24.482155Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:24.482155Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:25.6180317Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:56.5424551Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:56.5424551Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:56.5424551Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:56.5424551Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:56.5424551Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:11:56.5424551Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:12:29.544317Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:12:29.544317Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:12:29.544317Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:12:29.544317Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:12:29.544317Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:12:29.544317Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:00.5580133Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:00.5580133Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:00.5580133Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:00.5580133Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:00.5580133Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:00.5580133Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:32.4535085Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:32.4535085Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:32.4535085Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-tnb9s",
+    "revision": "subject-app--0000001",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:32.4535085Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-f7xz7",
+    "revision": "subject-app--0000001",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:32.4535085Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:13:32.4535085Z",
+    "created": "2026-06-20T22:06:03.0000000Z",
+    "replica": "subject-app--0000001-6c9c44d5cf-fjvvn",
+    "revision": "subject-app--0000001",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:15:15.8204735Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:15:15.8204735Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:15:15.8204735Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:15:46.9216854Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:15:46.9216854Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:15:46.9216854Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:16:17.8406552Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:16:17.8406552Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:16:17.8406552Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:16:50.1450671Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:16:50.1450671Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:16:50.1450671Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:22.2411907Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:22.2411907Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:22.2411907Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:52.9185864Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:52.9185864Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:52.9185864Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:52.9185864Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:54.1362392Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:17:54.1362392Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "NotRunning"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:24.9018928Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:24.9018928Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:24.9018928Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:25.7489777Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:25.7489777Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:25.7489777Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:56.9566302Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-xn7wk",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:56.9566302Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-twtnm",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:56.9566302Z",
+    "created": "2026-06-20T22:11:49.0000000Z",
+    "replica": "subject-app--0000002-748bd9d8f7-5p66x",
+    "revision": "subject-app--0000002",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:57.7775453Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:57.7775453Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:18:57.7775453Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:20:23.1809659Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:20:23.1809659Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:20:23.1809659Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:20:53.9065983Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:20:53.9065983Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:20:53.9065983Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:21:27.1989442Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:21:27.1989442Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:21:27.1989442Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:21:58.1805916Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:21:59.0739919Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:21:59.0739919Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:22:29.7299736Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:22:29.7299736Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:22:29.7299736Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:23:01.8877543Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:23:01.8877543Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:23:01.8877543Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:23:34.396219Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:23:34.396219Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:23:34.396219Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:25:16.3980035Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:25:16.3980035Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:25:16.3980035Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:25:49.558059Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:25:49.558059Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:25:49.558059Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:26:19.4038065Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:26:19.4038065Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:26:19.4038065Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:26:51.4752945Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:26:51.4752945Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:26:51.4752945Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:27:24.0365198Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:27:24.0365198Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:27:24.0365198Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:27:55.7528324Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:27:55.7528324Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:27:55.7528324Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:28:27.61955Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:28:27.61955Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:28:27.61955Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:29:00.7656763Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:29:00.7656763Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:29:00.7656763Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:30:25.0365858Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:30:25.0365858Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:30:25.0365858Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:30:57.1567992Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:30:57.1567992Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:30:57.1567992Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:31:29.8822311Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:31:29.8822311Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:31:29.8822311Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:32:02.7818066Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:32:02.7818066Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:32:02.7818066Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:32:35.1318458Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:32:36.4409198Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:32:36.4409198Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:33:07.8889731Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:33:07.8889731Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:33:07.8889731Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:33:39.8745006Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:33:40.8144555Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:33:40.8144555Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:35:16.2510221Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:35:16.2510221Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:35:16.2510221Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:35:50.3320606Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:35:50.3320606Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:35:50.3320606Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:36:22.2057413Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:36:22.2057413Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:36:22.2057413Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:36:54.3436367Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:36:54.3436367Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:36:54.3436367Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:37:27.1262797Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:37:27.1262797Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:37:27.1262797Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:37:59.2888776Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:37:59.2888776Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:37:59.2888776Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:38:31.0770194Z",
+    "created": "2026-06-20T22:17:34.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-ltpnq",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:38:32.3913685Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-tlt4x",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  },
+  {
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-20T22:38:32.3913685Z",
+    "created": "2026-06-20T22:17:35.0000000Z",
+    "replica": "subject-app--0000003-6dd5cccddf-mw7rv",
+    "revision": "subject-app--0000003",
+    "state": "Running"
+  }
+]
