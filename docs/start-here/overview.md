@@ -1,4 +1,5 @@
 ---
+description: Overview and entry point for the Azure Container Apps Practical Guide — sections, learning paths, and conceptual model for new and experienced operators.
 content_sources:
   diagrams:
     - id: guide-structure

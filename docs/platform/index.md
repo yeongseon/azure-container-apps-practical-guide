@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps platform concepts — architecture, environments, revisions, scaling, networking, jobs, identity, and security.
 content_sources:
   diagrams:
     - id: documents

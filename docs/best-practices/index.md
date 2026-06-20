@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps best practices for container design, revision strategy, scaling, networking, identity, reliability, and cost decisions.
 content_sources:
   diagrams:
     - id: language-guides-show-how-to-implement
