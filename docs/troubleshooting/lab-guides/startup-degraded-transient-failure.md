@@ -27,7 +27,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: '2026-06-12'
+  last_reviewed: '2026-06-21'
   reviewer: agent
   lab_validation:
     status: reproduced
@@ -46,12 +46,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-06-13'
+    cli_version: '2.83.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-13'
+    result: pass
 ---
 # Startup-Degraded Transient Failure Lab
 

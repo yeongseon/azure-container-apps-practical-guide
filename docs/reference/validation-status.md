@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 11 |
+| ✅ Validated | 12 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 70 |
+| ➖ Not tested | 69 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 11
-    "Not Tested" : 70
+    "Validated" : 12
+    "Not Tested" : 69
 ```
 
 ## Validation Matrix
@@ -136,7 +136,7 @@ pie title Tutorial Validation Status
 | [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Scheduled Job Missed](../troubleshooting/lab-guides/scheduled-job-missed.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Session Affinity Failure](../troubleshooting/lab-guides/session-affinity-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Startup Degraded Transient Failure](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Startup Degraded Transient Failure](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) | ✅ Pass | ✅ Pass | 2026-06-13 | ✅ Pass |
 | [Subnet Cidr Exhaustion](../troubleshooting/lab-guides/subnet-cidr-exhaustion.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Subscription Quota Exceeded](../troubleshooting/lab-guides/subscription-quota-exceeded.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
