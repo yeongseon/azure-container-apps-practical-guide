@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: failed to resolve registry confirmed, fixed with valid image
+    notes: 'failed to resolve registry confirmed, fixed with valid image. Original end-to-end reproduction completed on 2026-05-01 (CLI 2.70.0). Six 2026-06-03 Portal captures independently re-validated the same broken-state → recovery arc for the ACR pull failure scenario.'
   core_claims:
     - claim: A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure Container Registry.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
@@ -25,12 +25,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-05-01'
+    cli_version: '2.70.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-05-01'
+    result: pass
 ---
 # ACR Image Pull Failure Lab
 
