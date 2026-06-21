@@ -14,7 +14,7 @@ targetScope = 'resourceGroup'
 //   loadgen-k6               Manual trigger, k6 sustains 200 RPS against
 //                            the subject app for a parameterized duration.
 //
-// Hybrid A binding:
+// Lab design binding:
 // - Subject probes target /healthz (not /).
 // - Primary perturbation is an ACA-managed new revision rollout, NOT
 //   `az containerapp revision restart`.

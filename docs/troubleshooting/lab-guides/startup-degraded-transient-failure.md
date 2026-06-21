@@ -96,9 +96,9 @@ The question is framed as a falsifiable hypothesis (Section 3) so the verdict is
 
 ## 2. Setup
 
-### Hybrid A design constraints (immutable)
+### Lab design constraints (immutable)
 
-This lab follows the same Hybrid A standard as `labs/zone-redundancy-best-effort/`. The lab adopts the following design constraints:
+This lab follows the same design standard as `labs/zone-redundancy-best-effort/`. The lab adopts the following design constraints:
 
 1. **Subject app** is a deterministic custom Python image with `STARTUP_DELAY_SECONDS=25` and a dedicated `/healthz` endpoint. All three probes (startup, readiness, liveness) target `/healthz`, not `/`. The workload endpoint `/` is the heavy path that surfaces 5xx if the platform is incorrectly routing traffic to a not-yet-warm replica.
 2. **Primary perturbation** is an ACA-managed new revision rollout, triggered by changing a `ROLLOUT_GENERATION` env var (which forces ACA to create a new revision). `az containerapp revision restart` is a **supplemental** perturbation only, captured under its own run prefix and reported separately.
@@ -498,7 +498,7 @@ The bounds of this conclusion are deliberate and tight:
 - **Tested**: deterministic Python subject (`STARTUP_DELAY_SECONDS=25`), three correctly-configured `/healthz` probes (startup, readiness, liveness), 200 RPS constant-arrival-rate, 50 VUs with connection reuse OFF, 12 rolling rollouts triggered by `ROLLOUT_GENERATION` env-var changes (no traffic-split tuning, no `revisionWeight` ramps, no `terminationGracePeriodSeconds` overrides), public FQDN, single region (Korea Central), single Container Apps environment.
 - **NOT tested**: misconfigured probes (e.g., `/` as both workload and health path), longer startup delays (>25 s), higher RPS (>200), non-rolling perturbations (image pull failures, registry outages), revision restart (see supplemental-phase verdict), partial-revision-weight ramps, custom termination grace, multi-region failover, VNet-injected environments.
 
-Stage C's integration page MUST NOT generalize this result to "ACA always masks all transients during rollout". The honest framing is: "ACA's rolling-rollout masks client-visible 5xx in **this specific configuration** with **these specific probes** at **this specific load** over **this specific event count**."
+The integration page at [`docs/best-practices/availability-and-non-guarantees.md`](../../best-practices/availability-and-non-guarantees.md) MUST NOT generalize this result to "ACA always masks all transients during rollout". The honest framing is: "ACA's rolling-rollout masks client-visible 5xx in **this specific configuration** with **these specific probes** at **this specific load** over **this specific event count**."
 
 **Supplemental-phase verdict** (`supplemental-restart-20260613054632`, 3 events, 200 RPS, ~33 minutes):
 
@@ -551,7 +551,7 @@ The single supplemental error is acknowledged in Section 7 Q1 and Section 8 Q6 b
 | `evidence/preflight-buckets-10s.tsv` | Committed | 10s bucket time series for preflight. |
 | `evidence/baseline-001.log` | Committed (PII-scrubbed) | Baseline run launch + wait log. |
 | `evidence/baseline-start.txt` | Committed | Baseline start timestamp for KQL window slicing. |
-| `evidence/design-constraints-20260612.md` | Committed | Lab design constraints (the 7 binding decisions). |
+| `evidence/design-constraints-20260612.md` | Committed | Lab design constraints (D1-D10). |
 
 ### Post-perturbation evidence
 

@@ -1,6 +1,6 @@
 # Phase 2-7 Resume Playbook — zone-redundancy-best-effort
 
-This document is the **resume runbook** for completing the Hybrid A reproduction
+This document is the **resume runbook** for completing the lab reproduction
 of [Issue #204](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/204).
 Phase 0 (honesty fix) and Phase 1 (Azure deploy + verify) are complete.
 
@@ -124,7 +124,7 @@ cd labs/zone-redundancy-best-effort
 
 # Push and open PR
 git push origin lab/zone-redundancy-best-effort-reproduce
-gh pr create --title "feat(labs): zone-redundancy-best-effort full 24h reproduction (Hybrid A)" --body "Closes #204..."
+gh pr create --title "feat(labs): zone-redundancy-best-effort full 24h reproduction" --body "Closes #204..."
 ```
 
 ## Sanity checklist for resume session

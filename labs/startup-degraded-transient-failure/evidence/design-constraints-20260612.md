@@ -8,7 +8,7 @@
 
 This document records the binding design constraints for the
 `labs/startup-degraded-transient-failure/` reproduction. The lab
-guide's "Hybrid A design constraints (immutable)" section is the
+guide's "Lab design constraints (immutable)" section is the
 reader-facing summary of these constraints; this document carries the
 component-by-component rationale.
 
@@ -16,7 +16,7 @@ component-by-component rationale.
 
 | ID | Component | Decision | Rationale |
 | --- | --- | --- | --- |
-| D1 | Architecture | Single subject + same env / VNet / UAMI / LAW + `koreacentral`; `loadgen` runs as a **manual Container Apps Job** in the same environment | Matches the Hybrid A standard used by `labs/zone-redundancy-best-effort/`; the manual Job form factor avoids the long-running-loadgen-app failure mode |
+| D1 | Architecture | Single subject + same env / VNet / UAMI / LAW + `koreacentral`; `loadgen` runs as a **manual Container Apps Job** in the same environment | Matches the design standard used by `labs/zone-redundancy-best-effort/`; the manual Job form factor avoids the long-running-loadgen-app failure mode |
 | D2 | Subject app workload | **Small custom Python image** with `STARTUP_DELAY_SECONDS=25` and a dedicated lightweight `/healthz` endpoint | A deterministic startup delay is required to test the "ACA masks all transients" claim; a separate `/healthz` decouples probe behaviour from the workload path |
 | D3 | Probe configuration | Startup 40s budget / readiness 10s removal / liveness 90s; all three probes target `/healthz` | One fixed primary probe profile is required before the first run to keep the experimental variable contained; `/healthz` avoids confounding probe behaviour with workload `/` behaviour |
 | D4 | Perturbation mechanism | **ACA-managed new revision rollout** via env-var or revision-suffix change (primary); `az containerapp revision restart` is supplemental only | The primary perturbation must exercise the platform's normal rollout path, not the operator-side restart path |

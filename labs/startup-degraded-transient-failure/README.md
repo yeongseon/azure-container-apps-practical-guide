@@ -7,9 +7,9 @@ masks all transient unavailability behind health probes during a
 rolling rollout, even when the subject app has a deterministic
 25-second startup delay.
 
-## Hybrid A binding
+## Lab design binding
 
-This lab follows the same Hybrid A standard as
+This lab follows the same design standard as
 `labs/zone-redundancy-best-effort/`. The binding design constraints
 are documented in
 [`evidence/design-constraints-20260612.md`](evidence/design-constraints-20260612.md).

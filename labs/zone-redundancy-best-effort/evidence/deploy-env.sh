@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # Source this file in subsequent bash calls to recover env vars
-# Generated for fresh full 24h reproduction per Hybrid A (issue #204)
+# Generated for fresh full 24h reproduction per lab design (issue #204)
 # Public env vars (resource names only — no subscription/tenant/object IDs)
 # Local-only IDs (subscription, tenant, LAW customer ID, UAMI principal/client) live in .local/deploy-env.local.sh (gitignored)
 export SUBSCRIPTION_NAME="Visual Studio Enterprise Subscription"
