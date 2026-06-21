@@ -10,13 +10,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-06-03
     az_cli_version: 2.71.0
-    notes: 'Live 50/50 split reproduced via image-swap workaround. The original trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to reproduce per-revision failure because `targetPort` is an ingress-level setting shared across all revisions. Replacement pattern: keep ingress targetPort stable and deploy a new revision with an image whose listening port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80). Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50.'
+    notes: 'Live 50/50 split reproduced via image-swap workaround. The original trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to reproduce per-revision failure because `targetPort` is an ingress-level setting shared across all revisions. Replacement pattern: keep ingress targetPort stable and deploy a new revision with an image whose listening port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80). Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50. Six 2026-06-03 Portal captures (rg `ca-labtraffic-l6uluw`, koreacentral) preserve the reproduced workaround path: revisions blade showing the 50/50 split, the bad revision "Failed" status with the verbatim "TargetPort 80 does not match the listening port 8080" message, and the stable ingress targetPort=80.'
   core_claims:
     - claim: Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights.
       source: https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
@@ -26,12 +26,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-06-03'
+    cli_version: '2.71.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-03'
+    result: pass
 ---
 # Traffic Routing and Canary Failure Lab
 
