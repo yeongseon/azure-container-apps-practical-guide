@@ -27,7 +27,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: '2026-06-12'
+  last_reviewed: '2026-06-21'
   reviewer: agent
   lab_validation:
     status: reproduced
@@ -46,12 +46,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-06-13'
+    cli_version: '2.83.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-13'
+    result: pass
 ---
 # Startup-Degraded Transient Failure Lab
 
@@ -626,6 +626,10 @@ az resource list --resource-group rg-aca-startup-degraded \
   --output table
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az resource list --resource-group rg-aca-startup-degraded --query "[].{name:name, type:type}" --output table` | Lists every resource the lab provisions inside `rg-aca-startup-degraded` so the reader can compare the live state against `labs/startup-degraded-transient-failure/infra/main.bicep` without opening the Resource Group blade in the Portal. |
+
 **Container Apps Environment `cae-sdlab-j2fs74`** uses the Workload profiles plan with the Consumption profile, runs zone-redundant inside `koreacentral`, and has the Log Analytics workspace `log-sdlab-j2fs74` attached for ingestion:
 
 ```bash
@@ -634,6 +638,10 @@ az containerapp env show --name cae-sdlab-j2fs74 \
   --query "{location:location, zoneRedundant:properties.vnetConfiguration.zoneRedundant, workloadProfiles:properties.workloadProfiles[].{name:name, type:workloadProfileType}}" \
   --output yaml
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show --name cae-sdlab-j2fs74 --resource-group rg-aca-startup-degraded --query "{location, zoneRedundant, workloadProfiles[]}" --output yaml` | Shows the Container Apps Environment's region, zone-redundant flag, and the workload-profile list so the reader can confirm the env runs zone-redundant on the Consumption profile — matching the Stage B Bicep configuration without opening the Environment Overview blade in the Portal. |
 
 ![Subject app overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/03-subject-app-overview.png)
 ![Subject app revisions baseline](../../assets/troubleshooting/startup-degraded-transient-failure/04-subject-app-revisions.png)
