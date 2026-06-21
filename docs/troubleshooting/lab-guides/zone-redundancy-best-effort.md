@@ -377,7 +377,7 @@ The `infra/main.bicep` template now provisions a workspace-based Application Ins
 
 **Reproduction window**: Phase 1 baseline `2026-06-12T11:51:46Z` → `2026-06-13T11:51:46Z` (24h); Phase 2 perturbations `2026-06-14T11:04:37Z`, `11:15:46Z`, `11:29:11Z` (all UTC, all against `app-min3`).
 
-**Region / RG**: `koreacentral` / `rg-aca-zr-lab-260612114313`. Branch: `lab/zone-redundancy-204-phase3-7`. Oracle session: `ses_144f3ce9cffeyOLLgO8doWTal3`.
+**Region / RG**: `koreacentral` / `rg-aca-zr-lab-260612114313`.
 
 **Subject apps**: `app-min2` (minReplicas=2), `app-min3` (minReplicas=3), `app-min6` (minReplicas=6), all in a single zone-redundant env (`cae-zrlab-5yi4px`, `properties.zoneRedundant=true`).
 

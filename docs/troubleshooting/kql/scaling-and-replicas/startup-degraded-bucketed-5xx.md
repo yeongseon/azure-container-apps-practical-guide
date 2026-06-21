@@ -289,7 +289,7 @@ buckets
 | project run_id, falsified, falsification_windows, first_window_end, last_window_end
 ```
 
-**Why control buckets**: The `let control` step generates one synthetic row per 10-second slot between the run's first and last data-emitting bucket. The leftouter join onto `rawBuckets` then coalesces missing slots to `total_count = 0, total_err = 0`. This guarantees that the `prev()` window function in the falsification step is operating on a **contiguous** time series — without it, a missing bucket in the middle of a run (caused by a loadgen stall or a brief LAW ingestion gap) would silently shift the `prev1`/`prev2` rows to non-adjacent timestamps and break the "3 consecutive 10-second buckets" semantic of the binding falsification rule. This implements Oracle binding #7's "include control buckets for empty-bin handling" requirement.
+**Why control buckets**: The `let control` step generates one synthetic row per 10-second slot between the run's first and last data-emitting bucket. The leftouter join onto `rawBuckets` then coalesces missing slots to `total_count = 0, total_err = 0`. This guarantees that the `prev()` window function in the falsification step is operating on a **contiguous** time series — without it, a missing bucket in the middle of a run (caused by a loadgen stall or a brief LAW ingestion gap) would silently shift the `prev1`/`prev2` rows to non-adjacent timestamps and break the "3 consecutive 10-second buckets" semantic of the lab's falsification rule. This implements the lab's design constraint #7 ("include control buckets for empty-bin handling").
 
 **Interpretation**:
 
@@ -350,7 +350,7 @@ allBuckets
 - `worst_bucket_err_pct` is the peak transient — the bucket where the platform's protection was thinnest.
 - `buckets_above_0p5pct` is the count of bad buckets across all runs in the phase. If the perturbation phase has materially more than the baseline phase, that is `[Measured]` evidence of perturbation-induced client-visible degradation.
 
-**Causal attribution caveat**: Even when perturbation-phase numbers are decisively worse than baseline, attributing the cause to "platform-initiated rolling rollout behavior" rather than "the new replicas of the subject app are slow to warm up" or "the LB cached connections to terminating replicas" is capped at **[Strongly Suggested]** per the lab's Oracle bindings. Q3 (RevisionStateSample timeline) and Q7 (system events) provide circumstantial corroboration but no smoking gun.
+**Causal attribution caveat**: Even when perturbation-phase numbers are decisively worse than baseline, attributing the cause to "platform-initiated rolling rollout behavior" rather than "the new replicas of the subject app are slow to warm up" or "the LB cached connections to terminating replicas" is capped at **[Strongly Suggested]** per the lab's design constraints. Q3 (RevisionStateSample timeline) and Q7 (system events) provide circumstantial corroboration but no smoking gun.
 
 ## Q7 — System Events Timeline (Rollout Milestones)
 
@@ -380,7 +380,7 @@ When comparing baseline buckets against perturbation buckets, do NOT join on `bu
 
 - **Per-VU bucket duplication**: As noted at the top, the k6 script's per-VU buckets MUST be summed before joining. The harness's Q1/Q2/Q5/Q6 all do this; ad-hoc queries written by analysts have repeatedly missed it. The symptom is `err_pct` values 50× too high (one row per VU per bucket).
 - **`Log_s` parsing format dependency**: Q1/Q2/Q5/Q6 depend on the k6 image's stdout being captured by Logrus's `time="..." level=info msg="..." source=console` wrapper. If the k6 image is changed, verify the format with `ContainerAppConsoleLogs_CL | where ContainerName_s == "k6" | take 5`.
-- **Causal attribution ceiling**: All conclusions about "platform-initiated cause" are capped at `[Strongly Suggested]` per the lab's Oracle bindings. Client-visible 5xx outcomes can be `[Measured]`. See the lab guide's Section 10 Conclusion for the full discussion.
+- **Causal attribution ceiling**: All conclusions about "platform-initiated cause" are capped at `[Strongly Suggested]` per the lab's design constraints. Client-visible 5xx outcomes can be `[Measured]`. See the lab guide's Section 10 Conclusion for the full discussion.
 - **RPS achievement**: k6 reports requests issued, not requests acknowledged at the target rate. Sub-saturation queueing manifests as a lower `requests` count and elevated `p50_ms` per Q1; this is a load-shaping property of constant-arrival-rate, not a failure.
 - **Sampler cadence vs bucket cadence**: The `perturbation-sampler` runs at 5-second cadence, but the bucket time series is at 10-second cadence. When overlaying Q3 onto Q2, you will see 2 sampler rows per bucket window; bin Q3 to 10s if you need a one-to-one alignment.
 

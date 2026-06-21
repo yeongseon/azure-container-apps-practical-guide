@@ -324,7 +324,7 @@ These five captures are required to make the H1 / H2 verdicts UI-verifiable. Sav
 
 **Reproduction window**: 2026-06-14 (UTC). H3 gate: `h3-20260614-143432` (PASS). Consumption scale sweep: 2026-06-14T14:38–14:46Z. Dedicated D8 scale sweep: 2026-06-14T14:46–15:00Z. All scale steps recorded their start and stable-count times in `/tmp/trigger.log`; raw timestamps are in each `evidence/*.jsonl` file's `client_sample_at` field.
 
-**Region / RG**: `koreacentral` / `rg-aca-rns-lab-202606141423`. Subscription: `<subscription-id>` (MCAPS work subscription). Environment: `cae-rnslab-khefip`. Both apps share image `rnslabacr<hex>.azurecr.io/rns-lab/diag:latest`, both use `0.25 vCPU / 0.5 GiB` resource requests, both expose `/diag` over HTTPS external ingress.
+**Region / RG**: `koreacentral` / `rg-aca-rns-lab-202606141423`. Subscription: `<subscription-id>`. Environment: `cae-rnslab-khefip`. Both apps share image `rnslabacr<hex>.azurecr.io/rns-lab/diag:latest`, both use `0.25 vCPU / 0.5 GiB` resource requests, both expose `/diag` over HTTPS external ingress.
 
 **Subject apps**: `app-consumption` (workload profile: Consumption, max replicas 30, FQDN `app-consumption.purplebush-69d6d99a.koreacentral.azurecontainerapps.io`), `app-dedicated-d8` (workload profile: Dedicated D8, max replicas 10, FQDN `app-dedicated-d8.purplebush-69d6d99a.koreacentral.azurecontainerapps.io`).
 
