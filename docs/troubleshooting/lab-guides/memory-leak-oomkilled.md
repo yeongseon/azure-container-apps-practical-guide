@@ -352,7 +352,7 @@ Expected: KEDA scaler check failures while the revision is in CrashLoopBackOff (
 
 ## 6) Portal Evidence
 
-All captures live in `docs/assets/troubleshooting/memory-leak-oomkilled/`. Each capture was taken in a sanitized Azure Portal session with the documented inline PII helper applied (subscription/tenant GUIDs zeroed, MCAPS subscription name replaced with the Visual Studio Enterprise placeholder, Microsoft Non-Production tenant replaced with Contoso, `@microsoft.com` emails rewritten to `user@example.com`, `ychoe`/`Yeongseon Choe` rewritten to `demouser`/`Demo User`, account-menu avatar masked with Portal blue `#0078d4`).
+All captures live in `docs/assets/troubleshooting/memory-leak-oomkilled/`. Each capture was taken in a sanitized Azure Portal session with the standard PII helper applied before commit (see [Portal capture rules](../../contributing/lab-portal-capture-briefs.md) for the capture policy and per-lab capture matrix).
 
 ### Resource Group landing
 

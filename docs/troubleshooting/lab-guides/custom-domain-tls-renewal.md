@@ -127,13 +127,13 @@ az containerapp hostname add \
   --hostname "test.example-lab.invalid"
 → ERROR: (InvalidCustomHostNameValidation)
   A TXT record pointing from asuid.test.example-lab.invalid to
-  5F4D40324651269FDA2F10E03050A49ECBA6A88B93D95EA7E223D34005F9E7DE
+  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
   was not found.
 
 # Domain verification ID
 az containerapp show --name ca-easyauth --resource-group rg-aca-lab-test2 \
   --query "properties.customDomainVerificationId"
-→ "5F4D40324651269FDA2F10E03050A49ECBA6A88B93D95EA7E223D34005F9E7DE"
+→ "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 ```
 
 | Command | Why it is used |
