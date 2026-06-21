@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 16 |
+| ✅ Validated | 17 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 65 |
+| ➖ Not tested | 64 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 16
-    "Not Tested" : 65
+    "Validated" : 17
+    "Not Tested" : 64
 ```
 
 ## Validation Matrix
@@ -139,7 +139,7 @@ pie title Tutorial Validation Status
 | [Startup Degraded Transient Failure](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) | ✅ Pass | ✅ Pass | 2026-06-13 | ✅ Pass |
 | [Subnet Cidr Exhaustion](../troubleshooting/lab-guides/subnet-cidr-exhaustion.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Subscription Quota Exceeded](../troubleshooting/lab-guides/subscription-quota-exceeded.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Udr Nsg Egress Blocked](../troubleshooting/lab-guides/udr-nsg-egress-blocked.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Volume Permission Denied](../troubleshooting/lab-guides/volume-permission-denied.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Websocket Grpc Ingress](../troubleshooting/lab-guides/websocket-grpc-ingress.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
