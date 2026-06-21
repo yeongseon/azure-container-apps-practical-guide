@@ -362,42 +362,6 @@ HTTP 200
 
 [Inferred] The recovery demonstrates hypothesis branch (b): a single `az containerapp ingress update --target-port 8000` restores the revision to `Running` in ~30 s without rebuilding or redeploying. For this failure mode (ingress-port misconfiguration with a healthy container image), the playbook should attempt in-place correction before a traffic-shift or image-level rollback.
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **Replace PII with documentation placeholders, not black rectangles.** Follow the PII replacement rules in [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules) — GUIDs → `00000000-0000-0000-0000-000000000000`, tenant display name → `Contoso`, employee emails → `user@example.com`, etc. The reusable helper at `scripts/portal-capture-helpers.js` applies all rules in one call. Re-open the committed PNG and confirm no real subscription IDs, tenant names, or employee emails remain.
-
-### PII masking checklist
-
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
-
-### Captures to take
-
-The 2026-06-03 reproduction above used this set of six captures. Reuse the same filenames when reproducing the lab so the embedded image references in **Observed Evidence** continue to resolve:
-
-| # | When | Portal blade | What it proves | Filename |
-|---|---|---|---|---|
-| 1 | After the bad rollout, before opening Revisions | Container App → Overview | The `Revisions with issues` banner surfaces the failure at the top-level blade | `01-overview-revisions-with-issues.png` |
-| 2 | After the bad rollout creates a new revision | Container App → Revisions and replicas (Active revisions tab) | All active revisions listed with traffic %, running status, and replica counts — the broken revision is the one holding 100 % traffic | `02-revisions-and-replicas-blade.png` |
-| 3 | Click the broken revision name → Basics tab of the flyout | Revision details flyout (Basics) | `Status details` shows the exact `TargetPort N does not match the listening port M` message that pinpoints the misconfiguration | `03-revision-detail-broken-v2-flyout.png` |
-| 4 | In the same flyout, click the **Logs** tab | Revision details flyout (Logs) | Real-time stderr proves the container itself bound to its listening port — falsifying any "the app crashed" hypothesis | `04-show-logs-broken-v2.png` |
-| 5 | After `az containerapp ingress update --target-port <correct>`, refresh Revisions | Container App → Revisions and replicas | The previously broken revision turns `Running` (green) without any image change — proving the failure was purely the ingress port mismatch | `05-revisions-after-rollback-healthy.png` |
-| 6 | After full experiment | Container App → Activity log | Lab activity entries (mix of `Create or Update Container App`, `Auth Token for Container App Dev APIs`, `List Container App Secrets`) all show `Accepted` / `Succeeded` — supporting the inference that the control plane never rejected the misconfiguration and the failure surfaced only at runtime probe time | `06-activity-log-update-events.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/revision-failover/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash

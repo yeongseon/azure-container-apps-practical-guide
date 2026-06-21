@@ -405,7 +405,7 @@ A live reproduction on **2026-06-05** captured the full Path B topology and the 
 
 ![Replicas blade during falsification showing one Running replica alongside one Not running replica](../../assets/troubleshooting/acr-network-path-pe-direct/07-revisions-unhealthy-broken.png)
 
-[Inferred] The seven captures, taken in time order, document Path B's three required legs (registry-side PE + PE NIC IP + DNS zone with VNet link), prove the path is in use end-to-end (Healthy revision with ACR public access closed), and prove the path's failure mode in the Portal (removing the DNS leg surfaces as `ImagePullUnauthorized` on the next fresh pull, not on the already-running replica). Capture rules follow the [ACR Pull Failure Lab portal capture guide](./acr-pull-failure.md#portal-evidence-capture-guide) — full-screen 1600x1000, PII helper applied, no black-box masks except the Account-menu avatar.
+[Inferred] The seven captures, taken in time order, document Path B's three required legs (registry-side PE + PE NIC IP + DNS zone with VNet link), prove the path is in use end-to-end (Healthy revision with ACR public access closed), and prove the path's failure mode in the Portal (removing the DNS leg surfaces as `ImagePullUnauthorized` on the next fresh pull, not on the already-running replica). Capture rules follow the [shared lab Portal capture briefs](../../contributing/lab-portal-capture-briefs.md#acr-pull-failure) — full-screen 1600x1000, PII helper applied, no black-box masks except the Account-menu avatar.
 
 ## Clean Up
 

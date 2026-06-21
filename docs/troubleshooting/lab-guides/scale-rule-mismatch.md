@@ -339,40 +339,6 @@ Environment: `koreacentral`, Consumption plan.
 
 [Inferred] Reaching exactly `maxReplicas=10` and saturating there does not by itself prove `concurrentRequests=10` is the *optimal* threshold; it only proves the threshold and cap together are now permissive enough to scale under this specific 80-concurrent workload. Tuning the threshold for production traffic requires correlating concurrent in-flight requests against latency and replica cost over a representative window.
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [memory-percentage-vs-keda-utilization](./memory-percentage-vs-keda-utilization.md) template.
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be replaced before commit.** Use the shared helper at `scripts/portal-capture-helpers.js` to rewrite PII text (subscription IDs, tenant IDs, employee emails, real tenant domain, MCAPS subscription names) to documented placeholders, and mask the Account-menu avatar with Portal blue (`#0078d4`) using Playwright's native `mask`. Do **not** use solid black rectangles — they look like leaks and break visual continuity. See `scripts/portal-capture-helpers.md` and the PII rules table in `AGENTS.md`.
-
-### PII masking checklist
-
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to `rg-aca-lab-scale` / `ca-scale-mismatch` / `cae-lab-scale` if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
-
-### Captures to take
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | After baseline deploy, before load | Container App → Monitoring → Metrics | Metric `Replica count`, Aggregation `Max`, Time `Last 5 minutes` | `scale-rule-mismatch-baseline.png` |
-| 2 | During sustained load with `concurrentRequests=500` | Container App → Monitoring → Metrics | Two charts pinned side-by-side: `Replica count` (Max) and `Requests` (Sum, split by Status code category), Time `Last 15 minutes` | `scale-rule-mismatch-load-stuck.png` |
-| 3 | During sustained load with `concurrentRequests=500` | Container App → Monitoring → Log stream (or Logs → KQL `ContainerAppSystemLogs_CL \| where Reason_s contains "KEDA"`) | Visible `KEDAScalersStarted` event | `scale-rule-mismatch-keda-logs.png` |
-| 4 | Before fix | Container App → Application → Scale and replicas | Full scale settings panel showing `Min=1`, `Max=2`, HTTP rule `concurrentRequests=500` | `scale-rule-mismatch-config-before.png` |
-| 5 | After fix (`concurrentRequests=10`, `maxReplicas=10`) | Container App → Monitoring → Metrics | `Replica count` (Max), Time `Last 15 minutes` showing scale-out above 1 | `scale-rule-mismatch-after-fix.png` |
-| 6 | After fix | Container App → Application → Scale and replicas | Full scale settings panel showing `Min=1`, `Max=10`, HTTP rule `concurrentRequests=10` | `scale-rule-mismatch-config-after.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/scale-rule-mismatch/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash

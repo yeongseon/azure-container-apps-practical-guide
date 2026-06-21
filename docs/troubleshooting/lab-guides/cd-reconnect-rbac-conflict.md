@@ -367,42 +367,6 @@ The hypothesis is falsified if any of the following occur:
 
 If the trigger script does not produce `RoleAssignmentExists` on the second deployment, capture `/tmp/cd-rbac-conflict.log`, confirm the first deployment created the assignment (`az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID"`), and rerun after a 30-second wait to allow RBAC propagation.
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be replaced with placeholder text (not masked with black rectangles).** Follow the [Portal Screenshot Capture rules in AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules): subscription / tenant / object GUIDs → zero-GUID `00000000-0000-0000-0000-000000000000`; subscription name → `Visual Studio Enterprise Subscription`; tenant badge → `Contoso`; account avatar → solid Portal-blue mask (`#0078d4`). Black-box redaction is forbidden — it looks like a leak and breaks visual continuity.
-
-### PII replacement checklist
-
-Apply the inline PII helper from [AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules) before every capture; then re-open the committed PNG and confirm:
-
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column, Correlation ID) rendered as `00000000-0000-0000-0000-000000000000`
-- [ ] Tenant ID (URL bar, account flyout) rendered as `00000000-0000-0000-0000-000000000000`
-- [ ] Subscription name rendered as `Visual Studio Enterprise Subscription` (no `MCAPS-*` prefix)
-- [ ] Tenant badge in the top-right rendered as `Contoso` (no `MICROSOFT NON-PRODUCTION` text)
-- [ ] Account-menu avatar masked with solid Portal-blue (`#0078d4`), not a black rectangle
-- [ ] No employee email (`*@microsoft.com`) or tenant email (`*@*.onmicrosoft.com`) anywhere in the frame
-- [ ] No real customer resource group / app / environment names from a leaked customer tenant
-- [ ] Global search bar dropdown is dismissed (recent resources from other labs must not be visible)
-
-### Captures to take
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | Immediately after `./trigger.sh` finishes | Resource Group → Deployments | Default list view showing seed `lab-cd-rbac` and `lab-ra-initial` Succeeded plus `lab-ra-reconnect` Failed | `01-deployments-list.png` |
-| 2 | Same point as #1 | Resource Group → Deployments → `lab-ra-reconnect` | Deployment detail with "Your deployment failed" banner and the `RoleAssignmentExists` error containing the existing 32-char-hex assignment ID | `02-deployment-failed-detail.png` |
-| 3 | During diagnosis | Azure Container Registry → Access control (IAM) → **Role assignments** tab | Use the scoped "Search by name" filter inside the IAM blade (NOT the global search bar) and filter to `github-actions-lab`; expect exactly one `AcrPush` assignment for the simulated CD service principal | `03-iam-orphaned-assignment.png` |
-| 4 | After `./verify.sh` completes Step 4 (retry) | Resource Group → Deployments → `lab-ra-verify-recovery` | Deployment detail with green "Your deployment is complete" banner | `04-deployment-recovered.png` |
-| 5 | After `./verify.sh` completes Step 5 | Azure Container Registry → Access control (IAM) → **Role assignments** tab | Same scoped filter as #3; expect exactly one active `AcrPush` assignment (the freshly created one, different underlying GUID from #3 — verify in CLI output since the GUID renders as the zero-GUID placeholder after PII replacement) | `05-iam-after-fix.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/cd-reconnect-rbac-conflict/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash
