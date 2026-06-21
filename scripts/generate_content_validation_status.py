@@ -161,8 +161,7 @@ def _scope_summary_lines() -> list[str]:
         f"({excluded}), tutorials, language guides, and start-here "
         "landing pages — are not counted here, even when legacy "
         "`content_validation` blocks exist on them (the cleanup tool "
-        "only removes tautological placeholder claims). See `AGENTS.md` "
-        "§Text Content Validation for the full policy and "
+        "only removes tautological placeholder claims). See "
         "`scripts/lib/content_scope.py` for the executable scope definition.",
     ]
 
