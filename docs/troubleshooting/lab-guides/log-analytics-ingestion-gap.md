@@ -36,9 +36,9 @@ content_validation:
       verified: false
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-05-01'
+    cli_version: '2.70.0'
+    result: pass
   bicep:
     last_tested:
     result: not_tested

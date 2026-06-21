@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 22 |
+| ✅ Validated | 52 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 59 |
+| ➖ Not tested | 29 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 22
-    "Not Tested" : 59
+    "Validated" : 52
+    "Not Tested" : 29
 ```
 
 ## Validation Matrix
@@ -98,52 +98,52 @@ pie title Tutorial Validation Status
 | [Acr Network Path Pe Forced Inspection](../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
 | [Acr Network Path Record Split Brain](../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
 | [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ✅ Pass | ✅ Pass | 2026-05-01 | ✅ Pass |
-| [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Azure Files Mount Failure](../troubleshooting/lab-guides/azure-files-mount-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Bicep Deployment Timeout](../troubleshooting/lab-guides/bicep-deployment-timeout.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Azure Files Mount Failure](../troubleshooting/lab-guides/azure-files-mount-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Bicep Deployment Timeout](../troubleshooting/lab-guides/bicep-deployment-timeout.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Cd Reconnect Rbac Conflict](../troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md) | ✅ Pass | ✅ Pass | 2026-04-21 | ✅ Pass |
 | [Cold Start Scale To Zero](../troubleshooting/lab-guides/cold-start-scale-to-zero.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Cpu Throttling](../troubleshooting/lab-guides/cpu-throttling.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Custom Domain Tls Renewal](../troubleshooting/lab-guides/custom-domain-tls-renewal.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Cpu Throttling](../troubleshooting/lab-guides/cpu-throttling.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Custom Domain Tls Renewal](../troubleshooting/lab-guides/custom-domain-tls-renewal.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
-| [Dapr Pubsub Failure](../troubleshooting/lab-guides/dapr-pubsub-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Dapr State Store Failure](../troubleshooting/lab-guides/dapr-state-store-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Diagnostic Settings Missing](../troubleshooting/lab-guides/diagnostic-settings-missing.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Docker Hub Rate Limit](../troubleshooting/lab-guides/docker-hub-rate-limit.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Easyauth Entra Id Failure](../troubleshooting/lab-guides/easyauth-entra-id-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Egress Ip Change](../troubleshooting/lab-guides/egress-ip-change.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Emptydir Disk Full](../troubleshooting/lab-guides/emptydir-disk-full.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Event Job Storm](../troubleshooting/lab-guides/event-job-storm.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Github Actions Oidc Failure](../troubleshooting/lab-guides/github-actions-oidc-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Image Size Startup Delay](../troubleshooting/lab-guides/image-size-startup-delay.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Dapr Pubsub Failure](../troubleshooting/lab-guides/dapr-pubsub-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Dapr State Store Failure](../troubleshooting/lab-guides/dapr-state-store-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Diagnostic Settings Missing](../troubleshooting/lab-guides/diagnostic-settings-missing.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Docker Hub Rate Limit](../troubleshooting/lab-guides/docker-hub-rate-limit.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Easyauth Entra Id Failure](../troubleshooting/lab-guides/easyauth-entra-id-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Egress Ip Change](../troubleshooting/lab-guides/egress-ip-change.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Emptydir Disk Full](../troubleshooting/lab-guides/emptydir-disk-full.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Event Job Storm](../troubleshooting/lab-guides/event-job-storm.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Github Actions Oidc Failure](../troubleshooting/lab-guides/github-actions-oidc-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Image Size Startup Delay](../troubleshooting/lab-guides/image-size-startup-delay.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-04-29 | ✅ Pass |
 | [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
-| [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ Pass | ✅ Pass | 2026-06-02 | ✅ Pass |
-| [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Multi Arch Image Mismatch](../troubleshooting/lab-guides/multi-arch-image-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Multi Arch Image Mismatch](../troubleshooting/lab-guides/multi-arch-image-mismatch.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
-| [Private Endpoint Dns Failure](../troubleshooting/lab-guides/private-endpoint-dns-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Private Endpoint Dns Failure](../troubleshooting/lab-guides/private-endpoint-dns-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
-| [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Replica Node Spread](../troubleshooting/lab-guides/replica-node-spread.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
 | [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
-| [Revision History Limit](../troubleshooting/lab-guides/revision-history-limit.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Revision History Limit](../troubleshooting/lab-guides/revision-history-limit.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Revision Provisioning Failure](../troubleshooting/lab-guides/revision-provisioning-failure.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ✅ Pass | ✅ Pass | 2026-05-01 | ✅ Pass |
-| [Scheduled Job Missed](../troubleshooting/lab-guides/scheduled-job-missed.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Session Affinity Failure](../troubleshooting/lab-guides/session-affinity-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Scheduled Job Missed](../troubleshooting/lab-guides/scheduled-job-missed.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Session Affinity Failure](../troubleshooting/lab-guides/session-affinity-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Startup Degraded Transient Failure](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) | ✅ Pass | ✅ Pass | 2026-06-13 | ✅ Pass |
-| [Subnet Cidr Exhaustion](../troubleshooting/lab-guides/subnet-cidr-exhaustion.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Subscription Quota Exceeded](../troubleshooting/lab-guides/subscription-quota-exceeded.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Subnet Cidr Exhaustion](../troubleshooting/lab-guides/subnet-cidr-exhaustion.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Subscription Quota Exceeded](../troubleshooting/lab-guides/subscription-quota-exceeded.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
-| [Udr Nsg Egress Blocked](../troubleshooting/lab-guides/udr-nsg-egress-blocked.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Volume Permission Denied](../troubleshooting/lab-guides/volume-permission-denied.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Websocket Grpc Ingress](../troubleshooting/lab-guides/websocket-grpc-ingress.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Workload Profile Mismatch](../troubleshooting/lab-guides/workload-profile-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Udr Nsg Egress Blocked](../troubleshooting/lab-guides/udr-nsg-egress-blocked.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Volume Permission Denied](../troubleshooting/lab-guides/volume-permission-denied.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Websocket Grpc Ingress](../troubleshooting/lab-guides/websocket-grpc-ingress.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Workload Profile Mismatch](../troubleshooting/lab-guides/workload-profile-mismatch.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Zone Redundancy Best Effort](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
 
 ## How to Update
