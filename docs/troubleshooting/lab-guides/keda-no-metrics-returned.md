@@ -10,13 +10,13 @@ content_sources:
         - https://keda.sh/docs/latest/scalers/memory/
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-06-05
     az_cli_version: 2.73.0
-    notes: "All three scenarios reproduced in Korea Central. Scenario A (slow-start) produced 12 metric error entries during the first ~90 seconds then stopped. Scenario B (crash-loop) produced 29 recurring entries over 20+ minutes, correlating with container restarts. Scenario C (healthy) unexpectedly produced 10 entries during the first ~60 seconds after deployment — confirming that even healthy containers experience a brief metrics gap during initial provisioning. The DEPRECATED warning appeared for all three apps."
+    notes: "All three scenarios reproduced in Korea Central. Scenario A (slow-start) produced 12 metric error entries during the first ~90 seconds then stopped. Scenario B (crash-loop) produced 29 recurring entries over 20+ minutes, correlating with container restarts. Scenario C (healthy) unexpectedly produced 10 entries during the first ~60 seconds after deployment — confirming that even healthy containers experience a brief metrics gap during initial provisioning. The DEPRECATED warning appeared for all three apps. Re-verified 2026-06-20T00:48-00:50Z (CLI 2.79.0, containerapp ext 1.3.0b4) against the same canonical infra in rg-aca-no-metrics-lab: Scenario A reproduced 20 metric errors in a 5-min bin at 00:35 with StartUp probe failures shown in the lifecycle log, Scenario B reproduced 27 metric errors over 15 min with recurring 'Container terminated with exit code 1' / ProcessExited events confirming CrashLoopBackOff, Scenario C reproduced 16 metric errors in a 5-min bin during Metrics Server warm-up, and the DEPRECATED warning appeared exactly once per app at scaler init time. Re-verification evidence at labs/keda-no-metrics-returned/evidence/ca-nometrics-{slow,crash,healthy}/report-20260620T*.txt with explicit az --version captures at az-version-20260620T*.json."
   core_claims:
     - claim: KEDA/HPA logs "no metrics returned from resource metrics API" when the Kubernetes Metrics Server has no data for a container that is not yet Ready.
       source: https://github.com/kubernetes/kubernetes/issues/127169
@@ -24,6 +24,14 @@ content_validation:
     - claim: CrashLoopBackOff creates recurring windows where metrics are unavailable, producing repeated "no metrics returned" and "invalid metrics" log entries.
       source: https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
       verified: true
+validation:
+  az_cli:
+    last_tested: '2026-06-20'
+    cli_version: '2.79.0'
+    result: pass
+  bicep:
+    last_tested: '2026-06-05'
+    result: pass
 ---
 # KEDA "No Metrics Returned" Reproduction Lab
 

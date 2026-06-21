@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 14 |
+| ✅ Validated | 15 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 67 |
+| ➖ Not tested | 66 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 14
-    "Not Tested" : 67
+    "Validated" : 15
+    "Not Tested" : 66
 ```
 
 ## Validation Matrix
@@ -117,7 +117,7 @@ pie title Tutorial Validation Status
 | [Github Actions Oidc Failure](../troubleshooting/lab-guides/github-actions-oidc-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Image Size Startup Delay](../troubleshooting/lab-guides/image-size-startup-delay.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ➖ No Data | ➖ No Data | — | ➖ Not Tested |
+| [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
