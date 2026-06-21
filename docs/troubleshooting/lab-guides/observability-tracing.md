@@ -420,42 +420,6 @@ Each Portal capture below documents one observable fact. `[Observed]` paragraphs
 
 Environment: `koreacentral`, `rg-aca-lab-observability`, `cae-labobs-622oal`, `appi-labobs-622oal`, `log-labobs-622oal`.
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (Portal command bar, breadcrumb, left navigation, and blade). Do not crop to a single chart — reviewers must be able to verify the blade, filters, revision selector, and time range.
-- **PII replacement, not redaction.** Use the [`scripts/portal-capture-helpers.js`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/scripts/portal-capture-helpers.js) helper (or the inlined `PII_SCRIPT` documented in [`AGENTS.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md)). The helper rewrites GUIDs to the zero-GUID placeholder, `MCAPS*` subscription names to `Visual Studio Enterprise Subscription`, the `Microsoft Non-Production` tenant badge to `Contoso`, employee emails / aliases / display names to `user@example.com` / `demouser` / `Demo User`, and `*.onmicrosoft.com` to `contoso.onmicrosoft.com`. The Account-menu avatar (the only DOM element that cannot be textually rewritten) is masked using Playwright's native `mask` with Portal blue (`#0078d4`) so it blends into the command bar — **never** use a black rectangle.
-- **Re-verify the committed PNG.** Open every saved PNG and confirm: no `MICROSOFT NON-PRODUCTION` badge, no real subscription ID GUIDs, no employee identities, and the avatar is the solid Portal-blue square (not black).
-
-### PII replacement checklist
-
-- [ ] All GUIDs (subscription, tenant, object, principal, resource IDs) → `00000000-0000-0000-0000-000000000000`
-- [ ] `MCAPS*` subscription names → `Visual Studio Enterprise Subscription`
-- [ ] `Microsoft Non-Production` tenant badge → `Contoso`
-- [ ] `*@microsoft.com` and `*@*.onmicrosoft.com` → `user@example.com`
-- [ ] `*.onmicrosoft.com` bare domains → `contoso.onmicrosoft.com`
-- [ ] Employee alias `ychoe` → `demouser`; display name `Yeongseon Choe` → `Demo User`
-- [ ] Account-menu avatar masked with Portal blue (`#0078d4`), not black
-- [ ] Search bars, filter chips, and input controls scrubbed (helper covers `input.value` and `textarea.value`)
-
-### Captures taken in the 2026-06-03 reproduction
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | Steady state | Container App → Overview | Essentials panel with `Status: Running`, `Location: Korea Central`, `Environment type: Workload profiles`, and the `Application Url` link | `01-overview.png` |
-| 2 | Before the trigger | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0m6ek7p`) | Shows `APPLICATIONINSIGHTS_CONNECTION_STRING` Source = "Reference a secret", Value = `appinsights-connection-stri...` | `02-env-vars-baseline-secretref.png` |
-| 3 | During the incident | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000001`) | Same env var, Source = "Manual entry", Value textarea showing the literal `InstrumentationKey=00000000-...;IngestionEndpoint` (suffix clipped by the textarea) | `03-env-vars-after-trigger-literal.png` |
-| 4 | During the incident | Application Insights `appi-labobs-622oal` → Transaction search | Filter chips `Local Time: Last 24 hours (Automatic)`, `View as: Traces`, `Event types = All selected`; "See all data in the last 24 hours" prompt (no executed result table) | `04-appinsights-transaction-search.png` |
-| 5 | During the incident | Application Insights `appi-labobs-622oal` → Logs | KQL `traces \| count`; Time range `Last hour`; Results column header `Count` with single row `0` | `05-appinsights-logs-traces-count-zero.png` |
-| 6 | After the fix | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000002`) | Same env var, Source = "Reference a secret", Value = `appinsights-connection-stri...` | `06-env-vars-restored-secretref.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/observability-tracing/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash

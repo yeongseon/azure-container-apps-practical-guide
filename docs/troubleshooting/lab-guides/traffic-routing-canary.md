@@ -405,42 +405,6 @@ Request 4: HTTP 000
 
 [Inferred] The bad-revision half did not return a graceful HTTP 502 because ingress simply does not get a response from the upstream replica (the image is not listening on the port ingress is dialing). This is why `--max-time` is mandatory in the reproduction loop above. The combination of (a) Portal's verbatim TargetPort/listening-port mismatch error, (b) the empty status details on the good revision, (c) ingress `targetPort` shown as `80`, and (d) the 15/15 split in the curl loop confirms the hypothesis: a per-revision listening-port mismatch on one of two revisions receiving 50% traffic produces a ~50% failure rate. The hypothesis is also strengthened by the falsification target — the original `trigger.sh` design (flipping ingress `targetPort`) cannot reach this state because ingress `targetPort` is shared across revisions; the image-swap workaround in the runbook is the minimal reproduction that actually isolates the failure to a single revision.
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be replaced (not black-box masked) before commit.** Use the helper at [`scripts/portal-capture-helpers.js`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/scripts/portal-capture-helpers.js) (or the inline snippet documented in [`AGENTS.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules)) to substitute real GUIDs/emails/tenant names with documented placeholders. Black rectangles look like leaks and are disallowed; the only acceptable mask is the Portal-blue (`#0078d4`) avatar mask applied by the helper.
-
-### PII masking checklist
-
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
-
-### Captures to take
-
-The 6 captures committed under `docs/assets/troubleshooting/traffic-routing-canary/` and embedded in the **Observed Evidence (Live Azure Reproduction)** subsection above are the canonical set. Reproduce them at the equivalent points in your own run:
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | After the bad revision is created and traffic split is applied | Container App → Overview | "Revisions with Issues" tab visible with the TargetPort/listening-port mismatch error | `01-overview-multi-revision-mode.png` |
-| 2 | During the incident | Container App → Revisions and replicas | Active revisions tab showing both revisions at 50/50 with the bad one marked Failed | `02-revisions-50-50-split.png` |
-| 3 | During the incident | Container App → Revisions and replicas → bad revision → View details | Revision status details flyout for the bad revision showing the TargetPort error | `03-bad-revision-status-details.png` |
-| 4 | During the incident | Container App → Ingress | Ingress blade showing `Target port = 80` (unchanged) to prove the failure is per-revision, not ingress-level | `04-ingress-target-port-80.png` |
-| 5 | During the incident | Container App → Revisions and replicas → good revision → View details | Revision status details flyout for the good revision showing `Running` with empty Status details (contrast against #3) | `05-good-revision-running-details.png` |
-| 6 | After the incident | Container App → Activity log | The three `Create or Update Container App` operations corresponding to deployment + image-swap + traffic-set | `06-activity-log-update-operations.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/traffic-routing-canary/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash

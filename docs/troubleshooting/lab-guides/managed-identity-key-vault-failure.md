@@ -405,43 +405,6 @@ Post-fix response body (HTTP 200):
 
 [Strongly Suggested] On vaults configured with `enableRbacAuthorization: true`, legacy `az keyvault set-policy` calls are silently ignored by the data plane (the policy is stored but not consulted). Engineers reproducing similar incidents on RBAC-mode vaults must use `az role assignment create`, not `set-policy`.
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be rewritten, not blacked out.** Use the text-replacement helper documented in `AGENTS.md` (rewrites GUIDs, MCAPS subscription names, tenant badge, `@microsoft.com` / `*.onmicrosoft.com` emails, author alias/name to documentation placeholders). The only acceptable visual mask is a Portal-blue (`#0078d4`) rectangle on the top-right account avatar — black rectangles look like leaks and break visual continuity.
-
-### PII masking checklist
-
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
-
-### Captures to take
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | During diagnosis | Container App → Identity | System-assigned identity blade with `Status: On` and object (principal) ID visible | `01-identity-blade-system-assigned-on.png` |
-| 2 | During diagnosis, before RBAC fix | Key Vault → Access control (IAM) → Role assignments | Filter by the Container App principal name; result count `All (0)` with `No results.` | `02-kv-iam-no-role-for-app-principal.png` |
-| 3 | During the incident | Container App → Revisions and replicas | Active revision shown as `Running` with healthy replicas while the secret-dependent endpoint is failing | `03-revisions-running-during-incident.png` |
-| 4 | During the incident | Container App → Monitoring → Metrics | `Requests` metric, last 30 minutes, split by `Status Code Category`; chart dominated by 5xx | `04-metrics-requests-5xx-during-incident.png` |
-| 5 | After the RBAC fix | Key Vault → Access control (IAM) → Role assignments | Same principal-name filter, now showing 1 result: `Key Vault Secrets User` assigned to the app principal | `05-kv-iam-role-assigned-after-fix.png` |
-| 6 | After the fix | Container App → Monitoring → Metrics | Same `Requests` / `Status Code Category` split, time range extended to include post-fix traffic; 2xx rises alongside the earlier 5xx population | `06-metrics-requests-2xx-after-fix.png` |
-
-!!! tip "Why Metrics, not Log stream"
-    Gunicorn in the lab image is configured without access logs, and the Flask handler catches the Key Vault exception and returns it in the HTTP 500 response body. The **Log stream** blade therefore contains no useful failure signal. **Metrics → Requests split by Status Code Category** is the correct Portal evidence for this lab — it shows the 5xx population during the incident and the 2xx recovery after the role assignment.
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/managed-identity-key-vault-failure/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash

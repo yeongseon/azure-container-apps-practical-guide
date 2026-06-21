@@ -543,39 +543,6 @@ There are no additional running status details at this time.
 - *"It's a transient platform issue, retry will fix it"* — falsified by pair 8: the row stops appearing **deterministically on the ingress update**, not on time elapsed.
 - *"It's a probe configuration issue"* — falsified by the verbatim flyout message in pair 3, which directly attributes the failure to the port mismatch, not to probe timing or path.
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be replaced before commit.** Use the shared helper at `scripts/portal-capture-helpers.js` to rewrite PII text (subscription IDs, tenant IDs, employee emails, real tenant domain, MCAPS subscription names) to documented placeholders, and mask the Account-menu avatar with Portal blue (`#0078d4`) using Playwright's native `mask`. Do **not** use solid black rectangles — they look like leaks and break visual continuity. See `scripts/portal-capture-helpers.md` and the PII rules table in `AGENTS.md`.
-
-### PII masking checklist
-
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
-
-### Captures to take
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | Before the fix, after the target port is changed | Container App → Ingress | Full ingress panel showing external ingress enabled and the wrong `Target port` value | `ingress-target-port-mismatch-ingress-before.png` |
-| 2 | During the incident | Container App → Revisions and replicas | Replica / revision view showing the container still running so the failure is isolated to ingress routing | `ingress-target-port-mismatch-revision-running.png` |
-| 3 | During the incident | Container App → Monitoring → Metrics | Metric `Requests`, split by `Status code category`, time `Last 15 minutes`, showing 5xx or failed requests while the wrong port is active | `ingress-target-port-mismatch-requests-failed.png` |
-| 4 | After the fix restores the correct port | Container App → Ingress | Full ingress panel showing `Target port = 80` (or the app's actual listener) | `ingress-target-port-mismatch-ingress-after.png` |
-| 5 | After the fix | Container App → Monitoring → Metrics | Same `Requests` metric view showing successful requests returning after the ingress correction | `ingress-target-port-mismatch-requests-recovered.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/ingress-target-port-mismatch/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash

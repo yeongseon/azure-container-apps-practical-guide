@@ -358,42 +358,6 @@ map[Tag:does-not-exist]'
 
 [Inferred] **Falsification logic.** Region, SKU, environment, registry credential configuration (ACR admin user via `registry-password` secret), and ingress configuration were held constant between the failing run and the recovered run. The only change was the image tag (`:does-not-exist` → `:v1`). The transition from "no revision, Status Unknown, no FQDN" to "Healthy revision, Status Running, FQDN returning HTTP 200" is therefore strongly consistent with the missing ACR tag being the cause, and refutes alternative explanations (registry credential failure, environment-level failure, ingress misconfiguration, networking).
 
-## Portal Evidence Capture Guide
-
-Engineers reproducing this lab should attach Azure Portal screenshots to the **Observed Evidence** section above. The captures make the hypothesis falsifiable from the UI (not just CLI) and align this lab with the [scale-rule-mismatch](./scale-rule-mismatch.md) template.
-
-!!! warning "Failure-mode-specific evidence surfaces"
-    The captures listed below assume the pull failure occurs **after** a revision has been created (for example, a tag that exists but cannot be pulled due to auth, or a registry network failure during pull). For the **manifest-missing-before-revision** case reproduced in the 2026-06-03 subsection — where the image tag does not exist in ACR — the platform never creates a revision and the system log table is never materialized. In that case, use the surfaces shown in that subsection instead: **Overview** (Status `Unknown`, `Application Url = Ingress disabled`), **Revisions and replicas** (empty Active and Inactive tabs), and **Activity Log → Create or Update Container App: Failed** (Summary tab only — the JSON tab is rendered by a Monaco editor that bypasses the standard PII replacement helper).
-
-### Capture rules (apply to every screenshot)
-
-- **Full-screen browser capture only.** Capture the entire browser window (URL bar, Portal chrome, breadcrumb). Do not crop to a single chart — reviewers must be able to verify the blade, filters, and time range.
-- **PII must be masked before commit.** Use solid black rectangles (not blur — blur can be reversed). Re-open the committed PNG and confirm masking is intact.
-
-### PII masking checklist
-
-- [ ] Subscription ID (URL bar, breadcrumb, resource ID column)
-- [ ] Tenant ID (URL bar, account flyout)
-- [ ] Account menu top-right (display name, email, avatar initials)
-- [ ] Directory / tenant name in the top-right switcher
-- [ ] Real customer resource group / app / environment names (rename to lab-defaults if reused from a customer tenant)
-- [ ] Email addresses in any Activity log, Access control, or Owner column
-- [ ] Real Object IDs, Principal IDs, Client IDs in identity blades
-
-### Captures to take
-
-| # | When | Portal blade | View / filters | Filename |
-|---|---|---|---|---|
-| 1 | After the bad image tag is deployed and the revision has failed | Container App → Overview | Full overview showing latest revision state / provisioning signal for the failed startup | `acr-pull-failure-overview-failed.png` |
-| 2 | During the incident | Container App → Revisions → latest failed revision | Revision detail showing failed health / provisioning state and image reference ending in `:does-not-exist` | `acr-pull-failure-revision-detail.png` |
-| 3 | During the incident | Container App → Monitoring → Logs | KQL `ContainerAppSystemLogs_CL | where Reason_s in ("PullingImage", "ImagePullFailed", "BackOff") | order by TimeGenerated desc` with the failed pull events visible | `acr-pull-failure-system-logs.png` |
-| 4 | During recovery | Azure Container Registry → Repositories → `labacr` → Tags | Tag list showing the previously missing tag state, then the valid `v1` tag after recovery image push | `acr-pull-failure-acr-tags.png` |
-| 5 | After the fix is applied | Container App → Revisions | Newest revision shows `Healthy` / running after update to the valid image tag | `acr-pull-failure-after-fix.png` |
-
-### Asset path
-
-Save PNGs to `docs/assets/troubleshooting/acr-pull-failure/` (create the directory if it does not exist).
-
 ## Clean Up
 
 ```bash

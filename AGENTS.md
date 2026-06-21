@@ -276,6 +276,8 @@ Oracle text-only review (Oracle reading the markdown caption and surrounding pro
 
 If any of the above ever becomes visible in a capture, treat it as a P0 issue: fail the capture, fix the helper, and re-shoot.
 
+**Per-lab capture matrices.** For the canonical list of Portal blades to capture in each troubleshooting lab — including filenames, blade selectors, and per-lab caveats (such as the `acr-pull-failure` manifest-missing-before-revision case and the `managed-identity-key-vault-failure` Log-stream-is-empty caveat) — see [`docs/contributing/lab-portal-capture-briefs.md`](docs/contributing/lab-portal-capture-briefs.md). That file is contributor- and agent-facing only; the rules above remain authoritative for *how* to capture, while the per-lab file documents *what* to capture for each lab.
+
 ### Frontmatter YAML Style
 
 Every Markdown file in `docs/` begins with a YAML frontmatter block delimited by `---`. The serialization style is **enforced by CI** and centralized in [`scripts/lib/yaml_style.py`](scripts/lib/yaml_style.py). Any script that mutates frontmatter MUST import `dump_frontmatter()` (preferred single-call API) or `build_yaml()` (for tools that need to call `load()` and `dump()` on the same instance) from that module — direct use of PyYAML's `yaml.dump()` is forbidden because it silently reformats files on every run (quoting dates, flattening nested sequences, folding multi-line strings), producing noisy diffs and unstable history.
