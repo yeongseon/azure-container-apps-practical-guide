@@ -9,13 +9,25 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: ProbeFailed + ContainerTerminated(ProbeFailure) + revision Failed confirmed
+    notes: |
+      Original reproduction (2026-05-01, az 2.70.0) confirmed ProbeFailed +
+      ContainerTerminated(ProbeFailure) + revision Failed. Re-verified end-to-end
+      on 2026-06-20 (PR #222) with a rewritten trigger script using the supported
+      `az containerapp update --yaml` authoring path; the re-verification chain
+      lives under `labs/revision-provisioning-failure/evidence/` (12 RAW JSON
+      files including `evidence/10-kql-console-logs.json` as the application-level
+      smoking gun: nginx 404 on the bad probe path + SIGCHLD propagation) and the
+      paired Portal captures (40 total) in
+      `docs/assets/troubleshooting/revision-provisioning-failure/`. Post-fix
+      recovery verified across 3 healthy revisions via
+      `evidence/11-kql-postfix-verification.json` and
+      `evidence/12-revision-list-recovered.json`.
   core_claims:
     - claim: Azure Container Apps supports startup probes to check whether a containerized app has started successfully.
       source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
@@ -25,12 +37,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
+    last_tested: '2026-06-20'
     cli_version:
-    result: not_tested
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-20'
+    result: pass
 ---
 # Revision Provisioning Failure Lab
 

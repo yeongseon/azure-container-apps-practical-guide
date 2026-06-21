@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 12 |
+| ✅ Validated | 13 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 69 |
+| ➖ Not tested | 68 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 12
-    "Not Tested" : 69
+    "Validated" : 13
+    "Not Tested" : 68
 ```
 
 ## Validation Matrix
@@ -132,7 +132,7 @@ pie title Tutorial Validation Status
 | [Replica Node Spread](../troubleshooting/lab-guides/replica-node-spread.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
 | [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Revision History Limit](../troubleshooting/lab-guides/revision-history-limit.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Revision Provisioning Failure](../troubleshooting/lab-guides/revision-provisioning-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Revision Provisioning Failure](../troubleshooting/lab-guides/revision-provisioning-failure.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Scheduled Job Missed](../troubleshooting/lab-guides/scheduled-job-missed.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Session Affinity Failure](../troubleshooting/lab-guides/session-affinity-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
