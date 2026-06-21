@@ -8,13 +8,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-05-01
     az_cli_version: 2.70.0
-    notes: ContainerAppInvalidHttpScaleRule confirmed, fixed concurrency=100
+    notes: 'ContainerAppInvalidHttpScaleRule confirmed, fixed concurrency=100. Original end-to-end reproduction completed on 2026-05-01 (CLI 2.70.0). Six 2026-06-02 Portal captures independently re-validated the same broken-state → recovery arc for the scale-rule mismatch scenario.'
   core_claims:
     - claim: Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
@@ -24,12 +24,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-05-01'
+    cli_version: '2.70.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-05-01'
+    result: pass
 ---
 # Scale Rule Mismatch Lab
 
