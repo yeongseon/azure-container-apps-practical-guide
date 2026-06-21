@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-04-29
     az_cli_version: 2.70.0
-    notes: HTTP 503 + PortMismatch + ProbeFailed confirmed; fix restored HTTP 200 in 15s
+    notes: "Original reproduction 2026-04-29 (CLI 2.70.0) confirmed HTTP 503 + PortMismatch + ProbeFailed; fix restored HTTP 200 in 15s. Augmented 2026-06-02 with two Portal capture waves (PR #38 PR-A failure-state + PR #39 PR-B after-fix) producing 8 Portal screenshots covering Overview, Revisions, Ingress, and Metrics blades in both failure and fixed configurations. Further augmented 2026-06-18 (landed in PR #215 on 2026-06-20) with a 'production case pattern' subsection adding 16 case-trap-* Portal captures organized as 8 failure<->fix pairs (Overview, Revisions+replicas, Revision status flyout, Ingress targetPort blade, Containers blade, Metrics 503 vs 200, Log stream listening port, Log Analytics KQL), a new KQL pack at docs/troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md keyed on AzureDiagnostics ContainerAppSystemLogs_CL Reason_s contains 'TargetPort', and a falsification summary table holding four variables constant (revision name, container image, listening port, ingress transport) across the failure/fix transition. The June 18 captures show the smoking-gun KQL row 'Deployment Progress Deadline Exceeded. 1/1 replicas ready. The TargetPort 8001 does not match the listening port 80.' (Count=4) alongside ProbeFailed=2373 and ProbeFailure=27 entries, providing direct evidence of the misconfiguration cause. The June 2026 work is observational re-verification (Portal + KQL only); no end-to-end CLI runbook rerun was captured, so validation dates remain anchored to the original 2026-04-29 reproduction."
   core_claims:
     - claim: Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
@@ -31,12 +31,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-04-29'
+    cli_version: '2.70.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-04-29'
+    result: pass
 ---
 # Ingress Target Port Mismatch Lab
 
