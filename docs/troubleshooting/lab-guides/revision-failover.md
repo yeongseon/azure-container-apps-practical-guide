@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-06-03
     az_cli_version: 2.71.0
-    notes: ingress targetPort=9999 mismatch triggers Degraded; rollback via az containerapp ingress update --target-port 8000 restores Running without redeploy. Six Portal captures attached.
+    notes: ingress targetPort=9999 mismatch triggers Degraded; rollback via az containerapp ingress update --target-port 8000 restores Running without redeploy. Six Portal captures attached (rg-aca-lab-revision, koreacentral, app ca-labrevision-zfnp6h) anchor the broken-revision → in-place rollback → healthy-state arc plus the Activity log update events.
   core_claims:
     - claim: Azure Container Apps lets you activate, deactivate, and manage revisions for a container app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
@@ -25,12 +25,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-06-03'
+    cli_version: '2.71.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-03'
+    result: pass
 ---
 # Revision Failover and Rollback Lab
 
