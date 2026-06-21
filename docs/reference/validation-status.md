@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 18 |
+| ✅ Validated | 19 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 63 |
+| ➖ Not tested | 62 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 18
-    "Not Tested" : 63
+    "Validated" : 19
+    "Not Tested" : 62
 ```
 
 ## Validation Matrix
@@ -130,7 +130,7 @@ pie title Tutorial Validation Status
 | [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Replica Node Spread](../troubleshooting/lab-guides/replica-node-spread.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
-| [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Revision History Limit](../troubleshooting/lab-guides/revision-history-limit.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Revision Provisioning Failure](../troubleshooting/lab-guides/revision-provisioning-failure.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
