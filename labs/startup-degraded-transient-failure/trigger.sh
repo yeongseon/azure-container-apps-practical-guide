@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Perturbation harness for the startup-degraded-transient-failure lab (Stage B).
+# Perturbation harness for the startup-degraded-transient-failure lab.
 #
 # Modes:
 #   --preflight             Brief 100/200/400 RPS staircase against the
 #                           subject app to prove 200 RPS consumes
-#                           nontrivial headroom (Oracle binding #2).
+#                           nontrivial headroom.
 #
 #   --baseline              Single k6 run at TARGET_RPS for DURATION_SECONDS
 #                           with NO perturbations. Establishes the
@@ -16,7 +16,7 @@
 #                                for 600s) tagged with this event's PERTURBATION_ID.
 #                             2. Triggers an ACA-managed new revision rollout
 #                                by setting subject app env var ROLLOUT_GENERATION
-#                                to a unique value (Oracle revision #2).
+#                                to a unique value.
 #                             3. Waits $INTERVAL seconds before the next event.
 #                           A single long-running k6 loadgen Job is started ONCE
 #                           before the first event and runs continuously across
@@ -28,7 +28,7 @@
 #                           restart events for comparison vs. the primary
 #                           rollout phase. Cap any conclusions about
 #                           platform-initiated restart causes at
-#                           [Strongly Suggested] (Oracle binding #1).
+#                           [Strongly Suggested].
 #
 # Usage:
 #   export RG="rg-aca-startup-degraded"
@@ -244,6 +244,6 @@ case "$MODE" in
 
     echo
     echo ">>>> Supplemental restart phase complete. RUN_ID=$RUN_ID"
-    echo ">>>> NOTE: Cap conclusions about platform-initiated restart causes at [Strongly Suggested] (Oracle binding #1)."
+    echo ">>>> NOTE: Cap conclusions about platform-initiated restart causes at [Strongly Suggested]."
     ;;
 esac

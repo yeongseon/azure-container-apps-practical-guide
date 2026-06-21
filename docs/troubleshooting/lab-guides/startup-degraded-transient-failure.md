@@ -13,7 +13,7 @@ content_sources:
     - id: experiment-architecture
       type: flowchart
       source: self-generated
-      justification: "No single MS Learn diagram shows a deterministic-startup subject app under a constant-arrival-rate k6 loadgen with a high-frequency RevisionStateSample sampler bracketing each rollout event. Synthesized from the revisions, blue/green, and health probes articles plus the Stage B lab design Oracle review (ses_14429826cffeXthi0x6tgTdLOW)."
+      justification: "No single MS Learn diagram shows a deterministic-startup subject app under a constant-arrival-rate k6 loadgen with a high-frequency RevisionStateSample sampler bracketing each rollout event. Synthesized from the revisions, blue/green, and health probes articles."
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
@@ -21,7 +21,7 @@ content_sources:
     - id: per-event-procedure-perturbation-phase
       type: flowchart
       source: self-generated
-      justification: "No single MS Learn article shows the per-event sequence for a perturbation-phase rollout that combines a high-frequency sampler, an ACA-managed new-revision rollout, and a continuous k6 loadgen. Synthesized from the revisions and blue/green articles plus the Stage B lab's pre-registered phase design."
+      justification: "No single MS Learn article shows the per-event sequence for a perturbation-phase rollout that combines a high-frequency sampler, an ACA-managed new-revision rollout, and a continuous k6 loadgen. Synthesized from the revisions and blue/green articles plus the lab's pre-registered phase design."
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
@@ -33,7 +33,7 @@ content_validation:
     status: reproduced
     tested_date: '2026-06-13'
     az_cli_version: '2.83.0'
-    notes: 'Stage B fully reproduced 2026-06-12 to 2026-06-13 against rg-aca-sdlab-260612125433. Three official phases: baseline (287,440 reqs, 0 errors, 0.000%), perturbation (1,145,439 reqs across 12 official rolling-rollout events, 0 errors, 0.000% — an earlier pre-fix run perturbation-20260612141745 with 233,131 reqs and 159 request-level errors is preserved in evidence but discarded from the verdict because it predates the audit/perturbation-sampler IMDS-vs-IDENTITY_ENDPOINT bug fix in commit 176aeec; even the discarded run had 0 buckets above 0.5%), supplemental-restart (289,932 reqs across 3 explicit restart events, 1 error = 0.000345%). H0 held under tested conditions for ALL three official phases via Q5 falsification (empty arrays for all three RUN_IDs — no >=3 consecutive 10s buckets above 0.5% err_pct anywhere). Single supplemental error localized to bucket 2026-06-13T05:59:00Z (0.062% bucket worst, restart event 2, ~18s after new replica container start); causal attribution capped at [Strongly Suggested] per Oracle binding #6. Raw evidence (q1-q7 TSV+JSON for all RUN_IDs, k6 logs, az logs) PII-scrubbed and committed under labs/startup-degraded-transient-failure/evidence/. Oracle Stage B design review applied (ses_14429826cffeXthi0x6tgTdLOW, 7 revisions); Oracle Stage B results review applied (REVISE_AND_RESUBMIT, 6 edit groups). Tracked in issue #205.'
+    notes: 'Fully reproduced 2026-06-12 to 2026-06-13 against rg-aca-sdlab-260612125433. Three official phases: baseline (287,440 reqs, 0 errors, 0.000%), perturbation (1,145,439 reqs across 12 official rolling-rollout events, 0 errors, 0.000% — an earlier pre-fix run perturbation-20260612141745 with 233,131 reqs and 159 request-level errors is preserved in evidence but discarded from the verdict because it predates the audit/perturbation-sampler IMDS-vs-IDENTITY_ENDPOINT bug fix in commit 176aeec; even the discarded run had 0 buckets above 0.5%), supplemental-restart (289,932 reqs across 3 explicit restart events, 1 error = 0.000345%). H0 held under tested conditions for ALL three official phases via Q5 falsification (empty arrays for all three RUN_IDs — no >=3 consecutive 10s buckets above 0.5% err_pct anywhere). Single supplemental error localized to bucket 2026-06-13T05:59:00Z (0.062% bucket worst, restart event 2, ~18s after new replica container start); causal attribution capped at [Strongly Suggested]. Raw evidence (q1-q7 TSV+JSON for all RUN_IDs, k6 logs, az logs) PII-scrubbed and committed under labs/startup-degraded-transient-failure/evidence/. Tracked in issue #205.'
   core_claims:
     - claim: Container Apps revisions are immutable snapshots of a container app version; new revisions are created when configuration changes.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -98,7 +98,7 @@ The question is framed as a falsifiable hypothesis (Section 3) so the verdict is
 
 ### Hybrid A design constraints (immutable)
 
-This lab follows the same Hybrid A standard as `labs/zone-redundancy-best-effort/`. The Stage B design was revised after external review. Constraint revisions applied:
+This lab follows the same Hybrid A standard as `labs/zone-redundancy-best-effort/`. The lab adopts the following design constraints:
 
 1. **Subject app** is a deterministic custom Python image with `STARTUP_DELAY_SECONDS=25` and a dedicated `/healthz` endpoint. All three probes (startup, readiness, liveness) target `/healthz`, not `/`. The workload endpoint `/` is the heavy path that surfaces 5xx if the platform is incorrectly routing traffic to a not-yet-warm replica.
 2. **Primary perturbation** is an ACA-managed new revision rollout, triggered by changing a `ROLLOUT_GENERATION` env var (which forces ACA to create a new revision). `az containerapp revision restart` is a **supplemental** perturbation only, captured under its own run prefix and reported separately.
@@ -551,7 +551,7 @@ The single supplemental error is acknowledged in Section 7 Q1 and Section 8 Q6 b
 | `evidence/preflight-buckets-10s.tsv` | Committed | 10s bucket time series for preflight. |
 | `evidence/baseline-001.log` | Committed (PII-scrubbed) | Baseline run launch + wait log. |
 | `evidence/baseline-start.txt` | Committed | Baseline start timestamp for KQL window slicing. |
-| `evidence/oracle-stage-b-design-review-20260612.md` | Committed | Design review plan (the 7 revisions). |
+| `evidence/design-constraints-20260612.md` | Committed | Lab design constraints (the 7 binding decisions). |
 
 ### Post-perturbation evidence
 
@@ -587,7 +587,7 @@ All evidence files are scrubbed by `evidence/scrub-pii.sh` (idempotent, re-run a
 
 ### Today's repro evidence (2026-06-20)
 
-On 2026-06-20 the lab was re-run end-to-end against a freshly-provisioned resource group `rg-aca-startup-degraded` (env `cae-sdlab-j2fs74`, suffix `j2fs74`) to validate that the Stage B verdict (H0 held) still holds under the current toolchain, and to capture the Portal-level evidence catalogued in the next subsection. The repro produced its own raw evidence pack (`qA`-`qG`), preserved alongside the original Stage B exports:
+On 2026-06-20 the lab was re-run end-to-end against a freshly-provisioned resource group `rg-aca-startup-degraded` (env `cae-sdlab-j2fs74`, suffix `j2fs74`) to validate that the H0-held verdict still holds under the current toolchain, and to capture the Portal-level evidence catalogued in the next subsection. The repro produced its own raw evidence pack (`qA`-`qG`), preserved alongside the original lab exports:
 
 | Artifact | Rows | Purpose |
 |---|---:|---|
@@ -606,7 +606,7 @@ On 2026-06-20 the lab was re-run end-to-end against a freshly-provisioned resour
 | `baseline-20260620213447` | 47,506 | **0** | 9,637 (per-VU) | 0.000% | **false** |
 | `perturbation-20260620220432` | 149,699 | **0** | 36,069 (per-VU) | 0.000% | **false** |
 
-The 2026-06-20 repro reaches the same verdict as the original Stage B verdict — H0 held — with a smaller event count (3 vs 12) but the same falsification rule and the same KQL methodology. The repro adds Portal-level evidence (next subsection) that the Stage B run did not collect.
+The 2026-06-20 repro reaches the same verdict as the original lab run — H0 held — with a smaller event count (3 vs 12) but the same falsification rule and the same KQL methodology. The repro adds Portal-level evidence (next subsection) that the original lab run did not collect.
 
 ### Observed Evidence (Portal Captures — 2026-06-20)
 
@@ -641,7 +641,7 @@ az containerapp env show --name cae-sdlab-j2fs74 \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show --name cae-sdlab-j2fs74 --resource-group rg-aca-startup-degraded --query "{location, zoneRedundant, workloadProfiles[]}" --output yaml` | Shows the Container Apps Environment's region, zone-redundant flag, and the workload-profile list so the reader can confirm the env runs zone-redundant on the Consumption profile — matching the Stage B Bicep configuration without opening the Environment Overview blade in the Portal. |
+| `az containerapp env show --name cae-sdlab-j2fs74 --resource-group rg-aca-startup-degraded --query "{location, zoneRedundant, workloadProfiles[]}" --output yaml` | Shows the Container Apps Environment's region, zone-redundant flag, and the workload-profile list so the reader can confirm the env runs zone-redundant on the Consumption profile — matching the lab's Bicep configuration without opening the Environment Overview blade in the Portal. |
 
 ![Subject app overview baseline](../../assets/troubleshooting/startup-degraded-transient-failure/03-subject-app-overview.png)
 ![Subject app revisions baseline](../../assets/troubleshooting/startup-degraded-transient-failure/04-subject-app-revisions.png)

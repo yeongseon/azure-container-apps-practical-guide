@@ -1,4 +1,4 @@
-# Deterministic subject image for Stage B (startup-degraded-transient-failure).
+# Deterministic subject image for the startup-degraded-transient-failure lab.
 #
 # Goals:
 #   - Pin Python to a known minor version for reproducibility.

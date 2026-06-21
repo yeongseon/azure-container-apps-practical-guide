@@ -386,21 +386,6 @@ The six PNGs below were captured in sequence during the reproduction. Each parag
 
 **[Not Proven]** That the `Running status: Degraded` visible in captures #4 and #6 was *caused by* a Dapr `appPort` mismatch. The bundled `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image (capture #5) listens on port 80, not 8000, so a Dapr sidecar→app health probe targeting either `appPort=8000` or `appPort=8081` would target a port the image does not bind. The revision was not observed `Healthy` at any point during this reproduction, so the captures show only *correlation* between an `appPort` value and a Degraded revision, not causation. To make causation cleanly falsifiable, swap the bicep template's image for one that binds to `0.0.0.0:8000` and re-run the trigger.
 
-### Portal capture reproduction guide
-
-Reproducing engineers should attach the same six Portal captures to the **Observed Evidence** subsection above. Save each PNG to `docs/assets/troubleshooting/dapr-integration/` and apply the PII helper described in [`AGENTS.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md) (text-replacement, **never** black-box masking; avatar masked with Portal-blue `#0078d4`).
-
-| # | When in the reproduction | Portal blade | What to verify on-screen | Filename |
-|---|---|---|---|---|
-| 1 | Baseline (before `trigger.sh`) | Container App → Overview | `Status: Running`, `Location: Korea Central`, `Resource group: rg-aca-lab-dapr`, `Application Url` populated | `01-overview.png` |
-| 2 | Baseline (before `trigger.sh`) | Container App → Dapr | `Dapr: Enabled`, `App ID: dapr-labdapr-bh2uom`, `App port: 8000`, `App protocol: HTTP` | `02-dapr-baseline-appport-8000.png` |
-| 3 | After trigger (CLI workaround applied) | Container App → Dapr (click **Refresh** in blade) | `App port: 8081`, `Dapr: Enabled`, `App ID: dapr-labdapr-bh2uom`, `App protocol: HTTP` | `03-dapr-after-trigger-appport-8081.png` |
-| 4 | After trigger | Container App → Revisions | Revision `ca-labdapr-bh2uom--xafdl2m` row: `Running status: Degraded`, `Traffic: 100%`, `Replicas: 2` | `04-revisions-degraded.png` |
-| 5 | After trigger | Container App → Containers (**Properties** tab) | `Image and tag: azuredocs/containerapps-helloworld:latest`, `Registry login server: mcr.microsoft.com` — anchors the `[Not Proven]` causation caveat | `05-containers-helloworld-image.png` |
-| 6 | After restoring `--dapr-app-port 8000` (CLI workaround applied) | Container App → Revisions | Revision `ca-labdapr-bh2uom--xafdl2m` still shows `Running status: Degraded` — directly demonstrates the `[Not Proven]` causation caveat | `06-revisions-still-degraded-after-restore.png` |
-
-The Dapr blade has a known stale-cache behavior: the inline **Refresh** button inside the blade iframe must be clicked after applying a CLI mutation, otherwise the previous value persists in the panel even though the underlying resource has changed.
-
 ## Clean Up
 
 ```bash

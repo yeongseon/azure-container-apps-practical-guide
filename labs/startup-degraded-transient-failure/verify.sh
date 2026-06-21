@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Verify a deployed startup-degraded-transient-failure lab.
 #
-# Performs ~14 fast health checks against the Stage B resources:
+# Performs ~14 fast health checks against the lab resources:
 #   - Resource group exists and has the expected tags
 #   - Container Apps Environment is Succeeded + zoneRedundant=true
 #   - Log Analytics workspace exists
@@ -66,7 +66,7 @@ pass "Subject app scale pinned at 3 replicas"
 
 PROBE_PATHS=$(az containerapp show --resource-group "$RG" --name "$SUBJECT_APP" --query 'properties.template.containers[0].probes[].httpGet.path' --output tsv | sort --unique)
 [[ "$PROBE_PATHS" == "/healthz" ]] || fail "Subject app probes target paths=$PROBE_PATHS (want only /healthz)"
-pass "All subject probes target /healthz (Oracle binding #3)"
+pass "All subject probes target /healthz"
 
 step "6. Audit job"
 AUDIT_TRIGGER=$(az containerapp job show --resource-group "$RG" --name "$AUDIT_JOB" --query 'properties.configuration.triggerType' --output tsv)

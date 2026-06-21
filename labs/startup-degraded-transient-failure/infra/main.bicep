@@ -1,20 +1,20 @@
 targetScope = 'resourceGroup'
 
 // =====================================================================
-// Startup-degraded transient-failure lab — Stage B (issue #205)
+// Startup-degraded transient-failure lab (issue #205)
 //
 // Provisions a single subject Container App with a deterministic 25-second
 // startup delay (custom Python image) and three identical replicas, plus
 // three Container Apps Jobs:
 //
 //   audit-sampler            5-minute cron, ReplicaInventorySample +
-//                            RevisionStateSample (same as Stage A).
+//                            RevisionStateSample.
 //   perturbation-sampler     Manual trigger, 5-second cadence around each
 //                            perturbation event (10-minute window).
 //   loadgen-k6               Manual trigger, k6 sustains 200 RPS against
 //                            the subject app for a parameterized duration.
 //
-// Hybrid A binding (Oracle review ses_14429826cffeXthi0x6tgTdLOW):
+// Hybrid A binding:
 // - Subject probes target /healthz (not /).
 // - Primary perturbation is an ACA-managed new revision rollout, NOT
 //   `az containerapp revision restart`.
@@ -205,7 +205,7 @@ resource uamiAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (
 // Container Apps Environment
 //
 // Zone-redundancy is enabled to mirror realistic production placement,
-// but the Stage B claim is independent of zone topology: the lab tests
+// but the lab claim is independent of zone topology: the lab tests
 // rolling-rollout transition behavior under load, not zone availability.
 // ---------------------------------------------------------------------
 
@@ -238,11 +238,11 @@ resource env 'Microsoft.App/managedEnvironments@2024-03-01' = {
 // ---------------------------------------------------------------------
 // Subject app — deterministic 25s startup delay, /healthz endpoint
 //
-// Per Oracle Stage B revision #1 + #3:
+// Per lab design D2 + D3:
 // - Custom Python image (not containerapps-helloworld + args).
 // - All three probes target /healthz (not /).
 // - Single fixed correctly-configured probe profile before first run.
-//   Probe timings approved by Oracle as primary baseline.
+//   Probe timings serve as the primary baseline.
 // ---------------------------------------------------------------------
 
 resource subjectApp 'Microsoft.App/containerApps@2024-03-01' = {
@@ -460,7 +460,7 @@ resource auditJob 'Microsoft.App/jobs@2024-03-01' = {
 // ---------------------------------------------------------------------
 // Perturbation sampler Job — manual trigger, 5-second cadence
 //
-// Per Oracle Stage B revision #5: 5-minute audit alone is insufficient
+// Per lab design D7: 5-minute audit alone is insufficient
 // for a 10-second-bucket transition lab. This Job is triggered from
 // trigger.sh immediately before each perturbation event and runs for
 // SAMPLE_DURATION_SECONDS (default 600 = 10 minutes) at SAMPLE_INTERVAL_SECONDS

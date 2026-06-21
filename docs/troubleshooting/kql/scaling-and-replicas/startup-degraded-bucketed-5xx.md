@@ -123,7 +123,7 @@ ContainerAppConsoleLogs_CL
 
 **Healthy baseline result**: `err_pct == 0` (or strictly less than 0.5%) with `requests` close to `target_rps × duration_seconds × 0.85`. A baseline `err_pct > 0` invalidates the entire perturbation comparison — see Q5 for the falsification rule and Q6 for headroom estimation.
 
-**`requests` count interpretation**: k6's constant-arrival-rate scheduler may report fewer achieved RPS than requested when downstream queueing exceeds VU capacity. In Stage B's preflight, 200 RPS achieved ~169 RPS (85%) — sub-saturation queueing, not failure. See the lab guide's "Section 6: Execution" for the headroom curve.
+**`requests` count interpretation**: k6's constant-arrival-rate scheduler may report fewer achieved RPS than requested when downstream queueing exceeds VU capacity. In the lab's preflight, 200 RPS achieved ~169 RPS (85%) — sub-saturation queueing, not failure. See the lab guide's "Section 6: Execution" for the headroom curve.
 
 ## Q2 — 10-Second Bucket Time Series (Sum Across VUs)
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stage B KQL execution harness for startup-degraded-transient-failure lab.
+# KQL execution harness for startup-degraded-transient-failure lab.
 #
 # Runs the KQL queries from
 # docs/troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md

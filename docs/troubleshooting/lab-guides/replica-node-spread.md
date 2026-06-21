@@ -296,18 +296,6 @@ The lab is built to be falsifiable in three complementary directions:
 | Per-run raw samples | `labs/replica-node-spread/evidence/{consumption,dedicated-d8}-scale-<N>-run-<R>.jsonl` | One JSON line per `/diag` sample; analyze.py's only input |
 | Analysis summary | `labs/replica-node-spread/evidence/analysis-summary.{md,json}` | Per-run cluster counts + top-scale concurrence rollup |
 
-### Required Portal captures
-
-These five captures are required to make the H1 / H2 verdicts UI-verifiable. Save under `docs/assets/troubleshooting/replica-node-spread/` using the exact filenames in the table; PII rules per [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules).
-
-| # | When | Portal blade | What it proves | Filename |
-|---|---|---|---|---|
-| C1 | After deploy | Resource group → Overview | Two apps + env + ACR + LAW + UAMI all present in the same RG; eliminates the "deployment is split across RGs" confounder | `01-rg-overview.png` |
-| C2 | After deploy | Container Apps env → Workload profiles | Both Consumption and Dedicated D8 profiles listed on the same env; confirms the experimental setup | `02-env-workload-profiles.png` |
-| C3 | After scaling app-consumption to 30 | app-consumption → Revisions and replicas (Active revisions tab) | Active revision row shows the running replica count = 30 at top scale; revision name and provisioning state visible | `03-app-consumption-30-replicas.png` |
-| C4 | After scaling app-dedicated-d8 to 10 | app-dedicated-d8 → Revisions and replicas (Active revisions tab) | Active revision row shows the running replica count = 10 at top scale under the Dedicated D8 profile | `04-app-dedicated-d8-10-replicas.png` |
-| C5 | After deploy | app-consumption → Overview (Essentials section) | Confirms `Environment type: Workload profiles` for `app-consumption`'s parent environment, which is the prerequisite for the app-level `workloadProfileName: Consumption` binding set in `infra/main.bicep` | `05-app-consumption-workload-profile.png` |
-
 ### Observed Evidence (Live Azure Reproduction)
 
 !!! success "Run scope — full reproduction (`reproduced`)"
@@ -330,7 +318,7 @@ These five captures are required to make the H1 / H2 verdicts UI-verifiable. Sav
 
 #### Portal captures (2026-06-14 reproduction)
 
-The five captures specified in the **Required Portal captures** table above were taken during this reproduction and committed under [`docs/assets/troubleshooting/replica-node-spread/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/docs/assets/troubleshooting/replica-node-spread). All captures were processed through the standard PII helper before commit (see [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules)).
+The five captures specified during this reproduction are committed under [`docs/assets/troubleshooting/replica-node-spread/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/docs/assets/troubleshooting/replica-node-spread).
 
 [Observed] **C1 — Resource group Overview.** Both subject apps, the Container Apps environment, the ACR, the Log Analytics workspace, and the user-assigned managed identity are all listed under the single resource group `rg-aca-rns-lab-202606141423`. This eliminates the "deployment split across multiple resource groups" confounder.
 

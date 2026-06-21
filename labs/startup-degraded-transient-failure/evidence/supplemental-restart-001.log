@@ -30,4 +30,4 @@
 >>>> Restarting active revision: subject-app--0000015
 
 >>>> Supplemental restart phase complete. RUN_ID=supplemental-restart-20260613054632
->>>> NOTE: Cap conclusions about platform-initiated restart causes at [Strongly Suggested] (Oracle binding #1).
+>>>> NOTE: Cap conclusions about platform-initiated restart causes at [Strongly Suggested].

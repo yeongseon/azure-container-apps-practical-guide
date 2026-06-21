@@ -1,7 +1,7 @@
-# Stage B audit sidecar image.
+# Audit sidecar image for the startup-degraded-transient-failure lab.
 #
 # Goals:
-#   - Mariner base for parity with the Stage A audit image.
+#   - Mariner base for parity with the companion zone-redundancy audit image.
 #   - Pins bash, curl, jq, coreutils so the JSON emission path is stable.
 #   - Runs sample.sh as PID 1 so the Container Apps Job runtime receives
 #     SIGTERM during graceful termination.

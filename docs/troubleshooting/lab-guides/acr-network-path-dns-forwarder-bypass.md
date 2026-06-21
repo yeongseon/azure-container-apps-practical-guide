@@ -477,7 +477,7 @@ This isolates the cause of the workload-side resolution flip to dnsmasq's upstre
 
 ### Observed Evidence (Portal Captures — 2026-06-06)
 
-A live reproduction on **2026-06-06** captured the full Scenario E topology and the workload-path falsification surface from the Azure Portal. Captures were taken from the Azure Portal (English) at viewport 1600x1000 using the PII helper defined in [AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules) — text replacement only, with the Account-menu avatar masked using Portal blue (`#0078d4`); no black-box masks anywhere else.
+A live reproduction on **2026-06-06** captured the full Scenario E topology and the workload-path falsification surface from the Azure Portal.
 
 **Environment**
 

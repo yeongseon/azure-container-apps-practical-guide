@@ -5,7 +5,7 @@ for underlying node identity. The signals are intentionally read
 fresh on every request so that the response reflects the actual
 container at request time, not a cached value from import time.
 
-Fields returned (Oracle-modified design per Issue #202):
+Fields returned (design per Issue #202):
 
 | Field               | Source                                          | Purpose                                    |
 |---------------------|-------------------------------------------------|--------------------------------------------|

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PII scrub for Stage B evidence files.
+# PII scrub for startup-degraded-transient-failure evidence files.
 #
 # Applies the AGENTS.md PII policy to all *.log / *.tsv / *.txt / *.json files
 # in this directory. Idempotent - safe to re-run as new evidence files are added.
@@ -11,7 +11,7 @@
 #        Loaded from an ignored local file (./.local/pii-values.env) or from
 #        environment variables so real identifiers are NOT committed to git.
 #        Supported vars:
-#          REAL_SUB_A  - Stage B subscription GUID
+#          REAL_SUB_A  - Primary subscription GUID
 #          REAL_SUB_B  - 2026-06-20 repro subscription GUID
 #          REAL_TENANT - FDPO tenant GUID used by 2026-06-20 repro
 #        All map to -> 00000000-0000-0000-0000-000000000000
@@ -40,7 +40,7 @@
 # Local setup (one-time, for the lab maintainer):
 #   mkdir -p ./.local
 #   cat > ./.local/pii-values.env <<'EOF'
-#   export REAL_SUB_A="<your-stage-b-subscription-guid>"
+#   export REAL_SUB_A="<your-primary-subscription-guid>"
 #   export REAL_SUB_B="<your-2026-06-20-repro-subscription-guid>"
 #   export REAL_TENANT="<your-tenant-guid>"
 #   EOF

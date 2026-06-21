@@ -23,7 +23,7 @@ content_validation:
     status: reproduced
     tested_date: '2026-06-14'
     az_cli_version:
-    notes: 'Full reproduction completed 2026-06-12 → 2026-06-14 (koreacentral, RG rg-aca-zr-lab-260612114313, branch lab/zone-redundancy-204-phase3-7, Hybrid A path per Oracle session ses_144f3ce9cffeyOLLgO8doWTal3). 24-hour baseline window 2026-06-12T11:51:46Z → 2026-06-13T11:51:46Z passed with BaselineChurnEvents=0 across all 3 apps (Q3 returned zero rows; Q2 SteadyStateOK=True for app-min2/app-min3/app-min6). H0a NOT falsified. Three perturbation variants (restart-only, combined no-retry 180s, combined retry-backoff 180s) executed 2026-06-14T11:04–11:31Z against app-min3; 0/1950 client-visible failures across the two load-bearing variants (H0b NOT falsified under this load profile). Q7 captured MaxReplacementFraction=1.0 on app-min3 (operator restart can momentarily replace all 3 replicas). Raw evidence corpus committed under labs/zone-redundancy-best-effort/evidence/. Claim 2 (zone distribution) remains capped at [Strongly Suggested] because ACA does not expose per-replica AZ identity; Claim 3 (multi-replica platform events) remains capped at [Strongly Suggested] because no platform-driven clustered churn was observed in the 24h baseline.'
+    notes: 'Full reproduction completed 2026-06-12 → 2026-06-14 (koreacentral, RG rg-aca-zr-lab-260612114313, branch lab/zone-redundancy-204-phase3-7, Hybrid A path). 24-hour baseline window 2026-06-12T11:51:46Z → 2026-06-13T11:51:46Z passed with BaselineChurnEvents=0 across all 3 apps (Q3 returned zero rows; Q2 SteadyStateOK=True for app-min2/app-min3/app-min6). H0a NOT falsified. Three perturbation variants (restart-only, combined no-retry 180s, combined retry-backoff 180s) executed 2026-06-14T11:04–11:31Z against app-min3; 0/1950 client-visible failures across the two load-bearing variants (H0b NOT falsified under this load profile). Q7 captured MaxReplacementFraction=1.0 on app-min3 (operator restart can momentarily replace all 3 replicas). Raw evidence corpus committed under labs/zone-redundancy-best-effort/evidence/. Claim 2 (zone distribution) remains capped at [Strongly Suggested] because ACA does not expose per-replica AZ identity; Claim 3 (multi-replica platform events) remains capped at [Strongly Suggested] because no platform-driven clustered churn was observed in the 24h baseline.'
   core_claims:
     - claim: Container Apps zone redundancy distributes replicas across Availability Zones on a best-effort basis subject to host capacity and resource requests.
       source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
@@ -321,38 +321,6 @@ The lab is built to be falsifiable in two complementary directions:
 
 Run [Mass-Reschedule KQL pack](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md) **Q1-Q4, Q6, Q7**. Q5 is **optional** — only meaningful if you wire App Insights (or another ingested 5xx source) to the subject apps; the default sample image does not emit ingested 5xx telemetry and the lab's H0b verdict comes from `trigger.sh` stdout (see Section 3, item 2).
 
-### Required Portal captures
-
-These seven captures are required to make the H0a result UI-verifiable. Save under `docs/assets/troubleshooting/zone-redundancy-best-effort/` using the exact filenames in the table; PII rules per [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules).
-
-| # | When | Portal blade | What it proves | Filename |
-|---|---|---|---|---|
-| C1 | After deploy, before perturb | Container Apps env → Overview | Environment surfaces zone-redundant status alongside region | `01-env-overview-zone-redundant.png` |
-| C2 | After deploy | Container Apps env → Workload profiles | Confirms the Consumption profile inside the workload-profile environment used by this lab; zone redundancy is configured at the environment level | `02-env-workload-profiles.png` |
-| C3 | After deploy | app-min3 → Overview | Single app shows `Running` with `Min replicas = Max replicas = 3` visible in the Configuration tile | `03-app-min3-overview.png` |
-| C4 | After deploy | app-min3 → Revisions and replicas | All 3 replicas listed under one revision; running state green | `04-app-min3-revisions-replicas-baseline.png` |
-| C6 | Anytime after Phase 1 has produced samples | Log Analytics → Logs editor | Q1 ingestion-check query pasted, returning `HealthRatio` near 1.0 | `06-log-analytics-q1-ingestion.png` |
-| C7 | After perturbation run #1 | Log Analytics → Logs editor | Q3 clustered-churn query showing the perturbation-induced row | `07-log-analytics-q3-clustered-churn.png` |
-| C11 | After perturbation runs | app-min3 → Metrics blade | Replica Count + Restart Count chart showing the perturbation dip and recovery | `11-app-min3-metrics-replicas.png` |
-
-### Optional Portal captures
-
-These captures add depth but are not required to validate H0a. Capture only if time and the data signal allow:
-
-| # | When | Portal blade | What it proves | Filename |
-|---|---|---|---|---|
-| C10 | After perturbation runs across all three apps | Log Analytics → Logs editor | Q7 multi-app comparison, side-by-side `MaxReplacementFraction` | `10-log-analytics-q7-multi-app.png` |
-| C12 | After perturbation runs | app-min3 → Log stream (live) | Real-time logs showing the restart sequence (ContainerTerminated → ContainerStarted) | `12-app-min3-log-stream.png` |
-
-### Conditional Portal captures
-
-| # | Condition | Portal blade | Filename |
-|---|---|---|---|
-| C9 | Only after you deploy the optional custom subject-app image (see [Optional setup](#optional-setup-custom-subject-app-image-azure-monitor-workbook) below). With the default `helloworld` image, the `AppRequests` table has no rows to display. | Log Analytics → Logs editor | `09-log-analytics-q5-503-correlation.png` |
-| C13 | Only after you deploy the optional 3-panel workbook covering Q3 + Q4 + Q7 (see [Optional setup](#optional-setup-custom-subject-app-image-azure-monitor-workbook) below). The workbook ARM template ships at [`labs/zone-redundancy-best-effort/workbook/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/workbook). | Azure Monitor → Workbooks | `13-workbook-3-panel-overview.png` |
-| C6a | If your reviewer also asks for the result-table-only screenshot separated from the editor view | Log Analytics → Logs editor (result pane) | `06a-log-analytics-q1-ingestion-table.png` |
-| C14 | Only if you wire up an Azure Monitor alert on Q3 during the lab and need to evidence the firing alert | Azure Monitor → Alerts | `14-azure-monitor-alert.png` |
-
 ### Optional setup: Custom subject-app image + Azure Monitor workbook
 
 This lab ships two opt-in components for richer evidence beyond the default `helloworld` image. The infrastructure for both components is committed under `labs/zone-redundancy-best-effort/`; measured evidence (`AppRequests` rows for Q5 + C9/C13 Portal captures) will be added in a follow-up reproduction run.
@@ -408,7 +376,7 @@ The `infra/main.bicep` template now provisions a workspace-based Application Ins
 
 #### Portal captures (2026-06-14 reproduction)
 
-The seven captures specified in the **Required Portal captures** table above were taken during this reproduction and committed under [`docs/assets/troubleshooting/zone-redundancy-best-effort/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/docs/assets/troubleshooting/zone-redundancy-best-effort). All captures were processed through the standard PII helper before commit (see [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules)).
+The Portal captures from this reproduction are committed under [`docs/assets/troubleshooting/zone-redundancy-best-effort/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/docs/assets/troubleshooting/zone-redundancy-best-effort).
 
 [Observed] **C1 — Container Apps environment Overview.** The environment `cae-zrlab-5yi4px` displays its zone-redundant status alongside the `koreacentral` region in the Essentials tile, confirming `properties.zoneRedundant=true` at the environment level.
 
