@@ -10,13 +10,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-06-03
     az_cli_version: 2.71.0
-    notes: Reproduced end-to-end in rg-aca-lab-observability (koreacentral); baseline secretRef → invalid literal → secretRef restored across revisions 0m6ek7p → 0000001 → 0000002; six Portal captures attached with PII-replacement masking. Telemetry-count claim left [Not Proven] because the baseline helloworld image ships no Application Insights SDK.
+    notes: 'Reproduced end-to-end in rg-aca-lab-observability (koreacentral); baseline secretRef → invalid literal → secretRef restored across revisions 0m6ek7p → 0000001 → 0000002; six Portal captures attached with PII-replacement masking. Telemetry-count claim left [Not Proven] because the baseline helloworld image ships no Application Insights SDK. The three env-var anchor captures (02-baseline-secretref on revision 0m6ek7p, 03-after-trigger-literal on revision 0000001, 06-restored-secretref on revision 0000002) directly falsify the env-var-source half of the hypothesis: Source flips Reference a secret → Manual entry → Reference a secret, with the literal value exactly matching the trigger.sh invalid connection string.'
   core_claims:
     - claim: Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability.
       source: https://learn.microsoft.com/en-us/azure/container-apps/observability
@@ -26,12 +26,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-06-03'
+    cli_version: '2.71.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-03'
+    result: pass
 ---
 # Observability and Distributed Tracing Lab
 

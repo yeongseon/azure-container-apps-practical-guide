@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 17 |
+| ✅ Validated | 18 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 64 |
+| ➖ Not tested | 63 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 17
-    "Not Tested" : 64
+    "Validated" : 18
+    "Not Tested" : 63
 ```
 
 ## Validation Matrix
@@ -125,7 +125,7 @@ pie title Tutorial Validation Status
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Multi Arch Image Mismatch](../troubleshooting/lab-guides/multi-arch-image-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Private Endpoint Dns Failure](../troubleshooting/lab-guides/private-endpoint-dns-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
