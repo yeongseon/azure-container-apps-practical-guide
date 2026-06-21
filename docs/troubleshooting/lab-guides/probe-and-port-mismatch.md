@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-05-01
+    tested_date: 2026-06-03
     az_cli_version: 2.70.0
-    notes: ProbeFailed system events confirmed, HTTP 200 on correct port
+    notes: 'Reproduced end-to-end on 2026-06-03 against rg-aca-lab-probe (subscription, resource names redacted per AGENTS.md PII rules). PR-A failure-state captures (#40, commit b811de5, 2026-06-03 08:47 +0900) confirm: TargetPort 8000 vs gunicorn :3000, --0000001 Failed at 100% traffic, --coxh910 Degraded, repeated ProbeFailed System events with Count incrementing into the thousands across both revisions. PR-B after-fix captures (#41, commit d22fcad, 2026-06-03 10:39 +0900) confirm same-revision recovery via three independent signals: (1) revision name --0000001 preserved across failure and recovery captures, (2) identical Created timestamp 6/3/2026 8:17:46 AM in capture 02 and capture 08, (3) controller event "No revision restart or provisioning was needed." in capture 11. Re-reviewed 2026-06-21 under the AGENTS.md visual-verification-mandatory rule (PR #226, commit b0a3d27) with all 11 PNGs verified one-per-Read-call — no PII leaks, no 401/403, no wrong-blade captures, evidence stronger than caption claims in captures 06, 08, 11. Tracked in issue #227.'
   core_claims:
     - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
       source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
@@ -25,12 +25,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-06-03'
+    cli_version: '2.70.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-03'
+    result: pass
 ---
 # Probe and Port Mismatch Lab
 
@@ -393,6 +393,8 @@ TargetPort: 3000
 
 ![Revisions and replicas blade showing the same --0000001 revision now Running at 100% traffic with --coxh910 no longer active](../../assets/troubleshooting/probe-and-port-mismatch/08-revisions-recovered.png)
 
+[Observed] The `Created` field for `ca-labprobe-shes3s--0000001` reads `6/3/2026 8:17:46 AM` in capture 08, **identical** to the `Created` value the Portal renders for the same revision in the failure-state capture 02. This is direct visual evidence that the ingress edit did not mint a new revision: the platform is reporting the same `revision.properties.createdTime` value before and after the `targetPort` change. Together with the matching revision name and capture 11 below (the `No revision restart or provisioning was needed.` controller event), this triangulates the same-revision-recovery claim from three independent signals: revision name, creation timestamp, and platform-emitted event.
+
 [Observed] The Ingress blade shows `Target port: 3000`, matching the workload's actual listening port (compare to capture 04 which showed `8000`):
 
 ![Ingress blade showing Target port set to 3000](../../assets/troubleshooting/probe-and-port-mismatch/09-ingress-recovered.png)
@@ -412,7 +414,7 @@ TargetPort: 3000
 
 ![Log stream System category showing RevisionUpdate, RevisionDeactivating, and No revision restart or provisioning was needed events with no ProbeFailed entries](../../assets/troubleshooting/probe-and-port-mismatch/11-system-logs-recovered.png)
 
-[Observed] The `No revision restart or provisioning was needed.` event surfaced by the Container Apps controller confirms directly from the platform that the ingress edit did not mint a new revision and did not restart the existing replica. Combined with capture 08 showing the same revision name as the failure state, this anchors the **same-revision recovery** claim in platform-emitted evidence, not just naming conventions.
+[Observed] The `No revision restart or provisioning was needed.` event surfaced by the Container Apps controller confirms directly from the platform that the ingress edit did not mint a new revision and did not restart the existing replica. Combined with capture 08 — which shows both the **same revision name** as the failure state and an **identical `Created` timestamp** (`6/3/2026 8:17:46 AM`) — this anchors the **same-revision recovery** claim in three independent platform signals: name, creation timestamp, and controller event. The claim is therefore not a naming-convention inference; it is a triangulated observation.
 
 ## Clean Up
 

@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-13"
+  last_reviewed: "2026-06-21"
   reviewer: ai-agent
   core_claims:
     - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
@@ -21,21 +21,21 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-06-13*
+*Generated: 2026-06-21*
 
 | Metric | Count |
 |---|---:|
-| Total tutorials | 80 |
-| ✅ Validated | 8 |
+| Total tutorials | 81 |
+| ✅ Validated | 11 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 72 |
+| ➖ Not tested | 70 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 8
-    "Not Tested" : 72
+    "Validated" : 11
+    "Not Tested" : 70
 ```
 
 ## Validation Matrix
@@ -120,15 +120,16 @@ pie title Tutorial Validation Status
 | [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ➖ No Data | ➖ No Data | — | ➖ Not Tested |
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
-| [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ Pass | ✅ Pass | 2026-06-02 | ✅ Pass |
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Multi Arch Image Mismatch](../troubleshooting/lab-guides/multi-arch-image-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Private Endpoint Dns Failure](../troubleshooting/lab-guides/private-endpoint-dns-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Replica Node Spread](../troubleshooting/lab-guides/replica-node-spread.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
 | [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Revision History Limit](../troubleshooting/lab-guides/revision-history-limit.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Revision Provisioning Failure](../troubleshooting/lab-guides/revision-provisioning-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
