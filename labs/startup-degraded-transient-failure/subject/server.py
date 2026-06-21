@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Stage B subject application for the startup-degraded-transient-failure lab.
+Subject application for the startup-degraded-transient-failure lab.
 
 Behavior:
   1. On process start, prints `startup-delay-begin` and sleeps for

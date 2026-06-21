@@ -323,7 +323,7 @@ Environment: `rg-aca-lab-test6`, `koreacentral`, `az role assignment create` / C
 **Service Principal:** `ca-labcdrbac-khgtaj-github-actions-lab` (simulated CD identity, mirrors `az containerapp github-action add`).
 **Container Registry:** `acrlabcdrbackhgtaj`.
 
-The five captures below were taken end-to-end after running `./trigger.sh` (reproduce conflict) and `./verify.sh` (delete-and-retry recovery). All PII (subscription IDs, tenant identifiers, object IDs) is replaced with the documented Azure zero-GUID placeholder per the [Portal capture rules in AGENTS.md](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules).
+The five captures below were taken end-to-end after running `./trigger.sh` (reproduce conflict) and `./verify.sh` (delete-and-retry recovery). All PII (subscription IDs, tenant identifiers, object IDs) is replaced with the documented Azure zero-GUID placeholder.
 
 [Observed] The resource group's **Deployments** blade shows the full sequence of ARM deployments produced by the reproduction: the seed `lab-cd-rbac` and `lab-ra-initial` succeeded, then `lab-ra-reconnect` failed during the simulated reconnect:
 

@@ -72,6 +72,22 @@ The 5 captures committed under `docs/assets/troubleshooting/cd-reconnect-rbac-co
 | 4 | After `./verify.sh` completes Step 4 (retry) | Resource Group → Deployments → `lab-ra-verify-recovery` | Deployment detail with green "Your deployment is complete" banner | `04-deployment-recovered.png` |
 | 5 | After `./verify.sh` completes Step 5 | Azure Container Registry → Access control (IAM) → **Role assignments** tab | Same scoped filter as #3; expect exactly one active `AcrPush` assignment (the freshly created one, different underlying GUID from #3 — verify in CLI output since the GUID renders as the zero-GUID placeholder after PII replacement) | `05-iam-after-fix.png` |
 
+### dapr-integration
+
+The 6 captures committed under `docs/assets/troubleshooting/dapr-integration/`:
+
+| # | When in the reproduction | Portal blade | What to verify on-screen | Filename |
+|---|---|---|---|---|
+| 1 | Baseline (before `trigger.sh`) | Container App → Overview | `Status: Running`, `Location: Korea Central`, `Resource group: rg-aca-lab-dapr`, `Application Url` populated | `01-overview.png` |
+| 2 | Baseline (before `trigger.sh`) | Container App → Dapr | `Dapr: Enabled`, `App ID: dapr-labdapr-bh2uom`, `App port: 8000`, `App protocol: HTTP` | `02-dapr-baseline-appport-8000.png` |
+| 3 | After trigger (CLI workaround applied) | Container App → Dapr (click **Refresh** in blade) | `App port: 8081`, `Dapr: Enabled`, `App ID: dapr-labdapr-bh2uom`, `App protocol: HTTP` | `03-dapr-after-trigger-appport-8081.png` |
+| 4 | After trigger | Container App → Revisions | Revision `ca-labdapr-bh2uom--xafdl2m` row: `Running status: Degraded`, `Traffic: 100%`, `Replicas: 2` | `04-revisions-degraded.png` |
+| 5 | After trigger | Container App → Containers (**Properties** tab) | `Image and tag: azuredocs/containerapps-helloworld:latest`, `Registry login server: mcr.microsoft.com` — anchors the `[Not Proven]` causation caveat | `05-containers-helloworld-image.png` |
+| 6 | After restoring `--dapr-app-port 8000` (CLI workaround applied) | Container App → Revisions | Revision `ca-labdapr-bh2uom--xafdl2m` still shows `Running status: Degraded` — directly demonstrates the `[Not Proven]` causation caveat | `06-revisions-still-degraded-after-restore.png` |
+
+!!! warning "Dapr blade stale-cache caveat"
+    The Dapr blade has a known stale-cache behavior: the inline **Refresh** button inside the blade iframe must be clicked after applying a CLI mutation, otherwise the previous value persists in the panel even though the underlying resource has changed.
+
 ### ingress-target-port-mismatch
 
 The 16 captures committed under `docs/assets/troubleshooting/ingress-target-port-mismatch/` are organized as **8 failure/fix pairs**. The lab's Observed Evidence section walks through them in pair order so that each post-fix capture sits directly next to its pre-fix counterpart on the same Portal blade with the same view / filters — making the falsification argument visual.
@@ -117,6 +133,18 @@ The 6 captures from the 2026-06-03 reproduction, committed under `docs/assets/tr
 | 4 | During the incident | Application Insights `appi-labobs-622oal` → Transaction search | Filter chips `Local Time: Last 24 hours (Automatic)`, `View as: Traces`, `Event types = All selected`; "See all data in the last 24 hours" prompt (no executed result table) | `04-appinsights-transaction-search.png` |
 | 5 | During the incident | Application Insights `appi-labobs-622oal` → Logs | KQL `traces \| count`; Time range `Last hour`; Results column header `Count` with single row `0` | `05-appinsights-logs-traces-count-zero.png` |
 | 6 | After the fix | Container App → Containers → Environment variables (Based on revision `ca-labobs-622oal--0000002`) | Same env var, Source = "Reference a secret", Value = `appinsights-connection-stri...` | `06-env-vars-restored-secretref.png` |
+
+### replica-node-spread
+
+The 5 captures committed under `docs/assets/troubleshooting/replica-node-spread/`:
+
+| # | When | Portal blade | What it proves | Filename |
+|---|---|---|---|---|
+| C1 | After deploy | Resource group → Overview | Two apps + env + ACR + LAW + UAMI all present in the same RG; eliminates the "deployment is split across RGs" confounder | `01-rg-overview.png` |
+| C2 | After deploy | Container Apps env → Workload profiles | Both Consumption and Dedicated D8 profiles listed on the same env; confirms the experimental setup | `02-env-workload-profiles.png` |
+| C3 | After scaling app-consumption to 30 | app-consumption → Revisions and replicas (Active revisions tab) | Active revision row shows the running replica count = 30 at top scale; revision name and provisioning state visible | `03-app-consumption-30-replicas.png` |
+| C4 | After scaling app-dedicated-d8 to 10 | app-dedicated-d8 → Revisions and replicas (Active revisions tab) | Active revision row shows the running replica count = 10 at top scale under the Dedicated D8 profile | `04-app-dedicated-d8-10-replicas.png` |
+| C5 | After deploy | app-consumption → Overview (Essentials section) | Confirms `Environment type: Workload profiles` for `app-consumption`'s parent environment, which is the prerequisite for the app-level `workloadProfileName: Consumption` binding set in `infra/main.bicep` | `05-app-consumption-workload-profile.png` |
 
 ### revision-failover
 
@@ -256,6 +284,38 @@ The 6 captures committed under `docs/assets/troubleshooting/traffic-routing-cana
 | 4 | During the incident | Container App → Ingress | Ingress blade showing `Target port = 80` (unchanged) to prove the failure is per-revision, not ingress-level | `04-ingress-target-port-80.png` |
 | 5 | During the incident | Container App → Revisions and replicas → good revision → View details | Revision status details flyout for the good revision showing `Running` with empty Status details (contrast against #3) | `05-good-revision-running-details.png` |
 | 6 | After the incident | Container App → Activity log | The three `Create or Update Container App` operations corresponding to deployment + image-swap + traffic-set | `06-activity-log-update-operations.png` |
+
+### zone-redundancy-best-effort
+
+The captures committed under `docs/assets/troubleshooting/zone-redundancy-best-effort/`. The lab distinguishes **required** (validates H0a), **optional** (adds depth), and **conditional** (depends on optional setup) captures.
+
+**Required captures (7) — validate H0a**
+
+| # | When | Portal blade | What it proves | Filename |
+|---|---|---|---|---|
+| C1 | After deploy, before perturb | Container Apps env → Overview | Environment surfaces zone-redundant status alongside region | `01-env-overview-zone-redundant.png` |
+| C2 | After deploy | Container Apps env → Workload profiles | Confirms the Consumption profile inside the workload-profile environment used by this lab; zone redundancy is configured at the environment level | `02-env-workload-profiles.png` |
+| C3 | After deploy | app-min3 → Overview | Single app shows `Running` with `Min replicas = Max replicas = 3` visible in the Configuration tile | `03-app-min3-overview.png` |
+| C4 | After deploy | app-min3 → Revisions and replicas | All 3 replicas listed under one revision; running state green | `04-app-min3-revisions-replicas-baseline.png` |
+| C6 | Anytime after Phase 1 has produced samples | Log Analytics → Logs editor | Q1 ingestion-check query pasted, returning `HealthRatio` near 1.0 | `06-log-analytics-q1-ingestion.png` |
+| C7 | After perturbation run #1 | Log Analytics → Logs editor | Q3 clustered-churn query showing the perturbation-induced row | `07-log-analytics-q3-clustered-churn.png` |
+| C11 | After perturbation runs | app-min3 → Metrics blade | Replica Count + Restart Count chart showing the perturbation dip and recovery | `11-app-min3-metrics-replicas.png` |
+
+**Optional captures (2) — add depth if time and signal allow**
+
+| # | When | Portal blade | What it proves | Filename |
+|---|---|---|---|---|
+| C10 | After perturbation runs across all three apps | Log Analytics → Logs editor | Q7 multi-app comparison, side-by-side `MaxReplacementFraction` | `10-log-analytics-q7-multi-app.png` |
+| C12 | After perturbation runs | app-min3 → Log stream (live) | Real-time logs showing the restart sequence (ContainerTerminated → ContainerStarted) | `12-app-min3-log-stream.png` |
+
+**Conditional captures (4) — depend on optional setup or specific scenarios**
+
+| # | Condition | Portal blade | Filename |
+|---|---|---|---|
+| C9 | Only after you deploy the optional custom subject-app image. With the default `helloworld` image, the `AppRequests` table has no rows to display. | Log Analytics → Logs editor | `09-log-analytics-q5-503-correlation.png` |
+| C13 | Only after you deploy the optional 3-panel workbook covering Q3 + Q4 + Q7. The workbook ARM template ships at `labs/zone-redundancy-best-effort/workbook/`. | Azure Monitor → Workbooks | `13-workbook-3-panel-overview.png` |
+| C6a | If your reviewer also asks for the result-table-only screenshot separated from the editor view | Log Analytics → Logs editor (result pane) | `06a-log-analytics-q1-ingestion-table.png` |
+| C14 | Only if you wire up an Azure Monitor alert on Q3 during the lab and need to evidence the firing alert | Azure Monitor → Alerts | `14-azure-monitor-alert.png` |
 
 ## See Also
 

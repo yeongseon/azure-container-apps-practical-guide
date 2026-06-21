@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Source this file in a fresh shell to re-establish the Stage B working context.
+# Source this file in a fresh shell to re-establish the lab working context.
 # Usage: source labs/startup-degraded-transient-failure/evidence/deploy-env.sh
 
 export RG="rg-aca-sdlab-260612125433"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stage B high-frequency perturbation sampler.
+# High-frequency perturbation sampler for the startup-degraded-transient-failure lab.
 #
 # Designed to run as a short Container Apps Job around each perturbation
 # event. Polls the ARM REST API every SAMPLE_INTERVAL_SECONDS (default 5s)
@@ -14,7 +14,7 @@
 #   PerturbationWindowMarker - emitted once at job start and once at job
 #                              end, with the perturbation_id for KQL join.
 #
-# Per Oracle Stage B revision #5: a 5-minute audit interval is too coarse
+# Per lab design D7: a 5-minute audit interval is too coarse
 # for a 10-second-bucket transition lab. This sampler closes that gap.
 #
 # Required environment:

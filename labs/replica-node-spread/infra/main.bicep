@@ -14,7 +14,6 @@ targetScope = 'resourceGroup'
 // on different physical nodes.
 //
 // Issue: https://github.com/yeongseon/azure-container-apps-practical-guide/issues/202
-// Oracle design review session: ses_14b7919caffe2lB37qNy19bGl5 (APPROVE-WITH-MODIFICATIONS)
 //
 // Sources:
 // - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
@@ -201,7 +200,7 @@ resource env 'Microsoft.App/managedEnvironments@2024-03-01' = {
 //   - app-consumption uses the Consumption (multi-tenant) profile
 //   - app-dedicated-d8 uses the d8-dedicated (Dedicated D8) profile
 //
-// Per Issue #202 design (Oracle-modified, top targets revised after
+// Per Issue #202 design (top targets revised after
 // empirical D8 capacity-ceiling finding 2026-06-14):
 //   - Per-replica resources: 0.25 vCPU / 0.5 Gi (smallest Consumption alloc)
 //   - Top scale targets used by trigger.sh: Consumption=30, Dedicated D8=10

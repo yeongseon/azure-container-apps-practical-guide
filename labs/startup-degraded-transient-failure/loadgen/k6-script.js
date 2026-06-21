@@ -1,4 +1,4 @@
-/* Stage B k6 load generator for startup-degraded-transient-failure lab.
+/* k6 load generator for startup-degraded-transient-failure lab.
  *
  * Sustains TARGET_RPS requests per second against SUBJECT_URL for
  * DURATION_SECONDS, with connection reuse disabled (each VU iteration

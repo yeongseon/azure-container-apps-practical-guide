@@ -1,6 +1,6 @@
 # Phase 2-7 Resume Playbook — zone-redundancy-best-effort
 
-This document is the **resume runbook** for completing the Hybrid A reproduction
+This document is the **resume runbook** for completing the lab reproduction
 of [Issue #204](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/204).
 Phase 0 (honesty fix) and Phase 1 (Azure deploy + verify) are complete.
 
@@ -17,7 +17,7 @@ Phases 2-7 require either (a) a wall-clock 24 hour baseline window to elapse or
 | 3 | Perturbation tests (3 variants on app-min3) | Pending | `evidence/perturbation-*.log` |
 | 4 | KQL Q1-Q4, Q6, Q7 + CSV export | Pending | `evidence/kql-*.csv` |
 | 5 | Lab guide update (Section 12 + frontmatter flip) | Pending | `docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md` |
-| 6 | PII scan + mkdocs strict + Oracle final review | Pending | inline |
+| 6 | PII scan + mkdocs strict + final review | Pending | inline |
 | 7 | Cleanup + PR with `Closes #204` | Pending | branch push + PR |
 
 ## Environment recap (after Phase 1)
@@ -104,13 +104,12 @@ for Q1-Q7 with column projections. Pipe each query to `evidence/q{N}-{descriptio
 - Flip frontmatter `status: reproduced_partial` → `status: reproduced`
 - Update `tested_date` to actual end-of-Phase-4 date
 
-### Step 7: Validation + Oracle review
+### Step 7: Validation
 
 ```bash
 python3 scripts/normalize_yaml_frontmatter.py --check
 python3 scripts/validate_content_sources.py
 mkdocs build --strict
-# Then resume Oracle session ses_144f3ce9cffeyOLLgO8doWTal3 with final review prompt
 ```
 
 ### Step 8: Cleanup + PR
@@ -125,7 +124,7 @@ cd labs/zone-redundancy-best-effort
 
 # Push and open PR
 git push origin lab/zone-redundancy-best-effort-reproduce
-gh pr create --title "feat(labs): zone-redundancy-best-effort full 24h reproduction (Hybrid A)" --body "Closes #204..."
+gh pr create --title "feat(labs): zone-redundancy-best-effort full 24h reproduction" --body "Closes #204..."
 ```
 
 ## Sanity checklist for resume session
@@ -157,4 +156,3 @@ RG="$RG" labs/zone-redundancy-best-effort/verify.sh
 - Lab guide: [`docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md`](../../../docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md)
 - KQL pack: [`docs/troubleshooting/kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md`](../../../docs/troubleshooting/kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md)
 - Playbook: [`docs/troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md`](../../../docs/troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md)
-- Oracle session: `ses_144f3ce9cffeyOLLgO8doWTal3` (resume for Phase 6 final review)

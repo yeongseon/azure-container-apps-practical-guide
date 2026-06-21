@@ -1,4 +1,4 @@
-# Stage B high-frequency perturbation sampler image.
+# High-frequency perturbation sampler image for startup-degraded-transient-failure lab.
 #
 # Goals:
 #   - Identical base + package set as the audit sidecar so behavior is

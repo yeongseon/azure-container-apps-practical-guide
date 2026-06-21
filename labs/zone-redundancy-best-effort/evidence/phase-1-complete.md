@@ -136,4 +136,3 @@ and are re-fetchable via `az account show` and
 - [`RESUME-PLAYBOOK.md`](RESUME-PLAYBOOK.md) — Phase 2-7 resume runbook
 - Lab guide: [`../../../docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md`](../../../docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md)
 - Issue: [#204](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/204)
-- Oracle session: `ses_144f3ce9cffeyOLLgO8doWTal3` (Hybrid A verdict; resume for Phase 6 final review)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stage B audit sampler for startup-degraded-transient-failure lab.
+# Audit sampler for startup-degraded-transient-failure lab.
 #
 # Acquires an IMDS token using the user-assigned managed identity, then
 # polls the ARM REST API every SAMPLE_INTERVAL_SECONDS (default 30s) for
@@ -11,7 +11,7 @@
 #                            provisioning state, and active flag.
 #
 # Mirrors labs/zone-redundancy-best-effort/audit/sample.sh but adds the
-# RevisionStateSample event type per Oracle Stage B revision D7.
+# RevisionStateSample event type per lab design D7.
 #
 # Required environment:
 #   SUBSCRIPTION_ID          ARM subscription GUID.
@@ -31,7 +31,7 @@ set -euo pipefail
 : "${MANAGED_IDENTITY_CLIENT_ID:?MANAGED_IDENTITY_CLIENT_ID is required}"
 
 SAMPLE_INTERVAL_SECONDS="${SAMPLE_INTERVAL_SECONDS:-30}"
-RUN_LABEL="${RUN_LABEL:-stage-b-audit}"
+RUN_LABEL="${RUN_LABEL:-lab-audit}"
 
 ARM_RESOURCE="https://management.azure.com/"
 

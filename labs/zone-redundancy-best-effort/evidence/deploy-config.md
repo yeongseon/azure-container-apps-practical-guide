@@ -4,7 +4,6 @@ Generated: 2026-06-12T11:39:16Z (initial), updated 2026-06-12T11:43:13Z (final, 
 Branch: lab/zone-redundancy-best-effort-reproduce
 Commit (Phase 0): 222151f2b40fb8f726b24e52066210bebe708556
 Tracked issue: #204
-Oracle session: ses_144f3ce9cffeyOLLgO8doWTal3
 
 ## Sub switch note
 
@@ -18,7 +17,7 @@ successful retry at 2026-06-12T11:43:13Z used the personal MSDN sub
 (suffix `260612113916`). See [`phase-1-complete.md`](phase-1-complete.md)
 "Subscription / tenant note" for the full sub-selection trace.
 
-## Resource names (Oracle decision #9: fresh isolated RG)
+## Resource names (fresh isolated RG)
 
 | Parameter | Value |
 |---|---|

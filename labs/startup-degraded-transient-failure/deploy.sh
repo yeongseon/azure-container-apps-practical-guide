@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy the startup-degraded-transient-failure lab infrastructure (Stage B).
+# Deploy the startup-degraded-transient-failure lab infrastructure.
 #
 # Creates the resource group (if missing), deploys the Bicep template,
 # and prints the outputs needed by trigger.sh / verify.sh.

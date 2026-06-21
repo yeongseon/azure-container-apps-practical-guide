@@ -1,4 +1,4 @@
-# k6 loadgen image for Stage B (startup-degraded-transient-failure).
+# k6 loadgen image for startup-degraded-transient-failure.
 #
 # Goals:
 #   - Pin k6 to a known minor version (image digest also recorded in evidence).

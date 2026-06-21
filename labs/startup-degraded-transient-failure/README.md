@@ -7,14 +7,12 @@ masks all transient unavailability behind health probes during a
 rolling rollout, even when the subject app has a deterministic
 25-second startup delay.
 
-## Hybrid A binding (Oracle review)
+## Lab design binding
 
-This lab follows the same Hybrid A standard as
-`labs/zone-redundancy-best-effort/`. The design was reviewed by
-Oracle as REVISE_AND_RESUBMIT (`ses_14429826cffeXthi0x6tgTdLOW`); the
-revised plan documented in
-[`evidence/oracle-stage-b-design-review-20260612.md`](evidence/oracle-stage-b-design-review-20260612.md)
-is the binding plan.
+This lab follows the same design standard as
+`labs/zone-redundancy-best-effort/`. The binding design constraints
+are documented in
+[`evidence/design-constraints-20260612.md`](evidence/design-constraints-20260612.md).
 
 Key bindings:
 
@@ -144,4 +142,4 @@ the workspace's 90-day retention.
 - KQL pack: `docs/troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md`
 - Operations: `docs/operations/deployment/revision-management.md`
 - Best practices: `docs/best-practices/reliability.md`
-- Integration page (Stage C, issue #206): `docs/best-practices/availability-and-non-guarantees.md`
+- Integration page: `docs/best-practices/availability-and-non-guarantees.md`
