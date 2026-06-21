@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 20 |
+| ✅ Validated | 21 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 61 |
+| ➖ Not tested | 60 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 20
-    "Not Tested" : 61
+    "Validated" : 21
+    "Not Tested" : 60
 ```
 
 ## Validation Matrix
@@ -97,7 +97,7 @@ pie title Tutorial Validation Status
 | [Acr Network Path Pe Direct](../troubleshooting/lab-guides/acr-network-path-pe-direct.md) | ✅ Pass | ✅ Pass | 2026-06-05 | ✅ Pass |
 | [Acr Network Path Pe Forced Inspection](../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
 | [Acr Network Path Record Split Brain](../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
-| [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ✅ Pass | ✅ Pass | 2026-05-01 | ✅ Pass |
 | [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Azure Files Mount Failure](../troubleshooting/lab-guides/azure-files-mount-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Bicep Deployment Timeout](../troubleshooting/lab-guides/bicep-deployment-timeout.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
