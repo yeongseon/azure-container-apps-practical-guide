@@ -17,7 +17,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
 content_validation:
   status: verified
-  last_reviewed: '2026-06-08'
+  last_reviewed: '2026-06-21'
   reviewer: agent
   lab_validation:
     status: reproduced
@@ -36,12 +36,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
+    last_tested: '2026-06-14'
     cli_version:
-    result: not_tested
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-14'
+    result: pass
 ---
 # Zone Redundancy Is Best-Effort Lab
 
