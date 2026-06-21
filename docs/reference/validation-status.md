@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 13 |
+| ✅ Validated | 14 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 68 |
+| ➖ Not tested | 67 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 13
-    "Not Tested" : 68
+    "Validated" : 14
+    "Not Tested" : 67
 ```
 
 ## Validation Matrix
@@ -144,7 +144,7 @@ pie title Tutorial Validation Status
 | [Volume Permission Denied](../troubleshooting/lab-guides/volume-permission-denied.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Websocket Grpc Ingress](../troubleshooting/lab-guides/websocket-grpc-ingress.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Workload Profile Mismatch](../troubleshooting/lab-guides/workload-profile-mismatch.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Zone Redundancy Best Effort](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Zone Redundancy Best Effort](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
 
 ## How to Update
 
