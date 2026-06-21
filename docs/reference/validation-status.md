@@ -26,16 +26,16 @@ This page tracks which tutorials have been validated against real Azure deployme
 | Metric | Count |
 |---|---:|
 | Total tutorials | 81 |
-| ✅ Validated | 19 |
+| ✅ Validated | 20 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
-| ➖ Not tested | 62 |
+| ➖ Not tested | 61 |
 
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 19
-    "Not Tested" : 62
+    "Validated" : 20
+    "Not Tested" : 61
 ```
 
 ## Validation Matrix
@@ -105,7 +105,7 @@ pie title Tutorial Validation Status
 | [Cold Start Scale To Zero](../troubleshooting/lab-guides/cold-start-scale-to-zero.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Cpu Throttling](../troubleshooting/lab-guides/cpu-throttling.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Custom Domain Tls Renewal](../troubleshooting/lab-guides/custom-domain-tls-renewal.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
-| [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
+| [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Dapr Pubsub Failure](../troubleshooting/lab-guides/dapr-pubsub-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Dapr State Store Failure](../troubleshooting/lab-guides/dapr-state-store-failure.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
 | [Diagnostic Settings Missing](../troubleshooting/lab-guides/diagnostic-settings-missing.md) | ➖ Not Tested | ➖ Not Tested | — | ➖ Not Tested |
