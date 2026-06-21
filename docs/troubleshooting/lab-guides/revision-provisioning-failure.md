@@ -18,7 +18,7 @@ content_validation:
     notes: |
       Original reproduction (2026-05-01, az 2.70.0) confirmed ProbeFailed +
       ContainerTerminated(ProbeFailure) + revision Failed. Re-verified end-to-end
-      on 2026-06-20 (PR #222) with a rewritten trigger script using the supported
+      on 2026-06-20 with a rewritten trigger script using the supported
       `az containerapp update --yaml` authoring path; the re-verification chain
       lives under `labs/revision-provisioning-failure/evidence/` (12 RAW JSON
       files including `evidence/10-kql-console-logs.json` as the application-level
