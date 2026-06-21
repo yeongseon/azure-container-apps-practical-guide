@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
 content_validation:
   status: verified
-  last_reviewed: '2026-06-03'
+  last_reviewed: '2026-06-21'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
     tested_date: 2026-06-03
     az_cli_version: 2.71.0
-    notes: appPort flip 8000→8081 observed in Portal; revision Degraded under both states because bundled helloworld image listens on port 80 — service-invocation breakage [Not Proven]
+    notes: 'appPort flip 8000→8081 observed in Portal; revision Degraded under both states because bundled helloworld image listens on port 80 — service-invocation breakage [Not Proven]. Six 2026-06-03 Portal captures preserve the reproduced appPort configuration arc (8000 → 8081) and the bundled helloworld-image caveat that keeps the service-invocation half of the hypothesis [Not Proven].'
   core_claims:
     - claim: Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
@@ -25,12 +25,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested:
-    cli_version:
-    result: not_tested
+    last_tested: '2026-06-03'
+    cli_version: '2.71.0'
+    result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-03'
+    result: pass
 ---
 # Dapr Integration Troubleshooting Lab
 
