@@ -1,0 +1,23 @@
+{
+  "fqdn": "ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labscale-q2xnsr--0000001",
+  "name": "ca-labscale-q2xnsr",
+  "provisioningState": "Succeeded",
+  "scaleConfig": {
+    "cooldownPeriod": 300,
+    "maxReplicas": 2,
+    "minReplicas": 1,
+    "pollingInterval": 30,
+    "rules": [
+      {
+        "http": {
+          "auth": [],
+          "metadata": {
+            "concurrentRequests": "500"
+          }
+        },
+        "name": "http-rule"
+      }
+    ]
+  }
+}

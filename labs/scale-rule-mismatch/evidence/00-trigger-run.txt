@@ -1,0 +1,119 @@
+trigger.sh starting at 2026-06-22T14:26:55Z
+RG: rg-aca-lab-scale
+App: ca-labscale-q2xnsr
+ACR: acrlabscaleq2xnsr
+ACR login server: acrlabscaleq2xnsr.azurecr.io
+Workspace customer ID: fe5166f2-5536-415d-972d-31361ef22571
+
+Note: This lab triggers a scale rule mismatch by deploying a workload with
+scale rule concurrentRequests=500 and maxReplicas=2. Under realistic concurrent
+load (60 concurrent requests over 60 s), the threshold is never reached, so KEDA
+does not request additional replicas. The replica count stays at 1 (= minReplicas)
+and the platform appears to ignore the load. This is the documented behavior, not
+a bug; the scale rule was configured with an unrealistic threshold.
+
+=== Phase 1: build and push custom image to ACR ===
+WARNING: Packing source code into tar to upload...
+WARNING: Uploading archived source code from '/var/folders/2m/2h26lv7d1n7f01ptx_cw0k800000gn/T/build_archive_6fa6aaf7d7c64e5bb56a88a6fa73286d.tar.gz'...
+WARNING: Sending context (888.000 Bytes) to registry: acrlabscaleq2xnsr...
+WARNING: Queued a build with ID: de1
+WARNING: Waiting for an agent...
+Built and pushed acrlabscaleq2xnsr.azurecr.io/labscale:v1
+
+=== Phase 2: set registry credentials + update container app to custom image with MISMATCHED scale rule ===
+WARNING: Command group 'containerapp registry' is in preview and under development. Reference and support levels: https://aka.ms/CLI_refstatus
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+WARNING: Adding registry password as a secret with name "acrlabscaleq2xnsrazurecrio-acrlabscaleq2xnsr"
+/ Running ..| Running ..\ Running ..- Running ../ Running ..[KWARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..\ Running ..- Running ../ Running ..| Running ..[KUpdated container app to image labscale:v1 with mismatched scale rule (concurrentRequests=500, maxReplicas=2)
+
+=== Phase 3: wait for new revision to become Healthy ===
+Latest active revision is Healthy after 40s
+
+=== Phase 4: capture container app baseline state (expect maxReplicas=2, concurrentRequests=500) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "fqdn": "ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labscale-q2xnsr--0000001",
+  "name": "ca-labscale-q2xnsr",
+  "provisioningState": "Succeeded",
+  "scaleConfig": {
+    "cooldownPeriod": 300,
+    "maxReplicas": 2,
+    "minReplicas": 1,
+    "pollingInterval": 30,
+    "rules": [
+      {
+        "http": {
+          "auth": [],
+          "metadata": {
+            "concurrentRequests": "500"
+          }
+        },
+        "name": "http-rule"
+      }
+    ]
+  }
+}
+
+Load URL: https://ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io/load
+
+=== Phase 5: capture pre-load replica baseline (expect 1 replica at idle) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Pre-load replica count: 1
+
+=== Phase 6: generate sustained load (60 concurrent requests for 90s) ===
+Load start UTC: 2026-06-22T14:29:23Z
+=== Phase 7: poll replica count during load at 15s, 30s, 60s, 90s ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +15 s under load: 1
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +30 s under load: 1
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +60 s under load: 1
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +90 s under load: 1
+Load generation complete at 2026-06-22T14:31:14Z
+
+=== Phase 8: query ContainerAppSystemLogs_CL for scale events during load window ===
+Scale event rows in load window: 0
+
+=== Phase 9: emit H1 gate JSON ===
+{
+  "utc_captured": "2026-06-22T14:31:21Z",
+  "app_name": "ca-labscale-q2xnsr",
+  "rg": "rg-aca-lab-scale",
+  "load_window": {
+    "start_utc": "2026-06-22T14:29:23Z",
+    "end_utc": "2026-06-22T14:31:14Z",
+    "duration_seconds": 90,
+    "concurrent_requests_generated": 60,
+    "scale_rule_threshold_configured": 500
+  },
+  "replicas_observed": {
+    "pre_load": 1,
+    "at_15s": 1,
+    "at_30s": 1,
+    "at_60s": 1,
+    "at_90s": 1,
+    "max_during_load": 1
+  },
+  "scale_events_count": 0,
+  "h1_sub_gates": {
+    "a_baseline_one_replica": true,
+    "b_replicas_did_not_scale_under_load": true,
+    "c_no_scaleup_events_observed": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "scale_rule_mismatch_replicas_capped"
+}
+
+=== H1 summary ===
+Pre-load replicas: 1 (expect 1)
+Max replicas during 90 s load: 1 (expect 1 with mismatched threshold)
+Scale events in load window: 0 (expect 0)
+Gate classification: scale_rule_mismatch_replicas_capped
+
+H1 PASS: trigger (mismatched scale rule concurrentRequests=500 vs realistic load of 60 concurrent)
+produced the documented failure signature (replicas capped at 1 under sustained load, no KEDA
+scale events emitted). Proceed to verify.sh.

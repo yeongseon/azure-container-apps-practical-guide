@@ -1,0 +1,28 @@
+{
+  "utc_captured": "2026-06-22T14:31:21Z",
+  "app_name": "ca-labscale-q2xnsr",
+  "rg": "rg-aca-lab-scale",
+  "load_window": {
+    "start_utc": "2026-06-22T14:29:23Z",
+    "end_utc": "2026-06-22T14:31:14Z",
+    "duration_seconds": 90,
+    "concurrent_requests_generated": 60,
+    "scale_rule_threshold_configured": 500
+  },
+  "replicas_observed": {
+    "pre_load": 1,
+    "at_15s": 1,
+    "at_30s": 1,
+    "at_60s": 1,
+    "at_90s": 1,
+    "max_during_load": 1
+  },
+  "scale_events_count": 0,
+  "h1_sub_gates": {
+    "a_baseline_one_replica": true,
+    "b_replicas_did_not_scale_under_load": true,
+    "c_no_scaleup_events_observed": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "scale_rule_mismatch_replicas_capped"
+}

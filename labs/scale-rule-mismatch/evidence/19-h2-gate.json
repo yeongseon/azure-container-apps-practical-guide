@@ -1,0 +1,33 @@
+{
+  "utc_captured": "2026-06-22T14:35:00Z",
+  "fix_utc": "2026-06-22T14:31:34Z",
+  "app_name": "ca-labscale-q2xnsr",
+  "rg": "rg-aca-lab-scale",
+  "post_fix_revision": "ca-labscale-q2xnsr--0000002",
+  "post_fix_fqdn": "ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io",
+  "final_revision_health": "Healthy",
+  "post_fix_load_window": {
+    "start_utc": "2026-06-22T14:32:47Z",
+    "end_utc": "2026-06-22T14:34:52Z",
+    "duration_seconds": 90,
+    "concurrent_requests_generated": 60,
+    "scale_rule_threshold_configured_after_fix": 10,
+    "max_replicas_configured_after_fix": 10
+  },
+  "replicas_observed_after_fix": {
+    "pre_load": 1,
+    "at_15s": 5,
+    "at_30s": 5,
+    "at_60s": 7,
+    "at_90s": 7,
+    "max_during_load": 7
+  },
+  "scale_events_count_after_fix": 19,
+  "h2_sub_gates": {
+    "a_post_fix_revision_healthy": true,
+    "b_replicas_increased_after_fix": true,
+    "c_scaleup_events_observed_after_fix": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "scale_rule_fixed_replicas_scaled_events_observed"
+}

@@ -1,0 +1,26 @@
+{
+  "containerAppName": {
+    "type": "String",
+    "value": "ca-labscale-q2xnsr"
+  },
+  "containerAppUrl": {
+    "type": "String",
+    "value": "https://ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io"
+  },
+  "containerRegistryLoginServer": {
+    "type": "String",
+    "value": "acrlabscaleq2xnsr.azurecr.io"
+  },
+  "containerRegistryName": {
+    "type": "String",
+    "value": "acrlabscaleq2xnsr"
+  },
+  "environmentName": {
+    "type": "String",
+    "value": "cae-labscale-q2xnsr"
+  },
+  "logAnalyticsWorkspaceName": {
+    "type": "String",
+    "value": "log-labscale-q2xnsr"
+  }
+}

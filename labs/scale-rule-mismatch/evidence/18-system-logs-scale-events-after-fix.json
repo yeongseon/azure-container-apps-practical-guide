@@ -1,0 +1,135 @@
+[
+  {
+    "Log_s": "Replica 'ca-labscale-q2xnsr--0000002-6f84dd5bc7-rqjf6' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:03.7097343Z"
+  },
+  {
+    "Log_s": "Replica 'ca-labscale-q2xnsr--0000002-6f84dd5bc7-gfjcl' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:03.7097343Z"
+  },
+  {
+    "Log_s": "Replica 'ca-labscale-q2xnsr--0000002-6f84dd5bc7-9zvz2' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:03.7097343Z"
+  },
+  {
+    "Log_s": "Replica 'ca-labscale-q2xnsr--0000002-6f84dd5bc7-mrmsj' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:03.7097343Z"
+  },
+  {
+    "Log_s": "ca-labscale-q2xnsr has been scaled to 5 by the scaler: http-scaler.",
+    "Reason_s": "SuccessfulRescale",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:03.7097343Z"
+  },
+  {
+    "Log_s": "Pulling image 'acrlabscaleq2xnsr.azurecr.io/labscale:v1'",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:05.5840068Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"acrlabscaleq2xnsr.azurecr.io/labscale:v1\" in 1.97s. Image size: 52428800 bytes.",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:06.4000196Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"acrlabscaleq2xnsr.azurecr.io/labscale:v1\" in 1.80s. Image size: 52428800 bytes.",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:17.6506247Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"acrlabscaleq2xnsr.azurecr.io/labscale:v1\" in 2.36s. Image size: 52428800 bytes.",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:17.6506247Z"
+  },
+  {
+    "Log_s": "Pulling image 'acrlabscaleq2xnsr.azurecr.io/labscale:v1'",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:17.6506247Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"acrlabscaleq2xnsr.azurecr.io/labscale:v1\" in 1.92s. Image size: 52428800 bytes.",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:17.6506247Z"
+  },
+  {
+    "Log_s": "Pulling image 'acrlabscaleq2xnsr.azurecr.io/labscale:v1'",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:33:17.6506247Z"
+  },
+  {
+    "Log_s": "Replica 'ca-labscale-q2xnsr--0000002-6f84dd5bc7-59s75' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:34:03.5179052Z"
+  },
+  {
+    "Log_s": "ca-labscale-q2xnsr has been scaled to 7 by the scaler: http-scaler.",
+    "Reason_s": "SuccessfulRescale",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:34:03.5179052Z"
+  },
+  {
+    "Log_s": "Replica 'ca-labscale-q2xnsr--0000002-6f84dd5bc7-qq5z6' has been scheduled to run on a node.",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:34:03.5179052Z"
+  },
+  {
+    "Log_s": "Pulling image 'acrlabscaleq2xnsr.azurecr.io/labscale:v1'",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:34:17.6892794Z"
+  },
+  {
+    "Log_s": "Pulling image 'acrlabscaleq2xnsr.azurecr.io/labscale:v1'",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:34:17.6892794Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"acrlabscaleq2xnsr.azurecr.io/labscale:v1\" in 2.01s. Image size: 52428800 bytes.",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:34:17.6892794Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"acrlabscaleq2xnsr.azurecr.io/labscale:v1\" in 1.89s. Image size: 52428800 bytes.",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labscale-q2xnsr--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T14:34:17.6892794Z"
+  }
+]
