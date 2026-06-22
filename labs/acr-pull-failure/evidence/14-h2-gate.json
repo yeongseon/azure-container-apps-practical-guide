@@ -1,0 +1,21 @@
+{
+  "utc_captured": "2026-06-22T13:28:40Z",
+  "fix_utc": "2026-06-22T13:26:43Z",
+  "app_name": "ca-labacr-rnnljl",
+  "post_fix_revision": "ca-labacr-rnnljl--mvlbg1j",
+  "post_fix_fqdn": "ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+  "final_revision_health": "Healthy",
+  "revision_list_count": 1,
+  "revision_healthy_traffic_100": true,
+  "curl_after_fix_ok": 10,
+  "labacr_present_in_acr": true,
+  "post_fix_kql_gate": "silent_acceptable_post_fix",
+  "gate_classification": "revision_healthy_traffic_100_curl_ok",
+  "h2_sub_gates": {
+    "a_revision_list_count_ge_1": true,
+    "b_revision_healthy_traffic_100": true,
+    "c_curl_after_fix_ok_ge_8": true,
+    "d_labacr_present_in_acr": true
+  },
+  "h2_all_subgates_pass": true
+}

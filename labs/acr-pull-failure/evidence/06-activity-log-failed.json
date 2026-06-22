@@ -1,0 +1,11 @@
+[
+  {
+    "correlationId": "25f4cde2-5251-42fb-8629-eee4fb5998a0",
+    "operationName": "Create or Update Container App",
+    "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-aca-lab-acr/providers/Microsoft.App/containerApps/ca-labacr-rnnljl",
+    "status": "Failed",
+    "statusMessage": "{\"status\":\"Failed\",\"error\":{\"code\":\"ResourceOperationFailure\",\"message\":\"The resource operation completed with terminal provisioning state 'Failed'.\",\"details\":[{\"code\":\"ContainerAppOperationError\",\"message\":\"Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: The following field(s) are either invalid or missing. Field 'template.containers.app.image' is invalid with details: 'Invalid value: \\\"acrlabacrrnnljl.azurecr.io/labacr:does-not-exist\\\": GET https:: MANIFEST_UNKNOWN: manifest tagged by \\\"does-not-exist\\\" is not found; map[Tag:does-not-exist]';..\"}]}}",
+    "subStatus": "",
+    "timestamp": "2026-06-22T13:20:45.841743Z"
+  }
+]

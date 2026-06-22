@@ -1,0 +1,23 @@
+{
+  "utc_captured": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "app_name": "ca-labacr-rnnljl",
+  "rg": "rg-aca-lab-acr",
+  "deployment_state": "Failed",
+  "deployment_error_message_first_500_chars": "At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-deployment-operations for usage details. || The resource write operation failed to complete successfully, because it reached terminal provisioning state 'Failed'. || Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: The following field(s) are either invalid or missing. Field 'template.containers.app.image' is invalid with details: 'Invali",
+  "manifest_unknown_in_error": true,
+  "app_provisioning_state": "Failed",
+  "app_latest_revision_name": "",
+  "revision_count": 0,
+  "labacr_repository_present_in_acr": false,
+  "system_logs_show_surfaced_keyerror": true,
+  "activity_log_failed_count_last_1h": 1,
+  "gate_classification": "deployment_failed_manifest_unknown",
+  "h1_sub_gates": {
+    "a_deployment_failed_with_manifest_unknown": true,
+    "b_app_provisioning_state_failed": true,
+    "c_latest_revision_name_null": true,
+    "d_revision_list_empty": true,
+    "e_labacr_repository_absent": true
+  },
+  "h1_all_subgates_pass": true
+}

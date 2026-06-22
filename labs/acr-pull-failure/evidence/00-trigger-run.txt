@@ -1,0 +1,148 @@
+trigger.sh starting at 2026-06-22T13:25:49Z
+RG: rg-aca-lab-acr
+App: ca-labacr-rnnljl
+ACR: acrlabacrrnnljl
+ACR login server: acrlabacrrnnljl.azurecr.io
+
+Note: This lab's trigger is the Bicep deployment in Quick Start step 2, which is EXPECTED to fail
+with MANIFEST_UNKNOWN because the Container App references labacr:does-not-exist (a tag that was
+never pushed to ACR). This script captures the post-deployment failure state; it does NOT mutate
+state.
+
+=== Phase 1: capture deployment failure result (expect provisioningState=Failed + MANIFEST_UNKNOWN) ===
+{
+  "correlationId": "25f4cde2-5251-42fb-8629-eee4fb5998a0",
+  "error": {
+    "additionalInfo": null,
+    "code": "DeploymentFailed",
+    "details": [
+      {
+        "additionalInfo": null,
+        "code": "ResourceDeploymentFailure",
+        "details": null,
+        "message": "The resource write operation failed to complete successfully, because it reached terminal provisioning state 'Failed'.",
+        "target": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-acr/providers/Microsoft.App/containerApps/ca-labacr-rnnljl"
+      }
+    ],
+    "message": "At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-deployment-operations for usage details.",
+    "target": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-acr/providers/Microsoft.Resources/deployments/main"
+  },
+  "name": "main",
+  "provisioningState": "Failed",
+  "timestamp": "2026-06-22T13:20:46.091681+00:00"
+}
+
+=== Phase 1b: capture failed deployment operations (this is where MANIFEST_UNKNOWN actually surfaces) ===
+[
+  {
+    "operationId": "BBFDF165D6059A01",
+    "resourceName": "ca-labacr-rnnljl",
+    "resourceType": "Microsoft.App/containerApps",
+    "statusMessage": {
+      "error": {
+        "additionalInfo": null,
+        "code": "ContainerAppOperationError",
+        "details": null,
+        "message": "Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: The following field(s) are either invalid or missing. Field 'template.containers.app.image' is invalid with details: 'Invalid value: \"acrlabacrrnnljl.azurecr.io/labacr:does-not-exist\": GET https:: MANIFEST_UNKNOWN: manifest tagged by \"does-not-exist\" is not found; map[Tag:does-not-exist]';..",
+        "target": null
+      },
+      "status": "Failed"
+    }
+  }
+]
+
+Deployment provisioningState: Failed
+Deployment error.message (truncated 500 chars): At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-deployment-operations for usage details. || The resource write operation failed to complete successfully, because it reached terminal provisioning state 'Failed'. || Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: The following field(s) are either invalid or missing. Field 'template.containers.app.image' is invalid with details: 'Invali
+
+=== Phase 2: capture container app baseline state (expect provisioningState=Failed, latestRevisionName=null) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "image": "acrlabacrrnnljl.azurecr.io/labacr:does-not-exist",
+  "ingress": {
+    "additionalPortMappings": null,
+    "allowInsecure": false,
+    "clientCertificateMode": null,
+    "corsPolicy": null,
+    "customDomains": null,
+    "exposedPort": null,
+    "external": true,
+    "fqdn": null,
+    "ipSecurityRestrictions": null,
+    "stickySessions": null,
+    "targetPort": 8000,
+    "targetPortHttpScheme": null,
+    "traffic": null,
+    "transport": null
+  },
+  "latestRevisionFqdn": null,
+  "latestRevisionName": null,
+  "name": "ca-labacr-rnnljl",
+  "provisioningState": "Failed"
+}
+
+Container App provisioningState: Failed
+Container App latestRevisionName: '' (empty string = null)
+Container App image reference: acrlabacrrnnljl.azurecr.io/labacr:does-not-exist
+
+=== Phase 3: capture revision list (expect [] empty) ===
+[]
+
+Revision count: 0
+
+=== Phase 4: capture ACR repository list (expect labacr repository absent) ===
+[]
+
+labacr repository present in ACR: false
+
+=== Phase 5: attempt system log capture (expect KeyError: 'eventStreamEndpoint' because no revision exists) ===
+az containerapp logs show --type system exit code: 1
+Captured output (truncated to first 500 chars):
+ERROR: The command failed with an unexpected error. Here is the traceback:
+ERROR: 'eventStreamEndpoint'
+Traceback (most recent call last):
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+    cmd_result = self.invocation.execute(args)
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+    raise ex
+  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/si
+
+system log capture surfaced eventStreamEndpoint / KeyError signature: true
+
+=== Phase 6: capture Activity Log entries (Failed Create or Update Container App, last 1 hour) ===
+[
+  {
+    "correlationId": "25f4cde2-5251-42fb-8629-eee4fb5998a0",
+    "operationName": "Create or Update Container App",
+    "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-aca-lab-acr/providers/Microsoft.App/containerApps/ca-labacr-rnnljl",
+    "status": "Failed",
+    "statusMessage": "{\"status\":\"Failed\",\"error\":{\"code\":\"ResourceOperationFailure\",\"message\":\"The resource operation completed with terminal provisioning state 'Failed'.\",\"details\":[{\"code\":\"ContainerAppOperationError\",\"message\":\"Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: The following field(s) are either invalid or missing. Field 'template.containers.app.image' is invalid with details: 'Invalid value: \\\"acrlabacrrnnljl.azurecr.io/labacr:does-not-exist\\\": GET https:: MANIFEST_UNKNOWN: manifest tagged by \\\"does-not-exist\\\" is not found; map[Tag:does-not-exist]';..\"}]}}",
+    "subStatus": "",
+    "timestamp": "2026-06-22T13:20:45.841743Z"
+  }
+]
+
+Failed Microsoft.App activity log entries in last 1 hour: 1
+
+{
+  "gate_classification": "deployment_failed_manifest_unknown",
+  "h1_all_subgates_pass": true,
+  "h1_sub_gates": {
+    "a_deployment_failed_with_manifest_unknown": true,
+    "b_app_provisioning_state_failed": true,
+    "c_latest_revision_name_null": true,
+    "d_revision_list_empty": true,
+    "e_labacr_repository_absent": true
+  }
+}
+
+=== H1 summary ===
+Deployment state: Failed
+App provisioningState: Failed
+App latestRevisionName: '' (empty = null)
+Revision count: 0 (expect 0)
+labacr present in ACR: false (expect false)
+system logs surfaced KeyError: true (expect true)
+Gate classification: deployment_failed_manifest_unknown
+All H1 sub-gates pass: True
+
+H1 PASS: trigger (the Bicep deployment with image labacr:does-not-exist) produced the documented failure signature (deployment Failed + MANIFEST_UNKNOWN + empty revision list + no labacr repo in ACR). Proceed to verify.sh.

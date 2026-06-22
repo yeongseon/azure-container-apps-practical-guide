@@ -1,0 +1,151 @@
+verify.sh starting at 2026-06-22T13:26:42Z
+RG: rg-aca-lab-acr
+App: ca-labacr-rnnljl
+ACR: acrlabacrrnnljl
+ACR login server: acrlabacrrnnljl.azurecr.io
+
+=== Phase 7: validate baseline evidence from trigger.sh ===
+Triggered state: H1 gate=deployment_failed_manifest_unknown, all_subgates_pass=True
+
+=== Phase 8: az acr build --image labacr:v1 ./workload (build known-good image and push to ACR) ===
+Fix UTC: 2026-06-22T13:26:43Z
+az acr build apparent success: true
+Output (truncated to first 1000 chars):
+WARNING: Packing source code into tar to upload...
+WARNING: Uploading archived source code from '/var/folders/2m/2h26lv7d1n7f01ptx_cw0k800000gn/T/build_archive_200ff7c6047749169e14869862c69846.tar.gz'...
+WARNING: Sending context (779.000 Bytes) to registry: acrlabacrrnnljl...
+WARNING: Queued a build with ID: de1
+WARNING: Waiting for an agent...
+2026/06/22 13:26:48 Downloading source code...
+2026/06/22 13:26:49 Finished downloading source code
+2026/06/22 13:26:49 Using acb_vol_a123076a-4e57-4df4-920b-2e0238d71c5e as the home volume
+2026/06/22 13:26:49 Setting up Docker configuration...
+2026/06/22 13:26:50 Successfully set up Docker configuration
+2026/06/22 13:26:50 Logging in to registry: acrlabacrrnnljl.azurecr.io
+2026/06/22 13:26:50 Successfully logged into acrlabacrrnnljl.azurecr.io
+2026/06/22 13:26:50 Executing step ID: build. Timeout(sec): 28800, Working directory: '', Network: ''
+2026/06/22 13:26:50 Scanning for dependencies...
+2026/06/22 13:26:51 Successfully scanned dependenci
+
+=== Phase 9: az containerapp update --image ${ACR_LOGIN_SERVER}/labacr:v1 ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..\ Running ..- Running ../ Running ..[K{
+  "image": "acrlabacrrnnljl.azurecr.io/labacr:v1",
+  "latestRevisionName": "ca-labacr-rnnljl--mvlbg1j",
+  "name": "ca-labacr-rnnljl",
+  "provisioningState": "Succeeded"
+}
+
+Post-fix provisioningState: Succeeded
+Post-fix latestRevisionName: 'ca-labacr-rnnljl--mvlbg1j'
+
+=== Phase 10: poll revision health up to 5 minutes (10 s interval) ===
+Poll #1 at 2026-06-22T13:27:41Z: healthState=None
+Poll #2 at 2026-06-22T13:27:53Z: healthState=None
+Poll #3 at 2026-06-22T13:28:06Z: healthState=Healthy
+Final healthState after polling: Healthy
+
+=== Phase 11: capture container app post-fix (expect provisioningState=Succeeded, FQDN populated) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "image": "acrlabacrrnnljl.azurecr.io/labacr:v1",
+  "ingress": {
+    "additionalPortMappings": null,
+    "allowInsecure": false,
+    "clientCertificateMode": null,
+    "corsPolicy": null,
+    "customDomains": null,
+    "exposedPort": 0,
+    "external": true,
+    "fqdn": "ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+    "ipSecurityRestrictions": null,
+    "stickySessions": null,
+    "targetPort": 8000,
+    "targetPortHttpScheme": null,
+    "traffic": [
+      {
+        "latestRevision": true,
+        "weight": 100
+      }
+    ],
+    "transport": "Auto"
+  },
+  "latestRevisionFqdn": "ca-labacr-rnnljl--mvlbg1j.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labacr-rnnljl--mvlbg1j",
+  "name": "ca-labacr-rnnljl",
+  "provisioningState": "Succeeded"
+}
+
+Post-fix FQDN: ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io
+
+=== Phase 12: capture revision list post-fix (expect Healthy + traffic=100) ===
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T13:27:32+00:00",
+    "healthState": "Healthy",
+    "name": "ca-labacr-rnnljl--mvlbg1j",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+
+Revision list count: 1
+At least one revision is Healthy + trafficWeight=100: true
+
+=== Phase 13: capture ACR repository list post-fix (expect labacr present) ===
+[
+  "labacr"
+]
+
+labacr tags:
+[
+  "v1"
+]
+
+labacr present in ACR post-fix: true (expect true)
+
+=== Phase 14: send 10 HTTPS requests to post-fix FQDN (expect >=8/10 HTTP 200) ===
+Sent 10 requests, 10/10 ok
+
+curl post-fix HTTP 200 count: 10/10
+
+=== Phase 15: optional post-fix KQL ContainerAppSystemLogs_CL sanity (table may have just been materialized) ===
+az monitor log-analytics query exit code: 0
+Output (truncated to first 500 chars):
+[
+  {
+    "TableName": "PrimaryResult",
+    "distinct_revisions": "0",
+    "rows": "0"
+  }
+]
+
+
+{
+  "rows": 0,
+  "gate_classification": "silent_acceptable_post_fix"
+}
+Post-fix KQL gate: silent_acceptable_post_fix
+
+=== Phase 16: capture metadata + H2 gate ===
+{
+  "gate_classification": "revision_healthy_traffic_100_curl_ok",
+  "h2_all_subgates_pass": true,
+  "h2_sub_gates": {
+    "a_revision_list_count_ge_1": true,
+    "b_revision_healthy_traffic_100": true,
+    "c_curl_after_fix_ok_ge_8": true,
+    "d_labacr_present_in_acr": true
+  }
+}
+
+=== Verdict ===
+H1 (trigger.sh): gate=deployment_failed_manifest_unknown, all_subgates_pass=True
+H2 (verify.sh): gate=revision_healthy_traffic_100_curl_ok, all_subgates_pass=True
+Post-fix KQL gate: silent_acceptable_post_fix (informational)
+
+H1 PASS: true
+H2 PASS: true
+VERDICT: SUPPORTED. The existence of the referenced image tag in ACR is the controlling variable for the documented failure (deployment Failed + MANIFEST_UNKNOWN + no revision) and for recovery (Healthy revision + traffic=100 + HTTP 200 at FQDN).

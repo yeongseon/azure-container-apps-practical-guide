@@ -1,0 +1,59 @@
+{
+  "post_fix_revision": "ca-labacr-rnnljl--mvlbg1j",
+  "post_fix_fqdn": "ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+  "requests_sent": 10,
+  "requests_ok": 10,
+  "utc_completed": "2026-06-22T13:28:23Z",
+  "samples": [
+    {
+      "i": 0,
+      "status": 200,
+      "elapsed_ms": 523.4
+    },
+    {
+      "i": 1,
+      "status": 200,
+      "elapsed_ms": 534.5
+    },
+    {
+      "i": 2,
+      "status": 200,
+      "elapsed_ms": 479.1
+    },
+    {
+      "i": 3,
+      "status": 200,
+      "elapsed_ms": 423.6
+    },
+    {
+      "i": 4,
+      "status": 200,
+      "elapsed_ms": 479.4
+    },
+    {
+      "i": 5,
+      "status": 200,
+      "elapsed_ms": 477.1
+    },
+    {
+      "i": 6,
+      "status": 200,
+      "elapsed_ms": 482.9
+    },
+    {
+      "i": 7,
+      "status": 200,
+      "elapsed_ms": 492.3
+    },
+    {
+      "i": 8,
+      "status": 200,
+      "elapsed_ms": 477.3
+    },
+    {
+      "i": 9,
+      "status": 200,
+      "elapsed_ms": 473.2
+    }
+  ]
+}

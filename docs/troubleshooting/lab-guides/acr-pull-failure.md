@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-22'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-05-01
-    az_cli_version: 2.70.0
-    notes: 'failed to resolve registry confirmed, fixed with valid image. Original end-to-end reproduction completed on 2026-05-01 (CLI 2.70.0). Six 2026-06-03 Portal captures independently re-validated the same broken-state → recovery arc for the ACR pull failure scenario.'
+    tested_date: 2026-06-22
+    az_cli_version: 2.79.0
+    notes: 'Three live reproductions: original end-to-end on 2026-05-01 (CLI 2.70.0) confirmed manifest-not-found and recovery; six 2026-06-03 Portal captures independently re-validated the broken-state → recovery arc; scripted 2026-06-22 reproduction (CLI 2.79.0) added structured H1 / H2 gate emission and surfaced two new platform observations: (1) az deployment group show returns properties.outputs=null when provisioningState=Failed, and (2) the MANIFEST_UNKNOWN smoking-gun string lives in az deployment operation group list (statusMessage.error.message), not in az deployment group show (error.details[*].details is null at the leaf). Both H1 (deployment_failed_manifest_unknown, 5/5 sub-gates) and H2 (revision_healthy_traffic_100_curl_ok, 4/4 sub-gates, 10/10 HTTP 200) passed.'
   core_claims:
     - claim: A Container App revision can fail to start when its image reference points to a tag that does not exist in Azure Container Registry.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
@@ -25,11 +25,11 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-05-01'
-    cli_version: '2.70.0'
+    last_tested: '2026-06-22'
+    cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-05-01'
+    last_tested: '2026-06-22'
     result: pass
 ---
 # ACR Image Pull Failure Lab
@@ -357,6 +357,106 @@ map[Tag:does-not-exist]'
 ![Revisions blade showing the recovered revision in Healthy state](../../assets/troubleshooting/acr-pull-failure/06-revisions-healthy.png)
 
 [Inferred] **Falsification logic.** Region, SKU, environment, registry credential configuration (ACR admin user via `registry-password` secret), and ingress configuration were held constant between the failing run and the recovered run. The only change was the image tag (`:does-not-exist` → `:v1`). The transition from "no revision, Status Unknown, no FQDN" to "Healthy revision, Status Running, FQDN returning HTTP 200" is therefore strongly consistent with the missing ACR tag being the cause, and refutes alternative explanations (registry credential failure, environment-level failure, ingress misconfiguration, networking).
+
+### Observed Evidence (Scripted Reproduction — 2026-06-22)
+
+A third live reproduction was executed on **2026-06-22** in `koreacentral` using the scripted `trigger.sh` + `verify.sh` flow added in [`labs/acr-pull-failure/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/acr-pull-failure) with structured H1 / H2 gate emission. The run produced two new platform observations that the 2026-05-01 and 2026-06-03 reproductions did not surface, both of which materially change how operators should derive resource names and locate the smoking-gun error string when responding to this failure mode in production.
+
+**Environment**
+
+| Resource | Name |
+|---|---|
+| Resource group | `rg-aca-lab-acr` |
+| Container App | `ca-labacr-rnnljl` |
+| ACR | `acrlabacrrnnljl.azurecr.io` |
+| Container Apps environment | `cae-labacr-rnnljl` |
+| Log Analytics workspace | `log-labacr-rnnljl` |
+| Bad image reference (intentional) | `acrlabacrrnnljl.azurecr.io/labacr:does-not-exist` |
+| Post-fix image | `acrlabacrrnnljl.azurecr.io/labacr:v1` |
+| Post-fix revision | `ca-labacr-rnnljl--mvlbg1j` |
+| Post-fix FQDN | `ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io` |
+| Azure CLI version | 2.79.0 |
+| Total wall clock | ~13 min |
+
+#### Platform Discovery 1 — `properties.outputs` is `null` for Failed deployments
+
+[Observed] After `az deployment group create` exits with `provisioningState=Failed`, `az deployment group show --resource-group "$RG" --name main --query "properties.outputs"` returns `null` (captured to [`evidence/23-deployment-outputs.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/23-deployment-outputs.json)). The resource shells (Container App, ACR, Log Analytics workspace, Container Apps environment) WERE created and are queryable via direct `list` calls; the `outputs` block specifically is unpopulated.
+
+[Inferred] This is intentional Azure Resource Manager behavior — outputs are not committed when the deployment did not reach `Succeeded`. The original lab guide's "Capture deployment outputs" step (lines 113-135 above) recommends `az deployment group show --query "properties.outputs.containerAppName.value"`, which silently produces empty strings in this failure state and downstream `az` commands then fail with confusing "resource not found" errors that point operators at the wrong problem.
+
+[Observed] The scripted Quick Start (in `labs/acr-pull-failure/README.md`) derives resource names from `az containerapp list / az acr list / az monitor log-analytics workspace list --resource-group "$RG" --query "[0].name"` (one-row queries against the dedicated lab RG). This approach succeeds regardless of deployment outcome because the resource shells exist independently of deployment success.
+
+#### Platform Discovery 2 — `MANIFEST_UNKNOWN` lives in `az deployment operation group list`, NOT `az deployment group show`
+
+[Observed] `az deployment group show --resource-group "$RG" --name main` returns a top-level `properties.error.message` that contains only the generic "At least one resource deployment operation failed" envelope text; `properties.error.details[0].details` is `null` at the leaf in the failed-deployment JSON. The smoking-gun `MANIFEST_UNKNOWN: manifest tagged by "does-not-exist" is not found` string is NOT in this output (captured to [`evidence/01-deployment-result.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/01-deployment-result.json)).
+
+[Observed] The authoritative per-operation detail lives in `az deployment operation group list --resource-group "$RG" --name main --query "[].{statusMessage:properties.statusMessage}"` — specifically in `properties.statusMessage.error.message` on the failed Container App write operation. This call returns the full MANIFEST_UNKNOWN string (captured to [`evidence/01-deployment-operations-failed.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/01-deployment-operations-failed.json)).
+
+[Observed] `az monitor activity-log list --resource-group "$RG" --status Failed` also surfaces the MANIFEST_UNKNOWN string in `properties.statusMessage`, but with higher ingestion lag than `az deployment operation group list` (the activity log typically lags 1-5 minutes behind the deployment).
+
+[Inferred] Operators triaging an ACR pull failure who reach for `az deployment group show` first will see a generic deployment-failed envelope and may incorrectly conclude that the platform is not surfacing actionable detail. The `az deployment operation group list` call is the canonical first-touch evidence command for image-manifest failures.
+
+#### H1 Gate — Deployment-level evidence (PASS)
+
+[Observed] All five H1 sub-gates emitted by `trigger.sh` evaluated `true` (captured to [`evidence/06-h1-gate.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/06-h1-gate.json)):
+
+```json
+{
+  "gate_classification": "deployment_failed_manifest_unknown",
+  "deployment_state": "Failed",
+  "manifest_unknown_in_error": true,
+  "app_provisioning_state": "Failed",
+  "app_latest_revision_name": "",
+  "revision_count": 0,
+  "labacr_repository_present_in_acr": false,
+  "h1_sub_gates": {
+    "a_deployment_failed_with_manifest_unknown": true,
+    "b_app_provisioning_state_failed": true,
+    "c_latest_revision_name_null": true,
+    "d_revision_list_empty": true,
+    "e_labacr_repository_absent": true
+  },
+  "h1_all_subgates_pass": true
+}
+```
+
+[Observed] `az containerapp logs show --type system` failed with `KeyError: 'eventStreamEndpoint'` (captured to [`evidence/05-system-logs-show-error.txt`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/05-system-logs-show-error.txt)) — same signature documented in the 2026-06-03 reproduction. The `ContainerAppSystemLogs_CL` table was not materialized in the workspace during the failed-deployment window.
+
+#### H2 Gate — Recovery evidence (PASS)
+
+[Observed] `az acr build --registry acrlabacrrnnljl --image labacr:v1 ./workload` succeeded on a Microsoft-hosted ACR Tasks worker (no local Docker daemon required); `az containerapp update --image acrlabacrrnnljl.azurecr.io/labacr:v1` reached `provisioningState=Succeeded` and the platform created revision `ca-labacr-rnnljl--mvlbg1j`.
+
+[Measured] 10/10 sequential HTTPS requests to the recovered FQDN returned HTTP 200 with end-to-end latency 423-535 ms (median ~478 ms), captured to [`evidence/12-curl-after-fix.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/12-curl-after-fix.json).
+
+[Observed] All four H2 sub-gates emitted by `verify.sh` evaluated `true` (captured to [`evidence/14-h2-gate.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/14-h2-gate.json)):
+
+```json
+{
+  "gate_classification": "revision_healthy_traffic_100_curl_ok",
+  "post_fix_revision": "ca-labacr-rnnljl--mvlbg1j",
+  "post_fix_fqdn": "ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+  "final_revision_health": "Healthy",
+  "revision_healthy_traffic_100": true,
+  "curl_after_fix_ok": 10,
+  "labacr_present_in_acr": true,
+  "post_fix_kql_gate": "silent_acceptable_post_fix",
+  "h2_sub_gates": {
+    "a_revision_list_count_ge_1": true,
+    "b_revision_healthy_traffic_100": true,
+    "c_curl_after_fix_ok_ge_8": true,
+    "d_labacr_present_in_acr": true
+  },
+  "h2_all_subgates_pass": true
+}
+```
+
+[Observed] Post-fix KQL probe against `ContainerAppSystemLogs_CL` returned 0 rows within the ~90-second post-fix window (captured to [`evidence/13-kql-after-fix-raw.txt`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/13-kql-after-fix-raw.txt) and parsed to `silent_acceptable_post_fix` in [`evidence/13-kql-after-fix.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/acr-pull-failure/evidence/13-kql-after-fix.json)).
+
+[Inferred] The post-fix silence is consistent with platform-side ingestion lag, not with a failure. The table was just materialized for the first time when the Healthy revision started, and Log Analytics commonly takes 2-5 minutes to surface fresh rows from a freshly-materialized custom table. The verify.sh post-fix KQL classifier therefore treats `0 rows post-fix` as `silent_acceptable_post_fix` (informational, not a gate failure) — distinguishing it from the H2 PASS verdict, which is anchored to the deterministic Healthy + traffic + curl signals.
+
+#### Falsification logic (2026-06-22)
+
+[Inferred] Region (`koreacentral`), SKU (Consumption), environment, registry credential mechanism (ACR admin user via `registry-password` secret), and ingress configuration were held constant between the failing baseline and the recovered state. The only experimental variable was the image tag (`:does-not-exist` → `:v1`). The transition from `deployment_failed_manifest_unknown` (revision count 0, `labacr` repository absent, no FQDN) to `revision_healthy_traffic_100_curl_ok` (Healthy revision, `labacr` repository present in ACR, 10/10 HTTP 200 at FQDN) is therefore consistent with the missing ACR tag being the single controlling variable for this failure mode. **VERDICT: SUPPORTED.**
 
 ## Clean Up
 

@@ -1,0 +1,28 @@
+{
+  "image": "acrlabacrrnnljl.azurecr.io/labacr:v1",
+  "ingress": {
+    "additionalPortMappings": null,
+    "allowInsecure": false,
+    "clientCertificateMode": null,
+    "corsPolicy": null,
+    "customDomains": null,
+    "exposedPort": 0,
+    "external": true,
+    "fqdn": "ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+    "ipSecurityRestrictions": null,
+    "stickySessions": null,
+    "targetPort": 8000,
+    "targetPortHttpScheme": null,
+    "traffic": [
+      {
+        "latestRevision": true,
+        "weight": 100
+      }
+    ],
+    "transport": "Auto"
+  },
+  "latestRevisionFqdn": "ca-labacr-rnnljl--mvlbg1j.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labacr-rnnljl--mvlbg1j",
+  "name": "ca-labacr-rnnljl",
+  "provisioningState": "Succeeded"
+}

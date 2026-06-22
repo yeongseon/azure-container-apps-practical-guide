@@ -1,0 +1,16 @@
+{
+  "_note": "Deployment provisioningState=Failed; az deployment group show --query properties.outputs returned null. This is intentional Azure Resource Manager behavior: outputs are not populated when the deployment did not reach Succeeded state. Resource shells (Container App, ACR, Log Analytics workspace) WERE created and are queryable via az containerapp list / az acr list / az monitor log-analytics workspace list against the dedicated resource group rg-aca-lab-acr. See README.md Quick Start step 3 for the canonical name-derivation pattern that works regardless of deployment outcome.",
+  "_deployment_state": "Failed",
+  "_outputs_value": null,
+  "_recovered_names_via_az_list": {
+    "containerAppName": "ca-labacr-rnnljl",
+    "containerAppFqdnAfterFix": "ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+    "environmentName": "cae-labacr-rnnljl",
+    "acrName": "acrlabacrrnnljl",
+    "acrLoginServer": "acrlabacrrnnljl.azurecr.io",
+    "logAnalyticsWorkspaceName": "log-labacr-rnnljl",
+    "logAnalyticsCustomerId": "0d63d597-ce62-4541-905d-89cb2779a4c0",
+    "resourceGroupRegion": "koreacentral",
+    "subscriptionId": "00000000-0000-0000-0000-000000000000"
+  }
+}
