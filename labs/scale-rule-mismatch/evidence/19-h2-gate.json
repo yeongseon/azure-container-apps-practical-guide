@@ -1,14 +1,15 @@
 {
-  "utc_captured": "2026-06-22T14:35:00Z",
-  "fix_utc": "2026-06-22T14:31:34Z",
+  "utc_captured": "2026-06-22T15:16:36Z",
+  "fix_utc": "2026-06-22T15:12:56Z",
   "app_name": "ca-labscale-q2xnsr",
   "rg": "rg-aca-lab-scale",
   "post_fix_revision": "ca-labscale-q2xnsr--0000002",
-  "post_fix_fqdn": "ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io",
+  "post_fix_fqdn": "ca-labscale-q2xnsr.delightfulrock-6cf4faac.koreacentral.azurecontainerapps.io",
   "final_revision_health": "Healthy",
+  "seconds_to_healthy": 14,
   "post_fix_load_window": {
-    "start_utc": "2026-06-22T14:32:47Z",
-    "end_utc": "2026-06-22T14:34:52Z",
+    "start_utc": "2026-06-22T15:14:09Z",
+    "end_utc": "2026-06-22T15:15:39Z",
     "duration_seconds": 90,
     "concurrent_requests_generated": 60,
     "scale_rule_threshold_configured_after_fix": 10,
@@ -16,18 +17,18 @@
   },
   "replicas_observed_after_fix": {
     "pre_load": 1,
-    "at_15s": 5,
-    "at_30s": 5,
-    "at_60s": 7,
-    "at_90s": 7,
-    "max_during_load": 7
+    "at_15s": 6,
+    "at_30s": 6,
+    "at_60s": 6,
+    "at_90s": 6,
+    "max_during_load": 6
   },
-  "scale_events_count_after_fix": 19,
+  "scale_events_count_after_fix": 0,
   "h2_sub_gates": {
     "a_post_fix_revision_healthy": true,
     "b_replicas_increased_after_fix": true,
-    "c_scaleup_events_observed_after_fix": true
+    "c_scaleup_events_observed_after_fix": false
   },
-  "h2_all_subgates_pass": true,
-  "gate_classification": "scale_rule_fixed_replicas_scaled_events_observed"
+  "h2_all_subgates_pass": false,
+  "gate_classification": "scale_rule_fixed_replicas_scaled_no_events"
 }

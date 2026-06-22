@@ -1,14 +1,19 @@
-2026/06/22 14:27:08 Downloading source code...
-2026/06/22 14:27:09 Finished downloading source code
-2026/06/22 14:27:09 Using acb_vol_b0f97689-9676-4fd3-b688-fa320da9010f as the home volume
-2026/06/22 14:27:09 Setting up Docker configuration...
-2026/06/22 14:27:10 Successfully set up Docker configuration
-2026/06/22 14:27:10 Logging in to registry: acrlabscaleq2xnsr.azurecr.io
-2026/06/22 14:27:11 Successfully logged into acrlabscaleq2xnsr.azurecr.io
-2026/06/22 14:27:11 Executing step ID: build. Timeout(sec): 28800, Working directory: '', Network: ''
-2026/06/22 14:27:11 Scanning for dependencies...
-2026/06/22 14:27:11 Successfully scanned dependencies
-2026/06/22 14:27:11 Launching container with name: build
+WARNING: Packing source code into tar to upload...
+WARNING: Uploading archived source code from '/var/folders/2m/2h26lv7d1n7f01ptx_cw0k800000gn/T/build_archive_bd470269bf1e4180a72e6c177c13a210.tar.gz'...
+WARNING: Sending context (886.000 Bytes) to registry: acrlabscaleq2xnsr...
+WARNING: Queued a build with ID: de1
+WARNING: Waiting for an agent...
+2026/06/22 15:08:26 Downloading source code...
+2026/06/22 15:08:27 Finished downloading source code
+2026/06/22 15:08:27 Using acb_vol_8ffb9959-63ac-4e73-a6e5-abadb9c81bcc as the home volume
+2026/06/22 15:08:27 Setting up Docker configuration...
+2026/06/22 15:08:28 Successfully set up Docker configuration
+2026/06/22 15:08:28 Logging in to registry: acrlabscaleq2xnsr.azurecr.io
+2026/06/22 15:08:28 Successfully logged into acrlabscaleq2xnsr.azurecr.io
+2026/06/22 15:08:28 Executing step ID: build. Timeout(sec): 28800, Working directory: '', Network: ''
+2026/06/22 15:08:28 Scanning for dependencies...
+2026/06/22 15:08:29 Successfully scanned dependencies
+2026/06/22 15:08:29 Launching container with name: build
 Sending build context to Docker daemon  5.632kB
 Step 1/7 : FROM python:3.11-slim
 3.11-slim: Pulling from library/python
@@ -33,13 +38,13 @@ Digest: sha256:ae52c5bef62a6bdd42cd1e8dffef86b9cd284bde9427da79839de7a4b983e7ca
 Status: Downloaded newer image for python:3.11-slim
  ---> a8a3e0a84b0d
 Step 2/7 : WORKDIR /app
- ---> Running in a6555afb91b7
-Removing intermediate container a6555afb91b7
- ---> 0ca5ee726cff
+ ---> Running in ab43494f3dd9
+Removing intermediate container ab43494f3dd9
+ ---> d23955afa2fc
 Step 3/7 : COPY requirements.txt ./
- ---> dae74d3191f5
+ ---> 632d6cdf17e9
 Step 4/7 : RUN pip install --no-cache-dir --requirement requirements.txt
- ---> Running in a092b3f8742b
+ ---> Running in b3557d5134f8
 Collecting flask==3.0.3 (from -r requirements.txt (line 1))
   Downloading flask-3.0.3-py3-none-any.whl.metadata (3.2 kB)
 Collecting gunicorn==22.0.0 (from -r requirements.txt (line 2))
@@ -59,19 +64,19 @@ Collecting packaging (from gunicorn==22.0.0->-r requirements.txt (line 2))
 Collecting MarkupSafe>=2.0 (from Jinja2>=3.1.2->flask==3.0.3->-r requirements.txt (line 1))
   Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
 Downloading flask-3.0.3-py3-none-any.whl (101 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 101.7/101.7 kB 33.3 MB/s eta 0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 101.7/101.7 kB 52.5 MB/s eta 0:00:00
 Downloading gunicorn-22.0.0-py3-none-any.whl (84 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 84.4/84.4 kB 281.2 MB/s eta 0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 84.4/84.4 kB 414.0 MB/s eta 0:00:00
 Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
 Downloading click-8.4.1-py3-none-any.whl (116 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 116.6/116.6 kB 451.5 MB/s eta 0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 116.6/116.6 kB 399.0 MB/s eta 0:00:00
 Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
 Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 434.2 MB/s eta 0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 428.8 MB/s eta 0:00:00
 Downloading werkzeug-3.1.8-py3-none-any.whl (226 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 226.5/226.5 kB 492.1 MB/s eta 0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 226.5/226.5 kB 458.5 MB/s eta 0:00:00
 Downloading packaging-26.2-py3-none-any.whl (100 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.2/100.2 kB 291.7 MB/s eta 0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.2/100.2 kB 438.4 MB/s eta 0:00:00
 Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
 Installing collected packages: packaging, MarkupSafe, itsdangerous, click, blinker, Werkzeug, Jinja2, gunicorn, flask
 Successfully installed Jinja2-3.1.6 MarkupSafe-3.0.3 Werkzeug-3.1.8 blinker-1.9.0 click-8.4.1 flask-3.0.3 gunicorn-22.0.0 itsdangerous-2.2.0 packaging-26.2
@@ -79,56 +84,56 @@ WARNING: Running pip as the 'root' user can result in broken permissions and con
 
 [notice] A new release of pip is available: 24.0 -> 26.1.2
 [notice] To update, run: pip install --upgrade pip
-Removing intermediate container a092b3f8742b
- ---> 0f34a715e73f
+Removing intermediate container b3557d5134f8
+ ---> 8f02825ad0a6
 Step 5/7 : COPY app.py ./
- ---> b5a1e1a81067
+ ---> b74400dc5c75
 Step 6/7 : EXPOSE 8000
- ---> Running in fe9009eae13a
-Removing intermediate container fe9009eae13a
- ---> ca72d76c146f
+ ---> Running in fbb6b7053b14
+Removing intermediate container fbb6b7053b14
+ ---> 541e4e04c5a4
 Step 7/7 : CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "app:app"]
- ---> Running in 0bdff8a4dc42
-Removing intermediate container 0bdff8a4dc42
- ---> 86c4e22ce2e6
-Successfully built 86c4e22ce2e6
+ ---> Running in 75db601041c8
+Removing intermediate container 75db601041c8
+ ---> 88da47cf1af3
+Successfully built 88da47cf1af3
 Successfully tagged acrlabscaleq2xnsr.azurecr.io/labscale:v1
-2026/06/22 14:27:25 Successfully executed container: build
-2026/06/22 14:27:25 Executing step ID: push. Timeout(sec): 3600, Working directory: '', Network: ''
-2026/06/22 14:27:25 Pushing image: acrlabscaleq2xnsr.azurecr.io/labscale:v1, attempt 1
+2026/06/22 15:08:43 Successfully executed container: build
+2026/06/22 15:08:43 Executing step ID: push. Timeout(sec): 3600, Working directory: '', Network: ''
+2026/06/22 15:08:43 Pushing image: acrlabscaleq2xnsr.azurecr.io/labscale:v1, attempt 1
 The push refers to repository [acrlabscaleq2xnsr.azurecr.io/labscale]
-beec2485f10a: Preparing
-a0fab0a42218: Preparing
-e984b2221388: Preparing
-ee7ed1758a44: Preparing
+844a19762c6a: Preparing
+5eecbd81ad47: Preparing
+a8fda75b6a7c: Preparing
+68a4bfff4ec4: Preparing
 fc765e52b6a7: Preparing
 28b2c2519a70: Preparing
 30397027ad83: Preparing
 f4f8b983b714: Preparing
-30397027ad83: Waiting
-f4f8b983b714: Waiting
 28b2c2519a70: Waiting
-beec2485f10a: Pushed
-e984b2221388: Pushed
-ee7ed1758a44: Pushed
+f4f8b983b714: Waiting
+30397027ad83: Waiting
+68a4bfff4ec4: Pushed
+a8fda75b6a7c: Pushed
 fc765e52b6a7: Pushed
-a0fab0a42218: Pushed
+844a19762c6a: Pushed
 30397027ad83: Pushed
+5eecbd81ad47: Pushed
 28b2c2519a70: Pushed
 f4f8b983b714: Pushed
-v1: digest: sha256:b67013ed8b9a63badd4aac363d0b586cdc0b21b057032565ef47e1275fe0eb79 size: 1990
-2026/06/22 14:27:36 Successfully pushed image: acrlabscaleq2xnsr.azurecr.io/labscale:v1
-2026/06/22 14:27:36 Step ID: build marked as successful (elapsed time in seconds: 14.258239)
-2026/06/22 14:27:36 Populating digests for step ID: build...
-2026/06/22 14:27:37 Successfully populated digests for step ID: build
-2026/06/22 14:27:37 Step ID: push marked as successful (elapsed time in seconds: 11.502140)
-2026/06/22 14:27:37 The following dependencies were found:
-2026/06/22 14:27:37 
+v1: digest: sha256:65c1134ee50df77ee329157b8e92dea293ed171dd41f0eb5a82ab114e2776b52 size: 1990
+2026/06/22 15:08:54 Successfully pushed image: acrlabscaleq2xnsr.azurecr.io/labscale:v1
+2026/06/22 15:08:54 Step ID: build marked as successful (elapsed time in seconds: 14.477770)
+2026/06/22 15:08:54 Populating digests for step ID: build...
+2026/06/22 15:08:55 Successfully populated digests for step ID: build
+2026/06/22 15:08:55 Step ID: push marked as successful (elapsed time in seconds: 11.467486)
+2026/06/22 15:08:55 The following dependencies were found:
+2026/06/22 15:08:55 
 - image:
     registry: acrlabscaleq2xnsr.azurecr.io
     repository: labscale
     tag: v1
-    digest: sha256:b67013ed8b9a63badd4aac363d0b586cdc0b21b057032565ef47e1275fe0eb79
+    digest: sha256:65c1134ee50df77ee329157b8e92dea293ed171dd41f0eb5a82ab114e2776b52
   runtime-dependency:
     registry: registry.hub.docker.com
     repository: library/python

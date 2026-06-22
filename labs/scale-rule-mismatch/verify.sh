@@ -72,9 +72,11 @@ if [[ -z "$POST_FIX_REVISION_NAME" ]]; then
 fi
 
 echo "=== Phase 12: poll new revision health up to 5 minutes (10 s interval) ==="
-DEADLINE=$(( $(date +%s) + 300 ))
+HEALTH_POLL_START_EPOCH=$(date +%s)
+DEADLINE=$(( HEALTH_POLL_START_EPOCH + 300 ))
 revision_health="Unknown"
 POLL_COUNT=0
+SECONDS_TO_HEALTHY=""
 while [[ $(date +%s) -lt $DEADLINE ]]; do
     POLL_COUNT=$(( POLL_COUNT + 1 ))
     revision_health=$(az containerapp revision show \
@@ -86,11 +88,15 @@ while [[ $(date +%s) -lt $DEADLINE ]]; do
         --output tsv 2>/dev/null || echo "Unknown")
     echo "Poll #${POLL_COUNT} at $(date -u +%Y-%m-%dT%H:%M:%SZ): healthState=${revision_health}"
     if [[ "$revision_health" == "Healthy" ]]; then
+        HEALTHY_AT_EPOCH=$(date +%s)
+        SECONDS_TO_HEALTHY=$(( HEALTHY_AT_EPOCH - HEALTH_POLL_START_EPOCH ))
+        echo "New revision Healthy after ${SECONDS_TO_HEALTHY}s"
         break
     fi
     sleep 10
 done
 echo "Final healthState after polling: $revision_health"
+echo "Seconds to Healthy (measured from update completion to first Healthy poll): ${SECONDS_TO_HEALTHY}"
 echo ""
 
 echo "=== Phase 13: capture container app post-fix state (expect concurrentRequests=10, maxReplicas=10) ==="
@@ -129,12 +135,20 @@ echo "Post-fix pre-load replica count: ${REPLICAS_PRE_LOAD_AFTER_FIX}"
 echo ""
 
 echo "=== Phase 15: generate sustained load AFTER FIX (60 concurrent requests for 90 s, identical to trigger.sh Phase 6) ==="
+LOAD_START_EPOCH_AFTER_FIX=$(date -u +%s)
 LOAD_START_UTC_AFTER_FIX="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "Load start UTC (post-fix): ${LOAD_START_UTC_AFTER_FIX}"
 LOAD_DURATION=90
 LOAD_CONCURRENCY=60
+LOAD_END_EPOCH_AFTER_FIX=$((LOAD_START_EPOCH_AFTER_FIX + LOAD_DURATION))
+LOAD_END_UTC_AFTER_FIX=$(LOAD_START_UTC_AFTER_FIX="$LOAD_START_UTC_AFTER_FIX" LOAD_DURATION="$LOAD_DURATION" python3 -c "
+import datetime, os
+start = datetime.datetime.strptime(os.environ['LOAD_START_UTC_AFTER_FIX'], '%Y-%m-%dT%H:%M:%SZ')
+print((start + datetime.timedelta(seconds=int(os.environ['LOAD_DURATION']))).strftime('%Y-%m-%dT%H:%M:%SZ'))
+")
+echo "Load end UTC (strict, +90s): ${LOAD_END_UTC_AFTER_FIX}"
+load_end_epoch=$LOAD_END_EPOCH_AFTER_FIX
 LOAD_PIDS=()
-load_end_epoch=$(( $(date -u +%s) + LOAD_DURATION ))
 for _ in $(seq 1 $LOAD_CONCURRENCY); do
     (
         while [ "$(date -u +%s)" -lt "$load_end_epoch" ]; do
@@ -188,12 +202,11 @@ echo "Replicas at +90 s post-fix under load: ${REPLICAS_90S_AFTER_FIX}"
 for pid in "${LOAD_PIDS[@]}"; do
     wait "$pid" 2>/dev/null || true
 done
-LOAD_END_UTC_AFTER_FIX="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-echo "Post-fix load generation complete at ${LOAD_END_UTC_AFTER_FIX}"
+echo "Post-fix load generation processes joined (KQL window remains [${LOAD_START_UTC_AFTER_FIX}, ${LOAD_END_UTC_AFTER_FIX}] strict 90 s)"
 echo ""
 
 echo "=== Phase 17: query ContainerAppSystemLogs_CL for scale events during post-fix load window ==="
-KQL_QUERY_AFTER_FIX="ContainerAppSystemLogs_CL | where ContainerAppName_s == '${APP_NAME}' | where TimeGenerated between (datetime(${LOAD_START_UTC_AFTER_FIX}) .. datetime(${LOAD_END_UTC_AFTER_FIX})) | where Reason_s in ('ScalingReplica', 'ScaleUp', 'ScaleDown', 'KEDAScalerActive') or Log_s contains 'scale' or Log_s contains 'replica' | project TimeGenerated, Reason_s, Log_s, RevisionName_s | sort by TimeGenerated asc | take 100"
+KQL_QUERY_AFTER_FIX="ContainerAppSystemLogs_CL | where ContainerAppName_s == '${APP_NAME}' | where RevisionName_s == '${POST_FIX_REVISION_NAME}' | where TimeGenerated between (datetime(${LOAD_START_UTC_AFTER_FIX}) .. datetime(${LOAD_END_UTC_AFTER_FIX})) | where Reason_s startswith 'Scal' or Reason_s startswith 'KEDA' | project TimeGenerated, Reason_s, Log_s, RevisionName_s | sort by TimeGenerated asc | take 100"
 
 set +e
 az monitor log-analytics query \
@@ -248,6 +261,7 @@ export EVIDENCE_DIR APP_NAME RG POST_FIX_REVISION_NAME POST_FIX_FQDN FIX_UTC LOA
 export REPLICAS_PRE_LOAD_AFTER_FIX REPLICAS_15S_AFTER_FIX REPLICAS_30S_AFTER_FIX REPLICAS_60S_AFTER_FIX REPLICAS_90S_AFTER_FIX
 export SCALE_EVENTS_COUNT_AFTER_FIX
 export REVISION_FINAL_HEALTH="$revision_health"
+export SECONDS_TO_HEALTHY="${SECONDS_TO_HEALTHY:-}"
 
 python3 <<'PYEOF'
 import json, os
@@ -319,6 +333,7 @@ out = {
     'post_fix_revision': os.environ['POST_FIX_REVISION_NAME'],
     'post_fix_fqdn': os.environ['POST_FIX_FQDN'],
     'final_revision_health': revision_health,
+    'seconds_to_healthy': int(os.environ['SECONDS_TO_HEALTHY']) if os.environ.get('SECONDS_TO_HEALTHY') else None,
     'post_fix_load_window': {
         'start_utc': os.environ['LOAD_START_UTC_AFTER_FIX'],
         'end_utc': os.environ['LOAD_END_UTC_AFTER_FIX'],

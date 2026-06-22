@@ -5,7 +5,7 @@
   },
   "containerAppUrl": {
     "type": "String",
-    "value": "https://ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io"
+    "value": "https://ca-labscale-q2xnsr.delightfulrock-6cf4faac.koreacentral.azurecontainerapps.io"
   },
   "containerRegistryLoginServer": {
     "type": "String",

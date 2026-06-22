@@ -23,7 +23,7 @@ echo "Workspace customer ID: ${WORKSPACE_CUSTOMER_ID}"
 echo ""
 echo "Note: This lab triggers a scale rule mismatch by deploying a workload with"
 echo "scale rule concurrentRequests=500 and maxReplicas=2. Under realistic concurrent"
-echo "load (60 concurrent requests over 60 s), the threshold is never reached, so KEDA"
+echo "load (60 concurrent requests over 90 s), the threshold is never reached, so KEDA"
 echo "does not request additional replicas. The replica count stays at 1 (= minReplicas)"
 echo "and the platform appears to ignore the load. This is the documented behavior, not"
 echo "a bug; the scale rule was configured with an unrealistic threshold."
@@ -112,8 +112,10 @@ cat "$EVIDENCE_DIR/03-containerapp-show-baseline.json"
 echo ""
 
 FQDN=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/03-containerapp-show-baseline.json'))['fqdn'])")
+ACTIVE_REVISION_NAME=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/03-containerapp-show-baseline.json'))['latestRevisionName'])")
 URL="https://${FQDN}/load"
 echo "Load URL: ${URL}"
+echo "Active revision (pre-fix): ${ACTIVE_REVISION_NAME}"
 echo ""
 
 echo "=== Phase 5: capture pre-load replica baseline (expect 1 replica at idle) ==="
@@ -128,12 +130,20 @@ echo "Pre-load replica count: ${REPLICAS_PRE_LOAD}"
 echo ""
 
 echo "=== Phase 6: generate sustained load (60 concurrent requests for 90s) ==="
-LOAD_START_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+LOAD_START_EPOCH=$(date -u +%s)
+LOAD_START_UTC="$(date -u -r $LOAD_START_EPOCH +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "Load start UTC: ${LOAD_START_UTC}"
 LOAD_DURATION=90
 LOAD_CONCURRENCY=60
+LOAD_END_EPOCH=$((LOAD_START_EPOCH + LOAD_DURATION))
+LOAD_END_UTC=$(LOAD_START_UTC="$LOAD_START_UTC" LOAD_DURATION="$LOAD_DURATION" python3 -c "
+import datetime, os
+start = datetime.datetime.strptime(os.environ['LOAD_START_UTC'], '%Y-%m-%dT%H:%M:%SZ')
+print((start + datetime.timedelta(seconds=int(os.environ['LOAD_DURATION']))).strftime('%Y-%m-%dT%H:%M:%SZ'))
+")
+echo "Load end UTC (strict, +90s): ${LOAD_END_UTC}"
+load_end_epoch=$LOAD_END_EPOCH
 LOAD_PIDS=()
-load_end_epoch=$(( $(date -u +%s) + LOAD_DURATION ))
 for _ in $(seq 1 $LOAD_CONCURRENCY); do
     (
         while [ "$(date -u +%s)" -lt "$load_end_epoch" ]; do
@@ -187,12 +197,11 @@ echo "Replicas at +90 s under load: ${REPLICAS_90S}"
 for pid in "${LOAD_PIDS[@]}"; do
     wait "$pid" 2>/dev/null || true
 done
-LOAD_END_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-echo "Load generation complete at ${LOAD_END_UTC}"
+echo "Load generation processes joined (KQL window remains [${LOAD_START_UTC}, ${LOAD_END_UTC}] strict 90 s)"
 echo ""
 
 echo "=== Phase 8: query ContainerAppSystemLogs_CL for scale events during load window ==="
-KQL_QUERY="ContainerAppSystemLogs_CL | where ContainerAppName_s == '${APP_NAME}' | where TimeGenerated between (datetime(${LOAD_START_UTC}) .. datetime(${LOAD_END_UTC})) | where Reason_s in ('ScalingReplica', 'ScaleUp', 'ScaleDown', 'KEDAScalerActive') or Log_s contains 'scale' or Log_s contains 'replica' | project TimeGenerated, Reason_s, Log_s, RevisionName_s | sort by TimeGenerated asc | take 100"
+KQL_QUERY="ContainerAppSystemLogs_CL | where ContainerAppName_s == '${APP_NAME}' | where RevisionName_s == '${ACTIVE_REVISION_NAME}' | where TimeGenerated between (datetime(${LOAD_START_UTC}) .. datetime(${LOAD_END_UTC})) | where Reason_s startswith 'Scal' or Reason_s startswith 'KEDA' | project TimeGenerated, Reason_s, Log_s, RevisionName_s | sort by TimeGenerated asc | take 100"
 az monitor log-analytics query \
     --subscription "$AZ_SUBSCRIPTION" \
     --workspace "$WORKSPACE_CUSTOMER_ID" \
@@ -214,7 +223,7 @@ echo ""
 
 echo "=== Phase 9: emit H1 gate JSON ==="
 UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export EVIDENCE_DIR REPLICAS_PRE_LOAD REPLICAS_15S REPLICAS_30S REPLICAS_60S REPLICAS_90S SCALE_EVENTS_COUNT UTC_CAPTURED APP_NAME RG LOAD_START_UTC LOAD_END_UTC
+export EVIDENCE_DIR REPLICAS_PRE_LOAD REPLICAS_15S REPLICAS_30S REPLICAS_60S REPLICAS_90S SCALE_EVENTS_COUNT UTC_CAPTURED APP_NAME RG LOAD_START_UTC LOAD_END_UTC ACTIVE_REVISION_NAME
 
 python3 <<'PYEOF'
 import json, os
@@ -250,6 +259,7 @@ out = {
     'utc_captured': os.environ['UTC_CAPTURED'],
     'app_name': os.environ['APP_NAME'],
     'rg': os.environ['RG'],
+    'active_revision': os.environ['ACTIVE_REVISION_NAME'],
     'load_window': {
         'start_utc': os.environ['LOAD_START_UTC'],
         'end_utc': os.environ['LOAD_END_UTC'],

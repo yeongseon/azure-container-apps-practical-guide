@@ -18,7 +18,7 @@
         "customDomains": null,
         "exposedPort": 0,
         "external": true,
-        "fqdn": "ca-labscale-q2xnsr.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io",
+        "fqdn": "ca-labscale-q2xnsr.delightfulrock-6cf4faac.koreacentral.azurecontainerapps.io",
         "ipSecurityRestrictions": null,
         "stickySessions": null,
         "targetPort": 8000,
@@ -54,8 +54,8 @@
     "delegatedIdentities": [],
     "environmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/managedEnvironments/cae-labscale-q2xnsr",
     "eventStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/eventstream",
-    "latestReadyRevisionName": "ca-labscale-q2xnsr--rxmtr38",
-    "latestRevisionFqdn": "ca-labscale-q2xnsr--0000001.delightfulpond-bb76a76a.koreacentral.azurecontainerapps.io",
+    "latestReadyRevisionName": "ca-labscale-q2xnsr--q8c8h66",
+    "latestRevisionFqdn": "ca-labscale-q2xnsr--0000001.delightfulrock-6cf4faac.koreacentral.azurecontainerapps.io",
     "latestRevisionName": "ca-labscale-q2xnsr--0000001",
     "managedEnvironmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/managedEnvironments/cae-labscale-q2xnsr",
     "outboundIpAddresses": [
@@ -219,7 +219,7 @@
       "20.249.44.147",
       "20.196.239.120",
       "20.249.44.196",
-      "20.214.213.32"
+      "4.217.130.85"
     ],
     "patchingMode": "Automatic",
     "provisioningState": "Succeeded",
@@ -265,10 +265,10 @@
   },
   "resourceGroup": "rg-aca-lab-scale",
   "systemData": {
-    "createdAt": "2026-06-22T14:25:35.4767475",
+    "createdAt": "2026-06-22T15:06:36.7157401",
     "createdBy": "user@example.com",
     "createdByType": "User",
-    "lastModifiedAt": "2026-06-22T14:28:09.4410481",
+    "lastModifiedAt": "2026-06-22T15:09:30.8620216",
     "lastModifiedBy": "user@example.com",
     "lastModifiedByType": "User"
   },
