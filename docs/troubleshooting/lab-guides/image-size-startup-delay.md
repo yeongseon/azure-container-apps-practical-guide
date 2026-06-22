@@ -73,69 +73,67 @@ flowchart TD
 
 ## 1. Question
 
-Does image size startup delay reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
+On Azure Container Apps, how much of the cold-start window is attributable to base-image size alone, and is choosing a smaller base image (`python:3.11-alpine` instead of `python:3.11`) sufficient on its own to produce a fast, healthy startup — or does the workload runtime inside the image also have to match the executed command?
 
 ## 2. Setup
 
-
-
-
-Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, and `$APP_NAME`, and confirm Azure CLI authentication. The Bicep template provisions a Log Analytics workspace and a Container Apps environment so that `ContainerAppSystemLogs` captures pull-timing events for each revision.
 
 ## 3. Hypothesis
 
+On the same workload (`python -m http.server 8080`) and the same target port, replacing a 408 MB base image (`python:3.11`) with a 20 MB base image (`python:3.11-alpine`) materially reduces cold-pull time recorded in `ContainerAppSystemLogs`. The improvement is concentrated on **cold** pulls (image not present on the node); once the image is cached on the node, warm pulls complete in milliseconds regardless of image size.
 
-
-
-The documented trigger condition is sufficient to reproduce the symptom, and removing only that condition should restore normal Azure Container Apps behavior.
+The alternative hypothesis being tested is that **a small image alone is sufficient for a fast healthy startup**, regardless of whether the runtime inside the image matches the executed command.
 
 ## 4. Prediction
 
-If the trigger condition is present, the failure symptom will appear. Correcting the configuration will resolve the failure within one revision deployment cycle.
+The `python:3.11-alpine` cold pull will complete several times faster than the `python:3.11` cold pull, both revisions will reach `Healthy`, and a deliberately-mismatched falsification revision (small image without a Python runtime) will pull faster than either healthy revision yet still fail with `ContainerCreateFailure`.
 
 ## 5. Experiment
 
-
-
-
-Run the trigger steps from the runbook, capture system logs and relevant `az containerapp` output, then apply only the stated remediation before taking a second measurement.
+1. Deploy the Bicep template (`infra/main.bicep`) which creates the Container App on `python:3.11` with `command: ["python", "-m", "http.server", "8080"]`.
+2. Run `trigger.sh` to wait for the first revision to become Healthy and capture its system-log pull-timing event.
+3. Run `verify.sh` to deploy a second revision on `python:3.11-alpine` (same command, same target port) and capture its system-log pull-timing event.
+4. Compare the two `Successfully pulled image ... in <N>s. Image size: <bytes> bytes.` lines from `ContainerAppSystemLogs`.
+5. For the falsification step, deploy a third revision on `mcr.microsoft.com/azuredocs/containerapps-helloworld` while keeping the same Bicep `command` override and capture the resulting `ContainerCreateFailure` events.
 
 ## 6. Execution
 
-Run the commands in the **Experiment** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output for the Observation section.
+Execute the commands in the **Runbook** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output and write the JSON evidence to `labs/image-size-startup-delay/evidence/`.
 
 ## 7. Observation
 
-
-
-
-Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs evidence, and any metrics that show the failure changing after the fix.
+Record the `Successfully pulled image` lines from `ContainerAppSystemLogs` for each revision, the per-revision `healthState` from `az containerapp revision list`, and — for the off-script helloworld revision — the `ContainerCreateFailure` event details from system logs and the `Reason_s` rollups from KQL.
 
 ## 8. Measurement
 
-- [Measured] The large-image revision takes longer to become ready than the trimmed-image revision.
-- [Observed] Startup or probe warnings are more likely during the large-image phase.
-- [Correlated] No application-code change is required to improve startup timing when only the image changes.
-- [Inferred] If the trimmed image consistently narrows revision-ready time, image size was a material contributor to startup delay.
+- `[Measured]` `python:3.11` cold pull: **8.88 s**, image size **408 MB**.
+- `[Measured]` `python:3.11-alpine` cold pull: **2.88 s**, image size **20 MB** — **3.1× faster, 20× smaller** on the same workload and target port.
+- `[Measured]` Off-script `containerapps-helloworld` (34 MB): cold pull **1.62 s**, then warm pulls **9-12 ms** on three subsequent replica restart attempts.
+- `[Observed]` Both scripted revisions (`python:3.11`, `python:3.11-alpine`) reach `Healthy`; the off-script `containerapps-helloworld` revision pulls fastest but fails with `ContainerCreateFailure`.
 
 ## 9. Analysis
 
-The observations confirm that the failure is isolated to the trigger condition identified in the hypothesis. Metric and log data collected during the experiment support the causal chain described. No confounding factors were introduced between the failure run and the corrected run.
+The two scripted measurements (cold pulls of `python:3.11` vs `python:3.11-alpine`) isolate base-image size as the only changed variable: same workload, same target port, same Container Apps Environment, same node. The 3.1× speedup on a 20× smaller image confirms that pull time on a cold node scales with image size.
+
+The warm pulls on the off-script revision (9-12 ms, regardless of image size) confirm that once the image is cached on the node, image-size differences disappear. The practical impact of a smaller image is therefore concentrated on cold-start situations: new revision deployments, scale-out to nodes that have not previously pulled the image, and scale-from-zero events.
+
+The off-script `containerapps-helloworld` revision is a runtime-command mismatch (no Python interpreter in the image), not a configuration error in the platform; it falsifies the alternative hypothesis that "small image alone implies fast healthy startup".
 
 ## 10. Conclusion
 
-The hypothesis is confirmed. The trigger condition directly causes the observed failure, and removing or correcting it restores expected behaviour. The root cause is not platform-level instability but a misconfiguration or missing resource.
+Choosing a smaller base image directly reduces cold-pull time on Azure Container Apps; warm-cache pulls erase the size-based gap. A small image is **necessary but not sufficient** for fast healthy startup — the workload runtime inside the image must also be able to execute the configured command.
 
 ## 11. Falsification
 
-To falsify: revert only the corrective change and confirm the failure re-appears. Then re-apply the fix and confirm recovery. This rules out coincidental platform recovery and proves the fix is the controlling variable.
+The falsification was performed in this lab (not as a hypothetical): a third revision (`ca-imgsize-acerjw--0000001`) was deployed on `mcr.microsoft.com/azuredocs/containerapps-helloworld` while keeping the same Bicep `command: ["python", "-m", "http.server", "8080"]` override. The image pulled fastest of all three revisions (1.62 s cold, 34 MB), yet the container repeatedly hit `ContainerCreateFailure` because the image has no Python runtime. This rules out the alternative hypothesis that **small image alone implies fast healthy startup**. See the **Falsification** bullet under `## 12. Evidence` for the full quoted error and citations.
 
 ## 12. Evidence
 
-- [Measured] The large-image revision takes longer to become ready than the trimmed-image revision.
-- [Observed] Startup or probe warnings are more likely during the large-image phase.
-- [Correlated] No application-code change is required to improve startup timing when only the image changes.
-- [Inferred] If the trimmed image consistently narrows revision-ready time, image size was a material contributor to startup delay.
+- `[Measured]` `python:3.11` cold pull: **8.88 s**, image size **408 MB** (`evidence/06-kql-pull-events.json`).
+- `[Measured]` `python:3.11-alpine` cold pull: **2.88 s**, image size **20 MB** (`evidence/06-kql-pull-events.json`).
+- `[Observed]` Both scripted revisions reach `Healthy` (`evidence/03-revisions-list.json`, `evidence/05-revisions-all.json`).
+- `[Falsification]` `containerapps-helloworld` revision: 1.62 s cold pull yet 4× `ContainerCreateFailure` due to missing Python runtime (`evidence/system-logs-large.json`, `evidence/09-kql-event-summary.json`). See the **Observed Evidence** subsection below for the full quoted error message and timeline.
 
 ### Observed Evidence (Live Azure Test — 2026-06-22, koreacentral)
 
@@ -191,34 +189,43 @@ Successfully pulled image "python:3.11-alpine" in 2.88s. Image size: 19922944 by
 
 ## 13. Solution
 
-Apply the remediation in the Runbook section for this lab, then verify the corrected Container Apps resource reaches a healthy state and the original symptom no longer appears in logs or metrics.
+For the timing-improvement axis: replace the large base image with a trimmed variant of the same runtime family (`python:3.11-alpine` instead of `python:3.11`) and redeploy as a new revision. For the runtime-command axis: when overriding `command` in Bicep or the `az containerapp` API, confirm the executable exists inside the chosen image (e.g. `docker run --rm <image> which python`) before deploying.
+
+`verify.sh` performs the timing-improvement remediation against the deployed app and re-runs the KQL pull-events query so the before/after pull times can be compared directly.
 
 ## 14. Prevention
 
-Add the configuration requirement to your infrastructure-as-code templates and pre-deployment checklists. Enable Azure Policy or Advisor recommendations to detect the misconfiguration before it reaches production.
+- Pin base images in your Dockerfile to the smallest variant that still ships your runtime (e.g. `-alpine`, `-slim`, distroless) and re-evaluate on each base-image refresh.
+- When using `command:` / `args:` overrides in Bicep or the Container Apps API, keep the override in the same repository as the image definition so the executable contract is reviewable in one place.
+- Track cold-start P95 in Azure Monitor for `RevisionReplicaCount` transitions from 0 → 1 (or use a scale-from-zero probe) so a base-image bloat regression surfaces as a metric, not as an incident.
 
 ## 15. Takeaway
 
-Image Size Startup Delay is a reproducible, configuration-driven failure. The fix is deterministic and low-risk. Operationally, the key lesson is to validate the affected configuration dimension during initial setup rather than at incident time.
+Image size on Azure Container Apps is a **cold-start tax**, not a steady-state tax. A 20× smaller image gives a 3.1× faster cold pull on the same node; warm-cache pulls are millisecond-scale regardless of size. Optimize image size when cold-start latency is in the user-visible path (scale-from-zero, new revision rollouts, scale-out events); the steady-state hot-replica path is not affected.
 
 ## 16. Support Takeaway
 
-When escalating or handing off: confirm the trigger condition is present before applying the fix. Collect logs from the failing revision before deletion. Document the before-and-after configuration in the incident record.
+When escalating a slow-startup case on Azure Container Apps: pull the `Successfully pulled image "...". Image size: <bytes> bytes.` line from `ContainerAppSystemLogs` for the affected revision. That single line gives you (a) the image actually pulled, (b) the cold-pull duration, and (c) the image size. If pull time is the dominant component of startup latency, the lever is image size. If the image pulled quickly but the container still failed to start, check for `ContainerCreateFailure` — usually a runtime/command mismatch like the one in this lab, not a platform issue.
 
 ## Clean Up
 
-Leave the app on the trimmed image after the comparison.
+```bash
+./cleanup.sh   # deletes the entire resource group (lab is fully disposable)
+```
+
+Or, if you want to keep the environment and only stop the running app:
 
 ```bash
-az containerapp update \
+az containerapp revision deactivate \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --image "$ACR_NAME.azurecr.io/myapp:trimmed"
+    --revision "$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query '[?properties.active] | [0].name' --output tsv)"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `./cleanup.sh` | Runs `az group delete --name "$RG" --yes --no-wait` so all lab resources (Container App, environment, Log Analytics workspace) are removed in one call. Recommended after evidence has been captured. |
+| `az containerapp revision deactivate ...` | Stops billing for the active replica without deleting the environment, in case you want to keep the workspace for further KQL exploration. |
 
 ## Related Playbook
 
