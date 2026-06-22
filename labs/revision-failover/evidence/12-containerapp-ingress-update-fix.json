@@ -1,0 +1,20 @@
+{
+  "additionalPortMappings": null,
+  "allowInsecure": false,
+  "clientCertificateMode": null,
+  "corsPolicy": null,
+  "customDomains": null,
+  "exposedPort": 0,
+  "external": true,
+  "fqdn": "ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io",
+  "ipSecurityRestrictions": null,
+  "stickySessions": null,
+  "targetPort": 8000,
+  "traffic": [
+    {
+      "latestRevision": true,
+      "weight": 100
+    }
+  ],
+  "transport": "Auto"
+}

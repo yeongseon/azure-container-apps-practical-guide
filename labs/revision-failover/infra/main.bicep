@@ -59,7 +59,7 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
         external: true
         targetPort: 8000
       }
-      activeRevisionsMode: 'Multiple'
+      activeRevisionsMode: 'Single'
     }
     template: {
       containers: [

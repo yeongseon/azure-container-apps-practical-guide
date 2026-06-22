@@ -1,0 +1,121 @@
+verify.sh starting at 2026-06-22T16:16:12Z
+RG: rg-aca-lab-revision
+App: ca-labrevision-zfnp6h
+Workspace customer ID: b930c58f-a778-40f8-82a5-05fc0a642324
+
+=== Phase 13: validate baseline evidence from trigger.sh ===
+Triggered state: H1 gate=revision_failover_broken_revision_unhealthy, all_subgates_pass=True
+Baseline revision (from trigger.sh): ca-labrevision-zfnp6h--0000001
+
+=== Phase 14: az containerapp ingress update --target-port 8000 (apply in-place fix to same revision) ===
+Fix UTC: 2026-06-22T16:16:13Z
+/ Running ..| Running ..\ Running ..- Running ../ Running ..| Running ..[KWARNING: 
+Ingress Updated. Access your app at https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io/
+
+{
+  "additionalPortMappings": null,
+  "allowInsecure": false,
+  "clientCertificateMode": null,
+  "corsPolicy": null,
+  "customDomains": null,
+  "exposedPort": 0,
+  "external": true,
+  "fqdn": "ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io",
+  "ipSecurityRestrictions": null,
+  "stickySessions": null,
+  "targetPort": 8000,
+  "traffic": [
+    {
+      "latestRevision": true,
+      "weight": 100
+    }
+  ],
+  "transport": "Auto"
+}
+
+=== Phase 15: poll for revision health to recover from non-Healthy back to Healthy ===
+Poll #1 at 2026-06-22T16:16:34Z: healthState=Healthy
+Revision recovered to Healthy after 2s
+Final healthState after polling: Healthy
+Seconds to Healthy (measured from fix completion to first Healthy poll): 2
+
+=== Phase 16: capture post-fix revision list (expect baseline revision Healthy at 100% traffic) ===
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T16:10:26+00:00",
+    "healthState": "Healthy",
+    "name": "ca-labrevision-zfnp6h--0000001",
+    "replicas": 1,
+    "runningState": "Running",
+    "trafficWeight": 100
+  }
+]
+
+=== Phase 17: capture container app post-fix state (expect targetPort=8000, latestRevisionName=baseline) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "activeRevisionsMode": "Single",
+  "fqdn": "ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labrevision-zfnp6h--0000001",
+  "name": "ca-labrevision-zfnp6h",
+  "provisioningState": "Succeeded",
+  "targetPort": 8000
+}
+
+Post-fix FQDN: ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io
+Post-fix URL: https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io/
+Post-fix latestRevisionName: ca-labrevision-zfnp6h--0000001 (expected: same as baseline ca-labrevision-zfnp6h--0000001)
+Post-fix targetPort: 8000 (expected: 8000)
+
+=== Phase 18: post-fix HTTP probe (expect HTTP 200) ===
+Post-fix HTTP code from https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io/: 200
+
+=== Phase 19: query ContainerAppSystemLogs_CL for recovery events during fix window ===
+az monitor log-analytics query exit code: 0
+Output (truncated to first 500 chars):
+[
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:14.0343192Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:15.1735379Z"
+  },
+  {
+    "Log_s
+
+Recovery log rows in fix window: 14
+
+=== Phase 20: capture metadata + emit H2 gate ===
+{
+  "gate_classification": "revision_failover_recovered_in_place_no_new_revision",
+  "h2_all_subgates_pass": true,
+  "h2_sub_gates": {
+    "a_post_fix_revision_healthy": true,
+    "b_same_revision_name_recovered": true,
+    "c_curl_succeeded_after_fix": true,
+    "d_ingress_target_port_corrected": true
+  },
+  "seconds_to_healthy": 2,
+  "baseline_vs_post_fix_revision_name": {
+    "baseline": "ca-labrevision-zfnp6h--0000001",
+    "post_fix": "ca-labrevision-zfnp6h--0000001",
+    "unchanged": true
+  }
+}
+
+=== Verdict ===
+H1 (trigger.sh): gate=revision_failover_broken_revision_unhealthy, all_subgates_pass=True
+H2 (verify.sh):  gate=revision_failover_recovered_in_place_no_new_revision, all_subgates_pass=True
+
+H1 PASS: true
+H2 PASS: true
+VERDICT: SUPPORTED. The ingress targetPort flip (8000 -> 9999 -> 8000) is the controlling variable: the same revision transitions from Healthy to non-Healthy when targetPort points to a port nothing is listening on, and the same revision recovers to Healthy in-place when targetPort is corrected back. No new revision is required for either the break or the fix.

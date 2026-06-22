@@ -11,7 +11,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-06-22*
+*Generated: 2026-06-23*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
@@ -160,7 +160,7 @@ pie title In-Scope Document Validation Status
 | [Dapr State Store Failure](../troubleshooting/playbooks/platform-features/dapr-state-store-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Decision Tree](../troubleshooting/decision-tree.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Detector Map](../troubleshooting/methodology/detector-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
-| [Diagnostic Settings Missing](../troubleshooting/playbooks/observability/diagnostic-settings-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Diagnostic Settings Missing](../troubleshooting/playbooks/observability/diagnostic-settings-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-06-22 |
 | [Docker Hub Rate Limit](../troubleshooting/playbooks/startup-and-provisioning/docker-hub-rate-limit.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Easyauth Entra Id Failure](../troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Egress Ip Change](../troubleshooting/playbooks/networking-advanced/egress-ip-change.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |

@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.41.2.15936",
-      "templateHash": "10944647330683415205"
+      "version": "0.43.8.12551",
+      "templateHash": "9446211549539502896"
     }
   },
   "parameters": {
@@ -85,7 +85,7 @@
             "external": true,
             "targetPort": 8000
           },
-          "activeRevisionsMode": "Multiple"
+          "activeRevisionsMode": "Single"
         },
         "template": {
           "containers": [

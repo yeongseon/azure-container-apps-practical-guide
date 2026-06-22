@@ -1,0 +1,100 @@
+[
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:14.0343192Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:15.1735379Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:15.8203506Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:16.8624543Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:17.857039Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:18.8616168Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:19.8684914Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:20.9236118Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:21.8850413Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:21.8850413Z"
+  },
+  {
+    "Log_s": "Probe of StartUp failed with status code: 1",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:24.1623758Z"
+  },
+  {
+    "Log_s": "Container 'app' was terminated with exit code '' and reason 'ManuallyStopped'",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:24.1623758Z"
+  },
+  {
+    "Log_s": "Revision 'ca-labrevision-zfnp6h--0000001' updated. No new revision was provisioned.",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:24.8885893Z"
+  },
+  {
+    "Log_s": "Revision 'ca-labrevision-zfnp6h--0000001' updated. No new revision was provisioned.",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labrevision-zfnp6h--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T16:16:25.8760192Z"
+  }
+]

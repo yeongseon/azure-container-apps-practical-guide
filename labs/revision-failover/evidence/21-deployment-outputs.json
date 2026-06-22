@@ -1,0 +1,26 @@
+{
+  "containerAppName": {
+    "type": "String",
+    "value": "ca-labrevision-zfnp6h"
+  },
+  "containerAppUrl": {
+    "type": "String",
+    "value": "https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io"
+  },
+  "containerRegistryLoginServer": {
+    "type": "String",
+    "value": "acrlabrevisionzfnp6h.azurecr.io"
+  },
+  "containerRegistryName": {
+    "type": "String",
+    "value": "acrlabrevisionzfnp6h"
+  },
+  "environmentName": {
+    "type": "String",
+    "value": "cae-labrevision-zfnp6h"
+  },
+  "logAnalyticsWorkspaceName": {
+    "type": "String",
+    "value": "log-labrevision-zfnp6h"
+  }
+}
