@@ -184,7 +184,10 @@ ACTIVITY_LOG_FAILED_COUNT=$(python3 -c "import json; print(len(json.load(open('$
 echo "Failed Microsoft.App activity log entries in last 1 hour: $ACTIVITY_LOG_FAILED_COUNT"
 echo ""
 
-export EVIDENCE_DIR DEPLOYMENT_STATE DEPLOYMENT_ERROR_MESSAGE APP_PROVISIONING_STATE APP_LATEST_REVISION REVISION_COUNT LABACR_PRESENT SYSTEM_LOGS_KEYERROR ACTIVITY_LOG_FAILED_COUNT
+# Resolve the gate timestamp in bash before the heredoc. Single-quoted heredocs (`<<'PYEOF'`)
+# disable `$(...)` substitution, so the Python block must read it via os.environ['UTC_CAPTURED'].
+UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export EVIDENCE_DIR DEPLOYMENT_STATE DEPLOYMENT_ERROR_MESSAGE APP_PROVISIONING_STATE APP_LATEST_REVISION REVISION_COUNT LABACR_PRESENT SYSTEM_LOGS_KEYERROR ACTIVITY_LOG_FAILED_COUNT UTC_CAPTURED
 
 python3 <<'PYEOF'
 import json, os
@@ -241,7 +244,7 @@ h1_sub_gates = {
 h1_all_subgates_pass = all(h1_sub_gates.values())
 
 out = {
-    'utc_captured': '$(date -u +%Y-%m-%dT%H:%M:%SZ)',
+    'utc_captured': os.environ['UTC_CAPTURED'],
     'app_name': os.environ.get('APP_NAME', ''),
     'rg': os.environ.get('RG', ''),
     'deployment_state': deployment_state,

@@ -1,5 +1,5 @@
 {
-  "utc_captured": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "utc_captured": "2026-06-22T13:24:00Z",
   "app_name": "ca-labacr-rnnljl",
   "rg": "rg-aca-lab-acr",
   "deployment_state": "Failed",

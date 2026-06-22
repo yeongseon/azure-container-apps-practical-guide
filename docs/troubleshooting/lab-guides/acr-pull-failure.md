@@ -84,167 +84,240 @@ sequenceDiagram
 
 ### Deploy baseline infrastructure
 
-```bash
-export RG="rg-aca-lab-acr"
-export LOCATION="koreacentral"
+The deployment is **expected to fail** with `MANIFEST_UNKNOWN` because the Bicep template references `${baseName}:does-not-exist`, an image tag that is never pushed to the registry. The `|| true` after `az deployment group create` lets the script proceed past the expected failure so the failed-deployment state can be captured. The deployment is given the explicit name `main` so its `properties.outputs` and per-operation list can be inspected deterministically. Each `az` invocation pins `--subscription` to immunize the run against Azure CLI default-subscription drift.
 
+```bash
 az extension add --name containerapp --upgrade
 az login
 
-az group create --name "$RG" --location "$LOCATION"
+export AZ_SUBSCRIPTION="$(az account show --query "id" --output tsv)"
+export RG="rg-aca-lab-acr"
+export LOCATION="koreacentral"
+
+az group create \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --name "$RG" \
+    --location "$LOCATION"
 
 az deployment group create \
-    --name "lab-acr" \
+    --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
+    --name main \
     --template-file "./labs/acr-pull-failure/infra/main.bicep" \
-    --parameters baseName="labacr"
+    --parameters baseName="labacr" || true
 ```
 
 | Command | Why it is used |
 |---|---|
 | `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az deployment group create ... \|\| true` | The deployment is expected to fail with `MANIFEST_UNKNOWN`; `\|\| true` lets the script proceed so the failed-deployment state can be captured. |
 
-Expected output pattern:
+Expected output pattern (the deployment is **expected to fail**):
 
 ```text
-"provisioningState": "Succeeded"
+"provisioningState": "Failed"
+"error": {
+  "code": "DeploymentFailed",
+  "message": "At least one resource deployment operation failed. ..."
+}
 ```
 
-### Capture deployment outputs
+The full `MANIFEST_UNKNOWN: manifest tagged by "does-not-exist" is not found` smoking-gun string is NOT in this output — it lives in the per-operation list captured below ([Platform Discovery 2](#platform-discovery-2-manifest_unknown-lives-in-az-deployment-operation-group-list-not-az-deployment-group-show)).
+
+### Capture resource names
+
+`properties.outputs` is `null` for a Failed deployment ([Platform Discovery 1](#platform-discovery-1-propertiesoutputs-is-null-for-failed-deployments)), so the lab derives resource names from `az containerapp list` / `az acr list` / `az monitor log-analytics workspace list` (one-row queries against the dedicated lab RG) instead of from `az deployment group show --query "properties.outputs"`. The RG is dedicated to this lab and contains exactly one Container App, one ACR, and one Log Analytics workspace, so a single-row query is unambiguous.
 
 ```bash
-export APP_NAME="$(az deployment group show \
+export APP_NAME=$(az containerapp list \
+    --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
-    --name "lab-acr" \
-    --query "properties.outputs.containerAppName.value" \
-    --output tsv)"
+    --query "[0].name" \
+    --output tsv)
 
-export ACR_NAME="$(az deployment group show \
+export ACR_NAME=$(az acr list \
+    --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
-    --name "lab-acr" \
-    --query "properties.outputs.containerRegistryName.value" \
-    --output tsv)"
+    --query "[0].name" \
+    --output tsv)
 
-export ENVIRONMENT_NAME="$(az deployment group show \
+export ACR_LOGIN_SERVER=$(az acr list \
+    --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
-    --name "lab-acr" \
-    --query "properties.outputs.environmentName.value" \
-    --output tsv)"
+    --query "[0].loginServer" \
+    --output tsv)
+
+export WORKSPACE_CUSTOMER_ID=$(az monitor log-analytics workspace list \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --resource-group "$RG" \
+    --query "[0].customerId" \
+    --output tsv)
 ```
 
-Expected output: no output; variables are populated.
+Expected output: no output; variables are populated. Verify with `echo "$APP_NAME $ACR_NAME"` — both should be non-empty even though the deployment failed.
 
 ### Observe the failing baseline revision
 
-The lab infrastructure already deploys the app with a bad image reference:
+The lab infrastructure already deployed the app with a bad image reference:
 
 ```text
 ${containerRegistry.properties.loginServer}/${baseName}:does-not-exist
 ```
 
-Wait for the revision to attempt the pull, then inspect revision state and system logs:
+Because the manifest lookup fails **before** the platform creates a revision row, `az containerapp revision list` returns `[]` and the Container App resource is in `provisioningState=Failed` with `latestRevisionName=null`. The standard `az containerapp logs show --type system` command does NOT return any platform logs because no revision exists (no log stream endpoint). The lab uses `trigger.sh` to capture six deployment-level evidence files in a structured form.
 
 ```bash
-./labs/acr-pull-failure/trigger.sh
+cd labs/acr-pull-failure/
+./trigger.sh 2>&1 | tee evidence/00-trigger-run.txt
 ```
 
-The trigger script runs:
+The trigger script (Phases 1-6) captures, in order: the deployment failure result, the per-operation `MANIFEST_UNKNOWN` detail, the Container App baseline state, the revision list, the ACR repository list, the (failing) system log capture, and the Failed Activity Log entries. The key `az` commands it runs:
 
 ```bash
-sleep 30
-az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
-az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
+az deployment group show --resource-group "$RG" --name main --query "properties.provisioningState"
+az deployment operation group list --resource-group "$RG" --name main \
+    --query "[?properties.provisioningState=='Failed'].properties.statusMessage"
+az containerapp show --resource-group "$RG" --name "$APP_NAME"
+az containerapp revision list --resource-group "$RG" --name "$APP_NAME"
+az acr repository list --name "$ACR_NAME"
+az containerapp logs show --resource-group "$RG" --name "$APP_NAME" --type system --tail 20
+az monitor activity-log list --resource-group "$RG" --start-time "$START_TIME" \
+    --query "[?status.value=='Failed' && contains(resourceType.value, 'Microsoft.App')]"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az deployment operation group list` | Returns the per-operation `statusMessage.error.message` that carries the `MANIFEST_UNKNOWN` smoking gun (see [Platform Discovery 2](#platform-discovery-2-manifest_unknown-lives-in-az-deployment-operation-group-list-not-az-deployment-group-show) below). `az deployment group show` only returns the generic ARM envelope. |
+| `az containerapp revision list` | Confirms no revision was created (returns `[]`); the Portal Revisions blade also shows "No revisions to display" on both Active and Inactive tabs. |
+| `az acr repository list` | Confirms the `labacr` repository is absent from ACR (the `:does-not-exist` tag was never pushed, and the repository itself was never created). |
+| `az monitor activity-log list` | Surfaces the Failed `Create or Update Container App` operation; the recommended Portal evidence surface when system logs are unavailable. |
 
-Expected revision output pattern:
-
-```text
-Name                     Active    HealthState
------------------------  --------  ----------
-ca-labacr-xxxxx--abc123  True      Failed
-```
-
-Expected log evidence pattern showing image pull failure:
+Expected revision list output:
 
 ```text
-Reason_s          Log_s
-----------------  -----------------------------------------------------------------
-PullingImage      Pulling image '<acr-name>.azurecr.io/labacr:does-not-exist'
-ImagePullFailed   Failed to pull image: manifest unknown: manifest tagged by "does-not-exist" is not found
-BackOff           Back-off pulling image '<acr-name>.azurecr.io/labacr:does-not-exist'
+[]
 ```
 
-This pattern confirms the hypothesis: the revision cannot start because the specified image tag does not exist in the registry.
+Expected `az containerapp logs show --type system` output (this is the documented platform behavior; the log stream endpoint is a per-revision construct and cannot exist when no revision was created — the trigger script captures the error to `evidence/05-system-logs-show-error.txt` and continues):
 
-### Inspect system evidence directly
+```text
+KeyError: 'eventStreamEndpoint'
+```
+
+The trigger script emits an H1 gate JSON to `evidence/06-h1-gate.json` with the classification `deployment_failed_manifest_unknown` when all five sub-gates pass:
+
+```json
+{
+  "gate_classification": "deployment_failed_manifest_unknown",
+  "h1_sub_gates": {
+    "a_deployment_failed_with_manifest_unknown": true,
+    "b_app_provisioning_state_failed": true,
+    "c_latest_revision_name_null": true,
+    "d_revision_list_empty": true,
+    "e_labacr_repository_absent": true
+  },
+  "h1_all_subgates_pass": true
+}
+```
+
+### Inspect deployment-level evidence directly
+
+The `MANIFEST_UNKNOWN` smoking-gun string lives in the per-operation list, NOT in `az deployment group show`:
 
 ```bash
-az containerapp logs show \
-    --name "$APP_NAME" \
+az deployment operation group list \
+    --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
-    --type system
+    --name main \
+    --query "[?properties.provisioningState=='Failed'].{resourceType: properties.targetResource.resourceType, resourceName: properties.targetResource.resourceName, statusMessage: properties.statusMessage}" \
+    --output json
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az deployment operation group list` | Returns the per-operation `statusMessage.error.message` that carries the `MANIFEST_UNKNOWN` smoking gun. This is the canonical first-touch evidence command for image-manifest failures. |
 
-Expected output: image pull errors, manifest not found, or unauthorized pull messages.
+Expected output (truncated for readability):
+
+```json
+[
+  {
+    "resourceType": "Microsoft.App/containerApps",
+    "resourceName": "ca-labacr-rnnljl",
+    "statusMessage": {
+      "status": "Failed",
+      "error": {
+        "code": "ContainerAppOperationError",
+        "message": "Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: ... MANIFEST_UNKNOWN: manifest tagged by \"does-not-exist\" is not found ..."
+      }
+    }
+  }
+]
+```
+
+`az deployment group show --query "properties.error.message"` returns only the generic ARM "At least one resource deployment operation failed" envelope, and its `properties.error.details[*].details` is `null` at the leaf. Operators reaching for `az deployment group show` first may incorrectly conclude that the platform is not surfacing actionable detail.
 
 ### Apply the recovery path
 
-Build and push a valid image, then update the Container App to use it:
+Build a known-good image with `az acr build` (which runs the Dockerfile on a Microsoft-hosted ACR Tasks worker, requiring no local Docker daemon or registry login), then update the Container App to use the new tag:
 
 ```bash
-az acr login --name "$ACR_NAME"
-docker build --tag "$ACR_NAME.azurecr.io/labacr:v1" "./labs/acr-pull-failure/workload"
-docker push "$ACR_NAME.azurecr.io/labacr:v1"
+az acr build \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --registry "$ACR_NAME" \
+    --image "labacr:v1" \
+    "./labs/acr-pull-failure/workload"
 
 az containerapp update \
-    --name "$APP_NAME" \
+    --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
-    --image "$ACR_NAME.azurecr.io/labacr:v1"
+    --name "$APP_NAME" \
+    --image "$ACR_LOGIN_SERVER/labacr:v1"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az acr login --name ...` | Authenticates Docker or the CLI to Azure Container Registry. |
+| `az acr build` | Builds the Dockerfile on a Microsoft-hosted ACR Tasks worker. No local Docker daemon required, so the recovery is reproducible across operator environments without `docker build` + `docker push`. |
+| `az containerapp update --image` | Updates the image reference, which causes the platform to create a new revision and transition `provisioningState` from `Failed` to `Succeeded`. |
 
-Expected output pattern:
+Expected output pattern (the update should succeed):
 
 ```text
 "properties": {
-  "provisioningState": "Succeeded"
+  "provisioningState": "Succeeded",
+  "latestRevisionName": "ca-labacr-rnnljl--<suffix>"
 }
 ```
 
 ### Verify recovery
 
 ```bash
-./labs/acr-pull-failure/verify.sh
+./verify.sh 2>&1 | tee evidence/00-verify-run.txt
 ```
 
-The verify script checks that the failure was reproduced, then applies this script-based recovery flow:
+The verify script (Phases 7-16) polls revision health up to 5 minutes (10 s interval) until `healthState=Healthy`, issues 10 sequential HTTPS requests to the recovered FQDN (the H2 sub-gate requires at least 8/10 HTTP 200), and captures the post-fix container app state, revision list, ACR repository list, and post-fix KQL probe. The verify script emits an H2 gate JSON to `evidence/14-h2-gate.json` with the classification `revision_healthy_traffic_100_curl_ok` when all four sub-gates pass:
 
-```bash
-az acr build --registry "$ACR_NAME" --image "labacr:v1" "./labs/acr-pull-failure/workload"
-az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "${ACR_NAME}.azurecr.io/labacr:v1"
-sleep 30
-az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[0].properties.healthState" --output tsv
+```json
+{
+  "gate_classification": "revision_healthy_traffic_100_curl_ok",
+  "h2_sub_gates": {
+    "a_revision_list_count_ge_1": true,
+    "b_revision_healthy_traffic_100": true,
+    "c_curl_after_fix_ok_ge_8": true,
+    "d_labacr_present_in_acr": true
+  },
+  "h2_all_subgates_pass": true
+}
 ```
 
-Expected result: the latest revision becomes `Healthy` and system logs no longer report image pull failures.
+Expected result: the latest revision reaches `Healthy` with 100% traffic and 1/1 replica, the assigned FQDN returns HTTP 200 on at least 8/10 sequential HTTPS requests, the `labacr` repository now appears in ACR, and the H2 gate JSON reports `h2_all_subgates_pass: true`.
 
 ## 4) Experiment Log
 
 | Step | Action | Expected | Actual | Pass/Fail |
 |---|---|---|---|---|
 | 1 | Deploy lab infrastructure | Deployment succeeds | Deployment `Failed` — `DeploymentFailed` (MANIFEST_UNKNOWN). Resources (`ca-labacr-rnnljl`, `acrlabacrrnnljl`, `cae-labacr-rnnljl`, `log-labacr-rnnljl`) created. App `provisioningState=Failed`, `latestRevisionName=null`. | Pass (expected failure) |
-| 2 | Capture deployment outputs | Variables populated | Variables populated from `lab-acr` deployment outputs. | Pass |
+| 2 | Capture resource names | Variables populated | Variables populated from `az containerapp list` / `az acr list` / `az monitor log-analytics workspace list --resource-group "$RG" --query "[0].name"` (one-row queries against the dedicated lab RG). `az deployment group show --query "properties.outputs"` returns `null` for Failed deployments — see Platform Discovery 1. | Pass |
 | 3 | Run `trigger.sh` | Revision becomes non-healthy | No revision exists. `az containerapp revision list` returns `[]`; Portal Revisions blade shows "No revisions to display" on both Active and Inactive tabs. Manifest pull failed too early for a revision record to be created. | Pass (stronger evidence than hypothesis predicted) |
 | 4 | Review system logs | Pull or manifest failure evidence appears | `az containerapp logs show --type system` fails with `KeyError: 'eventStreamEndpoint'` (no revision → no log stream endpoint). `ContainerAppSystemLogs_CL` table not created in `log-labacr-rnnljl` (no container ever ran). Evidence shifted to Activity Log "Create or Update Container App — Failed" with terminal MANIFEST_UNKNOWN message. | Pass (evidence source differs) |
 | 5 | Push valid image and update app | New revision created | `az acr build --registry acrlabacrrnnljl --image labacr:v1` succeeded (digest `sha256:0150384c…`). `az containerapp update --image acrlabacrrnnljl.azurecr.io/labacr:v1` → `provisioningState=Succeeded`, `latestRevisionName=ca-labacr-rnnljl--at9gdr2`. | Pass |
