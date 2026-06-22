@@ -175,7 +175,7 @@ Run `verify.sh`, which:
 - Sleeps 240 seconds for Application Insights ingestion latency.
 - Captures `07-env-after-fix.json`, `08-traffic-completed-after-fix.txt`, `09-ai-requests-after-fix.json`, `10-ai-traces-after-fix.json`, `11-containerapp-full-config-after-fix.json`, `12-kql-requests-timeline.json`, `13-ai-traces-messages-after-fix.json`, `14-revisions-lifecycle.json`, and `15-ai-requests-detail-after-fix.json`.
 
-The KQL queries that `verify.sh` runs to emit files 13/14/15 (so readers can regenerate the data without re-running the full script):
+The commands that `verify.sh` runs to emit files 13/14/15 (so readers can regenerate the data without re-running the full script). Files 13 and 15 are KQL queries against Application Insights; file 14 is an `az containerapp revision list` call post-processed with `python3` to derive the `hasConnStr` flag from each revision's env array:
 
 ```bash
 # evidence/13-ai-traces-messages-after-fix.json
@@ -194,12 +194,29 @@ az monitor app-insights query \
     --analytics-query 'requests | where timestamp > ago(15m) | project timestamp, name, resultCode, success, duration, url | order by timestamp asc' \
     --output json
 
-# evidence/14-revisions-lifecycle.json (post-processed with python3 to derive hasConnStr from env array)
+# evidence/14-revisions-lifecycle.json (az + python3 post-processing pipeline)
 az containerapp revision list \
     --subscription "$AZ_SUBSCRIPTION" \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --output json
+    --all \
+    --output json | python3 -c "
+import json, sys
+revs = json.load(sys.stdin)
+out = []
+for r in revs:
+    env = (r.get('properties', {}).get('template', {}).get('containers', [{}])[0].get('env') or [])
+    has = any(e.get('name') == 'APPLICATIONINSIGHTS_CONNECTION_STRING' for e in env)
+    out.append({
+        'active': r.get('properties', {}).get('active'),
+        'createdTime': r.get('properties', {}).get('createdTime'),
+        'hasConnStr': has,
+        'image': r.get('properties', {}).get('template', {}).get('containers', [{}])[0].get('image'),
+        'name': r.get('name'),
+    })
+out.sort(key=lambda x: x['createdTime'] or '')
+print(json.dumps(out, indent=2))
+"
 ```
 
 ### Apply the fix manually (the canonical remediation command)
@@ -299,7 +316,7 @@ When escalating an "Application Insights is empty but the app is up" case on Azu
         --tail 100
     ```
 
-3. If the env var IS present and the SDK startup log IS visible but `AppRequests` is still empty: check whether you are using `from flask import Flask` before `configure_azure_monitor()`, which in this lab's development experience silently broke Flask auto-instrumentation even with a valid connection string. The `:v2` source variant in this lab's `app/` history is the in-repo record of that failure mode; no per-revision `AppRequests`/`AppTraces` capture file is committed for `:v2` (the canonical falsification pair in this lab is the `:v3` before/after run, not a `:v2`/`:v3` comparison).
+3. If the env var IS present and the SDK startup log IS visible but `AppRequests` is still empty: check whether you are using `from flask import Flask` before `configure_azure_monitor()`, which in this lab's development experience silently broke Flask auto-instrumentation even with a valid connection string. The `:v2` source variant is documented in this lab only as a lab-development observation — the `:v2` source file was not committed to the repo, and no per-revision `AppRequests`/`AppTraces` capture file is committed for it (the canonical falsification pair in this lab is the `:v3` before/after run, not a `:v2`/`:v3` comparison).
 4. If the env var IS present and `AppTraces` is populating but `AppRequests` is not: the SDK is exporting, but the web-framework auto-instrumentation is not wrapped. Cross-check Flask import order, gunicorn worker class (sync vs gevent), and whether any other middleware is re-wrapping the `Flask` app after SDK init.
 
 ## Expected Evidence
