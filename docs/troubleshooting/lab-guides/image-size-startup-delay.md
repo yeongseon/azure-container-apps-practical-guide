@@ -99,7 +99,7 @@ The `python:3.11-alpine` cold pull will complete several times faster than the `
 
 ## 6. Execution
 
-Execute the commands in the **Runbook** section sequentially in a shell with the Azure CLI authenticated. Capture all terminal output and write the JSON evidence to `labs/image-size-startup-delay/evidence/`.
+Execute the commands in the **Experiment** section above sequentially in a shell with the Azure CLI authenticated. Capture all terminal output and write the JSON evidence to `labs/image-size-startup-delay/evidence/`.
 
 ## 7. Observation
 
@@ -114,9 +114,9 @@ Record the `Successfully pulled image` lines from `ContainerAppSystemLogs` for e
 
 ## 9. Analysis
 
-The two scripted measurements (cold pulls of `python:3.11` vs `python:3.11-alpine`) isolate base-image size as the only changed variable: same workload, same target port, same Container Apps Environment, same node. The 3.1× speedup on a 20× smaller image confirms that pull time on a cold node scales with image size.
+The two scripted measurements (cold pulls of `python:3.11` vs `python:3.11-alpine`) isolate base-image size as the only intentionally changed variable: same workload, same target port, same Container Apps Environment. The 3.1× speedup on a 20× smaller image, in this reproduction, is consistent with cold-pull time scaling with image size on Azure Container Apps.
 
-The warm pulls on the off-script revision (9-12 ms, regardless of image size) confirm that once the image is cached on the node, image-size differences disappear. The practical impact of a smaller image is therefore concentrated on cold-start situations: new revision deployments, scale-out to nodes that have not previously pulled the image, and scale-from-zero events.
+The warm pulls observed on the off-script revision (9-12 ms after the first 1.62 s cold pull on the same image) confirm that once the same image is cached on the node, the per-pull cost collapses to milliseconds in the measured case. The practical impact of a smaller image is therefore concentrated on cold-start situations: new revision deployments, scale-out to nodes that have not previously pulled the image, and scale-from-zero events.
 
 The off-script `containerapps-helloworld` revision is a runtime-command mismatch (no Python interpreter in the image), not a configuration error in the platform; it falsifies the alternative hypothesis that "small image alone implies fast healthy startup".
 
@@ -201,7 +201,7 @@ For the timing-improvement axis: replace the large base image with a trimmed var
 
 ## 15. Takeaway
 
-Image size on Azure Container Apps is a **cold-start tax**, not a steady-state tax. A 20× smaller image gives a 3.1× faster cold pull on the same node; warm-cache pulls are millisecond-scale regardless of size. Optimize image size when cold-start latency is in the user-visible path (scale-from-zero, new revision rollouts, scale-out events); the steady-state hot-replica path is not affected.
+Image size on Azure Container Apps is a **cold-start tax**, not a steady-state tax. In this reproduction, a 20× smaller image gave a 3.1× faster cold pull on the same Container Apps Environment; once the same image was cached on the node, warm-pull cost collapsed to single-digit milliseconds. Optimize image size when cold-start latency is in the user-visible path (scale-from-zero, new revision rollouts, scale-out events); the steady-state hot-replica path is not affected.
 
 ## 16. Support Takeaway
 
