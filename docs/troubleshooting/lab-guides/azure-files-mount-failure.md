@@ -54,6 +54,9 @@ validation:
 | Tier | Inline guide only |
 | Category | Storage and Volumes |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/azure-files-mount-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/azure-files-mount-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does azure files mount failure reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -122,7 +125,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] After correcting the environment storage definition and redeploying, the new revision starts successfully.
 - [Inferred] The root cause is storage-definition mismatch rather than image, ingress, or probe configuration.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test7` / `cae-lab7`, `koreacentral`, Consumption plan.
 **App:** `ca-azfiles-bad`, Storage Account: `stlabtest7`, Share: `labshare7`.

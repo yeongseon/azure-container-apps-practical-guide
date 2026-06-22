@@ -56,6 +56,9 @@ Measure the difference between a fresh Azure Container Apps system event and the
 | Tier | Inline guide only |
 | Category | Observability |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/log-analytics-ingestion-gap/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/log-analytics-ingestion-gap/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does log analytics ingestion gap reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -122,7 +125,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - The same event appears later in `ContainerAppSystemLogs_CL` for the same app or revision.
 - The measured delay is finite and repeatable enough to document as operational guidance.
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-04-29 — CLI-only reproduction; no Portal captures yet)
 
 [Observed] `az containerapp env show --query "properties.appLogsConfiguration"` confirmed:
 
@@ -160,7 +163,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 ## Expected Evidence
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — 2026-05-01 — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Log Analytics Workspace: `law-lab6` (`<workspace-id>`).
 **App:** `ca-coldstart`.

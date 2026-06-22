@@ -56,6 +56,9 @@ Show that Azure Monitor routing alone is not enough when diagnostic settings are
 | Tier | Inline guide only |
 | Category | Observability |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/diagnostic-settings-missing/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/diagnostic-settings-missing/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does diagnostic settings missing reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -140,7 +143,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 ## Expected Evidence
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test7` / `cae-nodiag-lab7`, `koreacentral`, Consumption plan.
 **App:** `ca-nodiag`, Log Analytics Workspace: `law-lab7` (`<workspace-id>`).

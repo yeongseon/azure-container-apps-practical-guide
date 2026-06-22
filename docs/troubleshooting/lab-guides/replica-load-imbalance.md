@@ -60,6 +60,9 @@ flowchart TD
     F --> G[Compare distribution pattern]
 ```
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/replica-load-imbalance/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/replica-load-imbalance/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does replica load imbalance reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -126,7 +129,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] Replica lifecycle events show that new replicas existed but did not immediately absorb equivalent traffic.
 - [Inferred] If traffic distribution becomes fairer after the ingress or scale change, replica imbalance was a configuration effect rather than a platform outage.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # 3 replicas confirmed

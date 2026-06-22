@@ -54,6 +54,9 @@ validation:
 | Tier | Inline guide only |
 | Category | Cost and Quota |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/subscription-quota-exceeded/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/subscription-quota-exceeded/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does subscription quota exceeded reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -124,7 +127,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | `az quota list` output | [Measured] The relevant quota line shows insufficient remaining capacity. |
 | Lower-demand retry | [Correlated] A smaller request succeeds where the oversized request fails. |
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 [Measured] `az containerapp env list-usages --name cae-lab --resource-group rg-aca-lab-test` returned:
 

@@ -54,6 +54,9 @@ Measure outbound identity from a running replica, recreate the environment to si
 | Tier | Inline guide only |
 | Category | Networking Advanced |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/egress-ip-change/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/egress-ip-change/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does egress ip change reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -118,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] No application code change is required to reproduce the allow-list problem.
 - [Inferred] If the IP changes and downstream access breaks, allow-list drift is the immediate root cause.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # Environment inbound static IP

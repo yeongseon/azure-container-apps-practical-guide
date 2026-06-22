@@ -54,6 +54,9 @@ Reproduce state loss across replicas with a session-sensitive test app, then ena
 | Tier | Inline guide only |
 | Category | Networking Advanced |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/session-affinity-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/session-affinity-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does session affinity failure reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -118,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Ingress output differs before and after the sticky-session update.
 - [Inferred] When continuity returns without changing application code, affinity explains the behavior change.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 [Observed] App deployed with `minReplicas=3`. `az containerapp ingress show` confirmed
 `stickySessions: null` by default (affinity disabled).

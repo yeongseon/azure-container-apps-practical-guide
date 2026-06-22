@@ -54,6 +54,9 @@ Use one stateful streaming test app to reproduce both protocol and reconnect pro
 | Tier | Inline guide only |
 | Category | Networking Advanced |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/websocket-grpc-ingress/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/websocket-grpc-ingress/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does websocket grpc ingress reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -118,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] Two replicas are active during the failing reconnect test.
 - [Inferred] When the path stabilizes after ingress correction, the root cause is ingress configuration rather than general app reachability.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # Default transport

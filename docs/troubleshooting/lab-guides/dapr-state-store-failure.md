@@ -59,6 +59,9 @@ flowchart TD
     F --> G[Retest state read and write]
 ```
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/dapr-state-store-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/dapr-state-store-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does dapr state store failure reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -123,7 +126,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - App logs showing the failing and succeeding state operation.
 - Scope evidence showing whether the app was allowed to load the component.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # Bad component: state.redis with nonexistent redisHost accepted by API

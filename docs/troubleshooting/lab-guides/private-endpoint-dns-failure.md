@@ -54,6 +54,9 @@ Break private endpoint name resolution by omitting the VNet link for the private
 | Tier | Inline guide only |
 | Category | Networking Advanced |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/private-endpoint-dns-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/private-endpoint-dns-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does private endpoint dns failure reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -118,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The failing state shows no private DNS VNet link for the zone.
 - [Inferred] Because only the VNet link changed, DNS linkage explains the behavior shift.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # Private DNS zone without VNet link (failure condition)

@@ -54,6 +54,9 @@ validation:
 | Tier | Inline guide only |
 | Category | Deployment and CI/CD |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/github-actions-oidc-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/github-actions-oidc-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does github actions oidc failure reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -138,7 +141,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 ## Expected Evidence
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test6`, `koreacentral`.
 **App Registration:** `aca-ghactions-lab6` (appId: `<app-id>`).

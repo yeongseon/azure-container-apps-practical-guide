@@ -60,6 +60,9 @@ flowchart TD
     G --> H[Observe next expected execution]
 ```
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/scheduled-job-missed/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/scheduled-job-missed/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does scheduled job missed reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -124,7 +127,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Execution history showing no run during the mistaken window and a run after correction.
 - Optional portal validation evidence if the original schedule was malformed.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # Baseline: * * * * * — executions run every minute

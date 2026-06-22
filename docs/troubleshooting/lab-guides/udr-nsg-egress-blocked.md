@@ -54,6 +54,9 @@ Use a deny-heavy subnet policy to reproduce startup and outbound failures, then 
 | Tier | Inline guide only |
 | Category | Networking Advanced |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/udr-nsg-egress-blocked/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/udr-nsg-egress-blocked/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does udr nsg egress blocked reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -118,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] NSG rules show both the failing deny posture and the remediation allows.
 - [Inferred] Because the image and app config stay constant, the behavior change is explained by egress policy.
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 [Observed] `az network nsg rule create` with `--access Deny --destination-port-ranges 443 --direction Outbound`
 was accepted and applied to the subnet hosting the Container Apps environment.
