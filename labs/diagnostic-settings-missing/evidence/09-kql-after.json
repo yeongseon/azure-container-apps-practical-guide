@@ -1,0 +1,39 @@
+{
+  "utc_query": "2026-06-22T09:58:16Z",
+  "app_name": "ca-diagsetting-7dcl4v",
+  "post_fix_revision": "ca-diagsetting-7dcl4v--0000001",
+  "console_query": "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-diagsetting-7dcl4v' | summarize rows=count(), distinct_revisions=dcount(RevisionName_s)",
+  "system_query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-diagsetting-7dcl4v' | summarize rows=count(), distinct_revisions=dcount(RevisionName_s)",
+  "console_result": {
+    "parse_status": "parsed_json_with_rows",
+    "cli_exit_code": 0,
+    "rows": "1",
+    "distinct_revisions": "1",
+    "gate_classification": "populated_table",
+    "raw_json": [
+      {
+        "TableName": "PrimaryResult",
+        "distinct_revisions": "1",
+        "rows": "1"
+      }
+    ]
+  },
+  "system_result": {
+    "parse_status": "parsed_json_with_rows",
+    "cli_exit_code": 0,
+    "rows": "34",
+    "distinct_revisions": "3",
+    "gate_classification": "populated_table",
+    "raw_json": [
+      {
+        "TableName": "PrimaryResult",
+        "distinct_revisions": "3",
+        "rows": "34"
+      }
+    ]
+  },
+  "console_rows": "1",
+  "system_rows": "34",
+  "console_gate_classification": "populated_table",
+  "system_gate_classification": "populated_table"
+}

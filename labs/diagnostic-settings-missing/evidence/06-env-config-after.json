@@ -1,0 +1,8 @@
+{
+  "destination": "log-analytics",
+  "logAnalyticsConfiguration": {
+    "customerId": "064c1c2e-2360-41e3-b545-afdf15a960d9",
+    "dynamicJsonColumns": false,
+    "sharedKey": null
+  }
+}

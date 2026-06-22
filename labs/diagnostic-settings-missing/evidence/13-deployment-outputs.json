@@ -1,0 +1,36 @@
+{
+  "duration": "PT2M31.7253794S",
+  "mode": "Incremental",
+  "name": "main",
+  "outputs": {
+    "containerAppFqdn": {
+      "type": "String",
+      "value": "ca-diagsetting-7dcl4v.wonderfuldesert-267a08f6.koreacentral.azurecontainerapps.io"
+    },
+    "containerAppName": {
+      "type": "String",
+      "value": "ca-diagsetting-7dcl4v"
+    },
+    "environmentName": {
+      "type": "String",
+      "value": "cae-diagsetting-7dcl4v"
+    },
+    "environmentResourceId": {
+      "type": "String",
+      "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-diagsetting/providers/Microsoft.App/managedEnvironments/cae-diagsetting-7dcl4v"
+    },
+    "logAnalyticsCustomerId": {
+      "type": "String",
+      "value": "064c1c2e-2360-41e3-b545-afdf15a960d9"
+    },
+    "logAnalyticsWorkspaceId": {
+      "type": "String",
+      "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-diagsetting/providers/Microsoft.OperationalInsights/workspaces/log-diagsetting-7dcl4v"
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "String",
+      "value": "log-diagsetting-7dcl4v"
+    }
+  },
+  "provisioningState": "Succeeded"
+}

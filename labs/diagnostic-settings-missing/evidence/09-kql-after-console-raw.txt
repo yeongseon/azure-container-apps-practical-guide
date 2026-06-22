@@ -1,0 +1,7 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "distinct_revisions": "1",
+    "rows": "1"
+  }
+]

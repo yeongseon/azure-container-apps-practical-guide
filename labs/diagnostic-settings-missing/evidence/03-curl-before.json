@@ -1,0 +1,58 @@
+{
+  "baseline_revision": "ca-diagsetting-7dcl4v--4usom8i",
+  "requests_sent": 10,
+  "requests_ok": 10,
+  "utc_completed": "2026-06-22T09:44:18Z",
+  "samples": [
+    {
+      "i": 0,
+      "status": 200,
+      "elapsed_ms": 489.5
+    },
+    {
+      "i": 1,
+      "status": 200,
+      "elapsed_ms": 422.9
+    },
+    {
+      "i": 2,
+      "status": 200,
+      "elapsed_ms": 424.4
+    },
+    {
+      "i": 3,
+      "status": 200,
+      "elapsed_ms": 420.1
+    },
+    {
+      "i": 4,
+      "status": 200,
+      "elapsed_ms": 434.0
+    },
+    {
+      "i": 5,
+      "status": 200,
+      "elapsed_ms": 415.9
+    },
+    {
+      "i": 6,
+      "status": 200,
+      "elapsed_ms": 410.0
+    },
+    {
+      "i": 7,
+      "status": 200,
+      "elapsed_ms": 416.0
+    },
+    {
+      "i": 8,
+      "status": 200,
+      "elapsed_ms": 445.2
+    },
+    {
+      "i": 9,
+      "status": 200,
+      "elapsed_ms": 420.6
+    }
+  ]
+}

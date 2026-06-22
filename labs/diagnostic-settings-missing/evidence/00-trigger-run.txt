@@ -1,0 +1,46 @@
+trigger.sh starting at 2026-06-22T09:44:11Z
+RG: rg-aca-lab-diagsetting
+App: ca-diagsetting-7dcl4v
+Env: cae-diagsetting-7dcl4v
+FQDN: ca-diagsetting-7dcl4v.wonderfuldesert-267a08f6.koreacentral.azurecontainerapps.io
+Workspace customer id: 064c1c2e-2360-41e3-b545-afdf15a960d9
+
+=== Phase 1: env appLogsConfiguration (expect destination=null) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "destination": null,
+  "logAnalyticsConfiguration": null
+}
+
+=== Phase 2: app configuration + active revision ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "fqdn": "ca-diagsetting-7dcl4v.wonderfuldesert-267a08f6.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-diagsetting-7dcl4v--4usom8i",
+  "maxReplicas": 1,
+  "minReplicas": 1,
+  "name": "ca-diagsetting-7dcl4v"
+}
+
+Baseline revision: ca-diagsetting-7dcl4v--4usom8i
+
+=== Phase 3: send 10 HTTP requests to baseline revision ===
+Sent 10 requests, 10/10 ok
+
+=== Phase 4: wait 300s for any potential log ingestion lag ===
+Wait complete at 2026-06-22T09:49:28Z
+
+=== Phase 5: KQL ContainerAppConsoleLogs_CL + ContainerAppSystemLogs_CL (expect 0 rows or BadArgumentError if tables not yet materialized) ===
+{
+  "console_rows": 0,
+  "system_rows": 0,
+  "console_parse_status": "json_decode_failed",
+  "system_parse_status": "json_decode_failed"
+}
+
+=== Baseline summary ===
+Env appLogsConfiguration.destination: None
+ContainerAppConsoleLogs_CL rows for ca-diagsetting-7dcl4v: 0
+ContainerAppSystemLogs_CL rows for ca-diagsetting-7dcl4v: 0
+
+H1 PASS (baseline): 0 rows in both tables with destination=null. Proceed to verify.sh.

@@ -1,0 +1,30 @@
+{
+  "utc_query": "2026-06-22T09:49:35Z",
+  "app_name": "ca-diagsetting-7dcl4v",
+  "console_query": "ContainerAppConsoleLogs_CL | where ContainerAppName_s == 'ca-diagsetting-7dcl4v' | summarize rows=count(), distinct_revisions=dcount(RevisionName_s)",
+  "system_query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-diagsetting-7dcl4v' | summarize rows=count(), distinct_revisions=dcount(RevisionName_s)",
+  "console_result": {
+    "parse_status": "json_decode_failed",
+    "cli_exit_code": 1,
+    "rows": 0,
+    "distinct_revisions": 0,
+    "is_bad_argument_error": true,
+    "is_table_missing": true,
+    "gate_classification": "silent_valid_baseline",
+    "raw_text_first_500_chars": "ERROR: (BadArgumentError) The request had some invalid properties\nCode: BadArgumentError\nMessage: The request had some invalid properties\nInner error: {\n    \"code\": \"SemanticError\",\n    \"message\": \"A semantic error occurred.\",\n    \"innererror\": {\n        \"code\": \"SEM0100\",\n        \"message\": \"'where' operator: Failed to resolve table or column expression named 'ContainerAppConsoleLogs_CL'\"\n    }\n}\n"
+  },
+  "system_result": {
+    "parse_status": "json_decode_failed",
+    "cli_exit_code": 1,
+    "rows": 0,
+    "distinct_revisions": 0,
+    "is_bad_argument_error": true,
+    "is_table_missing": true,
+    "gate_classification": "silent_valid_baseline",
+    "raw_text_first_500_chars": "ERROR: (BadArgumentError) The request had some invalid properties\nCode: BadArgumentError\nMessage: The request had some invalid properties\nInner error: {\n    \"code\": \"SemanticError\",\n    \"message\": \"A semantic error occurred.\",\n    \"innererror\": {\n        \"code\": \"SEM0100\",\n        \"message\": \"'where' operator: Failed to resolve table or column expression named 'ContainerAppSystemLogs_CL'\"\n    }\n}\n"
+  },
+  "console_rows": 0,
+  "system_rows": 0,
+  "console_gate_classification": "silent_valid_baseline",
+  "system_gate_classification": "silent_valid_baseline"
+}
