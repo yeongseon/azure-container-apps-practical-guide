@@ -1,0 +1,29 @@
+[
+  {
+    "active": false,
+    "createdTime": "2026-06-22T02:14:46+00:00",
+    "healthState": "Healthy",
+    "image": "python:3.11",
+    "name": "ca-imgsize-acerjw--5487avi",
+    "replicas": 0,
+    "runningState": "Stopped"
+  },
+  {
+    "active": false,
+    "createdTime": "2026-06-22T02:24:20+00:00",
+    "healthState": "Healthy",
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "name": "ca-imgsize-acerjw--0000001",
+    "replicas": 0,
+    "runningState": "Stopped"
+  },
+  {
+    "active": true,
+    "createdTime": "2026-06-22T02:27:03+00:00",
+    "healthState": "Healthy",
+    "image": "python:3.11-alpine",
+    "name": "ca-imgsize-acerjw--0000002",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale"
+  }
+]

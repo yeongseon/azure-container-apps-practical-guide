@@ -1,0 +1,11 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T02:27:03+00:00",
+    "healthState": "Healthy",
+    "image": "python:3.11-alpine",
+    "name": "ca-imgsize-acerjw--0000002",
+    "replicas": 1,
+    "runningState": "RunningAtMaxScale"
+  }
+]

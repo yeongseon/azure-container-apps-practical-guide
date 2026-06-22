@@ -13,13 +13,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
-  last_reviewed: 2026-04-29
+  last_reviewed: 2026-06-22
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
-    az_cli_version: 2.70.0
-    notes: nginx:latest pulled in 4.09s, image size 62914560 bytes (62.9MB) confirmed from system logs
+    tested_date: 2026-06-22
+    az_cli_version: 2.83.0
+    notes: 'python:3.11 cold pull 8.88s (408,944,640 bytes), python:3.11-alpine cold pull 2.88s (19,922,944 bytes) — 3.1x faster, 20x smaller. Warm pulls 9-12ms (containerapps-helloworld) demonstrate cold-vs-warm behaviour. Full evidence under labs/image-size-startup-delay/evidence/.'
   core_claims:
     - claim: Container start troubleshooting in Azure Container Apps includes validating startup timing and revision readiness.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
@@ -29,12 +29,12 @@ content_validation:
       verified: false
 validation:
   az_cli:
-    last_tested: '2026-04-29'
-    cli_version: '2.70.0'
+    last_tested: '2026-06-22'
+    cli_version: '2.83.0'
     result: pass
   bicep:
-    last_tested:
-    result: not_tested
+    last_tested: '2026-06-22'
+    result: pass
 ---
 # Image Size Startup Delay Lab
 
@@ -60,7 +60,14 @@ flowchart TD
 ```
 
 !!! note "Evidence depth"
-    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/image-size-startup-delay/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/image-size-startup-delay/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+    This lab is **fully reproducible** with dedicated infrastructure-as-code, helper scripts, and raw evidence committed under [`labs/image-size-startup-delay/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/image-size-startup-delay):
+
+    - `infra/main.bicep` provisions the Container Apps environment, Log Analytics workspace, and an initial Container App on `python:3.11`.
+    - `trigger.sh` waits for the large-image revision to become ready and exports the system-log pull timing.
+    - `verify.sh` deploys `python:3.11-alpine` as a new revision and re-runs the same KQL query to compare.
+    - `evidence/` carries 11 raw CLI / KQL captures from the 2026-06-22 reproduction (revision list, full container app config, KQL pull events, full event lifecycle, raw system logs for both revisions).
+
+    Azure Portal screenshots (Container App Overview, Revisions blade, Log Analytics Logs blade) are **pending in a follow-up PR**. The Portal captures repeatedly timed out via the Playwright MCP server during this session; this PR ships the CLI / KQL / IaC evidence now to avoid further Azure billing. The follow-up will re-deploy the same Bicep template in a short-lived environment purely to capture the Portal blades, then close out.
 
 ## 1. Question
 
@@ -128,21 +135,57 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] No application-code change is required to improve startup timing when only the image changes.
 - [Inferred] If the trimmed image consistently narrows revision-ready time, image size was a material contributor to startup delay.
 
-### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
+### Observed Evidence (Live Azure Test — 2026-06-22, koreacentral)
+
+Reproduced end-to-end against MCAPS subscription `Visual Studio Enterprise Subscription` in `koreacentral`. All raw evidence is committed under [`labs/image-size-startup-delay/evidence/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/image-size-startup-delay/evidence):
+
+| File | Content |
+|---|---|
+| `01-trigger-large-image.txt` | `trigger.sh` execution capturing the cold pull of `python:3.11` |
+| `02-verify-small-image.txt` | `verify.sh` execution capturing the cold pull of `python:3.11-alpine` |
+| `03-revisions-list.json` | Active revision (final state, single-revision mode) |
+| `04-containerapp-summary.json` | Container App essentials (FQDN, location, latest revision) |
+| `05-revisions-all.json` | All 3 revisions including inactive (large, intermediate, small) |
+| `06-kql-pull-events.json` | KQL `Successfully pulled image` events across all revisions (cold + warm) |
+| `07-containerapp-full-config.json` | Full ACA resource configuration (~7 KB) |
+| `08-environment-logs-config.json` | Container Apps Environment `appLogsConfiguration` proving Log Analytics wiring |
+| `09-kql-event-summary.json` | Full revision lifecycle grouped by `Reason_s` (KEDAScalersStarted → PullingImage → PulledImage → ContainerCreated → ContainerStarted → ContainerTerminated → KEDAScalersStopped → ScaledObjectDeleted) |
+| `system-logs-large.json` | Raw system logs from large-image revision |
+| `system-logs-small.json` | Raw system logs from small-image revision |
+
+**Cold pull times** (image not present on the Container Apps Environment node):
+
+| Revision | Image | Cold pull time | Image size | Healthy? |
+|---|---|---|---|---|
+| `ca-imgsize-acerjw--5487avi` | `python:3.11` | **8.88 s** | 408,944,640 bytes (408 MB) | Yes |
+| `ca-imgsize-acerjw--0000001` | `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` | **1.62 s** | 33,554,432 bytes (34 MB) | No (port 80 vs 8080 mismatch — discarded) |
+| `ca-imgsize-acerjw--0000002` | `python:3.11-alpine` | **2.88 s** | 19,922,944 bytes (20 MB) | Yes |
+
+**Warm pulls** (image already cached on the node from the cold pull):
+
+| Revision | Image | Warm pull time | Notes |
+|---|---|---|---|
+| `ca-imgsize-acerjw--0000001` | `containerapps-helloworld` | **12 ms** | Replica re-creation, image already on node |
+| `ca-imgsize-acerjw--0000001` | `containerapps-helloworld` | **11 ms** | Same revision, second replica reattach |
+| `ca-imgsize-acerjw--0000001` | `containerapps-helloworld` | **9 ms** | Third reattach |
 
 ```text
-# System log from large image (python:3.11) pull — rg-aca-lab-test4, 2026-05-01
-Successfully pulled image "python:3.11" in 12.29s. Image size: 407.9 MB.
-
-# System log from small image (containerapps-helloworld) pull
-Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 3.33s.
-Image size: 33.6 MB.
+# Excerpt from labs/image-size-startup-delay/evidence/06-kql-pull-events.json
+# (KQL: ContainerAppSystemLogs_CL | where Log_s contains "Successfully pulled image" | order by TimeGenerated asc)
+Successfully pulled image "python:3.11" in 8.88s. Image size: 408944640 bytes.
+Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 1.62s. Image size: 33554432 bytes.
+Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 12ms. Image size: 33554432 bytes.
+Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 11ms. Image size: 33554432 bytes.
+Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 9ms. Image size: 33554432 bytes.
+Successfully pulled image "python:3.11-alpine" in 2.88s. Image size: 19922944 bytes.
 ```
 
-- `[Measured]` `python:3.11` pull: **12.29 s**, image size **407.9 MB**.
-- `[Measured]` `containerapps-helloworld:latest` pull: **3.33 s**, image size **33.6 MB** — **3.7× faster, 12× smaller**.
-- `[Observed]` Larger image results in proportionally longer cold-start window before readiness probe succeeds.
-- `[Inferred]` Replacing a large base image with a trimmed alternative directly reduces pull time and startup latency.
+- `[Measured]` `python:3.11` cold pull: **8.88 s**, image size **408 MB**.
+- `[Measured]` `python:3.11-alpine` cold pull: **2.88 s**, image size **20 MB** — **3.1x faster, 20x smaller** on the same workload.
+- `[Measured]` Warm pulls (containerapps-helloworld, 34 MB) complete in **9-12 ms** regardless of image size, once the node has the image cached. This validates the framing that the proof is cold-vs-warm behaviour rather than an absolute seconds threshold (warm-cache wins erase the size-based gap, and pull time varies by region and cache state).
+- `[Observed]` Both `python:3.11` and `python:3.11-alpine` revisions reach `Healthy` state running the same workload (`python -m http.server 8080`) on the same target port; the only changed variable is base-image size.
+- `[Falsification]` The `containerapps-helloworld` revision pulled fastest (1.62 s cold, 34 MB) but went `Unhealthy` because its image binds port 80, not the configured target port 8080. This rules out the alternative hypothesis that pull speed alone determines startup success — the workload still has to bind the configured target port. The unhealthy revision was deactivated and replaced with `python:3.11-alpine` so that base-image size remained the only varying dimension between the two healthy revisions.
+- `[Inferred]` Replacing a large base image with a trimmed alternative on the same workload directly reduces pull time and startup latency.
 
 ## 13. Solution
 

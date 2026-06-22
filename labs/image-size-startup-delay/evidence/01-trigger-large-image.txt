@@ -1,0 +1,17 @@
+==> Waiting up to 5 minutes for the large image to pull and the revision to become ready...
+  [01/30] healthState=Healthy provisioningState=Provisioned
+
+==> Initial revision state:
+CreatedTime                Active    Replicas    TrafficWeight    HealthState    ProvisioningState    Name
+-------------------------  --------  ----------  ---------------  -------------  -------------------  --------------------------
+2026-06-22T02:14:46+00:00  True      1           100              Healthy        Provisioned          ca-imgsize-acerjw--5487avi
+
+==> System logs for the initial (large image) revision — look for 'Successfully pulled image':
+{"TimeStamp": "2026-06-22T02:23:20Z", "Type": "Normal", "ContainerAppName": null, "RevisionName": null, "ReplicaName": null, "Msg": "Connecting to the events collector...", "Reason": "StartingGettingEvents", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-22T02:23:21Z", "Type": "Normal", "ContainerAppName": null, "RevisionName": null, "ReplicaName": null, "Msg": "Successfully connected to events server", "Reason": "ConnectedToEventsServer", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-22 02:14:48.671941 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-imgsize-acerjw", "RevisionName": "ca-imgsize-acerjw--5487avi", "ReplicaName": "ca-imgsize-acerjw--5487avi-775d455fbb-tgpr6", "Msg": "Pulling image 'python:3.11'", "Reason": "PullingImage", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-22 02:14:57.7888583 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-imgsize-acerjw", "RevisionName": "ca-imgsize-acerjw--5487avi", "ReplicaName": "ca-imgsize-acerjw--5487avi-775d455fbb-tgpr6", "Msg": "Successfully pulled image \"python:3.11\" in 8.88s. Image size: 408944640 bytes.", "Reason": "PulledImage", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-22 02:15:01.8353844 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-imgsize-acerjw", "RevisionName": "ca-imgsize-acerjw--5487avi", "ReplicaName": "ca-imgsize-acerjw--5487avi-775d455fbb-tgpr6", "Msg": "Created container 'app'", "Reason": "ContainerCreated", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-22 02:15:01.8502909 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-imgsize-acerjw", "RevisionName": "ca-imgsize-acerjw--5487avi", "ReplicaName": "ca-imgsize-acerjw--5487avi-775d455fbb-tgpr6", "Msg": "Started container 'app'", "Reason": "ContainerStarted", "EventSource": "ContainerAppController", "Count": 1}
+
+==> Use verify.sh to update to a smaller image and compare pull timings.
