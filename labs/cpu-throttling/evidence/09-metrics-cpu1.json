@@ -1,0 +1,212 @@
+{
+  "cost": 118,
+  "interval": "PT1M",
+  "namespace": "Microsoft.App/containerApps",
+  "resourceregion": "koreacentral",
+  "timespan": "2026-06-22T07:51:18Z/2026-06-22T08:51:18Z",
+  "value": [
+    {
+      "displayDescription": "CPU consumed by the container app, in nano cores. 1,000,000,000 nano cores = 1 core",
+      "errorCode": "Success",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-cputhrottle/providers/Microsoft.App/containerApps/ca-cputhrottle-65svxr/providers/Microsoft.Insights/metrics/UsageNanoCores",
+      "name": {
+        "localizedValue": "CPU Usage",
+        "value": "UsageNanoCores"
+      },
+      "resourceGroup": "rg-aca-lab-cputhrottle",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-06-22T07:51:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:52:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:53:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:54:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:55:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:56:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:57:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:58:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T07:59:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:00:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:01:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:02:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:03:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:04:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:05:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:06:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:07:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:08:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:09:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:10:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:11:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:12:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:13:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:14:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:15:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:16:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:17:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:18:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:19:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:20:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:21:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:22:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:23:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:24:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:25:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:26:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:27:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:28:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:29:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:30:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:31:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:32:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:33:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:34:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:35:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:36:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:37:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:38:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:39:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:40:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:41:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:42:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:43:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:44:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:45:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:46:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:47:00Z"
+            },
+            {
+              "timeStamp": "2026-06-22T08:48:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-06-22T08:49:00Z"
+            },
+            {
+              "average": 820660.5,
+              "maximum": 852758.0,
+              "timeStamp": "2026-06-22T08:50:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "type": "Microsoft.Insights/metrics",
+      "unit": "NanoCores"
+    }
+  ]
+}

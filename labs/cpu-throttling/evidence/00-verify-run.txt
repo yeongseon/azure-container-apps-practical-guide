@@ -1,0 +1,111 @@
+===== verify.sh started 2026-06-22T08:50:19Z =====
+Resource group: rg-aca-lab-cputhrottle
+Container app:  ca-cputhrottle-65svxr
+Ingress FQDN:   ca-cputhrottle-65svxr.graymeadow-18a4aa16.koreacentral.azurecontainerapps.io
+
+cpu=0.25 baseline (from trigger.sh): p95=2575ms, requests_ok=100/100
+
+===== Phase 6: apply the fix (cpu 0.25 -> 1.0, memory 0.5Gi -> 2.0Gi) =====
+[filtered: Python google-auth FutureWarning from local env]
+[filtered: Python google-auth FutureWarning from local env]
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-cputhrottle-65svxr--0000001",
+  "name": "ca-cputhrottle-65svxr",
+  "provisioningState": "Succeeded"
+}
+New revision created: ca-cputhrottle-65svxr--0000001
+
+===== Phase 7: wait for the new revision to be Running (max 5 min) =====
+  08:50:45Z runningState=Activating provisioningState=Provisioned
+  08:51:00Z runningState=RunningAtMaxScale provisioningState=Provisioned
+[OK] New revision ca-cputhrottle-65svxr--0000001 reached runningState=RunningAtMaxScale
+
+===== Phase 8: capture post-fix app configuration =====
+[filtered: Python google-auth FutureWarning from local env]
+[filtered: Python google-auth FutureWarning from local env]
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "cpu": 1.0,
+  "latestRevisionName": "ca-cputhrottle-65svxr--0000001",
+  "maxReplicas": 1,
+  "memory": "2Gi",
+  "minReplicas": 1
+}
+Post-fix CPU allocation: 1.0 vCPU
+
+===== Phase 9: capture revision list after fix =====
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T08:47:56+00:00",
+    "name": "ca-cputhrottle-65svxr--8pz2nir",
+    "provisioningState": "Provisioned",
+    "runningState": "Deprovisioning",
+    "trafficWeight": 0
+  },
+  {
+    "active": true,
+    "createdTime": "2026-06-22T08:50:32+00:00",
+    "name": "ca-cputhrottle-65svxr--0000001",
+    "provisioningState": "Provisioned",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+
+===== Phase 10: warm up the new replica (5 discarded GETs) =====
+  warm-up GET 1/5 -> HTTP 200
+  warm-up GET 2/5 -> HTTP 200
+  warm-up GET 3/5 -> HTTP 200
+  warm-up GET 4/5 -> HTTP 200
+  warm-up GET 5/5 -> HTTP 200
+
+===== Phase 11: load test against cpu=1.0 post-fix (100 req, 20 concurrent) =====
+{
+  "url": "https://ca-cputhrottle-65svxr.graymeadow-18a4aa16.koreacentral.azurecontainerapps.io/",
+  "started_utc": "2026-06-22T08:51:10Z",
+  "finished_utc": "2026-06-22T08:51:13Z",
+  "wall_clock_seconds": 2.85,
+  "requests_total": 100,
+  "concurrency": 20,
+  "requests_ok": 100,
+  "requests_err": 0,
+  "latency_ms": {
+    "p50": 473.6,
+    "p95": 773.2,
+    "p99": 1092.8,
+    "max": 1302.2,
+    "avg": 531.0
+  },
+  "errors_sample": []
+}
+
+cpu=1.0 post-fix: p95=773ms, requests_ok=100/100
+
+===== Phase 12: capture UsageNanoCores metric for the last 5 min (post-fix) =====
+Metric snapshot written to 09-metrics-cpu1.json
+
+===== verify.sh evaluation =====
+CPU throttling hypothesis:
+  H1: p95 at cpu=0.25 > 100ms (baseline confirms CPU pressure is observable).
+  H2: p95 at cpu=1.0 < 0.5 * p95 at cpu=0.25 (at least 50% reduction).
+  If H1 AND H2 hold => hypothesis SUPPORTED (per-replica CPU is the bottleneck).
+  If H1 false => INVALID RUN (baseline too light; trigger.sh should have caught this).
+  If H1 true AND H2 false => FALSIFIED (CPU is not the bottleneck; investigate concurrency, network, or other resources).
+
+Measured:
+  cpu=0.25 p95: 2575ms (100/100 ok)
+  cpu=1.0  p95: 773ms (100/100 ok)
+
+[H2 PASS] cpu=1.0 p95 (773ms) < 50% of cpu=0.25 p95 (1287ms).
+
+[CPU-THROTTLING HYPOTHESIS SUPPORTED]
+  Per-replica CPU was the dominant bottleneck. Increasing from 0.25 to 1.0 vCPU eliminated the throttling-induced tail latency.
+  Operator action: scale per-replica CPU when each request needs more compute, OR scale OUT replicas when total throughput is the constraint.

@@ -1,0 +1,18 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T08:47:56+00:00",
+    "name": "ca-cputhrottle-65svxr--8pz2nir",
+    "provisioningState": "Provisioned",
+    "runningState": "Deprovisioning",
+    "trafficWeight": 0
+  },
+  {
+    "active": true,
+    "createdTime": "2026-06-22T08:50:32+00:00",
+    "name": "ca-cputhrottle-65svxr--0000001",
+    "provisioningState": "Provisioned",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
