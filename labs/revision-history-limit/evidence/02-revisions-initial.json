@@ -1,0 +1,10 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T07:56:51+00:00",
+    "name": "ca-revhist-t3t3np--wdmdnoq",
+    "provisioningState": "Provisioned",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]

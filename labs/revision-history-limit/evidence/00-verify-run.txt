@@ -1,0 +1,35 @@
+===== verify.sh started 2026-06-22T08:01:59Z =====
+Resource group: rg-aca-lab-revhist
+Container app: ca-revhist-t3t3np
+
+Burst end timestamp (from trigger.sh): 2026-06-22T08:01:46Z (epoch 1782115306)
+
+===== Phase 5: wait until t+5m, then capture =====
+t+5m: sleeping 287s until 2026-06-22T08:06:46Z...
+t+5m: total=11, inactive=10
+
+===== Phase 6: wait until t+15m, then capture (primary hypothesis check) =====
+t+15m: sleeping 597s until 2026-06-22T08:16:46Z...
+t+15m: total=11, inactive=10
+
+===== Phase 7: capture app configuration at t+15m (prove setting persisted) =====
+{
+  "activeRevisionsMode": "Single",
+  "maxInactiveRevisions": 2
+}
+Read maxInactiveRevisions at t+15m: 2
+
+===== verify.sh evaluation =====
+Bounded-observation hypothesis:
+  H1: At t+15m, maxInactiveRevisions config readback == 2 (setting persisted).
+  H2: At t+15m, inactive revision count > 2 (pruning is NOT prompt within 15 min).
+  If H1 AND H2 hold => hypothesis SUPPORTED (the preview setting is real, but pruning is asynchronous and not bounded by a short SLA).
+  If H1 false => INVALID RUN (Bicep / CLI did not persist the value).
+  If H1 true AND H2 false => FALSIFIED (pruning IS prompt within 15 min — update the lab claim).
+
+[H1 PASS] maxInactiveRevisions persisted as 2 at t+15m.
+[H2 PASS] inactive revisions at t+15m = 10 (> 2 limit) — pruning is NOT prompt within 15 min.
+
+[BOUNDED-OBSERVATION HYPOTHESIS SUPPORTED]
+  Operator takeaway: maxInactiveRevisions (preview) is honored as a target, NOT as a 15-min cleanup SLA.
+  For deterministic cleanup, use explicit lifecycle commands such as 'az containerapp revision deactivate'.
