@@ -1,0 +1,12 @@
+[
+  {
+    "createdTime": "2026-06-22T12:17:55Z",
+    "name": "ca-ingressport-2inkav--n6v50k0-55dfdfd9b-7bwp8",
+    "runningState": "Running"
+  },
+  {
+    "createdTime": "2026-06-22T11:46:04Z",
+    "name": "ca-ingressport-2inkav--n6v50k0-5bcd96fdd9-gkslg",
+    "runningState": "Running"
+  }
+]

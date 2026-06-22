@@ -1,0 +1,36 @@
+{
+  "utc_query": "2026-06-22T12:31:23Z",
+  "fix_utc": "2026-06-22T12:25:06Z",
+  "app_name": "ca-ingressport-2inkav",
+  "post_fix_revision": "ca-ingressport-2inkav--n6v50k0",
+  "system_portmismatch_query": "ContainerAppSystemLogs_CL | where TimeGenerated > datetime(2026-06-22T12:25:06Z) | where ContainerAppName_s == 'ca-ingressport-2inkav' | where Reason_s == 'Pending:PortMismatch' or Reason_s contains 'TargetPort' or Log_s contains 'TargetPort' or Reason_s == 'ProbeFailed' | summarize rows=count(), portmismatch_rows=countif(Reason_s == 'Pending:PortMismatch' or Log_s contains 'TargetPort'), probefailed_rows=countif(Reason_s == 'ProbeFailed'), distinct_revisions=dcount(RevisionName_s)",
+  "system_portmismatch_sample_query": "ContainerAppSystemLogs_CL | where TimeGenerated > datetime(2026-06-22T12:25:06Z) | where ContainerAppName_s == 'ca-ingressport-2inkav' | where Reason_s == 'Pending:PortMismatch' or Log_s contains 'TargetPort' | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Type_s, Log_s | order by TimeGenerated desc | take 5",
+  "system_portmismatch_result": {
+    "parse_status": "parsed_json_with_rows",
+    "cli_exit_code": 0,
+    "rows": "12",
+    "portmismatch_rows": "0",
+    "probefailed_rows": "12",
+    "distinct_revisions": "1",
+    "gate_classification": "silent_valid_baseline",
+    "raw_json": [
+      {
+        "TableName": "PrimaryResult",
+        "distinct_revisions": "1",
+        "portmismatch_rows": "0",
+        "probefailed_rows": "12",
+        "rows": "12"
+      }
+    ]
+  },
+  "system_portmismatch_sample": {
+    "parse_status": "parsed_json_list",
+    "cli_exit_code": 0,
+    "sample_row_count": 0,
+    "samples": []
+  },
+  "portmismatch_rows": "0",
+  "probefailed_rows": "12",
+  "gate_classification": "silent_valid_baseline",
+  "curl_after_fix_ok": 10
+}

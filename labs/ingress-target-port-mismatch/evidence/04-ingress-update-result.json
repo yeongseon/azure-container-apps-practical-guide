@@ -1,0 +1,6 @@
+{
+  "external": true,
+  "fqdn": "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+  "targetPort": 8081,
+  "transport": "Auto"
+}

@@ -1,0 +1,9 @@
+[
+  {
+    "TableName": "PrimaryResult",
+    "distinct_revisions": "1",
+    "portmismatch_rows": "25",
+    "probefailed_rows": "374",
+    "rows": "399"
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "healthState": "Healthy",
+  "name": "ca-ingressport-2inkav--n6v50k0",
+  "replicas": 1,
+  "runningState": "RunningAtMaxScale",
+  "trafficWeight": 100
+}

@@ -1,0 +1,25 @@
+{
+  "ingress": {
+    "additionalPortMappings": null,
+    "allowInsecure": false,
+    "clientCertificateMode": null,
+    "corsPolicy": null,
+    "customDomains": null,
+    "exposedPort": 0,
+    "external": true,
+    "fqdn": "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+    "ipSecurityRestrictions": null,
+    "stickySessions": null,
+    "targetPort": 8081,
+    "targetPortHttpScheme": null,
+    "traffic": [
+      {
+        "latestRevision": true,
+        "weight": 100
+      }
+    ],
+    "transport": "Auto"
+  },
+  "latestRevisionName": "ca-ingressport-2inkav--n6v50k0",
+  "name": "ca-ingressport-2inkav"
+}

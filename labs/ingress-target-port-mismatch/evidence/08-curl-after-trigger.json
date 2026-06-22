@@ -1,0 +1,59 @@
+{
+  "triggered_revision": "ca-ingressport-2inkav--n6v50k0",
+  "requests_sent": 10,
+  "requests_ok": 0,
+  "requests_non_200": 10,
+  "utc_completed": "2026-06-22T12:19:16Z",
+  "samples": [
+    {
+      "i": 0,
+      "status": 503,
+      "elapsed_ms": 885.9
+    },
+    {
+      "i": 1,
+      "status": 503,
+      "elapsed_ms": 647.9
+    },
+    {
+      "i": 2,
+      "status": 503,
+      "elapsed_ms": 794.5
+    },
+    {
+      "i": 3,
+      "status": 503,
+      "elapsed_ms": 786.1
+    },
+    {
+      "i": 4,
+      "status": 503,
+      "elapsed_ms": 649.8
+    },
+    {
+      "i": 5,
+      "status": 503,
+      "elapsed_ms": 603.4
+    },
+    {
+      "i": 6,
+      "status": 503,
+      "elapsed_ms": 713.5
+    },
+    {
+      "i": 7,
+      "status": 503,
+      "elapsed_ms": 801.5
+    },
+    {
+      "i": 8,
+      "status": 503,
+      "elapsed_ms": 591.7
+    },
+    {
+      "i": 9,
+      "status": 503,
+      "elapsed_ms": 711.2
+    }
+  ]
+}

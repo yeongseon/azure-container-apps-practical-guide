@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.41.2.15936",
-      "templateHash": "5520550043279047308"
+      "version": "0.43.8.12551",
+      "templateHash": "16407231371521477545"
     }
   },
   "parameters": {
@@ -20,6 +20,13 @@
       "defaultValue": "[resourceGroup().location]",
       "metadata": {
         "description": "Location for all resources"
+      }
+    },
+    "placeholderImage": {
+      "type": "string",
+      "defaultValue": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+      "metadata": {
+        "description": "Public placeholder image. helloworld is sufficient because this lab does not measure app behavior; it measures whether an ingress targetPort vs. container listening port mismatch produces the documented failure signature (HTTP 503 at the edge + TargetPort row in ContainerAppSystemLogs_CL). The image is identical across the baseline, trigger, and post-fix windows; the only experimental variable is the ingress targetPort field."
       }
     }
   },
@@ -68,25 +75,27 @@
       "properties": {
         "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
         "configuration": {
+          "activeRevisionsMode": "Single",
           "ingress": {
             "external": true,
-            "targetPort": 8000
+            "targetPort": 80,
+            "transport": "auto"
           }
         },
         "template": {
           "containers": [
             {
               "name": "app",
-              "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+              "image": "[parameters('placeholderImage')]",
               "resources": {
-                "cpu": "[json('0.5')]",
-                "memory": "1Gi"
+                "cpu": "[json('0.25')]",
+                "memory": "0.5Gi"
               }
             }
           ],
           "scale": {
             "minReplicas": 1,
-            "maxReplicas": 2
+            "maxReplicas": 1
           }
         }
       },
@@ -96,13 +105,29 @@
     }
   ],
   "outputs": {
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "value": "[variables('logAnalyticsName')]"
+    },
+    "logAnalyticsWorkspaceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName'))]"
+    },
+    "logAnalyticsCustomerId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName')), '2022-10-01').customerId]"
+    },
+    "environmentName": {
+      "type": "string",
+      "value": "[variables('environmentName')]"
+    },
+    "environmentResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]"
+    },
     "containerAppName": {
       "type": "string",
       "value": "[variables('appName')]"
-    },
-    "containerAppsEnvironmentName": {
-      "type": "string",
-      "value": "[variables('environmentName')]"
     },
     "containerAppFqdn": {
       "type": "string",
