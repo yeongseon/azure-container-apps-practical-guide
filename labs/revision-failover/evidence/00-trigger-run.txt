@@ -48,7 +48,7 @@ Baseline URL: https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azur
 Baseline revision: ca-labrevision-zfnp6h--0000001
 Baseline targetPort: 8000
 
-=== Phase 5: capture baseline revision list (expect 1 active revision Healthy at 100% traffic) ===
+=== Phase 5: capture baseline revision list (expect tracked baseline revision Healthy at 100% traffic; transient zero-traffic deprovisioning placeholder may also appear) ===
 [
   {
     "active": true,

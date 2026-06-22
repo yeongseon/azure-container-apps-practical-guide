@@ -34,7 +34,7 @@ labs/revision-failover/
     ├── 01-acr-build-result.txt                         # Phase 1: az acr build streaming log (the build log is plain text — az acr build does not honor --output json)
     ├── 02-containerapp-update-baseline.json            # Phase 2: az containerapp update result establishing baseline (image=labrevision:v1, registry credentials attached via separate `registry set` call per CLI 2.71.0+ argument-conflict rule)
     ├── 03-containerapp-show-baseline.json              # Phase 4: az containerapp show post-baseline (expect targetPort=8000, healthState=Healthy, activeRevisionsMode=Single)
-    ├── 04-revision-list-baseline.json                  # Phase 5: az containerapp revision list baseline (expect 1 active revision Healthy at 100% traffic)
+    ├── 04-revision-list-baseline.json                  # Phase 5: az containerapp revision list baseline (expect tracked baseline revision Healthy at 100% traffic; a transient zero-traffic deprovisioning placeholder may also appear alongside the tracked revision because activeRevisionsMode=Single reports both the deprovisioning placeholder image deployment and the new baseline as active until the placeholder finishes deprovisioning)
     ├── 05-curl-baseline.txt                            # Phase 6: curl baseline FQDN (expect HTTP 200)
     ├── 06-containerapp-ingress-update-broken.json      # Phase 7: az containerapp ingress update --target-port 9999 result (BREAK)
     ├── 07-revision-list-after-break.json               # Phase 9: revision list post-break (expect same revision name, healthState=Degraded or similar non-Healthy state)

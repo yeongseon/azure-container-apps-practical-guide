@@ -143,7 +143,7 @@ if [ "$BASELINE_TARGET_PORT" != "8000" ]; then
     exit 1
 fi
 
-echo "=== Phase 5: capture baseline revision list (expect 1 active revision Healthy at 100% traffic) ==="
+echo "=== Phase 5: capture baseline revision list (expect tracked baseline revision Healthy at 100% traffic; transient zero-traffic deprovisioning placeholder may also appear) ==="
 az containerapp revision list \
     --subscription "$AZ_SUBSCRIPTION" \
     --name "$APP_NAME" \
