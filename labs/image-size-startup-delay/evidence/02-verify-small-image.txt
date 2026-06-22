@@ -12,13 +12,13 @@
 
 ==> Comparing image pull times from system logs...
 
-LARGE image evidence (from /Users/yeongseonchoe/GitHub/azure-container-apps-practical-guide/labs/image-size-startup-delay/evidence/system-logs-large.json):
+LARGE image evidence (from labs/image-size-startup-delay/evidence/system-logs-large.json):
 Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 1.62s. Image size: 33554432 bytes.
 Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 12ms. Image size: 33554432 bytes.
 Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 11ms. Image size: 33554432 bytes.
 Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 9ms. Image size: 33554432 bytes.
 
-SMALL image evidence (from /Users/yeongseonchoe/GitHub/azure-container-apps-practical-guide/labs/image-size-startup-delay/evidence/system-logs-small.json):
+SMALL image evidence (from labs/image-size-startup-delay/evidence/system-logs-small.json):
 Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 1.62s. Image size: 33554432 bytes.
 Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 12ms. Image size: 33554432 bytes.
 Successfully pulled image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" in 11ms. Image size: 33554432 bytes.
@@ -28,4 +28,4 @@ Successfully pulled image "python:3.11-alpine" in 2.88s. Image size: 19922944 by
 ==> Recovery check:
 PASS: After switching to the small image, the active revision is Healthy.
 
-Evidence written to /Users/yeongseonchoe/GitHub/azure-container-apps-practical-guide/labs/image-size-startup-delay/evidence/
+Evidence written to labs/image-size-startup-delay/evidence/

@@ -1,5 +1,5 @@
 {
-  "id": "/subscriptions/1375a781-21fb-430a-be54-2465c36b0ee2/resourceGroups/rg-aca-lab-imagesize/providers/Microsoft.App/containerapps/ca-imgsize-acerjw",
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-imagesize/providers/Microsoft.App/containerapps/ca-imgsize-acerjw",
   "identity": {
     "type": "None"
   },
@@ -39,14 +39,14 @@
       "service": null,
       "targetLabel": ""
     },
-    "customDomainVerificationId": "5F4D40324651269FDA2F10E03050A49ECBA6A88B93D95EA7E223D34005F9E7DE",
+    "customDomainVerificationId": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "delegatedIdentities": [],
-    "environmentId": "/subscriptions/1375a781-21fb-430a-be54-2465c36b0ee2/resourceGroups/rg-aca-lab-imagesize/providers/Microsoft.App/managedEnvironments/cae-imgsize-acerjw",
-    "eventStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/1375a781-21fb-430a-be54-2465c36b0ee2/resourceGroups/rg-aca-lab-imagesize/containerApps/ca-imgsize-acerjw/eventstream",
+    "environmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-imagesize/providers/Microsoft.App/managedEnvironments/cae-imgsize-acerjw",
+    "eventStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-imagesize/containerApps/ca-imgsize-acerjw/eventstream",
     "latestReadyRevisionName": "ca-imgsize-acerjw--0000002",
     "latestRevisionFqdn": "ca-imgsize-acerjw--0000002.victoriousdune-88e2a6bf.koreacentral.azurecontainerapps.io",
     "latestRevisionName": "ca-imgsize-acerjw--0000002",
-    "managedEnvironmentId": "/subscriptions/1375a781-21fb-430a-be54-2465c36b0ee2/resourceGroups/rg-aca-lab-imagesize/providers/Microsoft.App/managedEnvironments/cae-imgsize-acerjw",
+    "managedEnvironmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-imagesize/providers/Microsoft.App/managedEnvironments/cae-imgsize-acerjw",
     "outboundIpAddresses": [
       "20.196.231.61",
       "20.196.243.56",
@@ -251,10 +251,10 @@
   "resourceGroup": "rg-aca-lab-imagesize",
   "systemData": {
     "createdAt": "2026-06-22T02:14:38.1609053",
-    "createdBy": "ychoe@microsoft.com",
+    "createdBy": "user@example.com",
     "createdByType": "User",
     "lastModifiedAt": "2026-06-22T02:26:55.5132734",
-    "lastModifiedBy": "ychoe@microsoft.com",
+    "lastModifiedBy": "user@example.com",
     "lastModifiedByType": "User"
   },
   "type": "Microsoft.App/containerApps"

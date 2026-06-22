@@ -2,7 +2,7 @@
   "appLogsConfiguration": {
     "destination": "log-analytics",
     "logAnalyticsConfiguration": {
-      "customerId": "db64e003-52d2-475b-a33a-ba2738131860",
+      "customerId": "00000000-0000-0000-0000-000000000000",
       "dynamicJsonColumns": false,
       "sharedKey": null
     }

@@ -26,7 +26,7 @@ echo "    captured logs for revision: $INITIAL_REVISION"
 
 echo ""
 echo "==> Applying the documented fix: switch to a smaller image."
-echo "    Old image: $(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query 'properties.template.containers[0].image' -o tsv)"
+echo "    Old image: $(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query 'properties.template.containers[0].image' --output tsv)"
 echo "    New image: $SMALL_IMAGE"
 az containerapp update \
   --name "$APP_NAME" \

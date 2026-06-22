@@ -65,7 +65,9 @@ flowchart TD
     - `infra/main.bicep` provisions the Container Apps environment, Log Analytics workspace, and an initial Container App on `python:3.11`.
     - `trigger.sh` waits for the large-image revision to become ready and exports the system-log pull timing.
     - `verify.sh` deploys `python:3.11-alpine` as a new revision and re-runs the same KQL query to compare.
-    - `evidence/` carries 11 raw CLI / KQL captures from the 2026-06-22 reproduction (revision list, full container app config, KQL pull events, full event lifecycle, raw system logs for both revisions).
+    - `evidence/` carries 11 raw CLI / KQL captures from the 2026-06-22 reproduction (revision list, full container app config, KQL pull events, full event lifecycle, raw system logs from the before-fix and after-fix windows).
+
+    **Off-script diagnostic step in the evidence pack.** During the 2026-06-22 run, an additional revision (`ca-imgsize-acerjw--0000001`) was manually created using `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` as a falsification check (see the Falsification bullet in **12) Evidence** below). That revision is **not** produced by `trigger.sh` or `verify.sh`; it is preserved in the evidence files (`05-revisions-all.json`, `06-kql-pull-events.json`, `09-kql-event-summary.json`, `system-logs-large.json`, `system-logs-small.json`) because the warm-pull and `ContainerCreateFailure` events on that revision are useful supporting evidence for the cold-vs-warm framing and the "small image alone is not enough" finding. The scripted workflow itself remains `python:3.11` → `python:3.11-alpine`.
 
     Azure Portal screenshots (Container App Overview, Revisions blade, Log Analytics Logs blade) are **pending in a follow-up PR**. The Portal captures repeatedly timed out via the Playwright MCP server during this session; this PR ships the CLI / KQL / IaC evidence now to avoid further Azure billing. The follow-up will re-deploy the same Bicep template in a short-lived environment purely to capture the Portal blades, then close out.
 
@@ -137,7 +139,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 
 ### Observed Evidence (Live Azure Test — 2026-06-22, koreacentral)
 
-Reproduced end-to-end against MCAPS subscription `Visual Studio Enterprise Subscription` in `koreacentral`. All raw evidence is committed under [`labs/image-size-startup-delay/evidence/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/image-size-startup-delay/evidence):
+Reproduced end-to-end in `koreacentral`. All raw evidence is committed under [`labs/image-size-startup-delay/evidence/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/image-size-startup-delay/evidence):
 
 | File | Content |
 |---|---|
@@ -145,29 +147,29 @@ Reproduced end-to-end against MCAPS subscription `Visual Studio Enterprise Subsc
 | `02-verify-small-image.txt` | `verify.sh` execution capturing the cold pull of `python:3.11-alpine` |
 | `03-revisions-list.json` | Active revision (final state, single-revision mode) |
 | `04-containerapp-summary.json` | Container App essentials (FQDN, location, latest revision) |
-| `05-revisions-all.json` | All 3 revisions including inactive (large, intermediate, small) |
+| `05-revisions-all.json` | All revisions including the inactive off-script `containerapps-helloworld` diagnostic |
 | `06-kql-pull-events.json` | KQL `Successfully pulled image` events across all revisions (cold + warm) |
 | `07-containerapp-full-config.json` | Full ACA resource configuration (~7 KB) |
 | `08-environment-logs-config.json` | Container Apps Environment `appLogsConfiguration` proving Log Analytics wiring |
 | `09-kql-event-summary.json` | Full revision lifecycle grouped by `Reason_s` (KEDAScalersStarted → PullingImage → PulledImage → ContainerCreated → ContainerStarted → ContainerTerminated → KEDAScalersStopped → ScaledObjectDeleted) |
-| `system-logs-large.json` | Raw system logs from large-image revision |
-| `system-logs-small.json` | Raw system logs from small-image revision |
+| `system-logs-large.json` | Raw system logs from the "before fix" window (includes the off-script `containerapps-helloworld` `ContainerCreateFailure` events) |
+| `system-logs-small.json` | Raw system logs from the "after fix" window (transition out of the off-script revision, then `python:3.11-alpine` cold pull) |
 
-**Cold pull times** (image not present on the Container Apps Environment node):
+**Scripted reproduction — cold pull times** (image not present on the Container Apps Environment node):
 
-| Revision | Image | Cold pull time | Image size | Healthy? |
+| Revision | Image | Cold pull time | Image size | Outcome |
 |---|---|---|---|---|
-| `ca-imgsize-acerjw--5487avi` | `python:3.11` | **8.88 s** | 408,944,640 bytes (408 MB) | Yes |
-| `ca-imgsize-acerjw--0000001` | `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` | **1.62 s** | 33,554,432 bytes (34 MB) | No (port 80 vs 8080 mismatch — discarded) |
-| `ca-imgsize-acerjw--0000002` | `python:3.11-alpine` | **2.88 s** | 19,922,944 bytes (20 MB) | Yes |
+| `ca-imgsize-acerjw--5487avi` | `python:3.11` | **8.88 s** | 408,944,640 bytes (408 MB) | `Healthy` — container started and bound port 8080 |
+| `ca-imgsize-acerjw--0000002` | `python:3.11-alpine` | **2.88 s** | 19,922,944 bytes (20 MB) | `Healthy` — container started and bound port 8080 |
 
-**Warm pulls** (image already cached on the node from the cold pull):
+**Off-script falsification step — cold and warm pull times** (manual diagnostic revision; not produced by `trigger.sh` / `verify.sh`):
 
-| Revision | Image | Warm pull time | Notes |
+| Pull # | Image | Pull time | Outcome |
 |---|---|---|---|
-| `ca-imgsize-acerjw--0000001` | `containerapps-helloworld` | **12 ms** | Replica re-creation, image already on node |
-| `ca-imgsize-acerjw--0000001` | `containerapps-helloworld` | **11 ms** | Same revision, second replica reattach |
-| `ca-imgsize-acerjw--0000001` | `containerapps-helloworld` | **9 ms** | Third reattach |
+| 1 (cold) | `containerapps-helloworld` | **1.62 s** | `ContainerCreateFailure` — `exec: "python": executable file not found in $PATH` |
+| 2 (warm) | `containerapps-helloworld` | **12 ms** | `ContainerCreateFailure` (same error) |
+| 3 (warm) | `containerapps-helloworld` | **11 ms** | `ContainerCreateFailure` (same error) |
+| 4 (warm) | `containerapps-helloworld` | **9 ms** | `ContainerCreateFailure` (same error) |
 
 ```text
 # Excerpt from labs/image-size-startup-delay/evidence/06-kql-pull-events.json
@@ -181,11 +183,11 @@ Successfully pulled image "python:3.11-alpine" in 2.88s. Image size: 19922944 by
 ```
 
 - `[Measured]` `python:3.11` cold pull: **8.88 s**, image size **408 MB**.
-- `[Measured]` `python:3.11-alpine` cold pull: **2.88 s**, image size **20 MB** — **3.1x faster, 20x smaller** on the same workload.
-- `[Measured]` Warm pulls (containerapps-helloworld, 34 MB) complete in **9-12 ms** regardless of image size, once the node has the image cached. This validates the framing that the proof is cold-vs-warm behaviour rather than an absolute seconds threshold (warm-cache wins erase the size-based gap, and pull time varies by region and cache state).
-- `[Observed]` Both `python:3.11` and `python:3.11-alpine` revisions reach `Healthy` state running the same workload (`python -m http.server 8080`) on the same target port; the only changed variable is base-image size.
-- `[Falsification]` The `containerapps-helloworld` revision pulled fastest (1.62 s cold, 34 MB) but went `Unhealthy` because its image binds port 80, not the configured target port 8080. This rules out the alternative hypothesis that pull speed alone determines startup success — the workload still has to bind the configured target port. The unhealthy revision was deactivated and replaced with `python:3.11-alpine` so that base-image size remained the only varying dimension between the two healthy revisions.
-- `[Inferred]` Replacing a large base image with a trimmed alternative on the same workload directly reduces pull time and startup latency.
+- `[Measured]` `python:3.11-alpine` cold pull: **2.88 s**, image size **20 MB** — **3.1x faster, 20x smaller** on the same workload (`python -m http.server 8080`) and the same target port 8080.
+- `[Measured]` On the off-script `containerapps-helloworld` revision, the same image pulled in **1.62 s cold** and then **9-12 ms warm** on three subsequent replica restart attempts (the controller kept restarting the failing replica). This validates the framing that the proof is **cold-vs-warm** pull behaviour rather than an absolute seconds threshold: once the node has the image cached, the pull cost drops to single-digit milliseconds regardless of image size, and pull time varies by region and cache state.
+- `[Observed]` Both scripted revisions (`python:3.11` and `python:3.11-alpine`) reach `Healthy` running the same workload on the same target port; the only changed variable is base-image size.
+- `[Falsification]` The off-script `containerapps-helloworld` revision pulled fastest (1.62 s cold, 34 MB) but the container repeatedly hit `ContainerCreateFailure` with `Status(StatusCode="Unknown", Detail="failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: \"python\": executable file not found in $PATH: unknown")` — 4 `ContainerTerminated` events on replica `ca-imgsize-acerjw--0000001-666f66947d-mjk8g` between 02:24:38 and 02:26:13 UTC (see `evidence/system-logs-large.json` lines 20, 23, 26, 29). The image is an nginx-based Microsoft Docs hello-world image with no Python runtime, so the Bicep override command `python -m http.server 8080` could not execute. This rules out the alternative hypothesis that **small image alone implies fast healthy startup** — the workload runtime inside the image must also match the command being executed. The revision's snapshot in `evidence/05-revisions-all.json` still reports `healthState: Healthy` because Azure marks revisions Healthy at deploy time and does not always update that field when later container terminations are observed; the authoritative signal is `ContainerCreateFailure` in the system logs and the `Reason_s == "ContainerTerminated"` rollups in `evidence/09-kql-event-summary.json`.
+- `[Inferred]` Replacing a large base image with a trimmed alternative on the same workload directly reduces cold pull time and therefore initial startup latency. Warm-cache pulls erase the size-based gap, so the practical impact is concentrated on cold-start situations: new revision deployments, scale-out to a node that has not previously pulled the image, and scale-from-zero events.
 
 ## 13. Solution
 

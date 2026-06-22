@@ -33,14 +33,14 @@ export APP_NAME=$(az deployment group show \
   --output tsv)
 
 ./trigger.sh   # observe slow pull of python:3.11 (~408 MB)
-./verify.sh    # switch to python:3.11-alpine (~50 MB) and compare
+./verify.sh    # switch to python:3.11-alpine (~20 MB) and compare
 ./cleanup.sh   # delete the resource group
 ```
 
 ## What this lab demonstrates
 
 - The initial revision pulls `python:3.11` (~408 MB), recorded in `ContainerAppSystemLogs` as `Successfully pulled image "python:3.11" in <N>s`.
-- `verify.sh` deploys a new revision with `python:3.11-alpine` (~50 MB) and the same Log Analytics query shows the second pull is several times faster.
+- `verify.sh` deploys a new revision with `python:3.11-alpine` (~20 MB) and the same Log Analytics query shows the second pull is several times faster.
 - Both revisions run the same workload (`python -m http.server 8080`) on the same port, so the only variable that changes is base-image size.
 
 ## Cost notes
