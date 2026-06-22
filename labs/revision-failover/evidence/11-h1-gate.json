@@ -1,0 +1,31 @@
+{
+  "utc_captured": "2026-06-22T16:15:52Z",
+  "app_name": "ca-labrevision-zfnp6h",
+  "rg": "rg-aca-lab-revision",
+  "baseline_revision_name": "ca-labrevision-zfnp6h--0000001",
+  "post_break_revision_name": "ca-labrevision-zfnp6h--0000001",
+  "revision_name_unchanged": true,
+  "break_window": {
+    "start_utc": "2026-06-22T16:11:02Z",
+    "end_utc": "2026-06-22T16:15:45Z",
+    "baseline_target_port": 8000,
+    "post_break_target_port": 9999
+  },
+  "curl_observations": {
+    "baseline_http_code": "200",
+    "post_break_http_code": "503"
+  },
+  "health_observations": {
+    "post_break_health_state": "Unhealthy",
+    "seconds_to_non_healthy": 261
+  },
+  "probe_failure_count": 100,
+  "h1_sub_gates": {
+    "a_baseline_curl_succeeded": true,
+    "b_break_applied_target_port_is_9999": true,
+    "c_revision_no_longer_healthy_after_break": true,
+    "d_post_break_curl_failed": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "revision_failover_broken_revision_unhealthy"
+}

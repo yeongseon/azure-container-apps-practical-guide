@@ -1,0 +1,11 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T16:10:26+00:00",
+    "healthState": "Healthy",
+    "name": "ca-labrevision-zfnp6h--0000001",
+    "replicas": 1,
+    "runningState": "Running",
+    "trafficWeight": 100
+  }
+]

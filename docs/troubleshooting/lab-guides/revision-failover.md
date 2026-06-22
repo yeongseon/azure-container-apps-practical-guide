@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-23'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-06-03
-    az_cli_version: 2.71.0
-    notes: ingress targetPort=9999 mismatch triggers Degraded; rollback via az containerapp ingress update --target-port 8000 restores Running without redeploy. Six Portal captures attached (rg-aca-lab-revision, koreacentral, app ca-labrevision-zfnp6h) anchor the broken-revision → in-place rollback → healthy-state arc plus the Activity log update events.
+    tested_date: 2026-06-23
+    az_cli_version: 2.79.0
+    notes: ingress targetPort=9999 mismatch triggers Unhealthy after 261 s of accumulated probe failures (ProbeFailed rows in ContainerAppSystemLogs_CL); rollback via az containerapp ingress update --target-port 8000 restores Healthy in ~21 s in-place on the same revision (path b), HTTP 503 -> 200 on the same FQDN. Reproduced via labs/revision-failover/trigger.sh + verify.sh in activeRevisionsMode Single (vs the 2026-06-03 reproduction in Multiple mode); both modes exhibit the same in-place semantics. Twenty-two evidence artifacts captured to labs/revision-failover/evidence/; H1 gate revision_failover_broken_revision_unhealthy, H2 gate revision_failover_recovered_in_place_no_new_revision, verdict SUPPORTED. The 2026-06-03 reproduction (CLI 2.71.0) and six Portal captures (rg-aca-lab-revision, koreacentral, app ca-labrevision-zfnp6h) anchor the same arc and remain authoritative for the Portal-blade evidence.
   core_claims:
     - claim: Azure Container Apps lets you activate, deactivate, and manage revisions for a container app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
@@ -25,11 +25,11 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-06-03'
-    cli_version: '2.71.0'
+    last_tested: '2026-06-23'
+    cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-06-03'
+    last_tested: '2026-06-23'
     result: pass
 ---
 # Revision Failover and Rollback Lab
@@ -361,6 +361,67 @@ HTTP 200
 [Inferred] The Activity Log does not record any client-side rejection of the ingress `targetPort: 9999` change — the control plane accepted the update and the failure only surfaced later as a runtime probe mismatch. This is consistent with `targetPort` being validated at probe time, not at API admission time.
 
 [Inferred] The recovery demonstrates hypothesis branch (b): a single `az containerapp ingress update --target-port 8000` restores the revision to `Running` in ~30 s without rebuilding or redeploying. For this failure mode (ingress-port misconfiguration with a healthy container image), the playbook should attempt in-place correction before a traffic-shift or image-level rollback.
+
+### Observed Evidence (Reproducible Evidence Pack — 2026-06-23)
+
+**Environment:** `rg-aca-lab-revision` / `cae-labrevision-zfnp6h`, `koreacentral`, Consumption plan.
+**App:** `ca-labrevision-zfnp6h` (Flask + Gunicorn listening on `0.0.0.0:8000`).
+**Azure CLI:** `2.79.0` (`containerapp` extension `1.3.0b4`).
+**Reproduction:** [`labs/revision-failover/trigger.sh`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/revision-failover/trigger.sh) (Phases 1-12) and [`verify.sh`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/revision-failover/verify.sh) (Phases 13-22) reproduce H1 and H2 end-to-end. All twenty-two evidence artifacts are captured to `labs/revision-failover/evidence/`. Verdict: `SUPPORTED` (H1 + H2 both PASS).
+
+This reproduction uses `activeRevisionsMode: Single` (set in `infra/main.bicep`), which differs from the 2026-06-03 reproduction above that ran in `Multiple` mode (visible as three active revisions in the **Revisions and replicas** blade screenshot at PNG 02). Both modes exhibit the same in-place ingress-port failure semantics because ingress `targetPort` is an app-level configuration shared across every revision; `Single` mode is preferred for this evidence pack because it yields a deterministic one-active-revision state across baseline, broken, and recovered phases, which makes the gate JSON assertions (`baseline_revision_name == post_break_revision_name == post_fix_revision_name`) unambiguous.
+
+**Phase 7 BREAK — `az containerapp ingress update --target-port 9999` (issued at `2026-06-22T16:11:02Z`):**
+
+[Observed] The ingress update is accepted at the control plane (`targetPort: 9999` in the API response), and `containerapp show` immediately reflects the new value. The latestRevisionName is unchanged (still `ca-labrevision-zfnp6h--0000001`) — confirming that ingress is an app-level configuration and the update modified the same revision in place. Captured to `evidence/06-containerapp-ingress-update-broken.json` and `evidence/08-containerapp-show-after-break.json`.
+
+[Measured] **Time from break command issuance to revision `healthState=Unhealthy`: 261 s**, measured by `verify.sh` Phase 8 polling. Captured as `health_observations.seconds_to_non_healthy = 261` in `evidence/11-h1-gate.json`. The platform startup probe required ~4.4 minutes to accumulate enough consecutive probe failures to reclassify the revision as `Unhealthy`; this is longer than the ~60-90 s estimate in the runbook prose because the platform applies retry budgets to probe failures and only reclassifies the revision after the budget is exhausted. The exact threshold is platform-internal and varies with probe configuration and CLI / extension version.
+
+[Observed] `evidence/09-system-logs-probe-failures.json` captures 100 rows (the KQL `take 100` cap) of `ContainerAppSystemLogs_CL` entries with `Reason_s = ProbeFailed` and `Log_s = "Probe of StartUp failed with status code: 1"`, all on `RevisionName_s = ca-labrevision-zfnp6h--0000001`, timestamped between `2026-06-22T16:11:29Z` and the end of the break window. This is the system-log smoking gun visible via `az monitor log-analytics query`; the user-facing "Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 9999 does not match the listening port 8000." string from the 2026-06-03 Portal capture at PNG 03 is rendered by the Diagnose-and-Solve flyout in the Portal, not by this log table.
+
+[Observed] **Post-break HTTP probe (curl)**: `HTTP 503` from the app FQDN `ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io`. Captured to `evidence/10-curl-after-break.txt`. The 503 confirms the platform is dropping requests because no replica passes the startup probe.
+
+[Observed] **H1 gate JSON** (`evidence/11-h1-gate.json`):
+
+```json
+{
+  "h1_sub_gates": {
+    "a_baseline_curl_succeeded": true,
+    "b_break_applied_target_port_is_9999": true,
+    "c_revision_no_longer_healthy_after_break": true,
+    "d_post_break_curl_failed": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "revision_failover_broken_revision_unhealthy"
+}
+```
+
+**Phase 14 FIX — `az containerapp ingress update --target-port 8000` (issued at `2026-06-22T16:16:13Z`):**
+
+[Observed] The fix mirrors the break action: the ingress update is accepted at the control plane (`targetPort: 8000` in the API response) and modifies the same revision in place. Captured to `evidence/12-containerapp-ingress-update-fix.json`.
+
+[Measured] **Time from fix command issuance to revision `healthState=Healthy`: under 21 s**. The first poll in `verify.sh` Phase 15 (executed ~21 s after `FIX_UTC`) already reported `healthState=Healthy`, so the actual transition completed somewhere between the fix command return and the first poll. Captured as `seconds_to_healthy = 2` in `evidence/17-h2-gate.json` — note this field measures only the time from polling start to first Healthy observation, not the true probe-transition time, so the upper bound from the fix command itself is ~21 s.
+
+[Observed] **Post-fix HTTP probe (curl)**: `HTTP 200` from the same FQDN. Captured to `evidence/15-curl-after-fix.txt`. The same FQDN that returned 503 ~36 s earlier now returns 200 — no new revision, no traffic shift.
+
+[Observed] `evidence/13-revision-list-after-fix.json` shows exactly one active revision: `ca-labrevision-zfnp6h--0000001`, `healthState: Healthy`, `trafficWeight: 100`, `replicas: 1`. The baseline revision name is identical to the post-break revision name and the post-fix revision name — confirming **path b** (in-place recovery on the same revision, no new revision created).
+
+[Observed] **H2 gate JSON** (`evidence/17-h2-gate.json`):
+
+```json
+{
+  "h2_sub_gates": {
+    "a_post_fix_revision_healthy": true,
+    "b_same_revision_name_recovered": true,
+    "c_curl_succeeded_after_fix": true,
+    "d_ingress_target_port_corrected": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "revision_failover_recovered_in_place_no_new_revision"
+}
+```
+
+[Inferred] The 2026-06-23 reproduction confirms the 2026-06-03 Portal capture sequence with quantified measurements: the same revision (`ca-labrevision-zfnp6h--0000001`) transitioned from `Healthy` to `Unhealthy` after 261 s of accumulated probe failures, then recovered to `Healthy` within ~21 s of the fix command, without any new revision being created. The control plane accepted both the break and the fix at admission time; the platform's probe loop is the controlling mechanism for the health-state transition in both directions. For operators, this means the cheapest recovery path for an ingress-port misconfiguration is a simple `az containerapp ingress update --target-port <correct-port>` — there is no need to ship a new image, suffix a new revision, or perform a traffic shift, provided the underlying container is healthy and listening on the correct port.
 
 ## Clean Up
 

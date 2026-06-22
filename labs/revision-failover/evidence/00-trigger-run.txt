@@ -1,0 +1,187 @@
+trigger.sh starting at 2026-06-22T16:09:07Z
+RG: rg-aca-lab-revision
+App: ca-labrevision-zfnp6h
+ACR: acrlabrevisionzfnp6h
+ACR login server: acrlabrevisionzfnp6h.azurecr.io
+Workspace customer ID: b930c58f-a778-40f8-82a5-05fc0a642324
+
+Note: This lab reproduces an ingress targetPort misconfiguration failure. The Bicep deploys
+the app with ingress.targetPort=8000 and a placeholder image. Phase 1-2 build and deploy the
+custom Flask + Gunicorn workload (listening on 0.0.0.0:8000) so the baseline revision is
+Healthy and serving HTTP 200. Phase 7 flips ingress.targetPort to 9999 via az containerapp
+ingress update (which does NOT create a new revision; ingress is an app-level configuration
+shared across all revisions). The platform startup probe then targets port 9999 where nothing
+is listening, so the same revision transitions from Healthy to Degraded within ~60-90 s. HTTP
+requests to the FQDN start failing because the platform deems the revision non-Healthy.
+
+=== Phase 1: build and push custom image to ACR ===
+Built and pushed acrlabrevisionzfnp6h.azurecr.io/labrevision:v1
+
+=== Phase 2: set registry credentials + update container app to custom image (baseline Healthy) ===
+WARNING: Command group 'containerapp registry' is in preview and under development. Reference and support levels: https://aka.ms/CLI_refstatus
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+WARNING: Adding registry password as a secret with name "acrlabrevisionzfnp6hazurecrio-acrlabrevisionzfnp6h"
+/ Running ..| Running ..\ Running ..- Running ../ Running ..| Running ..[KWARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..\ Running ..- Running ../ Running ..[KUpdated container app to image labrevision:v1 (baseline state)
+
+=== Phase 3: wait for baseline LATEST revision to become Healthy ===
+Poll at +0s: latestRevisionName=ca-labrevision-zfnp6h--0000001, healthState=None
+Poll at +10s: latestRevisionName=ca-labrevision-zfnp6h--0000001, healthState=Healthy
+Baseline latest revision ca-labrevision-zfnp6h--0000001 is Healthy after 10s
+
+=== Phase 4: capture container app baseline state (expect targetPort=8000, healthState=Healthy) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "activeRevisionsMode": "Single",
+  "fqdn": "ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labrevision-zfnp6h--0000001",
+  "name": "ca-labrevision-zfnp6h",
+  "provisioningState": "Succeeded",
+  "targetPort": 8000
+}
+
+Baseline FQDN: ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io
+Baseline URL: https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io/
+Baseline revision: ca-labrevision-zfnp6h--0000001
+Baseline targetPort: 8000
+
+=== Phase 5: capture baseline revision list (expect 1 active revision Healthy at 100% traffic) ===
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T16:08:08+00:00",
+    "healthState": "None",
+    "name": "ca-labrevision-zfnp6h--9aqc12z",
+    "replicas": 2,
+    "runningState": "Deprovisioning",
+    "trafficWeight": 0
+  },
+  {
+    "active": true,
+    "createdTime": "2026-06-22T16:10:26+00:00",
+    "healthState": "Healthy",
+    "name": "ca-labrevision-zfnp6h--0000001",
+    "replicas": 1,
+    "runningState": "Running",
+    "trafficWeight": 100
+  }
+]
+
+=== Phase 6: baseline HTTP probe (expect HTTP 200) ===
+Baseline HTTP code from https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io/: 200
+
+=== Phase 7: BREAK — flip ingress targetPort from 8000 to 9999 ===
+Break UTC: 2026-06-22T16:11:02Z
+/ Running ..| Running ..\ Running ..- Running ../ Running ..[KWARNING: 
+Ingress Updated. Access your app at https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io/
+
+{
+  "additionalPortMappings": null,
+  "allowInsecure": false,
+  "clientCertificateMode": null,
+  "corsPolicy": null,
+  "customDomains": null,
+  "exposedPort": 0,
+  "external": true,
+  "fqdn": "ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io",
+  "ipSecurityRestrictions": null,
+  "stickySessions": null,
+  "targetPort": 9999,
+  "traffic": [
+    {
+      "latestRevision": true,
+      "weight": 100
+    }
+  ],
+  "transport": "Auto"
+}
+
+=== Phase 8: poll for revision health to transition from Healthy to non-Healthy ===
+Poll at +0s (16:11:20Z): healthState=Healthy
+Poll at +10s (16:11:33Z): healthState=Healthy
+Poll at +20s (16:11:45Z): healthState=Healthy
+Poll at +30s (16:11:57Z): healthState=Healthy
+Poll at +40s (16:12:10Z): healthState=Healthy
+Poll at +50s (16:12:22Z): healthState=Healthy
+Poll at +60s (16:12:34Z): healthState=Healthy
+Poll at +70s (16:12:46Z): healthState=Healthy
+Poll at +80s (16:12:58Z): healthState=Healthy
+Poll at +90s (16:13:11Z): healthState=Healthy
+Poll at +100s (16:13:23Z): healthState=Healthy
+Poll at +110s (16:13:35Z): healthState=Healthy
+Poll at +120s (16:13:48Z): healthState=Healthy
+Poll at +130s (16:14:00Z): healthState=Healthy
+Poll at +140s (16:14:12Z): healthState=Healthy
+Poll at +150s (16:14:24Z): healthState=Healthy
+Poll at +160s (16:14:37Z): healthState=Healthy
+Poll at +170s (16:14:49Z): healthState=Healthy
+Poll at +180s (16:15:01Z): healthState=Healthy
+Poll at +190s (16:15:14Z): healthState=Healthy
+Poll at +200s (16:15:26Z): healthState=Healthy
+Poll at +210s (16:15:39Z): healthState=Unhealthy
+Revision transitioned away from Healthy after 261s
+Final post-break healthState: Unhealthy
+
+=== Phase 9: capture post-break state ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "fqdn": "ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labrevision-zfnp6h--0000001",
+  "name": "ca-labrevision-zfnp6h",
+  "provisioningState": "Succeeded",
+  "targetPort": 9999
+}
+
+Post-break latestRevisionName: ca-labrevision-zfnp6h--0000001 (expected: same as baseline ca-labrevision-zfnp6h--0000001)
+Post-break targetPort: 9999 (expected: 9999)
+
+=== Phase 10: query ContainerAppSystemLogs_CL for probe / deployment failures during break window ===
+Probe/deployment failure rows in break window: 100
+
+=== Phase 11: post-break HTTP probe (expect non-200 or timeout) ===
+Post-break HTTP code from https://ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io/: 503
+
+=== Phase 12: emit H1 gate JSON ===
+{
+  "utc_captured": "2026-06-22T16:15:52Z",
+  "app_name": "ca-labrevision-zfnp6h",
+  "rg": "rg-aca-lab-revision",
+  "baseline_revision_name": "ca-labrevision-zfnp6h--0000001",
+  "post_break_revision_name": "ca-labrevision-zfnp6h--0000001",
+  "revision_name_unchanged": true,
+  "break_window": {
+    "start_utc": "2026-06-22T16:11:02Z",
+    "end_utc": "2026-06-22T16:15:45Z",
+    "baseline_target_port": 8000,
+    "post_break_target_port": 9999
+  },
+  "curl_observations": {
+    "baseline_http_code": "200",
+    "post_break_http_code": "503"
+  },
+  "health_observations": {
+    "post_break_health_state": "Unhealthy",
+    "seconds_to_non_healthy": 261
+  },
+  "probe_failure_count": 100,
+  "h1_sub_gates": {
+    "a_baseline_curl_succeeded": true,
+    "b_break_applied_target_port_is_9999": true,
+    "c_revision_no_longer_healthy_after_break": true,
+    "d_post_break_curl_failed": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "revision_failover_broken_revision_unhealthy"
+}
+
+=== H1 summary ===
+Baseline curl HTTP code: 200 (expect 200)
+Post-break targetPort: 9999 (expect 9999)
+Post-break healthState: Unhealthy (expect non-Healthy)
+Post-break curl HTTP code: 503 (expect non-200)
+Probe/deployment failure rows: 100
+Gate classification: revision_failover_broken_revision_unhealthy
+
+H1 PASS: trigger (ingress targetPort flip 8000 -> 9999) produced the documented failure
+signature (same revision transitioned to non-Healthy AND HTTP requests started failing).
+Proceed to verify.sh.

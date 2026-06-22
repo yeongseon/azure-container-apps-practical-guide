@@ -1,0 +1,28 @@
+{
+  "utc_captured": "2026-06-22T16:16:50Z",
+  "fix_utc": "2026-06-22T16:16:13Z",
+  "app_name": "ca-labrevision-zfnp6h",
+  "rg": "rg-aca-lab-revision",
+  "baseline_revision_name": "ca-labrevision-zfnp6h--0000001",
+  "post_fix_revision_name": "ca-labrevision-zfnp6h--0000001",
+  "post_fix_fqdn": "ca-labrevision-zfnp6h.bravetree-9d732182.koreacentral.azurecontainerapps.io",
+  "final_revision_health": "Healthy",
+  "seconds_to_healthy": 2,
+  "fix_window": {
+    "start_utc": "2026-06-22T16:16:13Z",
+    "end_utc": "2026-06-22T16:16:42Z",
+    "post_fix_target_port": 8000
+  },
+  "curl_observations": {
+    "post_fix_http_code": "200"
+  },
+  "recovery_log_count": 14,
+  "h2_sub_gates": {
+    "a_post_fix_revision_healthy": true,
+    "b_same_revision_name_recovered": true,
+    "c_curl_succeeded_after_fix": true,
+    "d_ingress_target_port_corrected": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "revision_failover_recovered_in_place_no_new_revision"
+}
