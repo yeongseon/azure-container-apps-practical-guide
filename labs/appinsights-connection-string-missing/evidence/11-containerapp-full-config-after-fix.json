@@ -48,7 +48,7 @@
       "service": null,
       "targetLabel": ""
     },
-    "customDomainVerificationId": "5F4D40324651269FDA2F10E03050A49ECBA6A88B93D95EA7E223D34005F9E7DE",
+    "customDomainVerificationId": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "delegatedIdentities": [],
     "environmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-aiconn/providers/Microsoft.App/managedEnvironments/cae-appiconn-x2lcxd",
     "eventStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-aiconn/containerApps/ca-appiconn-x2lcxd/eventstream",

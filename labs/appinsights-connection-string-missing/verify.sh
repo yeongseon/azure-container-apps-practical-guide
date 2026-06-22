@@ -147,6 +147,51 @@ az monitor app-insights query \
   > "$EVIDENCE_DIR/12-kql-requests-timeline.json"
 
 echo ""
+echo "==> [AFTER FIX] Capturing per-message AppTraces for trace signature evidence..."
+az monitor app-insights query \
+  --subscription "$AZ_SUBSCRIPTION" \
+  --app "$APP_INSIGHTS_NAME" \
+  --resource-group "$RG" \
+  --analytics-query 'traces | where timestamp > ago(15m) | project timestamp, message, severityLevel | order by timestamp asc | take 25' \
+  --output json \
+  > "$EVIDENCE_DIR/13-ai-traces-messages-after-fix.json"
+
+echo ""
+echo "==> Capturing full revision lifecycle (with computed hasConnStr flag)..."
+az containerapp revision list \
+  --subscription "$AZ_SUBSCRIPTION" \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --all \
+  --output json | python3 -c "
+import json, sys
+revs = json.load(sys.stdin)
+out = []
+for r in revs:
+    env = (r.get('properties', {}).get('template', {}).get('containers', [{}])[0].get('env') or [])
+    has = any(e.get('name') == 'APPLICATIONINSIGHTS_CONNECTION_STRING' for e in env)
+    out.append({
+        'active': r.get('properties', {}).get('active'),
+        'createdTime': r.get('properties', {}).get('createdTime'),
+        'hasConnStr': has,
+        'image': r.get('properties', {}).get('template', {}).get('containers', [{}])[0].get('image'),
+        'name': r.get('name'),
+    })
+out.sort(key=lambda x: x['createdTime'] or '')
+print(json.dumps(out, indent=2))
+" > "$EVIDENCE_DIR/14-revisions-lifecycle.json"
+
+echo ""
+echo "==> [AFTER FIX] Capturing per-request AppRequests detail (timestamp, name, resultCode, success, duration, url)..."
+az monitor app-insights query \
+  --subscription "$AZ_SUBSCRIPTION" \
+  --app "$APP_INSIGHTS_NAME" \
+  --resource-group "$RG" \
+  --analytics-query 'requests | where timestamp > ago(15m) | project timestamp, name, resultCode, success, duration, url | order by timestamp asc' \
+  --output json \
+  > "$EVIDENCE_DIR/15-ai-requests-detail-after-fix.json"
+
+echo ""
 echo "==> Recovery check:"
 REQ_COUNT=$(az monitor app-insights query \
   --subscription "$AZ_SUBSCRIPTION" \
