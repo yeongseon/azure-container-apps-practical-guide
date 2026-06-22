@@ -56,6 +56,9 @@ Demonstrate that successful requests can still produce no Application Insights d
 | Tier | Inline guide only |
 | Category | Observability |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/appinsights-connection-string-missing/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/appinsights-connection-string-missing/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does appinsights connection string missing reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -122,7 +125,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - `az monitor app-insights query` returns no fresh rows before the fix and fresh rows after the fix.
 - Fresh traffic is generated in both phases so the comparison is meaningful.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # Before fix: env var absent

@@ -55,6 +55,9 @@ validation:
 | Tier | Inline guide only |
 | Category | Cost and Quota |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/min-replicas-cost-surprise/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/min-replicas-cost-surprise/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does min replicas cost surprise reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -123,7 +126,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | `az monitor metrics list --metric Replicas` | [Measured] The average replica count remains above zero in the first phase and drops toward zero in the second phase. |
 | `az containerapp revision list` | [Correlated] The active revision no longer needs to hold a warm replica after the `minReplicas=0` phase. |
 
-### Observed Evidence (Live Azure Test — 2026-04-29)
+### Observed Evidence (Live Azure Test — 2026-04-29 — CLI-only reproduction; no Portal captures yet)
 
 [Observed] `az containerapp update --min-replicas 5` succeeded; subsequent
 `az containerapp show --query "properties.template.scale.minReplicas"` returned `5`.
@@ -157,7 +160,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 ## Expected Evidence
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — 2026-05-01 — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`, Consumption plan.
 **App:** `ca-min-replicas` (0.5 vCPU / 1 Gi, minReplicas=5, maxReplicas=10).

@@ -54,6 +54,9 @@ Reproduce a subnet sizing failure with an undersized delegated subnet, then corr
 | Tier | Inline guide only |
 | Category | Networking Advanced |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/subnet-cidr-exhaustion/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/subnet-cidr-exhaustion/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does subnet cidr exhaustion reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -118,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Observed] The corrected subnet shows `/27` and `Microsoft.App/environments` delegation.
 - [Inferred] Because only subnet size changed between runs, the deployment outcome difference is explained by CIDR compliance.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test7`, `koreacentral`.
 **VNet:** `vnet-cidr-lab7` (`10.7.0.0/23`), existing subnet: `subnet-aca` (`10.7.0.0/27`).

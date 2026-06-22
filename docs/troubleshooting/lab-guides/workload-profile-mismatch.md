@@ -54,6 +54,9 @@ validation:
 | Tier | Inline guide only |
 | Category | Cost and Quota |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/workload-profile-mismatch/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/workload-profile-mismatch/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does workload profile mismatch reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -122,7 +125,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 | App configuration | [Measured] The requested CPU and replica count exceed the deliberately constrained profile envelope. |
 | Control profile expansion | [Correlated] Increasing `max-nodes` allows the same or a smaller request to succeed. |
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — 2026-05-01 — CLI-only reproduction; no Portal captures yet)
 
 [Observed] `az containerapp create --cpu 8 --memory 16Gi --workload-profile-name d4-profile`
 against a Dedicated environment with a D4 profile returned:
@@ -165,7 +168,7 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 ## Expected Evidence
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — 2026-05-01 — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test6` / `cae-lab6`, `koreacentral`.
 **Workload Profiles:** `Consumption` (default), `dedicated-d4` (D4 type, min=1 node, max=2 nodes).

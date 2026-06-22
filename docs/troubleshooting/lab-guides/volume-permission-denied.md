@@ -54,6 +54,9 @@ validation:
 | Tier | Inline guide only |
 | Category | Storage and Volumes |
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/volume-permission-denied/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/volume-permission-denied/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does volume permission denied reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -122,7 +125,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - [Correlated] After the change, the same share mounts successfully and the app can proceed.
 - [Inferred] The root cause is Linux mount-permission semantics rather than missing storage credentials.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 **Environment:** `rg-aca-lab-test7` / `cae-lab7`, `koreacentral`, Consumption plan.
 **App:** `ca-vol-perm`, Storage Account: `stlabtest7`, Share: `labshare7`.

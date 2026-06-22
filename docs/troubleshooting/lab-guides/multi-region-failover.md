@@ -60,6 +60,9 @@ flowchart TD
     G --> H[Validate failback behavior]
 ```
 
+!!! note "Evidence depth"
+    This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/multi-region-failover/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/multi-region-failover/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
+
 ## 1. Question
 
 Does multi region failover reproduce when the documented trigger condition is present, and does applying the documented resolution fully restore service?
@@ -124,7 +127,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 - Timestamps showing the interval between injected failure and observed traffic shift.
 - Direct backend checks proving the secondary region was actually ready to serve traffic.
 
-### Observed Evidence (Live Azure Test — 2026-05-01)
+### Observed Evidence (Live Azure Test — CLI-only reproduction; no Portal captures yet)
 
 ```text
 # Baseline: both regions healthy
