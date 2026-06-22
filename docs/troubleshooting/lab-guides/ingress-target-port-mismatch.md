@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-22'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-04-29
-    az_cli_version: 2.70.0
-    notes: "Original reproduction 2026-04-29 (CLI 2.70.0) confirmed HTTP 503 + PortMismatch + ProbeFailed; fix restored HTTP 200 in 15s. Augmented 2026-06-02 with PR-A failure-state and PR-B after-fix Portal captures producing 8 Portal screenshots covering Overview, Revisions, Ingress, and Metrics blades in both failure and fixed configurations. Further augmented 2026-06-18 with a 'production case pattern' subsection adding 16 case-trap-* Portal captures organized as 8 failure<->fix pairs (Overview, Revisions+replicas, Revision status flyout, Ingress targetPort blade, Containers blade, Metrics 503 vs 200, Log stream listening port, Log Analytics KQL), a new KQL pack at docs/troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md keyed on AzureDiagnostics ContainerAppSystemLogs_CL Reason_s contains 'TargetPort', and a falsification summary table holding four variables constant (revision name, container image, listening port, ingress transport) across the failure/fix transition. The June 18 captures show the smoking-gun KQL row 'Deployment Progress Deadline Exceeded. 1/1 replicas ready. The TargetPort 8001 does not match the listening port 80.' (Count=4) alongside ProbeFailed=2373 and ProbeFailure=27 entries, providing direct evidence of the misconfiguration cause. The June 2026 work is observational re-verification (Portal + KQL only); no end-to-end CLI runbook rerun was captured, so validation dates remain anchored to the original 2026-04-29 reproduction."
+    tested_date: 2026-06-22
+    az_cli_version: 2.79.0
+    notes: "Original reproduction 2026-04-29 (CLI 2.70.0) confirmed HTTP 503 + PortMismatch + ProbeFailed; fix restored HTTP 200 in 15s. Augmented 2026-06-02 with PR-A failure-state and PR-B after-fix Portal captures producing 8 Portal screenshots covering Overview, Revisions, Ingress, and Metrics blades in both failure and fixed configurations. Further augmented 2026-06-18 with a 'production case pattern' subsection adding 16 case-trap-* Portal captures organized as 8 failure<->fix pairs (Overview, Revisions+replicas, Revision status flyout, Ingress targetPort blade, Containers blade, Metrics 503 vs 200, Log stream listening port, Log Analytics KQL), a new KQL pack at docs/troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md keyed on AzureDiagnostics ContainerAppSystemLogs_CL Reason_s contains 'TargetPort', and a falsification summary table holding four variables constant (revision name, container image, listening port, ingress transport) across the failure/fix transition. The June 18 captures show the smoking-gun KQL row 'Deployment Progress Deadline Exceeded. 1/1 replicas ready. The TargetPort 8001 does not match the listening port 80.' (Count=4) alongside ProbeFailed=2373 and ProbeFailure=27 entries, providing direct evidence of the misconfiguration cause. Re-reproduced 2026-06-22 (CLI 2.79.0) in koreacentral with a structured 10+7-phase scripted evidence pack at labs/ingress-target-port-mismatch/evidence/. H1 PASS: trigger produced curl <=1/10 HTTP 200 + populated_table classification in ContainerAppSystemLogs_CL scoped to TimeGenerated > datetime(TRIGGER_UTC). H2 PASS: fix restored curl >=8/10 HTTP 200 + silent_valid_baseline classification scoped to TimeGenerated > datetime(FIX_UTC) (strict post-fix UTC cutoff, not ago(5m), to avoid pre-fix tail polluting the H2 window). The 2026-06-22 reproduction uses targetPort=8081 to align with the PR-A captures (clean separation from the 2026-06-18 production case pattern which used 8001)."
   core_claims:
     - claim: Ingress in Azure Container Apps forwards incoming traffic to the target port that is configured for the app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
@@ -31,11 +31,11 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-04-29'
-    cli_version: '2.70.0'
+    last_tested: '2026-06-22'
+    cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-04-29'
+    last_tested: '2026-06-22'
     result: pass
 ---
 # Ingress Target Port Mismatch Lab
@@ -542,6 +542,34 @@ There are no additional running status details at this time.
 - *"The container is broken / image regressed"* — falsified by pair 5 (same image) and pair 7 (same `Listening on :80` log output).
 - *"It's a transient platform issue, retry will fix it"* — falsified by pair 8: the row stops appearing **deterministically on the ingress update**, not on time elapsed.
 - *"It's a probe configuration issue"* — falsified by the verbatim flyout message in pair 3, which directly attributes the failure to the port mismatch, not to probe timing or path.
+
+### Observed Evidence (Scripted Evidence Pack — 2026-06-22, koreacentral)
+
+This subsection captures the hypothesis a third time using the scripted falsification lab at [`labs/ingress-target-port-mismatch/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/ingress-target-port-mismatch). Two improvements over the prior subsections make this reproduction useful as machine-readable regression evidence:
+
+1. **`trigger.sh` and `verify.sh` replace the manual workflow** with `bash` + `az` CLI + KQL, producing JSON evidence at `labs/ingress-target-port-mismatch/evidence/` (25 numbered files: full stdout, ingress configs, replica state, curl results, parsed KQL summaries, sample rows, CLI versions, deployment outputs).
+2. **Strict UTC cutoffs** scope both KQL gates to `TimeGenerated > datetime(${TRIGGER_UTC})` and `TimeGenerated > datetime(${FIX_UTC})` respectively, eliminating the pre-fix-tail confounder that an `ago(5m)` relative window would include in the H2 check.
+
+**Environment:** `rg-aca-lab-ingress-port` / `cae-ingressport-2inkav`, `koreacentral`, Consumption plan, `azure-cli 2.79.0`, `containerapp` extension `1.3.0b4`.
+**App:** `ca-ingressport-2inkav` — image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`, container listens on `:80`. `minReplicas=1, maxReplicas=1, 0.25 vCPU, 0.5 Gi`.
+**Trigger:** `az containerapp ingress update --target-port 8081` at `TRIGGER_UTC=2026-06-22T12:17:44Z`.
+**Fix:** `az containerapp ingress update --target-port 80` at `FIX_UTC=2026-06-22T12:25:06Z`.
+
+[Observed] **H1 (trigger produces failure) — PASS.** Pre-trigger sanity returned 10/10 HTTP 200; after the trigger and a 60 s ingress propagation wait, the same FQDN returned 0/10 HTTP 200 (all 503). After a 300 s system-log ingestion wait, the `ContainerAppSystemLogs_CL` KQL gate (scoped to `TimeGenerated > datetime(2026-06-22T12:17:44Z)`) classified the result as `populated_table` with `portmismatch_rows=25`, `probefailed_rows=374`, and `distinct_revisions=1`. Smoking-gun sample rows show `Log_s = "The TargetPort 8081 does not match the listening port 80."` and `Reason_s = "Pending:PortMismatch"`, all attributed to the same replica `ca-ingressport-2inkav--n6v50k0-55dfdfd9b-7bwp8` with `TimeGenerated` clustered between `2026-06-22T12:19:10Z` and `2026-06-22T12:19:20Z` (≈8–10 s after the trigger landed; detection-to-attribution is sub-minute on this reproduction).
+
+[Observed] **H2 (fix restores recovery) — PASS.** After `az containerapp ingress update --target-port 80` and a 30 s ingress propagation wait, the same FQDN returned 10/10 HTTP 200. After a further 300 s system-log ingestion wait, the same KQL scoped to `TimeGenerated > datetime(2026-06-22T12:25:06Z)` classified the result as `silent_valid_baseline` with `portmismatch_rows=0` (the smoking-gun message stops being emitted in the post-fix window). `probefailed_rows=12` in the post-fix window — these are residual `ProbeFailed` events without the `TargetPort` attribution, [Inferred] consistent with brief probe attempts during the few seconds between the ingress update and full propagation, and they do not contradict H2 because the gate is on the PortMismatch class, not on the broader `ProbeFailed` class.
+
+[Observed] The `latestRevisionName` was `ca-ingressport-2inkav--n6v50k0` before the trigger, during the triggered window, and after the fix — three captures of the same revision name. [Inferred] This is a third independent confirmation that ingress updates are application-scope (no new revision is created), consistent with [How to configure ingress](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to) and with the 2026-06-02 and 2026-06-18 captures above.
+
+[Observed] **Schema observation on this reproduction.** The 2026-06-22 platform emitted the port-mismatch attribution as `Reason_s == "Pending:PortMismatch"` with the smoking-gun text inside `Log_s`. The 2026-06-18 production case pattern captured above (pair 8) shows the smoking-gun text inside the `Reason_s` field itself, matched by `Reason_s contains "TargetPort"`. [Inferred] Both forms carry the same operational meaning — `TargetPort <X> does not match the listening port <Y>` — but the field placement differs between these reproductions. The companion KQL pack at [Target Port Mismatch Detection](../kql/system-and-revisions/target-port-mismatch-detection.md) was updated 2026-06-22 to match **both** forms (`Reason_s == "Pending:PortMismatch" OR Reason_s contains "TargetPort" OR Log_s contains "TargetPort"`) so a detector built on it remains valid across the two attribution shapes.
+
+### Scripted reproduction — falsification summary
+
+| Independent variable changed | Dependent variables that flipped on the same revision | Variables held constant |
+|---|---|---|
+| Ingress `targetPort`: `80` → `8081` → `80` | Edge HTTP response (200 → 503 → 200, n=10 per state), `ContainerAppSystemLogs_CL` gate classification (`silent_valid_baseline` → `populated_table` → `silent_valid_baseline`), `portmismatch_rows` (0 → 25 → 0 in the corresponding UTC windows) | Revision name (`ca-ingressport-2inkav--n6v50k0`), container image (`containerapps-helloworld:latest`), container listening port (`:80`), ingress transport (`Auto`), Log Analytics workspace, scripted KQL query (only the `datetime(...)` cutoff differs between H1 and H2) |
+
+[Inferred] Holding the revision name, container image, listening port, ingress transport, and KQL query body constant and flipping only the integer `targetPort` value, the edge HTTP response and the `ContainerAppSystemLogs_CL` PortMismatch row count flipped together in the documented direction. The strict post-fix UTC cutoff (`datetime(2026-06-22T12:25:06Z)` rather than `ago(5m)`) is what permits the H2 gate to be machine-readable — a relative window beginning at query time would include the pre-fix tail and falsely falsify the fix.
 
 ## Clean Up
 

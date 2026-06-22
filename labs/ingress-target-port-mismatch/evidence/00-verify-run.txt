@@ -1,0 +1,97 @@
+verify.sh starting at 2026-06-22T12:25:06Z
+RG: rg-aca-lab-ingress-port
+App: ca-ingressport-2inkav
+FQDN: ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io
+
+Triggered state: PortMismatch rows=25, gate=populated_table, curl pre/post=10/0
+Triggered revision: ca-ingressport-2inkav--n6v50k0
+
+=== Phase 11: apply fix (az containerapp ingress update --target-port 80) ===
+Fix UTC: 2026-06-22T12:25:06Z
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[KWARNING: 
+Ingress Updated. Access your app at https://ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io/
+
+{
+  "external": true,
+  "fqdn": "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+  "targetPort": 80,
+  "transport": "Auto"
+}
+
+=== Phase 12: post-fix ingress configuration (expect targetPort=80) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "ingress": {
+    "additionalPortMappings": null,
+    "allowInsecure": false,
+    "clientCertificateMode": null,
+    "corsPolicy": null,
+    "customDomains": null,
+    "exposedPort": 0,
+    "external": true,
+    "fqdn": "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+    "ipSecurityRestrictions": null,
+    "stickySessions": null,
+    "targetPort": 80,
+    "targetPortHttpScheme": null,
+    "traffic": [
+      {
+        "latestRevision": true,
+        "weight": 100
+      }
+    ],
+    "transport": "Auto"
+  },
+  "latestRevisionName": "ca-ingressport-2inkav--n6v50k0",
+  "name": "ca-ingressport-2inkav"
+}
+
+=== Phase 13: wait 30s for ingress propagation ===
+Wait complete at 2026-06-22T12:26:01Z
+
+=== Phase 14: post-fix replica list + revision status (expect Running) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+[
+  {
+    "createdTime": "2026-06-22T11:46:04Z",
+    "name": "ca-ingressport-2inkav--n6v50k0-5bcd96fdd9-gkslg",
+    "runningState": "Running"
+  }
+]
+
+{
+  "healthState": "Healthy",
+  "name": "ca-ingressport-2inkav--n6v50k0",
+  "replicas": 1,
+  "runningState": "RunningAtMaxScale",
+  "trafficWeight": 100
+}
+
+=== Phase 15: send 10 HTTP requests post-fix (expect all 200) ===
+Sent 10 requests, 10/10 ok
+
+=== Phase 16: wait 300s for any final probe-failure events to land ===
+Wait complete at 2026-06-22T12:31:17Z
+
+=== Phase 17: KQL ContainerAppSystemLogs_CL port-mismatch detection in post-fix window (expect 0 PortMismatch rows) ===
+{
+  "portmismatch_rows": "0",
+  "probefailed_rows": "12",
+  "gate_classification": "silent_valid_baseline",
+  "sample_row_count": 0
+}
+
+=== Verdict ===
+BEFORE TRIGGER:   curl 10/10 HTTP 200, KQL PortMismatch rows in post-trigger window=25, gate=populated_table
+AFTER TRIGGER:    curl 0/10 HTTP 200
+AFTER FIX:        curl 10/10 HTTP 200, KQL PortMismatch rows in post-fix window=0, gate=silent_valid_baseline
+
+H1 (trigger produces failure: PortMismatch row populated_table + curl <=1/10 200): true
+H2 (fix restores recovery: post-fix PortMismatch silent_valid_baseline + curl >=8/10 200): true
+VERDICT: SUPPORTED. Ingress targetPort vs. container listening port is the controlling variable for the documented failure (HTTP 503 at the edge + PortMismatch row in ContainerAppSystemLogs_CL) and for recovery (HTTP 200 + post-fix window silent for PortMismatch).

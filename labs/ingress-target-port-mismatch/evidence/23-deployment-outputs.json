@@ -1,0 +1,30 @@
+{
+  "containerAppFqdn": {
+    "type": "String",
+    "value": "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io"
+  },
+  "containerAppName": {
+    "type": "String",
+    "value": "ca-ingressport-2inkav"
+  },
+  "environmentName": {
+    "type": "String",
+    "value": "cae-ingressport-2inkav"
+  },
+  "environmentResourceId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-ingress-port/providers/Microsoft.App/managedEnvironments/cae-ingressport-2inkav"
+  },
+  "logAnalyticsCustomerId": {
+    "type": "String",
+    "value": "3eb3b3a7-98a2-46c1-9c6e-f2a5eb6a7e93"
+  },
+  "logAnalyticsWorkspaceId": {
+    "type": "String",
+    "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-ingress-port/providers/Microsoft.OperationalInsights/workspaces/log-ingressport-2inkav"
+  },
+  "logAnalyticsWorkspaceName": {
+    "type": "String",
+    "value": "log-ingressport-2inkav"
+  }
+}
