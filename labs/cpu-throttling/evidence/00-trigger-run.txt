@@ -1,0 +1,67 @@
+===== trigger.sh started 2026-06-22T08:49:20Z =====
+Resource group: rg-aca-lab-cputhrottle
+Container app:  ca-cputhrottle-65svxr
+Ingress FQDN:   ca-cputhrottle-65svxr.graymeadow-18a4aa16.koreacentral.azurecontainerapps.io
+
+===== Phase 1: capture initial app configuration =====
+[filtered: Python google-auth FutureWarning from local env]
+[filtered: Python google-auth FutureWarning from local env]
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "activeRevisionsMode": "Single",
+  "cpu": 0.25,
+  "maxReplicas": 1,
+  "memory": "0.5Gi",
+  "minReplicas": 1
+}
+Initial CPU allocation: 0.25 vCPU
+
+===== Phase 2: capture initial revision list =====
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T08:47:56+00:00",
+    "name": "ca-cputhrottle-65svxr--8pz2nir",
+    "provisioningState": "Provisioned",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+Initial revision count: 1
+
+===== Phase 3: warm up the replica (5 discarded GETs) =====
+  warm-up GET 1/5 -> HTTP 200
+  warm-up GET 2/5 -> HTTP 200
+  warm-up GET 3/5 -> HTTP 200
+  warm-up GET 4/5 -> HTTP 200
+  warm-up GET 5/5 -> HTTP 200
+
+===== Phase 4: load test against cpu=0.25 baseline (100 req, 20 concurrent) =====
+{
+  "url": "https://ca-cputhrottle-65svxr.graymeadow-18a4aa16.koreacentral.azurecontainerapps.io/",
+  "started_utc": "2026-06-22T08:49:38Z",
+  "finished_utc": "2026-06-22T08:49:46Z",
+  "wall_clock_seconds": 8.65,
+  "requests_total": 100,
+  "concurrency": 20,
+  "requests_ok": 100,
+  "requests_err": 0,
+  "latency_ms": {
+    "p50": 1554.5,
+    "p95": 2574.8,
+    "p99": 2703.4,
+    "max": 2800.8,
+    "avg": 1625.6
+  },
+  "errors_sample": []
+}
+
+cpu=0.25 baseline: p95=2575ms, requests_ok=100/100
+
+===== Phase 5: capture UsageNanoCores metric for the last 5 min =====
+Metric snapshot written to 04-metrics-cpu025.json
+
+===== trigger.sh evaluation =====
+[OK] cpu=0.25 baseline produced p95=2575ms with 100/100 successful requests.
+     This is a clean baseline for the cpu=1.0 comparison in verify.sh.
+     Run ./verify.sh next.

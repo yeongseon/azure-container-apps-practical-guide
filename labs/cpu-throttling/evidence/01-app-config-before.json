@@ -1,0 +1,7 @@
+{
+  "activeRevisionsMode": "Single",
+  "cpu": 0.25,
+  "maxReplicas": 1,
+  "memory": "0.5Gi",
+  "minReplicas": 1
+}

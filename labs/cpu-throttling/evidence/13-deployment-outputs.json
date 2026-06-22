@@ -1,0 +1,9 @@
+{
+  "containerAppFqdn": "ca-cputhrottle-65svxr.graymeadow-18a4aa16.koreacentral.azurecontainerapps.io",
+  "containerAppName": "ca-cputhrottle-65svxr",
+  "duration": "PT2M43.1725483S",
+  "environmentName": "cae-cputhrottle-65svxr",
+  "logAnalyticsWorkspaceName": "log-cputhrottle-65svxr",
+  "provisioningState": "Succeeded",
+  "timestamp": "2026-06-22T08:48:05.862739+00:00"
+}

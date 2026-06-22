@@ -1,0 +1,18 @@
+{
+  "url": "https://ca-cputhrottle-65svxr.graymeadow-18a4aa16.koreacentral.azurecontainerapps.io/",
+  "started_utc": "2026-06-22T08:49:38Z",
+  "finished_utc": "2026-06-22T08:49:46Z",
+  "wall_clock_seconds": 8.65,
+  "requests_total": 100,
+  "concurrency": 20,
+  "requests_ok": 100,
+  "requests_err": 0,
+  "latency_ms": {
+    "p50": 1554.5,
+    "p95": 2574.8,
+    "p99": 2703.4,
+    "max": 2800.8,
+    "avg": 1625.6
+  },
+  "errors_sample": []
+}
