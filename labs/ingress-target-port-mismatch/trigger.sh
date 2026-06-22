@@ -205,7 +205,16 @@ export EVIDENCE_DIR UTC_QUERY APP_NAME REVISION_AFTER_TRIGGER TRIGGER_UTC KQL_SY
 python3 <<'PYEOF'
 import json, os
 
-def parse_summarize(path, exit_code):
+# Phase-aware 3-state gate taxonomy:
+#   populated_table        - >=1 PortMismatch row attributed by the platform
+#   silent_valid_baseline  - 0 PortMismatch rows AND we are in the post-fix phase (silence is expected and means the fix held)
+#   silent_failure         - 0 PortMismatch rows AND we are in the post-trigger phase (silence is the wrong outcome — trigger did not produce attribution within the ingestion window)
+#   query_error_invalid_run- KQL CLI returned an unexpected error signature that cannot be parsed as either "no rows" or "with rows"
+#
+# This script runs the post-TRIGGER query, so zero rows here is silent_failure, not silent_valid_baseline.
+
+def parse_summarize(path, exit_code, phase):
+    silent_label = 'silent_valid_baseline' if phase == 'verify' else 'silent_failure'
     with open(path) as f:
         text = f.read()
     parsed = None
@@ -221,7 +230,7 @@ def parse_summarize(path, exit_code):
         if portmismatch_rows >= 1:
             gate = 'populated_table'
         else:
-            gate = 'silent_valid_baseline'
+            gate = silent_label
         return {
             'parse_status': 'parsed_json_with_rows',
             'cli_exit_code': exit_code,
@@ -232,6 +241,34 @@ def parse_summarize(path, exit_code):
             'gate_classification': gate,
             'raw_json': parsed,
         }
+    if isinstance(parsed, list) and not parsed:
+        return {
+            'parse_status': 'parsed_empty_list',
+            'cli_exit_code': exit_code,
+            'rows': 0,
+            'portmismatch_rows': 0,
+            'probefailed_rows': 0,
+            'distinct_revisions': 0,
+            'gate_classification': silent_label,
+            'raw_json': [],
+        }
+    is_bad_arg = 'BadArgumentError' in text
+    is_table_missing = 'Failed to resolve table' in text or 'could not be resolved' in text
+    if is_bad_arg and is_table_missing:
+        gate_classification = silent_label
+    else:
+        gate_classification = 'query_error_invalid_run'
+    return {
+        'parse_status': 'json_decode_failed',
+        'cli_exit_code': exit_code,
+        'rows': 0,
+        'portmismatch_rows': 0,
+        'probefailed_rows': 0,
+        'is_bad_argument_error': is_bad_arg,
+        'is_table_missing': is_table_missing,
+        'gate_classification': gate_classification,
+        'raw_text_first_500_chars': text[:500],
+    }
     if isinstance(parsed, list) and not parsed:
         return {
             'parse_status': 'parsed_empty_list',
@@ -285,7 +322,7 @@ def parse_sample(path, exit_code):
     }
 
 
-system_summarize = parse_summarize(os.environ['EVIDENCE_DIR'] + '/09-kql-after-trigger-portmismatch-raw.txt', int(os.environ['SYSTEM_EXIT']))
+system_summarize = parse_summarize(os.environ['EVIDENCE_DIR'] + '/09-kql-after-trigger-portmismatch-raw.txt', int(os.environ['SYSTEM_EXIT']), phase='trigger')
 system_sample = parse_sample(os.environ['EVIDENCE_DIR'] + '/09-kql-after-trigger-portmismatch-sample-raw.txt', int(os.environ['SAMPLE_EXIT']))
 
 out = {
@@ -355,5 +392,5 @@ if [[ "$H1_CURL_PASS" == "false" ]]; then
     exit 2
 fi
 
-echo "H1 FALSIFIED (sub-gate B): post-trigger curl is non-200 as expected, but no PortMismatch row appeared in ContainerAppSystemLogs_CL within the 300s ingestion window. The platform may have suppressed the system log or ingestion is delayed beyond 300s; re-run with a longer wait or investigate."
+echo "H1 FALSIFIED (sub-gate B): post-trigger curl is non-200 as expected, but no PortMismatch row appeared in ContainerAppSystemLogs_CL within the 300s ingestion window (gate_classification=${SYSTEM_GATE}, expected populated_table). The platform may have suppressed the system log or ingestion is delayed beyond 300s; re-run with a longer wait or investigate."
 exit 2

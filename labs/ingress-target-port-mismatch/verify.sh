@@ -156,7 +156,16 @@ export EVIDENCE_DIR UTC_QUERY APP_NAME REVISION_AFTER_FIX FIX_UTC KQL_POST_FIX K
 python3 <<'PYEOF'
 import json, os
 
-def parse_summarize(path, exit_code):
+# Phase-aware 3-state gate taxonomy (kept in sync with trigger.sh):
+#   populated_table        - >=1 PortMismatch row attributed by the platform (means the fix did NOT hold if seen here)
+#   silent_valid_baseline  - 0 PortMismatch rows AND we are in the post-fix phase (silence is expected and means the fix held)
+#   silent_failure         - 0 PortMismatch rows AND we are in the post-trigger phase (not used by this script; trigger.sh uses it)
+#   query_error_invalid_run- KQL CLI returned an unexpected error signature that cannot be parsed as either "no rows" or "with rows"
+#
+# This script runs the post-FIX query, so zero rows here is silent_valid_baseline.
+
+def parse_summarize(path, exit_code, phase):
+    silent_label = 'silent_valid_baseline' if phase == 'verify' else 'silent_failure'
     with open(path) as f:
         text = f.read()
     parsed = None
@@ -172,7 +181,7 @@ def parse_summarize(path, exit_code):
         if portmismatch_rows >= 1:
             gate = 'populated_table'
         else:
-            gate = 'silent_valid_baseline'
+            gate = silent_label
         return {
             'parse_status': 'parsed_json_with_rows',
             'cli_exit_code': exit_code,
@@ -183,6 +192,34 @@ def parse_summarize(path, exit_code):
             'gate_classification': gate,
             'raw_json': parsed,
         }
+    if isinstance(parsed, list) and not parsed:
+        return {
+            'parse_status': 'parsed_empty_list',
+            'cli_exit_code': exit_code,
+            'rows': 0,
+            'portmismatch_rows': 0,
+            'probefailed_rows': 0,
+            'distinct_revisions': 0,
+            'gate_classification': silent_label,
+            'raw_json': [],
+        }
+    is_bad_arg = 'BadArgumentError' in text
+    is_table_missing = 'Failed to resolve table' in text or 'could not be resolved' in text
+    if is_bad_arg and is_table_missing:
+        gate_classification = silent_label
+    else:
+        gate_classification = 'query_error_invalid_run'
+    return {
+        'parse_status': 'json_decode_failed',
+        'cli_exit_code': exit_code,
+        'rows': 0,
+        'portmismatch_rows': 0,
+        'probefailed_rows': 0,
+        'is_bad_argument_error': is_bad_arg,
+        'is_table_missing': is_table_missing,
+        'gate_classification': gate_classification,
+        'raw_text_first_500_chars': text[:500],
+    }
     if isinstance(parsed, list) and not parsed:
         return {
             'parse_status': 'parsed_empty_list',
@@ -236,7 +273,7 @@ def parse_sample(path, exit_code):
     }
 
 
-post_fix_summarize = parse_summarize(os.environ['EVIDENCE_DIR'] + '/15-kql-after-fix-portmismatch-raw.txt', int(os.environ['POST_FIX_EXIT']))
+post_fix_summarize = parse_summarize(os.environ['EVIDENCE_DIR'] + '/15-kql-after-fix-portmismatch-raw.txt', int(os.environ['POST_FIX_EXIT']), phase='verify')
 post_fix_sample = parse_sample(os.environ['EVIDENCE_DIR'] + '/15-kql-after-fix-portmismatch-sample-raw.txt', int(os.environ['POST_FIX_SAMPLE_EXIT']))
 
 out = {

@@ -48,22 +48,45 @@ To confirm a fix landed, re-run the same query with `ago(5m)` over a window that
 
 ## Example Output
 
-Failure window (ingress `targetPort=8081`, container listening on `:80`, observed 2026-06-22 reproduction in `koreacentral`):
+The rows and counts below are taken from the captured evidence pack in [`labs/ingress-target-port-mismatch/evidence/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/ingress-target-port-mismatch/evidence) for the 2026-06-22 reproduction in `koreacentral` (CLI 2.79.0, `containerapp` extension 1.3.0b4). `TRIGGER_UTC=2026-06-22T12:17:44Z`, `FIX_UTC=2026-06-22T12:25:06Z`. Both windows are scoped with the strict-UTC-cutoff pattern (`TimeGenerated > datetime(...)`), not `ago(...)`, so the rows shown were emitted strictly after the respective ingress update.
+
+**Failure window** (strict post-trigger, ingress `targetPort=8081`, container listening on `:80`). The query above runs the `summarize` form; the sample rows below are taken from a `project ... order by TimeGenerated desc | take 5` companion query that drops the `Reason_s == "ProbeFailed"` filter so the rows shown are only the PortMismatch attribution rows. Source files: [`09-kql-after-trigger.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json), [`09-kql-after-trigger-portmismatch-sample-raw.txt`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger-portmismatch-sample-raw.txt).
+
+`summarize` row (single-row aggregate over the 300 s post-trigger window):
+
+```text
+rows=399, portmismatch_rows=25, probefailed_rows=374, distinct_revisions=1
+```
+
+Sample `Pending:PortMismatch` rows (newest first, all 5 captured by `take 5`):
 
 | TimeGenerated | RevisionName_s | ReplicaName_s | Reason_s | Type_s | Log_s |
 |---|---|---|---|---|---|
-| 2026-06-22T11:50:02Z | ca-ingressport-2inkav--n6v50k0 | ca-ingressport-2inkav--n6v50k0-55dfdfd9b-hfzjv | Pending:PortMismatch | Normal | The TargetPort 8081 does not match the listening port 80. |
-| 2026-06-22T11:49:58Z | ca-ingressport-2inkav--n6v50k0 | ca-ingressport-2inkav--n6v50k0-55dfdfd9b-hfzjv | ProbeFailed | Warning | Liveness probe failed: dial tcp ...:8081: connect: connection refused |
+| 2026-06-22T12:19:20Z | ca-ingressport-2inkav--n6v50k0 | ca-ingressport-2inkav--n6v50k0-55dfdfd9b-7bwp8 | Pending:PortMismatch | Normal | The TargetPort 8081 does not match the listening port 80. |
+| 2026-06-22T12:19:18Z | ca-ingressport-2inkav--n6v50k0 | ca-ingressport-2inkav--n6v50k0-55dfdfd9b-7bwp8 | Pending:PortMismatch | Normal | The TargetPort 8081 does not match the listening port 80. |
+| 2026-06-22T12:19:15Z | ca-ingressport-2inkav--n6v50k0 | ca-ingressport-2inkav--n6v50k0-55dfdfd9b-7bwp8 | Pending:PortMismatch | Normal | The TargetPort 8081 does not match the listening port 80. |
+| 2026-06-22T12:19:13Z | ca-ingressport-2inkav--n6v50k0 | ca-ingressport-2inkav--n6v50k0-55dfdfd9b-7bwp8 | Pending:PortMismatch | Normal | The TargetPort 8081 does not match the listening port 80. |
+| 2026-06-22T12:19:10Z | ca-ingressport-2inkav--n6v50k0 | ca-ingressport-2inkav--n6v50k0-55dfdfd9b-7bwp8 | Pending:PortMismatch | Normal | The TargetPort 8081 does not match the listening port 80. |
 
-In a single 300-second post-trigger window (same reproduction), 25 rows of `Reason_s == "Pending:PortMismatch"` co-occurred with 370+ rows of `Reason_s == "ProbeFailed"`; the absolute counts vary with replica count, probe interval, and the trigger duration.
+In this 300 s post-trigger window the 25 rows of `Reason_s == "Pending:PortMismatch"` co-occurred with 374 rows of `Reason_s == "ProbeFailed"` on the same revision `ca-ingressport-2inkav--n6v50k0`; absolute counts vary with replica count, probe interval, and trigger duration.
 
-Fixed window (same app after `az containerapp ingress update --target-port 80`):
+**Fixed window** (same app, strict post-fix `TimeGenerated > datetime(2026-06-22T12:25:06Z)`, ingress restored to `targetPort=80`). Source files: [`15-kql-after-fix.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json), [`15-kql-after-fix-portmismatch-sample-raw.txt`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/ingress-target-port-mismatch/evidence/15-kql-after-fix-portmismatch-sample-raw.txt).
+
+`summarize` row (single-row aggregate over the 300 s post-fix window):
 
 ```text
-No results found from the last 5 minutes.
+rows=12, portmismatch_rows=0, probefailed_rows=12, distinct_revisions=1
 ```
 
-The transition from the first table to "No results" with the same query is what falsifies the alternative theories listed in the [Ingress Target Port Mismatch Lab](../../lab-guides/ingress-target-port-mismatch.md#observed-evidence-portal-captures-2026-06-18-production-case-pattern).
+Sample `Pending:PortMismatch` rows:
+
+```text
+[]
+```
+
+The `portmismatch_rows=0` count is the falsification gate: zero rows of `Reason_s == "Pending:PortMismatch"` (and zero rows whose `Log_s contains "TargetPort"`) means the platform has stopped attributing the mismatch in the strictly post-fix window. The 12 residual `ProbeFailed` rows are a short ingestion tail of probe-failure events generated during the triggered window whose `TimeGenerated` happens to land just past `FIX_UTC`; they decay to zero within a few additional minutes and are not attributable to a present-tense port mismatch (the `Log_s` text on these rows no longer mentions `TargetPort`).
+
+The transition from `portmismatch_rows=25` to `portmismatch_rows=0` for the same query against the same app, separated only by an `az containerapp ingress update --target-port 80` call, is what falsifies the alternative theories listed in the [Ingress Target Port Mismatch Lab](../../lab-guides/ingress-target-port-mismatch.md#observed-evidence-portal-captures-2026-06-18-production-case-pattern).
 
 ## Interpretation Notes
 
