@@ -27,8 +27,11 @@ echo "custom Flask + Gunicorn workload (listening on 0.0.0.0:8000) so the baseli
 echo "Healthy and serving HTTP 200. Phase 7 flips ingress.targetPort to 9999 via az containerapp"
 echo "ingress update (which does NOT create a new revision; ingress is an app-level configuration"
 echo "shared across all revisions). The platform startup probe then targets port 9999 where nothing"
-echo "is listening, so the same revision transitions from Healthy to Degraded within ~60-90 s. HTTP"
-echo "requests to the FQDN start failing because the platform deems the revision non-Healthy."
+echo "is listening, so the same revision transitions from Healthy to Unhealthy after a platform-"
+echo "variable interval (measured at 261 s on the 2026-06-23 reproduction in koreacentral; the"
+echo "platform applies a probe retry budget before reclassifying the revision and the exact"
+echo "threshold is not publicly documented). HTTP requests to the FQDN start failing because the"
+echo "platform deems the revision non-Healthy."
 echo ""
 
 echo "=== Phase 1: build and push custom image to ACR ==="
@@ -161,7 +164,9 @@ echo "=== Phase 7: BREAK — flip ingress targetPort from 8000 to 9999 ==="
 # Ingress targetPort is an app-level configuration (not a revision-level template setting), so
 # this update modifies the same revision in place. The platform startup probe is re-targeted to
 # port 9999 where nothing is listening (the Gunicorn container still binds to 8000), and the
-# revision will transition from Healthy to Degraded within ~60-90 s as probe failures accumulate.
+# revision transitions from Healthy to non-Healthy after the platform-variable probe-retry-budget
+# expires (measured at 261 s on the 2026-06-23 reproduction in koreacentral; see Phase 8
+# BREAK_TIMEOUT=420 for the polling budget tuned from that measurement).
 BREAK_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "Break UTC: $BREAK_UTC"
 az containerapp ingress update \

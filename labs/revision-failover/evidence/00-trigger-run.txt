@@ -11,8 +11,11 @@ custom Flask + Gunicorn workload (listening on 0.0.0.0:8000) so the baseline rev
 Healthy and serving HTTP 200. Phase 7 flips ingress.targetPort to 9999 via az containerapp
 ingress update (which does NOT create a new revision; ingress is an app-level configuration
 shared across all revisions). The platform startup probe then targets port 9999 where nothing
-is listening, so the same revision transitions from Healthy to Degraded within ~60-90 s. HTTP
-requests to the FQDN start failing because the platform deems the revision non-Healthy.
+is listening, so the same revision transitions from Healthy to Unhealthy after a platform-
+variable interval (measured at 261 s on the 2026-06-23 reproduction in koreacentral; the
+platform applies a probe retry budget before reclassifying the revision and the exact
+threshold is not publicly documented). HTTP requests to the FQDN start failing because the
+platform deems the revision non-Healthy.
 
 === Phase 1: build and push custom image to ACR ===
 Built and pushed acrlabrevisionzfnp6h.azurecr.io/labrevision:v1

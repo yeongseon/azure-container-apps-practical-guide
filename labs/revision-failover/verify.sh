@@ -302,9 +302,6 @@ H2_PASS=false
 if [[ "$H1_GATE" == "revision_failover_broken_revision_unhealthy" && "$H1_ALL_SUBGATES_PASS" == "True" ]]; then
     H1_PASS=true
 fi
-if [[ "$H1_GATE" == "partial_observation_some_subgates_failed" ]]; then
-    H1_PASS=true
-fi
 if [[ "$H2_GATE" == "revision_failover_recovered_in_place_no_new_revision" && "$H2_ALL_SUBGATES_PASS" == "True" ]]; then
     H2_PASS=true
 fi
