@@ -1,0 +1,22 @@
+{
+  "latestRevisionName": "ca-labscale-q2xnsr--0000002",
+  "name": "ca-labscale-q2xnsr",
+  "provisioningState": "Succeeded",
+  "scaleConfig": {
+    "cooldownPeriod": 300,
+    "maxReplicas": 10,
+    "minReplicas": 1,
+    "pollingInterval": 30,
+    "rules": [
+      {
+        "http": {
+          "auth": [],
+          "metadata": {
+            "concurrentRequests": ""
+          }
+        },
+        "name": "http-rule"
+      }
+    ]
+  }
+}

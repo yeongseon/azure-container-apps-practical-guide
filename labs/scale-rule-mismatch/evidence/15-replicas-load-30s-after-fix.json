@@ -1,0 +1,158 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-274pq",
+    "name": "ca-labscale-q2xnsr--0000002-554f98dd99-274pq",
+    "properties": {
+      "containers": [
+        {
+          "containerId": "containerd://4f875ddd0a474aed9e92668194217170",
+          "debugEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-274pq/debug?targetContainer=app",
+          "execEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-274pq/containers/app/exec",
+          "logStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-274pq/containers/app/logstream",
+          "name": "app",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running",
+          "runningStateDetails": "Container started at: 6/22/2026 3:14:40 PM.",
+          "started": true
+        }
+      ],
+      "createdTime": "2026-06-22T15:14:25Z",
+      "initContainers": [],
+      "runningState": "Running",
+      "runningStateDetails": ""
+    },
+    "resourceGroup": "rg-aca-lab-scale",
+    "type": "Microsoft.App/containerapps/revisions/replicas"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-2cdhs",
+    "name": "ca-labscale-q2xnsr--0000002-554f98dd99-2cdhs",
+    "properties": {
+      "containers": [
+        {
+          "containerId": "containerd://947eaf609ab643c4a7e62a1135b9336d",
+          "debugEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-2cdhs/debug?targetContainer=app",
+          "execEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-2cdhs/containers/app/exec",
+          "logStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-2cdhs/containers/app/logstream",
+          "name": "app",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running",
+          "runningStateDetails": "Container started at: 6/22/2026 3:14:40 PM.",
+          "started": true
+        }
+      ],
+      "createdTime": "2026-06-22T15:14:25Z",
+      "initContainers": [],
+      "runningState": "Running",
+      "runningStateDetails": ""
+    },
+    "resourceGroup": "rg-aca-lab-scale",
+    "type": "Microsoft.App/containerapps/revisions/replicas"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-h676w",
+    "name": "ca-labscale-q2xnsr--0000002-554f98dd99-h676w",
+    "properties": {
+      "containers": [
+        {
+          "containerId": "containerd://7cdda9539118498d88dec26724f09580",
+          "debugEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-h676w/debug?targetContainer=app",
+          "execEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-h676w/containers/app/exec",
+          "logStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-h676w/containers/app/logstream",
+          "name": "app",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running",
+          "runningStateDetails": "Container started at: 6/22/2026 3:14:40 PM.",
+          "started": true
+        }
+      ],
+      "createdTime": "2026-06-22T15:14:25Z",
+      "initContainers": [],
+      "runningState": "Running",
+      "runningStateDetails": ""
+    },
+    "resourceGroup": "rg-aca-lab-scale",
+    "type": "Microsoft.App/containerapps/revisions/replicas"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-l7ctk",
+    "name": "ca-labscale-q2xnsr--0000002-554f98dd99-l7ctk",
+    "properties": {
+      "containers": [
+        {
+          "containerId": "containerd://d27e0a81be2b4fe8a1a0b762f099f206",
+          "debugEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-l7ctk/debug?targetContainer=app",
+          "execEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-l7ctk/containers/app/exec",
+          "logStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-l7ctk/containers/app/logstream",
+          "name": "app",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running",
+          "runningStateDetails": "Container started at: 6/22/2026 3:13:24 PM.",
+          "started": true
+        }
+      ],
+      "createdTime": "2026-06-22T15:13:09Z",
+      "initContainers": [],
+      "runningState": "Running",
+      "runningStateDetails": ""
+    },
+    "resourceGroup": "rg-aca-lab-scale",
+    "type": "Microsoft.App/containerapps/revisions/replicas"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-pvb22",
+    "name": "ca-labscale-q2xnsr--0000002-554f98dd99-pvb22",
+    "properties": {
+      "containers": [
+        {
+          "containerId": "containerd://8109703275af43fdb82e1054a19bd9b2",
+          "debugEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-pvb22/debug?targetContainer=app",
+          "execEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-pvb22/containers/app/exec",
+          "logStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-pvb22/containers/app/logstream",
+          "name": "app",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running",
+          "runningStateDetails": "Container started at: 6/22/2026 3:14:40 PM.",
+          "started": true
+        }
+      ],
+      "createdTime": "2026-06-22T15:14:25Z",
+      "initContainers": [],
+      "runningState": "Running",
+      "runningStateDetails": ""
+    },
+    "resourceGroup": "rg-aca-lab-scale",
+    "type": "Microsoft.App/containerapps/revisions/replicas"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/providers/Microsoft.App/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-rbjzw",
+    "name": "ca-labscale-q2xnsr--0000002-554f98dd99-rbjzw",
+    "properties": {
+      "containers": [
+        {
+          "containerId": "containerd://30975b32355d406bbcb71699a569846b",
+          "debugEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-rbjzw/debug?targetContainer=app",
+          "execEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-rbjzw/containers/app/exec",
+          "logStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-scale/containerApps/ca-labscale-q2xnsr/revisions/ca-labscale-q2xnsr--0000002/replicas/ca-labscale-q2xnsr--0000002-554f98dd99-rbjzw/containers/app/logstream",
+          "name": "app",
+          "ready": true,
+          "restartCount": 0,
+          "runningState": "Running",
+          "runningStateDetails": "Container started at: 6/22/2026 3:14:43 PM.",
+          "started": true
+        }
+      ],
+      "createdTime": "2026-06-22T15:14:25Z",
+      "initContainers": [],
+      "runningState": "Running",
+      "runningStateDetails": ""
+    },
+    "resourceGroup": "rg-aca-lab-scale",
+    "type": "Microsoft.App/containerapps/revisions/replicas"
+  }
+]

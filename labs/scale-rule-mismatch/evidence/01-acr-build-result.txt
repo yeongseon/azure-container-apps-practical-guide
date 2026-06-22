@@ -1,0 +1,145 @@
+WARNING: Packing source code into tar to upload...
+WARNING: Uploading archived source code from '/var/folders/2m/2h26lv7d1n7f01ptx_cw0k800000gn/T/build_archive_bd470269bf1e4180a72e6c177c13a210.tar.gz'...
+WARNING: Sending context (886.000 Bytes) to registry: acrlabscaleq2xnsr...
+WARNING: Queued a build with ID: de1
+WARNING: Waiting for an agent...
+2026/06/22 15:08:26 Downloading source code...
+2026/06/22 15:08:27 Finished downloading source code
+2026/06/22 15:08:27 Using acb_vol_8ffb9959-63ac-4e73-a6e5-abadb9c81bcc as the home volume
+2026/06/22 15:08:27 Setting up Docker configuration...
+2026/06/22 15:08:28 Successfully set up Docker configuration
+2026/06/22 15:08:28 Logging in to registry: acrlabscaleq2xnsr.azurecr.io
+2026/06/22 15:08:28 Successfully logged into acrlabscaleq2xnsr.azurecr.io
+2026/06/22 15:08:28 Executing step ID: build. Timeout(sec): 28800, Working directory: '', Network: ''
+2026/06/22 15:08:28 Scanning for dependencies...
+2026/06/22 15:08:29 Successfully scanned dependencies
+2026/06/22 15:08:29 Launching container with name: build
+Sending build context to Docker daemon  5.632kB
+Step 1/7 : FROM python:3.11-slim
+3.11-slim: Pulling from library/python
+72c03230f136: Pulling fs layer
+8c471a93fc52: Pulling fs layer
+8bd2cf7d3f6a: Pulling fs layer
+3250ea7ceadc: Pulling fs layer
+3250ea7ceadc: Waiting
+8c471a93fc52: Verifying Checksum
+8c471a93fc52: Download complete
+8bd2cf7d3f6a: Verifying Checksum
+8bd2cf7d3f6a: Download complete
+72c03230f136: Verifying Checksum
+72c03230f136: Download complete
+3250ea7ceadc: Verifying Checksum
+3250ea7ceadc: Download complete
+72c03230f136: Pull complete
+8c471a93fc52: Pull complete
+8bd2cf7d3f6a: Pull complete
+3250ea7ceadc: Pull complete
+Digest: sha256:ae52c5bef62a6bdd42cd1e8dffef86b9cd284bde9427da79839de7a4b983e7ca
+Status: Downloaded newer image for python:3.11-slim
+ ---> a8a3e0a84b0d
+Step 2/7 : WORKDIR /app
+ ---> Running in ab43494f3dd9
+Removing intermediate container ab43494f3dd9
+ ---> d23955afa2fc
+Step 3/7 : COPY requirements.txt ./
+ ---> 632d6cdf17e9
+Step 4/7 : RUN pip install --no-cache-dir --requirement requirements.txt
+ ---> Running in b3557d5134f8
+Collecting flask==3.0.3 (from -r requirements.txt (line 1))
+  Downloading flask-3.0.3-py3-none-any.whl.metadata (3.2 kB)
+Collecting gunicorn==22.0.0 (from -r requirements.txt (line 2))
+  Downloading gunicorn-22.0.0-py3-none-any.whl.metadata (4.4 kB)
+Collecting Werkzeug>=3.0.0 (from flask==3.0.3->-r requirements.txt (line 1))
+  Downloading werkzeug-3.1.8-py3-none-any.whl.metadata (4.0 kB)
+Collecting Jinja2>=3.1.2 (from flask==3.0.3->-r requirements.txt (line 1))
+  Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting itsdangerous>=2.1.2 (from flask==3.0.3->-r requirements.txt (line 1))
+  Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+Collecting click>=8.1.3 (from flask==3.0.3->-r requirements.txt (line 1))
+  Downloading click-8.4.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting blinker>=1.6.2 (from flask==3.0.3->-r requirements.txt (line 1))
+  Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+Collecting packaging (from gunicorn==22.0.0->-r requirements.txt (line 2))
+  Downloading packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+Collecting MarkupSafe>=2.0 (from Jinja2>=3.1.2->flask==3.0.3->-r requirements.txt (line 1))
+  Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Downloading flask-3.0.3-py3-none-any.whl (101 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 101.7/101.7 kB 52.5 MB/s eta 0:00:00
+Downloading gunicorn-22.0.0-py3-none-any.whl (84 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 84.4/84.4 kB 414.0 MB/s eta 0:00:00
+Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Downloading click-8.4.1-py3-none-any.whl (116 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 116.6/116.6 kB 399.0 MB/s eta 0:00:00
+Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 428.8 MB/s eta 0:00:00
+Downloading werkzeug-3.1.8-py3-none-any.whl (226 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 226.5/226.5 kB 458.5 MB/s eta 0:00:00
+Downloading packaging-26.2-py3-none-any.whl (100 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.2/100.2 kB 438.4 MB/s eta 0:00:00
+Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Installing collected packages: packaging, MarkupSafe, itsdangerous, click, blinker, Werkzeug, Jinja2, gunicorn, flask
+Successfully installed Jinja2-3.1.6 MarkupSafe-3.0.3 Werkzeug-3.1.8 blinker-1.9.0 click-8.4.1 flask-3.0.3 gunicorn-22.0.0 itsdangerous-2.2.0 packaging-26.2
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+
+[notice] A new release of pip is available: 24.0 -> 26.1.2
+[notice] To update, run: pip install --upgrade pip
+Removing intermediate container b3557d5134f8
+ ---> 8f02825ad0a6
+Step 5/7 : COPY app.py ./
+ ---> b74400dc5c75
+Step 6/7 : EXPOSE 8000
+ ---> Running in fbb6b7053b14
+Removing intermediate container fbb6b7053b14
+ ---> 541e4e04c5a4
+Step 7/7 : CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "app:app"]
+ ---> Running in 75db601041c8
+Removing intermediate container 75db601041c8
+ ---> 88da47cf1af3
+Successfully built 88da47cf1af3
+Successfully tagged acrlabscaleq2xnsr.azurecr.io/labscale:v1
+2026/06/22 15:08:43 Successfully executed container: build
+2026/06/22 15:08:43 Executing step ID: push. Timeout(sec): 3600, Working directory: '', Network: ''
+2026/06/22 15:08:43 Pushing image: acrlabscaleq2xnsr.azurecr.io/labscale:v1, attempt 1
+The push refers to repository [acrlabscaleq2xnsr.azurecr.io/labscale]
+844a19762c6a: Preparing
+5eecbd81ad47: Preparing
+a8fda75b6a7c: Preparing
+68a4bfff4ec4: Preparing
+fc765e52b6a7: Preparing
+28b2c2519a70: Preparing
+30397027ad83: Preparing
+f4f8b983b714: Preparing
+28b2c2519a70: Waiting
+f4f8b983b714: Waiting
+30397027ad83: Waiting
+68a4bfff4ec4: Pushed
+a8fda75b6a7c: Pushed
+fc765e52b6a7: Pushed
+844a19762c6a: Pushed
+30397027ad83: Pushed
+5eecbd81ad47: Pushed
+28b2c2519a70: Pushed
+f4f8b983b714: Pushed
+v1: digest: sha256:65c1134ee50df77ee329157b8e92dea293ed171dd41f0eb5a82ab114e2776b52 size: 1990
+2026/06/22 15:08:54 Successfully pushed image: acrlabscaleq2xnsr.azurecr.io/labscale:v1
+2026/06/22 15:08:54 Step ID: build marked as successful (elapsed time in seconds: 14.477770)
+2026/06/22 15:08:54 Populating digests for step ID: build...
+2026/06/22 15:08:55 Successfully populated digests for step ID: build
+2026/06/22 15:08:55 Step ID: push marked as successful (elapsed time in seconds: 11.467486)
+2026/06/22 15:08:55 The following dependencies were found:
+2026/06/22 15:08:55 
+- image:
+    registry: acrlabscaleq2xnsr.azurecr.io
+    repository: labscale
+    tag: v1
+    digest: sha256:65c1134ee50df77ee329157b8e92dea293ed171dd41f0eb5a82ab114e2776b52
+  runtime-dependency:
+    registry: registry.hub.docker.com
+    repository: library/python
+    tag: 3.11-slim
+    digest: sha256:ae52c5bef62a6bdd42cd1e8dffef86b9cd284bde9427da79839de7a4b983e7ca
+  git: {}
+
+
+Run ID: de1 was successful after 29s

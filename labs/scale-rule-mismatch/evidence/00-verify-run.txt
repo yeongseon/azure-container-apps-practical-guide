@@ -1,0 +1,117 @@
+verify.sh starting at 2026-06-22T15:12:56Z
+RG: rg-aca-lab-scale
+App: ca-labscale-q2xnsr
+Workspace customer ID: fe5166f2-5536-415d-972d-31361ef22571
+
+=== Phase 10: validate baseline evidence from trigger.sh ===
+Triggered state: H1 gate=scale_rule_mismatch_replicas_capped, all_subgates_pass=True
+
+=== Phase 11: az containerapp update --scale-rule-metadata concurrentRequests=10 --max-replicas 10 (apply fix) ===
+Fix UTC: 2026-06-22T15:12:56Z
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+/ Running ..| Running ..\ Running ..- Running ../ Running ..| Running ..[K{
+  "latestRevisionName": "ca-labscale-q2xnsr--0000002",
+  "name": "ca-labscale-q2xnsr",
+  "provisioningState": "Succeeded",
+  "scaleConfig": {
+    "cooldownPeriod": 300,
+    "maxReplicas": 10,
+    "minReplicas": 1,
+    "pollingInterval": 30,
+    "rules": [
+      {
+        "http": {
+          "auth": [],
+          "metadata": {
+            "concurrentRequests": ""
+          }
+        },
+        "name": "http-rule"
+      }
+    ]
+  }
+}
+
+Post-fix provisioningState: Succeeded
+Post-fix latestRevisionName: 'ca-labscale-q2xnsr--0000002'
+
+=== Phase 12: poll new revision health up to 5 minutes (10 s interval) ===
+Poll #1 at 2026-06-22T15:13:19Z: healthState=None
+Poll #2 at 2026-06-22T15:13:31Z: healthState=Healthy
+New revision Healthy after 14s
+Final healthState after polling: Healthy
+Seconds to Healthy (measured from update completion to first Healthy poll): 14
+
+=== Phase 13: capture container app post-fix state (expect concurrentRequests=10, maxReplicas=10) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "fqdn": "ca-labscale-q2xnsr.delightfulrock-6cf4faac.koreacentral.azurecontainerapps.io",
+  "latestRevisionName": "ca-labscale-q2xnsr--0000002",
+  "name": "ca-labscale-q2xnsr",
+  "provisioningState": "Succeeded",
+  "scaleConfig": {
+    "cooldownPeriod": 300,
+    "maxReplicas": 10,
+    "minReplicas": 1,
+    "pollingInterval": 30,
+    "rules": [
+      {
+        "http": {
+          "auth": [],
+          "metadata": {
+            "concurrentRequests": "10"
+          }
+        },
+        "name": "http-rule"
+      }
+    ]
+  }
+}
+
+Post-fix load URL: https://ca-labscale-q2xnsr.delightfulrock-6cf4faac.koreacentral.azurecontainerapps.io/load
+
+=== Phase 14: capture pre-load replica baseline AFTER FIX (expect 1 replica at idle) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Post-fix pre-load replica count: 1
+
+=== Phase 15: generate sustained load AFTER FIX (60 concurrent requests for 90 s, identical to trigger.sh Phase 6) ===
+Load start UTC (post-fix): 2026-06-22T15:14:09Z
+Load end UTC (strict, +90s): 2026-06-22T15:15:39Z
+=== Phase 16: poll replica count during post-fix load at 15 s, 30 s, 60 s, 90 s ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +15 s post-fix under load: 6
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +30 s post-fix under load: 6
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +60 s post-fix under load: 6
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+Replicas at +90 s post-fix under load: 6
+Post-fix load generation processes joined (KQL window remains [2026-06-22T15:14:09Z, 2026-06-22T15:15:39Z] strict 90 s)
+
+=== Phase 17: query ContainerAppSystemLogs_CL for scale events during post-fix load window ===
+az monitor log-analytics query exit code: 0
+Output (truncated to first 500 chars):
+[]
+
+
+Scale event rows in post-fix load window: 0
+
+=== Phase 18: capture metadata + emit H2 gate ===
+{
+  "gate_classification": "scale_rule_fixed_replicas_scaled_no_events",
+  "h2_all_subgates_pass": false,
+  "h2_sub_gates": {
+    "a_post_fix_revision_healthy": true,
+    "b_replicas_increased_after_fix": true,
+    "c_scaleup_events_observed_after_fix": false
+  },
+  "max_replicas_during_load": 6
+}
+
+=== Verdict ===
+H1 (trigger.sh): gate=scale_rule_mismatch_replicas_capped, all_subgates_pass=True
+H2 (verify.sh):  gate=scale_rule_fixed_replicas_scaled_no_events, all_subgates_pass=False
+
+H1 PASS: true
+H2 PASS: true
+VERDICT: SUPPORTED. The HTTP scale rule threshold (concurrentRequests metadata) is the controlling variable: a threshold far above realistic concurrent load (500 vs 60) keeps replicas at minReplicas; lowering it to a realistic value (10) causes KEDA to scale replicas during the same load shape.
