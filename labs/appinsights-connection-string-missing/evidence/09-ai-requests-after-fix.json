@@ -1,0 +1,23 @@
+{
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "cloud_RoleName",
+          "type": "string"
+        },
+        {
+          "name": "requestCount",
+          "type": "long"
+        }
+      ],
+      "name": "PrimaryResult",
+      "rows": [
+        [
+          "unknown_service",
+          20
+        ]
+      ]
+    }
+  ]
+}

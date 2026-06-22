@@ -1,0 +1,22 @@
+[
+  {
+    "active": true,
+    "created": "2026-06-22T03:55:13+00:00",
+    "health": "Unhealthy",
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "name": "ca-appiconn-x2lcxd--vfjk66n",
+    "replicas": 1,
+    "restartCount": null,
+    "state": "Provisioned"
+  },
+  {
+    "active": true,
+    "created": "2026-06-22T03:57:18+00:00",
+    "health": "Unhealthy",
+    "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v1",
+    "name": "ca-appiconn-x2lcxd--0000001",
+    "replicas": 1,
+    "restartCount": null,
+    "state": "Provisioned"
+  }
+]

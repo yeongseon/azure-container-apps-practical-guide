@@ -1,0 +1,5 @@
+{
+  "containerName": "app",
+  "env": null,
+  "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3"
+}

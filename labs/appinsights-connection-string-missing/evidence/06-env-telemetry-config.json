@@ -1,0 +1,3 @@
+WARNING: Command group 'containerapp env telemetry app-insights' is in preview and under development. Reference and support levels: https://aka.ms/CLI_refstatus
+ERROR: The containerapp environment 'cae-appiconn-x2lcxd' does not have app insights enabled.
+(env-level telemetry not configured — expected for this lab)

@@ -1,0 +1,195 @@
+{
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "timestamp",
+          "type": "datetime"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "resultCode",
+          "type": "string"
+        },
+        {
+          "name": "success",
+          "type": "string"
+        },
+        {
+          "name": "duration",
+          "type": "real"
+        },
+        {
+          "name": "url",
+          "type": "string"
+        }
+      ],
+      "name": "PrimaryResult",
+      "rows": [
+        [
+          "2026-06-22T05:09:24.935442Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:25.990008Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:26.981151Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:27.996995Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:29.030749Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:30.043467Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:31.128799Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:32.099788Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:33.179997Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:34.142611Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:35.149402Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:36.154645Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:37.191701Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:38.230852Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:39.322898Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:40.393827Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:41.443994Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:42.452129Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:43.454377Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ],
+        [
+          "2026-06-22T05:09:44.415432Z",
+          "GET /",
+          "200",
+          "True",
+          1,
+          "http://ca-appiconn-x2lcxd.envdomain-aaaaaaaa.koreacentral.azurecontainerapps.io/"
+        ]
+      ]
+    }
+  ]
+}
