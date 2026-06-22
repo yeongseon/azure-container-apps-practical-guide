@@ -1,0 +1,157 @@
+===== trigger.sh started 2026-06-22T07:58:26Z =====
+Resource group: rg-aca-lab-revhist
+Container app: ca-revhist-t3t3np
+
+===== Phase 1: capture initial app configuration =====
+{
+  "activeRevisionsMode": "Single",
+  "maxInactiveRevisions": 2
+}
+Read maxInactiveRevisions = 2
+
+===== Phase 2: capture initial revision list =====
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-22T07:56:51+00:00",
+    "name": "ca-revhist-t3t3np--wdmdnoq",
+    "provisioningState": "Provisioned",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+Initial revision count: 1
+
+===== Phase 3: burst 10 env-var-only updates with unique nonce =====
+Burst nonce: 20260622075836
+  -> Update 1/10 (REV=20260622075836-1)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000001",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 2/10 (REV=20260622075836-2)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000002",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 3/10 (REV=20260622075836-3)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000003",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 4/10 (REV=20260622075836-4)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000004",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 5/10 (REV=20260622075836-5)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000005",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 6/10 (REV=20260622075836-6)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000006",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 7/10 (REV=20260622075836-7)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000007",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 8/10 (REV=20260622075836-8)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+| Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000008",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 9/10 (REV=20260622075836-9)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000009",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+  -> Update 10/10 (REV=20260622075836-10)
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K{
+  "latestRevisionName": "ca-revhist-t3t3np--0000010",
+  "name": "ca-revhist-t3t3np",
+  "provisioningState": "Succeeded"
+}
+
+Burst completed at 2026-06-22T08:01:46Z (epoch 1782115306)
+
+===== Phase 4: capture revisions at t+0 (immediately after burst) =====
+t+0 revision count: 11
+
+===== trigger.sh evaluation =====
+[OK] Burst produced 11 revisions at t+0.
+     burst-completed-epoch.txt is written; verify.sh will sample at t+5m and t+15m.
+     Run ./verify.sh next.

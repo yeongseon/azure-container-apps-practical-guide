@@ -1,0 +1,6 @@
+{
+  "containerAppFqdn": "ca-revhist-t3t3np.blueground-cb54098f.koreacentral.azurecontainerapps.io",
+  "containerAppName": "ca-revhist-t3t3np",
+  "environmentName": "cae-revhist-t3t3np",
+  "logAnalyticsWorkspaceName": "log-revhist-t3t3np"
+}

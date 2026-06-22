@@ -1,0 +1,9 @@
+[
+  {
+    "experimental": false,
+    "extensionType": "whl",
+    "name": "containerapp",
+    "preview": true,
+    "version": "1.3.0b4"
+  }
+]
