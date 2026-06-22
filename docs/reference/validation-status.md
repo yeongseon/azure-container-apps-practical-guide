@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-21"
+  last_reviewed: "2026-06-22"
   reviewer: ai-agent
   core_claims:
     - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
@@ -21,7 +21,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-06-21*
+*Generated: 2026-06-22*
 
 | Metric | Count |
 |---|---:|
@@ -115,7 +115,7 @@ pie title Tutorial Validation Status
 | [Emptydir Disk Full](../troubleshooting/lab-guides/emptydir-disk-full.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Event Job Storm](../troubleshooting/lab-guides/event-job-storm.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Github Actions Oidc Failure](../troubleshooting/lab-guides/github-actions-oidc-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
-| [Image Size Startup Delay](../troubleshooting/lab-guides/image-size-startup-delay.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Image Size Startup Delay](../troubleshooting/lab-guides/image-size-startup-delay.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-04-29 | ✅ Pass |
 | [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |

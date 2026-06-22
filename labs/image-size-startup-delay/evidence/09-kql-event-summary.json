@@ -1,0 +1,250 @@
+[
+  {
+    "FirstPull": "2026-06-22T02:14:54.0264657Z",
+    "LastPull": "2026-06-22T02:27:33.3279619Z",
+    "PullCount": "11",
+    "Reason_s": "ContainerAppReady",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:14:54.0264657Z",
+    "LastPull": "2026-06-22T02:27:05.4840411Z",
+    "PullCount": "8",
+    "Reason_s": "RollingRevisionCompleted",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:14:54.0264657Z",
+    "LastPull": "2026-06-22T02:27:32.4196177Z",
+    "PullCount": "8",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:14:54.0264657Z",
+    "LastPull": "2026-06-22T02:27:33.3279619Z",
+    "PullCount": "8",
+    "Reason_s": "RevisionDeactivating",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:14:54.0264657Z",
+    "LastPull": "2026-06-22T02:14:54.0264657Z",
+    "PullCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:14:54.0264657Z",
+    "LastPull": "2026-06-22T02:14:54.0264657Z",
+    "PullCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:14:54.0264657Z",
+    "LastPull": "2026-06-22T02:14:54.0264657Z",
+    "PullCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:15:02.2796016Z",
+    "LastPull": "2026-06-22T02:15:02.2796016Z",
+    "PullCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:15:02.2796016Z",
+    "LastPull": "2026-06-22T02:15:02.2796016Z",
+    "PullCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:15:02.2796016Z",
+    "LastPull": "2026-06-22T02:15:02.2796016Z",
+    "PullCount": "1",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:15:02.2796016Z",
+    "LastPull": "2026-06-22T02:15:02.2796016Z",
+    "PullCount": "1",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:24:21.6369142Z",
+    "LastPull": "2026-06-22T02:24:21.6369142Z",
+    "PullCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:24:22.5165329Z",
+    "LastPull": "2026-06-22T02:24:22.5165329Z",
+    "PullCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:24:22.5165329Z",
+    "LastPull": "2026-06-22T02:24:22.5165329Z",
+    "PullCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:24:22.5165329Z",
+    "LastPull": "2026-06-22T02:24:22.5165329Z",
+    "PullCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:24:36.4418311Z",
+    "LastPull": "2026-06-22T02:26:14.4058686Z",
+    "PullCount": "4",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:24:36.4418311Z",
+    "LastPull": "2026-06-22T02:26:14.4058686Z",
+    "PullCount": "4",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:24:39.1986975Z",
+    "LastPull": "2026-06-22T02:26:14.4058686Z",
+    "PullCount": "4",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:04.3858023Z",
+    "LastPull": "2026-06-22T02:27:04.3858023Z",
+    "PullCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:04.3858023Z",
+    "LastPull": "2026-06-22T02:27:04.3858023Z",
+    "PullCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:04.3858023Z",
+    "LastPull": "2026-06-22T02:27:04.3858023Z",
+    "PullCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:05.4840411Z",
+    "LastPull": "2026-06-22T02:27:05.4840411Z",
+    "PullCount": "2",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:18.2886861Z",
+    "LastPull": "2026-06-22T02:27:18.2886861Z",
+    "PullCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:18.2886861Z",
+    "LastPull": "2026-06-22T02:27:18.2886861Z",
+    "PullCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:20.3087338Z",
+    "LastPull": "2026-06-22T02:27:20.3087338Z",
+    "PullCount": "1",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:20.3087338Z",
+    "LastPull": "2026-06-22T02:27:20.3087338Z",
+    "PullCount": "1",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:35.3046686Z",
+    "LastPull": "2026-06-22T02:27:35.3046686Z",
+    "PullCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:27:35.3046686Z",
+    "LastPull": "2026-06-22T02:27:35.3046686Z",
+    "PullCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:28:03.3762248Z",
+    "LastPull": "2026-06-22T02:28:03.3762248Z",
+    "PullCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:28:03.3762248Z",
+    "LastPull": "2026-06-22T02:28:03.3762248Z",
+    "PullCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "FirstPull": "2026-06-22T02:28:03.3762248Z",
+    "LastPull": "2026-06-22T02:28:03.3762248Z",
+    "PullCount": "1",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult"
+  }
+]

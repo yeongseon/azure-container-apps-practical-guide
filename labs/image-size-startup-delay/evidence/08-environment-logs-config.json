@@ -1,0 +1,13 @@
+{
+  "appLogsConfiguration": {
+    "destination": "log-analytics",
+    "logAnalyticsConfiguration": {
+      "customerId": "00000000-0000-0000-0000-000000000000",
+      "dynamicJsonColumns": false,
+      "sharedKey": null
+    }
+  },
+  "location": "Korea Central",
+  "name": "cae-imgsize-acerjw",
+  "provisioningState": "Succeeded"
+}

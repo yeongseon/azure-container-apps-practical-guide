@@ -1,0 +1,8 @@
+{
+  "environmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-imagesize/providers/Microsoft.App/managedEnvironments/cae-imgsize-acerjw",
+  "fqdn": "ca-imgsize-acerjw.victoriousdune-88e2a6bf.koreacentral.azurecontainerapps.io",
+  "latestRevision": "ca-imgsize-acerjw--0000002",
+  "location": "Korea Central",
+  "name": "ca-imgsize-acerjw",
+  "runningStatus": "Running"
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "Log_s": "Successfully pulled image \"python:3.11\" in 8.88s. Image size: 408944640 bytes.",
+    "RevisionName_s": "ca-imgsize-acerjw--5487avi",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T02:15:02.2796016Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"mcr.microsoft.com/azuredocs/containerapps-helloworld:latest\" in 1.62s. Image size: 33554432 bytes.",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T02:24:36.4418311Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"mcr.microsoft.com/azuredocs/containerapps-helloworld:latest\" in 12ms. Image size: 33554432 bytes.",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T02:24:57.2829569Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"mcr.microsoft.com/azuredocs/containerapps-helloworld:latest\" in 11ms. Image size: 33554432 bytes.",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T02:25:25.665078Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"mcr.microsoft.com/azuredocs/containerapps-helloworld:latest\" in 9ms. Image size: 33554432 bytes.",
+    "RevisionName_s": "ca-imgsize-acerjw--0000001",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T02:26:14.4058686Z"
+  },
+  {
+    "Log_s": "Successfully pulled image \"python:3.11-alpine\" in 2.88s. Image size: 19922944 bytes.",
+    "RevisionName_s": "ca-imgsize-acerjw--0000002",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-22T02:27:18.2886861Z"
+  }
+]
