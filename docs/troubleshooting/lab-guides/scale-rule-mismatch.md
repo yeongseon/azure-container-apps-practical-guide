@@ -14,7 +14,7 @@ content_validation:
     status: reproduced
     tested_date: 2026-06-22
     az_cli_version: 2.79.0
-    notes: 'Full reproducible evidence pack captured 2026-06-22 in koreacentral (Azure CLI 2.79.0, containerapp ext 1.3.0b4). H1 gate scale_rule_mismatch_replicas_capped (replicas 1/1/1/1/1 under 60-concurrent / 90 s load, 0 strict scale events) PASS, H2 gate scale_rule_fixed_replicas_scaled_no_events PARTIAL PASS (post-fix revision Healthy after 14 s, replicas 1/6/6/6/6, max 6; 0 rows for the strict scaling-events filter `Reason_s startswith "Scal" or "KEDA"` because the platform emitted only replica-lifecycle events (`AssigningReplica`) which are intentionally filtered out — the replica count is the controlling H2 signal in this taxonomy). Earlier 2026-06-02 Portal captures (rg-aca-lab-scale-cap) are retained below as supplementary evidence.'
+    notes: 'Full reproducible evidence pack captured 2026-06-22 in koreacentral (Azure CLI 2.79.0, containerapp ext 1.3.0b4). H1 gate scale_rule_mismatch_replicas_capped (replicas 1/1/1/1/1 under 60-concurrent / 90 s load, 0 strict scale events) PASS, H2 gate scale_rule_fixed_replicas_scaled_no_events PARTIAL PASS (post-fix revision Healthy 14 s after verify.sh Phase 12 health polling began, replicas 1/6/6/6/6, max 6; 0 rows for the strict scaling-events filter `Reason_s startswith "Scal" or "KEDA"` — the strict filter is intentionally narrow to prevent cross-revision contamination and excludes replica-lifecycle events such as `AssigningReplica`; the replica count is the controlling H2 signal in this taxonomy). Earlier 2026-06-02 Portal captures (rg-aca-lab-scale-cap) are retained below as supplementary evidence.'
   core_claims:
     - claim: Azure Container Apps supports HTTP scaling rules that can scale an app based on concurrent HTTP requests.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
@@ -156,7 +156,7 @@ Run the trigger:
 ./labs/scale-rule-mismatch/trigger.sh
 ```
 
-The trigger script builds the workload, configures the scale rule, and generates load against `/load`:
+The trigger script builds the workload image, applies the mismatched scale rule, and generates load against `/load`. The canonical CLI sequence baked into `trigger.sh` is:
 
 ```bash
 az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
@@ -178,46 +178,37 @@ az containerapp update \
 | Command | Why it is used |
 |---|---|
 | `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az containerapp update --scale-rule-metadata "concurrentRequests=500"` | Applies the mismatched scale-rule threshold so the H1 failure state materializes. |
 
-It then sends sustained traffic with either:
+`trigger.sh` then generates sustained load directly from the script (no external load generator) using 60 concurrent background `curl` processes against `/load` sustained for 90 s, and samples the replica count at +15 s, +30 s, +60 s, and +90 s into the load window. The 60-concurrent / 90 s shape is intentionally tight: it keeps the H1 KQL load window strict (`load_start_utc` to `load_start_utc + 90s`) so benign teardown noise from previous revisions cannot leak in, and it costs well under USD $0.01 per run. See the lab's [`README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/scale-rule-mismatch/README.md) section "Why the lab uses 60 concurrent requests and not `hey -z 8m -c 80`" for the full rationale (legacy capture runs used `hey -z 8m -c 80` or `hey -z 45s -c 80` from a separate host; the script-driven 60-concurrent / 90 s pattern supersedes both).
 
-```bash
-hey -z 45s -c 80 "https://${FQDN}/load"
-```
-
-or the fallback loop:
-
-```bash
-for _ in $(seq 1 300); do
-    curl --silent "$URL" > /dev/null &
-done
-wait
-```
-
-Expected output: replicas remain lower than expected despite load.
+Expected output: replicas remain pinned at 1 throughout the 90 s load window despite sustained 60-concurrent load (samples at +15 s / +30 s / +60 s / +90 s all return 1 replica). `trigger.sh` emits the H1 gate JSON to `evidence/10-h1-gate.json` with `gate_classification: scale_rule_mismatch_replicas_capped` when all three sub-gates pass (baseline 1 replica, max-during-load <= 1, zero strict scale events).
 
 ### Inspect scaling-related signals
 
+`trigger.sh` Phase 8 queries `ContainerAppSystemLogs_CL` for the strict load window via `az monitor log-analytics query`, filtered to scale-related `Reason_s` values for the active revision. The canonical query is:
+
 ```bash
-az containerapp logs show \
-    --name "$APP_NAME" \
-    --resource-group "$RG" \
-    --type system
+az monitor log-analytics query \
+    --workspace "$WORKSPACE_CUSTOMER_ID" \
+    --analytics-query "ContainerAppSystemLogs_CL
+        | where TimeGenerated between (datetime('${LOAD_START_UTC}') .. datetime('${LOAD_END_UTC}'))
+        | where RevisionName_s == '${ACTIVE_REVISION_NAME}'
+        | where Reason_s startswith 'Scal' or Reason_s startswith 'KEDA'
+        | project TimeGenerated, RevisionName_s, Reason_s, Type, Log_s
+        | order by TimeGenerated asc" \
+    --output json
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az monitor log-analytics query ...` | Runs the strict KEDA-attribution KQL query for the load window. The two-clause `startswith` filter (`Scal` / `KEDA`) is intentionally narrow — broader filters (`Reason_s contains 'scale'`) leak rows where the workload image name contains the substring "scale". |
 
-Expected diagnostic output pattern:
+Expected diagnostic output: the query returns the literal empty JSON array `[]` (captured to `evidence/09-system-logs-scale-events-pre-fix.json`), confirming the H1 KEDA-attribution leg passes.
 
-```text
-Reason_s             Type_s
--------------------  --------
-KEDAScalersStarted   Normal
-```
+Expected interpretation: combined with the per-sample replica count of 1, the zero strict-filter row count rules out the alternative theory "KEDA tried to scale but the platform refused." KEDA's HTTP add-on computes zero pending scale events when 60 in-flight requests are divided across the configured threshold of 500.
 
-Expected interpretation: the scaler starts, but the threshold mismatch prevents meaningful scale-out under this workload.
+> **Why the documented runbook uses the LAW workspace query and not `az containerapp logs show --type system`.** Earlier capture runs for this lab used `az containerapp logs show --type system` to surface `KEDAScalersStarted` setup events. Those events are emitted at scaler bootstrap (long before any load window) and do not prove whether KEDA was actively evaluating during the load window itself, so they cannot answer the H1 question. The strict KQL filter against `ContainerAppSystemLogs_CL` for the exact load window `[load_start_utc, load_end_utc]` IS the controlling H1 signal.
 
 ### Apply the tuning fix
 
@@ -257,8 +248,8 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 | 3 | Record baseline replicas | One running replica at idle | 1 replica (see `evidence/04-replicas-pre-load.json`) | Pass |
 | 4 | Run `trigger.sh` | Load generated with `concurrentRequests=500` | 60 concurrent for 90 s against `/load`, `concurrentRequests=500` confirmed on revision `--0000001` | Pass |
 | 5 | Check replicas and logs | Minimal scale-out despite load | Replicas at +15 s/+30 s/+60 s/+90 s = 1/1/1/1, 0 scale events in `ContainerAppSystemLogs_CL` | Pass (H1 gate `scale_rule_mismatch_replicas_capped`) |
-| 6 | Update scale rule to `concurrentRequests=10` and `maxReplicas=10` | New revision created | New revision `--0000002` Healthy after 14 s | Pass |
-| 7 | Run `verify.sh` | Replica count increases under load | Replicas at +15 s/+30 s/+60 s/+90 s = 6/6/6/6 (max 6), 0 rows for strict `Reason_s startswith "Scal" or "KEDA"` filter in `ContainerAppSystemLogs_CL` (platform emitted only replica-lifecycle events) | Partial pass (H2 gate `scale_rule_fixed_replicas_scaled_no_events` — replica count is the controlling signal) |
+| 6 | Update scale rule to `concurrentRequests=10` and `maxReplicas=10` | New revision created | New revision `--0000002` Healthy 14 s after `verify.sh` Phase 12 health polling began | Pass |
+| 7 | Run `verify.sh` | Replica count increases under load | Replicas at +15 s/+30 s/+60 s/+90 s = 6/6/6/6 (max 6), 0 rows for strict `Reason_s startswith "Scal" or "KEDA"` filter in `ContainerAppSystemLogs_CL` (strict filter excludes replica-lifecycle events such as `AssigningReplica`; replica count is the controlling signal) | Partial pass (H2 gate `scale_rule_fixed_replicas_scaled_no_events` — replica count is the controlling signal) |
 
 ## Expected Evidence
 
@@ -308,7 +299,7 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 
 [Inferred] H1 — at 60 in-flight requests divided across the configured threshold of 500, KEDA's HTTP add-on computes zero pending scale events. The flat replica line, the absence of scale-event rows in the system log table for the active revision, and the configured `concurrentRequests=500` jointly support the conclusion that the threshold (not the platform, not KEDA, not ingress, not the workload) is the controlling variable in the failed state. The alternative theories "platform refused to scale" and "KEDA tried to scale but was blocked" are ruled out by the zero-row KQL result.
 
-**Fix applied:** `az containerapp update --scale-rule-name http-rule --scale-rule-type http --scale-rule-metadata concurrentRequests=10 --max-replicas 10` (recorded in `labs/scale-rule-mismatch/evidence/11-containerapp-update-fix.json`). Updating any scale-rule flag on `az containerapp update` always produces a new revision; the new revision `ca-labscale-q2xnsr--0000002` reached `healthState=Healthy` 14 seconds after the update.
+**Fix applied:** `az containerapp update --scale-rule-name http-rule --scale-rule-type http --scale-rule-metadata concurrentRequests=10 --max-replicas 10` (recorded in `labs/scale-rule-mismatch/evidence/11-containerapp-update-fix.json`). Updating any scale-rule flag on `az containerapp update` always produces a new revision; the new revision `ca-labscale-q2xnsr--0000002` reached `healthState=Healthy` 14 seconds after `verify.sh` Phase 12 health polling began (verify.sh begins polling immediately after the update completes; the 14 s figure is the elapsed time from the first poll, not from the update wall-clock start).
 
 [Observed] H2 (post-fix) — same 60-concurrent / 90 s load shape against the post-fix revision drove replica count from 1 to 6. Recorded in `labs/scale-rule-mismatch/evidence/19-h2-gate.json`:
 
@@ -340,9 +331,9 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 }
 ```
 
-[Observed] H2 (post-fix) — `ContainerAppSystemLogs_CL` returned zero rows for the strict post-fix load window `[2026-06-22T15:14:09Z, 2026-06-22T15:15:39Z]` filtered to `RevisionName_s == "ca-labscale-q2xnsr--0000002"` AND `Reason_s startswith "Scal" or "KEDA"`. Captured to `labs/scale-rule-mismatch/evidence/18-system-logs-scale-events-after-fix.json` as the literal empty JSON array `[]`. The platform emitted only replica-lifecycle events (`AssigningReplica`, `PullingImage`, `PulledImage`) during the post-fix load window, which are intentionally excluded by the strict KEDA-attribution filter. The replica count (1 → 6) is the controlling signal for H2 in this case, not the KQL row count; the lab encodes this outcome as the partial-pass gate `scale_rule_fixed_replicas_scaled_no_events`.
+[Observed] H2 (post-fix) — `ContainerAppSystemLogs_CL` returned zero rows for the strict post-fix load window `[2026-06-22T15:14:09Z, 2026-06-22T15:15:39Z]` filtered to `RevisionName_s == "ca-labscale-q2xnsr--0000002"` AND `Reason_s startswith "Scal" or "KEDA"`. Captured to `labs/scale-rule-mismatch/evidence/18-system-logs-scale-events-after-fix.json` as the literal empty JSON array `[]`. The strict filter is intentionally narrow to prevent cross-revision contamination from benign teardown noise (`ScaledObjectCheckFailed` / `FailedGetScale` warnings from previous revisions), so it excludes replica-lifecycle events (such as `AssigningReplica`) that the platform typically emits during scale-out — verify by re-running the query against the same load window with `Reason_s contains "Replica"`. The replica count (1 → 6) is the controlling signal for H2 in this case, not the KQL row count; the lab encodes this outcome as the partial-pass gate `scale_rule_fixed_replicas_scaled_no_events`. [Inferred from KEDA HTTP add-on documented behavior; the strict filter's empty result does not by itself prove which event names the platform emitted during the post-fix load window — a loose-filter re-query is the only way to confirm.]
 
-[Inferred] H2 — holding the load generator, container image, ingress, and FQDN constant, and changing only `concurrentRequests` (500 → 10) and `maxReplicas` (2 → 10), produced horizontal scaling up to 6 replicas. The reproducible falsification gate is partial-pass (`scale_rule_fixed_replicas_scaled_no_events`): the replica count alone is sufficient to falsify the alternative theories considered in H1 that were global to the workload — "load not real," "ingress/load path not reaching the app," or "the platform cannot scale this workload at all" — because the same load against the same FQDN, with only the scale rule changed, drove the replica count from 1 to 6. The absence of KEDA-attributed scale-event rows in the system log table for the strict filter does not contradict this conclusion: the platform emitted replica-lifecycle events (which prove the scale-out happened) rather than named KEDA scaler decisions, and the strict filter is intentionally narrow to prevent cross-revision contamination from benign teardown noise. A future capture run that catches a `KEDAScalerActivated` row would upgrade the H2 classification to the strict `scale_rule_fixed_replicas_scaled_events_observed` gate, but the SUPPORTED verdict for the lab does not depend on it.
+[Inferred] H2 — holding the load generator, container image, ingress, and FQDN constant, and changing only `concurrentRequests` (500 → 10) and `maxReplicas` (2 → 10), produced horizontal scaling up to 6 replicas. The reproducible falsification gate is partial-pass (`scale_rule_fixed_replicas_scaled_no_events`): the replica count alone is sufficient to falsify the alternative theories considered in H1 that were global to the workload — "load not real," "ingress/load path not reaching the app," or "the platform cannot scale this workload at all" — because the same load against the same FQDN, with only the scale rule changed, drove the replica count from 1 to 6. The absence of KEDA-attributed scale-event rows in the system log table for the strict filter does not contradict this conclusion: the replica count climbing from 1 to 6 is direct evidence that scale-out happened, and the strict filter is intentionally narrow (excluding replica-lifecycle events such as `AssigningReplica` that the platform typically emits during scale-out) to prevent cross-revision contamination from benign teardown noise. The strict filter's empty result does not by itself prove which event names the platform emitted during the post-fix load window — a loose-filter re-query (`Reason_s contains "Replica"`) against the same load window is the cheapest way to confirm. A future capture run that catches a `KEDAScalerActivated` row in the strict filter would upgrade the H2 classification to the strict `scale_rule_fixed_replicas_scaled_events_observed` gate, but the SUPPORTED verdict for the lab does not depend on it.
 
 [Inferred] H2 — reaching 6 replicas (not all 10) under this specific load shape does not by itself prove `concurrentRequests=10` is the *optimal* threshold; it only proves the threshold and cap together are now permissive enough to scale meaningfully under 60-concurrent load. Tuning the threshold for production traffic requires correlating concurrent in-flight requests against latency and replica cost over a representative window.
 
