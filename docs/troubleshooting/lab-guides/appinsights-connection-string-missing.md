@@ -64,16 +64,12 @@ On Azure Container Apps using the `azure-monitor-opentelemetry` Python distro, d
 
 The lab uses a dedicated resource group and Bicep template (`infra/main.bicep`) that provisions a Log Analytics workspace, a workspace-based Application Insights resource, an Azure Container Registry (Basic), a Container Apps Environment (Consumption), and a Container App with system-assigned managed identity holding the `AcrPull` role. The initial Container App revision runs `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` (no Application Insights SDK in the image at all) so the lab's `trigger.sh` and `verify.sh` scripts can deterministically switch the image to `hellotelemetry:v3` (built into the lab's ACR with `az acr build` from `app/`) and toggle the env var on and off.
 
-Required environment variables before running the scripts:
+Set the base inputs before running the runbook. The remaining variables (`APP_NAME`, `ACR_NAME`, `ACR_LOGIN_SERVER`, `APP_INSIGHTS_NAME`) are derived from Bicep outputs in the next section because `infra/main.bicep` appends a deterministic but resource-group-scoped suffix to every resource name (see [`infra/main.bicep:12-17`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/appinsights-connection-string-missing/infra/main.bicep#L12)):
 
 ```bash
 export AZ_SUBSCRIPTION="<subscription-id>"
 export RG="rg-aca-lab-aiconn"
 export LOCATION="koreacentral"
-export APP_NAME="ca-appiconn-x2lcxd"
-export ACR_NAME="acrappiconnx2lcxd"
-export ACR_LOGIN_SERVER="acrappiconnx2lcxd.azurecr.io"
-export APP_INSIGHTS_NAME="appi-appiconn-x2lcxd"
 ```
 
 ## 2) Hypothesis
@@ -88,7 +84,13 @@ The alternative hypothesis being tested is that **adding a Python OpenTelemetry 
 
 ### Deploy infrastructure
 
-1. Deploy the Bicep template:
+All `az` and `./trigger.sh` / `./verify.sh` invocations below assume the working directory is the lab folder. Switch into it from the repository root before running anything:
+
+```bash
+cd labs/appinsights-connection-string-missing/
+```
+
+1. Create the resource group and deploy the Bicep template. The `--parameters baseName="appiconn"` value is required (the Bicep template declares `param baseName string` with no default, see [`infra/main.bicep:4`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/appinsights-connection-string-missing/infra/main.bicep#L4)). `--name main` gives the deployment a stable, queryable name so the next step can read its outputs:
 
     ```bash
     az group create \
@@ -99,19 +101,54 @@ The alternative hypothesis being tested is that **adding a Python OpenTelemetry 
     az deployment group create \
         --subscription "$AZ_SUBSCRIPTION" \
         --resource-group "$RG" \
+        --name main \
         --template-file infra/main.bicep \
-        --parameters location="$LOCATION"
+        --parameters baseName="appiconn"
     ```
 
     This creates the Log Analytics workspace, Application Insights, ACR, Container Apps Environment, and a Container App running the helloworld baseline image.
 
-2. Build the instrumented Python image inside the lab's ACR:
+2. Read the deployment outputs so the remaining commands and scripts know which resources to act on. `IMAGE_TAG` is required by `trigger.sh` and `verify.sh` ([`trigger.sh:8`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/appinsights-connection-string-missing/trigger.sh#L8)):
+
+    ```bash
+    export APP_NAME=$(az deployment group show \
+        --subscription "$AZ_SUBSCRIPTION" \
+        --resource-group "$RG" \
+        --name main \
+        --query "properties.outputs.containerAppName.value" \
+        --output tsv)
+
+    export ACR_NAME=$(az deployment group show \
+        --subscription "$AZ_SUBSCRIPTION" \
+        --resource-group "$RG" \
+        --name main \
+        --query "properties.outputs.acrName.value" \
+        --output tsv)
+
+    export ACR_LOGIN_SERVER=$(az deployment group show \
+        --subscription "$AZ_SUBSCRIPTION" \
+        --resource-group "$RG" \
+        --name main \
+        --query "properties.outputs.acrLoginServer.value" \
+        --output tsv)
+
+    export APP_INSIGHTS_NAME=$(az deployment group show \
+        --subscription "$AZ_SUBSCRIPTION" \
+        --resource-group "$RG" \
+        --name main \
+        --query "properties.outputs.appInsightsName.value" \
+        --output tsv)
+
+    export IMAGE_TAG="hellotelemetry:v3"
+    ```
+
+3. Build the instrumented Python image inside the lab's ACR:
 
     ```bash
     az acr build \
         --subscription "$AZ_SUBSCRIPTION" \
         --registry "$ACR_NAME" \
-        --image hellotelemetry:v3 \
+        --image "$IMAGE_TAG" \
         ./app
     ```
 
@@ -192,7 +229,7 @@ For production, store the connection string in Azure Key Vault and inject it via
 - When defensively guarding `configure_azure_monitor()` with a presence check, log the skip path at `WARN` so operators can grep for `Azure Monitor skipped: APPLICATIONINSIGHTS_CONNECTION_STRING absent` in container console logs without needing Application Insights to be working in the first place.
 - Add a smoke check to CI/CD that sends one synthetic request to the deployed app and then runs `AppRequests | where timestamp > ago(5m) | count` against Application Insights. Fail the deployment if the count is zero on the first revision.
 - Pin `azure-monitor-opentelemetry` in `requirements.txt`. Bumping the SDK can change export defaults; this lab was validated against `azure-monitor-opentelemetry==1.6.4`.
-- If you are using the Python distro with Flask, ensure `configure_azure_monitor()` runs BEFORE the `Flask` class is fully imported (use `import flask` and reference `flask.Flask(__name__)` instead of `from flask import Flask`). This is the subtle gotcha that `:v2` documented and `:v3` fixes.
+- If you are using the Python distro with Flask, ensure `configure_azure_monitor()` runs BEFORE the `Flask` class is fully imported (use `import flask` and reference `flask.Flask(__name__)` instead of `from flask import Flask`). This is the subtle gotcha that `:v3` defends against; the import-order failure mode is described from lab-development experience (no per-revision `AppRequests`/`AppTraces` evidence file is committed for the `:v2` source variant).
 - Set `OTEL_SERVICE_NAME` as a second env var so traces and requests surface in dashboards under the Container App's name instead of the OpenTelemetry default `unknown_service`.
 
 ## 4) Experiment Log
@@ -229,7 +266,7 @@ The alternative hypothesis (SDK in image is sufficient on its own) is falsified 
 
 - `[Observed]` `evidence/14-revisions-lifecycle.json` records revision `ca-appiconn-x2lcxd--0000006` as the before-fix run with `image=acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3` and `hasConnStr=false`; aggregate counts in `evidence/03-ai-requests-before-fix.json` and `evidence/04-ai-traces-before-fix.json` are both zero rows.
 - `[Observed]` The same file records revision `ca-appiconn-x2lcxd--0000007` as the after-fix run with `image=acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3` and `hasConnStr=true`; aggregate counts in `evidence/09-ai-requests-after-fix.json` and `evidence/10-ai-traces-after-fix.json` populate to `requestCount=20` and `traceCount=21` respectively.
-- `[Observed]` The before/after full Container App configs in `evidence/05-containerapp-full-config-before-fix.json` and `evidence/11-containerapp-full-config-after-fix.json` show that the only intentionally changed field between these two revisions is the `properties.template.containers[0].env` array (`null` / `[]` → `[{name: "APPLICATIONINSIGHTS_CONNECTION_STRING"}]`). The image tag (`acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3`), container command (`null`), container args (`null`), resource limits (`cpu=0.5, memory=1Gi`), scale rules (`minReplicas=1, maxReplicas=1`), ingress target port (`8080`), and identity type (`SystemAssigned`) are byte-identical across both snapshots.
+- `[Observed]` The before/after full Container App configs in `evidence/05-containerapp-full-config-before-fix.json` and `evidence/11-containerapp-full-config-after-fix.json` differ in exactly one container-level field: the before snapshot's `properties.template.containers[0]` object contains only the keys `image`, `imageType`, `name`, `resources` (no `env` key), while the after snapshot's same object adds an `env` array whose only element is `{name: "APPLICATIONINSIGHTS_CONNECTION_STRING", value: "InstrumentationKey=..."}`. The fields that are present in both snapshots are byte-identical across them: `image` (`acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3`), `imageType` (`ContainerImage`), container `name` (`app`), `resources` (`cpu=0.5, memory=1Gi, ephemeralStorage=2Gi`), `properties.template.scale` (`minReplicas=1, maxReplicas=1, cooldownPeriod=300, pollingInterval=30`), `properties.configuration.ingress.targetPort` (`8080`), and `identity.type` (`SystemAssigned`).
 
 This rules out "the SDK shipping in the image is sufficient" as the controlling variable — the SDK is identically present in both runs and the only thing that differs is the env var.
 
@@ -241,8 +278,27 @@ Missing `APPLICATIONINSIGHTS_CONNECTION_STRING` is an availability-clean observa
 
 When escalating an "Application Insights is empty but the app is up" case on Azure Container Apps, run this sequence in order before assuming a platform issue:
 
-1. `az containerapp show --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"` — confirms whether the env var is wired into the current revision at all.
-2. `az containerapp logs show --container <name> --tail 100` — look for the startup log line `Azure Monitor configured: telemetry export enabled` (or your app's equivalent) to confirm the SDK actually ran `configure_azure_monitor()`. Its absence usually means the env var was never read by the worker.
+1. Confirm whether the env var is wired into the current revision at all:
+
+    ```bash
+    az containerapp show \
+        --subscription "$AZ_SUBSCRIPTION" \
+        --name "$APP_NAME" \
+        --resource-group "$RG" \
+        --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
+    ```
+
+2. Look for the startup log line `Azure Monitor configured: telemetry export enabled` (or your app's equivalent) to confirm the SDK actually ran `configure_azure_monitor()`. Its absence usually means the env var was never read by the worker:
+
+    ```bash
+    az containerapp logs show \
+        --subscription "$AZ_SUBSCRIPTION" \
+        --name "$APP_NAME" \
+        --resource-group "$RG" \
+        --container app \
+        --tail 100
+    ```
+
 3. If the env var IS present and the SDK startup log IS visible but `AppRequests` is still empty: check whether you are using `from flask import Flask` before `configure_azure_monitor()`, which silently breaks Flask auto-instrumentation even with a valid connection string. This is the failure mode that the `:v2` → `:v3` transition in this lab documents.
 4. If the env var IS present and `AppTraces` is populating but `AppRequests` is not: the SDK is exporting, but the web-framework auto-instrumentation is not wrapped. Cross-check Flask import order, gunicorn worker class (sync vs gevent), and whether any other middleware is re-wrapping the `Flask` app after SDK init.
 
@@ -294,7 +350,7 @@ Reproduced end-to-end in `koreacentral` on 2026-06-22. All raw evidence is commi
     The evidence pack carries two earlier `hellotelemetry` tags that are NOT used as the canonical scenario but are kept because they document distinct failure modes encountered while building the lab:
 
     - **`:v1`** — `configure_azure_monitor()` called UNGUARDED. With `APPLICATIONINSIGHTS_CONNECTION_STRING` unset, `azure-monitor-opentelemetry==1.6.4` raises `ValueError: Instrumentation key cannot be none or empty.` at import time, the gunicorn worker exits with code 3, and the container enters `CrashLoopBackOff`. This is a DIFFERENT failure mode (availability loss, not silent observability gap) and is captured under `evidence/A1-v1-unguarded-sdk-crash-logs.json` and `evidence/A2-v1-unguarded-crashloop-replica-state.json`. Not used as the canonical scenario because production apps in real escalations typically wrap SDK init defensively to avoid taking down availability when telemetry config is missing.
-    - **`:v2`** — `configure_azure_monitor()` is guarded by the same env-var presence check that `:v3` uses, but Flask is imported with `from flask import Flask` BEFORE `configure_azure_monitor()` runs. The Flask auto-instrumentation hook cannot wrap the `Flask` class after it has been fully imported, so even with a valid connection string `AppRequests` stays empty. This is the kind of subtle Python distro instrumentation gotcha that easily masquerades as "connection string missing" in production. Replaced by `:v3` which imports `flask` as a module and defers the `Flask` class lookup until after `configure_azure_monitor()` has installed the auto-instrumentation hook.
+    - **`:v2`** — `configure_azure_monitor()` is guarded by the same env-var presence check that `:v3` uses, but Flask is imported with `from flask import Flask` BEFORE `configure_azure_monitor()` runs. During lab development the Flask auto-instrumentation hook did not wrap the `Flask` class once it had been fully imported, so `AppRequests` stayed empty even with a valid connection string. This is the kind of subtle Python distro instrumentation gotcha that easily masquerades as "connection string missing" in production. The `:v2` source variant is described from development-time observation; no per-revision `AppRequests`/`AppTraces` capture file is committed for it (the canonical falsification pair in this lab is the `:v3` before/after run, not a `:v2`/`:v3` comparison). The source-level fix carried by `:v3` is to import `flask` as a module and defer the `Flask` class lookup until after `configure_azure_monitor()` has installed the auto-instrumentation hook.
     - **`:v3`** (canonical) — same guard as `:v2` plus two fixes: (1) `import flask` as a module instead of `from flask import Flask`, and (2) `configure_azure_monitor(connection_string=CONN_STR, logger_name=__name__)` with explicit `logger_name` so module-level `logger.info(...)` calls export to `AppTraces`.
 
 ## Clean Up
