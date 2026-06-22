@@ -180,11 +180,16 @@ def parse(path, exit_code):
     except json.JSONDecodeError:
         pass
     if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
+        try:
+            rows_int = int(parsed[0].get('rows', 0))
+        except (TypeError, ValueError):
+            rows_int = 0
         return {
             'parse_status': 'parsed_json_with_rows',
             'cli_exit_code': exit_code,
             'rows': parsed[0].get('rows', 0),
             'distinct_revisions': parsed[0].get('distinct_revisions', 0),
+            'gate_classification': 'silent_valid_baseline' if rows_int == 0 else 'populated_table',
             'raw_json': parsed,
         }
     if isinstance(parsed, list) and not parsed:
@@ -193,10 +198,15 @@ def parse(path, exit_code):
             'cli_exit_code': exit_code,
             'rows': 0,
             'distinct_revisions': 0,
+            'gate_classification': 'silent_valid_baseline',
             'raw_json': [],
         }
     is_bad_arg = 'BadArgumentError' in text
     is_table_missing = "Failed to resolve table" in text or "could not be resolved" in text
+    if is_bad_arg and is_table_missing:
+        gate_classification = 'silent_valid_baseline'
+    else:
+        gate_classification = 'query_error_invalid_run'
     return {
         'parse_status': 'json_decode_failed',
         'cli_exit_code': exit_code,
@@ -204,6 +214,7 @@ def parse(path, exit_code):
         'distinct_revisions': 0,
         'is_bad_argument_error': is_bad_arg,
         'is_table_missing': is_table_missing,
+        'gate_classification': gate_classification,
         'raw_text_first_500_chars': text[:500],
     }
 
@@ -219,6 +230,8 @@ out = {
     'system_result': system,
     'console_rows': console['rows'],
     'system_rows': system['rows'],
+    'console_gate_classification': console['gate_classification'],
+    'system_gate_classification': system['gate_classification'],
 }
 with open(os.path.join(os.environ['EVIDENCE_DIR'], '09-kql-after.json'), 'w') as f:
     json.dump(out, f, indent=2)
@@ -227,33 +240,45 @@ print(json.dumps({
     'system_rows': out['system_rows'],
     'console_parse_status': console['parse_status'],
     'system_parse_status': system['parse_status'],
+    'console_gate_classification': console['gate_classification'],
+    'system_gate_classification': system['gate_classification'],
 }, indent=2))
 PYEOF
 
 CONSOLE_ROWS_AFTER=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/09-kql-after.json'))['console_rows'])")
 SYSTEM_ROWS_AFTER=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/09-kql-after.json'))['system_rows'])")
+CONSOLE_GATE_AFTER=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/09-kql-after.json'))['console_gate_classification'])")
+SYSTEM_GATE_AFTER=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/09-kql-after.json'))['system_gate_classification'])")
+CONSOLE_GATE_BEFORE=$(python3 -c "import json,sys; d=json.load(open('$BASELINE_FILE')); print(d.get('console_gate_classification') or d['console_result'].get('gate_classification','unknown'))")
+SYSTEM_GATE_BEFORE=$(python3 -c "import json,sys; d=json.load(open('$BASELINE_FILE')); print(d.get('system_gate_classification') or d['system_result'].get('gate_classification','unknown'))")
 
 echo ""
 echo "=== Summary ==="
-echo "BEFORE: console=$CONSOLE_ROWS_BEFORE system=$SYSTEM_ROWS_BEFORE"
-echo "AFTER:  console=$CONSOLE_ROWS_AFTER system=$SYSTEM_ROWS_AFTER"
+echo "BEFORE: console rows=$CONSOLE_ROWS_BEFORE gate=$CONSOLE_GATE_BEFORE | system rows=$SYSTEM_ROWS_BEFORE gate=$SYSTEM_GATE_BEFORE"
+echo "AFTER:  console rows=$CONSOLE_ROWS_AFTER gate=$CONSOLE_GATE_AFTER | system rows=$SYSTEM_ROWS_AFTER gate=$SYSTEM_GATE_AFTER"
 echo ""
+
+if [[ "$CONSOLE_GATE_AFTER" == "query_error_invalid_run" || "$SYSTEM_GATE_AFTER" == "query_error_invalid_run" ]]; then
+    echo "VERDICT: INVALID RUN. Post-fix KQL produced an unexpected error (not valid JSON, and not the expected BadArgumentError + 'Failed to resolve table' signature)."
+    echo "Inspect 09-kql-after-console-raw.txt and 09-kql-after-system-raw.txt for the actual error."
+    exit 1
+fi
 
 H1_PASS=false
 H2_PASS=false
 
-if [[ "$CONSOLE_ROWS_BEFORE" == "0" && "$SYSTEM_ROWS_BEFORE" == "0" ]]; then
+if [[ "$CONSOLE_GATE_BEFORE" == "silent_valid_baseline" && "$SYSTEM_GATE_BEFORE" == "silent_valid_baseline" ]]; then
     H1_PASS=true
 fi
-if [[ "$CONSOLE_ROWS_AFTER" -gt 0 && "$SYSTEM_ROWS_AFTER" -gt 0 ]]; then
+if [[ "$CONSOLE_GATE_AFTER" == "populated_table" && "$SYSTEM_GATE_AFTER" == "populated_table" ]]; then
     H2_PASS=true
 fi
 
-echo "H1 (baseline=0 rows): $H1_PASS"
-echo "H2 (post-fix>0 rows): $H2_PASS"
+echo "H1 (baseline = silent_valid_baseline for both tables): $H1_PASS"
+echo "H2 (post-fix = populated_table for both tables): $H2_PASS"
 
 if [[ "$H1_PASS" == "true" && "$H2_PASS" == "true" ]]; then
-    echo "VERDICT: SUPPORTED. Diagnostic settings (env appLogsConfiguration) is the controlling variable for Log Analytics ingestion."
+    echo "VERDICT: SUPPORTED. Environment-level appLogsConfiguration is the controlling variable for Log Analytics ingestion in this reproduction."
     exit 0
 fi
 

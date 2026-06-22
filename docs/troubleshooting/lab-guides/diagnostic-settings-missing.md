@@ -71,7 +71,15 @@ flowchart TD
 
 On Azure Container Apps, is the **environment-level** `properties.appLogsConfiguration` setting the single controlling variable for whether `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL` exist and populate in a Log Analytics workspace? Specifically: if a Container Apps Environment is provisioned via Bicep, ARM, or Terraform with the `appLogsConfiguration` property simply omitted from the declaration, what behavior do the operator and the platform see in Log Analytics — and does applying the fix at the environment scope (not the app scope) cleanly restore ingestion?
 
-Microsoft Learn documents that Container Apps log routing is configured at the **environment** scope, not the **app** scope ([Log storage and monitoring options in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-options) and [Monitor logs in Azure Container Apps with Log Analytics](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash)). Every Container App inside an environment inherits the environment's `appLogsConfiguration`; there is no per-app override. If the environment is provisioned with the property omitted, every app inside it is silent in Log Analytics until the environment is updated. This lab is the falsification proof for that documented behavior.
+Microsoft Learn documents that Container Apps log routing is configured at the **environment** scope, not the **app** scope ([Log storage and monitoring options in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-options) and [Monitor logs in Azure Container Apps with Log Analytics](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash)). Every Container App inside an environment inherits the environment's `appLogsConfiguration`; there is no per-app override.
+
+What Microsoft Learn does NOT directly document is the operational consequence of omitting `appLogsConfiguration` from an environment's IaC declaration. This lab observes (from the 2026-06-22 reproduction in `koreacentral`) that:
+
+- Omitting the property leaves the live state at `destination: null, logAnalyticsConfiguration: null` after the deploy.
+- Under that state, neither `ContainerAppConsoleLogs_CL` nor `ContainerAppSystemLogs_CL` is ever materialized in the workspace. The KQL queries return `BadArgumentError: SEM0100 'where' operator: Failed to resolve table`, not an empty result set.
+- After `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` plus a forced new revision, both tables materialize and populate within a 5-minute ingestion window.
+
+These three observations come from this single reproduction. The lab's conclusion — that the env-scope `appLogsConfiguration` is the single controlling variable for Log Analytics ingestion — is supported by the observed before/after comparison, not by a direct statement in Microsoft Learn.
 
 The lab uses a dedicated resource group and Bicep template (`infra/main.bicep`) that provisions exactly three resources: a Log Analytics workspace (PerGB, 30-day retention), a Container Apps Environment with `properties: {}` (the `appLogsConfiguration` property is intentionally omitted), and one Container App running the public `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image at `cpu: '0.25'`, `memory: '0.5Gi'`, `minReplicas: 1`, `maxReplicas: 1`. No ACR, no Application Insights, no private endpoint, no public IP, no VNet integration. The `helloworld` image is sufficient because this lab does not measure app behavior; it measures whether the environment routes platform-emitted and stdout-emitted logs to Log Analytics at all. The image, the ingress configuration, the workspace itself, and the KQL queries are all held constant across the baseline and post-fix runs; the only experimental variable is the environment's log routing setting.
 
@@ -124,6 +132,11 @@ cd labs/diagnostic-settings-missing/
         --parameters baseName="diagsetting"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az group create --subscription "$AZ_SUBSCRIPTION" --name "$RG" --location "$LOCATION"` | Creates the dedicated lab resource group `rg-aca-lab-diagsetting` so all lab resources can be deleted in a single `az group delete` call after evidence has been captured. Pinning `--subscription` explicitly immunizes the call against Azure CLI default-subscription drift. |
+    | `az deployment group create --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --template-file ./infra/main.bicep --parameters baseName="diagsetting"` | Deploys the three lab resources (Log Analytics workspace, Container Apps Environment with `properties: {}` and `appLogsConfiguration` intentionally omitted, helloworld Container App). The `--name main` value gives the deployment a stable, queryable name so the next step's `az deployment group show --name main` calls can read the deployment outputs deterministically. The `--parameters baseName="diagsetting"` value is required (the Bicep template declares `param baseName string` with no default). |
+
     This creates the Log Analytics workspace, the Container Apps Environment with `properties: {}` (no `appLogsConfiguration`), and one Container App running `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` at `cpu=0.25, memory=0.5Gi, minReplicas=1, maxReplicas=1`.
 
 2. Read the deployment outputs the scripts need:
@@ -169,8 +182,11 @@ Run `trigger.sh`, which:
 - Captures `02-app-config-before.json` — app `name`, `latestRevisionName`, `fqdn`, `minReplicas`, `maxReplicas`.
 - Sends 10 sequential HTTPS GETs against `https://${APP_FQDN}/` from a Python client with a 10 s timeout; captures status code and elapsed time per request to `03-curl-before.json`.
 - Waits 300 seconds for any potential log ingestion lag, so the baseline KQL has the same wait window as the post-fix KQL.
-- Runs the KQL `ContainerAppConsoleLogs_CL | where ContainerAppName_s == '<APP_NAME>' | summarize rows=count(), distinct_revisions=dcount(RevisionName_s)` and the equivalent query against `ContainerAppSystemLogs_CL`. The script writes the raw stdout/stderr of each call to `04-kql-before-console-raw.txt` and `04-kql-before-system-raw.txt`, then a Python helper parses the result: if the response is valid JSON it reads `rows` and `distinct_revisions` directly; if the response is the `BadArgumentError: SEM0100 'where' operator: Failed to resolve table` error that Azure returns when a `_CL` table has never been materialized, it records `rows: 0` plus explicit `is_bad_argument_error: true, is_table_missing: true` flags. The parsed result is written to `04-kql-before.json`.
-- Exits 0 if both tables report 0 rows (H1 PASS, baseline silent — proceed to `verify.sh`); exits 1 if either table reports rows (H1 FALSIFIED — INVALID RUN, investigate before re-running).
+- Runs the KQL `ContainerAppConsoleLogs_CL | where ContainerAppName_s == '<APP_NAME>' | summarize rows=count(), distinct_revisions=dcount(RevisionName_s)` and the equivalent query against `ContainerAppSystemLogs_CL`. The script writes the raw stdout/stderr of each call to `04-kql-before-console-raw.txt` and `04-kql-before-system-raw.txt`, then a Python helper classifies each query result into exactly one of three values written to `04-kql-before.json` as `gate_classification` (the field is nested inside each `*_result` block AND surfaced as top-level `console_gate_classification` / `system_gate_classification` for direct bash gate evaluation):
+    - `silent_valid_baseline` — valid JSON with `rows == 0`, OR an empty list, OR the documented `BadArgumentError: SEM0100 'where' operator: Failed to resolve table` response (which Azure returns when a `_CL` table has never been materialized in the workspace). All three sub-cases are the expected baseline state under `destination: null`.
+    - `populated_table` — valid JSON with `rows > 0`. This contradicts the expected baseline and falsifies H1.
+    - `query_error_invalid_run` — any other parse or error state (transient auth failure, unexpected error format, malformed JSON without the expected `BadArgumentError + Failed to resolve table` signature). The run is invalid; do NOT treat this as either pass or falsified.
+- Exit codes: **Exit 0** if both tables are classified `silent_valid_baseline` (H1 PASS, baseline silent — proceed to `verify.sh`). **Exit 1** if either table is `populated_table` (H1 FALSIFIED) OR `query_error_invalid_run` (INVALID RUN — KQL transport/format failure, inspect the raw stderr file before re-running).
 
 All scripts pass `--subscription "$AZ_SUBSCRIPTION"` on every `az` invocation to immunize the run against the Azure CLI's default-subscription drift, which has been observed in long-running shells where unrelated commands silently switch back to a different subscription.
 
@@ -187,10 +203,10 @@ Run `verify.sh`, which:
 - Sends another 10 sequential HTTPS GETs against the same FQDN; captures results to `08-curl-after.json`.
 - Waits 300 seconds for log ingestion.
 - Re-runs the same KQL (same query text, same workspace), writes raw stdout/stderr to `09-kql-after-console-raw.txt` and `09-kql-after-system-raw.txt`, and writes the parsed result to `09-kql-after.json`.
-- Evaluates H1 and H2 and exits with one of three codes:
-    - **Exit 0** — H1 PASS (baseline both tables reported 0 rows, established in `trigger.sh`) AND H2 PASS (post-fix both tables report ≥ 1 row). The environment-level `appLogsConfiguration` is SUPPORTED as the single controlling variable for ingestion.
-    - **Exit 2** — H2 FALSIFIED (post-fix one or both tables still report 0 rows). The environment-level fix did NOT restore ingestion. Investigate per-app config, workspace permissions, network egress, or longer ingestion lag before retrying.
-    - **Exit 1** — INVALID RUN (env update did not persist, or no new revision was created). Re-deploy and re-run.
+- Evaluates H1 and H2 against the three-value `gate_classification` and exits with one of three codes:
+    - **Exit 0** — H1 PASS (baseline: both tables classified `silent_valid_baseline`, established in `trigger.sh` and read back from `04-kql-before.json` via top-level `console_gate_classification` / `system_gate_classification` with a fallback to the nested `*_result.gate_classification`) AND H2 PASS (post-fix: both tables classified `populated_table`). The environment-level `appLogsConfiguration` is SUPPORTED as the single controlling variable for ingestion in this reproduction.
+    - **Exit 2** — H2 FALSIFIED (post-fix: one or both tables classified `silent_valid_baseline` instead of `populated_table`). The environment-level fix did NOT restore ingestion. Investigate per-app config, workspace permissions, network egress, or longer ingestion lag before retrying.
+    - **Exit 1** — INVALID RUN. Triggers: post-fix KQL produced `query_error_invalid_run` (transport/format failure, inspect `09-kql-after-console-raw.txt` and `09-kql-after-system-raw.txt`), OR the env update did not persist (readback showed `destination != log-analytics`), OR no new revision was created. Re-deploy and re-run.
 
 ### Apply the fix manually (the canonical operator response)
 
@@ -229,7 +245,7 @@ The fix must be at the **environment scope**, not the **app scope**. There is no
 
 ### Prevention guidance
 
-- Always declare `appLogsConfiguration` explicitly in your environment Bicep, ARM, or Terraform. If the property is omitted, the platform defaults to `destination: null`, which silently disables Log Analytics ingestion. The Bicep schema for `Microsoft.App/managedEnvironments@2023-05-01` carries the property as `properties.appLogsConfiguration: { destination: 'log-analytics', logAnalyticsConfiguration: { customerId: ..., sharedKey: ... } }`. Declare it in the same module that creates the environment, never as a post-deploy `az containerapp env update` — drift between IaC and the live state means the next `az deployment group create` may revert the live fix back to `destination: null` and reintroduce the symptom.
+- Always declare `appLogsConfiguration` explicitly in your environment Bicep, ARM, or Terraform. This lab observed (2026-06-22 reproduction in `koreacentral`) that omitting the property leaves the live state at `destination: null, logAnalyticsConfiguration: null` after the deploy, which silently disabled Log Analytics ingestion until the environment was updated. Microsoft Learn documents the property on `Microsoft.App/managedEnvironments@2023-05-01` as `properties.appLogsConfiguration: { destination: 'log-analytics', logAnalyticsConfiguration: { customerId: ..., sharedKey: ... } }` but does not directly document the operational consequence of omitting it. Declare it in the same module that creates the environment, never as a post-deploy `az containerapp env update` — drift between IaC and the live state means the next `az deployment group create` may revert the live fix back to `destination: null` and reintroduce the symptom observed in this lab.
 - Treat workspace shared keys as secrets. Inject them into Bicep deployments via Key Vault references or deployment-time parameters, never check them into git, and rotate the workspace primary key on a documented cadence so that a leaked key can be revoked without breaking other environments that use the same workspace.
 - After every environment deploy, run a 2-minute smoke check that sends one HTTP request to each app and queries `ContainerAppSystemLogs_CL | where TimeGenerated > ago(10m) and ContainerAppName_s == '<app>' | count` to confirm the ingestion path is alive. A pass/fail gate of `≥ 1 row` is sufficient for a deploy smoke check; the absolute row count is operationally less important than confirming the path exists at all.
 
@@ -245,17 +261,17 @@ The fix must be at the **environment scope**, not the **app scope**. There is no
 - `[Observed]` `evidence/03-curl-before.json`: 10/10 successful requests against `https://${APP_FQDN}/`, mean elapsed ≈ 438 ms per request. The HTTP path is healthy; the application is reachable from the public internet. No client-side errors that could explain absent logs.
 - `[Observed]` `evidence/04-kql-before-console-raw.txt`: raw Azure CLI response for the `ContainerAppConsoleLogs_CL` query — `ERROR: (BadArgumentError) ... Inner error: { "code": "SemanticError", ..., "innererror": { "code": "SEM0100", "message": "'where' operator: Failed to resolve table or column expression named 'ContainerAppConsoleLogs_CL'" } }`. The table does not exist in the workspace. The workspace was created 5+ minutes ago, has never received data from any source, and is empty of all Container Apps `_CL` tables.
 - `[Observed]` `evidence/04-kql-before-system-raw.txt`: identical `SEM0100 'where' operator: Failed to resolve table` error for `ContainerAppSystemLogs_CL`. Both tables are missing.
-- `[Measured]` `evidence/04-kql-before.json`: parsed result — `console_rows: 0, system_rows: 0, console_parse_status: "json_decode_failed", system_parse_status: "json_decode_failed", is_bad_argument_error: true, is_table_missing: true` for both queries. H1 PASS (baseline silent, with the stronger signal that the tables never materialized).
+- `[Measured]` `evidence/04-kql-before.json`: parsed result — `console_rows: 0, system_rows: 0, console_gate_classification: "silent_valid_baseline", system_gate_classification: "silent_valid_baseline"` (both nested in `*_result.gate_classification` and surfaced at top-level for direct bash evaluation; the nested blocks also retain `parse_status: "json_decode_failed", is_bad_argument_error: true, is_table_missing: true` for forensic debugging). H1 PASS (baseline silent, with the stronger signal that the tables never materialized).
 
 ### Post-fix evidence (env destination=log-analytics, after new revision + 10 GETs + 5 min wait)
 
 - `[Observed]` `evidence/05-env-update-result.json`: `{"destination": "log-analytics", "name": "cae-diagsetting-7dcl4v", "provisioningState": "Succeeded"}`. The `az containerapp env update` call returned success in approximately 35 seconds.
-- `[Observed]` `evidence/06-env-config-after.json`: `{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "064c1c2e-2360-41e3-b545-afdf15a960d9", "dynamicJsonColumns": false, "sharedKey": null}}` — readback confirms the live state is updated. The shared key is intentionally not returned by the API after the update; the customer ID matches the workspace deployed by Bicep.
+- `[Observed]` `evidence/06-env-config-after.json`: `{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "<workspace-customer-id>", "dynamicJsonColumns": false, "sharedKey": null}}` — readback confirms the live state is updated. The shared key is intentionally not returned by the API after the update; the customer ID matches the workspace deployed by Bicep. The raw customer ID is preserved in `evidence/06-env-config-after.json` (audit trail) but is masked in this prose to avoid leaking a real Azure workspace identifier.
 - `[Observed]` `evidence/00-verify-run.txt` Phase 9 timeline: the new revision `ca-diagsetting-7dcl4v--0000001` reached `runningState=Activating` on attempt 1 (10 s after the env-var update) and `runningState=RunningAtMaxScale` on attempt 2 (20 s after the env-var update). The 0000001 suffix is the platform-assigned auto-increment for env-var-driven revisions.
 - `[Observed]` `evidence/07-revisions-after.json`: two revisions visible — the old `ca-diagsetting-7dcl4v--4usom8i` in `runningState=Deprovisioning` with `trafficWeight=0`, and the new `ca-diagsetting-7dcl4v--0000001` in `runningState=RunningAtMaxScale` with `trafficWeight=100`. The single-active-revision swap completed in approximately 20 seconds.
 - `[Observed]` `evidence/08-curl-after.json`: 10/10 successful requests against the same FQDN (which now resolves to the new revision under `activeRevisionsMode: 'Single'`).
-- `[Measured]` `evidence/09-kql-after.json`: `console_rows: 1, console_distinct_revisions: 1, system_rows: 34, system_distinct_revisions: 3, console_parse_status: "parsed_json_with_rows", system_parse_status: "parsed_json_with_rows"`. Both tables now exist in the workspace and both return non-zero rows. H2 PASS.
-- `[Observed]` `evidence/09-kql-after-system-by-revision.json`: the 34 system-log rows break down as 21 rows with `RevisionName_s == ""` (environment-scoped events that do not carry a revision name), 9 rows for the new revision `ca-diagsetting-7dcl4v--0000001`, and 4 rows for the old revision `ca-diagsetting-7dcl4v--4usom8i` emitted during its Deprovisioning sequence after the env was updated. The fact that the OLD revision emitted 4 rows after the env update — even though the env update happened ~3 minutes after the old revision was created — directly demonstrates that the controlling variable is the environment configuration, not the revision creation time.
+- `[Measured]` `evidence/09-kql-after.json`: `console_rows: 1, console_distinct_revisions: 1, system_rows: 34, system_distinct_revisions: 3, console_gate_classification: "populated_table", system_gate_classification: "populated_table"` (both classifications visible at top-level for direct bash evaluation; the nested `*_result.parse_status` is `"parsed_json_with_rows"` for both). Both tables now exist in the workspace and both return non-zero rows. H2 PASS.
+- `[Observed]` `evidence/09-kql-after-system-by-revision.json`: the 34 system-log rows break down as 21 rows with `RevisionName_s == ""` (environment-scoped events that do not carry a revision name), 9 rows for the new revision `ca-diagsetting-7dcl4v--0000001`, and 4 rows for the old revision `ca-diagsetting-7dcl4v--4usom8i` emitted during its Deprovisioning sequence after the env was updated. The fact that the OLD revision emitted 4 rows after the env update — even though the old revision was created ~3 minutes before the env update — shows that the env config controls ingestion routing for whatever events the platform emits after the config change, including late-arriving lifecycle events from a revision that was created before the change.
 
 ### Analysis
 
@@ -336,14 +352,14 @@ Reproduced end-to-end in `koreacentral` on 2026-06-22. All raw evidence is commi
 | `03-curl-before.json` | 10 HTTP request results to baseline revision — 10/10 ok, ~438 ms per request |
 | `04-kql-before-console-raw.txt` | Raw stdout/stderr of `az monitor log-analytics query` for `ContainerAppConsoleLogs_CL` — `BadArgumentError: SEM0100 'where' operator: Failed to resolve table or column expression named 'ContainerAppConsoleLogs_CL'` |
 | `04-kql-before-system-raw.txt` | Same error for `ContainerAppSystemLogs_CL` |
-| `04-kql-before.json` | Parsed baseline KQL result: `console_rows: 0, system_rows: 0, is_bad_argument_error: true, is_table_missing: true` for both queries |
+| `04-kql-before.json` | Parsed baseline KQL result: `console_rows: 0, system_rows: 0, console_gate_classification: "silent_valid_baseline", system_gate_classification: "silent_valid_baseline"` (nested blocks also carry `is_bad_argument_error: true, is_table_missing: true` for forensic detail) |
 | `05-env-update-result.json` | `{"destination": "log-analytics", "name": "cae-diagsetting-7dcl4v", "provisioningState": "Succeeded"}` — `az containerapp env update` result |
 | `06-env-config-after.json` | `{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "<workspace-customer-id>", "dynamicJsonColumns": false, "sharedKey": null}}` — env config readback after fix |
 | `07-revisions-after.json` | Post-fix revision list: 2 revisions — old `--4usom8i` in Deprovisioning, new `--0000001` in RunningAtMaxScale with 100% traffic |
 | `08-curl-after.json` | 10 HTTP request results to post-fix revision — 10/10 ok |
 | `09-kql-after-console-raw.txt` | Raw stdout of `az monitor log-analytics query` for `ContainerAppConsoleLogs_CL` after fix |
 | `09-kql-after-system-raw.txt` | Same for `ContainerAppSystemLogs_CL` |
-| `09-kql-after.json` | Parsed post-fix KQL result: `console_rows: 1, console_distinct_revisions: 1, system_rows: 34, system_distinct_revisions: 3` |
+| `09-kql-after.json` | Parsed post-fix KQL result: `console_rows: 1, console_distinct_revisions: 1, system_rows: 34, system_distinct_revisions: 3, console_gate_classification: "populated_table", system_gate_classification: "populated_table"` |
 | `09-kql-after-system-by-revision.json` | System log breakdown by RevisionName_s: 21 env-scoped (empty RevisionName_s) + 9 new revision + 4 old revision (post-update Deprovisioning events) |
 | `10-cli-versions.json` | Azure CLI version and installed extensions at the time of the run |
 | `11-cli-containerapp-ext.json` | `containerapp` extension version |
@@ -355,8 +371,10 @@ Reproduced end-to-end in `koreacentral` on 2026-06-22. All raw evidence is commi
 {
   "console_rows": 0,
   "system_rows": 0,
-  "console_result": { "is_bad_argument_error": true, "is_table_missing": true },
-  "system_result":  { "is_bad_argument_error": true, "is_table_missing": true }
+  "console_gate_classification": "silent_valid_baseline",
+  "system_gate_classification": "silent_valid_baseline",
+  "console_result": { "parse_status": "json_decode_failed", "is_bad_argument_error": true, "is_table_missing": true, "gate_classification": "silent_valid_baseline" },
+  "system_result":  { "parse_status": "json_decode_failed", "is_bad_argument_error": true, "is_table_missing": true, "gate_classification": "silent_valid_baseline" }
 }
 ```
 
@@ -365,8 +383,10 @@ Reproduced end-to-end in `koreacentral` on 2026-06-22. All raw evidence is commi
 {
   "console_rows": "1",
   "system_rows": "34",
-  "console_result": { "parse_status": "parsed_json_with_rows", "distinct_revisions": "1" },
-  "system_result":  { "parse_status": "parsed_json_with_rows", "distinct_revisions": "3" }
+  "console_gate_classification": "populated_table",
+  "system_gate_classification": "populated_table",
+  "console_result": { "parse_status": "parsed_json_with_rows", "distinct_revisions": "1", "gate_classification": "populated_table" },
+  "system_result":  { "parse_status": "parsed_json_with_rows", "distinct_revisions": "3", "gate_classification": "populated_table" }
 }
 ```
 

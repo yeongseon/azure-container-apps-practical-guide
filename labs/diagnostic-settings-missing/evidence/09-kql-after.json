@@ -9,6 +9,7 @@
     "cli_exit_code": 0,
     "rows": "1",
     "distinct_revisions": "1",
+    "gate_classification": "populated_table",
     "raw_json": [
       {
         "TableName": "PrimaryResult",
@@ -22,6 +23,7 @@
     "cli_exit_code": 0,
     "rows": "34",
     "distinct_revisions": "3",
+    "gate_classification": "populated_table",
     "raw_json": [
       {
         "TableName": "PrimaryResult",
@@ -31,5 +33,7 @@
     ]
   },
   "console_rows": "1",
-  "system_rows": "34"
+  "system_rows": "34",
+  "console_gate_classification": "populated_table",
+  "system_gate_classification": "populated_table"
 }

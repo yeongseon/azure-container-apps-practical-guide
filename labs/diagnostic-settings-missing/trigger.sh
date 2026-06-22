@@ -118,11 +118,16 @@ def parse(path, exit_code):
     except json.JSONDecodeError:
         pass
     if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
+        try:
+            rows_int = int(parsed[0].get('rows', 0))
+        except (TypeError, ValueError):
+            rows_int = 0
         return {
             'parse_status': 'parsed_json_with_rows',
             'cli_exit_code': exit_code,
             'rows': parsed[0].get('rows', 0),
             'distinct_revisions': parsed[0].get('distinct_revisions', 0),
+            'gate_classification': 'silent_valid_baseline' if rows_int == 0 else 'populated_table',
             'raw_json': parsed,
         }
     if isinstance(parsed, list) and not parsed:
@@ -131,10 +136,15 @@ def parse(path, exit_code):
             'cli_exit_code': exit_code,
             'rows': 0,
             'distinct_revisions': 0,
+            'gate_classification': 'silent_valid_baseline',
             'raw_json': [],
         }
     is_bad_arg = 'BadArgumentError' in text
     is_table_missing = "Failed to resolve table" in text or "could not be resolved" in text
+    if is_bad_arg and is_table_missing:
+        gate_classification = 'silent_valid_baseline'
+    else:
+        gate_classification = 'query_error_invalid_run'
     return {
         'parse_status': 'json_decode_failed',
         'cli_exit_code': exit_code,
@@ -142,6 +152,7 @@ def parse(path, exit_code):
         'distinct_revisions': 0,
         'is_bad_argument_error': is_bad_arg,
         'is_table_missing': is_table_missing,
+        'gate_classification': gate_classification,
         'raw_text_first_500_chars': text[:500],
     }
 
@@ -156,6 +167,8 @@ out = {
     'system_result': system,
     'console_rows': console['rows'],
     'system_rows': system['rows'],
+    'console_gate_classification': console['gate_classification'],
+    'system_gate_classification': system['gate_classification'],
 }
 with open(os.path.join(os.environ['EVIDENCE_DIR'], '04-kql-before.json'), 'w') as f:
     json.dump(out, f, indent=2)
@@ -164,24 +177,34 @@ print(json.dumps({
     'system_rows': out['system_rows'],
     'console_parse_status': console['parse_status'],
     'system_parse_status': system['parse_status'],
+    'console_gate_classification': console['gate_classification'],
+    'system_gate_classification': system['gate_classification'],
 }, indent=2))
 PYEOF
 
 CONSOLE_ROWS_BEFORE=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/04-kql-before.json'))['console_rows'])")
 SYSTEM_ROWS_BEFORE=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/04-kql-before.json'))['system_rows'])")
+CONSOLE_GATE=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/04-kql-before.json'))['console_gate_classification'])")
+SYSTEM_GATE=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/04-kql-before.json'))['system_gate_classification'])")
 
 echo ""
 echo "=== Baseline summary ==="
 echo "Env appLogsConfiguration.destination: $DEST_BEFORE"
-echo "ContainerAppConsoleLogs_CL rows for $APP_NAME: $CONSOLE_ROWS_BEFORE"
-echo "ContainerAppSystemLogs_CL rows for $APP_NAME: $SYSTEM_ROWS_BEFORE"
+echo "ContainerAppConsoleLogs_CL: rows=$CONSOLE_ROWS_BEFORE gate=$CONSOLE_GATE"
+echo "ContainerAppSystemLogs_CL: rows=$SYSTEM_ROWS_BEFORE gate=$SYSTEM_GATE"
 
-if [[ "$CONSOLE_ROWS_BEFORE" != "0" || "$SYSTEM_ROWS_BEFORE" != "0" ]]; then
+if [[ "$CONSOLE_GATE" == "query_error_invalid_run" || "$SYSTEM_GATE" == "query_error_invalid_run" ]]; then
+    echo "INVALID RUN: KQL query produced an unexpected error (not valid JSON, and not the expected BadArgumentError + 'Failed to resolve table' signature)."
+    echo "Inspect 04-kql-before-console-raw.txt and 04-kql-before-system-raw.txt for the actual error."
+    exit 1
+fi
+
+if [[ "$CONSOLE_GATE" == "populated_table" || "$SYSTEM_GATE" == "populated_table" ]]; then
     echo "H1 FALSIFIED: rows present in Log Analytics despite env destination=null."
     echo "This contradicts the expected baseline. INVALID RUN."
     exit 1
 fi
 
 echo ""
-echo "H1 PASS (baseline): 0 rows in both tables with destination=null. Proceed to verify.sh."
+echo "H1 PASS (baseline): both *_CL tables classified silent_valid_baseline with destination=null. Proceed to verify.sh."
 exit 0
