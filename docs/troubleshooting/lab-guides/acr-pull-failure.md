@@ -325,13 +325,20 @@ Expected result: the latest revision reaches `Healthy` with 100% traffic and 1/1
 
 ## Expected Evidence
 
-| Evidence Source | Expected State |
-|---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Latest revision is not `Healthy` before the fix |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Image pull failure, manifest not found, or related registry error |
-| `az acr repository show-tags --name "$ACR_NAME" --repository "labacr"` | Missing tag before fix; valid tag present after publish |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "$ACR_NAME.azurecr.io/labacr:v1"` | Update succeeds and creates a recoverable revision |
-| `./labs/acr-pull-failure/verify.sh` | Failure reproduced first, then post-fix health improves |
+This lab uses a deployment-level evidence model. The container never starts, so the `ContainerAppSystemLogs_CL` table is never materialized in the Log Analytics workspace during the failed-deployment window. The H1 gate reads three deployment-level signals (deployment error message + container app state + revision list) instead of a KQL row count; the H2 gate reads three recovery signals (revision health + traffic weight + HTTPS probe success rate). See `labs/acr-pull-failure/README.md` for the full gate-classification taxonomy.
+
+| Gate | Evidence Source | Expected State (Failure → Recovery) |
+|---|---|---|
+| H1.a | `az deployment operation group list --resource-group "$RG" --name main --query "[?properties.provisioningState=='Failed'].properties.statusMessage"` (captured to `evidence/01-deployment-operations-failed.json`) | `error.message` contains `MANIFEST_UNKNOWN: manifest tagged by "does-not-exist" is not found` |
+| H1.b | `az containerapp show --query "{provisioningState:properties.provisioningState,latestRevisionName:properties.latestRevisionName}"` (captured to `evidence/02-containerapp-show-baseline.json`) | `provisioningState=Failed`, `latestRevisionName=null` |
+| H1.c | `az containerapp revision list --output json` (captured to `evidence/03-revisions-list-baseline.json`) | Returns `[]` (no revision created — the manifest pull failed too early for a revision record). The Portal Revisions blade shows "No revisions to display" on both Active and Inactive tabs. |
+| H1.d | `az containerapp logs show --type system` (captured to `evidence/05-system-logs-show-error.txt`) | Fails with `KeyError: 'eventStreamEndpoint'` (no revision → no log stream endpoint). This `KeyError` is documented evidence of structured absence, not a script bug. |
+| H1.e | `az acr repository list --name "$ACR_NAME" --output json` (captured to `evidence/04-acr-repository-list-baseline.json`) | The `labacr` repository is absent from ACR (the `:does-not-exist` tag was never pushed, and the repository itself was never created). |
+| H2.a | `az acr build --registry "$ACR_NAME" --image labacr:v1 ./workload` (captured to `evidence/07-acr-build-result.json`) followed by `az containerapp update --image "$ACR_LOGIN_SERVER/labacr:v1"` (captured to `evidence/08-containerapp-update-result.json`) | `az acr build` succeeds and creates the `labacr` repository in ACR. `az containerapp update` succeeds and transitions the Container App from `Failed` to `Succeeded` with a new revision name populated. |
+| H2.b | `az containerapp revision list --output json` post-fix (captured to `evidence/10-revisions-list-after-fix.json`) | Latest revision: `healthState=Healthy`, `runningState=RunningAtMaxScale`, `trafficWeight=100`, 1/1 replica. |
+| H2.c | 10 sequential HTTPS requests to the recovered FQDN (captured to `evidence/12-curl-after-fix.json`) | At least 8/10 requests return HTTP 200 from the recovered Container App. |
+| Falsification | `./trigger.sh` exit code | `0` = H1 PASS (failure reproduced as documented), `2` = H1 FALSIFIED (the bad image tag did not produce a deployment failure), `1` = INVALID RUN. |
+| Falsification | `./verify.sh` exit code | `0` = H2 PASS (recovery succeeded as documented), `2` = H2 FALSIFIED (the fix did not produce a Healthy revision), `1` = INVALID RUN. |
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
