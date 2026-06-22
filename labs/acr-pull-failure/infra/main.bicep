@@ -93,8 +93,12 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
 }
 
 output logAnalyticsWorkspaceName string = logAnalytics.name
+output logAnalyticsCustomerId string = logAnalytics.properties.customerId
 output environmentName string = environment.name
 output containerRegistryName string = containerRegistry.name
 output containerRegistryLoginServer string = containerRegistry.properties.loginServer
 output containerAppName string = app.name
-output containerAppUrl string = 'https://${app.properties.configuration.ingress.fqdn}'
+// containerAppFqdn is empty in the broken-state deployment because the manifest pull fails before
+// the platform assigns an FQDN. After recovery, re-derive via `az containerapp show
+// --query "properties.configuration.ingress.fqdn"`.
+output containerAppFqdn string = app.properties.configuration.ingress.fqdn ?? ''

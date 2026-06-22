@@ -1,0 +1,23 @@
+{
+  "image": "acrlabacrrnnljl.azurecr.io/labacr:does-not-exist",
+  "ingress": {
+    "additionalPortMappings": null,
+    "allowInsecure": false,
+    "clientCertificateMode": null,
+    "corsPolicy": null,
+    "customDomains": null,
+    "exposedPort": null,
+    "external": true,
+    "fqdn": null,
+    "ipSecurityRestrictions": null,
+    "stickySessions": null,
+    "targetPort": 8000,
+    "targetPortHttpScheme": null,
+    "traffic": null,
+    "transport": null
+  },
+  "latestRevisionFqdn": null,
+  "latestRevisionName": null,
+  "name": "ca-labacr-rnnljl",
+  "provisioningState": "Failed"
+}

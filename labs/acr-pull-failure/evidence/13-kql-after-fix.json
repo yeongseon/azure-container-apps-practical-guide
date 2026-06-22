@@ -1,0 +1,22 @@
+{
+  "utc_query": "2026-06-22T13:28:40Z",
+  "fix_utc": "2026-06-22T13:26:43Z",
+  "app_name": "ca-labacr-rnnljl",
+  "post_fix_revision": "ca-labacr-rnnljl--mvlbg1j",
+  "post_fix_fqdn": "ca-labacr-rnnljl.blueflower-a74812c9.koreacentral.azurecontainerapps.io",
+  "post_fix_kql_query": "ContainerAppSystemLogs_CL | where TimeGenerated > datetime(2026-06-22T13:26:43Z) | where ContainerAppName_s == 'ca-labacr-rnnljl' | summarize rows=count(), distinct_revisions=dcount(RevisionName_s)",
+  "post_fix_kql_result": {
+    "parse_status": "parsed_json_with_rows",
+    "cli_exit_code": 0,
+    "rows": 0,
+    "distinct_revisions": 0,
+    "gate_classification": "silent_acceptable_post_fix",
+    "raw_json": [
+      {
+        "TableName": "PrimaryResult",
+        "distinct_revisions": "0",
+        "rows": "0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "operationId": "BBFDF165D6059A01",
+    "resourceName": "ca-labacr-rnnljl",
+    "resourceType": "Microsoft.App/containerApps",
+    "statusMessage": {
+      "error": {
+        "additionalInfo": null,
+        "code": "ContainerAppOperationError",
+        "details": null,
+        "message": "Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: The following field(s) are either invalid or missing. Field 'template.containers.app.image' is invalid with details: 'Invalid value: \"acrlabacrrnnljl.azurecr.io/labacr:does-not-exist\": GET https:: MANIFEST_UNKNOWN: manifest tagged by \"does-not-exist\" is not found; map[Tag:does-not-exist]';..",
+        "target": null
+      },
+      "status": "Failed"
+    }
+  }
+]

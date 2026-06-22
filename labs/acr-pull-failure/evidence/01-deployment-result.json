@@ -1,0 +1,21 @@
+{
+  "correlationId": "25f4cde2-5251-42fb-8629-eee4fb5998a0",
+  "error": {
+    "additionalInfo": null,
+    "code": "DeploymentFailed",
+    "details": [
+      {
+        "additionalInfo": null,
+        "code": "ResourceDeploymentFailure",
+        "details": null,
+        "message": "The resource write operation failed to complete successfully, because it reached terminal provisioning state 'Failed'.",
+        "target": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-acr/providers/Microsoft.App/containerApps/ca-labacr-rnnljl"
+      }
+    ],
+    "message": "At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-deployment-operations for usage details.",
+    "target": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-acr/providers/Microsoft.Resources/deployments/main"
+  },
+  "name": "main",
+  "provisioningState": "Failed",
+  "timestamp": "2026-06-22T13:20:46.091681+00:00"
+}

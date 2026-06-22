@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.41.2.15936",
-      "templateHash": "14931608701416580804"
+      "version": "0.43.8.12551",
+      "templateHash": "12277544840611456463"
     }
   },
   "parameters": {
@@ -127,6 +127,10 @@
       "type": "string",
       "value": "[variables('logAnalyticsName')]"
     },
+    "logAnalyticsCustomerId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName')), '2022-10-01').customerId]"
+    },
     "environmentName": {
       "type": "string",
       "value": "[variables('environmentName')]"
@@ -143,9 +147,9 @@
       "type": "string",
       "value": "[variables('appName')]"
     },
-    "containerAppUrl": {
+    "containerAppFqdn": {
       "type": "string",
-      "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', variables('appName')), '2023-05-01').configuration.ingress.fqdn)]"
+      "value": "[coalesce(reference(resourceId('Microsoft.App/containerApps', variables('appName')), '2023-05-01').configuration.ingress.fqdn, '')]"
     }
   }
 }
