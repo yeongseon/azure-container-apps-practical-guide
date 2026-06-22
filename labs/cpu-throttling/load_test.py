@@ -12,6 +12,7 @@ variable between the two runs is the per-replica CPU allocation on the server.
 """
 
 import json
+import math
 import sys
 import time
 import urllib.request
@@ -31,8 +32,8 @@ def fetch_one(url: str) -> tuple[str, float | str]:
 def percentile(sorted_samples: list[float], p: float) -> float:
     if not sorted_samples:
         return 0.0
-    # Nearest-rank percentile (suitable for small N).
-    rank = max(1, int(round(p * len(sorted_samples))))
+    # Nearest-rank percentile: rank = ceil(p * n), 1-indexed.
+    rank = max(1, math.ceil(p * len(sorted_samples)))
     return sorted_samples[min(rank, len(sorted_samples)) - 1]
 
 

@@ -95,6 +95,8 @@ export APP_FQDN=$(az deployment group show \
     - **H2 FALSIFIED** (cpu=1.0 p95 is NOT < 50% of cpu=0.25 p95) ⇒ CPU is not the dominant bottleneck. Investigate concurrency/network/memory. Exit 2.
     - **H1 FALSIFIED** (cpu=0.25 p95 < 100 ms) or low success count ⇒ INVALID RUN. The workload was too light or network errors corrupted the measurement. Re-run. Exit 1.
 
+> **Metric capture timing — known limitation.** Phase 5 and Phase 12 each query `UsageNanoCores` immediately after their load test completes. The captured evidence files (`04-metrics-cpu025.json`, `09-metrics-cpu1.json`) therefore document a real Azure Monitor behavior: per-minute aggregated metrics typically materialize 1-3 minutes after the event, and `PT1M` aggregation further averages a short-duration load (~3-9 s) across a full minute. In the reproduction captured here, `04` has no populated Average/Maximum samples and `09` has only one trailing minute with samples (`average=820660.5 nC`, well below peak instantaneous usage). The **load-test latency** in `03-loadtest-cpu025.json` and `08-loadtest-cpu1.json` is therefore the lab's primary evidence; the metric snapshots are kept as an honest record of the timing constraint. For a production diagnosis, wait 3-5 minutes after the load event before querying `UsageNanoCores`, and prefer the `Maximum` aggregation over `Average` for short-duration events.
+
 ## Why this workload (and not helloworld)
 
 The repository's other labs use `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` because it is the cheapest path to a working Container App. For CPU throttling specifically, helloworld is the wrong choice:

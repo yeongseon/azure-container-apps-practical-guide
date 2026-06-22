@@ -206,7 +206,7 @@ The platform requires that `(cpu, memory)` be a valid pair from the documented C
 ### Baseline evidence (cpu=0.25, 100 req / 20 concurrent)
 
 - `[Measured]` `evidence/03-loadtest-cpu025.json`: 100/100 successful requests, 0 errors, wall_clock=8.65s, latency_ms `{p50: 1554.5, p95: 2574.8, p99: 2703.4, max: 2800.8, avg: 1625.6}`. The p95 of **2575 ms** clears the 100 ms H1 minimum by more than 25×, confirming CPU pressure is the dominant component of tail latency at this configuration.
-- `[Observed]` `evidence/04-metrics-cpu025.json`: `UsageNanoCores` time series captured for the baseline window. Per-minute Average and Maximum samples corroborate the load-test latency by showing the replica's nanocore usage pinned near the 0.25 vCPU budget (`~2.5e8 nanoCores`) during the load window.
+- `[Observed]` `evidence/04-metrics-cpu025.json`: `UsageNanoCores` query for the baseline window (07:49-08:48 UTC) returned 60 per-minute timestamps with **no Average or Maximum samples populated**. This is a documented Azure Monitor metric materialization lag (1-3 minutes typical, occasionally longer) for newly-deployed Container Apps; the snapshot was taken immediately after `trigger.sh` finished its load test. The latency evidence in `03-loadtest-cpu025.json` is the lab's primary signal; the metric capture is documented as an empty baseline so that the script behavior is reproducible and the timing limitation is visible. For a production diagnosis, wait 3-5 minutes after the load event before querying `UsageNanoCores`.
 
 ### Post-fix evidence (cpu=1.0 after `az containerapp update`)
 
@@ -215,13 +215,13 @@ The platform requires that `(cpu, memory)` be a valid pair from the documented C
 - `[Observed]` `evidence/06-app-config-after.json`: `{"cpu": 1.0, "memory": "2Gi", "minReplicas": 1, "maxReplicas": 1, "latestRevisionName": "ca-cputhrottle-65svxr--0000001"}` — config readback proves the fix landed on the new revision with the expected resource envelope.
 - `[Observed]` `evidence/07-revisions-after.json`: 2 revisions visible — the old `ca-cputhrottle-65svxr--8pz2nir` in `runningState=Deprovisioning` with `trafficWeight=0`, and the new `ca-cputhrottle-65svxr--0000001` in `runningState=RunningAtMaxScale` with `trafficWeight=100`.
 - `[Measured]` `evidence/08-loadtest-cpu1.json`: 100/100 successful requests, 0 errors, wall_clock=2.85s, latency_ms `{p50: 473.6, p95: 773.2, p99: 1092.8, max: 1302.2, avg: 531.0}`. The p95 of **773 ms** is 30.0% of the cpu=0.25 p95 (2575 ms), well below the 50% H2 threshold.
-- `[Observed]` `evidence/09-metrics-cpu1.json`: `UsageNanoCores` time series captured for the post-fix window. Per-minute Average and Maximum samples show the replica using more nanocores in absolute terms (because it can) but still well under the 1.0 vCPU budget (`1e9 nanoCores`), so the replica is no longer CPU-bound.
+- `[Observed]` `evidence/09-metrics-cpu1.json`: `UsageNanoCores` query for the post-fix window (07:51-08:51 UTC) returned 62 per-minute timestamps; only the trailing minute at `08:50:00Z` has materialized samples (`average=820660.5 nanoCores`, `maximum=852758.0 nanoCores`). This is the same Azure Monitor materialization lag as the baseline capture and is further compounded by per-minute averaging: the post-fix load test ran for ~2.85 s inside a 60 s aggregation window, so the per-minute Average reads as a small fraction (≈ 2.85/60 ≈ 4.7%) of the peak instantaneous usage. The latency evidence in `08-loadtest-cpu1.json` is the primary signal; the metric capture documents that snapshot timing matters and that short-duration load events are systematically under-sampled by `PT1M` aggregation.
 
 ### Analysis
 
 The before/after comparison isolates per-replica CPU allocation as the only relevant variable. The Container App resource is unchanged across the two load tests except for `cpu` (0.25 → 1.0) and the dependent `memory` (0.5Gi → 2Gi, required for `cpu=1.0` per the platform's CPU/memory matrix); the image, command, inline Python script, ingress, target port, and `minReplicas`/`maxReplicas` are byte-identical. Both load tests use the same `load_test.py` with the same `total=100`, `concurrency=20`, same warm-up sequence (5 discarded GETs), and target the same FQDN. Network conditions are held constant by running both tests from the same client within ~2 minutes of each other.
 
-The 70.0% reduction in p95 (2575 ms → 773 ms) plus the 3.0× improvement in wall-clock throughput (8.65s → 2.85s for 100 requests at concurrency 20) directly demonstrates that the per-replica CPU budget at 0.25 vCPU was the controlling bottleneck. The `UsageNanoCores` time series at cpu=1.0 corroborates this: usage is no longer pinned near the configured limit, so the replica has headroom rather than being throttled.
+The 70.0% reduction in p95 (2575 ms → 773 ms) plus the 3.0× improvement in wall-clock throughput (8.65s → 2.85s for 100 requests at concurrency 20) directly demonstrates that the per-replica CPU budget at 0.25 vCPU was the controlling bottleneck. The load-test latency in `03-loadtest-cpu025.json` and `08-loadtest-cpu1.json` is the lab's primary evidence. The `UsageNanoCores` metric captures (`04-metrics-cpu025.json`, `09-metrics-cpu1.json`) document a separate operational lesson: a snapshot taken immediately after a load event under-samples by design — Azure Monitor metric aggregation typically materializes 1-3 minutes after the event, and the PT1M aggregation window further averages a short load test across a full minute. A production diagnostic should wait 3-5 minutes after the load event before querying `UsageNanoCores` and ideally use a Maximum aggregation rather than Average for short-duration events.
 
 The supporting environment captures (`evidence/10-cli-versions.json`, `evidence/11-cli-containerapp-ext.json`, `evidence/12-region.json`, `evidence/13-deployment-outputs.json`) record the exact CLI version (`2.79.0`), `containerapp` extension version (`1.3.0b4`, marked preview), Azure region (`koreacentral`), and Bicep deployment outputs (Container App name, FQDN, environment name, Log Analytics workspace name) used in this reproduction so that any second observer can compare apples to apples.
 
@@ -289,12 +289,12 @@ Reproduced end-to-end in `koreacentral` on 2026-06-22. All raw evidence is commi
 | `01-app-config-before.json` | Initial config readback: `{"cpu": 0.25, "memory": "0.5Gi", "minReplicas": 1, "maxReplicas": 1, "activeRevisionsMode": "Single"}` |
 | `02-revisions-before.json` | Initial revision list: 1 revision (Bicep-deployed baseline at cpu=0.25) |
 | `03-loadtest-cpu025.json` | Baseline load test summary: 100/100 ok, p50=1555ms, p95=2575ms, p99=2703ms, max=2801ms, avg=1626ms, wall=8.65s |
-| `04-metrics-cpu025.json` | `UsageNanoCores` time series for the baseline load window (Average + Maximum at PT1M intervals) |
+| `04-metrics-cpu025.json` | `UsageNanoCores` query attempt for the baseline window (07:49-08:48 UTC); 60 per-minute timestamps with no Average/Maximum samples populated — documents Azure Monitor metric materialization lag for snapshots taken immediately after a load event |
 | `05-update-result.json` | `az containerapp update --cpu 1.0 --memory 2.0Gi` result: new revision name `ca-cputhrottle-65svxr--0000001`, provisioningState=Succeeded |
 | `06-app-config-after.json` | Post-fix config readback: `{"cpu": 1.0, "memory": "2Gi", "minReplicas": 1, "maxReplicas": 1, "latestRevisionName": "ca-cputhrottle-65svxr--0000001"}` |
 | `07-revisions-after.json` | Post-fix revision list: 2 revisions — old in Deprovisioning, new RunningAtMaxScale with 100% traffic |
 | `08-loadtest-cpu1.json` | Post-fix load test summary: 100/100 ok, p50=474ms, p95=773ms, p99=1093ms, max=1302ms, avg=531ms, wall=2.85s |
-| `09-metrics-cpu1.json` | `UsageNanoCores` time series for the post-fix load window |
+| `09-metrics-cpu1.json` | `UsageNanoCores` query for the post-fix window (07:51-08:51 UTC); 62 per-minute timestamps, only the trailing minute at 08:50:00Z has materialized samples (average=820660.5 nC, maximum=852758.0 nC) due to materialization lag + PT1M averaging of a ~2.85 s load event |
 | `10-cli-versions.json` | Azure CLI version (`2.79.0`) and installed extensions at the time of the run |
 | `11-cli-containerapp-ext.json` | `containerapp` extension version (`1.3.0b4`, marked preview) |
 | `12-region.json` | Azure region (`koreacentral`) used for the reproduction |
@@ -349,6 +349,7 @@ az containerapp update \
 - [Memory Leak OOMKilled](./memory-leak-oomkilled.md)
 - [Replica Load Imbalance](./replica-load-imbalance.md)
 - [Cold Start and Scale-to-Zero Lab](./cold-start-scale-to-zero.md)
+- [Image Size Startup Delay Lab](./image-size-startup-delay.md)
 - [Revision History Limit Lab](./revision-history-limit.md)
 
 ## Sources
