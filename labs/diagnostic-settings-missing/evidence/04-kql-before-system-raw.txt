@@ -1,0 +1,11 @@
+ERROR: (BadArgumentError) The request had some invalid properties
+Code: BadArgumentError
+Message: The request had some invalid properties
+Inner error: {
+    "code": "SemanticError",
+    "message": "A semantic error occurred.",
+    "innererror": {
+        "code": "SEM0100",
+        "message": "'where' operator: Failed to resolve table or column expression named 'ContainerAppSystemLogs_CL'"
+    }
+}

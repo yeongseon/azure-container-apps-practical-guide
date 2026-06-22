@@ -1,0 +1,84 @@
+verify.sh starting at 2026-06-22T09:50:06Z
+RG: rg-aca-lab-diagsetting
+App: ca-diagsetting-7dcl4v
+Env: cae-diagsetting-7dcl4v
+FQDN: ca-diagsetting-7dcl4v.wonderfuldesert-267a08f6.koreacentral.azurecontainerapps.io
+
+Baseline console rows: 0
+Baseline system rows:  0
+
+=== Phase 6: az containerapp env update --logs-destination log-analytics ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+[K{
+  "destination": "log-analytics",
+  "name": "cae-diagsetting-7dcl4v",
+  "provisioningState": "Succeeded"
+}
+
+=== Phase 7: env config readback (expect destination=log-analytics) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+{
+  "destination": "log-analytics",
+  "logAnalyticsConfiguration": {
+    "customerId": "064c1c2e-2360-41e3-b545-afdf15a960d9",
+    "dynamicJsonColumns": false,
+    "sharedKey": null
+  }
+}
+
+=== Phase 8: force new revision via env-var update (FIXAPPLIED nonce) ===
+WARNING: The behavior of this command has been altered by the following extension: containerapp
+
+/ Running ..
+| Running ..
+\ Running ..
+- Running ..
+/ Running ..
+[K=== Phase 9: wait for new revision to reach Running ===
+attempt=1 revision=ca-diagsetting-7dcl4v--0000001 runningState=Activating
+attempt=2 revision=ca-diagsetting-7dcl4v--0000001 runningState=RunningAtMaxScale
+[
+  {
+    "createdTime": "2026-06-22T09:34:37+00:00",
+    "name": "ca-diagsetting-7dcl4v--4usom8i",
+    "runningState": "Deprovisioning",
+    "trafficWeight": 0
+  },
+  {
+    "createdTime": "2026-06-22T09:52:28+00:00",
+    "name": "ca-diagsetting-7dcl4v--0000001",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]
+
+=== Phase 10: send 10 HTTP requests to new revision ===
+Sent 10 requests, 10/10 ok
+
+=== Phase 11: wait 300s for log ingestion ===
+Wait complete at 2026-06-22T09:58:11Z
+
+=== Phase 12: KQL ContainerAppConsoleLogs_CL + ContainerAppSystemLogs_CL (expect >=1 row) ===
+{
+  "console_rows": "1",
+  "system_rows": "34",
+  "console_parse_status": "parsed_json_with_rows",
+  "system_parse_status": "parsed_json_with_rows"
+}
+
+=== Summary ===
+BEFORE: console=0 system=0
+AFTER:  console=1 system=34
+
+H1 (baseline=0 rows): true
+H2 (post-fix>0 rows): true
+VERDICT: SUPPORTED. Diagnostic settings (env appLogsConfiguration) is the controlling variable for Log Analytics ingestion.

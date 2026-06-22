@@ -1,0 +1,14 @@
+[
+  {
+    "createdTime": "2026-06-22T09:34:37+00:00",
+    "name": "ca-diagsetting-7dcl4v--4usom8i",
+    "runningState": "Deprovisioning",
+    "trafficWeight": 0
+  },
+  {
+    "createdTime": "2026-06-22T09:52:28+00:00",
+    "name": "ca-diagsetting-7dcl4v--0000001",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100
+  }
+]

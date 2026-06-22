@@ -1,0 +1,58 @@
+{
+  "post_fix_revision": "ca-diagsetting-7dcl4v--0000001",
+  "requests_sent": 10,
+  "requests_ok": 10,
+  "utc_completed": "2026-06-22T09:53:02Z",
+  "samples": [
+    {
+      "i": 0,
+      "status": 200,
+      "elapsed_ms": 440.3
+    },
+    {
+      "i": 1,
+      "status": 200,
+      "elapsed_ms": 417.7
+    },
+    {
+      "i": 2,
+      "status": 200,
+      "elapsed_ms": 417.6
+    },
+    {
+      "i": 3,
+      "status": 200,
+      "elapsed_ms": 416.7
+    },
+    {
+      "i": 4,
+      "status": 200,
+      "elapsed_ms": 490.2
+    },
+    {
+      "i": 5,
+      "status": 200,
+      "elapsed_ms": 421.5
+    },
+    {
+      "i": 6,
+      "status": 200,
+      "elapsed_ms": 414.8
+    },
+    {
+      "i": 7,
+      "status": 200,
+      "elapsed_ms": 421.7
+    },
+    {
+      "i": 8,
+      "status": 200,
+      "elapsed_ms": 414.7
+    },
+    {
+      "i": 9,
+      "status": 200,
+      "elapsed_ms": 428.1
+    }
+  ]
+}
