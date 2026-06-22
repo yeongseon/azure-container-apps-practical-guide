@@ -19,27 +19,39 @@ labs/appinsights-connection-string-missing/
 
 ## Quick Start
 
+These commands assume the working directory is `labs/appinsights-connection-string-missing/` (so the relative `./infra/main.bicep`, `./app`, `./trigger.sh`, `./verify.sh`, and `./cleanup.sh` paths resolve). All `az` invocations pin `--subscription` explicitly to immunize the run against Azure CLI default-subscription drift, and the deployment is given the explicit name `main` so its outputs can be read back deterministically.
+
 ```bash
+cd labs/appinsights-connection-string-missing/
+
+# 1) Base inputs — set these before any az command runs.
+export AZ_SUBSCRIPTION="$(az account show --query "id" --output tsv)"
 export RG="rg-aca-lab-aiconn"
 export LOCATION="koreacentral"
 
-az group create --name "$RG" --location "$LOCATION"
+# 2) Provision the resource group and the lab infra (LAW + AI + ACR + CAE + app).
+az group create \
+  --subscription "$AZ_SUBSCRIPTION" \
+  --name "$RG" \
+  --location "$LOCATION"
 
 az deployment group create \
+  --subscription "$AZ_SUBSCRIPTION" \
   --resource-group "$RG" \
+  --name main \
   --template-file ./infra/main.bicep \
   --parameters baseName="appiconn"
 
-# Read the deployment outputs the scripts need.
-export AZ_SUBSCRIPTION=$(az account show --query "id" --output tsv)
-export APP_NAME=$(az deployment group show --resource-group "$RG" --name main --query "properties.outputs.containerAppName.value" --output tsv)
-export ACR_NAME=$(az deployment group show --resource-group "$RG" --name main --query "properties.outputs.acrName.value" --output tsv)
-export ACR_LOGIN_SERVER=$(az deployment group show --resource-group "$RG" --name main --query "properties.outputs.acrLoginServer.value" --output tsv)
-export APP_INSIGHTS_NAME=$(az deployment group show --resource-group "$RG" --name main --query "properties.outputs.appInsightsName.value" --output tsv)
+# 3) Read the deployment outputs the scripts need.
+export APP_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.containerAppName.value" --output tsv)
+export ACR_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.acrName.value" --output tsv)
+export ACR_LOGIN_SERVER=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.acrLoginServer.value" --output tsv)
+export APP_INSIGHTS_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.appInsightsName.value" --output tsv)
 export IMAGE_TAG="hellotelemetry:v3"
 
-# Build the instrumented Python image directly inside the lab's ACR (no local Docker required).
+# 4) Build the instrumented Python image directly inside the lab's ACR (no local Docker required).
 az acr build \
+  --subscription "$AZ_SUBSCRIPTION" \
   --registry "$ACR_NAME" \
   --image "$IMAGE_TAG" \
   ./app
@@ -61,7 +73,7 @@ az acr build \
 This lab carries two earlier image tags that document distinct failure modes encountered while building the lab. They are kept in the ACR and in the evidence pack so the lab itself documents what was tried and why the current image is what it is:
 
 - `:v1` — `configure_azure_monitor()` called UNGUARDED. With `APPLICATIONINSIGHTS_CONNECTION_STRING` unset, `azure-monitor-opentelemetry==1.6.4` raises `ValueError: Instrumentation key cannot be none or empty.` at import time, the gunicorn worker exits with code 3, and the container enters CrashLoopBackOff. This is a DIFFERENT failure mode (availability loss, not silent observability gap) and is captured under `evidence/A1-v1-unguarded-sdk-crash-logs.json`. Not used as the canonical scenario because production apps in real escalations typically wrap SDK init defensively.
-- `:v2` — `configure_azure_monitor()` is guarded by an env-var presence check, but Flask is imported with `from flask import Flask` BEFORE `configure_azure_monitor()` runs. The Flask auto-instrumentation hook cannot wrap the Flask class after it has been fully imported, so `AppRequests` stays empty even when the env var is present. This is the kind of subtle Python distro instrumentation gotcha that easily masquerades as "connection string missing" in production. Documented for context but superseded by `:v3`.
+- `:v2` — `configure_azure_monitor()` is guarded by an env-var presence check, but Flask is imported with `from flask import Flask` BEFORE `configure_azure_monitor()` runs. In this lab's development experience the Flask auto-instrumentation hook could not wrap the `Flask` class after it had been fully imported, so `AppRequests` stayed empty even when the env var was present. This is the kind of subtle Python distro instrumentation gotcha that easily masquerades as "connection string missing" in production. The `:v2` source variant is described here as a lab-development observation; no per-revision `AppRequests`/`AppTraces` capture file is committed for it (the canonical falsification pair in this lab is the `:v3` before/after run, not a `:v2`/`:v3` comparison).
 - `:v3` — canonical image. Same guard as `:v2`, plus two fixes: (1) `import flask` as a module (deferring the `Flask` class lookup until AFTER `configure_azure_monitor()` runs), and (2) `configure_azure_monitor(connection_string=CONN_STR, logger_name=__name__)` with explicit `logger_name` so module-level `logger.info(...)` calls export to `AppTraces`.
 
 ## Cost notes

@@ -35,6 +35,11 @@ az containerapp update \
 
 echo ""
 echo "==> Waiting up to 3 minutes for the new revision to become Healthy..."
+HEALTHY="false"
+LATEST_NAME=""
+STATE=""
+REPLICA_STATE=""
+CONTAINER_STATE=""
 for i in {1..18}; do
   LATEST_NAME=$(az containerapp show \
     --subscription "$AZ_SUBSCRIPTION" \
@@ -66,10 +71,19 @@ for i in {1..18}; do
   printf "  [%02d/18] revision=%s provisioningState=%s replica=%s container=%s\n" \
     "$i" "$LATEST_NAME" "$STATE" "$REPLICA_STATE" "$CONTAINER_STATE"
   if [ "$STATE" = "Provisioned" ] && [ "$CONTAINER_STATE" = "Running" ]; then
+    HEALTHY="true"
     break
   fi
   sleep 10
 done
+
+if [ "$HEALTHY" != "true" ]; then
+  echo ""
+  echo "FAIL: Revision $LATEST_NAME did not reach (provisioningState=Provisioned, containers[0].runningState=Running) within 3 minutes."
+  echo "      Final state: provisioningState=$STATE replica=$REPLICA_STATE container=$CONTAINER_STATE"
+  echo "      Aborting verify.sh to avoid capturing evidence against a non-Running revision (would invalidate the experiment)."
+  exit 1
+fi
 
 echo ""
 echo "==> [AFTER FIX] Container App env state (expect APPLICATIONINSIGHTS_CONNECTION_STRING name present, value redacted):"
