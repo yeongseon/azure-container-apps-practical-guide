@@ -1,0 +1,27 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-aiconn/providers/Microsoft.App/containerApps/ca-appiconn-x2lcxd/revisions/ca-appiconn-x2lcxd--0000001/replicas/ca-appiconn-x2lcxd--0000001-798469d797-hvvx7",
+    "name": "ca-appiconn-x2lcxd--0000001-798469d797-hvvx7",
+    "properties": {
+      "containers": [
+        {
+          "debugEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-aiconn/containerApps/ca-appiconn-x2lcxd/revisions/ca-appiconn-x2lcxd--0000001/replicas/ca-appiconn-x2lcxd--0000001-798469d797-hvvx7/debug?targetContainer=app",
+          "execEndpoint": "wss://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-aiconn/containerApps/ca-appiconn-x2lcxd/revisions/ca-appiconn-x2lcxd--0000001/replicas/ca-appiconn-x2lcxd--0000001-798469d797-hvvx7/containers/app/exec",
+          "logStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-aiconn/containerApps/ca-appiconn-x2lcxd/revisions/ca-appiconn-x2lcxd--0000001/replicas/ca-appiconn-x2lcxd--0000001-798469d797-hvvx7/containers/app/logstream",
+          "name": "app",
+          "ready": false,
+          "restartCount": 7,
+          "runningState": "Waiting",
+          "runningStateDetails": "Container is waiting with reason: CrashLoopBackOff on legion.",
+          "started": false
+        }
+      ],
+      "createdTime": "2026-06-22T03:57:18Z",
+      "initContainers": [],
+      "runningState": "NotRunning",
+      "runningStateDetails": "System Identity Container is still running."
+    },
+    "resourceGroup": "rg-aca-lab-aiconn",
+    "type": "Microsoft.App/containerapps/revisions/replicas"
+  }
+]

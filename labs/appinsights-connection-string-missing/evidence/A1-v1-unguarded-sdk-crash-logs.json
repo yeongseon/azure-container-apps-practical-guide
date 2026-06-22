@@ -1,0 +1,57 @@
+{"TimeStamp": "2026-06-22T04:17:27.58392", "Log": "Connecting to the container 'app'..."}
+{"TimeStamp": "2026-06-22T04:17:27.68409", "Log": "Successfully Connected to container: 'app' [Revision: 'ca-appiconn-x2lcxd--0000001', Replica: 'ca-appiconn-x2lcxd--0000001-798469d797-hvvx7']"}
+{"TimeStamp": "2026-06-22T04:12:55.0285974+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [1] [INFO] Starting gunicorn 23.0.0"}
+{"TimeStamp": "2026-06-22T04:12:55.0288143+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)"}
+{"TimeStamp": "2026-06-22T04:12:55.0288333+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [1] [INFO] Using worker: sync"}
+{"TimeStamp": "2026-06-22T04:12:55.031508+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [8] [INFO] Booting worker with pid: 8"}
+{"TimeStamp": "2026-06-22T04:12:55.4492225+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [8] [ERROR] Exception in worker process"}
+{"TimeStamp": "2026-06-22T04:12:55.4492651+00:00", "Log": "F Traceback (most recent call last):"}
+{"TimeStamp": "2026-06-22T04:12:55.4492836+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py\", line 608, in spawn_worker"}
+{"TimeStamp": "2026-06-22T04:12:55.4492872+00:00", "Log": "F     worker.init_process()"}
+{"TimeStamp": "2026-06-22T04:12:55.4492896+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py\", line 135, in init_process"}
+{"TimeStamp": "2026-06-22T04:12:55.4492921+00:00", "Log": "F     self.load_wsgi()"}
+{"TimeStamp": "2026-06-22T04:12:55.4492942+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py\", line 147, in load_wsgi"}
+{"TimeStamp": "2026-06-22T04:12:55.4493014+00:00", "Log": "F     self.wsgi = self.app.wsgi()"}
+{"TimeStamp": "2026-06-22T04:12:55.4493036+00:00", "Log": "F                 ^^^^^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.4493056+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py\", line 66, in wsgi"}
+{"TimeStamp": "2026-06-22T04:12:55.4493076+00:00", "Log": "F     self.callable = self.load()"}
+{"TimeStamp": "2026-06-22T04:12:55.4493096+00:00", "Log": "F                     ^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.4493117+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py\", line 57, in load"}
+{"TimeStamp": "2026-06-22T04:12:55.4493138+00:00", "Log": "F     return self.load_wsgiapp()"}
+{"TimeStamp": "2026-06-22T04:12:55.4493158+00:00", "Log": "F            ^^^^^^^^^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.4493178+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py\", line 47, in load_wsgiapp"}
+{"TimeStamp": "2026-06-22T04:12:55.4493199+00:00", "Log": "F     return util.import_app(self.app_uri)"}
+{"TimeStamp": "2026-06-22T04:12:55.4493219+00:00", "Log": "F            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.4493825+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/gunicorn/util.py\", line 370, in import_app"}
+{"TimeStamp": "2026-06-22T04:12:55.4493867+00:00", "Log": "F     mod = importlib.import_module(module)"}
+{"TimeStamp": "2026-06-22T04:12:55.4493898+00:00", "Log": "F           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.449392+00:00", "Log": "F   File \"/usr/local/lib/python3.11/importlib/__init__.py\", line 126, in import_module"}
+{"TimeStamp": "2026-06-22T04:12:55.4493942+00:00", "Log": "F     return _bootstrap._gcd_import(name[level:], package, level)"}
+{"TimeStamp": "2026-06-22T04:12:55.4493964+00:00", "Log": "F            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.4493985+00:00", "Log": "F   File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import"}
+{"TimeStamp": "2026-06-22T04:12:55.4494005+00:00", "Log": "F   File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load"}
+{"TimeStamp": "2026-06-22T04:12:55.4494026+00:00", "Log": "F   File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked"}
+{"TimeStamp": "2026-06-22T04:12:55.4494048+00:00", "Log": "F   File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked"}
+{"TimeStamp": "2026-06-22T04:12:55.449407+00:00", "Log": "F   File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module"}
+{"TimeStamp": "2026-06-22T04:12:55.449411+00:00", "Log": "F   File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed"}
+{"TimeStamp": "2026-06-22T04:12:55.449413+00:00", "Log": "F   File \"/app/app.py\", line 21, in <module>"}
+{"TimeStamp": "2026-06-22T04:12:55.449415+00:00", "Log": "F     configure_azure_monitor()"}
+{"TimeStamp": "2026-06-22T04:12:55.4494171+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/azure/monitor/opentelemetry/_configure.py\", line 118, in configure_azure_monitor"}
+{"TimeStamp": "2026-06-22T04:12:55.4494328+00:00", "Log": "F     _setup_tracing(configurations)"}
+{"TimeStamp": "2026-06-22T04:12:55.449436+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/azure/monitor/opentelemetry/_configure.py\", line 149, in _setup_tracing"}
+{"TimeStamp": "2026-06-22T04:12:55.4494388+00:00", "Log": "F     trace_exporter = AzureMonitorTraceExporter(**configurations)"}
+{"TimeStamp": "2026-06-22T04:12:55.4494409+00:00", "Log": "F                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.449443+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/azure/monitor/opentelemetry/exporter/export/trace/_exporter.py\", line 128, in __init__"}
+{"TimeStamp": "2026-06-22T04:12:55.4495136+00:00", "Log": "F     super().__init__(**kwargs)"}
+{"TimeStamp": "2026-06-22T04:12:55.4495186+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/azure/monitor/opentelemetry/exporter/export/_base.py\", line 111, in __init__"}
+{"TimeStamp": "2026-06-22T04:12:55.449521+00:00", "Log": "F     parsed_connection_string = ConnectionStringParser(kwargs.get(\"connection_string\"))"}
+{"TimeStamp": "2026-06-22T04:12:55.449523+00:00", "Log": "F                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"}
+{"TimeStamp": "2026-06-22T04:12:55.4495251+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/azure/monitor/opentelemetry/exporter/_connection_string_parser.py\", line 44, in __init__"}
+{"TimeStamp": "2026-06-22T04:12:55.4495274+00:00", "Log": "F     self._validate_instrumentation_key()"}
+{"TimeStamp": "2026-06-22T04:12:55.4495599+00:00", "Log": "F   File \"/usr/local/lib/python3.11/site-packages/azure/monitor/opentelemetry/exporter/_connection_string_parser.py\", line 106, in _validate_instrumentation_key"}
+{"TimeStamp": "2026-06-22T04:12:55.4495648+00:00", "Log": "F     raise ValueError(\"Instrumentation key cannot be none or empty.\")"}
+{"TimeStamp": "2026-06-22T04:12:55.4495675+00:00", "Log": "F ValueError: Instrumentation key cannot be none or empty."}
+{"TimeStamp": "2026-06-22T04:12:55.4495718+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [8] [INFO] Worker exiting (pid: 8)"}
+{"TimeStamp": "2026-06-22T04:12:55.5325604+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [1] [ERROR] Worker (pid:8) exited with code 3"}
+{"TimeStamp": "2026-06-22T04:12:55.5328207+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [1] [ERROR] Shutting down: Master"}
+{"TimeStamp": "2026-06-22T04:12:55.5328283+00:00", "Log": "F [2026-06-22 04:12:55 +0000] [1] [ERROR] Reason: Worker failed to boot."}

@@ -1,0 +1,128 @@
+{
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "timestamp",
+          "type": "datetime"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        },
+        {
+          "name": "severityLevel",
+          "type": "int"
+        }
+      ],
+      "name": "PrimaryResult",
+      "rows": [
+        [
+          "2026-06-22T05:08:50.418265Z",
+          "Azure Monitor configured: telemetry export enabled",
+          1
+        ],
+        [
+          "2026-06-22T05:09:24.936228Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:25.990563Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:26.981778Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:27.997679Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:29.031197Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:30.044085Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:31.129302Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:32.100296Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:33.180509Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:34.143018Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:35.149818Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:36.155104Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:37.192116Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:38.231386Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:39.323324Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:40.394423Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:41.444433Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:42.452544Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:43.454833Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ],
+        [
+          "2026-06-22T05:09:44.415933Z",
+          "/ endpoint hit (conn_str_present=True)",
+          1
+        ]
+      ]
+    }
+  ]
+}

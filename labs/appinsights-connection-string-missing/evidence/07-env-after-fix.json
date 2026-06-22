@@ -1,0 +1,7 @@
+{
+  "containerName": "app",
+  "envNames": [
+    "APPLICATIONINSIGHTS_CONNECTION_STRING"
+  ],
+  "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3"
+}

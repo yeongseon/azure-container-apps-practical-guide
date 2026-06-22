@@ -1,0 +1,23 @@
+{
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "cloud_RoleName",
+          "type": "string"
+        },
+        {
+          "name": "traceCount",
+          "type": "long"
+        }
+      ],
+      "name": "PrimaryResult",
+      "rows": [
+        [
+          "unknown_service",
+          21
+        ]
+      ]
+    }
+  ]
+}

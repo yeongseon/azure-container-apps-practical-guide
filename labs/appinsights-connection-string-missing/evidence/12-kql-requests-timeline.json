@@ -1,0 +1,28 @@
+{
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "cloud_RoleName",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "datetime"
+        },
+        {
+          "name": "requestCount",
+          "type": "long"
+        }
+      ],
+      "name": "PrimaryResult",
+      "rows": [
+        [
+          "unknown_service",
+          "2026-06-22T05:05:00Z",
+          20
+        ]
+      ]
+    }
+  ]
+}

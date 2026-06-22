@@ -1,0 +1,58 @@
+[
+  {
+    "active": false,
+    "createdTime": "2026-06-22T03:55:13+00:00",
+    "hasConnStr": false,
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "name": "ca-appiconn-x2lcxd--vfjk66n"
+  },
+  {
+    "active": false,
+    "createdTime": "2026-06-22T03:57:18+00:00",
+    "hasConnStr": false,
+    "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v1",
+    "name": "ca-appiconn-x2lcxd--0000001"
+  },
+  {
+    "active": false,
+    "createdTime": "2026-06-22T04:20:14+00:00",
+    "hasConnStr": false,
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "name": "ca-appiconn-x2lcxd--0000002"
+  },
+  {
+    "active": false,
+    "createdTime": "2026-06-22T04:29:09+00:00",
+    "hasConnStr": false,
+    "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v2",
+    "name": "ca-appiconn-x2lcxd--0000003"
+  },
+  {
+    "active": false,
+    "createdTime": "2026-06-22T04:36:40+00:00",
+    "hasConnStr": true,
+    "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v2",
+    "name": "ca-appiconn-x2lcxd--0000004"
+  },
+  {
+    "active": false,
+    "createdTime": "2026-06-22T05:01:06+00:00",
+    "hasConnStr": false,
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "name": "ca-appiconn-x2lcxd--0000005"
+  },
+  {
+    "active": false,
+    "createdTime": "2026-06-22T05:01:48+00:00",
+    "hasConnStr": false,
+    "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+    "name": "ca-appiconn-x2lcxd--0000006"
+  },
+  {
+    "active": true,
+    "createdTime": "2026-06-22T05:08:34+00:00",
+    "hasConnStr": true,
+    "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+    "name": "ca-appiconn-x2lcxd--0000007"
+  }
+]
