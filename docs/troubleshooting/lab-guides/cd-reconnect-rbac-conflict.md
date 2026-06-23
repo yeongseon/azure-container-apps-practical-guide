@@ -14,8 +14,8 @@ content_validation:
   lab_validation:
     status: reproduced
     tested_date: 2026-06-23
-    az_cli_version: 2.83.0
-    notes: End-to-end run (trigger.sh + verify.sh + cleanup.sh) confirmed H1 (conflict reproduces) and H2 (delete + retry recovers); evidence captured under labs/cd-reconnect-rbac-conflict/evidence/.
+    az_cli_version: 2.79.0
+    notes: Live validation cycle (iterative trigger.sh / verify.sh reruns + cleanup.sh) on 2026-06-23 confirmed H1 (conflict reproduces) and H2 (delete + retry recovers). The evidence files under labs/cd-reconnect-rbac-conflict/evidence/ were captured across multiple script invocations during the same cycle, so individual file timestamps reflect that iterative process — see the Observed Evidence subsection for the per-phase chronology. CLI version is taken from evidence/18-cli-versions.json.
   core_claims:
     - claim: Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition.
       source: https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
@@ -29,9 +29,9 @@ content_validation:
 validation:
   az_cli:
     last_tested: '2026-06-23'
-    cli_version: 2.83.0
+    cli_version: 2.79.0
     result: pass
-    notes: End-to-end run with az 2.83.0 reproduced RoleAssignmentExists (H1) and confirmed delete + retry recovery (H2). All evidence files validated under labs/cd-reconnect-rbac-conflict/evidence/.
+    notes: Live validation cycle with az 2.79.0 (azure-cli 2.79.0 / containerapp extension 1.3.0b4 per evidence/18-cli-versions.json) reproduced RoleAssignmentExists (H1) and confirmed delete + retry recovery (H2). All evidence files validated under labs/cd-reconnect-rbac-conflict/evidence/. The Observed Evidence subsection discloses that artifacts were assembled across iterative reruns during the same 2026-06-23 cycle.
   bicep:
     last_tested: '2026-06-23'
     result: pass
@@ -298,9 +298,16 @@ Expected result: the second deployment fails with `RoleAssignmentExists`, the de
 **Environment:** `rg-aca-lab-cd-rbac`, `koreacentral`.
 **Service Principal:** `ca-labcdrbac-mym3wz-github-actions-lab` (simulated CD identity, mirrors `az containerapp github-action add`).
 **Container Registry:** `acrlabcdrbacmym3wz`.
-**Tooling versions:** azure-cli `2.83.0`, containerapp extension `1.3.0b4`.
+**Tooling versions:** azure-cli `2.79.0`, containerapp extension `1.3.0b4` (source of truth: `evidence/18-cli-versions.json`).
 
-This run validates the end-to-end automation (`trigger.sh` + `verify.sh` + `cleanup.sh`) against a live Azure environment. Raw evidence is captured under `labs/cd-reconnect-rbac-conflict/evidence/`. All PII (subscription, tenant, principal IDs) is replaced with the documented Azure zero-GUID placeholder; deterministic GUIDs, Azure correlation IDs, and Azure-assigned role-assignment GUIDs are preserved as lab evidence.
+This subsection validates the lab automation (`trigger.sh` + `verify.sh` + `cleanup.sh`) against a live Azure environment. Raw evidence is captured under `labs/cd-reconnect-rbac-conflict/evidence/`. All PII (subscription, tenant, principal IDs) is replaced with the documented Azure zero-GUID placeholder; deterministic GUIDs, Azure correlation IDs, and Azure-assigned role-assignment GUIDs are preserved as lab evidence.
+
+**Honest disclosure of run chronology.** The evidence files were assembled across **multiple iterative script reruns during the same 2026-06-23 cycle**, not from one pristine linear pass. Two consequences are visible in the timestamps and to anyone re-examining the artifacts:
+
+- The Phase 3 baseline `evidence/03-role-assignment-list-baseline.json` shows the deterministic role-assignment `47d5a904-80ad-53e1-aa11-828e33d16cef` with `createdOn: 12:19:18Z`, which **predates** the Phase 2 deployment `timestamp: 12:22:11Z` in `evidence/02-deployment-initial-output.json`. That is because the deterministic name (derived from inputs that do not change across reruns) caused the captured Phase 2 deploy to be an ARM idempotent no-op — the assignment had been created during an earlier iteration of the same cycle. The Phase 2 `provisioningState: Succeeded` claim is therefore "ARM accepted the request" rather than "this exact CLI invocation created the assignment". The H1 falsification (conflict reproduces when a fresh `roleAssignmentName` targets the same `(scope, principal, role)` triple) is still proven by `evidence/04-deployment-reconnect-stderr.txt` and `evidence/05-deployment-reconnect-failure.json`.
+- The Phase 9 pre-delete name `926c60b6-4250-4125-b9c3-8c822b8a535f` (`evidence/09-role-assignment-pre-delete.json`) does not match the H1 deterministic GUID — it was the recovery name left in place by an earlier verify-script invocation in the same cycle. The H2 falsification (delete the orphan → fresh deploy succeeds → cardinality preserved at 1) is unaffected: the orphan is deleted, the recovery deploy lands a different name (`e3df1205-...`), and the post-recovery snapshots confirm exactly one `AcrPush` assignment.
+
+The narrative below describes the per-phase evidence as captured, with phase numbers referencing positions in `trigger.sh` and `verify.sh` rather than wall-clock ordering of the captured artifacts.
 
 #### H1: conflict reproduction (`trigger.sh`)
 
@@ -334,7 +341,7 @@ H1 gate (`evidence/07-h1-gate.json`): `cd_rbac_conflict_reproduced`, all 4 sub-g
 
 [Observed] Phase 13 + Phase 14 role-assignment lists at +15 s and +30 s after recovery showed exactly **1** `AcrPush` assignment with `name = e3df1205-6ca1-4b26-9468-2732121d6102` (the new GUID, not the deleted deterministic one) — cardinality preserved, no double-assignment (`evidence/12-role-assignment-list-post-recovery.json`, `evidence/13-role-assignment-list-cardinality-verify.json`).
 
-[Inferred] The documented recovery procedure (`az role assignment delete --ids ...` + retry the ARM deployment with a fresh GUID) restores convergence: the `(scope, principal, role)` triple is again held by exactly one assignment, just with a different `name`. The pre-delete name (`926c60b6-4250-4125-b9c3-8c822b8a535f`, an Azure-assigned ID from an earlier verify run) and the post-recovery name (`e3df1205-6ca1-4b26-9468-2732121d6102`) differ; both are valid for the same `(scope, principal, role)` triple, confirming the constraint is on the triple — not on the assignment name.
+[Inferred] The documented recovery procedure (`az role assignment delete --ids ...` + retry the ARM deployment with a fresh GUID) restores convergence: the `(scope, principal, role)` triple is again held by exactly one assignment, just with a different `name`. The pre-delete name (`926c60b6-4250-4125-b9c3-8c822b8a535f`, an assignment name from an earlier verify-script invocation in this same iterative cycle) and the post-recovery name (`e3df1205-6ca1-4b26-9468-2732121d6102`) differ; both are valid for the same `(scope, principal, role)` triple, confirming the constraint is on the triple — not on the assignment name.
 
 H2 gate (`evidence/14-h2-gate.json`): `cd_rbac_recovered_after_delete_retry`, all 4 sub-gates PASS.
 
@@ -345,7 +352,13 @@ Two latent script bugs were discovered and fixed during this run; both would hav
 - **`trigger.sh` Phase 6 Python heredoc**: the original heredoc lacked single-quote delimiters, so bash interpolated `$RECONNECT_HAS_ROLE_ASSIGNMENT_EXISTS` (lowercase `true` / `false`) into the Python source where it became a `NameError`. Fixed by quoting the heredoc (`<<'PYEOF'`) and reading the environment variable via `os.environ[...].lower() == 'true'`, matching the Phase 7 pattern already in the same file.
 - **`verify.sh` Phase 12 redirect**: the original `> file 2>&1` redirect merged the Azure CLI `WARNING: A new Bicep release is available: ...` (printed on stderr by the bicep transpiler) into the same file `python3 json.load()` was asked to parse, producing a `JSONDecodeError` and a false-negative H2 gate. Fixed by splitting stdout/stderr (`> file 2> file.stderr`) and adding `--only-show-errors` as defence in depth.
 
-[Observed] After both fixes, the end-to-end run produced clean H1 + H2 PASS gates with no parser failures (`evidence/22-cleanup-output.txt` confirms the cleanup phase also completed cleanly with async RG deletion initiated).
+[Observed] After both fixes, the iterative cycle produced clean H1 + H2 PASS gates with no parser failures (`evidence/22-cleanup-output.txt` confirms the cleanup phase also completed cleanly with async RG deletion initiated).
+
+**Operator caveat — script start-state assumptions.** These bug fixes harden the scripts against parser-level false negatives but do **not** make `trigger.sh` idempotent from arbitrary RBAC states. Specifically:
+
+- `trigger.sh` deploys the role-assignment Bicep with `roleAssignmentName=""`, which the template resolves to the deterministic `guid(registry.id, principalObjectId, acrPushRoleId)`. If the resource group already has an `AcrPush` assignment for the same SP+ACR but under a **different** name (for example the recovery name `e3df1205-...` left by a prior `verify.sh` run), Phase 2 of `trigger.sh` will fail with `RoleAssignmentExists` against the new deterministic name and the H1 gate will not start.
+- The supported start states for `trigger.sh` are: (a) no existing `AcrPush` assignment for this SP+ACR, or (b) only the deterministic-named assignment from a prior `trigger.sh` invocation. To rerun `trigger.sh` after a successful `verify.sh` recovery, run `cleanup.sh` first (full teardown) or manually delete the recovery assignment with `az role assignment delete --ids ...`.
+- `verify.sh` and `cleanup.sh` are tolerant of either start state (verify reproduces and recovers; cleanup deletes the whole RG plus the SP).
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
