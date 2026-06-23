@@ -1,0 +1,13 @@
+{
+  "fqdn": "ca-labport-zopng3.purpleground-4d39dde1.koreacentral.azurecontainerapps.io",
+  "attempts": 5,
+  "http_codes": [
+    "200",
+    "200",
+    "200",
+    "200",
+    "200"
+  ],
+  "success_count_200": 5,
+  "phase": "post-fix recovery verification"
+}

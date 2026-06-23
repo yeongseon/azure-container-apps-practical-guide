@@ -1,0 +1,11 @@
+{
+  "utc": "",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-port",
+  "app_name": "ca-labport-zopng3",
+  "app_fqdn": "ca-labport-zopng3.purpleground-4d39dde1.koreacentral.azurecontainerapps.io",
+  "acr_name": "acrlabportzopng3",
+  "acr_login_server": "acrlabportzopng3.azurecr.io",
+  "acr_username": "acrlabportzopng3",
+  "note": "ACR admin password intentionally omitted; captured in-memory only for the registry-set call."
+}

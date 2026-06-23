@@ -1,0 +1,14 @@
+{
+  "fqdn": "ca-labport-zopng3.purpleground-4d39dde1.koreacentral.azurecontainerapps.io",
+  "attempts": 5,
+  "http_codes": [
+    "000000",
+    "000000",
+    "000000",
+    "000000",
+    "000000"
+  ],
+  "success_count_200": 0,
+  "expected_success_count": 0,
+  "note": "HTTP 000 indicates the TCP connection was not established within --max-time 10s (probe-failed revisions accept no traffic)."
+}

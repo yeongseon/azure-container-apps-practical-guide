@@ -1,0 +1,7 @@
+cleanup_utc=2026-06-23T22:40:51Z
+subscription=00000000-0000-0000-0000-000000000000
+resource_group=rg-aca-lab-port
+
+command: az group delete --subscription $AZ_SUBSCRIPTION --name $RG --yes --no-wait
+
+delete_exit_code=0

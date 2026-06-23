@@ -1,0 +1,49 @@
+{
+  "utc_captured": "2026-06-23T22:23:35Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-port",
+  "app_name": "ca-labport-zopng3",
+  "acr_name": "acrlabportzopng3",
+  "app_fqdn": "ca-labport-zopng3.purpleground-4d39dde1.koreacentral.azurecontainerapps.io",
+  "build_window": {
+    "start_utc": "2026-06-23T14:05:12Z",
+    "exit_code": 0
+  },
+  "trigger_window": {
+    "start_utc": "2026-06-23T14:05:47Z",
+    "revision_name": "ca-labport-zopng3--0000001",
+    "image": "acrlabportzopng3.azurecr.io/ca-labport-zopng3:v1",
+    "created_time": "2026-06-23T14:06:19+00:00",
+    "health_state": "Unhealthy",
+    "running_state": "Degraded",
+    "running_state_details": "Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 8000 does not match the listening port 3000.",
+    "provisioning_state": "Provisioned",
+    "ingress_target_port": "8000",
+    "baseline_ingress_target_port": "8000"
+  },
+  "client_probe_results": {
+    "attempts": 5,
+    "http_codes": [
+      "000000",
+      "000000",
+      "000000",
+      "000000",
+      "000000"
+    ],
+    "success_count_200": 0
+  },
+  "system_log_capture": {
+    "exit_code": 0,
+    "probe_failed_lines_in_tail": 50,
+    "note": "Log Analytics ingestion lag is 5-10 minutes; tail count is best-effort and not a sub-gate."
+  },
+  "h1_sub_gates": {
+    "a_acr_build_succeeded": true,
+    "b_trigger_revision_minted": true,
+    "c_probe_failure_evidence_present": true,
+    "d_zero_client_200s_out_of_five": true,
+    "e_target_port_still_mismatched": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "port_mismatch_probe_failure_reproduced"
+}

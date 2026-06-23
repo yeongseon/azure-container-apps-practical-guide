@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-23'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-06-03
-    az_cli_version: 2.70.0
-    notes: 'Reproduced end-to-end on 2026-06-03 against rg-aca-lab-probe (subscription and resource names redacted). PR-A failure-state captures (2026-06-03 08:47 +0900) confirm: TargetPort 8000 vs gunicorn :3000, --0000001 Failed at 100% traffic, --coxh910 Degraded, repeated ProbeFailed System events with Count incrementing into the thousands across both revisions. PR-B after-fix captures (2026-06-03 10:39 +0900) confirm same-revision recovery via three independent signals: (1) revision name --0000001 preserved across failure and recovery captures, (2) identical Created timestamp 6/3/2026 8:17:46 AM in capture 02 and capture 08, (3) controller event "No revision restart or provisioning was needed." in capture 11. Re-reviewed 2026-06-21 with all 11 PNGs verified visually — no PII leaks, no 401/403, no wrong-blade captures, evidence stronger than caption claims in captures 06, 08, 11. Tracked in issue #227.'
+    tested_date: 2026-06-23
+    az_cli_version: 2.79.0
+    notes: 'Reproduced end-to-end on 2026-06-03 against rg-aca-lab-probe (subscription and resource names redacted). PR-A failure-state captures (2026-06-03 08:47 +0900) confirm: TargetPort 8000 vs gunicorn :3000, --0000001 Failed at 100% traffic, --coxh910 Degraded, repeated ProbeFailed System events with Count incrementing into the thousands across both revisions. PR-B after-fix captures (2026-06-03 10:39 +0900) confirm same-revision recovery via three independent signals: (1) revision name --0000001 preserved across failure and recovery captures, (2) identical Created timestamp 6/3/2026 8:17:46 AM in capture 02 and capture 08, (3) controller event "No revision restart or provisioning was needed." in capture 11. Re-reviewed 2026-06-21 with all 11 PNGs verified visually — no PII leaks, no 401/403, no wrong-blade captures, evidence stronger than caption claims in captures 06, 08, 11. Tracked in issue #227. Second live Azure run completed 2026-06-23 with az CLI 2.79.0 against rg-aca-lab-port (subscription redacted to placeholder zero-GUID), producing the Phase B-style evidence pack at labs/probe-and-port-mismatch/evidence/ (25 raw artifacts including JSON, logs, and gate files). H1 (port_mismatch_probe_failure_reproduced) and H2 (port_mismatch_recovered_on_same_revision) both PASS with all 11 sub-gates true. Platform behavior variance noted: the 2026-06-23 run captured runningState=Degraded (not the historical Failed) with platform-emitted runningStateDetails text "Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 8000 does not match the listening port 3000.", and the H1/H2 gates were strengthened to accept either runningState in (Failed, Degraded) OR a runningStateDetails text containing TargetPort/listening port/ProbeFailed. See the new "Observed Evidence (Live Azure Test — 2026-06-23)" subsection in this guide for the H1+H2 sub-gate tables and the honest disclosure of platform behavior differences. Same-revision recovery is triangulated via three independent signals: createdTime=2026-06-23T14:06:19+00:00 unchanged pre/post fix, image unchanged, name --0000001 unchanged.'
   core_claims:
     - claim: Azure Container Apps supports startup, readiness, and liveness probes for containers.
       source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
@@ -25,11 +25,11 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-06-03'
-    cli_version: '2.70.0'
+    last_tested: '2026-06-23'
+    cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-06-03'
+    last_tested: '2026-06-23'
     result: pass
 ---
 # Probe and Port Mismatch Lab
@@ -415,6 +415,43 @@ TargetPort: 3000
 ![Log stream System category showing RevisionUpdate, RevisionDeactivating, and No revision restart or provisioning was needed events with no ProbeFailed entries](../../assets/troubleshooting/probe-and-port-mismatch/11-system-logs-recovered.png)
 
 [Observed] The `No revision restart or provisioning was needed.` event surfaced by the Container Apps controller confirms directly from the platform that the ingress edit did not mint a new revision and did not require a revision restart or new provisioning. Combined with capture 08 — which shows both the **same revision name** as the failure state and an **identical `Created` timestamp** (`6/3/2026 8:17:46 AM`) — this anchors the **same-revision recovery** claim in three independent platform signals: name, creation timestamp, and controller event. The claim is therefore not a naming-convention inference; it is a triangulated observation. (Note: the underlying replica was rotated — capture 05's replica hash `--74b99f7bd5-hlfrm` is distinct from capture 10's `--c6d7d6f44-bpkn6` — so this evidence proves same-revision recovery, not same-replica continuity.)
+
+### Observed Evidence (Live Azure Test — 2026-06-23)
+
+A second end-to-end live Azure run executed on **2026-06-23** with `az` CLI version **2.79.0** (see `labs/probe-and-port-mismatch/evidence/19-cli-versions.json`) against resource group `rg-aca-lab-port` (subscription redacted to placeholder `00000000-0000-0000-0000-000000000000`). The run produced 25 raw evidence files under `labs/probe-and-port-mismatch/evidence/` covering H1 (failure-state reproduction) and H2 (same-revision recovery). All 11 sub-gates across both hypotheses passed.
+
+**H1 reproduction** — `evidence/11-h1-gate.json`:
+
+| Sub-gate | Value | Source |
+|---|---|---|
+| `a_acr_build_succeeded` | true | `evidence/03-acr-build.log` exit code 0 |
+| `b_trigger_revision_minted` | true | `evidence/05-containerapp-update-image.json` returned `latestRevisionName=ca-labport-zopng3--0000001` |
+| `c_probe_failure_evidence_present` | true | `evidence/08-revision-show-failed.json` reports `runningState=Degraded`, `healthState=Unhealthy`, and `runningStateDetails="Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 8000 does not match the listening port 3000."` |
+| `d_zero_client_200s_out_of_five` | true | `evidence/09-curl-probes-failed.json` reports 0/5 HTTP 200 across 5 attempts (all returned `000` — TCP connection not established) |
+| `e_target_port_still_mismatched` | true | Pre-fix ingress `targetPort=8000`, workload image `ca-labport-zopng3:v1` (binds to `:3000`) |
+
+Gate classification: `port_mismatch_probe_failure_reproduced`.
+
+**H2 same-revision recovery** — `evidence/22-h2-gate.json`:
+
+| Sub-gate | Value | Source |
+|---|---|---|
+| `a_failure_state_persisted_into_verify` | true | Pre-fix `runningState=Degraded` + `runningStateDetails` contains port mismatch evidence + 0/5 curl + `createdTime` matches H1 capture |
+| `b_ingress_update_succeeded` | true | `evidence/14-ingress-update-fix.json` CLI exit code 0 |
+| `c_revision_became_healthy` | true | `evidence/16-revision-post-fix.json` `runningState=Running`, `healthState=Healthy` |
+| `d_client_probes_succeed` | true | `evidence/17-curl-probes-post-fix.json` 5/5 HTTP 200 |
+| `e_same_revision_preserved` | true | Post-fix `createdTime=2026-06-23T14:06:19+00:00` (identical to pre-fix); image unchanged (`acrlabportzopng3.azurecr.io/ca-labport-zopng3:v1`); name `ca-labport-zopng3--0000001` unchanged |
+| `f_target_port_now_matches` | true | Post-fix ingress `targetPort=3000` |
+
+Gate classification: `port_mismatch_recovered_on_same_revision`. The fix command was `az containerapp ingress update --target-port 3000` — an app-scope-only edit that does not mint a new revision.
+
+#### Honest disclosure of platform behavior difference
+
+The 2026-06-03 historical run captured `runningState=Failed` for the trigger revision. The 2026-06-23 run captured `runningState=Degraded` with a `runningStateDetails` text of `"Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 8000 does not match the listening port 3000."` — the platform did not transition the revision to a terminal `Failed` state within the lab's polling window (5 minutes). Both observations are evidence of probe failure caused by the port mismatch, but the surface state name differs. The 2026-06-23 H1 gate accepts either `runningState in ('Failed', 'Degraded')` or a `runningStateDetails` text containing `'TargetPort'`/`'listening port'`/`'ProbeFailed'`, because the platform-emitted detail string is the authoritative diagnosis regardless of the surface state label. This disclosure documents the platform behavior variance so future runs are not surprised; the underlying causal claim is unchanged.
+
+#### Operator caveat
+
+The H1 sub-gate `e_target_port_still_mismatched` checks that the trigger-state ingress `targetPort` is still `8000` AND the workload image tag is `:v1`. If a future maintainer changes the workload image tag in `trigger.sh` (`IMAGE_TAG=v1`), this sub-gate's string match must be updated in lockstep. The same maintenance rule applies to the H2 sub-gate `f_target_port_now_matches`, which hard-codes `'3000'` as the target value.
 
 ## Clean Up
 

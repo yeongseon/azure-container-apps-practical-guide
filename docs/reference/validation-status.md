@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-23"
+  last_reviewed: "2026-06-24"
   reviewer: ai-agent
   core_claims:
     - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
@@ -21,7 +21,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-06-23*
+*Generated: 2026-06-24*
 
 | Metric | Count |
 |---|---:|
@@ -127,7 +127,7 @@ pie title Tutorial Validation Status
 | [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Private Endpoint Dns Failure](../troubleshooting/lab-guides/private-endpoint-dns-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
-| [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
+| [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-23 | ✅ Pass |
 | [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Replica Node Spread](../troubleshooting/lab-guides/replica-node-spread.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
 | [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ✅ Pass | ✅ Pass | 2026-06-23 | ✅ Pass |

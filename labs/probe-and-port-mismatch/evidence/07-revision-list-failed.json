@@ -1,0 +1,24 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-23T14:03:21+00:00",
+    "healthState": "Unhealthy",
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "name": "ca-labport-zopng3--i6vd65q",
+    "provisioningState": "Provisioned",
+    "replicas": 2,
+    "runningState": "Degraded",
+    "trafficWeight": 0
+  },
+  {
+    "active": true,
+    "createdTime": "2026-06-23T14:06:19+00:00",
+    "healthState": "Unhealthy",
+    "image": "acrlabportzopng3.azurecr.io/ca-labport-zopng3:v1",
+    "name": "ca-labport-zopng3--0000001",
+    "provisioningState": "Provisioned",
+    "replicas": 1,
+    "runningState": "Degraded",
+    "trafficWeight": 100
+  }
+]
