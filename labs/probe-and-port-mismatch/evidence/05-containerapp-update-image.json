@@ -50,7 +50,7 @@
       "service": null,
       "targetLabel": ""
     },
-    "customDomainVerificationId": "3FC9278902D36D35CCC21513AAD043ED87EE28E197FC310F94625365AE331EED",
+    "customDomainVerificationId": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "delegatedIdentities": [],
     "environmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-port/providers/Microsoft.App/managedEnvironments/cae-labport-zopng3",
     "eventStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-port/containerApps/ca-labport-zopng3/eventstream",

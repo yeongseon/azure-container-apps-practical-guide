@@ -56,6 +56,7 @@ az containerapp revision show \
     --output json \
     > "$EVIDENCE_DIR/12-revision-pre-fix.json"
 cat "$EVIDENCE_DIR/12-revision-pre-fix.json"
+PRE_FIX_NAME=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/12-revision-pre-fix.json')).get('name') or '')")
 PRE_FIX_RUNNING=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/12-revision-pre-fix.json')).get('runningState') or 'Unknown')")
 PRE_FIX_CREATED=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/12-revision-pre-fix.json')).get('createdTime') or '')")
 PRE_FIX_IMAGE=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/12-revision-pre-fix.json')).get('image') or '')")
@@ -174,6 +175,7 @@ POST_FIX_HEALTH=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/1
 POST_FIX_RUNNING=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/16-revision-post-fix.json')).get('runningState') or 'Unknown')")
 POST_FIX_CREATED=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/16-revision-post-fix.json')).get('createdTime') or '')")
 POST_FIX_IMAGE=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/16-revision-post-fix.json')).get('image') or '')")
+POST_FIX_NAME=$(python3 -c "import json; print(json.load(open('$EVIDENCE_DIR/16-revision-post-fix.json')).get('name') or '')")
 echo "Post-fix healthState: ${POST_FIX_HEALTH} (expected: Healthy)"
 echo "Post-fix runningState: ${POST_FIX_RUNNING} (expected: Running)"
 echo "Post-fix createdTime: ${POST_FIX_CREATED} (expected: ${PRE_FIX_CREATED} — same revision proof)"
@@ -244,9 +246,9 @@ UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export EVIDENCE_DIR AZ_SUBSCRIPTION RG APP_NAME ACR_NAME APP_FQDN
 export TRIGGER_REVISION_NAME TRIGGER_CREATED TRIGGER_IMAGE
 export PRE_FIX_RUNNING PRE_FIX_CREATED PRE_FIX_IMAGE PRE_FIX_CURL_SUCCESS_COUNT PRE_FIX_CURL_RESULTS_STR
-export PRE_FIX_RUNNING_DETAILS
+export PRE_FIX_RUNNING_DETAILS PRE_FIX_NAME
 export FIX_UTC FIX_EXIT_CODE
-export POST_FIX_HEALTH POST_FIX_RUNNING POST_FIX_CREATED POST_FIX_IMAGE POST_FIX_TARGET_PORT
+export POST_FIX_HEALTH POST_FIX_RUNNING POST_FIX_CREATED POST_FIX_IMAGE POST_FIX_TARGET_PORT POST_FIX_NAME
 export POST_FIX_CURL_SUCCESS_COUNT POST_FIX_CURL_RESULTS_STR UTC_CAPTURED
 
 python3 <<'PYEOF'
@@ -255,6 +257,7 @@ import json, os
 pre_fix_running = os.environ['PRE_FIX_RUNNING']
 pre_fix_created = os.environ['PRE_FIX_CREATED']
 pre_fix_image = os.environ['PRE_FIX_IMAGE']
+pre_fix_name = os.environ.get('PRE_FIX_NAME', '')
 pre_fix_running_details = os.environ.get('PRE_FIX_RUNNING_DETAILS', '')
 pre_fix_curl_success = int(os.environ['PRE_FIX_CURL_SUCCESS_COUNT'])
 trigger_created = os.environ['TRIGGER_CREATED']
@@ -264,18 +267,41 @@ post_fix_health = os.environ['POST_FIX_HEALTH']
 post_fix_running = os.environ['POST_FIX_RUNNING']
 post_fix_created = os.environ['POST_FIX_CREATED']
 post_fix_image = os.environ['POST_FIX_IMAGE']
+post_fix_name = os.environ.get('POST_FIX_NAME', '')
 post_fix_target_port = os.environ['POST_FIX_TARGET_PORT']
 post_fix_curl_success = int(os.environ['POST_FIX_CURL_SUCCESS_COUNT'])
 
+# Read H1 syslog evidence from the trigger.sh-emitted gate file. H2's failure-
+# evidence predicate mirrors trigger.sh's H1 c-gate: port-specific corroboration
+# is required, not a bare 'Failed'/'Degraded' label. verify.sh does not capture
+# its own syslog stream (the cost is paid once during trigger.sh), so the H1
+# ProbeFailed count is the authoritative fallback signal.
+h1_path = os.path.join(os.environ['EVIDENCE_DIR'], '11-h1-gate.json')
+with open(h1_path) as h1f:
+    h1_data = json.load(h1f)
+h1_syslog_probe_failed_count = h1_data.get(
+    'system_log_capture', {}
+).get('probe_failed_lines_in_tail', 0)
+
+# H2 sub-gate a requires PORT-SPECIFIC evidence that the failure state persists
+# into verify.sh — same acceptance discipline as H1 sub-gate c. Two paths:
+#   Strong  : pre_fix runningStateDetails contains explicit port/probe text.
+#   Fallback: pre_fix non-healthy state PAIRED with H1's syslog ProbeFailed
+#             count > 0 (same lab run, same revision, syslog snapshot applies).
+# A bare 'Failed'/'Degraded' label with NO port-specific corroboration is
+# explicitly insufficient — see trigger.sh phase 9 for the full rationale.
 pre_fix_probe_failure_evidence = (
-    pre_fix_running in ('Failed', 'Degraded')
-    or (
+    (
         pre_fix_running_details
         and (
             'TargetPort' in pre_fix_running_details
             or 'listening port' in pre_fix_running_details
             or 'ProbeFailed' in pre_fix_running_details
         )
+    )
+    or (
+        pre_fix_running in ('Failed', 'Degraded')
+        and h1_syslog_probe_failed_count > 0
     )
 )
 a_failure_state_persisted_into_verify = (
@@ -289,9 +315,16 @@ c_revision_became_healthy = (
     and post_fix_health == 'Healthy'
 )
 d_client_probes_succeed = post_fix_curl_success == 5
+# Same-revision proof is triangulated across three platform-emitted fields:
+# name (revision identity), createdTime (provisioning timestamp), image (template
+# content). The ingress.targetPort edit is an app-scope-only mutation; if ANY of
+# these three fields drift between pre_fix and post_fix, a new revision was
+# minted and the same-revision claim is falsified.
+name_unchanged = bool(pre_fix_name) and bool(post_fix_name) and pre_fix_name == post_fix_name
 e_same_revision_preserved = (
     post_fix_created == pre_fix_created
     and post_fix_image == pre_fix_image
+    and name_unchanged
 )
 f_target_port_now_matches = post_fix_target_port == '3000'
 
@@ -344,7 +377,9 @@ out = {
     'same_revision_proof': {
         'created_time_unchanged': post_fix_created == pre_fix_created,
         'image_unchanged': post_fix_image == pre_fix_image,
-        'name_unchanged': True,
+        'name_unchanged': name_unchanged,
+        'pre_fix_name': pre_fix_name,
+        'post_fix_name': post_fix_name,
     },
     'h2_sub_gates': h2_sub_gates,
     'h2_all_subgates_pass': h2_all_subgates_pass,
@@ -384,7 +419,7 @@ echo "H1 PASS: $H1_PASS"
 echo "H2 PASS: $H2_PASS"
 
 if [[ "$H1_PASS" == "true" && "$H2_PASS" == "true" ]]; then
-    echo "VERDICT: SUPPORTED. The ingress.targetPort vs. workload listening-port mismatch is the controlling variable: with workload bound to :3000 and ingress targeting :8000, the revision reports runningState=Failed and admits zero HTTP 200s from a client; the app-scope ingress edit (az containerapp ingress update --target-port 3000) restores Running/Healthy state on the SAME revision (same name, same createdTime, same image), and the client probes recover to 5/5 200. The same-revision proof falsifies the alternative theories (broken image, ACR pull failure, probe-config bug, revision-template defect)."
+    echo "VERDICT: SUPPORTED. The ingress.targetPort vs. workload listening-port mismatch is the controlling variable: with workload bound to :3000 and ingress targeting :8000, the revision reports a non-healthy state (Failed or Degraded) with platform-emitted port-mismatch evidence in runningStateDetails (containing 'TargetPort'/'listening port'/'ProbeFailed') or, when runningStateDetails is empty, a non-zero ProbeFailed count in the system log stream — and admits zero HTTP 200s from a client. The app-scope ingress edit (az containerapp ingress update --target-port 3000) restores Running/Healthy state on the SAME revision (same name, same createdTime, same image — triangulated proof), and the client probes recover to 5/5 200. The same-revision proof falsifies the alternative theories (broken image, ACR pull failure, probe-config bug, revision-template defect)."
     exit 0
 fi
 

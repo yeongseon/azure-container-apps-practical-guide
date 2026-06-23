@@ -338,18 +338,36 @@ trigger_image = os.environ['TRIGGER_IMAGE']
 trigger_running_details = os.environ.get('TRIGGER_RUNNING_DETAILS', '')
 curl_success_count = int(os.environ['CURL_SUCCESS_COUNT'])
 curl_results = os.environ['CURL_RESULTS_STR'].split()
+syslog_probe_failed_count = int(os.environ.get('SYSLOG_PROBE_FAILED_COUNT', '0'))
 
 a_acr_build_succeeded = acr_build_exit_code == 0
 b_trigger_revision_minted = bool(trigger_revision_name)
+# H1 sub-gate c requires PORT-SPECIFIC evidence of probe failure, not just a
+# bare non-healthy label. Two acceptance paths:
+#   Strong  : runningStateDetails contains explicit port/probe text emitted by
+#             the platform ("TargetPort N does not match the listening port M",
+#             "ProbeFailed", etc.). This is the authoritative signal.
+#   Fallback: non-healthy state (Failed/Degraded) PAIRED with a non-zero
+#             ProbeFailed count from the system log capture. The fallback
+#             exists because runningStateDetails text formatting is platform-
+#             controlled and has varied across captures, so a probe-failure
+#             corroboration from the syslog stream is required when the
+#             runningStateDetails text is empty/missing.
+# A bare 'Failed'/'Degraded' label with NO port-specific corroboration is
+# explicitly insufficient — it could be caused by image pull, OOMKilled,
+# crash loop, or other non-port failure modes.
 c_probe_failure_evidence_present = (
-    trigger_running in ('Failed', 'Degraded')
-    or (
+    (
         trigger_running_details
         and (
             'TargetPort' in trigger_running_details
             or 'listening port' in trigger_running_details
             or 'ProbeFailed' in trigger_running_details
         )
+    )
+    or (
+        trigger_running in ('Failed', 'Degraded')
+        and syslog_probe_failed_count > 0
     )
 )
 d_zero_client_200s_out_of_five = curl_success_count == 0 and len(curl_results) == 5

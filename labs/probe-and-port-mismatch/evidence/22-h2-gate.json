@@ -28,7 +28,9 @@
   "same_revision_proof": {
     "created_time_unchanged": true,
     "image_unchanged": true,
-    "name_unchanged": true
+    "name_unchanged": true,
+    "pre_fix_name": "ca-labport-zopng3--0000001",
+    "post_fix_name": "ca-labport-zopng3--0000001"
   },
   "h2_sub_gates": {
     "a_failure_state_persisted_into_verify": true,
