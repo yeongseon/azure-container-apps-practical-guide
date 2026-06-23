@@ -426,7 +426,7 @@ out = {
     'system_log_capture': {
         'exit_code': int(os.environ['SYSLOG_EXIT_CODE']),
         'probe_failed_lines_in_tail': int(os.environ['SYSLOG_PROBE_FAILED_COUNT']),
-        'note': 'Log Analytics ingestion lag is 5-10 minutes; tail count is best-effort and not a sub-gate.',
+        'note': 'Log Analytics ingestion lag is 5-10 minutes; tail count is best-effort. Consumed by the H1 c_probe_failure_evidence_present fallback predicate (non-healthy state + count > 0) when runningStateDetails lacks port-specific text; also re-used by the H2 a_pre_fix_probe_failure_evidence fallback predicate in verify.sh.',
     },
     'h1_sub_gates': h1_sub_gates,
     'h1_all_subgates_pass': h1_all_subgates_pass,

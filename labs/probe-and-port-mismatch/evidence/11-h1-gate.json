@@ -35,7 +35,7 @@
   "system_log_capture": {
     "exit_code": 0,
     "probe_failed_lines_in_tail": 50,
-    "note": "Log Analytics ingestion lag is 5-10 minutes; tail count is best-effort and not a sub-gate."
+    "note": "Log Analytics ingestion lag is 5-10 minutes; tail count is best-effort. Consumed by the H1 c_probe_failure_evidence_present fallback predicate (non-healthy state + count > 0) when runningStateDetails lacks port-specific text; also re-used by the H2 a_pre_fix_probe_failure_evidence fallback predicate in verify.sh."
   },
   "h1_sub_gates": {
     "a_acr_build_succeeded": true,
