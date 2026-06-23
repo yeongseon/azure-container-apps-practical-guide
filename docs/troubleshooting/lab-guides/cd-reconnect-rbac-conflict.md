@@ -304,7 +304,8 @@ This run validates the end-to-end automation (`trigger.sh` + `verify.sh` + `clea
 
 #### H1: conflict reproduction (`trigger.sh`)
 
-[Observed] Phase 2 initial ARM deployment of `infra/role-assignment.bicep` with the deterministic role-assignment name `47d5a904-80ad-53e1-aa11-828e33d16cef` (derived from `guid(registry.id, principalObjectId, acrPushRoleId)`) returned `provisioningState: Succeeded` (`evidence/02-deployment-initial-output.json`).
+[Observed] Phase 2 initial ARM deployment of `infra/role-assignment.bicep` with the deterministic role-assignment name `47d5a904-80ad-53e1-aa11-828e33d16cef` returned `provisioningState: Succeeded` (`evidence/02-deployment-initial-output.json`).
+This name is derived from the Bicep `guid(registry.id, <principal-object-id>, acrPushRoleId)` expression — see `labs/cd-reconnect-rbac-conflict/infra/role-assignment.bicep` for the full template (the actual parameter name in the Bicep file is `principalObjectId`).
 
 [Observed] Phase 3 baseline role-assignment list showed exactly **1** `AcrPush` assignment with the deterministic GUID on the ACR scope (`evidence/03-role-assignment-list-baseline.json`).
 
