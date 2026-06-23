@@ -1,0 +1,35 @@
+{
+  "utc_captured": "2026-06-23T12:23:38Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-cd-rbac",
+  "acr_name": "acrlabcdrbacmym3wz",
+  "acr_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-cd-rbac/providers/Microsoft.ContainerRegistry/registries/acrlabcdrbacmym3wz",
+  "sp_name": "ca-labcdrbac-mym3wz-github-actions-lab",
+  "sp_app_id": "00000000-0000-0000-0000-000000000000",
+  "sp_object_id": "00000000-0000-0000-0000-000000000000",
+  "initial_deploy_window": {
+    "start_utc": "2026-06-23T12:22:02Z",
+    "provisioning_state": "Succeeded",
+    "role_assignment_name": "47d5a904-80ad-53e1-aa11-828e33d16cef"
+  },
+  "reconnect_deploy_window": {
+    "start_utc": "2026-06-23T12:22:57Z",
+    "fresh_role_assignment_name": "8c1942d0-703c-4f5d-bcd3-ad361f140ed6",
+    "provisioning_state": "Failed",
+    "cli_exit_code": 1
+  },
+  "rbac_observations": {
+    "initial_assignment_count": 1,
+    "conflict_guid_hex": "47d5a90480ad53e1aa11828e33d16cef",
+    "conflict_guid_hyphenated": "47d5a904-80ad-53e1-aa11-828e33d16cef",
+    "reconnect_error_contains_role_assignment_exists": true
+  },
+  "h1_sub_gates": {
+    "a_sp_resolved": true,
+    "b_initial_deployment_succeeded": true,
+    "c_initial_role_assignment_count_equals_one": true,
+    "d_reconnect_deployment_failed_with_role_assignment_exists": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "cd_rbac_conflict_reproduced"
+}

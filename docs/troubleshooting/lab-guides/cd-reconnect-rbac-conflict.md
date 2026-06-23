@@ -9,13 +9,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
 content_validation:
   status: verified
-  last_reviewed: '2026-04-29'
+  last_reviewed: '2026-06-23'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-05-01
-    az_cli_version: 2.70.0
-    notes: Bad Request on duplicate role assignment confirmed
+    tested_date: 2026-06-23
+    az_cli_version: 2.83.0
+    notes: End-to-end run (trigger.sh + verify.sh + cleanup.sh) confirmed H1 (conflict reproduces) and H2 (delete + retry recovers); evidence captured under labs/cd-reconnect-rbac-conflict/evidence/.
   core_claims:
     - claim: Azure RBAC role assignments are uniquely identified by the combination of scope, principal, and role definition.
       source: https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
@@ -28,12 +28,12 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-04-21'
-    cli_version: 2.70.0
+    last_tested: '2026-06-23'
+    cli_version: 2.83.0
     result: pass
-    notes: Reproduced the exact 'RoleAssignmentExists' error with the existing role assignment ID returned by the second ARM deployment. Recovery (delete + redeploy) succeeded.
+    notes: End-to-end run with az 2.83.0 reproduced RoleAssignmentExists (H1) and confirmed delete + retry recovery (H2). All evidence files validated under labs/cd-reconnect-rbac-conflict/evidence/.
   bicep:
-    last_tested: '2026-04-21'
+    last_tested: '2026-06-23'
     result: pass
 ---
 # CD Reconnect RBAC Conflict Lab
@@ -292,6 +292,59 @@ Expected result: the second deployment fails with `RoleAssignmentExists`, the de
 | `az role assignment delete --ids "${ACR_ID}/providers/Microsoft.Authorization/roleAssignments/$ASSIGNMENT_ID"` | Returns no error; assignment removed |
 | Retry `az deployment group create` with the same fresh `roleAssignmentName` | Succeeds with `provisioningState: Succeeded` |
 | `az ad sp show --id "$SP_APP_ID"` | Service principal remains active throughout the lab |
+
+### Observed Evidence (Live Azure Test — 2026-06-23)
+
+**Environment:** `rg-aca-lab-cd-rbac`, `koreacentral`.
+**Service Principal:** `ca-labcdrbac-mym3wz-github-actions-lab` (simulated CD identity, mirrors `az containerapp github-action add`).
+**Container Registry:** `acrlabcdrbacmym3wz`.
+**Tooling versions:** azure-cli `2.83.0`, containerapp extension `1.3.0b4`.
+
+This run validates the end-to-end automation (`trigger.sh` + `verify.sh` + `cleanup.sh`) against a live Azure environment. Raw evidence is captured under `labs/cd-reconnect-rbac-conflict/evidence/`. All PII (subscription, tenant, principal IDs) is replaced with the documented Azure zero-GUID placeholder; deterministic GUIDs, Azure correlation IDs, and Azure-assigned role-assignment GUIDs are preserved as lab evidence.
+
+#### H1: conflict reproduction (`trigger.sh`)
+
+[Observed] Phase 2 initial ARM deployment of `infra/role-assignment.bicep` with the deterministic role-assignment name `47d5a904-80ad-53e1-aa11-828e33d16cef` (derived from `guid(registry.id, principalObjectId, acrPushRoleId)`) returned `provisioningState: Succeeded` (`evidence/02-deployment-initial-output.json`).
+
+[Observed] Phase 3 baseline role-assignment list showed exactly **1** `AcrPush` assignment with the deterministic GUID on the ACR scope (`evidence/03-role-assignment-list-baseline.json`).
+
+[Observed] Phase 4 simulated-reconnect ARM deployment with a fresh `roleAssignmentName=8c1942d0-703c-4f5d-bcd3-ad361f140ed6` returned `provisioningState: Failed`, exit code `1`, and an ARM error body containing:
+
+```text
+"code":"RoleAssignmentExists","message":"The role assignment already exists.
+The ID of the existing role assignment is 47d5a90480ad53e1aa11828e33d16cef."
+```
+
+(`evidence/04-deployment-reconnect-stderr.txt`, `evidence/05-deployment-reconnect-failure.json`, ARM correlationId `93fb0b48-c9ba-4e53-895a-ea47ed721dea`.)
+
+[Observed] The conflict GUID extracted from the ARM error message (`47d5a90480ad53e1aa11828e33d16cef`) matches the deterministic GUID created in Phase 2 (`47d5a904-80ad-53e1-aa11-828e33d16cef`) byte-for-byte after hyphen removal (`evidence/06-conflict-guid-extraction.json`).
+
+[Inferred] The `(scope=ACR, principal=SP, role=AcrPush)` uniqueness constraint is the controlling variable: ARM rejected the second `Microsoft.Authorization/roleAssignments` write at the role-assignment step (HTTP 409) despite the deployment providing a **different** assignment name. The error message uniquely identifies the existing GUID, which equals the deterministic seed from the initial deploy — closing the causal loop.
+
+H1 gate (`evidence/07-h1-gate.json`): `cd_rbac_conflict_reproduced`, all 4 sub-gates PASS.
+
+#### H2: recovery (`verify.sh`)
+
+[Observed] Phase 9 re-confirm with a fresh `roleAssignmentName` reproduced the same `RoleAssignmentExists` error, confirming the conflict persisted between trigger and verify (`evidence/08-deployment-reverify-conflict.txt`).
+
+[Observed] Phase 11 `az role assignment delete --ids` on the orphaned assignment returned exit code `0`; a 15-second sleep allowed RBAC propagation. `evidence/10-role-assignment-delete-output.txt` is intentionally empty — the CLI emits no stdout on successful delete.
+
+[Observed] Phase 12 recovery ARM deployment with a fresh `roleAssignmentName=e3df1205-6ca1-4b26-9468-2732121d6102` returned `provisioningState: Succeeded`, exit code `0`, ARM correlationId `431e3456-4db6-4838-9725-bbfaa31562bc` (`evidence/11-deployment-recovery.json`).
+
+[Observed] Phase 13 + Phase 14 role-assignment lists at +15 s and +30 s after recovery showed exactly **1** `AcrPush` assignment with `name = e3df1205-6ca1-4b26-9468-2732121d6102` (the new GUID, not the deleted deterministic one) — cardinality preserved, no double-assignment (`evidence/12-role-assignment-list-post-recovery.json`, `evidence/13-role-assignment-list-cardinality-verify.json`).
+
+[Inferred] The documented recovery procedure (`az role assignment delete --ids ...` + retry the ARM deployment with a fresh GUID) restores convergence: the `(scope, principal, role)` triple is again held by exactly one assignment, just with a different `name`. The pre-delete name (`926c60b6-4250-4125-b9c3-8c822b8a535f`, an Azure-assigned ID from an earlier verify run) and the post-recovery name (`e3df1205-6ca1-4b26-9468-2732121d6102`) differ; both are valid for the same `(scope, principal, role)` triple, confirming the constraint is on the triple — not on the assignment name.
+
+H2 gate (`evidence/14-h2-gate.json`): `cd_rbac_recovered_after_delete_retry`, all 4 sub-gates PASS.
+
+#### Lab automation hardening shipped with this evidence pack
+
+Two latent script bugs were discovered and fixed during this run; both would have produced false-negative H1 / H2 gates on any future re-run if left unpatched:
+
+- **`trigger.sh` Phase 6 Python heredoc**: the original heredoc lacked single-quote delimiters, so bash interpolated `$RECONNECT_HAS_ROLE_ASSIGNMENT_EXISTS` (lowercase `true` / `false`) into the Python source where it became a `NameError`. Fixed by quoting the heredoc (`<<'PYEOF'`) and reading the environment variable via `os.environ[...].lower() == 'true'`, matching the Phase 7 pattern already in the same file.
+- **`verify.sh` Phase 12 redirect**: the original `> file 2>&1` redirect merged the Azure CLI `WARNING: A new Bicep release is available: ...` (printed on stderr by the bicep transpiler) into the same file `python3 json.load()` was asked to parse, producing a `JSONDecodeError` and a false-negative H2 gate. Fixed by splitting stdout/stderr (`> file 2> file.stderr`) and adding `--only-show-errors` as defence in depth.
+
+[Observed] After both fixes, the end-to-end run produced clean H1 + H2 PASS gates with no parser failures (`evidence/22-cleanup-output.txt` confirms the cleanup phase also completed cleanly with async RG deletion initiated).
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 

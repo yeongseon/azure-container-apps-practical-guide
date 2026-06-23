@@ -1,0 +1,10 @@
+cleanup.sh starting at 2026-06-23T12:34:27Z
+Subscription: 00000000-0000-0000-0000-000000000000
+RG: rg-aca-lab-cd-rbac
+SP display name: ca-labcdrbac-mym3wz-github-actions-lab
+
+==> Removing service principal ca-labcdrbac-mym3wz-github-actions-lab and any role assignments
+    Service principal and app registration deleted.
+
+==> Deleting resource group rg-aca-lab-cd-rbac (async)
+Resource group rg-aca-lab-cd-rbac deletion initiated (async).

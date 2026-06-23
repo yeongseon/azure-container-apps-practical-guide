@@ -1,0 +1,44 @@
+{
+  "utc_captured": "2026-06-23T12:34:03Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-cd-rbac",
+  "acr_name": "acrlabcdrbacmym3wz",
+  "acr_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-cd-rbac/providers/Microsoft.ContainerRegistry/registries/acrlabcdrbacmym3wz",
+  "sp_name": "ca-labcdrbac-mym3wz-github-actions-lab",
+  "sp_app_id": "00000000-0000-0000-0000-000000000000",
+  "sp_object_id": "00000000-0000-0000-0000-000000000000",
+  "h1_initial_assignment_name": "47d5a904-80ad-53e1-aa11-828e33d16cef",
+  "reverify_window": {
+    "start_utc": "2026-06-23T12:31:42Z",
+    "fresh_role_assignment_name": "e3df1205-6ca1-4b26-9468-2732121d6102",
+    "cli_exit_code": 1,
+    "error_contained_role_assignment_exists": true
+  },
+  "delete_window": {
+    "start_utc": "2026-06-23T12:32:24Z",
+    "deleted_assignment_name": "926c60b6-4250-4125-b9c3-8c822b8a535f",
+    "cli_exit_code": 0
+  },
+  "recovery_window": {
+    "start_utc": "2026-06-23T12:32:45Z",
+    "role_assignment_name_passed": "e3df1205-6ca1-4b26-9468-2732121d6102",
+    "cli_exit_code": 0,
+    "provisioning_state": "Succeeded",
+    "role_assignment_name_emitted_by_bicep": "e3df1205-6ca1-4b26-9468-2732121d6102"
+  },
+  "rbac_observations": {
+    "pre_delete_count": 1,
+    "pre_delete_assignment_name": "926c60b6-4250-4125-b9c3-8c822b8a535f",
+    "post_recovery_count": 1,
+    "post_recovery_assignment_name": "e3df1205-6ca1-4b26-9468-2732121d6102",
+    "cardinality_verify_count": 1
+  },
+  "h2_sub_gates": {
+    "a_conflict_still_reproduces_at_start_of_verify": true,
+    "b_delete_succeeded": true,
+    "c_retry_deployment_succeeded": true,
+    "d_final_assignment_count_is_one": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "cd_rbac_recovered_after_delete_retry"
+}

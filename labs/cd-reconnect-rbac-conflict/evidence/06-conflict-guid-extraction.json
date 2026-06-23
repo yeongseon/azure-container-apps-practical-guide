@@ -1,0 +1,8 @@
+{
+  "conflict_guid_hex": "47d5a90480ad53e1aa11828e33d16cef",
+  "conflict_guid_hyphenated": "47d5a904-80ad-53e1-aa11-828e33d16cef",
+  "reconnect_error_contains_role_assignment_exists": true,
+  "extraction_pattern": "existing role assignment is [a-f0-9]{32}",
+  "source_file": "04-deployment-reconnect-stderr.txt",
+  "note": "The conflict GUID matches the assignment name created by Phase 2 (deterministic GUID derived from registry.id + principalId + AcrPush role)."
+}

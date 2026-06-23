@@ -1,0 +1,22 @@
+{
+  "containerAppName": {
+    "type": "String",
+    "value": "ca-labcdrbac-mym3wz"
+  },
+  "containerRegistryLoginServer": {
+    "type": "String",
+    "value": "acrlabcdrbacmym3wz.azurecr.io"
+  },
+  "containerRegistryName": {
+    "type": "String",
+    "value": "acrlabcdrbacmym3wz"
+  },
+  "environmentName": {
+    "type": "String",
+    "value": "cae-labcdrbac-mym3wz"
+  },
+  "logAnalyticsWorkspaceName": {
+    "type": "String",
+    "value": "log-labcdrbac-mym3wz"
+  }
+}
