@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-22"
+  last_reviewed: "2026-06-23"
   reviewer: ai-agent
   core_claims:
     - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
@@ -21,7 +21,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-06-22*
+*Generated: 2026-06-23*
 
 | Metric | Count |
 |---|---:|
@@ -97,18 +97,18 @@ pie title Tutorial Validation Status
 | [Acr Network Path Pe Direct](../troubleshooting/lab-guides/acr-network-path-pe-direct.md) | ✅ Pass | ✅ Pass | 2026-06-05 | ✅ Pass |
 | [Acr Network Path Pe Forced Inspection](../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
 | [Acr Network Path Record Split Brain](../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
-| [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ✅ Pass | ✅ Pass | 2026-05-01 | ✅ Pass |
-| [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
+| [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Azure Files Mount Failure](../troubleshooting/lab-guides/azure-files-mount-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Bicep Deployment Timeout](../troubleshooting/lab-guides/bicep-deployment-timeout.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
-| [Cd Reconnect Rbac Conflict](../troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md) | ✅ Pass | ✅ Pass | 2026-04-21 | ✅ Pass |
+| [Cd Reconnect Rbac Conflict](../troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md) | ✅ Pass | ✅ Pass | 2026-06-23 | ✅ Pass |
 | [Cold Start Scale To Zero](../troubleshooting/lab-guides/cold-start-scale-to-zero.md) | ✅ Pass | ✅ Pass | 2026-05-01 | ✅ Pass |
-| [Cpu Throttling](../troubleshooting/lab-guides/cpu-throttling.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
+| [Cpu Throttling](../troubleshooting/lab-guides/cpu-throttling.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Custom Domain Tls Renewal](../troubleshooting/lab-guides/custom-domain-tls-renewal.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Dapr Pubsub Failure](../troubleshooting/lab-guides/dapr-pubsub-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Dapr State Store Failure](../troubleshooting/lab-guides/dapr-state-store-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
-| [Diagnostic Settings Missing](../troubleshooting/lab-guides/diagnostic-settings-missing.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Diagnostic Settings Missing](../troubleshooting/lab-guides/diagnostic-settings-missing.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Docker Hub Rate Limit](../troubleshooting/lab-guides/docker-hub-rate-limit.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Easyauth Entra Id Failure](../troubleshooting/lab-guides/easyauth-entra-id-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Egress Ip Change](../troubleshooting/lab-guides/egress-ip-change.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
@@ -116,7 +116,7 @@ pie title Tutorial Validation Status
 | [Event Job Storm](../troubleshooting/lab-guides/event-job-storm.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Github Actions Oidc Failure](../troubleshooting/lab-guides/github-actions-oidc-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Image Size Startup Delay](../troubleshooting/lab-guides/image-size-startup-delay.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
-| [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-04-29 | ✅ Pass |
+| [Ingress Target Port Mismatch](../troubleshooting/lab-guides/ingress-target-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Keda No Metrics Returned](../troubleshooting/lab-guides/keda-no-metrics-returned.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
@@ -130,10 +130,10 @@ pie title Tutorial Validation Status
 | [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Replica Node Spread](../troubleshooting/lab-guides/replica-node-spread.md) | ✅ Pass | ✅ Pass | 2026-06-14 | ✅ Pass |
-| [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
-| [Revision History Limit](../troubleshooting/lab-guides/revision-history-limit.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
+| [Revision Failover](../troubleshooting/lab-guides/revision-failover.md) | ✅ Pass | ✅ Pass | 2026-06-23 | ✅ Pass |
+| [Revision History Limit](../troubleshooting/lab-guides/revision-history-limit.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Revision Provisioning Failure](../troubleshooting/lab-guides/revision-provisioning-failure.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
-| [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ✅ Pass | ✅ Pass | 2026-05-01 | ✅ Pass |
+| [Scale Rule Mismatch](../troubleshooting/lab-guides/scale-rule-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Scheduled Job Missed](../troubleshooting/lab-guides/scheduled-job-missed.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Session Affinity Failure](../troubleshooting/lab-guides/session-affinity-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Startup Degraded Transient Failure](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) | ✅ Pass | ✅ Pass | 2026-06-13 | ✅ Pass |

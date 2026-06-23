@@ -1,0 +1,9 @@
+[
+  {
+    "createdOn": "2026-06-23T12:25:00.658016+00:00",
+    "name": "926c60b6-4250-4125-b9c3-8c822b8a535f",
+    "principalType": "ServicePrincipal",
+    "roleDefinitionName": "AcrPush",
+    "scope": "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-aca-lab-cd-rbac/providers/Microsoft.ContainerRegistry/registries/acrlabcdrbacmym3wz"
+  }
+]

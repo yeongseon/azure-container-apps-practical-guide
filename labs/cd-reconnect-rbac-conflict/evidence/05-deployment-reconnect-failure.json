@@ -1,0 +1,21 @@
+{
+  "correlationId": "93fb0b48-c9ba-4e53-895a-ea47ed721dea",
+  "error": {
+    "additionalInfo": null,
+    "code": "DeploymentFailed",
+    "details": [
+      {
+        "additionalInfo": null,
+        "code": "RoleAssignmentExists",
+        "details": null,
+        "message": "The role assignment already exists. The ID of the existing role assignment is 47d5a90480ad53e1aa11828e33d16cef.",
+        "target": null
+      }
+    ],
+    "message": "At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-deployment-operations for usage details.",
+    "target": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-cd-rbac/providers/Microsoft.Resources/deployments/lab-ra-reconnect"
+  },
+  "name": "lab-ra-reconnect",
+  "provisioningState": "Failed",
+  "timestamp": "2026-06-23T12:23:05.503886+00:00"
+}

@@ -1,0 +1,81 @@
+{
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-cd-rbac/providers/Microsoft.Resources/deployments/lab-ra-initial",
+  "location": null,
+  "name": "lab-ra-initial",
+  "properties": {
+    "correlationId": "673a1063-cf74-4996-bfb7-1a02d5783d57",
+    "debugSetting": null,
+    "dependencies": [],
+    "diagnostics": null,
+    "duration": "PT3.5912865S",
+    "error": null,
+    "extensions": [],
+    "mode": "Incremental",
+    "onErrorDeployment": null,
+    "outputResources": [
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-cd-rbac/providers/Microsoft.ContainerRegistry/registries/acrlabcdrbacmym3wz/providers/Microsoft.Authorization/roleAssignments/47d5a904-80ad-53e1-aa11-828e33d16cef",
+        "identifiers": null,
+        "resourceGroup": "rg-aca-lab-cd-rbac",
+        "resourceType": "Microsoft.Authorization/roleAssignments"
+      }
+    ],
+    "outputs": {
+      "roleAssignmentName": {
+        "type": "String",
+        "value": "47d5a904-80ad-53e1-aa11-828e33d16cef"
+      }
+    },
+    "parameters": {
+      "principalObjectId": {
+        "type": "String",
+        "value": "00000000-0000-0000-0000-000000000000"
+      },
+      "registryName": {
+        "type": "String",
+        "value": "acrlabcdrbacmym3wz"
+      },
+      "roleAssignmentName": {
+        "type": "String",
+        "value": ""
+      }
+    },
+    "parametersLink": null,
+    "providers": [
+      {
+        "id": null,
+        "namespace": "Microsoft.Authorization",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              null
+            ],
+            "properties": null,
+            "resourceType": "roleAssignments",
+            "zoneMappings": null
+          }
+        ]
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "templateHash": "15856378745028500757",
+    "templateLink": null,
+    "timestamp": "2026-06-23T12:22:11.177411+00:00",
+    "validatedResources": null,
+    "validationLevel": null
+  },
+  "resourceGroup": "rg-aca-lab-cd-rbac",
+  "tags": null,
+  "type": "Microsoft.Resources/deployments"
+}
