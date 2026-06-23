@@ -1,0 +1,22 @@
+[
+  {
+    "location": "koreacentral",
+    "name": "log-labport-zopng3",
+    "type": "Microsoft.OperationalInsights/workspaces"
+  },
+  {
+    "location": "koreacentral",
+    "name": "acrlabportzopng3",
+    "type": "Microsoft.ContainerRegistry/registries"
+  },
+  {
+    "location": "koreacentral",
+    "name": "cae-labport-zopng3",
+    "type": "Microsoft.App/managedEnvironments"
+  },
+  {
+    "location": "koreacentral",
+    "name": "ca-labport-zopng3",
+    "type": "Microsoft.App/containerApps"
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-23T14:03:21+00:00",
+    "healthState": "None",
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "name": "ca-labport-zopng3--i6vd65q",
+    "runningState": "Activating",
+    "trafficWeight": 100
+  }
+]

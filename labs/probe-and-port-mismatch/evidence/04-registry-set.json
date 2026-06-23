@@ -1,0 +1,8 @@
+[
+  {
+    "identity": "",
+    "passwordSecretRef": "acrlabportzopng3azurecrio-acrlabportzopng3",
+    "server": "acrlabportzopng3.azurecr.io",
+    "username": "acrlabportzopng3"
+  }
+]

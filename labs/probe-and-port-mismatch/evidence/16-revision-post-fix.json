@@ -1,0 +1,10 @@
+{
+  "createdTime": "2026-06-23T14:06:19+00:00",
+  "healthState": "Healthy",
+  "image": "acrlabportzopng3.azurecr.io/ca-labport-zopng3:v1",
+  "name": "ca-labport-zopng3--0000001",
+  "provisioningState": "Provisioned",
+  "replicas": 1,
+  "runningState": "Running",
+  "runningStateDetails": null
+}

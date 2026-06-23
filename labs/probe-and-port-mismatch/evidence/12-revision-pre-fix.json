@@ -1,0 +1,10 @@
+{
+  "createdTime": "2026-06-23T14:06:19+00:00",
+  "healthState": "Unhealthy",
+  "image": "acrlabportzopng3.azurecr.io/ca-labport-zopng3:v1",
+  "name": "ca-labport-zopng3--0000001",
+  "provisioningState": "Provisioned",
+  "replicas": 1,
+  "runningState": "Degraded",
+  "runningStateDetails": "Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 8000 does not match the listening port 3000."
+}
