@@ -1,0 +1,10 @@
+{
+  "createdTime": "2026-06-24T00:14:10+00:00",
+  "healthState": "None",
+  "image": "mcr.microsoft.com/dotnet/samples:aspnetapp",
+  "name": "ca-labtraffic-ve2wnr--badv2",
+  "provisioningState": "Provisioned",
+  "replicas": 1,
+  "runningState": "Activating",
+  "runningStateDetails": "The TargetPort 80 does not match the listening port 8080."
+}

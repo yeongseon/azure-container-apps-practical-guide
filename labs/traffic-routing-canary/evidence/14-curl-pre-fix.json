@@ -1,0 +1,15 @@
+{
+  "fqdn": "ca-labtraffic-ve2wnr.calmdesert-6bf1e90b.koreacentral.azurecontainerapps.io",
+  "attempts": 5,
+  "http_codes": [
+    "200",
+    "200",
+    "200",
+    "200",
+    "200"
+  ],
+  "success_count_200": 5,
+  "timeout_count_000": 0,
+  "phase": "pre-fix re-confirmation of 50/50 canary failure on small sample",
+  "note": "A 5-request sample on a 50/50 weighted-random split is noisy. The H2 a sub-gate uses Pre-fix BAD revision state (re-confirmed in 13-revision-pre-fix-bad.json) plus H1 syslog count as the authoritative failure signal; this curl sample is corroborating evidence, not the primary predicate."
+}

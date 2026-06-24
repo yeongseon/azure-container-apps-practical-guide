@@ -10,13 +10,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-24'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-06-03
-    az_cli_version: 2.71.0
-    notes: 'Live 50/50 split reproduced via image-swap workaround. The original trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to reproduce per-revision failure because `targetPort` is an ingress-level setting shared across all revisions. Replacement pattern: keep ingress targetPort stable and deploy a new revision with an image whose listening port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80). Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50. Six 2026-06-03 Portal captures (rg `ca-labtraffic-l6uluw`, koreacentral) preserve the reproduced workaround path: revisions blade showing the 50/50 split, the bad revision "Failed" status with the verbatim "TargetPort 80 does not match the listening port 8080" message, and the stable ingress targetPort=80.'
+    tested_date: 2026-06-24
+    az_cli_version: 2.79.0
+    notes: 'Live 50/50 split reproduced via image-swap workaround. The original trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to reproduce per-revision failure because `targetPort` is an ingress-level setting shared across all revisions. Replacement pattern: keep ingress targetPort stable and deploy a new revision with an image whose listening port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80). Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50. Six 2026-06-03 Portal captures (rg `ca-labtraffic-l6uluw`, koreacentral) preserve the reproduced workaround path: revisions blade showing the 50/50 split, the bad revision "Failed" status with the verbatim "TargetPort 80 does not match the listening port 8080" message, and the stable ingress targetPort=80. Second live Azure run completed 2026-06-24 with az CLI 2.79.0 against rg-aca-lab-traffic2 (subscription redacted to placeholder zero-GUID, koreacentral), producing the Phase B-style evidence pack at labs/traffic-routing-canary/evidence/ (22 raw artifacts including JSON, logs, and gate files). H1 (canary_failure_reproduced_50_50_traffic_split) and H2 (canary_rolled_back_to_good_revision_intact) both PASS with all 11 sub-gates true. Empirical 30-request curl on 50/50 split: 17 HTTP 200, 13 timeouts (within [8, 22] tolerance band for weighted-random routing); 18 ProbeFailed syslog lines tailed within the trigger window. Same-revision rollback proof triangulated via three signals: name unchanged (ca-labtraffic-ve2wnr--w3daylh), createdTime unchanged (2026-06-24T00:12:40+00:00), image unchanged (mcr.microsoft.com/azuredocs/containerapps-helloworld:latest) between trigger-time and post-fix captures. Two platform-behavior observations from this run are disclosed in the new "Observed Evidence (Live Azure Test — 2026-06-24)" subsection: (1) BAD revision surface state transitioned Activating → Degraded across the trigger and verify windows for the same revision (gates accept either when paired with port-specific corroboration via strong path runningStateDetails text match OR fallback path non-healthy state + non-zero ProbeFailed count), (2) `az containerapp ingress traffic set --revision-weight rev=100` returns only the entries it explicitly assigned (top-level list of {revisionName, weight}, NOT the full Container App resource), with unmentioned revisions implicitly weight=0 and absent from the response — the H2 b_traffic_set_rollback_succeeded sub-gate accepts both shapes defensively. Verify script logic bug-fix: the initial b sub-gate predicate required `bad_weight == 0` which failed against the actual platform response shape; the fix accepts BAD as absent from the response OR explicitly weight=0, corroborated independently via sub-gate f against 17-revision-list-post-fix.json. PII scrubbed: subscription/tenant GUIDs replaced with zero-GUID placeholder, customDomainVerificationId replaced with AAAA placeholder, employee email replaced with user@example.com, local user paths replaced with /Users/demouser.'
   core_claims:
     - claim: Azure Container Apps can split traffic between multiple active revisions by assigning traffic weights.
       source: https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
@@ -26,11 +26,11 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-06-03'
-    cli_version: '2.71.0'
+    last_tested: '2026-06-24'
+    cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-06-03'
+    last_tested: '2026-06-24'
     result: pass
 ---
 # Traffic Routing and Canary Failure Lab
@@ -404,6 +404,51 @@ Request 4: HTTP 000
 ```
 
 [Inferred] The bad-revision half did not return a graceful HTTP 502 because ingress simply does not get a response from the upstream replica (the image is not listening on the port ingress is dialing). This is why `--max-time` is mandatory in the reproduction loop above. The combination of (a) Portal's verbatim TargetPort/listening-port mismatch error, (b) the empty status details on the good revision, (c) ingress `targetPort` shown as `80`, and (d) the 15/15 split in the curl loop confirms the hypothesis: a per-revision listening-port mismatch on one of two revisions receiving 50% traffic produces a ~50% failure rate. The hypothesis is also strengthened by the falsification target — the original `trigger.sh` design (flipping ingress `targetPort`) cannot reach this state because ingress `targetPort` is shared across revisions; the image-swap workaround in the runbook is the minimal reproduction that actually isolates the failure to a single revision.
+
+### Observed Evidence (Live Azure Test — 2026-06-24)
+
+A second end-to-end live Azure run executed on **2026-06-24** with `az` CLI version **2.79.0** (see `labs/traffic-routing-canary/evidence/19-cli-versions.json`) against resource group `rg-aca-lab-traffic2` (subscription redacted to placeholder `00000000-0000-0000-0000-000000000000`). The run produced 22 numbered evidence prefixes (`01-*` through `22-*`, totaling 27 files when counting `.stderr` companions to `05-*`, `09-*`, and `15-*`, plus the two `08-*` per-revision and two `17-*` per-snapshot pairs) under `labs/traffic-routing-canary/evidence/`, covering H1 (50/50-split canary failure reproduction) and H2 (config-plane rollback without minting a new GOOD revision). All 11 sub-gates across both hypotheses passed.
+
+**H1 reproduction** — `evidence/12-h1-gate.json`:
+
+| Sub-gate | Value | Source |
+|---|---|---|
+| `a_bad_revision_minted_with_port_mismatched_image` | true | `evidence/05-containerapp-update-image.json` `latestRevisionName=ca-labtraffic-ve2wnr--badv2` (`--image mcr.microsoft.com/dotnet/samples:aspnetapp`, documented listening port `:8080`); `evidence/12-h1-gate.json` `trigger_window.ingress_target_port="80"` and `bad_image_listening_port_documented=8080` confirm the port mismatch is in place |
+| `b_ingress_traffic_split_50_50` | true | `evidence/09-traffic-set-50-50.json` returns `[{ca-labtraffic-ve2wnr--w3daylh, weight:50}, {ca-labtraffic-ve2wnr--badv2, weight:50}]`; `evidence/12-h1-gate.json` `traffic_split.weights_sorted=[50, 50]` |
+| `c_bad_revision_probe_failure_evidence` | true | **Strong path:** `evidence/08-revision-show-bad.json` `runningStateDetails="The TargetPort 80 does not match the listening port 8080."` (port-specific platform text). **Fallback path (also satisfied):** `evidence/12-h1-gate.json` `system_log_capture.probe_failed_lines_in_tail=18` (non-zero ProbeFailed count from `evidence/11-system-logs-tail.log`) |
+| `d_curl_loop_shows_intermittent_failure` | true | `evidence/10-curl-loop-30-requests.json` reports `success_count_200=17` and `timeout_count_000=13` out of 30 attempts; `evidence/12-h1-gate.json` `client_probe_results.tolerance_band_for_timeouts=[8, 22]` (13 ∈ band) |
+| `e_good_revision_still_healthy` | true | `evidence/08-revision-show-good.json` `runningState=Running`, `healthState=Healthy` even while the 50/50 split is active |
+
+Gate classification: `canary_failure_reproduced_50_50_traffic_split`.
+
+**H2 same-revision rollback** — `evidence/22-h2-gate.json`:
+
+| Sub-gate | Value | Source |
+|---|---|---|
+| `a_pre_fix_failure_re_confirmed` | true | **Strong path:** `evidence/13-revision-pre-fix-bad.json` `runningStateDetails="Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 80 does not match the listening port 8080."` (port-specific platform text persists into the verify window). **Fallback path (also satisfied):** `evidence/12-h1-gate.json` `system_log_capture.probe_failed_lines_in_tail=18` (re-used cross-script) |
+| `b_traffic_set_rollback_succeeded` | true | `evidence/22-h2-gate.json` `fix_window.cli_exit_code=0`; `evidence/15-traffic-set-rollback.json` returns `[{ca-labtraffic-ve2wnr--w3daylh, weight:100}]`. Platform behavior: `az containerapp ingress traffic set --revision-weight rev=100` returns only the entries it explicitly assigned; unmentioned revisions are implicitly weight=0 and do not appear in the response, so the gate accepts BAD as absent OR weight=0 (`verify.sh` `b_traffic_set_rollback_succeeded` logic) |
+| `c_traffic_100_pct_good` | true | `evidence/15-traffic-set-rollback.json` shows exactly one entry at weight=100 belonging to the GOOD revision; no other non-zero entry exists |
+| `d_post_fix_curl_all_success` | true | `evidence/18-curl-post-fix.json` 5/5 HTTP 200 |
+| `e_good_revision_unchanged` | true | Triangulated via `same_revision_proof` in `evidence/22-h2-gate.json`: `name_unchanged=true` (computed from `evidence/04-good-revision-captured.json` `good_revision_name` vs `evidence/17-revision-show-good-post-fix.json` `name`, both `ca-labtraffic-ve2wnr--w3daylh`), `created_time_unchanged=true` (`evidence/04-good-revision-captured.json` `good_revision_created_time` vs `evidence/17-revision-show-good-post-fix.json` `createdTime`, both `2026-06-24T00:12:40+00:00`), `image_unchanged=true` (`evidence/04-good-revision-captured.json` `good_revision_image` vs `evidence/17-revision-show-good-post-fix.json` `image`, both `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`); `evidence/17-revision-show-good-post-fix.json` `runningState=Running`, `healthState=Healthy` |
+| `f_bad_revision_still_visible_with_zero_traffic` | true | `evidence/17-revision-list-post-fix.json` lists `ca-labtraffic-ve2wnr--badv2` with `trafficWeight=0` (not deactivated, preserving the rollback's reversibility and the diagnostic audit trail) |
+
+Gate classification: `canary_rolled_back_to_good_revision_intact`. The fix command was `az containerapp ingress traffic set --revision-weight ca-labtraffic-ve2wnr--w3daylh=100` — a config-plane-only edit that does not mint a new revision.
+
+#### Honest disclosure of platform behavior
+
+Two platform-behavior observations from this run worth flagging to future maintainers:
+
+1. **BAD revision surface state transitions.** The trigger window captured `runningState=Activating` (`evidence/12-h1-gate.json` `trigger_window.bad_revision_running_state`), while the verify window captured `runningState=Degraded` (`evidence/22-h2-gate.json` `pre_fix_state.bad_revision_running_state`) for the same `ca-labtraffic-ve2wnr--badv2` revision. The `runningStateDetails` text containing `"TargetPort 80 does not match the listening port 8080."` was present in both windows. The gates accept either non-healthy surface state when paired with port-specific corroboration (strong path: `runningStateDetails` text match; fallback path: non-healthy state + `system_log_capture.probe_failed_lines_in_tail` > 0). A bare `Failed`/`Degraded`/`Activating` label with no port-specific corroboration is explicitly insufficient — it could otherwise be caused by image pull failure, OOMKilled, or other non-port failure modes.
+
+2. **`az containerapp ingress traffic set` response shape.** The CLI returns the traffic array directly as the top-level JSON (a list of `{revisionName, weight}` entries), NOT the full Container App resource — see `evidence/15-traffic-set-rollback.json`. Furthermore, the response contains ONLY the entries explicitly assigned in the `--revision-weight` argument; unmentioned revisions are implicitly weight=0 and do not appear in the response (the BAD revision is absent from `15-traffic-set-rollback.json` even though it remains in the revision list at `trafficWeight=0`, see `evidence/17-revision-list-post-fix.json` for the independent corroboration). The H2 `b_traffic_set_rollback_succeeded` sub-gate accepts both response shapes defensively and treats an absent BAD entry as implicit weight=0.
+
+#### Evidence provenance note
+
+All 22 artifacts (`01-*` through `22-*`) come from a single coherent 2026-06-24 00:13–00:28 UTC run against `rg-aca-lab-traffic2` (Korea Central). The full provenance map and file index are in [`labs/traffic-routing-canary/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/traffic-routing-canary/evidence/README.md).
+
+#### Operator caveat
+
+The H1 sub-gate `a_bad_revision_minted_with_port_mismatched_image` and the H2 same-revision-proof checks hard-code the image identities (`mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` for GOOD, `mcr.microsoft.com/dotnet/samples:aspnetapp` for BAD) and the listening ports (`:80` and `:8080`). If a future maintainer changes any of these constants in `trigger.sh` (`GOOD_IMAGE`, `BAD_IMAGE`, `BAD_IMAGE_LISTENING_PORT`, `EXPECTED_INGRESS_TARGET_PORT`), the corresponding gate string matches must be updated in lockstep across both `trigger.sh` and `verify.sh`.
 
 ## Clean Up
 

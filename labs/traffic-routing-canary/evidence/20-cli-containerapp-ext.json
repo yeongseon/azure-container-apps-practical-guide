@@ -1,0 +1,10 @@
+[
+  {
+    "experimental": false,
+    "extensionType": "whl",
+    "name": "containerapp",
+    "path": "/Users/demouser/.azure/cliextensions/containerapp",
+    "preview": true,
+    "version": "1.3.0b4"
+  }
+]

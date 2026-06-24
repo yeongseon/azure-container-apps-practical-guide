@@ -1,0 +1,68 @@
+{
+  "utc_captured": "2026-06-24T00:28:03Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-traffic2",
+  "app_name": "ca-labtraffic-ve2wnr",
+  "app_fqdn": "ca-labtraffic-ve2wnr.calmdesert-6bf1e90b.koreacentral.azurecontainerapps.io",
+  "good_revision_name": "ca-labtraffic-ve2wnr--w3daylh",
+  "bad_revision_name": "ca-labtraffic-ve2wnr--badv2",
+  "pre_fix_state": {
+    "bad_revision_name": "ca-labtraffic-ve2wnr--badv2",
+    "bad_revision_running_state": "Degraded",
+    "bad_revision_health_state": "Unhealthy",
+    "bad_revision_running_state_details": "Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 80 does not match the listening port 8080.",
+    "bad_revision_image": "mcr.microsoft.com/dotnet/samples:aspnetapp",
+    "curl_success_count_200_of_5": 5,
+    "curl_timeout_count_000_of_5": 0,
+    "h1_syslog_probe_failed_count_referenced": 18
+  },
+  "fix_window": {
+    "start_utc": "2026-06-24T00:27:08Z",
+    "command": "az containerapp ingress traffic set --revision-weight GOOD=100 BAD=0",
+    "cli_exit_code": 0
+  },
+  "post_fix_state": {
+    "good_revision_name": "ca-labtraffic-ve2wnr--w3daylh",
+    "good_revision_health_state": "Healthy",
+    "good_revision_running_state": "Running",
+    "good_revision_created_time": "2026-06-24T00:12:40+00:00",
+    "good_revision_image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "curl_success_count_200_of_5": 5,
+    "ingress_traffic_array": [
+      {
+        "revisionName": "ca-labtraffic-ve2wnr--w3daylh",
+        "weight": 100
+      }
+    ],
+    "bad_revision_entry_in_revision_list": {
+      "active": true,
+      "createdTime": "2026-06-24T00:14:10+00:00",
+      "healthState": "Unhealthy",
+      "image": "mcr.microsoft.com/dotnet/samples:aspnetapp",
+      "name": "ca-labtraffic-ve2wnr--badv2",
+      "runningState": "Failed",
+      "trafficWeight": 0
+    }
+  },
+  "same_revision_proof": {
+    "pre_fix_good_name": "ca-labtraffic-ve2wnr--w3daylh",
+    "post_fix_good_name": "ca-labtraffic-ve2wnr--w3daylh",
+    "name_unchanged": true,
+    "trigger_time_good_created_time": "2026-06-24T00:12:40+00:00",
+    "post_fix_good_created_time": "2026-06-24T00:12:40+00:00",
+    "created_time_unchanged": true,
+    "trigger_time_good_image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "post_fix_good_image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "image_unchanged": true
+  },
+  "h2_sub_gates": {
+    "a_pre_fix_failure_re_confirmed": true,
+    "b_traffic_set_rollback_succeeded": true,
+    "c_traffic_100_pct_good": true,
+    "d_post_fix_curl_all_success": true,
+    "e_good_revision_unchanged": true,
+    "f_bad_revision_still_visible_with_zero_traffic": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "canary_rolled_back_to_good_revision_intact"
+}
