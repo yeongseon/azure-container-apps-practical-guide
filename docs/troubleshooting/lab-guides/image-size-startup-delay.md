@@ -89,10 +89,15 @@ The `python:3.11-alpine` cold pull will complete several times faster than the `
 ## 5. Experiment
 
 1. Deploy the Bicep template (`infra/main.bicep`) which creates the Container App on `python:3.11` with `command: ["python", "-m", "http.server", "8080"]`.
-2. Run `trigger.sh` to wait for the first revision to become Healthy and capture its system-log pull-timing event.
-3. Run `verify.sh` to deploy a second revision on `python:3.11-alpine` (same command, same target port) and capture its system-log pull-timing event.
-4. Compare the two `Successfully pulled image ... in <N>s. Image size: <bytes> bytes.` lines from `ContainerAppSystemLogs`.
-5. For the falsification step, deploy a third revision on `mcr.microsoft.com/azuredocs/containerapps-helloworld` while keeping the same Bicep `command` override and capture the resulting `ContainerCreateFailure` events.
+2. Run `trigger.sh` — a self-contained 5-phase orchestrator that performs ALL Azure mutations and captures:
+    - **Phase 1**: confirms the initial `python:3.11` revision is Healthy after the Bicep deploy.
+    - **Phase 2**: captures the cold-pull system log for `python:3.11` (8.88 s, 408 MB) into `evidence/01-trigger-large-image.txt`.
+    - **Phase 3**: `az containerapp update` swaps the image to `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` (keeping the same Bicep `command` override) and waits for the H2 falsification revision to surface `ContainerCreateFailure`.
+    - **Phase 4**: `az containerapp update` swaps the image to `python:3.11-alpine` and waits for the post-fix revision to become Healthy; captures the cold-pull system log (2.88 s, 20 MB) into `evidence/02-verify-small-image.txt`.
+    - **Phase 5**: emits the remaining nine evidence artifacts via KQL and `az` calls (`evidence/03-*` through `evidence/09-*` + `system-logs-{large,small}.json`).
+3. Run `verify.sh` — a **pure file processor** (no Azure calls) — that reads `evidence/01-*` through `evidence/09-*` plus `system-logs-{large,small}.json` from disk and emits four falsifiable gate JSONs (`evidence/10-*` through `evidence/13-*`).
+4. Compare the two `Successfully pulled image ... in <N>s. Image size: <bytes> bytes.` lines from `ContainerAppSystemLogs` (already captured in `evidence/06-kql-pull-events.json` by `trigger.sh` Phase 5).
+5. The falsification step is **not a separate operator action** — it is performed automatically by `trigger.sh` Phase 3 above, and its evidence is captured in `evidence/system-logs-large.json` (the `ContainerCreateFailure` events on the helloworld revision) and rolled into Gate 13 by `verify.sh`.
 
 ## 6. Execution
 
@@ -161,7 +166,7 @@ Reproduced end-to-end in `koreacentral`. All raw evidence is committed under [`l
 | `ca-imgsize-acerjw--5487avi` | `python:3.11` | **8.88 s** | 408,944,640 bytes (408 MB) | `Healthy` — container started and bound port 8080 |
 | `ca-imgsize-acerjw--0000002` | `python:3.11-alpine` | **2.88 s** | 19,922,944 bytes (20 MB) | `Healthy` — container started and bound port 8080 |
 
-**Off-script falsification step — cold and warm pull times** (manual diagnostic revision; not produced by `trigger.sh` / `verify.sh`):
+**Off-script falsification step — cold and warm pull times** (off-script `containerapps-helloworld` revision produced by `trigger.sh` Phase 3 as the H2 falsification step; `verify.sh` Gate 13 rolls up the resulting `ContainerCreateFailure` events from `evidence/system-logs-large.json`):
 
 | Pull # | Image | Pull time | Outcome |
 |---|---|---|---|
@@ -194,10 +199,10 @@ Successfully pulled image "python:3.11-alpine" in 2.88s. Image size: 19922944 by
 
 | Gate | File | Hypothesis | Sub-gates | Strong path |
 |---|---|---|---|---|
-| 10 | `10-h1-a-large-cold-pull-gate.json` | H1-a: Scenario A (`python:3.11`) cold pull observed and revision healthy | 3 (pull event ≥ 6 s, image size ≥ 350 MB, revision `Healthy`) | PASS |
-| 11 | `11-h1-b-small-cold-pull-gate.json` | H1-b: Scenario B (`python:3.11-alpine`) cold pull observed and revision healthy | 3 (pull event ≤ 4 s, image size ≤ 25 MB, revision `Healthy`) | PASS |
-| 12 | `12-h1-c-speedup-ratio-gate.json` | H1-c: cold-pull speedup is material (≥ 2.5×) | 2 (parse both durations, assert ratio ≥ 2.5×) | PASS (observed 3.08×) |
-| 13 | `13-h2-falsification-gate.json` | H2: small image alone is **not sufficient** for healthy startup | 3 (helloworld pulled fastest, ContainerTerminated count ≥ 3, runtime mismatch signature `exec: "python": executable file not found in $PATH`) | PASS |
+| 10 | `10-h1-a-large-cold-pull-gate.json` | H1-a: Scenario A (`python:3.11`) cold pull observed and revision healthy | 3 (Strong: exact `Log_s` match for `Successfully pulled image "python:3.11" in 8.88s. Image size: 408944640 bytes.` in `06-kql-pull-events.json`; Fallback: same-line tag+duration AND same-line size+tag substring match in `01-trigger-large-image.txt`; revision `Healthy` or `ContainerStarted` event) | PASS |
+| 11 | `11-h1-b-small-cold-pull-gate.json` | H1-b: Scenario B (`python:3.11-alpine`) cold pull observed and revision healthy | 3 (Strong: exact `Log_s` match for `Successfully pulled image "python:3.11-alpine" in 2.88s. Image size: 19922944 bytes.` in `06-kql-pull-events.json`; Fallback: same-line tag+duration AND same-line size+tag substring match in `system-logs-small.json`; revision `Healthy` or `ContainerStarted` event) | PASS |
+| 12 | `12-h1-c-speedup-ratio-gate.json` | H1-c: cold-pull speedup is material (≥ 2.5×) | 2 (parse both durations from `06-kql-pull-events.json`, assert ratio ≥ 2.5×) | PASS (observed 3.08×) |
+| 13 | `13-h2-falsification-gate.json` | H2: small image alone is **not sufficient** for healthy startup | 3 (helloworld pulled fastest in `06-kql-pull-events.json`; `ContainerTerminated` event count ≥ 3 in `09-kql-event-summary.json`; runtime mismatch signature `exec: "python": executable file not found in $PATH` co-located on the same NDJSON record as the helloworld revision name in `system-logs-{large,small}.json`) | PASS |
 
 The Gate 12 speedup-ratio threshold is intentionally **lower** than the observed 3.08× (set to ≥ 2.5×) to absorb pull-time variance on re-runs while still falsifying the case where the two image sizes converge. The Gate 13 sub-gates intentionally key off the `ContainerTerminated` event count and the `exec` error signature, NOT the revision-level `healthState` field — because Azure Container Apps marks revisions `Healthy` at deploy time and does not always update that field when later container terminations occur. See [`labs/image-size-startup-delay/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/image-size-startup-delay/evidence/README.md) "Honest disclosure" section for the full empirical platform behavior documented during the 2026-06-22 live run.
 

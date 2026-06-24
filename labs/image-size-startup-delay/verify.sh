@@ -187,17 +187,19 @@ strong_pull_event = next(
 )
 a_strong_path_exact_log_s = strong_pull_event is not None
 
-# Fallback path: 01-trigger-large-image.txt contains both the image tag
-# substring AND the duration substring. This is tighter than a single
-# `Successfully pulled image` match (which would also be true for the
-# helloworld revision) — we require BOTH the image tag and the duration
-# to be present in the same file. The duration substring uses the captured
-# baseline value; a re-run with a different duration would fail this
-# fallback too, which is intentional (the gate is about the canonical
-# 2026-06-22 baseline, not "any cold pull").
-a_fallback_path_text_match = (
-    f'"{LARGE_IMAGE_TAG}"' in trigger_large_text
-    and f'in {LARGE_PULL_DURATION_S}s' in trigger_large_text
+# Fallback path: 01-trigger-large-image.txt contains a captured
+# `Successfully pulled image` event for the large revision. We require
+# both the image-tag substring and the duration substring to appear in
+# the SAME line (record-scoped, not whole-file `in`) so an unrelated
+# helloworld pull event on a different line cannot also satisfy this
+# predicate. The duration uses the captured 2026-06-22 baseline value;
+# a re-run with a different duration would fail this fallback too,
+# which is intentional (the gate is about the canonical baseline, not
+# "any cold pull").
+a_fallback_path_text_match = any(
+    f'"{LARGE_IMAGE_TAG}"' in line
+    and f'in {LARGE_PULL_DURATION_S}s' in line
+    for line in trigger_large_text.split("\n")
 )
 a_pull_event_observed = a_strong_path_exact_log_s or a_fallback_path_text_match
 
@@ -215,11 +217,13 @@ strong_size_match = any(
 b_strong_path_size_in_kql = strong_size_match
 
 # Fallback path: 01-trigger-large-image.txt contains the byte-count
-# substring AND the large image tag (tight scoping — exclude the case
-# where 408944640 bytes coincidentally appears for an unrelated image).
-b_fallback_path_size_in_text = (
-    f'{LARGE_IMAGE_SIZE_BYTES} bytes' in trigger_large_text
-    and f'"{LARGE_IMAGE_TAG}"' in trigger_large_text
+# substring AND the large image tag on the SAME line (record-scoped) —
+# excludes the case where 408944640 bytes coincidentally appears in a
+# different log entry for an unrelated image.
+b_fallback_path_size_in_text = any(
+    f'{LARGE_IMAGE_SIZE_BYTES} bytes' in line
+    and f'"{LARGE_IMAGE_TAG}"' in line
+    for line in trigger_large_text.split("\n")
 )
 b_image_size_matches = b_strong_path_size_in_kql or b_fallback_path_size_in_text
 
@@ -346,13 +350,15 @@ strong_pull_event = next(
 )
 a_strong_path_exact_log_s = strong_pull_event is not None
 
-# Fallback path: system-logs-small.json contains both the image tag and
-# the duration substring. Tight scoping (both must be present) excludes
-# the case where the small-log file mentions the tag in passing but
-# without a matching pull event.
-a_fallback_path_text_match = (
-    f'"{SMALL_IMAGE_TAG}"' in system_logs_small
-    and f'in {SMALL_PULL_DURATION_S}s' in system_logs_small
+# Fallback path: system-logs-small.json (NDJSON, one log entry per line)
+# contains both the image tag AND the duration substring on the SAME
+# line (record-scoped, not whole-file `in`). Excludes the case where
+# the file contains an unrelated entry mentioning the tag without a
+# matching pull event.
+a_fallback_path_text_match = any(
+    f'"{SMALL_IMAGE_TAG}"' in line
+    and f'in {SMALL_PULL_DURATION_S}s' in line
+    for line in system_logs_small.split("\n")
 )
 a_pull_event_observed = a_strong_path_exact_log_s or a_fallback_path_text_match
 
@@ -365,9 +371,10 @@ strong_size_match = any(
 )
 b_strong_path_size_in_kql = strong_size_match
 
-b_fallback_path_size_in_text = (
-    f'{SMALL_IMAGE_SIZE_BYTES} bytes' in system_logs_small
-    and f'"{SMALL_IMAGE_TAG}"' in system_logs_small
+b_fallback_path_size_in_text = any(
+    f'{SMALL_IMAGE_SIZE_BYTES} bytes' in line
+    and f'"{SMALL_IMAGE_TAG}"' in line
+    for line in system_logs_small.split("\n")
 )
 b_image_size_matches = b_strong_path_size_in_kql or b_fallback_path_size_in_text
 
@@ -800,8 +807,21 @@ b_helloworld_terminated_ge_threshold = (
 # is exact (no regex) to maximize human-readability of the predicate.
 EXEC_ERROR_SIGNATURE = 'exec: \\"python\\": executable file not found in $PATH'
 
-c_strong_path_signature_in_large = EXEC_ERROR_SIGNATURE in system_logs_large
-c_fallback_path_signature_in_small = EXEC_ERROR_SIGNATURE in system_logs_small
+# Record-scoped: the signature must appear in the SAME NDJSON line as
+# the helloworld revision name (not whole-file `in`), so a future
+# capture containing failing events on other revisions cannot also
+# satisfy this predicate. The 2026-06-22 baseline has 4 such lines in
+# system-logs-large.json; the small-logs file may contain zero, in
+# which case only the Strong path passes (which is sufficient).
+helloworld_revision_field = f'"RevisionName": "{HELLOWORLD_REVISION_NAME}"'
+c_strong_path_signature_in_large = any(
+    EXEC_ERROR_SIGNATURE in line and helloworld_revision_field in line
+    for line in system_logs_large.split("\n")
+)
+c_fallback_path_signature_in_small = any(
+    EXEC_ERROR_SIGNATURE in line and helloworld_revision_field in line
+    for line in system_logs_small.split("\n")
+)
 c_runtime_mismatch_signature = (
     c_strong_path_signature_in_large or c_fallback_path_signature_in_small
 )
