@@ -1,0 +1,133 @@
+{
+  "utc_captured": "2026-06-24T12:09:00Z",
+  "scenario": "revision_history_limit_bounded_observation",
+  "hypothesis": "H2_bounded_window_non_pruning",
+  "claim": "pruning_was_not_prompt_within_this_15_minute_observation_window_in_this_reproduction",
+  "claim_level": "Observed",
+  "claim_ceiling_warning": "This gate proves only that pruning was not prompt within the 15-minute window in this single reproduction. It does NOT prove the platform never prunes promptly, nor does it characterize the long-run pruning cadence. The pruning interval is undocumented and there is no SLA.",
+  "predicate_inputs": {
+    "revs_t5m_path": "labs/revision-history-limit/evidence/04-revisions-t5m.json",
+    "revs_t15m_path": "labs/revision-history-limit/evidence/05-revisions-t15m.json"
+  },
+  "thresholds": {
+    "configured_max_inactive_revisions": 2,
+    "strong_inactive_floor": 8
+  },
+  "sub_gate_a_predicate": "At t+5m, inactive revision count > 2 (configured limit). Strong path requires >= 8; fallback requires only > 2.",
+  "sub_gate_b_predicate": "At t+15m, inactive revision count > 2 (configured limit). Strong path requires >= 8; fallback requires only > 2.",
+  "sub_gate_c_predicate": "BOTH-not-OR per Lab 19 P0 lesson: BOTH t+5m AND t+15m show inactive > 2, AND t+15m inactive count >= t+5m inactive count (monotonic non-decrease). Strong path requires both endpoints >= 8 floor and monotonic; fallback requires both endpoints > 2 target and monotonic.",
+  "sub_gate_a_t5m_inactive_above_target": {
+    "observed_t5m_total_revisions": 11,
+    "observed_t5m_inactive_count": 10,
+    "observed_first_5": [
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:56:51+00:00",
+        "name": "ca-revhist-t3t3np--wdmdnoq",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:58:50+00:00",
+        "name": "ca-revhist-t3t3np--0000001",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:13+00:00",
+        "name": "ca-revhist-t3t3np--0000002",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:32+00:00",
+        "name": "ca-revhist-t3t3np--0000003",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:50+00:00",
+        "name": "ca-revhist-t3t3np--0000004",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      }
+    ],
+    "a_strong_path_t5m_inactive_ge_eight": true,
+    "a_fallback_path_t5m_inactive_gt_two": true,
+    "a_pass": true
+  },
+  "sub_gate_b_t15m_inactive_above_target": {
+    "observed_t15m_total_revisions": 11,
+    "observed_t15m_inactive_count": 10,
+    "observed_first_5": [
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:56:51+00:00",
+        "name": "ca-revhist-t3t3np--wdmdnoq",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:58:50+00:00",
+        "name": "ca-revhist-t3t3np--0000001",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:13+00:00",
+        "name": "ca-revhist-t3t3np--0000002",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:32+00:00",
+        "name": "ca-revhist-t3t3np--0000003",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:50+00:00",
+        "name": "ca-revhist-t3t3np--0000004",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      }
+    ],
+    "b_strong_path_t15m_inactive_ge_eight": true,
+    "b_fallback_path_t15m_inactive_gt_two": true,
+    "b_pass": true
+  },
+  "sub_gate_c_both_endpoints_above_target_and_monotonic": {
+    "observed_t5m_inactive_count": 10,
+    "observed_t15m_inactive_count": 10,
+    "observed_both_endpoints_above_target": true,
+    "observed_monotonic_non_decrease": true,
+    "c_strong_path_both_above_floor_and_monotonic": true,
+    "c_fallback_path_both_above_target_and_monotonic": true,
+    "c_pass": true
+  },
+  "revision_history_limit_h2_bounded_window_non_pruning_sub_gates": {
+    "a_t5m_inactive_above_target": true,
+    "b_t15m_inactive_above_target": true,
+    "c_both_endpoints_above_target_and_monotonic": true
+  },
+  "revision_history_limit_h2_bounded_window_non_pruning_all_subgates_pass": true,
+  "gate_classification": "pruning_was_not_prompt_within_this_15_minute_observation_window_in_this_reproduction"
+}

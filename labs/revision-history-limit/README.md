@@ -18,12 +18,13 @@ If both hold, the lab proves that `maxInactiveRevisions` is honored as a *target
 ```text
 labs/revision-history-limit/
 ├── infra/main.bicep      # LAW + Container Apps env + 1 app (helloworld image, maxInactiveRevisions=2, minReplicas=0)
-├── trigger.sh            # Phases 1-4: config check, initial revisions, burst 10 updates, capture t+0
-├── verify.sh             # Phases 5-7: capture at t+5m, t+15m, config readback at t+15m
+├── trigger.sh            # Phase A — Phases 1-4: config check, initial revisions, burst 10 updates, capture t+0
+├── capture-window.sh     # Phase A — Phases 5-7: capture at t+5m, t+15m, config readback at t+15m (formerly verify.sh)
+├── verify.sh             # Phase B — Evidence-pack verifier (4 gates / 12 sub-gates, no Azure calls)
 ├── cleanup.sh            # Delete the resource group
 └── evidence/             # Captured CLI evidence
     ├── 00-trigger-run.txt           # Full trigger.sh stdout/stderr
-    ├── 00-verify-run.txt            # Full verify.sh stdout/stderr
+    ├── 00-verify-run.txt            # Full capture-window.sh stdout/stderr (filename preserved for schema stability across the Phase B verify.sh → capture-window.sh rename)
     ├── 01-app-config-before.json    # Phase 1: config read before burst (expect maxInactiveRevisions=2)
     ├── 02-revisions-initial.json    # Phase 2: revision list before burst
     ├── 03-revisions-t0.json         # Phase 4: revision list immediately after burst
@@ -68,16 +69,29 @@ export APP_NAME=$(az deployment group show \
     --output tsv)
 
 # 4) Run the bounded-observation experiment.
-./trigger.sh   # config check + initial revisions + burst 10 updates + capture t+0
-./verify.sh    # wait to t+5m + wait to t+15m + config readback at t+15m
-./cleanup.sh   # delete the resource group
+./trigger.sh           # Phase A — config check + initial revisions + burst 10 updates + capture t+0
+./capture-window.sh    # Phase A — wait to t+5m + wait to t+15m + config readback at t+15m
+./cleanup.sh           # delete the resource group
+
+# 5) (Optional) Re-verify the committed evidence pack without re-deploying.
+bash verify.sh                                       # Phase B — pure file processor, 4 gates / 12 sub-gates
+ls evidence/{20,21,22,23}-*-gate.json                # emitted gate JSONs
 ```
+
+## Phase A vs Phase B
+
+This lab is delivered in two phases that share the same `labs/revision-history-limit/` directory but have distinct purposes:
+
+- **Phase A — Live-Azure reproduction.** The original lab that deploys real infrastructure to Azure, runs the 10-update env-var burst, and samples the live revision list at t+0, t+5m, and t+15m. Phase A produced the canonical cohort that lives under `evidence/` (anchored on `burst-20260622-080146`). Scripts: `trigger.sh` (Phases 1-4), `capture-window.sh` (Phases 5-7, formerly `verify.sh`), `cleanup.sh`. Cost: well under USD $0.05 per full run.
+- **Phase B — Evidence-pack verification.** A pure file processor (`verify.sh`, no Azure calls) that reads the committed canonical cohort from `evidence/` and emits four falsifiable gate JSONs (`20-cohort-integrity-gate.json` through `23-bounded-window-non-pruning-gate.json`). Phase B exists so a reviewer or future maintainer can re-verify the published claims without re-deploying — running `bash verify.sh` on the committed evidence reproduces the four-gate verdict on disk. See [`evidence/README.md`](evidence/README.md) for the full provenance + capture timeline + claim-ceiling disclosure + per-file integrity table.
+
+The historical pre-Phase-B `verify.sh` was the Phase A observation-window sampler (Phases 5-7); the Phase B refactor renamed it to `capture-window.sh` and assigned `verify.sh` to the new gate-emission role. The Phase A workflow above still runs the observation-window sampling, just under its new name. The captured log file `00-verify-run.txt` keeps its name for schema stability across the rename.
 
 ## What this lab demonstrates
 
 - The Container App is provisioned by `infra/main.bicep` with `properties.configuration.maxInactiveRevisions = 2` and the public placeholder image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`. The lab never switches off this image; every revision created by `trigger.sh` keeps the same image and only changes the `REV` env var, so the only experimental variable is the inactive-revision retention limit.
 - `trigger.sh` Phase 3 issues 10 sequential `az containerapp update --set-env-vars REV=<nonce>-N` calls (N=1..10). Each update creates a NEW revision (the env var change is enough to invalidate the previous template hash) and makes it the active revision under `activeRevisionsMode: 'Single'`. The previously active revision drops to Inactive. The nonce is a per-run UTC timestamp, so reruns produce distinct env var values and reliably create new revisions even after a fresh deploy.
-- `verify.sh` Phases 5-6 sample the revision list at fixed offsets after the burst (t+5m and t+15m). Phase 7 re-reads the configuration to prove the value was not mutated mid-run.
+- `capture-window.sh` Phases 5-6 sample the revision list at fixed offsets after the burst (t+5m and t+15m). Phase 7 re-reads the configuration to prove the value was not mutated mid-run.
 - The pass/fail logic encodes two outcomes plus two invalid-run guards:
     - **H1 PASS + H2 PASS** ⇒ the bounded-observation hypothesis is SUPPORTED (the preview setting is real but pruning is not prompt within 15 min). Exit 0.
     - **H2 FALSIFIED** ⇒ pruning IS prompt within 15 min. Update the lab and the playbook to reflect the new platform behavior. Exit 2.
@@ -113,7 +127,7 @@ When you ship this lab's evidence into a docs PR or a support ticket, ALWAYS rec
 - **Azure region** (e.g., `koreacentral`).
 - **Azure CLI version** and **`containerapp` extension version** (`az version`, `az extension list --query "[?name=='containerapp']"`).
 - **Date of the run in UTC** (also visible in `burst-completed-iso.txt`).
-- **The exit code of `trigger.sh` and `verify.sh`** (0 = hypothesis supported, 1 = invalid run, 2 = falsified).
+- **The exit code of `trigger.sh` and `capture-window.sh`** (0 = hypothesis supported, 1 = invalid run, 2 = falsified).
 
 The pruning interval is not documented in Microsoft Learn and is not part of any published SLA, so reproducibility of this lab's conclusions depends on recording when and where the measurement was taken. A second observer in a different region or after a platform update may see different behavior.
 

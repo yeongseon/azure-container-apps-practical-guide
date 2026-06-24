@@ -1,0 +1,38 @@
+{
+  "utc_captured": "2026-06-24T12:09:00Z",
+  "scenario": "revision_history_limit_bounded_observation",
+  "hypothesis": "H1_config_persistence",
+  "claim": "max_inactive_revisions_target_honored_across_observation_window",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "config_before_path": "labs/revision-history-limit/evidence/01-app-config-before.json",
+    "config_t15m_path": "labs/revision-history-limit/evidence/06-app-config-t15m.json"
+  },
+  "thresholds": {
+    "expected_max_inactive_revisions": 2,
+    "expected_active_revisions_mode": "Single"
+  },
+  "sub_gate_a_predicate": "Pre-burst config readback (01-app-config-before.json) shows maxInactiveRevisions=2 AND activeRevisionsMode=Single; fallback only requires maxInactiveRevisions is a finite non-negative integer.",
+  "sub_gate_b_predicate": "Post-window config readback (06-app-config-t15m.json) shows the same BOTH fields match (BOTH-not-OR per Lab 19 P0 lesson) AND the file is byte-identical to the pre-burst config (proves no mid-window mutation); fallback requires only that both fields match without byte-identity.",
+  "sub_gate_a_pre_burst_config_persisted": {
+    "observed_before_max_inactive_revisions": 2,
+    "observed_before_active_revisions_mode": "Single",
+    "a_strong_path_both_fields_match_expected": true,
+    "a_fallback_path_max_inactive_revisions_is_finite": true,
+    "a_pass": true
+  },
+  "sub_gate_b_post_window_config_persisted": {
+    "observed_t15m_max_inactive_revisions": 2,
+    "observed_t15m_active_revisions_mode": "Single",
+    "observed_byte_identical_to_pre_burst": true,
+    "b_strong_path_both_fields_match_and_byte_identical": true,
+    "b_fallback_path_both_fields_match": true,
+    "b_pass": true
+  },
+  "revision_history_limit_h1_config_persistence_sub_gates": {
+    "a_pre_burst_config_persisted": true,
+    "b_post_window_config_persisted": true
+  },
+  "revision_history_limit_h1_config_persistence_all_subgates_pass": true,
+  "gate_classification": "max_inactive_revisions_target_honored_across_observation_window"
+}

@@ -1,0 +1,106 @@
+{
+  "utc_captured": "2026-06-24T12:09:00Z",
+  "scenario": "revision_history_limit_bounded_observation",
+  "hypothesis": "H_burst_materialization",
+  "claim": "env_var_only_updates_materialized_distinct_new_revisions",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "revs_initial_path": "labs/revision-history-limit/evidence/02-revisions-initial.json",
+    "revs_t0_path": "labs/revision-history-limit/evidence/03-revisions-t0.json"
+  },
+  "thresholds": {
+    "strong_initial_count": 1,
+    "fallback_initial_minimum": 1,
+    "strong_t0_count": 11,
+    "fallback_t0_minimum": 8,
+    "strong_distinct_t0_count": 11,
+    "fallback_distinct_t0_minimum": 8
+  },
+  "sub_gate_a_predicate": "02-revisions-initial.json has exactly 1 revision (strong, fresh provision); fallback requires at least 1.",
+  "sub_gate_b_predicate": "03-revisions-t0.json has exactly 11 revisions (strong, ideal burst); fallback requires at least 8 per Oracle directive.",
+  "sub_gate_c_predicate": "03-revisions-t0.json contains 11 DISTINCT revision names (strong); fallback requires at least 8 distinct names. Proves each env-var-only update materialized a new revision rather than reusing an existing one.",
+  "sub_gate_a_initial_baseline_one_revision": {
+    "observed_initial_revision_count": 1,
+    "observed_first_5": [
+      {
+        "active": true,
+        "createdTime": "2026-06-22T07:56:51+00:00",
+        "name": "ca-revhist-t3t3np--wdmdnoq",
+        "provisioningState": "Provisioned",
+        "runningState": "RunningAtMaxScale",
+        "trafficWeight": 100
+      }
+    ],
+    "a_strong_path_initial_exactly_one": true,
+    "a_fallback_path_initial_at_least_one": true,
+    "a_pass": true
+  },
+  "sub_gate_b_post_burst_eleven_revisions": {
+    "observed_post_burst_revision_count": 11,
+    "observed_first_5": [
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:56:51+00:00",
+        "name": "ca-revhist-t3t3np--wdmdnoq",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:58:50+00:00",
+        "name": "ca-revhist-t3t3np--0000001",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:13+00:00",
+        "name": "ca-revhist-t3t3np--0000002",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:32+00:00",
+        "name": "ca-revhist-t3t3np--0000003",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      },
+      {
+        "active": false,
+        "createdTime": "2026-06-22T07:59:50+00:00",
+        "name": "ca-revhist-t3t3np--0000004",
+        "provisioningState": "Provisioned",
+        "runningState": "Stopped",
+        "trafficWeight": 0
+      }
+    ],
+    "b_strong_path_t0_exactly_eleven": true,
+    "b_fallback_path_t0_at_least_eight": true,
+    "b_pass": true
+  },
+  "sub_gate_c_post_burst_distinct_revision_names": {
+    "observed_distinct_revision_name_count": 11,
+    "observed_first_5": [
+      "ca-revhist-t3t3np--0000001",
+      "ca-revhist-t3t3np--0000002",
+      "ca-revhist-t3t3np--0000003",
+      "ca-revhist-t3t3np--0000004",
+      "ca-revhist-t3t3np--0000005"
+    ],
+    "c_strong_path_distinct_exactly_eleven": true,
+    "c_fallback_path_distinct_at_least_eight": true,
+    "c_pass": true
+  },
+  "revision_history_limit_h_burst_materialization_sub_gates": {
+    "a_initial_baseline_one_revision": true,
+    "b_post_burst_eleven_revisions": true,
+    "c_post_burst_distinct_revision_names": true
+  },
+  "revision_history_limit_h_burst_materialization_all_subgates_pass": true,
+  "gate_classification": "env_var_only_updates_materialized_distinct_new_revisions"
+}

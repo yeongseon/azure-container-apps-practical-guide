@@ -89,7 +89,7 @@ echo "===== trigger.sh evaluation ====="
 if [ "${T0_COUNT}" -lt 8 ]; then
     echo "[INVALID RUN] Expected the burst to leave >=8 revisions visible at t+0 (1 initial + 10 burst minus eager prune)."
     echo "              Saw ${T0_COUNT}. The burst likely did not create distinct revisions (template-hash collision?)."
-    echo "              Inspect ${EVIDENCE_DIR}/03-revisions-t0.json before running verify.sh."
+    echo "              Inspect ${EVIDENCE_DIR}/03-revisions-t0.json before running capture-window.sh."
     exit 1
 fi
 if [ "${T0_COUNT}" -le 2 ]; then
@@ -98,6 +98,6 @@ if [ "${T0_COUNT}" -le 2 ]; then
     exit 2
 fi
 echo "[OK] Burst produced ${T0_COUNT} revisions at t+0."
-echo "     burst-completed-epoch.txt is written; verify.sh will sample at t+5m and t+15m."
-echo "     Run ./verify.sh next."
+echo "     burst-completed-epoch.txt is written; capture-window.sh will sample at t+5m and t+15m."
+echo "     Run ./capture-window.sh next (Phase A capture). Run ./verify.sh after capture to emit gate JSONs (Phase B)."
 exit 0

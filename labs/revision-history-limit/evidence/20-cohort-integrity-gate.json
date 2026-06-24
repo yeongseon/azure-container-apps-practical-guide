@@ -1,0 +1,131 @@
+{
+  "utc_captured": "2026-06-24T12:09:00Z",
+  "scenario": "revision_history_limit_bounded_observation",
+  "hypothesis": "H_cohort_integrity",
+  "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "evidence_dir": "labs/revision-history-limit/evidence",
+    "canonical_files_manifest": [
+      "00-trigger-run.txt",
+      "00-verify-run.txt",
+      "01-app-config-before.json",
+      "02-revisions-initial.json",
+      "03-revisions-t0.json",
+      "04-revisions-t5m.json",
+      "05-revisions-t15m.json",
+      "06-app-config-t15m.json",
+      "07-cli-versions.json",
+      "08-cli-containerapp-ext.json",
+      "09-region.json",
+      "10-deployment-outputs.json",
+      "burst-completed-epoch.txt",
+      "burst-completed-iso.txt"
+    ],
+    "phase_b_outputs_manifest": [
+      "20-cohort-integrity-gate.json",
+      "21-config-persistence-gate.json",
+      "22-burst-materialization-gate.json",
+      "23-bounded-window-non-pruning-gate.json"
+    ],
+    "expected_meta_files": [
+      "README.md"
+    ]
+  },
+  "sub_gate_a_predicate": "All 14 canonical Phase A files exist; fallback requires at least 12.",
+  "sub_gate_b_predicate": "burst-completed-epoch.txt and burst-completed-iso.txt are reciprocal (int(epoch) \u2192 ISO matches ISO file contents); fallback requires both files parseable.",
+  "sub_gate_c_predicate": "No unexpected non-junk extras under evidence/. Strong path requires exact match of the canonical 14 + 4 Phase B outputs + README.md; fallback tolerates only editor/OS junk (.swp/.bak/.tmp/.DS_Store) and STILL requires zero missing canonical files.",
+  "sub_gate_d_predicate": "evidence/README.md cross-references all 4 Phase B gate JSON filenames; fallback requires only that README.md exists.",
+  "required_canonical_file_count": 14,
+  "minimum_fallback_file_count": 12,
+  "sub_gate_a_canonical_files_present": {
+    "observed_present_file_count": 14,
+    "observed_first_5": [
+      {
+        "path": "labs/revision-history-limit/evidence/00-trigger-run.txt",
+        "exists": true
+      },
+      {
+        "path": "labs/revision-history-limit/evidence/00-verify-run.txt",
+        "exists": true
+      },
+      {
+        "path": "labs/revision-history-limit/evidence/01-app-config-before.json",
+        "exists": true
+      },
+      {
+        "path": "labs/revision-history-limit/evidence/02-revisions-initial.json",
+        "exists": true
+      },
+      {
+        "path": "labs/revision-history-limit/evidence/03-revisions-t0.json",
+        "exists": true
+      }
+    ],
+    "a_strong_path_all_14_files_exist": true,
+    "a_fallback_path_at_least_12_files_exist": true,
+    "a_pass": true
+  },
+  "sub_gate_b_anchor_files_reciprocal": {
+    "observed_anchor_records": {
+      "epoch_file_path": "labs/revision-history-limit/evidence/burst-completed-epoch.txt",
+      "iso_file_path": "labs/revision-history-limit/evidence/burst-completed-iso.txt",
+      "epoch_value": 1782115306,
+      "iso_from_epoch_derivation": "2026-06-22T08:01:46Z",
+      "iso_file_content": "2026-06-22T08:01:46Z",
+      "anchor_basename": "burst-20260622-080146"
+    },
+    "b_strong_path_anchor_files_reciprocal": true,
+    "b_fallback_path_both_files_parseable": true,
+    "b_pass": true
+  },
+  "sub_gate_c_no_unexpected_extras": {
+    "observed_extras_count": 0,
+    "observed_extras": [],
+    "observed_missing_canonical": [],
+    "unexpected_non_junk_extras": [],
+    "allowed_junk_suffixes": [
+      ".swp",
+      ".bak",
+      ".tmp"
+    ],
+    "allowed_junk_exact_names": [
+      ".DS_Store"
+    ],
+    "c_strong_path_exact_match": true,
+    "c_fallback_path_no_foreign_files": true,
+    "c_pass": true
+  },
+  "sub_gate_d_readme_references_gate_outputs": {
+    "observed_readme_exists": true,
+    "observed_gate_reference_records": [
+      {
+        "gate_filename": "20-cohort-integrity-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "21-config-persistence-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "22-burst-materialization-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "23-bounded-window-non-pruning-gate.json",
+        "mentioned_in_readme": true
+      }
+    ],
+    "d_strong_path_readme_references_all_gates": true,
+    "d_fallback_path_readme_exists": true,
+    "d_pass": true
+  },
+  "revision_history_limit_h_cohort_integrity_sub_gates": {
+    "a_canonical_files_present": true,
+    "b_anchor_files_reciprocal": true,
+    "c_no_unexpected_extras": true,
+    "d_readme_references_gate_outputs": true
+  },
+  "revision_history_limit_h_cohort_integrity_all_subgates_pass": true,
+  "gate_classification": "evidence_cohort_is_internally_consistent_and_uncontaminated"
+}
