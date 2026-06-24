@@ -20,9 +20,9 @@ The `trigger.sh` BAD revision is minted via an **image swap** (`mcr.microsoft.co
 
 | Phase | Files | Source |
 |---|---|---|
-| Trigger setup | `01-infra-resolve.json` through `04-good-revision-captured.json` | `trigger.sh` Phases 1–3 — infra resolve, baseline revisions, baseline 5-request curl, GOOD revision identity snapshot |
-| Trigger fault injection | `05-containerapp-update-image.json` + `.stderr`, `06-wait-bad-revision.log`, `07-revision-list-bad.json`, `08-revision-show-bad.json`, `08-revision-show-good.json` | `trigger.sh` Phases 4–8 — image swap update, wait for BAD revision to provision, per-revision detail captures |
-| Trigger traffic split + probes | `09-traffic-set-50-50.json` + `.stderr`, `10-curl-loop-30-requests.json`, `11-system-logs-tail.log` | `trigger.sh` Phases 9–10 — apply 50/50 split, 30-request curl loop, syslog tail for ProbeFailed |
+| Trigger setup | `01-infra-resolve.json` through `04-good-revision-captured.json` | `trigger.sh` Phases 1–4 — infra resolve, baseline revisions, baseline 5-request curl, GOOD revision identity snapshot |
+| Trigger fault injection | `05-containerapp-update-image.json` + `.stderr`, `06-wait-bad-revision.log`, `07-revision-list-bad.json`, `08-revision-show-bad.json`, `08-revision-show-good.json` | `trigger.sh` Phases 5–7 — image swap update, wait for BAD revision to provision, per-revision detail captures |
+| Trigger traffic split + probes | `09-traffic-set-50-50.json` + `.stderr`, `10-curl-loop-30-requests.json`, `11-system-logs-tail.log` | `trigger.sh` Phases 8–10 — apply 50/50 split, 30-request curl loop, syslog tail for ProbeFailed |
 | H1 gate | `12-h1-gate.json` | `trigger.sh` Phase 11 — 5 sub-gates evaluated |
 | Verify pre-fix | `13-revision-pre-fix-bad.json`, `14-curl-pre-fix.json` | `verify.sh` Phases 13–14 — re-confirm BAD failure state, noisy 5-request curl on 50/50 split |
 | Verify fix | `15-traffic-set-rollback.json` + `.stderr`, `16-wait-recovery.log` | `verify.sh` Phases 15–16 — apply rollback (GOOD=100), 15 s propagation wait |
