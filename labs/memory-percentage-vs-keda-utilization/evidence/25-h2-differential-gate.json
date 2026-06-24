@@ -1,0 +1,48 @@
+{
+  "utc_captured": "2026-06-24T02:40:09Z",
+  "hypothesis": "H2: Portal MemoryPercentage value does NOT cleanly map to KEDA scaler input for cache-heavy workloads. Differential between A (held), B (walked to max), and C (stalled despite over-target) is the proof.",
+  "scenarios": {
+    "A": {
+      "app_name": "ca-mempct-a-below",
+      "replicas_max": 2.0,
+      "mempct_max": 40.0,
+      "expected_behavior": "held at floor (rss-dominant, per-replica utilization <= target)"
+    },
+    "B": {
+      "app_name": "ca-mempct-b-above",
+      "replicas_max": 20.0,
+      "mempct_max": 56.0,
+      "expected_behavior": "walked to maxReplicas (rss-dominant, per-replica utilization > target)"
+    },
+    "C": {
+      "app_name": "ca-mempct-cache",
+      "replicas_max": 2.0,
+      "mempct_max": 72.0,
+      "cgroup_cache_to_rss_ratio": 39.39942844581227,
+      "expected_behavior": "stalled despite Portal value above target (cache-dominant, KEDA reads a different numerator)"
+    }
+  },
+  "differential": {
+    "a_strong_path_a_eq_2": true,
+    "a_fallback_path_a_le_2": true,
+    "b_strong_path_b_eq_20": true,
+    "b_fallback_path_b_ge_10": true,
+    "c_strong_path_c_eq_2_with_overtarget": true,
+    "c_fallback_path_c_le_5_with_overtarget": true,
+    "d_strong_path_c_cache_30x_rss": true,
+    "d_fallback_path_c_cache_5x_rss": true,
+    "e_strong_path_b_2x_a_and_b_gt_c": true,
+    "e_fallback_path_b_gt_a_and_b_gt_c": true
+  },
+  "h2_sub_gates": {
+    "a_scenario_a_held_at_floor": true,
+    "b_scenario_b_walked_to_max": true,
+    "c_scenario_c_stalled_despite_overtarget": true,
+    "d_cache_explains_divergence": true,
+    "e_ordinal_scaling_proven": true,
+    "f_three_distinct_apps": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "portal_mempct_diverges_from_keda_scaler_input_for_cache_heavy_workloads",
+  "scope_note": "H2 proves the BEHAVIORAL divergence: A (rss, just-below) held, B (rss, just-above) walked, C (cache) stalled despite Portal > 50. The exact metrics-server numerator that KEDA reads is NOT directly measured here \u2014 that would require kubelet/metrics-server inspection, which is not exposed in Container Apps. The differential between A/B/C is sufficient to prove the divergence exists; the upstream root cause (metric-source mismatch vs HPA ceiling math) is explained in the lab guide and remains [Strongly Suggested] rather than [Observed] for the metric-source half."
+}

@@ -1,0 +1,14 @@
+{
+  "resource_group": "rg-aca-lab-mempct2",
+  "location": "koreacentral",
+  "acr_name": "acrmempct4xuaob",
+  "acr_login_server": "acrmempct4xuaob.azurecr.io",
+  "acr_credential_retrieved": true,
+  "acr_credential_logged_to_evidence": false,
+  "acr_credential_safety_note": "Username + password retrieved into shell variables only. Password never written to evidence files. Container Apps stores it as a managed secret (passwordSecretRef) — visible in containerapp show responses as a secret reference, never as the raw value.",
+  "environment_name": "cae-mempct-4xuaob",
+  "environment_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-mempct2/providers/Microsoft.App/managedEnvironments/cae-mempct-4xuaob",
+  "image_tag": "mempct:v1",
+  "image_digest": "sha256:a5523f8d9db1036721d2a11515a1b7285ac1d0d3dfaef28bf237b4d0f672603b",
+  "image_full_reference": "acrmempct4xuaob.azurecr.io/mempct:v1@sha256:a5523f8d9db1036721d2a11515a1b7285ac1d0d3dfaef28bf237b4d0f672603b"
+}

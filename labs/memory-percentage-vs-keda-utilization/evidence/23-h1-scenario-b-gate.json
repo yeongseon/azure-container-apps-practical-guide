@@ -1,0 +1,55 @@
+{
+  "utc_captured": "2026-06-24T02:40:09Z",
+  "scenario": "B",
+  "app_name": "ca-mempct-b-above",
+  "active_revision": "ca-mempct-b-above--ncbgqgi",
+  "active_revision_count": 1,
+  "scale_rule": {
+    "min_replicas": 2,
+    "max_replicas_spec": 20,
+    "rule_count": 1,
+    "rule_custom_type": "memory",
+    "rule_metadata_type": "Utilization",
+    "rule_metadata_value": "50",
+    "a_strong_path_exact_lab_spec": true,
+    "a_fallback_path_compatible_rule_shape": true
+  },
+  "replica_behavior": {
+    "samples_total": 30,
+    "samples_with_value": 30,
+    "samples_nonzero": 25,
+    "replicas_min_nonzero": 2.0,
+    "replicas_max_nonzero": 20.0,
+    "b_strong_path_max_eq_20": true,
+    "b_fallback_path_max_ge_10": true
+  },
+  "memorypercentage_behavior": {
+    "samples_with_value": 25,
+    "mempct_min": 56.0,
+    "mempct_max": 56.0,
+    "c_strong_path_band_50_60": true,
+    "c_fallback_path_max_ge_50": true
+  },
+  "cgroup_composition": {
+    "version": "v1",
+    "memory_usage_bytes": 605249536,
+    "memory_limit_bytes": 1073741824,
+    "stat_cache_bytes": 2052096,
+    "stat_rss_bytes": 600993792,
+    "stat_active_anon_bytes": 600969216,
+    "stat_inactive_file_bytes": 1904640,
+    "rss_to_cache_ratio": 292.8682634730539,
+    "active_anon_to_inactive_file_ratio": 315.5290322580645,
+    "d_strong_path_rss_100x_cache": true,
+    "d_fallback_path_rss_10x_cache": true
+  },
+  "h1_b_sub_gates": {
+    "a_scale_rule_match": true,
+    "b_replicas_walked_to_max": true,
+    "c_memorypercentage_crosses_50": true,
+    "d_cgroup_rss_dominant": true,
+    "e_active_revision_unique": true
+  },
+  "h1_b_all_subgates_pass": true,
+  "gate_classification": "scenario_b_walked_to_max_rss_dominant"
+}

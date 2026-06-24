@@ -121,7 +121,7 @@ pie title Tutorial Validation Status
 | [Log Analytics Ingestion Gap](../troubleshooting/lab-guides/log-analytics-ingestion-gap.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Managed Identity Key Vault Failure](../troubleshooting/lab-guides/managed-identity-key-vault-failure.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
 | [Memory Leak Oomkilled](../troubleshooting/lab-guides/memory-leak-oomkilled.md) | ✅ Pass | ✅ Pass | 2026-06-20 | ✅ Pass |
-| [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ Pass | ✅ Pass | 2026-06-02 | ✅ Pass |
+| [Memory Percentage Vs Keda Utilization](../troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md) | ✅ Pass | ✅ Pass | 2026-06-24 | ✅ Pass |
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Multi Arch Image Mismatch](../troubleshooting/lab-guides/multi-arch-image-mismatch.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
