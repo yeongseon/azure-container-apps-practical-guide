@@ -1,0 +1,18 @@
+[
+  {
+    "active": true,
+    "createdTime": "2026-06-24T01:12:50+00:00",
+    "healthState": "Healthy",
+    "name": "ca-labobs-ewwmkr--0000003",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 0
+  },
+  {
+    "active": true,
+    "createdTime": "2026-06-24T01:13:43+00:00",
+    "healthState": "None",
+    "name": "ca-labobs-ewwmkr--0000004",
+    "runningState": "Activating",
+    "trafficWeight": 100
+  }
+]

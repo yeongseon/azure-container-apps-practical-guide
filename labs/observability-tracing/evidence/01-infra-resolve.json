@@ -1,0 +1,10 @@
+{
+  "utc_captured": "2026-06-24T01:12:25Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-observability2",
+  "app_name": "ca-labobs-ewwmkr",
+  "app_fqdn": "ca-labobs-ewwmkr.graybush-5c5b3829.koreacentral.azurecontainerapps.io",
+  "environment_name": "cae-labobs-ewwmkr",
+  "appinsights_name": "appi-labobs-ewwmkr",
+  "baseline_revision_name_resolved_from_latestRevisionName": "ca-labobs-ewwmkr--0000002"
+}

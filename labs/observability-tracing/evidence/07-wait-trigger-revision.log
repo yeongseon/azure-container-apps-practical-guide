@@ -1,0 +1,6 @@
+wait_started_utc=2026-06-24T01:12:57Z
+expected_revision=ca-labobs-ewwmkr--0000003
+max_attempts=24 sleep=10s
+attempt=1 utc=2026-06-24T01:12:59Z provisioningState=Provisioned
+wait_ended_utc=2026-06-24T01:12:59Z
+wait_provisioned=true

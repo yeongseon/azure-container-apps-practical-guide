@@ -1,0 +1,69 @@
+{
+  "utc_captured": "2026-06-24T01:13:10Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-observability2",
+  "app_name": "ca-labobs-ewwmkr",
+  "app_fqdn": "ca-labobs-ewwmkr.graybush-5c5b3829.koreacentral.azurecontainerapps.io",
+  "trigger_window": {
+    "start_utc": "2026-06-24T01:12:57Z",
+    "baseline_revision_name": "ca-labobs-ewwmkr--0000002",
+    "post_trigger_revision_name": "ca-labobs-ewwmkr--0000003",
+    "revision_advanced": true,
+    "expected_env_var_name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "expected_literal_value": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/",
+    "expected_secret_name": "appinsights-connection-string",
+    "trigger_cli_exit_code": 0,
+    "wait_provisioned": true
+  },
+  "env_var_state": {
+    "baseline_secretRef": "appinsights-connection-string",
+    "baseline_value": null,
+    "post_trigger_secretRef": null,
+    "post_trigger_value": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/",
+    "c_strong_path_exact_string_match": true,
+    "c_fallback_path_non_empty_value_no_secretref": true
+  },
+  "secret_store_integrity": {
+    "expected_secret_name": "appinsights-connection-string",
+    "baseline_secrets_count": 1,
+    "post_trigger_secrets_count": 1,
+    "baseline_secret_match": {
+      "name": "appinsights-connection-string",
+      "value_present": false,
+      "value_redacted_placeholder": "REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS",
+      "keyVaultUrl": null,
+      "identity": null
+    },
+    "post_trigger_secret_match": {
+      "name": "appinsights-connection-string",
+      "value_present": false,
+      "value_redacted_placeholder": "REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS",
+      "keyVaultUrl": null,
+      "identity": null
+    },
+    "comparison_excludes_resolved_value_for_pii_safety": true
+  },
+  "client_probe_results": {
+    "baseline_success_count_200": 5,
+    "baseline_attempts": 5,
+    "post_trigger_success_count_200": 5,
+    "post_trigger_attempts": 5,
+    "note": "Both baseline and post-trigger curl probes are expected to be 5/5 HTTP 200. The trigger changes telemetry export configuration ONLY, not request handling. The data-plane integrity check is sub-gate e."
+  },
+  "telemetry_caveat": {
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "ships_application_insights_sdk": false,
+    "trace_count_expected_in_both_states": 0,
+    "telemetry_blocking_hypothesis_status": "[Not Proven] \u2014 see lab guide Hypothesis caveat",
+    "h1_intentionally_restricted_to": "env-var Source/Value flip (directly observable from Container App template)"
+  },
+  "h1_sub_gates": {
+    "a_baseline_env_was_secretref": true,
+    "b_trigger_succeeded_and_revision_advanced": true,
+    "c_env_var_now_literal_with_expected_value": true,
+    "d_secret_store_unchanged": true,
+    "e_app_continues_serving_requests": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "telemetry_misconfiguration_env_var_source_flipped_to_literal"
+}

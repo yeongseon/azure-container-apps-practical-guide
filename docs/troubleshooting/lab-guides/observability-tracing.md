@@ -10,13 +10,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-24'
   reviewer: ai-agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-06-03
-    az_cli_version: 2.71.0
-    notes: 'Reproduced end-to-end in rg-aca-lab-observability (koreacentral); baseline secretRef → invalid literal → secretRef restored across revisions 0m6ek7p → 0000001 → 0000002; six Portal captures attached with PII-replacement masking. Telemetry-count claim left [Not Proven] because the baseline helloworld image ships no Application Insights SDK. The three env-var anchor captures (02-baseline-secretref on revision 0m6ek7p, 03-after-trigger-literal on revision 0000001, 06-restored-secretref on revision 0000002) directly falsify the env-var-source half of the hypothesis: Source flips Reference a secret → Manual entry → Reference a secret, with the literal value exactly matching the trigger.sh invalid connection string.'
+    tested_date: 2026-06-24
+    az_cli_version: 2.79.0
+    notes: 'Reproduced end-to-end in rg-aca-lab-observability (koreacentral); baseline secretRef → invalid literal → secretRef restored across revisions 0m6ek7p → 0000001 → 0000002; six Portal captures attached with PII-replacement masking. Telemetry-count claim left [Not Proven] because the baseline helloworld image ships no Application Insights SDK. The three env-var anchor captures (02-baseline-secretref on revision 0m6ek7p, 03-after-trigger-literal on revision 0000001, 06-restored-secretref on revision 0000002) directly falsify the env-var-source half of the hypothesis: Source flips Reference a secret → Manual entry → Reference a secret, with the literal value exactly matching the trigger.sh invalid connection string. Second live Azure run completed 2026-06-24 with az CLI 2.79.0 (containerapp extension 1.3.0b4) against rg-aca-lab-observability2 (subscription redacted to placeholder zero-GUID, koreacentral), producing the Phase B-style evidence pack at labs/observability-tracing/evidence/ (24 numbered prefixes totaling 26 physical files including JSON, .stderr companions, and .log waits). H1 (telemetry_misconfiguration_env_var_source_flipped_to_literal) and H2 (telemetry_configuration_restored_to_secretref_app_intact) both PASS with all 11 sub-gates true. Empirical curl: 5/5 HTTP 200 across baseline, post-trigger, pre-fix, and post-fix windows (data plane unaffected by env-var Source flip). Three-distinct-revision progression triangulated via createdTime lookups from per-stage snapshots (baseline from 02-*, post-trigger from 09-*, post-fix from 18-*) because Container Apps single-revision-mode pruning removed the baseline from the post-fix revisions snapshot — the lab requires running trigger.sh and verify.sh in sequence without an intervening manual revision update. Secret-store PII safety: 05/10/19 snapshots redact the connection-string value to REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS, raw secret-store output captured to a -raw.json temp file and immediately deleted; H1 sub-gate d and H2 sub-gate d compare only name + keyVaultUrl + identity + value_present, never the resolved value. PII scrubbed: subscription/tenant GUIDs replaced with zero-GUID placeholder, customDomainVerificationId replaced with AAAA placeholder, employee email replaced with user@example.com, local user paths replaced with /Users/demouser.'
   core_claims:
     - claim: Azure Container Apps environments can send application and system logs to a Log Analytics workspace for observability.
       source: https://learn.microsoft.com/en-us/azure/container-apps/observability
@@ -26,11 +26,11 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-06-03'
-    cli_version: '2.71.0'
+    last_tested: '2026-06-24'
+    cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-06-03'
+    last_tested: '2026-06-24'
     result: pass
 ---
 # Observability and Distributed Tracing Lab
@@ -419,6 +419,53 @@ Each Portal capture below documents one observable fact. `[Observed]` paragraphs
 - `[Not Proven]` The telemetry-blocking half of the hypothesis (that the invalid connection string would actually drop traces *that the SDK is emitting*) cannot be empirically falsified by this reproduction, because the baseline `azuredocs/containerapps-helloworld:latest` image used by `infra/main.bicep` does not ship an Application Insights SDK. Captures 4 and 5 are therefore consistent with the hypothesis but not a smoking gun. To upgrade this to `[Measured]`, swap the lab image for one of the reference apps under `apps/` (e.g. `apps/python/`) instrumented with the OpenTelemetry Distro for Azure Monitor.
 
 Environment: `koreacentral`, `rg-aca-lab-observability`, `cae-labobs-622oal`, `appi-labobs-622oal`, `log-labobs-622oal`.
+
+### Observed Evidence (Live Azure Test — 2026-06-24)
+
+A second end-to-end live Azure run executed on **2026-06-24** with `az` CLI version **2.79.0** (containerapp extension **1.3.0b4**; see `labs/observability-tracing/evidence/21-cli-versions.json` and `22-cli-containerapp-ext.json`) against resource group `rg-aca-lab-observability2` (subscription redacted to placeholder `00000000-0000-0000-0000-000000000000`, Korea Central). The run produced 24 numbered evidence prefixes (`01-*` through `24-*`, totaling 26 physical files when counting `.stderr` companions to `06-*` and `15-*`; prefixes `07-*` and `16-*` use a `.log` extension) under `labs/observability-tracing/evidence/`, covering H1 (telemetry-misconfiguration env-var Source flip) and H2 (env-var restoration with revision progression). All 11 sub-gates across both hypotheses passed.
+
+**H1 reproduction** — `evidence/12-h1-gate.json`:
+
+| Sub-gate | Value | Source |
+|---|---|---|
+| `a_baseline_env_was_secretref` | true | `evidence/04-baseline-env-var.json` `secretRef="appinsights-connection-string"` (no literal `value` key); `evidence/12-h1-gate.json` `env_var_state.baseline_secretRef="appinsights-connection-string"` and `baseline_value=null` |
+| `b_trigger_succeeded_and_revision_advanced` | true | `evidence/06-trigger-update.json` `properties.latestRevisionName="ca-labobs-ewwmkr--0000003"` (new revision minted by `az containerapp update --set-env-vars`); `evidence/12-h1-gate.json` `trigger_window.baseline_revision_name="ca-labobs-ewwmkr--0000002"` vs `post_trigger_revision_name="ca-labobs-ewwmkr--0000003"` (distinct names), `trigger_cli_exit_code=0`, `wait_provisioned=true` |
+| `c_env_var_now_literal_with_expected_value` | true | **Strong path:** `evidence/08-post-trigger-env-var.json` `value="InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"` exactly matches `evidence/12-h1-gate.json` `trigger_window.expected_literal_value`. **Fallback path (also satisfied):** `evidence/12-h1-gate.json` `env_var_state.post_trigger_value` is non-empty AND `post_trigger_secretRef=null` |
+| `d_secret_store_unchanged` | true | `evidence/05-baseline-secrets.json` and `evidence/10-post-trigger-secrets.json` both report `secrets_count=1` with identical `name="appinsights-connection-string"`, `keyVaultUrl=null`, `identity=null`, `value_present=false`; `evidence/12-h1-gate.json` `secret_store_integrity.comparison_excludes_resolved_value_for_pii_safety=true` (see honest disclosure below for the PII-safety reason this comparison excludes the resolved value) |
+| `e_app_continues_serving_requests` | true | `evidence/03-baseline-curl.json` and `evidence/11-curl-after-trigger.json` both report `success_count_200=5` out of 5 attempts (`timeout_count_000=0`); data plane unaffected by the env-var Source flip |
+
+Gate classification: `telemetry_misconfiguration_env_var_source_flipped_to_literal`.
+
+**H2 restoration** — `evidence/24-h2-gate.json`:
+
+| Sub-gate | Value | Source |
+|---|---|---|
+| `a_pre_fix_env_var_still_literal` | true | `evidence/13-pre-fix-env-var.json` `value="InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"` confirms the trigger persisted across the gap between scripts; `evidence/24-h2-gate.json` `env_var_state.pre_fix_matches_expected_literal=true` |
+| `b_fix_command_succeeded_and_revision_advanced` | true | `evidence/15-fix-update.json` `properties.latestRevisionName="ca-labobs-ewwmkr--0000004"` (third distinct revision name in this run); `evidence/24-h2-gate.json` `fix_window.fix_cli_exit_code=0`, `wait_provisioned=true` |
+| `c_env_var_back_to_secretref` | true | **Strong path:** `evidence/17-post-fix-env-var.json` `secretRef="appinsights-connection-string"` exactly matches `evidence/24-h2-gate.json` `fix_window.expected_secret_name`. **Fallback path (also satisfied):** `evidence/24-h2-gate.json` `env_var_state.post_fix_secretRef` is non-empty AND `post_fix_value=null` |
+| `d_secret_store_value_unchanged_after_fix` | true | `evidence/05-baseline-secrets.json`, `evidence/10-post-trigger-secrets.json`, and `evidence/19-post-fix-secrets.json` all report identical `name="appinsights-connection-string"`, `keyVaultUrl=null`, `identity=null`, `value_present=false`; `evidence/24-h2-gate.json` `secret_store_integrity_across_three_states.comparison_excludes_resolved_value_for_pii_safety=true` |
+| `e_app_continues_serving_requests_post_fix` | true | `evidence/14-curl-pre-fix.json` and `evidence/20-curl-post-fix.json` both report `success_count_200=5` out of 5 attempts (`timeout_count_000=0`) |
+| `f_revision_progression_documented` | true | `evidence/24-h2-gate.json` `revision_progression.three_distinct_names=true` (`ca-labobs-ewwmkr--0000002` → `--0000003` → `--0000004`) AND `createdTime_strictly_increasing=true` (`2026-06-24T01:10:03+00:00` → `T01:12:50+00:00` → `T01:13:43+00:00`). The three `createdTime` values are looked up from the snapshot taken **when each revision was the latest** — baseline from `evidence/02-baseline-revisions.json`, post-trigger from `evidence/09-post-trigger-revisions.json`, post-fix from `evidence/18-post-fix-revisions.json` — because Container Apps single-revision-mode pruning removed the baseline from the post-fix snapshot (see honest disclosure below) |
+
+Gate classification: `telemetry_configuration_restored_to_secretref_app_intact`. The fix command was `az containerapp update --set-env-vars APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string` — a Container App template edit that mints a new revision.
+
+#### Honest disclosure of platform behavior
+
+Three platform-behavior observations from this run worth flagging to future maintainers:
+
+1. **Telemetry-blocking is `[Not Proven]` with the helloworld baseline image.** The H1 and H2 gates intentionally restrict their falsifiable claims to the env-var Source/Value flip + revision progression + secret-store integrity + data-plane HTTP 200, all observable from the Container App template and revision list. The upstream claim "the misconfigured connection string actually drops SDK-emitted traces" remains `[Not Proven]` in this evidence pack because `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` ships no Application Insights SDK — App Insights / Log Analytics will report zero traces in ALL THREE states (baseline / post-trigger / post-fix) and a zero count is therefore consistent with both the hypothesis and the null hypothesis. A future evidence pack would need an SDK-instrumented baseline image (e.g. `apps/python/` with `azure-monitor-opentelemetry`, or a `.NET` app with `Microsoft.ApplicationInsights.AspNetCore`) to lift this claim to `[Observed]`. The original 2026-06-03 reproduction recorded the same `[Not Proven]` caveat under the Hypothesis section above; this 2026-06-24 run preserves the same caveat.
+
+2. **Container Apps single-revision-mode revision history pruning.** The post-fix revisions snapshot (`evidence/18-post-fix-revisions.json`) lists only `ca-labobs-ewwmkr--0000003` and `--0000004`; the baseline `--0000002` has been pruned from the revision list by the time the third revision is created. The H2 sub-gate `f_revision_progression_documented` therefore looks up each revision's `createdTime` from the snapshot taken **when that revision was the latest** — baseline from `evidence/02-baseline-revisions.json`, post-trigger from `evidence/09-post-trigger-revisions.json`, post-fix from `evidence/18-post-fix-revisions.json` — rather than relying on a single post-fix snapshot. This is why the lab requires running `trigger.sh` and `verify.sh` in sequence without an intervening manual revision update; a future maintainer changing the cadence must preserve this snapshot-lookup-per-revision pattern, otherwise `verify.sh` `lookup_created_time` will return `None` for the pruned baseline and the sub-gate will fail (`createdTime_strictly_increasing=false`) rather than passing with stale data.
+
+3. **Secret-store PII safety.** The managed-environment secret store entry `appinsights-connection-string` contains a real Application Insights connection string with a real instrumentation key. Logging the resolved value to an evidence file would be a P0 PII leak. The `05-*`, `10-*`, and `19-*` snapshots redact the secret value to `REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS` and emit only `name`, `value_present` (boolean), `keyVaultUrl` (None for this lab — secrets are inline, not Key Vault references), and `identity` (None for this lab — no managed identity reference). The raw secret-store output is captured to a `-raw.json` temp file and immediately deleted by `trigger.sh` Phase 5 / Phase 10 and `verify.sh` Phase 19. The H1 sub-gate `d_secret_store_unchanged` and H2 sub-gate `d_secret_store_value_unchanged_after_fix` compare the redacted snapshots' `name + keyVaultUrl + identity + value_present` fields — they **explicitly do NOT compare the resolved value**.
+
+#### Evidence provenance note
+
+All 26 physical files (24 numbered prefixes) come from a single coherent 2026-06-24 01:12–01:14 UTC run against `rg-aca-lab-observability2` (Korea Central). The full provenance map, capture timeline, PII-safety policy, and reproducibility instructions are in [`labs/observability-tracing/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/observability-tracing/evidence/README.md).
+
+#### Operator caveat
+
+The H1 sub-gate `c_env_var_now_literal_with_expected_value` hard-codes the expected literal value `InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/` (set by `trigger.sh` as `EXPECTED_LITERAL_VALUE`). The H1 sub-gate `a_baseline_env_was_secretref`, the H2 sub-gate `c_env_var_back_to_secretref`, and the secret-store integrity sub-gates hard-code the expected secret name `appinsights-connection-string` (set by `trigger.sh` as `EXPECTED_SECRET_NAME`, and emitted by `infra/main.bicep` as the secret name in the Container App resource). If a future maintainer changes any of these constants in `trigger.sh` or `infra/main.bicep`, the corresponding gate string matches must be updated in lockstep across both `trigger.sh` and `verify.sh`.
 
 ## Clean Up
 

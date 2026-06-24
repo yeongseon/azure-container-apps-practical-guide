@@ -125,7 +125,7 @@ pie title Tutorial Validation Status
 | [Min Replicas Cost Surprise](../troubleshooting/lab-guides/min-replicas-cost-surprise.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Multi Arch Image Mismatch](../troubleshooting/lab-guides/multi-arch-image-mismatch.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Multi Region Failover](../troubleshooting/lab-guides/multi-region-failover.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
-| [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
+| [Observability Tracing](../troubleshooting/lab-guides/observability-tracing.md) | ✅ Pass | ✅ Pass | 2026-06-24 | ✅ Pass |
 | [Private Endpoint Dns Failure](../troubleshooting/lab-guides/private-endpoint-dns-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Probe And Port Mismatch](../troubleshooting/lab-guides/probe-and-port-mismatch.md) | ✅ Pass | ✅ Pass | 2026-06-23 | ✅ Pass |
 | [Replica Load Imbalance](../troubleshooting/lab-guides/replica-load-imbalance.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
@@ -139,7 +139,7 @@ pie title Tutorial Validation Status
 | [Startup Degraded Transient Failure](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) | ✅ Pass | ✅ Pass | 2026-06-13 | ✅ Pass |
 | [Subnet Cidr Exhaustion](../troubleshooting/lab-guides/subnet-cidr-exhaustion.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Subscription Quota Exceeded](../troubleshooting/lab-guides/subscription-quota-exceeded.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
-| [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
+| [Traffic Routing Canary](../troubleshooting/lab-guides/traffic-routing-canary.md) | ✅ Pass | ✅ Pass | 2026-06-24 | ✅ Pass |
 | [Udr Nsg Egress Blocked](../troubleshooting/lab-guides/udr-nsg-egress-blocked.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Volume Permission Denied](../troubleshooting/lab-guides/volume-permission-denied.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Websocket Grpc Ingress](../troubleshooting/lab-guides/websocket-grpc-ingress.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
