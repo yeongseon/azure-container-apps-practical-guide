@@ -1,0 +1,130 @@
+{
+  "utc_captured": "2026-06-24T09:36:18Z",
+  "scenario": "rolling_rollout_with_probes_masked_by_readiness",
+  "hypothesis": "H0_partA_degraded_state_evidence",
+  "claim": "rolling_rollout_produced_observable_degraded_state_signatures",
+  "predicate_inputs": {
+    "qa_path": "labs/startup-degraded-transient-failure/evidence/qA-revision-state-20260620T223951Z.json",
+    "qd_path": "labs/startup-degraded-transient-failure/evidence/qD-system-events-20260620T224002Z.json",
+    "qe_path": "labs/startup-degraded-transient-failure/evidence/qE-perturbation-markers-20260620T224143Z.json"
+  },
+  "sub_gate_a_predicate": "qE records the rollout perturbation windows; strong path requires all three rollout-event start markers, fallback requires at least one start marker.",
+  "sub_gate_b_predicate": "qD records ProbeFailed warnings during rollout; strong path requires at least one ProbeFailed row with EventCount >= 10, fallback requires any ProbeFailed row.",
+  "sub_gate_c_predicate": "qA records revision transition evidence; strong path requires at least one active revision row demoted to traffic=0, fallback requires at least two distinct revision names.",
+  "strong_min_start_events": 3,
+  "fallback_min_start_events": 1,
+  "strong_probefailed_eventcount_threshold": 10,
+  "sub_gate_a_perturbation_events_recorded": {
+    "observed_start_event_count": 3,
+    "observed_first_5": [
+      {
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-06-20T22:06:07.5222016Z",
+        "perturbation_id": "rollout-event-1",
+        "phase": "start",
+        "trigger": ""
+      },
+      {
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-06-20T22:11:43.7406861Z",
+        "perturbation_id": "rollout-event-2",
+        "phase": "start",
+        "trigger": ""
+      },
+      {
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-06-20T22:17:40.620471Z",
+        "perturbation_id": "rollout-event-3",
+        "phase": "start",
+        "trigger": ""
+      }
+    ],
+    "a_strong_path_at_least_3_start_markers": true,
+    "a_fallback_path_at_least_1_start_marker": true,
+    "a_pass": true
+  },
+  "sub_gate_b_probe_failures_observed": {
+    "observed_probefailed_record_count": 4,
+    "observed_max_eventcount": 35,
+    "observed_first_5": [
+      {
+        "Reason_s": "ProbeFailed",
+        "RevisionName_s": "subject-app--0000003",
+        "EventCount": 35,
+        "Type_s": "Warning"
+      },
+      {
+        "Reason_s": "ProbeFailed",
+        "RevisionName_s": "subject-app--bhly9qa",
+        "EventCount": 24,
+        "Type_s": "Warning"
+      },
+      {
+        "Reason_s": "ProbeFailed",
+        "RevisionName_s": "subject-app--0000002",
+        "EventCount": 24,
+        "Type_s": "Warning"
+      },
+      {
+        "Reason_s": "ProbeFailed",
+        "RevisionName_s": "subject-app--0000001",
+        "EventCount": 24,
+        "Type_s": "Warning"
+      }
+    ],
+    "b_strong_path_probefailed_eventcount_ge_10": true,
+    "b_fallback_path_any_probefailed_record": true,
+    "b_pass": true
+  },
+  "sub_gate_c_revision_transitions_during_rollout": {
+    "observed_demoted_active_revision_rows": 60,
+    "observed_distinct_revision_count": 4,
+    "observed_first_5": [
+      {
+        "TimeGenerated": "2026-06-20T22:06:07.5222016Z",
+        "perturbation_id": "rollout-event-1",
+        "revision": "subject-app--bhly9qa",
+        "replicas": 3,
+        "traffic": 0
+      },
+      {
+        "TimeGenerated": "2026-06-20T22:06:11.8101946Z",
+        "perturbation_id": "rollout-event-1",
+        "revision": "subject-app--bhly9qa",
+        "replicas": 3,
+        "traffic": 0
+      },
+      {
+        "TimeGenerated": "2026-06-20T22:06:17.6855151Z",
+        "perturbation_id": "rollout-event-1",
+        "revision": "subject-app--bhly9qa",
+        "replicas": 3,
+        "traffic": 0
+      },
+      {
+        "TimeGenerated": "2026-06-20T22:06:23.5136352Z",
+        "perturbation_id": "rollout-event-1",
+        "revision": "subject-app--bhly9qa",
+        "replicas": 3,
+        "traffic": 0
+      },
+      {
+        "TimeGenerated": "2026-06-20T22:06:30.6802502Z",
+        "perturbation_id": "rollout-event-1",
+        "revision": "subject-app--bhly9qa",
+        "replicas": 3,
+        "traffic": 0
+      }
+    ],
+    "c_strong_path_active_revision_demoted_to_zero_traffic": true,
+    "c_fallback_path_at_least_2_distinct_revisions": true,
+    "c_pass": true
+  },
+  "startup_degraded_transient_failure_h0_parta_degraded_state_evidence_sub_gates": {
+    "a_perturbation_events_recorded": true,
+    "b_probe_failures_observed": true,
+    "c_revision_transitions_during_rollout": true
+  },
+  "startup_degraded_transient_failure_h0_parta_degraded_state_evidence_all_subgates_pass": true,
+  "gate_classification": "rolling_rollout_produced_observable_degraded_state_signatures"
+}

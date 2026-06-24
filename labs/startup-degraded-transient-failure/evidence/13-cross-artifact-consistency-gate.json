@@ -1,0 +1,82 @@
+{
+  "utc_captured": "2026-06-24T09:36:18Z",
+  "scenario": "rolling_rollout_with_probes_masked_by_readiness",
+  "hypothesis": "H0_cross_artifact_integrity",
+  "claim": "evidence_artifacts_cohere_across_canonical_window",
+  "predicate_inputs": {
+    "qa_path": "labs/startup-degraded-transient-failure/evidence/qA-revision-state-20260620T223951Z.json",
+    "qb_path": "labs/startup-degraded-transient-failure/evidence/qB-replica-inventory-20260620T223955Z.json",
+    "qc_path": "labs/startup-degraded-transient-failure/evidence/qC-k6-buckets-20260620T224056Z.json",
+    "qd_path": "labs/startup-degraded-transient-failure/evidence/qD-system-events-20260620T224002Z.json",
+    "qe_path": "labs/startup-degraded-transient-failure/evidence/qE-perturbation-markers-20260620T224143Z.json",
+    "qf_path": "labs/startup-degraded-transient-failure/evidence/qF-run-summary-20260620T224149Z.json",
+    "qg_path": "labs/startup-degraded-transient-failure/evidence/qG-audit-sampler-quirk-20260620T225143Z.json"
+  },
+  "sub_gate_a_predicate": "All canonical qA-qG filename timestamps stay inside the 2026-06-20T22:39Z-22:51Z capture window; fallback allows the wider 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
+  "sub_gate_b_predicate": "At least one perturbation identifier is shared by qA and qE; fallback requires qE to expose the three event identifiers or qA to expose any non-null perturbation_id values.",
+  "strong_window_start_utc": "2026-06-20T22:39:00Z",
+  "strong_window_end_utc": "2026-06-20T22:51:59Z",
+  "fallback_window_start_utc": "2026-06-20T21:30:00Z",
+  "fallback_window_end_utc": "2026-06-20T22:51:59Z",
+  "sub_gate_a_single_canonical_window": {
+    "observed_filename_timestamp_count": 7,
+    "observed_first_5": [
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qA-revision-state-20260620T223951Z.json",
+        "filename_timestamp": "2026-06-20T22:39:51Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qB-replica-inventory-20260620T223955Z.json",
+        "filename_timestamp": "2026-06-20T22:39:55Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qC-k6-buckets-20260620T224056Z.json",
+        "filename_timestamp": "2026-06-20T22:40:56Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qD-system-events-20260620T224002Z.json",
+        "filename_timestamp": "2026-06-20T22:40:02Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qE-perturbation-markers-20260620T224143Z.json",
+        "filename_timestamp": "2026-06-20T22:41:43Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      }
+    ],
+    "a_strong_path_all_timestamps_in_12_minute_window": true,
+    "a_fallback_path_all_timestamps_in_extended_window": true,
+    "a_pass": true
+  },
+  "sub_gate_b_perturbation_ids_consistent": {
+    "observed_shared_perturbation_id_count": 3,
+    "observed_first_5": [
+      {
+        "shared_perturbation_id": "rollout-event-1"
+      },
+      {
+        "shared_perturbation_id": "rollout-event-2"
+      },
+      {
+        "shared_perturbation_id": "rollout-event-3"
+      }
+    ],
+    "b_strong_path_shared_id_between_qa_and_qe": true,
+    "b_fallback_path_qe_has_3_ids_or_qa_has_any_id": true,
+    "b_pass": true
+  },
+  "startup_degraded_transient_failure_h0_cross_artifact_integrity_sub_gates": {
+    "a_single_canonical_window": true,
+    "b_perturbation_ids_consistent": true
+  },
+  "startup_degraded_transient_failure_h0_cross_artifact_integrity_all_subgates_pass": true,
+  "gate_classification": "evidence_artifacts_cohere_across_canonical_window"
+}

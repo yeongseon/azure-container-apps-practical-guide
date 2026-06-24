@@ -1,0 +1,125 @@
+{
+  "utc_captured": "2026-06-24T09:36:18Z",
+  "scenario": "rolling_rollout_with_probes_masked_by_readiness",
+  "hypothesis": "H0_preconditions",
+  "claim": "canonical_evidence_pack_internally_consistent",
+  "predicate_inputs": {
+    "qa_path": "labs/startup-degraded-transient-failure/evidence/qA-revision-state-20260620T223951Z.json",
+    "qb_path": "labs/startup-degraded-transient-failure/evidence/qB-replica-inventory-20260620T223955Z.json",
+    "qc_path": "labs/startup-degraded-transient-failure/evidence/qC-k6-buckets-20260620T224056Z.json",
+    "qd_path": "labs/startup-degraded-transient-failure/evidence/qD-system-events-20260620T224002Z.json",
+    "qe_path": "labs/startup-degraded-transient-failure/evidence/qE-perturbation-markers-20260620T224143Z.json",
+    "qf_path": "labs/startup-degraded-transient-failure/evidence/qF-run-summary-20260620T224149Z.json",
+    "qg_path": "labs/startup-degraded-transient-failure/evidence/qG-audit-sampler-quirk-20260620T225143Z.json"
+  },
+  "sub_gate_a_predicate": "All seven canonical qA-qG files exist on disk; fallback requires at least five files present.",
+  "sub_gate_b_predicate": "All qA-qG filename timestamps stay inside the canonical 2026-06-20T22:39Z-22:51Z capture window; fallback allows the extended 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
+  "sub_gate_c_predicate": "qF explicitly maps the canonical baseline and perturbation runs via run_id prefixes; fallback requires at least two distinct run_id values.",
+  "required_canonical_file_count": 7,
+  "minimum_fallback_file_count": 5,
+  "strong_window_start_utc": "2026-06-20T22:39:00Z",
+  "strong_window_end_utc": "2026-06-20T22:51:59Z",
+  "fallback_window_start_utc": "2026-06-20T21:30:00Z",
+  "fallback_window_end_utc": "2026-06-20T22:51:59Z",
+  "sub_gate_a_canonical_files_present": {
+    "observed_present_file_count": 7,
+    "observed_first_5": [
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qA-revision-state-20260620T223951Z.json",
+        "exists": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qB-replica-inventory-20260620T223955Z.json",
+        "exists": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qC-k6-buckets-20260620T224056Z.json",
+        "exists": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qD-system-events-20260620T224002Z.json",
+        "exists": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qE-perturbation-markers-20260620T224143Z.json",
+        "exists": true
+      }
+    ],
+    "a_strong_path_all_7_files_exist": true,
+    "a_fallback_path_at_least_5_files_exist": true,
+    "a_pass": true
+  },
+  "sub_gate_b_timestamp_cohort_coherent": {
+    "observed_filename_timestamp_count": 7,
+    "observed_first_5": [
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qA-revision-state-20260620T223951Z.json",
+        "filename_timestamp": "2026-06-20T22:39:51Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qB-replica-inventory-20260620T223955Z.json",
+        "filename_timestamp": "2026-06-20T22:39:55Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qC-k6-buckets-20260620T224056Z.json",
+        "filename_timestamp": "2026-06-20T22:40:56Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qD-system-events-20260620T224002Z.json",
+        "filename_timestamp": "2026-06-20T22:40:02Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      },
+      {
+        "path": "labs/startup-degraded-transient-failure/evidence/qE-perturbation-markers-20260620T224143Z.json",
+        "filename_timestamp": "2026-06-20T22:41:43Z",
+        "in_strong_window": true,
+        "in_fallback_window": true
+      }
+    ],
+    "b_strong_path_all_timestamps_in_12_minute_window": true,
+    "b_fallback_path_all_timestamps_in_extended_window": true,
+    "b_pass": true
+  },
+  "sub_gate_c_scenario_mapping_explicit": {
+    "observed_distinct_run_id_count": 2,
+    "observed_first_5": [
+      {
+        "TableName": "PrimaryResult",
+        "buckets": "9637",
+        "err_pct": "0",
+        "err_total": "0",
+        "falsification_triggered": "False",
+        "ok_total": "47506",
+        "perturbation_id": "none",
+        "run_id": "baseline-20260620213447"
+      },
+      {
+        "TableName": "PrimaryResult",
+        "buckets": "36069",
+        "err_pct": "0",
+        "err_total": "0",
+        "falsification_triggered": "False",
+        "ok_total": "149699",
+        "perturbation_id": "spans-all-events",
+        "run_id": "perturbation-20260620220432"
+      }
+    ],
+    "c_strong_path_baseline_and_perturbation_present": true,
+    "c_fallback_path_at_least_2_distinct_run_ids": true,
+    "c_pass": true
+  },
+  "startup_degraded_transient_failure_h0_preconditions_sub_gates": {
+    "a_canonical_files_present": true,
+    "b_timestamp_cohort_coherent": true,
+    "c_scenario_mapping_explicit": true
+  },
+  "startup_degraded_transient_failure_h0_preconditions_all_subgates_pass": true,
+  "gate_classification": "canonical_evidence_pack_internally_consistent"
+}

@@ -2,7 +2,7 @@
 # Deploy the startup-degraded-transient-failure lab infrastructure.
 #
 # Creates the resource group (if missing), deploys the Bicep template,
-# and prints the outputs needed by trigger.sh / verify.sh.
+# and prints the outputs needed by trigger.sh plus the Phase B evidence verifier.
 #
 # Usage:
 #   export RG="rg-aca-startup-degraded"
@@ -96,20 +96,20 @@ Next steps:
        az acr build --registry "$ACR_NAME" --image startup-degraded/loadgen:latest               ./loadgen
      Then redeploy with --parameters subjectImage=... auditImage=... perturbationSamplerImage=... loadgenImage=...
 
-  2. Verify the deployment:
-       ./verify.sh
-
-  3. Run preflight calibration (proves 200 RPS consumes nontrivial headroom):
+  2. Run preflight calibration (proves 200 RPS consumes nontrivial headroom):
        ./trigger.sh --preflight
 
-  4. Run baseline (30 min, no perturbation):
+  3. Run baseline (30 min, no perturbation):
        ./trigger.sh --baseline --duration 1800
 
-  5. Run perturbation phase (12 events over ~2 hours):
+  4. Run perturbation phase (12 events over ~2 hours):
        ./trigger.sh --perturbation --events 12 --interval 600
 
-  6. Run supplemental revision-restart phase (optional):
+  5. Run supplemental revision-restart phase (optional):
        ./trigger.sh --supplemental-restart --events 3 --interval 600
+
+  6. Replay the Phase B evidence gates after qA-qG are on disk:
+       ./verify.sh
 
   7. Cleanup:
        ./cleanup.sh
