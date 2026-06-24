@@ -1,0 +1,168 @@
+{
+  "utc_captured": "2026-06-24T07:55:16Z",
+  "scenario": "A_hard",
+  "hypothesis": "H1",
+  "claim": "hard_oom_immediate_dense_burst_signature_distinct_from_leak",
+  "predicate_inputs": {
+    "report_path": "labs/memory-leak-oomkilled/evidence/ca-oom-hard/report-20260620T060257Z.txt",
+    "revisions_path": "labs/memory-leak-oomkilled/evidence/ca-oom-hard/revisions-20260620T060257Z.json"
+  },
+  "oom_predicate_form_a": "Reason_s == ContainerTerminated AND Log_s contains 'exit code \\'137\\'' AND Log_s contains 'ProcessExited'",
+  "oom_predicate_form_b": "Reason_s == ProcessExited AND Log_s contains 'exit code \\'137\\''",
+  "hard_oom_min_records_threshold": 10,
+  "hard_max_bin_min_count_threshold": 10,
+  "sub_gate_a_signal_observed": {
+    "oom_record_count_section_5": 16,
+    "matched_oom_records_first_5": [
+      {
+        "log_s": "Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'",
+        "reason_s": "ContainerTerminated",
+        "timestamp": "2026-06-20T05:56:58.5123804Z",
+        "match_form": "A"
+      },
+      {
+        "log_s": "Container 'ca-oom-hard' was terminated with exit code '137'",
+        "reason_s": "ProcessExited",
+        "timestamp": "2026-06-20T05:52:02.1028102Z",
+        "match_form": "B"
+      },
+      {
+        "log_s": "Container 'ca-oom-hard' was terminated with exit code '137'",
+        "reason_s": "ProcessExited",
+        "timestamp": "2026-06-20T05:52:02.1028102Z",
+        "match_form": "B"
+      },
+      {
+        "log_s": "Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'",
+        "reason_s": "ContainerTerminated",
+        "timestamp": "2026-06-20T05:51:56.1705874Z",
+        "match_form": "A"
+      },
+      {
+        "log_s": "Container 'ca-oom-hard' was terminated with exit code '137' and reason 'ProcessExited'",
+        "reason_s": "ContainerTerminated",
+        "timestamp": "2026-06-20T05:46:54.2787197Z",
+        "match_form": "A"
+      }
+    ],
+    "section_6_bins": [
+      [
+        26,
+        "2026-06-20T04:10:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:15:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:20:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:25:00Z"
+      ],
+      [
+        5,
+        "2026-06-20T04:30:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:35:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:40:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:45:00Z"
+      ],
+      [
+        5,
+        "2026-06-20T04:50:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:55:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:00:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:05:00Z"
+      ],
+      [
+        5,
+        "2026-06-20T05:10:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:15:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:20:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:25:00Z"
+      ],
+      [
+        5,
+        "2026-06-20T05:30:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:35:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:40:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:45:00Z"
+      ],
+      [
+        5,
+        "2026-06-20T05:50:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T05:55:00Z"
+      ],
+      [
+        15,
+        "2026-06-20T06:00:00Z"
+      ]
+    ],
+    "max_5min_bin_count_section_6": 26,
+    "a_strong_path_record_count_ge_threshold": true,
+    "a_fallback_path_max_bin_ge_threshold": true,
+    "a_pass": true
+  },
+  "sub_gate_b_hard_signature": {
+    "max_5min_bin_count_section_6": 26,
+    "section_6_bin_count": 23,
+    "b_strong_path_dense_bin_ge_threshold": true,
+    "b_fallback_path_multiple_bins_ge_3": true,
+    "b_pass": true
+  },
+  "sub_gate_c_state_eventually_fixed": {
+    "sidecar_first_health_state": "Healthy",
+    "sidecar_first_provisioning_state": "Provisioned",
+    "c_strong_path_sidecar_healthy": true,
+    "c_fallback_path_not_failed": true,
+    "c_pass": true
+  },
+  "h1_hard_sub_gates": {
+    "a_signal_observed": true,
+    "b_hard_signature": true,
+    "c_state_eventually_fixed": true
+  },
+  "h1_hard_all_subgates_pass": true,
+  "gate_classification": "hard_oom_immediate_dense_burst_signature_distinct_from_leak"
+}
