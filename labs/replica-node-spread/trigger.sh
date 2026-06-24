@@ -61,7 +61,7 @@ DED_FQDN=$(az containerapp show --resource-group "$RG" --name "app-dedicated-d8"
   --query 'properties.configuration.ingress.fqdn' --output tsv)
 
 if [[ -z "$CONS_FQDN" || -z "$DED_FQDN" ]]; then
-  echo "ERROR: could not resolve both app FQDNs. Run verify.sh first." >&2
+  echo "ERROR: could not resolve both app FQDNs. Run health-check.sh first." >&2
   exit 1
 fi
 

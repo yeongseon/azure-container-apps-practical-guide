@@ -1,0 +1,490 @@
+{
+  "utc_captured": "2026-06-24T10:56:34Z",
+  "scenario": "matrix_coherence",
+  "hypothesis": "H_matrix_coherence",
+  "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "evidence_dir": "labs/replica-node-spread/evidence",
+    "scale_files": [
+      "consumption-scale-1-run-1.jsonl",
+      "consumption-scale-3-run-1.jsonl",
+      "consumption-scale-10-run-1.jsonl",
+      "consumption-scale-30-run-1.jsonl",
+      "consumption-scale-30-run-2.jsonl",
+      "consumption-scale-30-run-3.jsonl",
+      "dedicated-d8-scale-1-run-1.jsonl",
+      "dedicated-d8-scale-3-run-1.jsonl",
+      "dedicated-d8-scale-10-run-1.jsonl",
+      "dedicated-d8-scale-10-run-2.jsonl",
+      "dedicated-d8-scale-10-run-3.jsonl"
+    ],
+    "summary_path": "labs/replica-node-spread/evidence/analysis-summary.json",
+    "anchor_jsonl": "labs/replica-node-spread/evidence/h3-20260614-143432.jsonl",
+    "anchor_verdict": "labs/replica-node-spread/evidence/h3-20260614-143432.verdict.txt"
+  },
+  "thresholds": {
+    "summary_reconcile_min_strong": 11,
+    "summary_reconcile_min_fallback": 9,
+    "cell_match_min_strong": 1.0,
+    "cell_match_min_fallback": 0.95,
+    "boot_time_cluster_gap_ms": 5000
+  },
+  "sub_gate_a_each_file_one_cell": {
+    "per_file_cell_match": {
+      "consumption-scale-1-run-1.jsonl": {
+        "filename_decomposed": {
+          "profile": "consumption",
+          "scale": 1,
+          "run": 1
+        },
+        "total_records": 6,
+        "records_matching_cell": 6,
+        "match_ratio": 1.0
+      },
+      "consumption-scale-3-run-1.jsonl": {
+        "filename_decomposed": {
+          "profile": "consumption",
+          "scale": 3,
+          "run": 1
+        },
+        "total_records": 30,
+        "records_matching_cell": 30,
+        "match_ratio": 1.0
+      },
+      "consumption-scale-10-run-1.jsonl": {
+        "filename_decomposed": {
+          "profile": "consumption",
+          "scale": 10,
+          "run": 1
+        },
+        "total_records": 80,
+        "records_matching_cell": 80,
+        "match_ratio": 1.0
+      },
+      "consumption-scale-30-run-1.jsonl": {
+        "filename_decomposed": {
+          "profile": "consumption",
+          "scale": 30,
+          "run": 1
+        },
+        "total_records": 240,
+        "records_matching_cell": 240,
+        "match_ratio": 1.0
+      },
+      "consumption-scale-30-run-2.jsonl": {
+        "filename_decomposed": {
+          "profile": "consumption",
+          "scale": 30,
+          "run": 2
+        },
+        "total_records": 240,
+        "records_matching_cell": 240,
+        "match_ratio": 1.0
+      },
+      "consumption-scale-30-run-3.jsonl": {
+        "filename_decomposed": {
+          "profile": "consumption",
+          "scale": 30,
+          "run": 3
+        },
+        "total_records": 240,
+        "records_matching_cell": 240,
+        "match_ratio": 1.0
+      },
+      "dedicated-d8-scale-1-run-1.jsonl": {
+        "filename_decomposed": {
+          "profile": "dedicated-d8",
+          "scale": 1,
+          "run": 1
+        },
+        "total_records": 6,
+        "records_matching_cell": 6,
+        "match_ratio": 1.0
+      },
+      "dedicated-d8-scale-3-run-1.jsonl": {
+        "filename_decomposed": {
+          "profile": "dedicated-d8",
+          "scale": 3,
+          "run": 1
+        },
+        "total_records": 30,
+        "records_matching_cell": 30,
+        "match_ratio": 1.0
+      },
+      "dedicated-d8-scale-10-run-1.jsonl": {
+        "filename_decomposed": {
+          "profile": "dedicated-d8",
+          "scale": 10,
+          "run": 1
+        },
+        "total_records": 80,
+        "records_matching_cell": 80,
+        "match_ratio": 1.0
+      },
+      "dedicated-d8-scale-10-run-2.jsonl": {
+        "filename_decomposed": {
+          "profile": "dedicated-d8",
+          "scale": 10,
+          "run": 2
+        },
+        "total_records": 80,
+        "records_matching_cell": 80,
+        "match_ratio": 1.0
+      },
+      "dedicated-d8-scale-10-run-3.jsonl": {
+        "filename_decomposed": {
+          "profile": "dedicated-d8",
+          "scale": 10,
+          "run": 3
+        },
+        "total_records": 80,
+        "records_matching_cell": 80,
+        "match_ratio": 1.0
+      }
+    },
+    "all_records_total": 1112,
+    "all_records_matching_cell": 1112,
+    "cell_match_ratio": 1.0,
+    "a_strong_path_all_records_match_cell": true,
+    "a_fallback_path_most_records_match_cell": true,
+    "a_pass": true
+  },
+  "sub_gate_b_no_duplicates": {
+    "file_to_cell": {
+      "consumption-scale-1-run-1.jsonl": [
+        "consumption",
+        1,
+        1
+      ],
+      "consumption-scale-3-run-1.jsonl": [
+        "consumption",
+        3,
+        1
+      ],
+      "consumption-scale-10-run-1.jsonl": [
+        "consumption",
+        10,
+        1
+      ],
+      "consumption-scale-30-run-1.jsonl": [
+        "consumption",
+        30,
+        1
+      ],
+      "consumption-scale-30-run-2.jsonl": [
+        "consumption",
+        30,
+        2
+      ],
+      "consumption-scale-30-run-3.jsonl": [
+        "consumption",
+        30,
+        3
+      ],
+      "dedicated-d8-scale-1-run-1.jsonl": [
+        "dedicated-d8",
+        1,
+        1
+      ],
+      "dedicated-d8-scale-3-run-1.jsonl": [
+        "dedicated-d8",
+        3,
+        1
+      ],
+      "dedicated-d8-scale-10-run-1.jsonl": [
+        "dedicated-d8",
+        10,
+        1
+      ],
+      "dedicated-d8-scale-10-run-2.jsonl": [
+        "dedicated-d8",
+        10,
+        2
+      ],
+      "dedicated-d8-scale-10-run-3.jsonl": [
+        "dedicated-d8",
+        10,
+        3
+      ]
+    },
+    "total_files": 11,
+    "unique_cell_tuples": 11,
+    "duplicate_count": 0,
+    "b_strong_path_zero_duplicates": true,
+    "b_fallback_path_at_most_one_duplicate": true,
+    "b_pass": true
+  },
+  "sub_gate_c_summary_reconciles": {
+    "per_file_recompute": {
+      "consumption-scale-1-run-1.jsonl": {
+        "raw_unique_replicas": 1,
+        "raw_unique_boot_ids": 1,
+        "raw_boot_time_clusters": 1,
+        "raw_cluster_centers_ms": [
+          1781445672604
+        ],
+        "summary_unique_replicas": 1,
+        "summary_unique_boot_ids": 1,
+        "summary_boot_time_clusters": 1,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "consumption-scale-3-run-1.jsonl": {
+        "raw_unique_replicas": 3,
+        "raw_unique_boot_ids": 3,
+        "raw_boot_time_clusters": 3,
+        "raw_cluster_centers_ms": [
+          1781441260366,
+          1781447713105,
+          1781447845844
+        ],
+        "summary_unique_replicas": 3,
+        "summary_unique_boot_ids": 3,
+        "summary_boot_time_clusters": 3,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "consumption-scale-10-run-1.jsonl": {
+        "raw_unique_replicas": 10,
+        "raw_unique_boot_ids": 10,
+        "raw_boot_time_clusters": 10,
+        "raw_cluster_centers_ms": [
+          1781437557976,
+          1781440752260,
+          1781444029446,
+          1781444891541,
+          1781445734275,
+          1781445771022,
+          1781447835914,
+          1781447970262,
+          1781447979919,
+          1781448022696
+        ],
+        "summary_unique_replicas": 10,
+        "summary_unique_boot_ids": 10,
+        "summary_boot_time_clusters": 10,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "consumption-scale-30-run-1.jsonl": {
+        "raw_unique_replicas": 30,
+        "raw_unique_boot_ids": 30,
+        "raw_boot_time_clusters": 27,
+        "raw_cluster_centers_ms": [
+          1781224393765,
+          1781422256603,
+          1781425138546,
+          1781426976934,
+          1781435562054,
+          1781438580394,
+          1781439015724,
+          1781439759108,
+          1781440738437,
+          1781440752343,
+          1781446038244,
+          1781446056671,
+          1781447133465,
+          1781447372817,
+          1781447432538,
+          1781447457840,
+          1781447577210,
+          1781447732948,
+          1781447838940,
+          1781447857651,
+          1781447904026,
+          1781447916409,
+          1781447997922,
+          1781448048037,
+          1781448060505,
+          1781448085781,
+          1781448097630
+        ],
+        "summary_unique_replicas": 30,
+        "summary_unique_boot_ids": 30,
+        "summary_boot_time_clusters": 27,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "consumption-scale-30-run-2.jsonl": {
+        "raw_unique_replicas": 30,
+        "raw_unique_boot_ids": 30,
+        "raw_boot_time_clusters": 27,
+        "raw_cluster_centers_ms": [
+          1781224393763,
+          1781422256601,
+          1781425138546,
+          1781426976926,
+          1781435562048,
+          1781438580392,
+          1781439015724,
+          1781439759115,
+          1781440738439,
+          1781440752348,
+          1781446038244,
+          1781446056664,
+          1781447133470,
+          1781447372825,
+          1781447432536,
+          1781447457842,
+          1781447577207,
+          1781447732944,
+          1781447838932,
+          1781447857651,
+          1781447904025,
+          1781447916408,
+          1781447997914,
+          1781448048044,
+          1781448060505,
+          1781448085784,
+          1781448097628
+        ],
+        "summary_unique_replicas": 30,
+        "summary_unique_boot_ids": 30,
+        "summary_boot_time_clusters": 27,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "consumption-scale-30-run-3.jsonl": {
+        "raw_unique_replicas": 30,
+        "raw_unique_boot_ids": 30,
+        "raw_boot_time_clusters": 27,
+        "raw_cluster_centers_ms": [
+          1781224393769,
+          1781422256608,
+          1781425138541,
+          1781426976934,
+          1781435562053,
+          1781438580392,
+          1781439015715,
+          1781439759109,
+          1781440738439,
+          1781440752346,
+          1781446038253,
+          1781446056663,
+          1781447133474,
+          1781447372819,
+          1781447432541,
+          1781447457838,
+          1781447577209,
+          1781447732941,
+          1781447838935,
+          1781447857645,
+          1781447904024,
+          1781447916416,
+          1781447997913,
+          1781448048042,
+          1781448060500,
+          1781448085782,
+          1781448097625
+        ],
+        "summary_unique_replicas": 30,
+        "summary_unique_boot_ids": 30,
+        "summary_boot_time_clusters": 27,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "dedicated-d8-scale-1-run-1.jsonl": {
+        "raw_unique_replicas": 1,
+        "raw_unique_boot_ids": 1,
+        "raw_boot_time_clusters": 1,
+        "raw_cluster_centers_ms": [
+          1781447475861
+        ],
+        "summary_unique_replicas": 1,
+        "summary_unique_boot_ids": 1,
+        "summary_boot_time_clusters": 1,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "dedicated-d8-scale-3-run-1.jsonl": {
+        "raw_unique_replicas": 3,
+        "raw_unique_boot_ids": 1,
+        "raw_boot_time_clusters": 1,
+        "raw_cluster_centers_ms": [
+          1781447475866
+        ],
+        "summary_unique_replicas": 3,
+        "summary_unique_boot_ids": 1,
+        "summary_boot_time_clusters": 1,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "dedicated-d8-scale-10-run-1.jsonl": {
+        "raw_unique_replicas": 10,
+        "raw_unique_boot_ids": 1,
+        "raw_boot_time_clusters": 1,
+        "raw_cluster_centers_ms": [
+          1781447475864
+        ],
+        "summary_unique_replicas": 10,
+        "summary_unique_boot_ids": 1,
+        "summary_boot_time_clusters": 1,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "dedicated-d8-scale-10-run-2.jsonl": {
+        "raw_unique_replicas": 10,
+        "raw_unique_boot_ids": 1,
+        "raw_boot_time_clusters": 1,
+        "raw_cluster_centers_ms": [
+          1781447475864
+        ],
+        "summary_unique_replicas": 10,
+        "summary_unique_boot_ids": 1,
+        "summary_boot_time_clusters": 1,
+        "summary_entry_found": true,
+        "matches_summary": true
+      },
+      "dedicated-d8-scale-10-run-3.jsonl": {
+        "raw_unique_replicas": 10,
+        "raw_unique_boot_ids": 1,
+        "raw_boot_time_clusters": 1,
+        "raw_cluster_centers_ms": [
+          1781447475865
+        ],
+        "summary_unique_replicas": 10,
+        "summary_unique_boot_ids": 1,
+        "summary_boot_time_clusters": 1,
+        "summary_entry_found": true,
+        "matches_summary": true
+      }
+    },
+    "matches_count": 11,
+    "total_summary_entries": 11,
+    "total_scale_files": 11,
+    "c_strong_path_all_reconcile": true,
+    "c_fallback_path_most_reconcile": true,
+    "c_pass": true
+  },
+  "sub_gate_d_verdict_explainable": {
+    "verdict_text_excerpt": "H3 falsification verdict \u2014 run h3-20260614-143432\n----------------------------------------------------------------\nH3a-replica-consistent:  yes  (all 5 samples hit replica=app-consumption--0000001-65f",
+    "verdict_overall_pass": true,
+    "anchor_record_count": 5,
+    "check_1_n_samples_ge_4": true,
+    "check_2_boot_id_consistent": true,
+    "check_2_unique_boot_ids": 1,
+    "check_3_uptime_monotonic": true,
+    "check_3_uptime_sequence": [
+      2054.0,
+      2064.13,
+      2074.24,
+      2084.36,
+      2094.48
+    ],
+    "check_4_bte_stable": true,
+    "check_4_bte_span_ms": 7,
+    "all_four_checks_recomputable": true,
+    "d_strong_path_recomputable": true,
+    "d_fallback_path_verdict_pass": true,
+    "d_pass": true
+  },
+  "gate_2_matrix_coherence_sub_gates": {
+    "a_each_file_one_cell": true,
+    "b_no_duplicates": true,
+    "c_summary_reconciles": true,
+    "d_verdict_explainable": true
+  },
+  "gate_2_matrix_coherence_all_subgates_pass": true,
+  "gate_classification": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping"
+}

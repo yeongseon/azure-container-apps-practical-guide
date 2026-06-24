@@ -1,0 +1,273 @@
+{
+  "utc_captured": "2026-06-24T10:56:34Z",
+  "scenario": "cohort_integrity",
+  "hypothesis": "H_cohort_integrity",
+  "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "evidence_dir": "labs/replica-node-spread/evidence",
+    "anchor_jsonl": "labs/replica-node-spread/evidence/h3-20260614-143432.jsonl",
+    "anchor_verdict": "labs/replica-node-spread/evidence/h3-20260614-143432.verdict.txt",
+    "canonical_files_manifest": [
+      "analysis-summary.json",
+      "analysis-summary.md",
+      "h3-20260614-143432.jsonl",
+      "h3-20260614-143432.verdict.txt",
+      "consumption-scale-1-run-1.jsonl",
+      "consumption-scale-3-run-1.jsonl",
+      "consumption-scale-10-run-1.jsonl",
+      "consumption-scale-30-run-1.jsonl",
+      "consumption-scale-30-run-2.jsonl",
+      "consumption-scale-30-run-3.jsonl",
+      "dedicated-d8-scale-1-run-1.jsonl",
+      "dedicated-d8-scale-3-run-1.jsonl",
+      "dedicated-d8-scale-10-run-1.jsonl",
+      "dedicated-d8-scale-10-run-2.jsonl",
+      "dedicated-d8-scale-10-run-3.jsonl"
+    ],
+    "scale_files_manifest": [
+      "consumption-scale-1-run-1.jsonl",
+      "consumption-scale-3-run-1.jsonl",
+      "consumption-scale-10-run-1.jsonl",
+      "consumption-scale-30-run-1.jsonl",
+      "consumption-scale-30-run-2.jsonl",
+      "consumption-scale-30-run-3.jsonl",
+      "dedicated-d8-scale-1-run-1.jsonl",
+      "dedicated-d8-scale-3-run-1.jsonl",
+      "dedicated-d8-scale-10-run-1.jsonl",
+      "dedicated-d8-scale-10-run-2.jsonl",
+      "dedicated-d8-scale-10-run-3.jsonl"
+    ]
+  },
+  "thresholds": {
+    "anchor_samples_min_strong": 4,
+    "anchor_samples_min_fallback": 2,
+    "parse_success_min_strong": 1.0,
+    "parse_success_min_fallback": 0.95,
+    "date_prefix_min_strong": 1.0,
+    "date_prefix_min_fallback": 0.99
+  },
+  "sub_gate_a_anchor_exists": {
+    "anchor_jsonl_exists": true,
+    "anchor_verdict_exists": true,
+    "anchor_sample_count": 5,
+    "anchor_parse_stats": {
+      "total_lines": 5,
+      "blank_lines": 0,
+      "json_parse_failures": 0,
+      "missing_keys_failures": 0,
+      "successful_records": 5
+    },
+    "a_strong_path_anchor_with_min_samples": true,
+    "a_fallback_path_anchor_with_min_samples": true,
+    "a_pass": true
+  },
+  "sub_gate_b_files_parseable": {
+    "per_file_parse_stats": {
+      "h3-20260614-143432.jsonl": {
+        "total_lines": 5,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 5
+      },
+      "consumption-scale-1-run-1.jsonl": {
+        "total_lines": 6,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 6
+      },
+      "consumption-scale-3-run-1.jsonl": {
+        "total_lines": 30,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 30
+      },
+      "consumption-scale-10-run-1.jsonl": {
+        "total_lines": 80,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 80
+      },
+      "consumption-scale-30-run-1.jsonl": {
+        "total_lines": 240,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 240
+      },
+      "consumption-scale-30-run-2.jsonl": {
+        "total_lines": 240,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 240
+      },
+      "consumption-scale-30-run-3.jsonl": {
+        "total_lines": 240,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 240
+      },
+      "dedicated-d8-scale-1-run-1.jsonl": {
+        "total_lines": 6,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 6
+      },
+      "dedicated-d8-scale-3-run-1.jsonl": {
+        "total_lines": 30,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 30
+      },
+      "dedicated-d8-scale-10-run-1.jsonl": {
+        "total_lines": 80,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 80
+      },
+      "dedicated-d8-scale-10-run-2.jsonl": {
+        "total_lines": 80,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 80
+      },
+      "dedicated-d8-scale-10-run-3.jsonl": {
+        "total_lines": 80,
+        "blank_lines": 0,
+        "json_parse_failures": 0,
+        "missing_keys_failures": 0,
+        "successful_records": 80
+      }
+    },
+    "total_records_attempted": 1117,
+    "total_records_successful": 1117,
+    "parse_success_ratio": 1.0,
+    "b_strong_path_all_lines_parse": true,
+    "b_fallback_path_most_lines_parse": true,
+    "b_pass": true
+  },
+  "sub_gate_c_same_bundle": {
+    "date_prefix": "20260614",
+    "date_prefix_per_file": {
+      "h3-20260614-143432.jsonl": {
+        "total_records": 5,
+        "matching_records": 5
+      },
+      "consumption-scale-1-run-1.jsonl": {
+        "total_records": 6,
+        "matching_records": 6
+      },
+      "consumption-scale-3-run-1.jsonl": {
+        "total_records": 30,
+        "matching_records": 30
+      },
+      "consumption-scale-10-run-1.jsonl": {
+        "total_records": 80,
+        "matching_records": 80
+      },
+      "consumption-scale-30-run-1.jsonl": {
+        "total_records": 240,
+        "matching_records": 240
+      },
+      "consumption-scale-30-run-2.jsonl": {
+        "total_records": 240,
+        "matching_records": 240
+      },
+      "consumption-scale-30-run-3.jsonl": {
+        "total_records": 240,
+        "matching_records": 240
+      },
+      "dedicated-d8-scale-1-run-1.jsonl": {
+        "total_records": 6,
+        "matching_records": 6
+      },
+      "dedicated-d8-scale-3-run-1.jsonl": {
+        "total_records": 30,
+        "matching_records": 30
+      },
+      "dedicated-d8-scale-10-run-1.jsonl": {
+        "total_records": 80,
+        "matching_records": 80
+      },
+      "dedicated-d8-scale-10-run-2.jsonl": {
+        "total_records": 80,
+        "matching_records": 80
+      },
+      "dedicated-d8-scale-10-run-3.jsonl": {
+        "total_records": 80,
+        "matching_records": 80
+      }
+    },
+    "total_records": 1117,
+    "matching_records": 1117,
+    "date_prefix_ratio": 1.0,
+    "c_strong_path_all_records_dated": true,
+    "c_fallback_path_most_records_dated": true,
+    "c_pass": true
+  },
+  "sub_gate_d_no_extras": {
+    "actual_files_in_evidence_dir": [
+      "10-cohort-integrity-gate.json",
+      "11-matrix-coherence-gate.json",
+      "12-claim-eligibility-gate.json",
+      "13-packaging-gate.json",
+      "README.md",
+      "analysis-summary.json",
+      "analysis-summary.md",
+      "consumption-scale-1-run-1.jsonl",
+      "consumption-scale-10-run-1.jsonl",
+      "consumption-scale-3-run-1.jsonl",
+      "consumption-scale-30-run-1.jsonl",
+      "consumption-scale-30-run-2.jsonl",
+      "consumption-scale-30-run-3.jsonl",
+      "dedicated-d8-scale-1-run-1.jsonl",
+      "dedicated-d8-scale-10-run-1.jsonl",
+      "dedicated-d8-scale-10-run-2.jsonl",
+      "dedicated-d8-scale-10-run-3.jsonl",
+      "dedicated-d8-scale-3-run-1.jsonl",
+      "h3-20260614-143432.jsonl",
+      "h3-20260614-143432.verdict.txt"
+    ],
+    "canonical_files_expected": [
+      "analysis-summary.json",
+      "analysis-summary.md",
+      "h3-20260614-143432.jsonl",
+      "h3-20260614-143432.verdict.txt",
+      "consumption-scale-1-run-1.jsonl",
+      "consumption-scale-3-run-1.jsonl",
+      "consumption-scale-10-run-1.jsonl",
+      "consumption-scale-30-run-1.jsonl",
+      "consumption-scale-30-run-2.jsonl",
+      "consumption-scale-30-run-3.jsonl",
+      "dedicated-d8-scale-1-run-1.jsonl",
+      "dedicated-d8-scale-3-run-1.jsonl",
+      "dedicated-d8-scale-10-run-1.jsonl",
+      "dedicated-d8-scale-10-run-2.jsonl",
+      "dedicated-d8-scale-10-run-3.jsonl"
+    ],
+    "extras_found_after_excluding_phase_b_outputs": [],
+    "missing_canonical_files": [],
+    "foreign_patterns_in_extras": [],
+    "d_strong_path_exact_match": true,
+    "d_fallback_path_no_foreign_files": true,
+    "d_pass": true
+  },
+  "gate_1_cohort_integrity_sub_gates": {
+    "a_anchor_exists": true,
+    "b_files_parseable": true,
+    "c_same_bundle": true,
+    "d_no_extras": true
+  },
+  "gate_1_cohort_integrity_all_subgates_pass": true,
+  "gate_classification": "evidence_cohort_is_internally_consistent_and_uncontaminated"
+}

@@ -1,0 +1,77 @@
+{
+  "utc_captured": "2026-06-24T10:56:34Z",
+  "scenario": "packaging",
+  "hypothesis": "H_packaging",
+  "claim": "evidence_pack_is_self_contained_and_re_verifiable",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "evidence_dir": "labs/replica-node-spread/evidence",
+    "verify_sh_path": "labs/replica-node-spread/verify.sh",
+    "readme_path": "labs/replica-node-spread/evidence/README.md",
+    "canonical_files_manifest": [
+      "analysis-summary.json",
+      "analysis-summary.md",
+      "h3-20260614-143432.jsonl",
+      "h3-20260614-143432.verdict.txt",
+      "consumption-scale-1-run-1.jsonl",
+      "consumption-scale-3-run-1.jsonl",
+      "consumption-scale-10-run-1.jsonl",
+      "consumption-scale-30-run-1.jsonl",
+      "consumption-scale-30-run-2.jsonl",
+      "consumption-scale-30-run-3.jsonl",
+      "dedicated-d8-scale-1-run-1.jsonl",
+      "dedicated-d8-scale-3-run-1.jsonl",
+      "dedicated-d8-scale-10-run-1.jsonl",
+      "dedicated-d8-scale-10-run-2.jsonl",
+      "dedicated-d8-scale-10-run-3.jsonl"
+    ]
+  },
+  "sub_gate_a_verify_sh_reproduces": {
+    "gates_emitted_before_this": [
+      "10-cohort-integrity-gate.json",
+      "11-matrix-coherence-gate.json",
+      "12-claim-eligibility-gate.json"
+    ],
+    "gates_missing": [],
+    "this_gate_writing_now": "13-packaging-gate.json",
+    "a_strong_path_all_prior_gates_exist": true,
+    "a_fallback_path_at_least_2_prior_gates_exist": true,
+    "a_pass": true
+  },
+  "sub_gate_b_readme_maps_claims": {
+    "readme_exists": true,
+    "gate_filenames_required_in_readme": [
+      "10-cohort-integrity-gate.json",
+      "11-matrix-coherence-gate.json",
+      "12-claim-eligibility-gate.json",
+      "13-packaging-gate.json"
+    ],
+    "readme_references": {
+      "10-cohort-integrity-gate.json": true,
+      "11-matrix-coherence-gate.json": true,
+      "12-claim-eligibility-gate.json": true,
+      "13-packaging-gate.json": true
+    },
+    "all_gate_files_referenced": true,
+    "b_strong_path_readme_maps_all_gates": true,
+    "b_fallback_path_readme_exists": true,
+    "b_pass": true
+  },
+  "sub_gate_c_validators_pass": {
+    "canonical_files_present_count": 15,
+    "canonical_files_missing_count": 0,
+    "canonical_files_missing": [],
+    "verify_sh_exists": true,
+    "readme_exists": true,
+    "c_strong_path_full_filesystem_state": true,
+    "c_fallback_path_canonical_files_present": true,
+    "c_pass": true
+  },
+  "gate_4_packaging_sub_gates": {
+    "a_verify_sh_reproduces": true,
+    "b_readme_maps_claims": true,
+    "c_validators_pass": true
+  },
+  "gate_4_packaging_all_subgates_pass": true,
+  "gate_classification": "evidence_pack_is_self_contained_and_re_verifiable"
+}
