@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T07:55:16Z",
+  "utc_captured": "2026-06-24T08:24:13Z",
   "scenario": "cross_scenario_falsification",
   "hypothesis": "H3",
   "claim": "three_workload_patterns_produce_three_distinguishable_oom_signatures",

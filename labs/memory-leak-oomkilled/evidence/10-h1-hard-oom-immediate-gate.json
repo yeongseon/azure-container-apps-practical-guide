@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T07:55:16Z",
+  "utc_captured": "2026-06-24T08:24:13Z",
   "scenario": "A_hard",
   "hypothesis": "H1",
   "claim": "hard_oom_immediate_dense_burst_signature_distinct_from_leak",

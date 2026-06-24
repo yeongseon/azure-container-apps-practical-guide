@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T07:55:16Z",
+  "utc_captured": "2026-06-24T08:24:13Z",
   "scenario": "C_healthy",
   "hypothesis": "H2",
   "claim": "healthy_control_zero_oom_falsifies_environmental_oom",
