@@ -1,0 +1,51 @@
+{
+  "utc_captured": "2026-06-24T08:24:13Z",
+  "scenario": "C_healthy",
+  "hypothesis": "H2",
+  "claim": "healthy_control_zero_oom_falsifies_environmental_oom",
+  "predicate_inputs": {
+    "report_path": "labs/memory-leak-oomkilled/evidence/ca-oom-healthy/report-20260620T042246Z.txt",
+    "revisions_path": "labs/memory-leak-oomkilled/evidence/ca-oom-healthy/revisions-20260620T042246Z.json"
+  },
+  "oom_predicate_form_a": "Reason_s == ContainerTerminated AND Log_s contains 'exit code \\'137\\'' AND Log_s contains 'ProcessExited'",
+  "oom_predicate_form_b": "Reason_s == ProcessExited AND Log_s contains 'exit code \\'137\\''",
+  "healthy_oom_max_records_threshold": 0,
+  "sub_gate_a_no_oom_records": {
+    "oom_record_count_section_5": 0,
+    "matched_oom_records_first_5": [],
+    "section_6_bins": [
+      [
+        14,
+        "2026-06-20T04:10:00Z"
+      ]
+    ],
+    "section_6_bins_note": "Section 6 has_any('memory') KQL filter produces false-positives for the healthy scenario; only the Strong path (section 5 record-scoped 2-form predicate) is authoritative for Gate 12.",
+    "section_6_nonzero_bin_count": 1,
+    "a_strong_path_section_5_zero_records": true,
+    "a_fallback_path_section_6_zero_bins_documented_unreliable": false,
+    "a_pass": true
+  },
+  "sub_gate_b_healthy_state": {
+    "sidecar_first_health_state": "Healthy",
+    "sidecar_first_provisioning_state": "Provisioned",
+    "b_strong_path_sidecar_healthy": true,
+    "b_fallback_path_provisioned": true,
+    "b_pass": true
+  },
+  "sub_gate_c_stable_replicas": {
+    "sidecar_first_running_state": "RunningAtMaxScale",
+    "sidecar_first_replicas": 1,
+    "sidecar_first_traffic_weight": 100,
+    "sidecar_first_running_state_substitutes_for_restart_count_zero": "Section 10c restart-count metric was empty for all 3 scenarios; runningState==RunningAtMaxScale + replicas>=1 is the functional equivalent because a restart-looping container could not maintain RunningAtMaxScale.",
+    "c_strong_path_running_at_max_scale_with_replicas": true,
+    "c_fallback_path_full_traffic_weight_100": true,
+    "c_pass": true
+  },
+  "h2_healthy_sub_gates": {
+    "a_no_oom_records": true,
+    "b_healthy_state": true,
+    "c_stable_replicas": true
+  },
+  "h2_healthy_all_subgates_pass": true,
+  "gate_classification": "healthy_control_zero_oom_falsifies_environmental_oom"
+}

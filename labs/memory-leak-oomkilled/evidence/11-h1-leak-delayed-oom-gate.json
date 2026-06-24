@@ -1,0 +1,103 @@
+{
+  "utc_captured": "2026-06-24T08:24:13Z",
+  "scenario": "B_leak",
+  "hypothesis": "H1",
+  "claim": "leak_delayed_runway_then_oom_signature_distinct_from_hard",
+  "predicate_inputs": {
+    "report_path": "labs/memory-leak-oomkilled/evidence/ca-oom-leak/report-20260620T042200Z.txt",
+    "revisions_path": "labs/memory-leak-oomkilled/evidence/ca-oom-leak/revisions-20260620T042200Z.json"
+  },
+  "leak_tick_regex": "[leak] tick (\\d+): +30 MiB, total retained (\\d+) MiB",
+  "leak_ticks_min_strong_threshold": 12,
+  "leak_ticks_min_fallback_threshold": 8,
+  "leak_oom_min_records_threshold": 1,
+  "sub_gate_a_leak_runway_observed": {
+    "tick_count_section_7": 16,
+    "first_tick": [
+      1,
+      30
+    ],
+    "last_tick": [
+      16,
+      480
+    ],
+    "a_strong_path_min_ticks_ge_strong_threshold": true,
+    "a_fallback_path_partial_ticks_ge_fallback_threshold": true,
+    "a_pass": true
+  },
+  "sub_gate_b_tick_retained_monotonic": {
+    "tick_numbers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "retained_values_mib": [
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      270,
+      300,
+      330,
+      360,
+      390,
+      420,
+      450,
+      480
+    ],
+    "ticks_monotonic": true,
+    "retained_monotonic": true,
+    "b_strong_path_both_monotonic": true,
+    "b_fallback_path_arithmetic_invariant": true,
+    "b_pass": true
+  },
+  "sub_gate_c_leak_eventually_kills": {
+    "oom_record_count_section_5": 1,
+    "matched_oom_records_first_5": [
+      {
+        "log_s": "Container 'ca-oom-leak' was terminated with exit code '137' and reason 'ProcessExited'",
+        "reason_s": "ContainerTerminated",
+        "timestamp": "2026-06-20T04:17:07.9590478Z",
+        "match_form": "A"
+      }
+    ],
+    "section_6_bins": [
+      [
+        13,
+        "2026-06-20T04:10:00Z"
+      ],
+      [
+        3,
+        "2026-06-20T04:15:00Z"
+      ]
+    ],
+    "section_6_nonzero_bin_count": 2,
+    "c_strong_path_section_5_oom_ge_threshold": true,
+    "c_fallback_path_section_6_bin_present": true,
+    "c_pass": true
+  },
+  "h1_leak_sub_gates": {
+    "a_leak_runway_observed": true,
+    "b_tick_retained_monotonic": true,
+    "c_leak_eventually_kills": true
+  },
+  "h1_leak_all_subgates_pass": true,
+  "gate_classification": "leak_delayed_runway_then_oom_signature_distinct_from_hard"
+}

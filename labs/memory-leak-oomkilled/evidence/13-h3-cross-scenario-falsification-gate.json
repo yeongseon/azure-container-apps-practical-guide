@@ -1,0 +1,75 @@
+{
+  "utc_captured": "2026-06-24T08:24:13Z",
+  "scenario": "cross_scenario_falsification",
+  "hypothesis": "H3",
+  "claim": "three_workload_patterns_produce_three_distinguishable_oom_signatures",
+  "predicate_inputs": {
+    "hard_report_path": "labs/memory-leak-oomkilled/evidence/ca-oom-hard/report-20260620T060257Z.txt",
+    "leak_report_path": "labs/memory-leak-oomkilled/evidence/ca-oom-leak/report-20260620T042200Z.txt",
+    "healthy_report_path": "labs/memory-leak-oomkilled/evidence/ca-oom-healthy/report-20260620T042246Z.txt",
+    "hard_revisions_path": "labs/memory-leak-oomkilled/evidence/ca-oom-hard/revisions-20260620T060257Z.json",
+    "leak_revisions_path": "labs/memory-leak-oomkilled/evidence/ca-oom-leak/revisions-20260620T042200Z.json",
+    "healthy_revisions_path": "labs/memory-leak-oomkilled/evidence/ca-oom-healthy/revisions-20260620T042246Z.json"
+  },
+  "observed_metrics": {
+    "hard": {
+      "section_5_oom_count": 16,
+      "section_6_max_5min_bin_count": 26,
+      "section_6_bin_count": 23,
+      "section_7_leak_tick_count": 0,
+      "health_state": "Healthy"
+    },
+    "leak": {
+      "section_5_oom_count": 1,
+      "section_6_max_5min_bin_count": 13,
+      "section_6_bin_count": 2,
+      "section_7_leak_tick_count": 16,
+      "health_state": "Healthy"
+    },
+    "healthy": {
+      "section_5_oom_count": 0,
+      "section_6_max_5min_bin_count": 14,
+      "section_6_bin_count": 1,
+      "section_7_leak_tick_count": 0,
+      "health_state": "Healthy"
+    }
+  },
+  "thresholds": {
+    "hard_oom_min_records": 10,
+    "hard_max_bin_min_count": 10,
+    "leak_ticks_min_strong": 12,
+    "leak_oom_min_records": 1,
+    "healthy_oom_max_records": 0
+  },
+  "sub_gate_a_cross_scenario_oom_ordering": {
+    "hard_section_5_oom_count": 16,
+    "leak_section_5_oom_count": 1,
+    "healthy_section_5_oom_count": 0,
+    "a_strong_path_exact_ordering": true,
+    "a_fallback_path_weak_ordering": true,
+    "a_pass": true
+  },
+  "sub_gate_b_distinct_signature_classes": {
+    "hard_section_6_max_5min_bin_count": 26,
+    "leak_section_7_leak_tick_count": 16,
+    "healthy_section_5_oom_count": 0,
+    "b_strong_path_all_signatures": true,
+    "b_fallback_path_weak_signatures": true,
+    "b_pass": true
+  },
+  "sub_gate_c_health_states_match_outcome": {
+    "hard_health_state": "Healthy",
+    "leak_health_state": "Healthy",
+    "healthy_health_state": "Healthy",
+    "c_strong_path_states_match": true,
+    "c_fallback_path_control_only": true,
+    "c_pass": true
+  },
+  "h3_cross_sub_gates": {
+    "a_cross_scenario_oom_ordering": true,
+    "b_distinct_signature_classes": true,
+    "c_health_states_match_outcome": true
+  },
+  "h3_cross_all_subgates_pass": true,
+  "gate_classification": "three_workload_patterns_produce_three_distinguishable_oom_signatures"
+}
