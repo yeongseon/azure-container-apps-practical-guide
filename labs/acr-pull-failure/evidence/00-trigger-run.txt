@@ -100,11 +100,11 @@ Captured output (truncated to first 500 chars):
 ERROR: The command failed with an unexpected error. Here is the traceback:
 ERROR: 'eventStreamEndpoint'
 Traceback (most recent call last):
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
     cmd_result = self.invocation.execute(args)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
     raise ex
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/si
+  File "/Users/demouser/Library/Python/3.9/lib/python/si
 
 system log capture surfaced eventStreamEndpoint / KeyError signature: true
 

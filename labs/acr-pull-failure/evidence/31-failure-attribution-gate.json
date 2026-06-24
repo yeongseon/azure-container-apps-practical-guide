@@ -1,0 +1,64 @@
+{
+  "utc_captured": "2026-06-24T15:21:14Z",
+  "scenario": "acr_pull_failure_manifest_unknown",
+  "hypothesis": "H1_failure_attribution",
+  "claim": "failed_deployment_cohort_is_fully_attributable_to_manifest_resolution_failure",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "deployment_result_path": "labs/acr-pull-failure/evidence/01-deployment-result.json",
+    "deployment_ops_path": "labs/acr-pull-failure/evidence/01-deployment-operations-failed.json",
+    "containerapp_baseline_path": "labs/acr-pull-failure/evidence/02-containerapp-show-baseline.json",
+    "revs_baseline_path": "labs/acr-pull-failure/evidence/03-revisions-list-baseline.json",
+    "acr_repo_list_baseline_path": "labs/acr-pull-failure/evidence/04-acr-repository-list-baseline.json"
+  },
+  "thresholds": {
+    "smoking_gun_token": "MANIFEST_UNKNOWN",
+    "target_repo_name": "labacr"
+  },
+  "cohort_binding_note": "Sub-gates (b)-(e) are absence-style predicates that are interpretable as manifest-failure evidence ONLY in conjunction with sub-gate (a). A reader must not read 'revision list empty' or 'ACR repo absent' as evidence of this specific failure mode without also seeing the Failed deployment with MANIFEST_UNKNOWN. The predicate_inputs block records the deployment attribution and the absences in the same gate JSON so they cannot be interpreted separately.",
+  "sub_gate_a_predicate": "Deployment failed (01-deployment-result.provisioningState == 'Failed') AND at least one per-operation record in 01-deployment-operations-failed.json contains 'MANIFEST_UNKNOWN' in statusMessage.error.message. Single-path per Oracle Q2 directive: 01-deployment-operations-failed.json is the MANIFEST_UNKNOWN canonical source; 01-deployment-result.json is optional corroboration only.",
+  "sub_gate_b_predicate": "Container App resource provisioningState == 'Failed' (02-containerapp-show-baseline.provisioningState). Single-path.",
+  "sub_gate_c_predicate": "Container App latestRevisionName is null (02-containerapp-show-baseline.latestRevisionName). Single-path.",
+  "sub_gate_d_predicate": "Revision list is the empty array (03-revisions-list-baseline.json == []). Single-path.",
+  "sub_gate_e_predicate": "ACR repository list does not contain 'labacr' (04-acr-repository-list-baseline.json membership check). Record-scoped per Lab 15 lesson 34: parsed JSON array membership, not greppy substring matching. Single-path.",
+  "sub_gate_a_deployment_failed_with_manifest_unknown": {
+    "observed_deployment_provisioning_state": "Failed",
+    "observed_ops_error_message_count": 1,
+    "observed_manifest_unknown_in_any_op": true,
+    "observed_first_smoking_gun_excerpt": "Failed to provision revision for container app 'ca-labacr-rnnljl'. Error details: The following field(s) are either invalid or missing. Field 'template.containers.app.image' is invalid with details: 'Invalid value: \"acrlabacrrnnljl.azurecr.io/labacr:does-not-exist\": GET https:: MANIFEST_UNKNOWN: man",
+    "a_predicate_holds": true,
+    "a_pass": true
+  },
+  "sub_gate_b_containerapp_provisioning_state_failed": {
+    "observed_containerapp_baseline_provisioning_state": "Failed",
+    "b_predicate_holds": true,
+    "b_pass": true
+  },
+  "sub_gate_c_latest_revision_name_null": {
+    "observed_latest_revision_name": null,
+    "c_predicate_holds": true,
+    "c_pass": true
+  },
+  "sub_gate_d_revision_list_empty": {
+    "observed_revision_list_length": 0,
+    "observed_revision_list_is_list": true,
+    "d_predicate_holds": true,
+    "d_pass": true
+  },
+  "sub_gate_e_acr_repo_absent": {
+    "observed_acr_repo_list": [],
+    "observed_acr_repo_list_length": 0,
+    "observed_target_repo_present": false,
+    "e_predicate_holds": true,
+    "e_pass": true
+  },
+  "acr_pull_failure_h1_failure_attribution_sub_gates": {
+    "a_deployment_failed_with_manifest_unknown": true,
+    "b_containerapp_provisioning_state_failed": true,
+    "c_latest_revision_name_null": true,
+    "d_revision_list_empty": true,
+    "e_acr_repo_absent": true
+  },
+  "acr_pull_failure_h1_failure_attribution_all_subgates_pass": true,
+  "gate_classification": "failed_deployment_cohort_is_fully_attributable_to_manifest_resolution_failure"
+}
