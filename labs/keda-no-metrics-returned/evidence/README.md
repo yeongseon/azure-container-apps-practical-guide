@@ -92,7 +92,7 @@ The following observations surfaced during the 2026-06-20 historical run and are
 | H2 healthy gate | `12-h2-healthy-post-ready-gate.json` | Phase B `verify.sh` Phase 12 — 3 sub-gates: (a) §2 `Healthy + Running` OR sidecar `Healthy + traffic 100`; (b) §6 single bin OR §6 ≤ 2 bins; (c) §5 duration ≤ 300 s OR §5 lines ≤ 20. All 6 paths PASS. |
 | H3 cross gate | `13-h3-cross-scenario-falsification-gate.json` | Phase B `verify.sh` Phase 13 — 3 sub-gates: (a) bin count `healthy=1 AND slow=1 AND crash≥2` OR weak ordering `healthy ≤ slow < crash`; (b) duration ratio `crash ≥ 3.0× max(healthy, slow)` OR `crash > both`; (c) health state `healthy=Healthy AND slow=Healthy AND crash=Unhealthy` OR `crash≠Healthy AND at-least-one of {healthy, slow}=Healthy`. All 6 paths PASS. Observed ratio crash/max(healthy, slow) = 4.44×. |
 
-The pack contains **22 physical files** under `evidence/`: **18 historical-capture artifacts** (6 files × 3 scenarios) AND **4 Phase B verify-emitted gate JSONs** (10/11/12/13).
+The pack contains **23 physical files** under `evidence/`: this provenance README plus **18 historical-capture artifacts** (6 files × 3 scenarios) plus **4 Phase B verify-emitted gate JSONs** (10/11/12/13).
 
 ## Reproducibility
 
