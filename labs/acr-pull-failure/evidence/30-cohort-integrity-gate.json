@@ -1,0 +1,142 @@
+{
+  "utc_captured": "2026-06-24T15:51:13Z",
+  "scenario": "acr_pull_failure_manifest_unknown",
+  "hypothesis": "H_cohort_integrity",
+  "claim": "evidence_cohort_is_internally_consistent_and_temporally_coherent",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "evidence_dir": "labs/acr-pull-failure/evidence",
+    "canonical_files_manifest": [
+      "00-trigger-run.txt",
+      "00-verify-run.txt",
+      "01-deployment-operations-failed.json",
+      "01-deployment-result.json",
+      "02-containerapp-show-baseline.json",
+      "03-revisions-list-baseline.json",
+      "04-acr-repository-list-baseline.json",
+      "05-system-logs-show-error.txt",
+      "06-activity-log-failed.json",
+      "06-h1-gate.json",
+      "07-acr-build-result.json",
+      "08-containerapp-update-result.json",
+      "09-containerapp-show-after-fix.json",
+      "10-revisions-list-after-fix.json",
+      "11-acr-repository-list-after-fix.json",
+      "11-acr-repository-show-tags-after-fix.json",
+      "12-curl-after-fix.json",
+      "13-kql-after-fix-raw.txt",
+      "13-kql-after-fix.json",
+      "14-h2-gate.json",
+      "20-cli-versions.json",
+      "21-cli-containerapp-ext.json",
+      "22-region.json",
+      "23-deployment-outputs.json"
+    ],
+    "phase_b_outputs_manifest": [
+      "30-cohort-integrity-gate.json",
+      "31-failure-attribution-gate.json",
+      "32-recovery-materialization-gate.json",
+      "33-in-place-recovery-continuity-gate.json"
+    ],
+    "expected_meta_files": [
+      "README.md"
+    ]
+  },
+  "sub_gate_a_predicate": "All 24 canonical Phase A files exist; fallback requires at least 22.",
+  "sub_gate_b_predicate": "Deployment timestamp (01-deployment-result.timestamp), trigger.sh start line (00-trigger-run.txt:1), and fix-and-capture.sh start line (00-verify-run.txt:1) are monotonic and span <= 30 minutes (strong) / <= 60 minutes (fallback). Uses runtime-captured tee output, NOT the backfilled 06-h1-gate.json.utc_captured timestamp.",
+  "sub_gate_c_predicate": "No unexpected non-junk extras under evidence/. Strong path requires exact match of the canonical 24 + 4 Phase B outputs + README.md; fallback tolerates only editor/OS junk (.swp/.bak/.tmp/.DS_Store) and STILL requires zero missing canonical files.",
+  "sub_gate_d_predicate": "evidence/README.md cross-references all 4 Phase B gate JSON filenames; fallback requires only that README.md exists.",
+  "required_canonical_file_count": 24,
+  "minimum_fallback_file_count": 22,
+  "sub_gate_a_canonical_files_present": {
+    "observed_present_file_count": 24,
+    "observed_first_5": [
+      {
+        "path": "labs/acr-pull-failure/evidence/00-trigger-run.txt",
+        "exists": true
+      },
+      {
+        "path": "labs/acr-pull-failure/evidence/00-verify-run.txt",
+        "exists": true
+      },
+      {
+        "path": "labs/acr-pull-failure/evidence/01-deployment-result.json",
+        "exists": true
+      },
+      {
+        "path": "labs/acr-pull-failure/evidence/01-deployment-operations-failed.json",
+        "exists": true
+      },
+      {
+        "path": "labs/acr-pull-failure/evidence/02-containerapp-show-baseline.json",
+        "exists": true
+      }
+    ],
+    "a_strong_path_all_24_files_exist": true,
+    "a_fallback_path_at_least_22_files_exist": true,
+    "a_pass": true
+  },
+  "sub_gate_b_temporal_coherence": {
+    "observed_temporal_records": {
+      "deployment_timestamp_iso": "2026-06-22T13:20:46.091681+00:00",
+      "trigger_first_line": "trigger.sh starting at 2026-06-22T13:25:49Z",
+      "capture_first_line": "verify.sh starting at 2026-06-22T13:26:42Z",
+      "trigger_start_iso": "2026-06-22T13:25:49+00:00",
+      "capture_start_iso": "2026-06-22T13:26:42+00:00",
+      "monotonic_deployment_trigger_capture": true,
+      "span_seconds_deployment_to_capture": 355.908319
+    },
+    "b_strong_path_monotonic_within_30min": true,
+    "b_fallback_path_monotonic_within_60min": true,
+    "b_pass": true
+  },
+  "sub_gate_c_no_unexpected_extras": {
+    "observed_extras_count": 0,
+    "observed_extras": [],
+    "observed_missing_canonical": [],
+    "unexpected_non_junk_extras": [],
+    "allowed_junk_suffixes": [
+      ".swp",
+      ".bak",
+      ".tmp"
+    ],
+    "allowed_junk_exact_names": [
+      ".DS_Store"
+    ],
+    "c_strong_path_exact_match": true,
+    "c_fallback_path_no_foreign_files": true,
+    "c_pass": true
+  },
+  "sub_gate_d_readme_references_gate_outputs": {
+    "observed_readme_exists": true,
+    "observed_gate_reference_records": [
+      {
+        "gate_filename": "30-cohort-integrity-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "31-failure-attribution-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "32-recovery-materialization-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "33-in-place-recovery-continuity-gate.json",
+        "mentioned_in_readme": true
+      }
+    ],
+    "d_strong_path_readme_references_all_gates": true,
+    "d_fallback_path_readme_exists": true,
+    "d_pass": true
+  },
+  "acr_pull_failure_h_cohort_integrity_sub_gates": {
+    "a_canonical_files_present": true,
+    "b_temporal_coherence": true,
+    "c_no_unexpected_extras": true,
+    "d_readme_references_gate_outputs": true
+  },
+  "acr_pull_failure_h_cohort_integrity_all_subgates_pass": true,
+  "gate_classification": "evidence_cohort_is_internally_consistent_and_temporally_coherent"
+}

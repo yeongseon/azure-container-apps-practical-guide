@@ -1,0 +1,56 @@
+{
+  "utc_captured": "2026-06-24T15:51:13Z",
+  "scenario": "acr_pull_failure_manifest_unknown",
+  "hypothesis": "H_in_place_recovery_continuity",
+  "claim": "recovery_is_in_place_same_app_same_registry_image_tag_only_delta",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "containerapp_baseline_path": "labs/acr-pull-failure/evidence/02-containerapp-show-baseline.json",
+    "containerapp_after_fix_path": "labs/acr-pull-failure/evidence/09-containerapp-show-after-fix.json",
+    "revs_after_fix_path": "labs/acr-pull-failure/evidence/10-revisions-list-after-fix.json",
+    "revs_baseline_path": "labs/acr-pull-failure/evidence/03-revisions-list-baseline.json"
+  },
+  "thresholds": {
+    "bad_tag_suffix": ":does-not-exist",
+    "good_tag_suffix": ":v1"
+  },
+  "sub_gate_a_predicate": "Baseline app name == after-fix app name (both non-empty, both string-typed). Single-path. Record-scoped: parses .name field of 02-containerapp-show-baseline.json and 09-containerapp-show-after-fix.json.",
+  "sub_gate_b_predicate": "Baseline cohort (provisioningState=Failed, latestRevisionName=null, revisions=[]) transitions to after-fix cohort (provisioningState=Succeeded, latestRevisionName non-empty, at least one Healthy revision). BOTH-not-OR across cohort fields. Single-path.",
+  "sub_gate_c_predicate": "Baseline .image endswith ':does-not-exist', after-fix .image endswith ':v1', and both .image fields parse to the same ACR login server prefix (everything before the first '/'). Single-path. Record-scoped: parses .image field of each JSON document; splits on '/' to extract registry prefix. Per Oracle Q1 directive: the registry identity is explicit in the parsed .image field so the same-registry proof is sound. Timestamp / no-recreation claims dropped per Oracle Q1 (not soundly evidenced by this cohort).",
+  "sub_gate_a_same_app_identity": {
+    "observed_baseline_name": "ca-labacr-rnnljl",
+    "observed_after_fix_name": "ca-labacr-rnnljl",
+    "a_predicate_holds": true,
+    "a_pass": true
+  },
+  "sub_gate_b_state_transition": {
+    "observed_baseline_provisioning_state": "Failed",
+    "observed_baseline_latest_revision_name": null,
+    "observed_baseline_revs_count": 0,
+    "observed_after_fix_provisioning_state": "Succeeded",
+    "observed_after_fix_latest_revision_name": "ca-labacr-rnnljl--mvlbg1j",
+    "observed_after_fix_healthy_revision_count": 1,
+    "observed_baseline_cohort_matches": true,
+    "observed_after_fix_cohort_matches": true,
+    "b_predicate_holds": true,
+    "b_pass": true
+  },
+  "sub_gate_c_image_tag_delta_same_registry": {
+    "observed_baseline_image": "acrlabacrrnnljl.azurecr.io/labacr:does-not-exist",
+    "observed_after_fix_image": "acrlabacrrnnljl.azurecr.io/labacr:v1",
+    "observed_baseline_registry": "acrlabacrrnnljl.azurecr.io",
+    "observed_after_fix_registry": "acrlabacrrnnljl.azurecr.io",
+    "observed_baseline_ends_bad_tag": true,
+    "observed_after_fix_ends_good_tag": true,
+    "observed_same_registry": true,
+    "c_predicate_holds": true,
+    "c_pass": true
+  },
+  "acr_pull_failure_h_in_place_recovery_continuity_sub_gates": {
+    "a_same_app_identity": true,
+    "b_state_transition": true,
+    "c_image_tag_delta_same_registry": true
+  },
+  "acr_pull_failure_h_in_place_recovery_continuity_all_subgates_pass": true,
+  "gate_classification": "recovery_is_in_place_same_app_same_registry_image_tag_only_delta"
+}

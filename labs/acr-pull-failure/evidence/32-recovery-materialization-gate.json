@@ -1,0 +1,81 @@
+{
+  "utc_captured": "2026-06-24T15:51:13Z",
+  "scenario": "acr_pull_failure_manifest_unknown",
+  "hypothesis": "H2_recovery_materialization",
+  "claim": "az_acr_build_plus_az_containerapp_update_materialized_a_healthy_serving_revision",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "containerapp_update_path": "labs/acr-pull-failure/evidence/08-containerapp-update-result.json",
+    "revs_after_fix_path": "labs/acr-pull-failure/evidence/10-revisions-list-after-fix.json",
+    "acr_repo_list_after_fix_path": "labs/acr-pull-failure/evidence/11-acr-repository-list-after-fix.json",
+    "acr_repo_tags_after_fix_path": "labs/acr-pull-failure/evidence/11-acr-repository-show-tags-after-fix.json",
+    "curl_after_fix_path": "labs/acr-pull-failure/evidence/12-curl-after-fix.json"
+  },
+  "thresholds": {
+    "strong_curl_requests_ok": 10,
+    "fallback_curl_requests_ok_floor": 8,
+    "target_repo_name": "labacr",
+    "target_tag": "v1"
+  },
+  "sub_gate_a_predicate": "08-containerapp-update-result.provisioningState == 'Succeeded' AND 08-containerapp-update-result.latestRevisionName is a non-empty string (BOTH-not-OR). Single-path.",
+  "sub_gate_b_predicate": "10-revisions-list-after-fix.json contains at least one record with healthState == 'Healthy' AND trafficWeight == 100 (BOTH-not-OR). Record-scoped iteration. Single-path.",
+  "sub_gate_c_predicate": "12-curl-after-fix.requests_ok == 10 (strong) or >= 8 (fallback). Dual-path: this is the only Gate 32 sub-gate with dual paths because the curl floor tolerates transient cold-start variance without weakening the recovery claim. Per Oracle Q1 directive \u2014 dual-path only where equivalent manifestations of the same claim exist.",
+  "sub_gate_d_predicate": "11-acr-repository-list-after-fix.json contains 'labacr' AND 11-acr-repository-show-tags-after-fix.json contains 'v1' (BOTH-not-OR). Record-scoped membership. Single-path.",
+  "sub_gate_a_update_succeeded_with_revision": {
+    "observed_update_provisioning_state": "Succeeded",
+    "observed_update_latest_revision_name": "ca-labacr-rnnljl--mvlbg1j",
+    "a_predicate_holds": true,
+    "a_pass": true
+  },
+  "sub_gate_b_healthy_traffic_100_revision_exists": {
+    "observed_total_revisions": 1,
+    "observed_healthy_traffic_100_count": 1,
+    "observed_first_5": [
+      {
+        "active": true,
+        "createdTime": "2026-06-22T13:27:32+00:00",
+        "healthState": "Healthy",
+        "name": "ca-labacr-rnnljl--mvlbg1j",
+        "replicas": 1,
+        "runningState": "RunningAtMaxScale",
+        "trafficWeight": 100
+      }
+    ],
+    "b_predicate_holds": true,
+    "b_pass": true
+  },
+  "sub_gate_c_curl_requests_ok": {
+    "observed_requests_sent": 10,
+    "observed_requests_ok": 10,
+    "c_strong_path_requests_ok_eq_10": true,
+    "c_fallback_path_requests_ok_ge_8": true,
+    "c_pass": true
+  },
+  "sub_gate_d_acr_repo_and_tag_present": {
+    "observed_acr_repo_list": [
+      "labacr"
+    ],
+    "observed_acr_repo_tags": [
+      "v1"
+    ],
+    "observed_repo_present": true,
+    "observed_tag_present": true,
+    "d_predicate_holds": true,
+    "d_pass": true
+  },
+  "post_fix_kql_observation": {
+    "classification": "silent_acceptable_post_fix",
+    "row_count": 0,
+    "promoted_to_gate": false,
+    "rationale": "Per Oracle Q5 directive: post-fix KQL silence is INFORMATIONAL ONLY and is NOT promoted to a Gate 32 sub-gate. The Gate 32 PASS verdict is anchored to sub-gates (a)-(d) (update succeeded with revision, Healthy revision with traffic=100, curl requests OK, ACR repo and tag present) - not to ContainerAppSystemLogs_CL row count, which may surface 0 rows during the lab capture window due to platform-side ingestion lag (typically 2-5 minutes for newly-materialized custom tables).",
+    "predicate_input": "labs/acr-pull-failure/evidence/13-kql-after-fix.json"
+  },
+  "acr_pull_failure_h2_recovery_materialization_sub_gates": {
+    "a_update_succeeded_with_revision": true,
+    "b_healthy_traffic_100_revision_exists": true,
+    "c_curl_requests_ok": true,
+    "d_acr_repo_and_tag_present": true
+  },
+  "acr_pull_failure_h2_recovery_materialization_all_subgates_pass": true,
+  "gate_classification": "az_acr_build_plus_az_containerapp_update_materialized_a_healthy_serving_revision"
+}

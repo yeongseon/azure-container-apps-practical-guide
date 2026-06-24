@@ -1,23 +1,23 @@
 ERROR: The command failed with an unexpected error. Here is the traceback:
 ERROR: 'eventStreamEndpoint'
 Traceback (most recent call last):
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
     cmd_result = self.invocation.execute(args)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
     raise ex
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
     results.append(self._run_job(expanded_arg, cmd_copy))
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
     result = cmd_copy(params)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
     return self.handler(*args, **kwargs)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 362, in handler
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 362, in handler
     show_exception_handler(ex)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/arm.py", line 478, in show_exception_handler
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/arm.py", line 478, in show_exception_handler
     raise ex
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 360, in handler
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 360, in handler
     return op(**command_args)
-  File "/Users/yeongseonchoe/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3569, in stream_containerapp_logs
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3569, in stream_containerapp_logs
     base_url = ContainerAppClient.show(cmd, resource_group_name, name)["properties"]["eventStreamEndpoint"]
 KeyError: 'eventStreamEndpoint'
 To check existing issues, please visit: https://github.com/Azure/azure-cli/issues
