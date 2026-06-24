@@ -1,0 +1,64 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-mempct2/providers/Microsoft.App/containerApps/ca-mempct-b-above/revisions/ca-mempct-b-above--ncbgqgi",
+    "name": "ca-mempct-b-above--ncbgqgi",
+    "properties": {
+      "active": true,
+      "createdTime": "2026-06-24T01:55:02+00:00",
+      "fqdn": "ca-mempct-b-above--ncbgqgi.politemoss-ef446fae.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "provisioningState": "Provisioned",
+      "replicas": 20,
+      "runningState": "RunningAtMaxScale",
+      "template": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "MODE",
+                "value": "rss"
+              },
+              {
+                "name": "TARGET_MB",
+                "value": "560"
+              }
+            ],
+            "image": "acrmempct4xuaob.azurecr.io/mempct:v1",
+            "name": "ca-mempct-b-above",
+            "probes": [],
+            "resources": {
+              "cpu": 0.5,
+              "memory": "1Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 20,
+          "minReplicas": 2,
+          "pollingInterval": null,
+          "rules": [
+            {
+              "custom": {
+                "metadata": {
+                  "type": "Utilization",
+                  "value": "50"
+                },
+                "type": "memory"
+              },
+              "name": "memory-rule"
+            }
+          ]
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 100
+    },
+    "resourceGroup": "rg-aca-lab-mempct2",
+    "type": "Microsoft.App/containerapps/revisions"
+  }
+]

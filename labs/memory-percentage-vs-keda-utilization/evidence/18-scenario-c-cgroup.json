@@ -1,0 +1,11 @@
+{
+  "app_name": "ca-mempct-cache",
+  "active_revision": "ca-mempct-cache--fd5zbm1",
+  "replica_name": "ca-mempct-cache--fd5zbm1-f7fcb55d7-2nlfm",
+  "captured_at_utc": "2026-06-24T02:29:10Z",
+  "cgroup_version": "v1",
+  "memory_path": "/sys/fs/cgroup/memory",
+  "memory_usage_in_bytes_raw": "775598080\r\r",
+  "memory_limit_in_bytes_raw": "1073741824\r\r",
+  "memory_stat_raw": "cache 734117888\r\r\nrss 18632704\r\r\nrss_huge 0\r\r\nshmem 0\r\r\nmapped_file 0\r\r\ndirty 0\r\r\nwriteback 0\r\r\nworkingset_refault_anon 0\r\r\nworkingset_refault_file 0\r\r\nswap 0\r\r\npgpgin 189224\r\r\npgpgout 5447\r\r\npgfault 10432\r\r\npgmajfault 0\r\r\ninactive_anon 0\r\r\nactive_anon 18612224\r\r\ninactive_file 700649472\r\r\nactive_file 33468416\r\r\nunevictable 0\r\r\nhierarchical_memory_limit 1073741824\r\r\nhierarchical_memsw_limit 9223372036854771712\r\r\ntotal_cache 734117888\r\r\ntotal_rss 18632704\r\r\ntotal_rss_huge 0\r\r\ntotal_shmem 0\r\r\ntotal_mapped_file 0\r\r\ntotal_dirty 0\r\r\ntotal_writeback 0\r\r\ntotal_workingset_refault_anon 0\r\r\ntotal_workingset_refault_file 0\r\r\ntotal_swap 0\r\r\ntotal_pgpgin 189224\r\r\ntotal_pgpgout 5447\r\r\ntotal_pgfault 10432\r\r\ntotal_pgmajfault 0\r\r\ntotal_inactive_anon 0\r\r\ntotal_active_anon 18612224\r\r\ntotal_inactive_file 700649472\r\r\ntotal_active_file 33468416\r\r\ntotal_unevictable 0\r\r"
+}

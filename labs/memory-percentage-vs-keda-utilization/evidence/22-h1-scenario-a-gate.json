@@ -1,0 +1,55 @@
+{
+  "utc_captured": "2026-06-24T03:12:08Z",
+  "scenario": "A",
+  "app_name": "ca-mempct-a-below",
+  "active_revision": "ca-mempct-a-below--df3emv5",
+  "active_revision_count": 1,
+  "scale_rule": {
+    "min_replicas": 2,
+    "max_replicas_spec": 20,
+    "rule_count": 1,
+    "rule_custom_type": "memory",
+    "rule_metadata_type": "Utilization",
+    "rule_metadata_value": "50",
+    "a_strong_path_exact_lab_spec": true,
+    "a_fallback_path_compatible_rule_shape": true
+  },
+  "replica_behavior": {
+    "samples_total": 30,
+    "samples_with_value": 30,
+    "samples_nonzero": 26,
+    "replicas_min_nonzero": 2.0,
+    "replicas_max_nonzero": 2.0,
+    "b_strong_path_exact_floor_held": true,
+    "b_fallback_path_max_le_2": true
+  },
+  "memorypercentage_behavior": {
+    "samples_with_value": 25,
+    "mempct_min": 40.0,
+    "mempct_max": 40.0,
+    "c_strong_path_band_35_45": true,
+    "c_fallback_path_band_25_50": true
+  },
+  "cgroup_composition": {
+    "version": "v1",
+    "memory_usage_bytes": 437022720,
+    "memory_limit_bytes": 1073741824,
+    "stat_cache_bytes": 1863680,
+    "stat_rss_bytes": 433221632,
+    "stat_active_anon_bytes": 433201152,
+    "stat_inactive_file_bytes": 1863680,
+    "rss_to_cache_ratio": 232.45494505494506,
+    "active_anon_to_inactive_file_ratio": 232.44395604395604,
+    "d_strong_path_rss_100x_cache": true,
+    "d_fallback_path_rss_10x_cache": true
+  },
+  "h1_a_sub_gates": {
+    "a_scale_rule_match": true,
+    "b_replicas_held_at_floor": true,
+    "c_memorypercentage_in_band_25_50": true,
+    "d_cgroup_rss_dominant": true,
+    "e_active_revision_unique": true
+  },
+  "h1_a_all_subgates_pass": true,
+  "gate_classification": "scenario_a_held_at_floor_rss_dominant"
+}

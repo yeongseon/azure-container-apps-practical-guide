@@ -1,0 +1,142 @@
+{
+  "cost": 29,
+  "interval": "PT1M",
+  "namespace": "Microsoft.App/containerapps",
+  "resourceregion": "koreacentral",
+  "timespan": "2026-06-24T01:51:32Z/2026-06-24T02:21:32Z",
+  "value": [
+    {
+      "displayDescription": "Percentage of memory limit used, in percentage points",
+      "errorCode": "Success",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-mempct2/providers/Microsoft.App/containerapps/ca-mempct-cache/providers/Microsoft.Insights/metrics/MemoryPercentage",
+      "name": {
+        "localizedValue": "Memory Percentage (Preview)",
+        "value": "MemoryPercentage"
+      },
+      "resourceGroup": "rg-aca-lab-mempct2",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-06-24T01:51:00Z"
+            },
+            {
+              "timeStamp": "2026-06-24T01:52:00Z"
+            },
+            {
+              "timeStamp": "2026-06-24T01:53:00Z"
+            },
+            {
+              "timeStamp": "2026-06-24T01:54:00Z"
+            },
+            {
+              "timeStamp": "2026-06-24T01:55:00Z"
+            },
+            {
+              "timeStamp": "2026-06-24T01:56:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T01:57:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T01:58:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T01:59:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:00:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:01:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:02:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:03:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:04:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:05:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:06:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:07:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:08:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:09:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:10:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:11:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:12:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:13:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:14:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:15:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:16:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:17:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:18:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:19:00Z"
+            },
+            {
+              "average": 72.0,
+              "timeStamp": "2026-06-24T02:20:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "type": "Microsoft.Insights/metrics",
+      "unit": "Percent"
+    }
+  ]
+}
