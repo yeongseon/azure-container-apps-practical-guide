@@ -1,0 +1,4 @@
+{
+  "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+  "secretRef": "appinsights-connection-string"
+}

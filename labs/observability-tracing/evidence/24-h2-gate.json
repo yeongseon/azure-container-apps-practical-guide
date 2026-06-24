@@ -1,0 +1,82 @@
+{
+  "utc_captured": "2026-06-24T01:14:10Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-observability2",
+  "app_name": "ca-labobs-ewwmkr",
+  "app_fqdn": "ca-labobs-ewwmkr.graybush-5c5b3829.koreacentral.azurecontainerapps.io",
+  "fix_window": {
+    "baseline_revision_name": "ca-labobs-ewwmkr--0000002",
+    "post_trigger_revision_name": "ca-labobs-ewwmkr--0000003",
+    "post_fix_revision_name": "ca-labobs-ewwmkr--0000004",
+    "three_distinct_revisions": true,
+    "expected_env_var_name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "expected_secret_name": "appinsights-connection-string",
+    "fix_cli_exit_code": 0,
+    "wait_provisioned": true
+  },
+  "env_var_state": {
+    "pre_fix_value": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/",
+    "pre_fix_secretRef": null,
+    "pre_fix_matches_expected_literal": true,
+    "post_fix_value": null,
+    "post_fix_secretRef": "appinsights-connection-string",
+    "c_strong_path_secretref_exact_match": true,
+    "c_fallback_path_non_empty_secretref_no_value": true
+  },
+  "secret_store_integrity_across_three_states": {
+    "expected_secret_name": "appinsights-connection-string",
+    "baseline_match": {
+      "name": "appinsights-connection-string",
+      "value_present": false,
+      "value_redacted_placeholder": "REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS",
+      "keyVaultUrl": null,
+      "identity": null
+    },
+    "post_trigger_match": {
+      "name": "appinsights-connection-string",
+      "value_present": false,
+      "value_redacted_placeholder": "REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS",
+      "keyVaultUrl": null,
+      "identity": null
+    },
+    "post_fix_match": {
+      "name": "appinsights-connection-string",
+      "value_present": false,
+      "value_redacted_placeholder": "REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS",
+      "keyVaultUrl": null,
+      "identity": null
+    },
+    "comparison_excludes_resolved_value_for_pii_safety": true
+  },
+  "revision_progression": {
+    "baseline_createdTime": "2026-06-24T01:10:03+00:00",
+    "post_trigger_createdTime": "2026-06-24T01:12:50+00:00",
+    "post_fix_createdTime": "2026-06-24T01:13:43+00:00",
+    "three_distinct_names": true,
+    "createdTime_strictly_increasing": true
+  },
+  "client_probe_results": {
+    "pre_fix_success_count_200": 5,
+    "pre_fix_attempts": 5,
+    "post_fix_success_count_200": 5,
+    "post_fix_attempts": 5,
+    "note": "Both pre-fix and post-fix curl probes are expected to be 5/5 HTTP 200. The fix changes telemetry export configuration ONLY, not request handling."
+  },
+  "telemetry_caveat": {
+    "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+    "ships_application_insights_sdk": false,
+    "trace_count_expected_in_all_three_states": 0,
+    "telemetry_blocking_hypothesis_status": "[Not Proven] \u2014 see lab guide Hypothesis caveat",
+    "h2_intentionally_restricted_to": "env-var Source/Value restoration + revision progression (directly observable from Container App template and revision list)"
+  },
+  "h2_sub_gates": {
+    "a_pre_fix_env_var_still_literal": true,
+    "b_fix_command_succeeded_and_revision_advanced": true,
+    "c_env_var_back_to_secretref": true,
+    "d_secret_store_value_unchanged_after_fix": true,
+    "e_app_continues_serving_requests_post_fix": true,
+    "f_revision_progression_documented": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "telemetry_configuration_restored_to_secretref_app_intact"
+}

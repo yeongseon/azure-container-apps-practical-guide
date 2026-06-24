@@ -1,0 +1,15 @@
+{
+  "utc_captured": "2026-06-24T01:13:10Z",
+  "app_fqdn": "ca-labobs-ewwmkr.graybush-5c5b3829.koreacentral.azurecontainerapps.io",
+  "attempts": 5,
+  "max_time_seconds_per_request": 10,
+  "success_count_200": 5,
+  "timeout_count_000": 0,
+  "per_request_codes": {
+    "req_1": "200",
+    "req_2": "200",
+    "req_3": "200",
+    "req_4": "200",
+    "req_5": "200"
+  }
+}
