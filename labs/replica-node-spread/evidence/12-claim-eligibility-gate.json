@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T10:56:34Z",
+  "utc_captured": "2026-06-24T11:16:59Z",
   "scenario": "claim_eligibility",
   "hypothesis": "H_claim_eligibility",
   "claim": "observed_node_spread_behavior_under_this_test_matrix",
@@ -508,7 +508,7 @@
       "any_variability": true,
       "reason": "ok"
     },
-    "c_strong_path_consumption_30_or_dedicated_10_varies": true,
+    "c_strong_path_both_top_scale_repeats_vary": true,
     "c_fallback_path_any_repeats_vary": true,
     "c_pass": true
   },

@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T10:56:34Z",
+  "utc_captured": "2026-06-24T11:16:59Z",
   "scenario": "cohort_integrity",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -257,7 +257,15 @@
     ],
     "extras_found_after_excluding_phase_b_outputs": [],
     "missing_canonical_files": [],
-    "foreign_patterns_in_extras": [],
+    "unexpected_non_junk_extras": [],
+    "allowed_junk_suffixes": [
+      ".swp",
+      ".bak",
+      ".tmp"
+    ],
+    "allowed_junk_exact_names": [
+      ".DS_Store"
+    ],
     "d_strong_path_exact_match": true,
     "d_fallback_path_no_foreign_files": true,
     "d_pass": true

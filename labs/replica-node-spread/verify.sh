@@ -530,20 +530,27 @@ d_strong_path_exact_match = (
     len(extras_found) == 0 and len(missing_canonical) == 0
 )
 
-# Fallback path: no extras matching common foreign-file patterns
-# (editor backups, OS junk). A clean filesystem state suffices.
-foreign_patterns_in_extras = [
-    f for f in extras_found
-    if (
-        f.endswith(".swp")
-        or f.endswith(".bak")
-        or f.endswith(".tmp")
-        or f == ".DS_Store"
+# Fallback path: ANY extras outside the allowed junk pattern set (editor
+# backups, OS junk) fail the gate. A stray non-canonical file like
+# `foreign.json` must not slip through; otherwise the "no foreign
+# artifacts" guarantee is meaningless. This means the fallback only
+# tolerates filesystem noise (`.swp`, `.bak`, `.tmp`, `.DS_Store`) AND
+# requires every canonical file to be present.
+ALLOWED_JUNK_SUFFIXES = (".swp", ".bak", ".tmp")
+ALLOWED_JUNK_EXACT_NAMES = (".DS_Store",)
+
+
+def is_allowed_junk(name):
+    return (
+        name in ALLOWED_JUNK_EXACT_NAMES
+        or any(name.endswith(suffix) for suffix in ALLOWED_JUNK_SUFFIXES)
     )
-]
+
+
+unexpected_non_junk_extras = [f for f in extras_found if not is_allowed_junk(f)]
 d_fallback_path_no_foreign_files = (
     len(missing_canonical) == 0
-    and len(foreign_patterns_in_extras) == 0
+    and len(unexpected_non_junk_extras) == 0
 )
 d_no_extras = d_strong_path_exact_match or d_fallback_path_no_foreign_files
 
@@ -610,7 +617,9 @@ print(json.dumps({
         "canonical_files_expected": CANONICAL_FILES,
         "extras_found_after_excluding_phase_b_outputs": extras_found,
         "missing_canonical_files": missing_canonical,
-        "foreign_patterns_in_extras": foreign_patterns_in_extras,
+        "unexpected_non_junk_extras": unexpected_non_junk_extras,
+        "allowed_junk_suffixes": list(ALLOWED_JUNK_SUFFIXES),
+        "allowed_junk_exact_names": list(ALLOWED_JUNK_EXACT_NAMES),
         "d_strong_path_exact_match": d_strong_path_exact_match,
         "d_fallback_path_no_foreign_files": d_fallback_path_no_foreign_files,
         "d_pass": d_no_extras,
@@ -942,7 +951,14 @@ all_four_checks_recomputable = (
     and check_3_uptime_monotonic
     and check_4_bte_stable
 )
-verdict_overall_pass = "Overall: PASS" in verdict_text
+# Line-scoped predicate: the verdict file MUST contain a line whose
+# stripped content is exactly "Overall: PASS" (the H3 falsification
+# verdict header). Whole-file substring matches are forbidden per the
+# record-scoped predicate rule.
+verdict_lines = verdict_text.splitlines()
+verdict_overall_pass = any(
+    line.strip() == "Overall: PASS" for line in verdict_lines
+)
 
 d_strong_path_recomputable = all_four_checks_recomputable and verdict_overall_pass
 d_fallback_path_verdict_pass = verdict_overall_pass
@@ -1141,20 +1157,37 @@ for fname in SCALE_FILES:
     }
 
 # ---------- sub-gate a: observed-level claims only ----------
-# Strong path: the headline claim is fixed as
-# "observed_node_spread_behavior_under_this_test_matrix" with
-# claim_level = "Strongly Suggested" (per Oracle directive: "Keep
-# the final claim narrow"). This gate emits NO claim_level ==
-# "Observed" for cross-replica node placement.
+# Strong path: TWO independent checks must both pass:
+#   (1) the headline claim level is exactly "Strongly Suggested"
+#       (per Oracle directive: "Keep the final claim narrow"); AND
+#   (2) the headline claim STRING does not contain the word "Observed"
+#       as a whole word (the documented anti-pattern block — claims
+#       like "observed_node_spread_behavior" are fine because "observed"
+#       there is a descriptor of WHAT was measured, not a claim that
+#       node placement IS observed; the guard catches phrases like
+#       "Observed cross-replica node placement" that would over-claim
+#       the evidence ceiling for placement).
 # Fallback path: claim_level is not "Observed" (weakest form).
+# Note: `re` is already imported at the top of this Python heredoc
+# (line ~1056); no duplicate import is needed here.
+
 headline_claim = "observed_node_spread_behavior_under_this_test_matrix"
 headline_claim_level = "Strongly Suggested"
 
-# Verify the headline claim level is not "Observed" for node placement.
-# This is structurally enforced — the string is a constant — but we
-# encode the check explicitly so a future edit that changes the
-# constant would be caught by this sub-gate.
-a_strong_path_no_observed_placement = headline_claim_level == "Strongly Suggested"
+# Token-level check: split on word boundaries (regex \b) so that
+# substrings like "observed_node_spread" are tokenized as the single
+# snake_case word "observed_node_spread_behavior_under_this_test_matrix"
+# (one token, not the standalone word "Observed"). The guard fires only
+# on the standalone word "Observed" with any casing.
+headline_claim_tokens = re.findall(r"\b[A-Za-z][A-Za-z0-9_]*\b", headline_claim)
+headline_claim_has_observed_token = any(
+    tok.lower() == "observed" for tok in headline_claim_tokens
+)
+
+a_strong_path_no_observed_placement = (
+    headline_claim_level == "Strongly Suggested"
+    and not headline_claim_has_observed_token
+)
 a_fallback_path_not_observed = headline_claim_level != "Observed"
 a_observed_level_claims_only = (
     a_strong_path_no_observed_placement or a_fallback_path_not_observed
@@ -1241,9 +1274,19 @@ def check_repeats_variability(profile_summary, scale):
 consumption_30_variability = check_repeats_variability(consumption_profile_summary, 30)
 dedicated_10_variability = check_repeats_variability(dedicated_d8_profile_summary, 10)
 
-c_strong_path_consumption_30_or_dedicated_10_varies = (
+# Strong path: BOTH the Consumption scale=30 runs 1/2/3 AND the
+# Dedicated-D8 scale=10 runs 1/2/3 show at least some ms-level
+# variability in cluster_centers_ms across the 3 runs. Requiring BOTH
+# (not OR) matches the lab guide claim that "the 3 Consumption-n30 and
+# 3 Dedicated-D8-n10 repeats show variability across runs". The current
+# cohort satisfies both (Consumption-30: 3 unique vectors;
+# Dedicated-D8-10: 2 unique values), so this is a tightening rather
+# than a relaxation.
+# Fallback path: at least one re-run pair shows non-identical
+# cluster_centers_ms.
+c_strong_path_both_top_scale_repeats_vary = (
     consumption_30_variability.get("any_variability", False)
-    or dedicated_10_variability.get("any_variability", False)
+    and dedicated_10_variability.get("any_variability", False)
 )
 # Fallback: any re-run pair (not just the top-scale ones) shows
 # non-identical centers across the entire cohort.
@@ -1259,7 +1302,7 @@ for profile_summary in (consumption_profile_summary, dedicated_d8_profile_summar
     if c_fallback_path_any_repeats_vary:
         break
 c_repeats_show_variability = (
-    c_strong_path_consumption_30_or_dedicated_10_varies
+    c_strong_path_both_top_scale_repeats_vary
     or c_fallback_path_any_repeats_vary
 )
 
@@ -1412,7 +1455,7 @@ print(json.dumps({
     "sub_gate_c_repeats_show_variability": {
         "consumption_scale_30_variability": consumption_30_variability,
         "dedicated_d8_scale_10_variability": dedicated_10_variability,
-        "c_strong_path_consumption_30_or_dedicated_10_varies": c_strong_path_consumption_30_or_dedicated_10_varies,
+        "c_strong_path_both_top_scale_repeats_vary": c_strong_path_both_top_scale_repeats_vary,
         "c_fallback_path_any_repeats_vary": c_fallback_path_any_repeats_vary,
         "c_pass": c_repeats_show_variability,
     },
@@ -1508,9 +1551,9 @@ gate_filenames_required_in_readme = (
 )
 readme_references = {}
 if readme_exists:
-    readme_content = open(readme_path).read()
+    readme_lines = open(readme_path).read().splitlines()
     for gf in gate_filenames_required_in_readme:
-        readme_references[gf] = gf in readme_content
+        readme_references[gf] = any(gf in line for line in readme_lines)
 all_gate_files_referenced = (
     readme_exists
     and all(readme_references.values())
