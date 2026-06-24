@@ -1,0 +1,40 @@
+{
+  "utc_captured": "2026-06-24T06:08:45Z",
+  "scenario": "A",
+  "hypothesis": "H1",
+  "claim": "scripted_large_cold_pull_observed_and_healthy",
+  "target_revision": "ca-imgsize-acerjw--5487avi",
+  "target_image": "python:3.11",
+  "expected_image_size_bytes": 408944640,
+  "expected_cold_pull_duration_s": "8.88",
+  "predicate_inputs": {
+    "kql_pull_events_path": "labs/image-size-startup-delay/evidence/06-kql-pull-events.json",
+    "revisions_all_path": "labs/image-size-startup-delay/evidence/05-revisions-all.json",
+    "kql_event_summary_path": "labs/image-size-startup-delay/evidence/09-kql-event-summary.json",
+    "trigger_text_path": "labs/image-size-startup-delay/evidence/01-trigger-large-image.txt"
+  },
+  "sub_gate_a_pull_event": {
+    "expected_log_s": "Successfully pulled image \"python:3.11\" in 8.88s. Image size: 408944640 bytes.",
+    "a_strong_path_exact_log_s_match": true,
+    "a_fallback_path_text_match_tag_and_duration": false,
+    "a_pass": true
+  },
+  "sub_gate_b_image_size": {
+    "expected_size_bytes": 408944640,
+    "b_strong_path_size_in_kql_for_target_revision": true,
+    "b_fallback_path_size_and_tag_in_trigger_text": false,
+    "b_pass": true
+  },
+  "sub_gate_c_revision_healthy": {
+    "c_strong_path_healthstate_healthy": true,
+    "c_fallback_path_container_started_event": true,
+    "c_pass": true
+  },
+  "h1_a_sub_gates": {
+    "a_pull_event_observed": true,
+    "b_image_size_matches_baseline": true,
+    "c_revision_healthy": true
+  },
+  "h1_a_all_subgates_pass": true,
+  "gate_classification": "scripted_large_cold_pull_observed_and_healthy"
+}

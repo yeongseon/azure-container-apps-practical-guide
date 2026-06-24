@@ -1,0 +1,46 @@
+{
+  "utc_captured": "2026-06-24T06:08:45Z",
+  "hypothesis": "H2",
+  "claim": "small_image_alone_not_sufficient_for_healthy_startup",
+  "target_off_script_revision": "ca-imgsize-acerjw--0000001",
+  "target_off_script_image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+  "containerterminated_threshold": 3,
+  "predicate_inputs": {
+    "kql_pull_events_path": "labs/image-size-startup-delay/evidence/06-kql-pull-events.json",
+    "kql_event_summary_path": "labs/image-size-startup-delay/evidence/09-kql-event-summary.json",
+    "system_logs_large_path": "labs/image-size-startup-delay/evidence/system-logs-large.json",
+    "system_logs_small_path": "labs/image-size-startup-delay/evidence/system-logs-small.json"
+  },
+  "sub_gate_a_helloworld_fastest": {
+    "helloworld_ms_strong_path_from_kql_cold": 1620,
+    "large_ms_strong_path_from_kql_cold": 8880,
+    "small_ms_strong_path_from_kql_cold": 2880,
+    "helloworld_ms_fallback_path_min_in_system_logs_large": null,
+    "large_ms_fallback_path_min_in_system_logs_large": null,
+    "small_ms_fallback_path_min_in_system_logs_small": null,
+    "a_strong_path_helloworld_lt_large_and_small": true,
+    "a_fallback_path_helloworld_lt_large_and_small": false,
+    "a_pass": true
+  },
+  "sub_gate_b_containerterminated_count": {
+    "helloworld_terminated_count_strong_path_kql_summary": 4,
+    "helloworld_terminated_count_fallback_path_raw_log": 4,
+    "threshold_required": 3,
+    "b_strong_path_kql_summary_count": true,
+    "b_fallback_path_raw_log_count": true,
+    "b_pass": true
+  },
+  "sub_gate_c_runtime_mismatch_signature": {
+    "signature_substring_required": "exec: \\\"python\\\": executable file not found in $PATH",
+    "c_strong_path_signature_in_system_logs_large": true,
+    "c_fallback_path_signature_in_system_logs_small": true,
+    "c_pass": true
+  },
+  "h2_sub_gates": {
+    "a_helloworld_cold_pull_is_fastest_of_three_revisions": true,
+    "b_helloworld_containerterminated_count_ge_threshold": true,
+    "c_runtime_mismatch_error_signature_present": true
+  },
+  "h2_all_subgates_pass": true,
+  "gate_classification": "small_image_alone_not_sufficient_for_healthy_startup"
+}
