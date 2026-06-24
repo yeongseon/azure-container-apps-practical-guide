@@ -96,7 +96,8 @@
 #
 #   Gate 22 (H_burst_materialization) — 3 sub-gates
 #     a) initial baseline (02-revisions-initial.json) has exactly 1 revision
-#        (strong) / >= 1 (fallback)
+#        (strong AND fallback both enforce == 1 per Oracle PR #279 P0-4;
+#         dual-path retained for JSON schema parity, not semantic relaxation)
 #     b) post-burst snapshot (03-revisions-t0.json) has exactly 11 revisions
 #        (strong) / >= 8 (fallback per Oracle directive)
 #     c) post-burst snapshot has 11 distinct revision names (strong) / >= 8

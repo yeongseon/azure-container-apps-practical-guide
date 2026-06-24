@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T12:41:43Z",
+  "utc_captured": "2026-06-24T12:50:26Z",
   "scenario": "revision_history_limit_bounded_observation",
   "hypothesis": "H1_config_persistence",
   "claim": "max_inactive_revisions_target_honored_across_observation_window",
