@@ -319,10 +319,16 @@ a_pass = a_strong_path_all_14_files_exist or a_fallback_path_at_least_12_files_e
 
 # Sub-gate (b): anchor agreement. The two anchor files MUST reciprocate —
 # int(epoch_file) converted to ISO 8601 UTC must match the contents of
-# iso_file (after stripping trailing whitespace).
+# iso_file (after stripping trailing whitespace). The fallback path
+# preserves the SAME intent (anchor agreement) by tolerating up to 2 s
+# drift between the parsed epoch and the parsed ISO timestamp.
+# Oracle PR #279 P0-2 lesson — the fallback MUST NOT relax to "both
+# files parseable" because that allows arbitrary clock drift (hours,
+# days) to pass, which weakens the documented contract in §4b Gate 20
+# row ("Fallback path: within ±2 s drift").
 b_anchor_records = {}
 b_strong_path_anchor_files_reciprocal = False
-b_fallback_path_both_files_parseable = False
+b_fallback_path_anchor_drift_within_2s = False
 try:
     epoch_raw = burst_epoch_path.read_text().strip()
     iso_raw = burst_iso_path.read_text().strip()
@@ -337,14 +343,24 @@ try:
         "anchor_basename": f"burst-{datetime.fromtimestamp(epoch_int, tz=timezone.utc).strftime('%Y%m%d-%H%M%S')}",
     }
     b_strong_path_anchor_files_reciprocal = iso_from_epoch == iso_raw
-    b_fallback_path_both_files_parseable = True
+    # Fallback path: tolerate ≤2 s drift between the two anchor sources.
+    try:
+        iso_parsed = datetime.strptime(iso_raw, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        epoch_dt = datetime.fromtimestamp(epoch_int, tz=timezone.utc)
+        drift_seconds = abs((iso_parsed - epoch_dt).total_seconds())
+        b_anchor_records["drift_seconds"] = drift_seconds
+        b_anchor_records["drift_tolerance_seconds"] = 2
+        b_fallback_path_anchor_drift_within_2s = drift_seconds <= 2
+    except ValueError as iso_exc:
+        b_anchor_records["fallback_iso_parse_error"] = str(iso_exc)
+        b_fallback_path_anchor_drift_within_2s = False
 except (ValueError, OSError) as exc:
     b_anchor_records = {
         "epoch_file_path": repo_rel(burst_epoch_path),
         "iso_file_path": repo_rel(burst_iso_path),
         "parse_error": str(exc),
     }
-b_pass = b_strong_path_anchor_files_reciprocal or b_fallback_path_both_files_parseable
+b_pass = b_strong_path_anchor_files_reciprocal or b_fallback_path_anchor_drift_within_2s
 
 # Sub-gate (c): no unexpected non-junk extras. Lab 19 P0 lesson — the
 # fallback path must REJECT any non-junk extras, not just check for junk
@@ -418,7 +434,9 @@ result = {
     ),
     "sub_gate_b_predicate": (
         "burst-completed-epoch.txt and burst-completed-iso.txt are reciprocal "
-        "(int(epoch) → ISO matches ISO file contents); fallback requires both files parseable."
+        "(int(epoch) → ISO matches ISO file contents); fallback requires "
+        "anchor agreement within ≤2 s drift between the parsed epoch and "
+        "the parsed ISO timestamp (NOT mere parseability)."
     ),
     "sub_gate_c_predicate": (
         "No unexpected non-junk extras under evidence/. Strong path requires exact match "
@@ -441,7 +459,7 @@ result = {
     "sub_gate_b_anchor_files_reciprocal": {
         "observed_anchor_records": b_anchor_records,
         "b_strong_path_anchor_files_reciprocal": b_strong_path_anchor_files_reciprocal,
-        "b_fallback_path_both_files_parseable": b_fallback_path_both_files_parseable,
+        "b_fallback_path_anchor_drift_within_2s": b_fallback_path_anchor_drift_within_2s,
         "b_pass": b_pass,
     },
     "sub_gate_c_no_unexpected_extras": {
@@ -503,13 +521,23 @@ EXPECTED_MAX_INACTIVE = 2
 EXPECTED_MODE = "Single"
 
 # Sub-gate (a): pre-burst config shows the expected configured values.
+# Strong AND Fallback paths BOTH enforce {maxInactiveRevisions=2,
+# activeRevisionsMode=Single} per Oracle PR #279 P0-3 directive.
+# The fallback exists for schema parity with the gate JSON shape (every
+# sub-gate has both paths emitted), NOT to weaken the contract. Earlier
+# `isinstance(int) and >= 0` allowed any finite integer to pass — that
+# would pass `maxInactiveRevisions=100` (the platform default), which
+# means the operator could un-set the Bicep value and the gate would
+# still report PASS. The fallback now mirrors the strong path.
 before_max_inactive = config_before.get("maxInactiveRevisions")
 before_mode = config_before.get("activeRevisionsMode")
 a_strong_before_both_fields_match = (
     before_max_inactive == EXPECTED_MAX_INACTIVE and before_mode == EXPECTED_MODE
 )
-a_fallback_before_max_inactive_is_finite = isinstance(before_max_inactive, int) and before_max_inactive >= 0
-a_pass = a_strong_before_both_fields_match or a_fallback_before_max_inactive_is_finite
+a_fallback_before_both_fields_match = (
+    before_max_inactive == EXPECTED_MAX_INACTIVE and before_mode == EXPECTED_MODE
+)
+a_pass = a_strong_before_both_fields_match or a_fallback_before_both_fields_match
 
 # Sub-gate (b): post-window config shows the same configured values
 # (BOTH-not-OR: both fields must match) AND is byte-identical to the
@@ -541,8 +569,11 @@ result = {
     },
     "sub_gate_a_predicate": (
         "Pre-burst config readback (01-app-config-before.json) shows "
-        "maxInactiveRevisions=2 AND activeRevisionsMode=Single; fallback only "
-        "requires maxInactiveRevisions is a finite non-negative integer."
+        "maxInactiveRevisions=2 AND activeRevisionsMode=Single. The "
+        "fallback path enforces the SAME both-fields-match predicate "
+        "(intent-preserving per Oracle PR #279 P0-3 directive — fallback "
+        "must not weaken the documented contract; the dual-path shape "
+        "exists for JSON schema parity, not for semantic relaxation)."
     ),
     "sub_gate_b_predicate": (
         "Post-window config readback (06-app-config-t15m.json) shows the same "
@@ -554,7 +585,7 @@ result = {
         "observed_before_max_inactive_revisions": before_max_inactive,
         "observed_before_active_revisions_mode": before_mode,
         "a_strong_path_both_fields_match_expected": a_strong_before_both_fields_match,
-        "a_fallback_path_max_inactive_revisions_is_finite": a_fallback_before_max_inactive_is_finite,
+        "a_fallback_path_both_fields_match_expected": a_fallback_before_both_fields_match,
         "a_pass": a_pass,
     },
     "sub_gate_b_post_window_config_persisted": {
@@ -602,14 +633,17 @@ revs_t0_path = pathlib.Path(os.environ["REVS_T0_FILE"])
 revs_initial = json.loads(revs_initial_path.read_text())
 revs_t0 = json.loads(revs_t0_path.read_text())
 
-# Sub-gate (a): initial baseline has exactly 1 revision (strong) or
-# at least 1 revision (fallback). The lab provisions the app fresh, so
-# the canonical reproduction is exactly 1 pre-burst revision; the
-# fallback tolerates an already-burst app being re-used.
+# Sub-gate (a): initial baseline has exactly 1 revision. Strong AND
+# Fallback BOTH enforce initial_count == 1 per Oracle PR #279 P0-4
+# directive — the fallback must NOT relax to `>= 1`, which would allow
+# an already-burst app being re-used and would silently break the
+# materialization gate's interpretation (the +10 burst-suffix check in
+# sub-gates b and c assumes a 1-revision baseline). The fallback path
+# exists for JSON schema parity, NOT for semantic relaxation.
 initial_count = len(revs_initial)
 a_strong_path_initial_exactly_one = initial_count == 1
-a_fallback_path_initial_at_least_one = initial_count >= 1
-a_pass = a_strong_path_initial_exactly_one or a_fallback_path_initial_at_least_one
+a_fallback_path_initial_exactly_one = initial_count == 1
+a_pass = a_strong_path_initial_exactly_one or a_fallback_path_initial_exactly_one
 
 # Sub-gate (b): post-burst snapshot has exactly 11 revisions (strong)
 # or at least 8 revisions (fallback per Oracle directive — tolerates
@@ -642,15 +676,20 @@ result = {
     },
     "thresholds": {
         "strong_initial_count": 1,
-        "fallback_initial_minimum": 1,
+        "fallback_initial_count": 1,
         "strong_t0_count": 11,
         "fallback_t0_minimum": 8,
         "strong_distinct_t0_count": 11,
         "fallback_distinct_t0_minimum": 8,
     },
     "sub_gate_a_predicate": (
-        "02-revisions-initial.json has exactly 1 revision (strong, fresh provision); "
-        "fallback requires at least 1."
+        "02-revisions-initial.json has exactly 1 revision (the Bicep-deployed "
+        "baseline `ca-revhist-t3t3np--wdmdnoq`). The fallback path enforces "
+        "the SAME exactly-1 predicate (intent-preserving per Oracle PR #279 "
+        "P0-4 directive — the dual-path shape exists for JSON schema parity; "
+        "weakening to `>= 1` would allow a non-fresh baseline to pass and "
+        "would silently invalidate sub-gates b/c whose +10 burst-suffix "
+        "interpretation assumes a 1-revision starting point)."
     ),
     "sub_gate_b_predicate": (
         "03-revisions-t0.json has exactly 11 revisions (strong, ideal burst); "
@@ -665,7 +704,7 @@ result = {
         "observed_initial_revision_count": initial_count,
         "observed_first_5": sample(revs_initial),
         "a_strong_path_initial_exactly_one": a_strong_path_initial_exactly_one,
-        "a_fallback_path_initial_at_least_one": a_fallback_path_initial_at_least_one,
+        "a_fallback_path_initial_exactly_one": a_fallback_path_initial_exactly_one,
         "a_pass": a_pass,
     },
     "sub_gate_b_post_burst_eleven_revisions": {

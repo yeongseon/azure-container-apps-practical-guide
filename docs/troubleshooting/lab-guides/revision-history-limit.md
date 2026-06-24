@@ -111,6 +111,11 @@ cd labs/revision-history-limit/
         --parameters baseName="revhist"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az group create` | Creates the resource group that scopes every resource provisioned for this lab so cleanup is a single `az group delete` call. |
+    | `az deployment group create` | Deploys the Bicep template that provisions the Log Analytics workspace, Container Apps Environment, and the Container App with `maxInactiveRevisions: 2` already wired in. Naming the deployment `main` makes the outputs queryable by the next step. |
+
     This creates the Log Analytics workspace, Container Apps Environment, and one Container App running the helloworld baseline image with `maxInactiveRevisions: 2` already wired in.
 
 2. Read the deployment output the scripts need:
@@ -170,6 +175,11 @@ az containerapp revision deactivate \
     --name "$APP_NAME" \
     --revision "ca-revhist-<suffix>--<revsuffix>"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list --all --query "[?properties.active==\`false\`].name"` | Enumerates the names of every inactive revision (the `--all` flag is required because the default list view hides inactive revisions). The `--query` filter returns only the names so the next call can iterate over them deterministically. |
+| `az containerapp revision deactivate --revision <name>` | Explicitly deactivates a single revision by name. The call returns immediately and the revision shows `provisioningState=Deprovisioning` in the next `az containerapp revision list --all` call, which is observable in the operator's own audit trail without depending on the platform's asynchronous reconciliation loop. |
 
 A deactivated revision is removed from the active set immediately and shows `provisioningState=Deprovisioning` in the next `az containerapp revision list --all` call, which is observable in your own audit trail without depending on the platform's asynchronous reconciliation.
 

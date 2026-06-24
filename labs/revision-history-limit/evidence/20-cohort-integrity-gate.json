@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T12:09:00Z",
+  "utc_captured": "2026-06-24T12:41:43Z",
   "scenario": "revision_history_limit_bounded_observation",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -33,7 +33,7 @@
     ]
   },
   "sub_gate_a_predicate": "All 14 canonical Phase A files exist; fallback requires at least 12.",
-  "sub_gate_b_predicate": "burst-completed-epoch.txt and burst-completed-iso.txt are reciprocal (int(epoch) \u2192 ISO matches ISO file contents); fallback requires both files parseable.",
+  "sub_gate_b_predicate": "burst-completed-epoch.txt and burst-completed-iso.txt are reciprocal (int(epoch) \u2192 ISO matches ISO file contents); fallback requires anchor agreement within \u22642 s drift between the parsed epoch and the parsed ISO timestamp (NOT mere parseability).",
   "sub_gate_c_predicate": "No unexpected non-junk extras under evidence/. Strong path requires exact match of the canonical 14 + 4 Phase B outputs + README.md; fallback tolerates only editor/OS junk (.swp/.bak/.tmp/.DS_Store) and STILL requires zero missing canonical files.",
   "sub_gate_d_predicate": "evidence/README.md cross-references all 4 Phase B gate JSON filenames; fallback requires only that README.md exists.",
   "required_canonical_file_count": 14,
@@ -73,10 +73,12 @@
       "epoch_value": 1782115306,
       "iso_from_epoch_derivation": "2026-06-22T08:01:46Z",
       "iso_file_content": "2026-06-22T08:01:46Z",
-      "anchor_basename": "burst-20260622-080146"
+      "anchor_basename": "burst-20260622-080146",
+      "drift_seconds": 0.0,
+      "drift_tolerance_seconds": 2
     },
     "b_strong_path_anchor_files_reciprocal": true,
-    "b_fallback_path_both_files_parseable": true,
+    "b_fallback_path_anchor_drift_within_2s": true,
     "b_pass": true
   },
   "sub_gate_c_no_unexpected_extras": {

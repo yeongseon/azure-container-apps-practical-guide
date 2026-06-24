@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T12:09:00Z",
+  "utc_captured": "2026-06-24T12:41:43Z",
   "scenario": "revision_history_limit_bounded_observation",
   "hypothesis": "H1_config_persistence",
   "claim": "max_inactive_revisions_target_honored_across_observation_window",
@@ -12,13 +12,13 @@
     "expected_max_inactive_revisions": 2,
     "expected_active_revisions_mode": "Single"
   },
-  "sub_gate_a_predicate": "Pre-burst config readback (01-app-config-before.json) shows maxInactiveRevisions=2 AND activeRevisionsMode=Single; fallback only requires maxInactiveRevisions is a finite non-negative integer.",
+  "sub_gate_a_predicate": "Pre-burst config readback (01-app-config-before.json) shows maxInactiveRevisions=2 AND activeRevisionsMode=Single. The fallback path enforces the SAME both-fields-match predicate (intent-preserving per Oracle PR #279 P0-3 directive \u2014 fallback must not weaken the documented contract; the dual-path shape exists for JSON schema parity, not for semantic relaxation).",
   "sub_gate_b_predicate": "Post-window config readback (06-app-config-t15m.json) shows the same BOTH fields match (BOTH-not-OR per Lab 19 P0 lesson) AND the file is byte-identical to the pre-burst config (proves no mid-window mutation); fallback requires only that both fields match without byte-identity.",
   "sub_gate_a_pre_burst_config_persisted": {
     "observed_before_max_inactive_revisions": 2,
     "observed_before_active_revisions_mode": "Single",
     "a_strong_path_both_fields_match_expected": true,
-    "a_fallback_path_max_inactive_revisions_is_finite": true,
+    "a_fallback_path_both_fields_match_expected": true,
     "a_pass": true
   },
   "sub_gate_b_post_window_config_persisted": {
