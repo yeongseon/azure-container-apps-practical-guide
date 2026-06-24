@@ -124,8 +124,8 @@ az deployment group show \
 cat <<EOF
 
 Next steps:
-  1. Verify the deployment:
-       ./verify.sh
+  1. Run the live-Azure health-check (Phase A readiness gate):
+       ./health-check.sh
 
   2. Run the H3 falsification check (MUST pass before H1/H2 analysis):
        ./falsify.sh
@@ -136,6 +136,9 @@ Next steps:
   4. Analyze evidence:
        python3 ./analyze.py
 
-  5. When done:
+  5. (Optional) Re-verify the committed evidence pack with Phase B gates:
+       bash ./verify.sh
+
+  6. When done:
        ./cleanup.sh
 EOF

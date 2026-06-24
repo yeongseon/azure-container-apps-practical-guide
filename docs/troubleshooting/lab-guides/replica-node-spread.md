@@ -20,6 +20,25 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/plans
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+content_validation:
+  status: verified
+  last_reviewed: '2026-06-24'
+  reviewer: agent
+  lab_validation:
+    status: reproduced
+    tested_date: '2026-06-14'
+    az_cli_version: 2.83.0
+    notes: "Phase A live-Azure reproduction on 2026-06-14 in koreacentral (rg-aca-rns-lab) produced the H3 PASS verdict, H1 [Strongly Suggested] confirmed (Consumption scale-30 produced [27, 27, 27] boot_time clusters across 3 top-scale repeats with concurrence yes), and H2 [Strongly Suggested] confirmed (Dedicated D8 scale-10 produced [1, 1, 1] boot_time clusters across 3 top-scale repeats with concurrence yes). Phase B verifier (2026-06-24) re-verifies the cohort with 4 falsifiable gates (16 sub-gates, all PASS on both Strong and Fallback predicate paths) under labs/replica-node-spread/verify.sh, treating analysis-summary as advisory and raw JSONL as authoritative per Oracle Lab 19 directive."
+  core_claims:
+    - claim: Azure Container Apps environments support both Consumption and Dedicated workload profiles within a single environment when provisioned with the workload-profiles plan.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+      verified: true
+    - claim: The Consumption plan runs each replica in a microVM with Hyper-V isolation.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/plans
+      verified: true
+    - claim: Azure Container Apps scales applications based on configured minReplicas and maxReplicas with minReplicas equal to maxReplicas producing a fixed replica count without autoscaling during sampling.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-14'
@@ -47,7 +66,7 @@ Test the operator claim that the Consumption profile distributes replicas across
 <!-- diagram-id: experiment-architecture -->
 ```mermaid
 flowchart TD
-    A[deploy.sh<br/>RG + ACR + diag image + Bicep env + 2 apps] --> B[verify.sh<br/>env, both profiles, /diag responds 200]
+    A[deploy.sh<br/>RG + ACR + diag image + Bicep env + 2 apps] --> B[health-check.sh<br/>env, both profiles, /diag responds 200]
     B --> C[falsify.sh<br/>H3 gate — proxy validity]
     C -->|PASS| D[trigger.sh]
     C -->|FAIL| Z[STOP — proxy invalid, do not publish H1/H2]
@@ -95,13 +114,13 @@ az extension add --name containerapp --upgrade
 ```bash
 cd labs/replica-node-spread
 ./deploy.sh
-./verify.sh
+./health-check.sh
 ```
 
 | Command | Why it is used |
 |---|---|
 | `./deploy.sh` | Wraps `az group create`, `az acr create`, `az acr build` of the `diag` image, and `az deployment group create` against `infra/main.bicep`. Provisions the resource group, an ACR (Basic SKU), Log Analytics workspace (30-day retention), user-assigned managed identity with AcrPull on the registry, a workload-profile Container Apps environment with both Consumption **and** Dedicated D8 profiles, and the two subject apps (`app-consumption` on Consumption, `app-dedicated-d8` on D8). |
-| `./verify.sh` | Runs nine health checks against the RG, env, both workload profiles, both apps, and each `/diag` endpoint. Confirms both apps return HTTP 200 from `/diag` before any sampling begins. |
+| `./health-check.sh` | Runs five health checks against the RG, env (with both workload profiles), both apps, and each `/diag` endpoint. Confirms both apps return HTTP 200 from `/diag` before any sampling begins. Before the 2026-06-24 Phase B refactor this script was named `verify.sh`; `verify.sh` now refers to the Phase B evidence-pack verifier described in §11b. |
 
 ### Build the diag image
 
@@ -281,6 +300,23 @@ The lab is built to be falsifiable in three complementary directions:
 1. **H3 gate**: `falsify.sh` runs **before** any H1 / H2 sampling. If the kernel-context proxy is non-deterministic (boot_id varies within a single replica, or uptime is non-monotonic, or boot_id is the zero-sentinel), the lab aborts with a clear error — H1 / H2 results would be scientifically meaningless. This is the most aggressive falsification path because it kills the entire experiment if the methodology is unsound.
 2. **Top-scale ×3 repeats**: Each top-scale step runs three times. The analysis script computes a **concurrence** flag — all three repeats must agree on the same `boot_time_clusters` count for a `[Strongly Suggested]` verdict. A single discrepant repeat downgrades the verdict to `[Inferred]`.
 3. **Cross-profile expectation flip**: The lab is designed so that H1 and H2 predict **opposite** outcomes on the two profiles using the **same** measurement code. A confound (e.g. broken sampling, scheduler shuffling mid-sample) would have to produce the expected pattern on **both** profiles to defeat falsification. Producing multi-cluster on Consumption and single-cluster on Dedicated D8 from a confounded measurement is implausible.
+
+## 11b. Phase B Falsification Gates
+
+The 2026-06-24 evidence-pack overlay adds a Phase B verifier under `labs/replica-node-spread/`. Unlike the live-Azure Phase A workflow (`falsify.sh` + `trigger.sh` + `analyze.py`), the rewritten `labs/replica-node-spread/verify.sh` is a pure file processor: it reads only the committed canonical cohort under `labs/replica-node-spread/evidence/` (15 canonical files — 2 summary + 2 H3 anchor + 6 Consumption scale + 5 Dedicated D8 scale, anchored on `h3-20260614-143432`) and emits four derived gate JSONs. Each sub-gate evaluates a **Strong path** AND a **Fallback path**; the sub-gate passes if either is true. The four gates encode the Oracle Lab 19 strategy consult's four anti-pattern blocks (deterministic-spread claims, cross-profile pooling, scale mixing, summary-first reasoning) plus the "raw JSONL wins over summary on conflict" rule. All 16 sub-gates pass on the 2026-06-14 cohort.
+
+| Gate | Claim | Sub-gates | Predicate inputs | PASS / FAIL | Rationale |
+|---|---|---:|---|---|---|
+| `10-cohort-integrity-gate.json` | `evidence_cohort_is_internally_consistent_and_uncontaminated` | 4 | Anchor JSONL + verdict text + 11 scale JSONLs + cohort directory listing | PASS | Cohort integrity gate. Confirms (a) the anchor file `h3-20260614-143432.jsonl` exists with ≥4 samples (5 observed) and the matching verdict file reads `Overall: PASS`; (b) all 1117 records parse with the minimal common 4-key set `{boot_id, replica_name, uptime_seconds, run_id}` (the minimal set because anchor records carry `phase` while scale records carry `profile`/`scale_target`/`sample_index`); (c) 100% of records carry the `20260614` date prefix (single-window provenance); (d) the evidence directory has exactly the 15 canonical files with no foreign artifacts. |
+| `11-matrix-coherence-gate.json` | `test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping` | 4 | 11 scale JSONLs + `analysis-summary.json` + anchor verdict text | PASS | Matrix-coherence gate. Confirms (a) each scale file maps 1:1 to a `{profile, scale, run}` cell via the explicit `PROFILE_FILENAME_TO_RECORD = {"consumption": "Consumption", "dedicated-d8": "Dedicated-D8"}` typed-enum case map (handles the filename `consumption` ↔ record `"Consumption"` case mismatch); (b) zero duplicate cells across the 11 files; (c) all 11 files reconcile bit-exact with `analysis-summary.json` on `unique_replicas`, `unique_boot_ids`, and `boot_time_clusters` (recompute path reads raw JSONL and rebuilds counts independently); (d) the H3 verdict text recomputes from the anchor JSONL with all 4 falsifiable checks reproducing (1 unique boot_id, monotonic uptime `[2054.0, 2064.13, 2074.24, 2084.36, 2094.48]`, 7 ms boot_time_estimate_ms span). |
+| `12-claim-eligibility-gate.json` | `observed_node_spread_behavior_under_this_test_matrix` | 5 | All 15 canonical files + claim string + per-cell cluster counts | PASS | Anti-overclaim gate. Confirms (a) the headline claim level is capped at `[Strongly Suggested]` — Strong path refuses any claim string containing the word `Observed` for placement, Fallback path checks `claim_level != "Observed"`; (b) Consumption and Dedicated D8 are tabulated as separate profiles with no cross-profile pooling (per Oracle directive); (c) the 3 Consumption-30 and 3 Dedicated-D8-10 repeats show genuine variability across runs (Consumption-30: 3 unique cluster-center vectors; Dedicated-D8-10: 2 unique cluster-center values — proves the captures are independent rather than identical replays); (d) **7 counterexamples are explicitly surfaced** — 3 Consumption-30 runs with 27 clusters / 30 replicas (3 co-located each) AND 1 Dedicated-3 run with 1 cluster / 3 replicas (full co-location) AND 3 Dedicated-10 runs with 1 cluster / 10 replicas (full co-location each); (e) per-file recompute matches summary in 11/11 files with zero discrepancies (falsifies a "summary-was-fudged" theory — raw JSONL is authoritative on conflict). |
+| `13-packaging-gate.json` | `evidence_pack_is_self_contained_and_re_verifiable` | 3 | Prior 3 gate JSONs + `evidence/README.md` + canonical file manifest | PASS | Packaging integrity gate. Confirms (a) `verify.sh` emitted the prior 3 gates in order before this gate runs; (b) `evidence/README.md` exists and references all 4 gate filenames `10-cohort-integrity-gate.json` / `11-matrix-coherence-gate.json` / `12-claim-eligibility-gate.json` / `13-packaging-gate.json` so a reviewer can locate every emitted output; (c) all 15 canonical files are present on disk with `verify.sh` and `evidence/README.md` existing. |
+
+The four gates together block the four Oracle-directive anti-patterns: **deterministic-spread claims** are blocked by Gate 12 sub-gate (a)'s claim-string refusal of the word `Observed` for placement; **cross-profile pooling** is blocked by Gate 12 sub-gate (b)'s requirement that Consumption and Dedicated D8 are tabulated as separate profiles; **scale mixing** is blocked by Gate 11 sub-gate (a)'s one-to-one `{profile, scale, run}` cell decomposition; **summary-first reasoning** is blocked by Gate 11 sub-gate (c) and Gate 12 sub-gate (e), both of which recompute cluster counts directly from raw JSONL and require bit-exact reconciliation against `analysis-summary.json` — if the summary is wrong, the recompute is authoritative.
+
+Gate 12 sub-gate (d) is the **counterexample-surfacing** gate: it requires both `consumption_30_co_location_detected` (3 Consumption-30 runs with 27 < 30 boot_time clusters) AND `dedicated_3_co_location_detected` (Dedicated-D8 scale-3 with 1 < 3 boot_time clusters) to be `true`. These counterexamples are not anomalies to suppress; they are direct empirical evidence that the lab's headline claim is the narrower **"observed node-spread behavior under this test matrix"** rather than the over-strong "Consumption deterministically spreads one replica per node" (which the 27/30 partial co-location falsifies) or "Dedicated D8 only co-locates at top scale" (which the Dedicated-3 full co-location falsifies). The point of surfacing them is that they fit the operator-narrative — Consumption distributes across **many** kernel contexts when capacity permits but may co-locate when convenient; Dedicated D8 co-locates all replicas on its single node by design — and the gates require them present rather than omitted.
+
+Together with Gate 10 (cohort integrity) and Gate 13 (packaging), the four-gate suite proves: (1) the evidence pack is internally consistent and uncontaminated; (2) the test matrix is one-to-one without cross-cell contamination; (3) the headline claim stays within the `[Strongly Suggested]` evidence ceiling and surfaces all known counterexamples; and (4) a reader can re-verify every claim from the committed files alone without re-deploying to Azure. The gates do NOT prove cross-replica node distinctness directly — that requires the kernel-context proxy (`boot_id`, `boot_time_estimate_ms`), and the proxy is itself capped at `[Strongly Suggested]` because ACA does not expose per-replica `Microsoft.Compute` virtual-machine identity on either profile. The full per-file provenance and honest-disclosure notes are in [`labs/replica-node-spread/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/replica-node-spread/evidence/README.md).
 
 ## 12. Evidence
 

@@ -1,0 +1,613 @@
+{
+  "utc_captured": "2026-06-24T11:16:59Z",
+  "scenario": "claim_eligibility",
+  "hypothesis": "H_claim_eligibility",
+  "claim": "observed_node_spread_behavior_under_this_test_matrix",
+  "claim_level": "Strongly Suggested",
+  "claim_scope_note": "evidence ceiling: max [Strongly Suggested] for node placement. /diag exposes kernel-context proxies (boot_id, uptime, boot_time_estimate_ms), NOT Microsoft.Compute node id. Single-kernel-context co-location is consistent with single-node placement but not proof. Multi-cluster top-scale is consistent with multi-node placement but the scheduler may still co-locate.",
+  "predicate_inputs": {
+    "evidence_dir": "labs/replica-node-spread/evidence",
+    "scale_files": [
+      "consumption-scale-1-run-1.jsonl",
+      "consumption-scale-3-run-1.jsonl",
+      "consumption-scale-10-run-1.jsonl",
+      "consumption-scale-30-run-1.jsonl",
+      "consumption-scale-30-run-2.jsonl",
+      "consumption-scale-30-run-3.jsonl",
+      "dedicated-d8-scale-1-run-1.jsonl",
+      "dedicated-d8-scale-3-run-1.jsonl",
+      "dedicated-d8-scale-10-run-1.jsonl",
+      "dedicated-d8-scale-10-run-2.jsonl",
+      "dedicated-d8-scale-10-run-3.jsonl"
+    ],
+    "summary_path": "labs/replica-node-spread/evidence/analysis-summary.json"
+  },
+  "thresholds": {
+    "boot_time_cluster_gap_ms": 5000
+  },
+  "sub_gate_a_observed_level_claims_only": {
+    "headline_claim": "observed_node_spread_behavior_under_this_test_matrix",
+    "headline_claim_level": "Strongly Suggested",
+    "a_strong_path_no_observed_placement": true,
+    "a_fallback_path_not_observed": true,
+    "a_pass": true
+  },
+  "sub_gate_b_profiles_separate": {
+    "consumption_profile_summary": {
+      "1": [
+        {
+          "file": "consumption-scale-1-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 1,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781445672604
+          ]
+        }
+      ],
+      "3": [
+        {
+          "file": "consumption-scale-3-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 3,
+          "unique_boot_ids": 3,
+          "num_clusters": 3,
+          "cluster_centers_ms": [
+            1781441260366,
+            1781447713105,
+            1781447845844
+          ]
+        }
+      ],
+      "10": [
+        {
+          "file": "consumption-scale-10-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 10,
+          "unique_boot_ids": 10,
+          "num_clusters": 10,
+          "cluster_centers_ms": [
+            1781437557976,
+            1781440752260,
+            1781444029446,
+            1781444891541,
+            1781445734275,
+            1781445771022,
+            1781447835914,
+            1781447970262,
+            1781447979919,
+            1781448022696
+          ]
+        }
+      ],
+      "30": [
+        {
+          "file": "consumption-scale-30-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 30,
+          "unique_boot_ids": 30,
+          "num_clusters": 27,
+          "cluster_centers_ms": [
+            1781224393765,
+            1781422256603,
+            1781425138546,
+            1781426976934,
+            1781435562054,
+            1781438580394,
+            1781439015724,
+            1781439759108,
+            1781440738437,
+            1781440752343,
+            1781446038244,
+            1781446056671,
+            1781447133465,
+            1781447372817,
+            1781447432538,
+            1781447457840,
+            1781447577210,
+            1781447732948,
+            1781447838940,
+            1781447857651,
+            1781447904026,
+            1781447916409,
+            1781447997922,
+            1781448048037,
+            1781448060505,
+            1781448085781,
+            1781448097630
+          ]
+        },
+        {
+          "file": "consumption-scale-30-run-2.jsonl",
+          "run": 2,
+          "unique_replicas": 30,
+          "unique_boot_ids": 30,
+          "num_clusters": 27,
+          "cluster_centers_ms": [
+            1781224393763,
+            1781422256601,
+            1781425138546,
+            1781426976926,
+            1781435562048,
+            1781438580392,
+            1781439015724,
+            1781439759115,
+            1781440738439,
+            1781440752348,
+            1781446038244,
+            1781446056664,
+            1781447133470,
+            1781447372825,
+            1781447432536,
+            1781447457842,
+            1781447577207,
+            1781447732944,
+            1781447838932,
+            1781447857651,
+            1781447904025,
+            1781447916408,
+            1781447997914,
+            1781448048044,
+            1781448060505,
+            1781448085784,
+            1781448097628
+          ]
+        },
+        {
+          "file": "consumption-scale-30-run-3.jsonl",
+          "run": 3,
+          "unique_replicas": 30,
+          "unique_boot_ids": 30,
+          "num_clusters": 27,
+          "cluster_centers_ms": [
+            1781224393769,
+            1781422256608,
+            1781425138541,
+            1781426976934,
+            1781435562053,
+            1781438580392,
+            1781439015715,
+            1781439759109,
+            1781440738439,
+            1781440752346,
+            1781446038253,
+            1781446056663,
+            1781447133474,
+            1781447372819,
+            1781447432541,
+            1781447457838,
+            1781447577209,
+            1781447732941,
+            1781447838935,
+            1781447857645,
+            1781447904024,
+            1781447916416,
+            1781447997913,
+            1781448048042,
+            1781448060500,
+            1781448085782,
+            1781448097625
+          ]
+        }
+      ]
+    },
+    "dedicated_d8_profile_summary": {
+      "1": [
+        {
+          "file": "dedicated-d8-scale-1-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 1,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475861
+          ]
+        }
+      ],
+      "3": [
+        {
+          "file": "dedicated-d8-scale-3-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 3,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475866
+          ]
+        }
+      ],
+      "10": [
+        {
+          "file": "dedicated-d8-scale-10-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 10,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475864
+          ]
+        },
+        {
+          "file": "dedicated-d8-scale-10-run-2.jsonl",
+          "run": 2,
+          "unique_replicas": 10,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475864
+          ]
+        },
+        {
+          "file": "dedicated-d8-scale-10-run-3.jsonl",
+          "run": 3,
+          "unique_replicas": 10,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475865
+          ]
+        }
+      ]
+    },
+    "merged_counts_present": false,
+    "b_strong_path_two_separate_dicts": true,
+    "b_fallback_path_both_profiles_populated": true,
+    "b_pass": true
+  },
+  "sub_gate_c_repeats_show_variability": {
+    "consumption_scale_30_variability": {
+      "runs_data": [
+        {
+          "file": "consumption-scale-30-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 30,
+          "unique_boot_ids": 30,
+          "num_clusters": 27,
+          "cluster_centers_ms": [
+            1781224393765,
+            1781422256603,
+            1781425138546,
+            1781426976934,
+            1781435562054,
+            1781438580394,
+            1781439015724,
+            1781439759108,
+            1781440738437,
+            1781440752343,
+            1781446038244,
+            1781446056671,
+            1781447133465,
+            1781447372817,
+            1781447432538,
+            1781447457840,
+            1781447577210,
+            1781447732948,
+            1781447838940,
+            1781447857651,
+            1781447904026,
+            1781447916409,
+            1781447997922,
+            1781448048037,
+            1781448060505,
+            1781448085781,
+            1781448097630
+          ]
+        },
+        {
+          "file": "consumption-scale-30-run-2.jsonl",
+          "run": 2,
+          "unique_replicas": 30,
+          "unique_boot_ids": 30,
+          "num_clusters": 27,
+          "cluster_centers_ms": [
+            1781224393763,
+            1781422256601,
+            1781425138546,
+            1781426976926,
+            1781435562048,
+            1781438580392,
+            1781439015724,
+            1781439759115,
+            1781440738439,
+            1781440752348,
+            1781446038244,
+            1781446056664,
+            1781447133470,
+            1781447372825,
+            1781447432536,
+            1781447457842,
+            1781447577207,
+            1781447732944,
+            1781447838932,
+            1781447857651,
+            1781447904025,
+            1781447916408,
+            1781447997914,
+            1781448048044,
+            1781448060505,
+            1781448085784,
+            1781448097628
+          ]
+        },
+        {
+          "file": "consumption-scale-30-run-3.jsonl",
+          "run": 3,
+          "unique_replicas": 30,
+          "unique_boot_ids": 30,
+          "num_clusters": 27,
+          "cluster_centers_ms": [
+            1781224393769,
+            1781422256608,
+            1781425138541,
+            1781426976934,
+            1781435562053,
+            1781438580392,
+            1781439015715,
+            1781439759109,
+            1781440738439,
+            1781440752346,
+            1781446038253,
+            1781446056663,
+            1781447133474,
+            1781447372819,
+            1781447432541,
+            1781447457838,
+            1781447577209,
+            1781447732941,
+            1781447838935,
+            1781447857645,
+            1781447904024,
+            1781447916416,
+            1781447997913,
+            1781448048042,
+            1781448060500,
+            1781448085782,
+            1781448097625
+          ]
+        }
+      ],
+      "centers_per_run": [
+        [
+          1781224393765,
+          1781422256603,
+          1781425138546,
+          1781426976934,
+          1781435562054,
+          1781438580394,
+          1781439015724,
+          1781439759108,
+          1781440738437,
+          1781440752343,
+          1781446038244,
+          1781446056671,
+          1781447133465,
+          1781447372817,
+          1781447432538,
+          1781447457840,
+          1781447577210,
+          1781447732948,
+          1781447838940,
+          1781447857651,
+          1781447904026,
+          1781447916409,
+          1781447997922,
+          1781448048037,
+          1781448060505,
+          1781448085781,
+          1781448097630
+        ],
+        [
+          1781224393763,
+          1781422256601,
+          1781425138546,
+          1781426976926,
+          1781435562048,
+          1781438580392,
+          1781439015724,
+          1781439759115,
+          1781440738439,
+          1781440752348,
+          1781446038244,
+          1781446056664,
+          1781447133470,
+          1781447372825,
+          1781447432536,
+          1781447457842,
+          1781447577207,
+          1781447732944,
+          1781447838932,
+          1781447857651,
+          1781447904025,
+          1781447916408,
+          1781447997914,
+          1781448048044,
+          1781448060505,
+          1781448085784,
+          1781448097628
+        ],
+        [
+          1781224393769,
+          1781422256608,
+          1781425138541,
+          1781426976934,
+          1781435562053,
+          1781438580392,
+          1781439015715,
+          1781439759109,
+          1781440738439,
+          1781440752346,
+          1781446038253,
+          1781446056663,
+          1781447133474,
+          1781447372819,
+          1781447432541,
+          1781447457838,
+          1781447577209,
+          1781447732941,
+          1781447838935,
+          1781447857645,
+          1781447904024,
+          1781447916416,
+          1781447997913,
+          1781448048042,
+          1781448060500,
+          1781448085782,
+          1781448097625
+        ]
+      ],
+      "unique_centers_count": 3,
+      "any_variability": true,
+      "reason": "ok"
+    },
+    "dedicated_d8_scale_10_variability": {
+      "runs_data": [
+        {
+          "file": "dedicated-d8-scale-10-run-1.jsonl",
+          "run": 1,
+          "unique_replicas": 10,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475864
+          ]
+        },
+        {
+          "file": "dedicated-d8-scale-10-run-2.jsonl",
+          "run": 2,
+          "unique_replicas": 10,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475864
+          ]
+        },
+        {
+          "file": "dedicated-d8-scale-10-run-3.jsonl",
+          "run": 3,
+          "unique_replicas": 10,
+          "unique_boot_ids": 1,
+          "num_clusters": 1,
+          "cluster_centers_ms": [
+            1781447475865
+          ]
+        }
+      ],
+      "centers_per_run": [
+        [
+          1781447475864
+        ],
+        [
+          1781447475864
+        ],
+        [
+          1781447475865
+        ]
+      ],
+      "unique_centers_count": 2,
+      "any_variability": true,
+      "reason": "ok"
+    },
+    "c_strong_path_both_top_scale_repeats_vary": true,
+    "c_fallback_path_any_repeats_vary": true,
+    "c_pass": true
+  },
+  "sub_gate_d_counterexamples_surfaced": {
+    "co_location_cases_count": 7,
+    "co_location_cases": [
+      {
+        "file": "consumption-scale-30-run-1.jsonl",
+        "profile": "consumption",
+        "scale": 30,
+        "run": 1,
+        "unique_replicas": 30,
+        "num_clusters": 27,
+        "co_located_replica_count": 3,
+        "interpretation": "fewer kernel-context clusters than unique replicas implies replica co-location on existing kernel context (consistent with multi-replica on same node)"
+      },
+      {
+        "file": "consumption-scale-30-run-2.jsonl",
+        "profile": "consumption",
+        "scale": 30,
+        "run": 2,
+        "unique_replicas": 30,
+        "num_clusters": 27,
+        "co_located_replica_count": 3,
+        "interpretation": "fewer kernel-context clusters than unique replicas implies replica co-location on existing kernel context (consistent with multi-replica on same node)"
+      },
+      {
+        "file": "consumption-scale-30-run-3.jsonl",
+        "profile": "consumption",
+        "scale": 30,
+        "run": 3,
+        "unique_replicas": 30,
+        "num_clusters": 27,
+        "co_located_replica_count": 3,
+        "interpretation": "fewer kernel-context clusters than unique replicas implies replica co-location on existing kernel context (consistent with multi-replica on same node)"
+      },
+      {
+        "file": "dedicated-d8-scale-3-run-1.jsonl",
+        "profile": "dedicated-d8",
+        "scale": 3,
+        "run": 1,
+        "unique_replicas": 3,
+        "num_clusters": 1,
+        "co_located_replica_count": 2,
+        "interpretation": "fewer kernel-context clusters than unique replicas implies replica co-location on existing kernel context (consistent with multi-replica on same node)"
+      },
+      {
+        "file": "dedicated-d8-scale-10-run-1.jsonl",
+        "profile": "dedicated-d8",
+        "scale": 10,
+        "run": 1,
+        "unique_replicas": 10,
+        "num_clusters": 1,
+        "co_located_replica_count": 9,
+        "interpretation": "fewer kernel-context clusters than unique replicas implies replica co-location on existing kernel context (consistent with multi-replica on same node)"
+      },
+      {
+        "file": "dedicated-d8-scale-10-run-2.jsonl",
+        "profile": "dedicated-d8",
+        "scale": 10,
+        "run": 2,
+        "unique_replicas": 10,
+        "num_clusters": 1,
+        "co_located_replica_count": 9,
+        "interpretation": "fewer kernel-context clusters than unique replicas implies replica co-location on existing kernel context (consistent with multi-replica on same node)"
+      },
+      {
+        "file": "dedicated-d8-scale-10-run-3.jsonl",
+        "profile": "dedicated-d8",
+        "scale": 10,
+        "run": 3,
+        "unique_replicas": 10,
+        "num_clusters": 1,
+        "co_located_replica_count": 9,
+        "interpretation": "fewer kernel-context clusters than unique replicas implies replica co-location on existing kernel context (consistent with multi-replica on same node)"
+      }
+    ],
+    "consumption_30_co_location_detected": true,
+    "dedicated_3_co_location_detected": true,
+    "d_strong_path_both_known_counterexamples": true,
+    "d_fallback_path_at_least_one": true,
+    "d_pass": true
+  },
+  "sub_gate_e_falsification_from_raw": {
+    "per_file_raw_recompute_count": 11,
+    "scale_files_count": 11,
+    "raw_vs_summary_discrepancies_count": 0,
+    "raw_vs_summary_discrepancies": [],
+    "e_strong_path_zero_discrepancies": true,
+    "e_fallback_path_recompute_dict_exists": true,
+    "e_pass": true
+  },
+  "gate_3_claim_eligibility_sub_gates": {
+    "a_observed_level_claims_only": true,
+    "b_profiles_separate": true,
+    "c_repeats_show_variability": true,
+    "d_counterexamples_surfaced": true,
+    "e_falsification_from_raw": true
+  },
+  "gate_3_claim_eligibility_all_subgates_pass": true,
+  "gate_classification": "observed_node_spread_behavior_under_this_test_matrix"
+}
