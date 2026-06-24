@@ -27,7 +27,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-24'
   reviewer: agent
   lab_validation:
     status: reproduced
@@ -127,7 +127,7 @@ az extension add --name containerapp --upgrade
 | Command | Why it is used |
 |---|---|
 | `az account set --subscription "$SUBSCRIPTION_ID"` | Selects the subscription that will host all lab resources, so subsequent `az` commands do not require `--subscription`. |
-| `az extension add --name containerapp --upgrade` | Installs or upgrades the Container Apps CLI extension; required for `az containerapp ...` commands used by `deploy.sh` and `verify.sh`. |
+| `az extension add --name containerapp --upgrade` | Installs or upgrades the Container Apps CLI extension; required for the `az containerapp ...` commands used by `deploy.sh` and `trigger.sh` during the live experiment workflow. |
 
 ### Resource provisioning
 
@@ -152,7 +152,7 @@ export PERTURBATION_SAMPLER_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/pertu
 export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 
 ./deploy.sh
-./verify.sh
+./trigger.sh --preflight
 ```
 
 | Command | Why it is used |
@@ -161,7 +161,7 @@ export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 | `az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic --admin-enabled true` | Provisions a Basic ACR with admin user enabled (same pattern as the sibling `zone-redundancy-best-effort` lab); Premium ACR with private endpoints is intentionally out of scope. |
 | `az acr build --registry "$ACR_NAME" --image startup-degraded/<component>:latest ./<component>` (×4, parallel) | Builds the four lab container images (subject, audit, perturbation-sampler, loadgen) in parallel inside ACR Tasks; `wait` blocks until all four finish before exporting the image variables. |
 
-`verify.sh` runs 9 health checks. All 9 must pass before proceeding to Section 3.
+`trigger.sh --preflight` is the live deployment sanity gate before proceeding to Section 3. The historical `verify.sh` that produced `evidence/verify-001.log` ran 9 live Azure health checks, but the current Phase B `verify.sh` is a replay-only evidence classifier over committed qA-qG files.
 
 ## 3. Hypothesis
 
@@ -534,6 +534,17 @@ The same Q5 query re-run against the supplemental RUN_ID returned an empty resul
 
 The single supplemental error is acknowledged in Section 7 Q1 and Section 8 Q6 but does NOT satisfy the falsification rule: (a) it fell in **one** 10-second bucket, not three consecutive, and (b) the bucket's `err_pct` was 0.062%, not above 0.5%. The two binding conditions are conjunctive — both must hold simultaneously to falsify H0 — and neither held. The supplemental "H0 held under tested conditions" verdict therefore stands on the same mechanical evidence as the perturbation verdict, with the explicit caveat (Section 10) that one error is operationally non-equivalent to zero errors even when both clear the falsification bar.
 
+## 4b) Phase B Falsification Gates
+
+The 2026-06-20 canonical repro adds a Phase B evidence-pack overlay under `labs/startup-degraded-transient-failure/evidence/`. Unlike the live-Azure Phase A workflow, the rewritten `labs/startup-degraded-transient-failure/verify.sh` is a pure file processor: it reads only the committed canonical `qA`-`qG` JSON files and emits four derived gate JSONs. The four gates must be read together. Gates 10 and 13 are integrity gates; Gate 11 proves the rollout actually entered a degraded internal state; Gate 12 proves that the degraded state was masked from the k6 client and therefore H0 held under the canonical 2026-06-20 conditions.
+
+| Gate | Claim | Sub-gates | Predicate inputs | PASS/FAIL | Rationale |
+|---|---|---:|---|---|---|
+| `10-canonical-evidence-integrity-gate.json` | `canonical_evidence_pack_internally_consistent` | 3 | `qA`, `qB`, `qC`, `qD`, `qE`, `qF`, `qG` | PASS | Preconditions gate. Confirms the canonical qA-qG cohort exists, the filename timestamps stay inside the 2026-06-20 capture window, and `qF` explicitly maps one `baseline-*` plus one `perturbation-*` run. |
+| `11-failure-degraded-state-gate.json` | `rolling_rollout_produced_observable_degraded_state_signatures` | 3 | `qA`, `qD`, `qE` | PASS | Anti-fake-fix gate. Confirms three perturbation start markers, real `ProbeFailed` warnings (including 35 on `subject-app--0000003`), and revision demotion/promotion evidence during rollout. This proves the platform entered a degraded internal state even though the client never saw sustained errors. |
+| `12-recovery-fix-gate.json` | `aca_rolling_rollout_masked_transients_to_clients` | 3 | `qA`, `qB`, `qF` | PASS | H0-held gate. Confirms the perturbation run's `err_pct` is zero, the D6 falsification rule did not trigger, and the latest healthy snapshots still show the newest revision Running with the active qA record reporting 3 replicas. Gate 12 must be read with Gate 11: the rollout was real, but ACA masked the transient state from the client. |
+| `13-cross-artifact-consistency-gate.json` | `evidence_artifacts_cohere_across_canonical_window` | 2 | `qA`, `qE`, qA-qG filename timestamps | PASS | Cross-artifact integrity gate. Confirms the canonical filenames belong to one window and that perturbation identifiers overlap across qA and qE, preventing cross-table timestamp mixing. |
+
 ## 12. Evidence
 
 **Status**: Fully populated.
@@ -815,7 +826,7 @@ The supplemental-phase forensic localization (Section 9: error fell ~18 seconds 
 For support engineers handling tickets about "5xx during deploy":
 
 1. **First check the falsification rule with the customer's traffic data**. If their telemetry has 10s bucket granularity, ask for the bucketed err_pct around the rollout. If they only have minute granularity, the result is inconclusive — sub-minute transients are invisible at that resolution.
-2. **Verify probe configuration first**. The most common root cause is `/` being used as both the workload and health path. Run the lab's `verify.sh` pattern against the customer's app: enumerate the three probes and confirm none of them is the heavy workload path.
+2. **Verify probe configuration first**. The most common root cause is `/` being used as both the workload and health path. Enumerate the three probes on the customer's app and confirm none of them is the heavy workload path; the historical `evidence/verify-001.log` shows the exact live-Azure check pattern this lab originally used.
 3. **Distinguish rolling-rollout from explicit restart**. If the customer used `az containerapp revision restart`, supplemental-phase evidence applies. If they used `az containerapp update --set-image` or `--set-env-vars`, perturbation-phase evidence applies. The two failure modes can look identical at the customer's edge but have different root causes.
 4. **The platform's masking depends on probe gating, not on rolling-rollout magic**. If a customer's probes return 200 before the app is actually ready to serve traffic, the platform will route traffic to a not-yet-warm replica regardless of rollout strategy. Probe semantics is the load-bearing piece.
 5. **Treat the verdict's evidence ceiling as binding**. "Platform-initiated cause" of any 5xx during rollout is `[Strongly Suggested]`, not `[Measured]`. The smoking-gun evidence — Microsoft-internal traces of the load-balancer's exact routing decision during the transition — is not exposed through the management plane.

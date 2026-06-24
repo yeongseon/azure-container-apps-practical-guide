@@ -54,7 +54,7 @@ labs/startup-degraded-transient-failure/
 │   ├── Dockerfile                # Mariner + bash + curl + jq
 │   └── sample.sh                 # 5s cadence, bounded duration, manual trigger
 ├── deploy.sh                     # Resource group + Bicep deployment wrapper
-├── verify.sh                     # 9 health checks
+├── verify.sh                     # Phase B pure file processor (qA-qG -> 10-13 gates)
 ├── trigger.sh                    # Preflight / baseline / perturbation / supplemental modes
 ├── cleanup.sh                    # Destructive teardown with confirmation
 └── README.md
@@ -95,12 +95,13 @@ export PERTURBATION_SAMPLER_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/pertu
 export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 ./deploy.sh   # redeploys with the custom images
 
-./verify.sh
-
 ./trigger.sh --preflight
 ./trigger.sh --baseline --duration 1800
 ./trigger.sh --perturbation --events 12 --interval 600
 ./trigger.sh --supplemental-restart --events 3 --interval 600
+
+# Replay the committed evidence pack or newly captured qA-qG files
+./verify.sh
 ```
 
 ## Data flow
