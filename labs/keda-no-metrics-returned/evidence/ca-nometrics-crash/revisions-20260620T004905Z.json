@@ -1,0 +1,8 @@
+[
+  {
+    "healthState": "Unhealthy",
+    "name": "ca-nometrics-crash--xfn3h34",
+    "replicas": 2,
+    "trafficWeight": 100
+  }
+]

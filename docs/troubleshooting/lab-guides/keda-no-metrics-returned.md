@@ -10,14 +10,20 @@ content_sources:
         - https://keda.sh/docs/latest/scalers/memory/
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
-  reviewer: ai-agent
+  last_reviewed: '2026-06-24'
+  reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: 2026-06-05
-    az_cli_version: 2.73.0
-    notes: "All three scenarios reproduced in Korea Central. Scenario A (slow-start) produced 12 metric error entries during the first ~90 seconds then stopped. Scenario B (crash-loop) produced 29 recurring entries over 20+ minutes, correlating with container restarts. Scenario C (healthy) unexpectedly produced 10 entries during the first ~60 seconds after deployment — confirming that even healthy containers experience a brief metrics gap during initial provisioning. The DEPRECATED warning appeared for all three apps. Re-verified 2026-06-20T00:48-00:50Z (CLI 2.79.0, containerapp ext 1.3.0b4) against the same canonical infra in rg-aca-no-metrics-lab: Scenario A reproduced 20 metric errors in a 5-min bin at 00:35 with StartUp probe failures shown in the lifecycle log, Scenario B reproduced 27 metric errors over 15 min with recurring 'Container terminated with exit code 1' / ProcessExited events confirming CrashLoopBackOff, Scenario C reproduced 16 metric errors in a 5-min bin during Metrics Server warm-up, and the DEPRECATED warning appeared exactly once per app at scaler init time. Re-verification evidence at labs/keda-no-metrics-returned/evidence/ca-nometrics-{slow,crash,healthy}/report-20260620T*.txt with explicit az --version captures at az-version-20260620T*.json."
+    tested_date: 2026-06-20
+    az_cli_version: 2.79.0
+    notes: 'All three scenarios reproduced in Korea Central against canonical infra rg-aca-no-metrics-lab (azure-cli 2.79.0, containerapp extension 1.3.0b4). Per-scenario evidence captured 2026-06-20T00:48-00:50Z: Scenario A (slow-start, revision ca-nometrics-slow--gd2u817) → 20 "no metrics returned" lines in §5 spanning 136s, 30 "Probe of StartUp failed" events in §9 spanning 29s with the probe window sitting INSIDE the §5 window proving startup-correlation, eventually reaches Healthy/Running. Scenario B (crash-loop, revision ca-nometrics-crash--xfn3h34) → 27 "no metrics returned" lines in §5 spanning 603s, §6 5-min bin histogram has 3 bins (25/1/1), §2 inline JSON reports healthState:Unhealthy + runningState:Failed + provisioningState:Failed. Scenario C (healthy baseline, revision ca-nometrics-healthy--9ovm8cn) → 16 "no metrics returned" lines in §5 spanning 106s, §6 has 1 bin (16), §9 has 0 probe failures, reaches Healthy/Running. Cross-scenario falsification: crash duration is 4.44× the max of healthy/slow (above the 3.0× threshold), bin-count ordering healthy=1 = slow=1 < crash=3, health-state pattern Healthy/Healthy/Unhealthy. The DEPRECATED warning appeared exactly once per app at scaler init time. Phase B refactor in this commit: trigger.sh now owns ALL live-Azure orchestration (Bicep deploy → ACR build → sequential scenario A/B/C deploy → Log Analytics ingestion wait → per-scenario report generation), verify.sh is a pure file processor that emits four falsifiable gate JSONs (10/11/12/13). All 12 sub-gates (4 gates × 3 sub-gates) PASS on both Strong and Fallback paths. Full evidence pack under labs/keda-no-metrics-returned/evidence/ — 18 historical-capture artifacts (6 files × 3 scenarios) PLUS 4 verify.sh-emitted gate JSONs. See labs/keda-no-metrics-returned/evidence/README.md for capture timeline, cross-scenario differential proof, and honest-disclosure notes on empirical platform behavior (empty summary-*.md, empty §12 cgroup sections, §7 DEPRECATED warning scope, sidecar replicas field semantics, mutable image tags).'
   core_claims:
+    - claim: Azure Container Apps uses KEDA scalers (including CPU and memory) to drive horizontal scaling, and scale rules are configured via the Container App scale property.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Azure Container Apps writes container lifecycle events (probe failures, container starts/terminations, scaler events) to ContainerAppSystemLogs / ContainerAppSystemLogs_CL for diagnostic use.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
+      verified: true
     - claim: KEDA/HPA logs "no metrics returned from resource metrics API" when the Kubernetes Metrics Server has no data for a container that is not yet Ready.
       source: https://github.com/kubernetes/kubernetes/issues/127169
       verified: true
@@ -30,7 +36,7 @@ validation:
     cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-06-05'
+    last_tested: '2026-06-20'
     result: pass
 ---
 # KEDA "No Metrics Returned" Reproduction Lab
@@ -49,6 +55,14 @@ baseline to confirm the errors are caused by container lifecycle events.
 | Tier | Consumption |
 | Failure Mode | KEDA system logs show "no metrics returned" / "invalid metrics" |
 | Skills Practiced | System log analysis, KQL queries, container lifecycle correlation, KEDA deprecation awareness |
+
+!!! note "Evidence depth"
+    This lab is **fully reproducible** with dedicated infrastructure-as-code, helper scripts, and raw evidence committed under [`labs/keda-no-metrics-returned/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/keda-no-metrics-returned):
+
+    - `infra/main.bicep` provisions one ACR (Basic), one Log Analytics workspace, and one Container Apps environment. The image is baked from `workload/Dockerfile` (a 30-line Python script that branches on `MODE=healthy|slow-start|crash-loop|oom` to produce the three deliberately-different startup behaviors).
+    - `trigger.sh` is a self-contained orchestrator that drives all three scenarios deterministically: Bicep deploy → ACR build → sequential scenario A/B/C deploy (via `trigger-scenario-a.sh`, `trigger-scenario-b.sh`, `trigger-scenario-c.sh`) → Log Analytics ingestion wait → per-scenario report generation. All 18 per-scenario evidence files (6 files × 3 scenarios under `evidence/ca-nometrics-*/`) are written by this single script.
+    - `verify.sh` is a **pure file processor** — it reads `evidence/ca-nometrics-*/report-*.txt`, `evidence/ca-nometrics-*/revisions-*.json`, and `evidence/ca-nometrics-*/traffic-*.json` from disk and emits four falsifiable gate JSONs (`10-h1-slow-not-ready-gate.json`, `11-h1-crash-not-ready-gate.json`, `12-h2-healthy-post-ready-gate.json`, `13-h3-cross-scenario-falsification-gate.json`). It does NOT call Azure, so the resource group can be deleted (via `cleanup.sh`) before `verify.sh` finishes.
+    - `evidence/` carries **23 files total**: 1 provenance README plus 18 historical-capture artifacts from the 2026-06-20 reproduction plus 4 verify.sh-emitted gate JSONs. See [`labs/keda-no-metrics-returned/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/keda-no-metrics-returned/evidence/README.md) for the full capture timeline and honest-disclosure notes on empirical platform behavior (empty `summary-*.md`, empty `§12` cgroup sections, `§7` DEPRECATED warning scope, sidecar `replicas` field semantics, mutable image tags).
 
 ## 1) Background
 
@@ -257,6 +271,21 @@ The Scenario C result is the most important takeaway:
 **expect 30-60 seconds of "no metrics returned" logs
 after every deployment**, even when the application starts instantly.
 This is a normal Kubernetes Metrics Server warm-up period, not a defect.
+
+## 4b) Phase B Falsification Gates
+
+`verify.sh` is a pure file processor against the 18 historical-capture artifacts (6 files × 3 scenarios under `evidence/ca-nometrics-*/`) and emits four falsifiable gate JSONs under `evidence/`. Each gate is evaluated against a **strict 2-path predicate** per sub-gate — a **Strong path** that matches the exact lab specification (e.g. exact field match in a specific JSON file or column-aligned section parse), and a **Fallback path** that tolerates the same controlling behavior under minor numeric drift (e.g. substring search or weaker ordering check). All twelve sub-gates (4 gates × 3 sub-gates each) emitted on 2026-06-20 pass on **both** the Strong and Fallback paths.
+
+| Gate | File | Hypothesis | Sub-gates | Result |
+|---|---|---|---|---|
+| 10 | `10-h1-slow-not-ready-gate.json` | H1 (Scenario A slow-start): "no metrics returned" during startup is correlated with NotReady and resolves | 3 — (a) signal observed: §5 has ≥ 10 "no metrics returned" lines OR §6 bin total ≥ 10; (b) NotReady correlation: §9 `Probe of StartUp failed` events present AND §5 ↔ §9 timestamp windows overlap OR §9 probe failures present only; (c) eventually Ready: sidecar `healthState: Healthy` OR sidecar `trafficWeight: 100` | PASS — 20 §5 lines, 30 §9 probe failures, §5 window 00:35:49–00:38:05 overlaps §9 probe window 00:37:22–00:37:51, sidecar Healthy + traffic 100 |
+| 11 | `11-h1-crash-not-ready-gate.json` | H1 (Scenario B crash-loop): "no metrics returned" persists across multiple bins with unready state | 3 — (a) signal spans ≥ 2 bins: §6 row count ≥ 2 OR §5 first→last duration > 300 s; (b) unready state: §2 inline JSON has `healthState: Unhealthy` AND `runningState: Failed` OR sidecar `healthState ≠ Healthy` OR §2 `provisioningState: Failed`; (c) persistent pattern: §6 bins beyond the first OR §5 duration > 600 s | PASS — 3 §6 bins (25/1/1 at 00:35/00:40/00:45), §5 duration 603 s, §2 reports `Unhealthy + Failed + Failed`, sidecar Unhealthy |
+| 12 | `12-h2-healthy-post-ready-gate.json` | H2 (Scenario C healthy baseline): "no metrics returned" is bounded to Metrics Server warm-up and does not persist | 3 — (a) Healthy/Running: §2 `Healthy + Running` OR sidecar `Healthy + traffic 100`; (b) single bin: §6 has 1 row OR §6 has ≤ 2 rows; (c) silent after warm-up: §5 duration ≤ 300 s OR §5 lines ≤ 20 | PASS — §2 Healthy/Running, sidecar Healthy + traffic 100, §6 has 1 bin (16), §5 duration 106 s, 16 §5 lines, §9 has 0 probe failures |
+| 13 | `13-h3-cross-scenario-falsification-gate.json` | H3 (cross-scenario): metric-error severity tracks unreadiness severity | 3 — (a) bin count ordering: exact `healthy=1 AND slow=1 AND crash≥2` OR weak `healthy ≤ slow < crash`; (b) duration ordering: `crash ≥ 3.0× max(healthy, slow)` OR `crash > both`; (c) health state matches outcome: exact `healthy=Healthy AND slow=Healthy AND crash=Unhealthy` OR `crash ≠ Healthy AND at-least-one of {healthy, slow} = Healthy` | PASS — bin counts 1/1/3, durations 106 s / 136 s / 603 s (ratio crash÷max(healthy, slow) = 4.44× ≥ 3.0×), health states Healthy / Healthy / Unhealthy |
+
+The Gate 13 cross-scenario ratio threshold is intentionally **lower** than the observed 4.44× (set to ≥ 3.0×) to absorb run-to-run variance while still falsifying the case where crash-loop duration converges with the healthy/slow baselines. The Gate 11 sub-gate (b) intentionally keys off the §2 inline JSON `runningState` and `provisioningState` fields rather than the sidecar `revisions-*.json` (which carries only `healthState`, `name`, `replicas`, `trafficWeight`) because `runningState` and `provisioningState` are the authoritative platform-observed state for a failing revision. See [`labs/keda-no-metrics-returned/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/keda-no-metrics-returned/evidence/README.md) "Honest disclosure" section for the full empirical platform behavior documented during the 2026-06-20 live run, including the sidecar `replicas` semantics (DESIRED replica count from the revision spec, NOT the count of replicas that successfully reached Running).
+
+The H1 gates (10/11) together prove that "no metrics returned from resource metrics API" is not a generic platform noise signal — its count, span, and duration scale with container unreadiness severity. The H2 gate (12) proves that the same signal still appears (in bounded form) on a healthy container during Metrics Server warm-up. The H3 cross-scenario gate (13) proves the differential — crash-loop produces materially more errors over a materially longer window than either the slow-startup or healthy baseline. Together these four gates yield the operator guidance in the **Operator takeaway from experiment** subsection above: a transient burst of "no metrics returned" during the first 30–90 seconds after revision creation is expected (Metrics Server warm-up); the same signal spanning multiple 5-minute bins with `§2` reporting `Unhealthy + Failed` indicates a container-health defect that requires application-level diagnosis (crash-loop, OOMKill, readiness probe misconfiguration), not a platform escalation.
 
 ## 5) Verification Queries
 

@@ -1,0 +1,97 @@
+{
+  "utc_captured": "2026-06-24T07:02:27Z",
+  "scenario": "cross_scenario_falsification",
+  "hypothesis": "H3",
+  "claim": "metric_error_severity_tracks_unreadiness_severity",
+  "target_revisions": {
+    "slow": "ca-nometrics-slow--gd2u817",
+    "crash": "ca-nometrics-crash--xfn3h34",
+    "healthy": "ca-nometrics-healthy--9ovm8cn"
+  },
+  "signal_substring": "no metrics returned from resource metrics API",
+  "cross_scenario_ratio_strong_threshold": 3.0,
+  "predicate_inputs": {
+    "slow_report_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-slow/report-20260620T004802Z.txt",
+    "crash_report_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-crash/report-20260620T004905Z.txt",
+    "healthy_report_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-healthy/report-20260620T005025Z.txt"
+  },
+  "observed_metrics": {
+    "slow": {
+      "bin_count": 1,
+      "bins": [
+        [
+          20,
+          "2026-06-20T00:35:00Z"
+        ]
+      ],
+      "duration_seconds": 135.91534090042114,
+      "health_state": "Healthy",
+      "signal_line_count": 20
+    },
+    "crash": {
+      "bin_count": 3,
+      "bins": [
+        [
+          25,
+          "2026-06-20T00:35:00Z"
+        ],
+        [
+          1,
+          "2026-06-20T00:40:00Z"
+        ],
+        [
+          1,
+          "2026-06-20T00:45:00Z"
+        ]
+      ],
+      "duration_seconds": 603.4253370761871,
+      "health_state": "Unhealthy",
+      "signal_line_count": 27
+    },
+    "healthy": {
+      "bin_count": 1,
+      "bins": [
+        [
+          16,
+          "2026-06-20T00:35:00Z"
+        ]
+      ],
+      "duration_seconds": 106.33262896537781,
+      "health_state": "Healthy",
+      "signal_line_count": 16
+    }
+  },
+  "sub_gate_a_bin_count_ordering": {
+    "healthy_bin_count": 1,
+    "slow_bin_count": 1,
+    "crash_bin_count": 3,
+    "a_strong_path_exact_bin_pattern": true,
+    "a_fallback_path_weak_ordering": true,
+    "a_pass": true
+  },
+  "sub_gate_b_duration_ordering": {
+    "healthy_duration_seconds": 106.33262896537781,
+    "slow_duration_seconds": 135.91534090042114,
+    "crash_duration_seconds": 603.4253370761871,
+    "max_non_crash_duration_seconds": 135.91534090042114,
+    "observed_ratio_crash_over_max_non_crash": 4.43971470092025,
+    "b_strong_path_ratio_at_or_above_threshold": true,
+    "b_fallback_path_crash_longest": true,
+    "b_pass": true
+  },
+  "sub_gate_c_health_state_matches_outcome": {
+    "healthy_health_state": "Healthy",
+    "slow_health_state": "Healthy",
+    "crash_health_state": "Unhealthy",
+    "c_strong_path_exact_state_pattern": true,
+    "c_fallback_path_crash_not_healthy_and_one_healthy": true,
+    "c_pass": true
+  },
+  "h3_cross_sub_gates": {
+    "a_bin_count_ordering": true,
+    "b_duration_ordering": true,
+    "c_health_state_matches_outcome": true
+  },
+  "h3_cross_all_subgates_pass": true,
+  "gate_classification": "metric_error_severity_tracks_unreadiness_severity"
+}
