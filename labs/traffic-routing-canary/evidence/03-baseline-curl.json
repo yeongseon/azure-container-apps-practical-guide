@@ -1,0 +1,14 @@
+{
+  "fqdn": "ca-labtraffic-ve2wnr.calmdesert-6bf1e90b.koreacentral.azurecontainerapps.io",
+  "attempts": 5,
+  "http_codes": [
+    "200",
+    "200",
+    "200",
+    "200",
+    "200"
+  ],
+  "success_count_200": 5,
+  "expected_success_count": 5,
+  "note": "Baseline probes against the single healthy revision before the bad revision is minted. All 5 should return HTTP 200."
+}

@@ -1,0 +1,9 @@
+{
+  "utc": "2026-06-24T00:13:28Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-traffic2",
+  "app_name": "ca-labtraffic-ve2wnr",
+  "app_fqdn": "ca-labtraffic-ve2wnr.calmdesert-6bf1e90b.koreacentral.azurecontainerapps.io",
+  "baseline_ingress_target_port": "80",
+  "active_revisions_mode": "Multiple"
+}

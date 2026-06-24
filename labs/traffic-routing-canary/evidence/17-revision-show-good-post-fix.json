@@ -1,0 +1,10 @@
+{
+  "createdTime": "2026-06-24T00:12:40+00:00",
+  "healthState": "Healthy",
+  "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+  "name": "ca-labtraffic-ve2wnr--w3daylh",
+  "provisioningState": "Provisioned",
+  "replicas": 1,
+  "runningState": "Running",
+  "runningStateDetails": null
+}

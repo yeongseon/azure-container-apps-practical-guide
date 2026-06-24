@@ -1,0 +1,6 @@
+[2026-06-24T00:14:23Z] attempt 1/30 provisioningState=Provisioned runningState=Activating runningStateDetails=
+[2026-06-24T00:14:40Z] attempt 2/30 provisioningState=Provisioned runningState=Activating runningStateDetails=
+[2026-06-24T00:14:58Z] attempt 3/30 provisioningState=Provisioned runningState=Activating runningStateDetails=
+[2026-06-24T00:15:14Z] attempt 4/30 provisioningState=Provisioned runningState=Activating runningStateDetails=
+[2026-06-24T00:15:30Z] attempt 5/30 provisioningState=Provisioned runningState=Activating runningStateDetails=
+[2026-06-24T00:15:46Z] attempt 6/30 provisioningState=Provisioned runningState=Activating runningStateDetails=The TargetPort 80 does not match the listening port 8080.

@@ -1,0 +1,61 @@
+{
+  "utc_captured": "2026-06-24T00:18:49Z",
+  "subscription": "00000000-0000-0000-0000-000000000000",
+  "rg": "rg-aca-lab-traffic2",
+  "app_name": "ca-labtraffic-ve2wnr",
+  "app_fqdn": "ca-labtraffic-ve2wnr.calmdesert-6bf1e90b.koreacentral.azurecontainerapps.io",
+  "trigger_window": {
+    "start_utc": "2026-06-24T00:13:55Z",
+    "bad_revision_name": "ca-labtraffic-ve2wnr--badv2",
+    "bad_revision_image": "mcr.microsoft.com/dotnet/samples:aspnetapp",
+    "bad_revision_created_time": "2026-06-24T00:14:10+00:00",
+    "bad_revision_health_state": "None",
+    "bad_revision_running_state": "Activating",
+    "bad_revision_running_state_details": "The TargetPort 80 does not match the listening port 8080.",
+    "bad_revision_provisioning_state": "Provisioned",
+    "good_revision_name": "ca-labtraffic-ve2wnr--w3daylh",
+    "good_revision_health_state_at_trigger": "Healthy",
+    "good_revision_running_state_at_trigger": "Running",
+    "ingress_target_port": "80",
+    "bad_image_listening_port_documented": 8080
+  },
+  "traffic_split": {
+    "ingress_traffic_array": [
+      {
+        "revisionName": "ca-labtraffic-ve2wnr--w3daylh",
+        "weight": 50
+      },
+      {
+        "revisionName": "ca-labtraffic-ve2wnr--badv2",
+        "weight": 50
+      }
+    ],
+    "weights_sorted": [
+      50,
+      50
+    ]
+  },
+  "client_probe_results": {
+    "attempts": 30,
+    "success_count_200": 17,
+    "timeout_count_000": 13,
+    "tolerance_band_for_timeouts": [
+      8,
+      22
+    ]
+  },
+  "system_log_capture": {
+    "exit_code": 0,
+    "probe_failed_lines_in_tail": 18,
+    "note": "Log Analytics ingestion lag is 5-10 minutes; tail count is best-effort. Consumed by the H1 c_bad_revision_probe_failure_evidence fallback predicate (bad revision non-healthy state + count > 0) when runningStateDetails lacks port-specific text; also re-used by the H2 a_pre_fix_failure_re_confirmed fallback predicate in verify.sh."
+  },
+  "h1_sub_gates": {
+    "a_bad_revision_minted_with_port_mismatched_image": true,
+    "b_ingress_traffic_split_50_50": true,
+    "c_bad_revision_probe_failure_evidence": true,
+    "d_curl_loop_shows_intermittent_failure": true,
+    "e_good_revision_still_healthy": true
+  },
+  "h1_all_subgates_pass": true,
+  "gate_classification": "canary_failure_reproduced_50_50_traffic_split"
+}
