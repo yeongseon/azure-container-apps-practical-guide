@@ -125,9 +125,10 @@ EOF
 echo "[01] infra resolve written"
 
 echo "=== Phase 2: Image Metadata ==="
-# The image was built before this script ran (via az acr build, captured
-# out-of-band as 02-acr-build.log). Re-record the manifest metadata here
-# for evidence chain.
+# The workload image is built before this script runs (see Reproducibility
+# section of evidence/README.md for the az acr build command). This phase
+# captures the manifest metadata as 02-image-manifest.json so the evidence
+# chain records the image digest the three scenarios were created against.
 az acr repository show \
   --name "$ACR_NAME" --image "$IMAGE_TAG" \
   --output json > "$EVIDENCE_DIR/02-image-manifest.json" 2>&1 || {

@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T02:40:09Z",
+  "utc_captured": "2026-06-24T03:12:08Z",
   "hypothesis": "H2: Portal MemoryPercentage value does NOT cleanly map to KEDA scaler input for cache-heavy workloads. Differential between A (held), B (walked to max), and C (stalled despite over-target) is the proof.",
   "scenarios": {
     "A": {

@@ -10,15 +10,15 @@ content_sources:
 content_validation:
   status: verified
   last_reviewed: '2026-06-24'
-  reviewer: ai-agent
+  reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: 2026-06-24
     az_cli_version: 2.79.0
-    notes: "Re-reproduced in Korea Central on 2026-06-24 with az-cli 2.79.0 and containerapp extension 1.2.1, in addition to the original 2026-06-02 run. Scenario A held at replicas_max=2 with mempct=40.0; Scenario B walked to replicas_max=20 with mempct=56.0; Scenario C held at replicas_max=2 with mempct=72.0 and cgroup composition cache=734MB vs rss=18MB (cache-to-rss ratio 39.4x), confirming the cache-dominant behavior. Evidence pack under labs/memory-percentage-vs-keda-utilization/evidence/ contains 21 trigger snapshots and 4 verify gates (H1 per-scenario plus H2 cross-scenario differential), all PII-scrubbed. Strict 2-path predicate (Strong + Fallback) - all 21 H1 sub-gates and 6 H2 sub-gates pass on the Strong path. Portal screenshots from the 2026-06-02 run preserved as the visual evidence of record."
+    notes: "Re-reproduced in Korea Central on 2026-06-24 with az-cli 2.79.0 and containerapp extension 1.3.0b4, in addition to the original 2026-06-02 run. Scenario A held at replicas_max=2 with mempct=40.0; Scenario B walked to replicas_max=20 with mempct=56.0; Scenario C held at replicas_max=2 with mempct=72.0 and cgroup composition cache=734MB vs rss=18MB (cache-to-rss ratio 39.4x), confirming the cache-dominant behavior. Evidence pack under labs/memory-percentage-vs-keda-utilization/evidence/ contains 21 trigger snapshots and 4 verify gates (H1 per-scenario plus H2 cross-scenario differential), all PII-scrubbed. Strict 2-path predicate (Strong + Fallback) - all 21 H1 sub-gates and 6 H2 sub-gates pass on the Strong path. Portal screenshots from the 2026-06-02 run preserved as the visual evidence of record."
   core_claims:
-    - claim: KEDA memory scaling in Azure Container Apps follows the HPA ceiling formula `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`.
-      source: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
+    - claim: KEDA memory scale rules in Azure Container Apps use the standard Horizontal Pod Autoscaler ceiling formula `desiredReplicas = ceil(currentReplicas * currentMetric / targetMetric)`, so scaling only increments when the per-replica metric strictly exceeds the target.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
     - claim: Azure Container Apps memory scale rules read container memory usage from the Kubernetes metrics API, separate from the Azure Monitor `MemoryPercentage` metric pipeline.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
@@ -149,33 +149,33 @@ Expected output pattern: `provisioningState` reports `Succeeded`.
 ### Create three scenarios
 
 ```bash
-bash labs/memory-percentage-vs-keda-utilization/trigger-scenario-a.sh
-bash labs/memory-percentage-vs-keda-utilization/trigger-scenario-b.sh
-bash labs/memory-percentage-vs-keda-utilization/trigger-scenario-c.sh
+bash labs/memory-percentage-vs-keda-utilization/trigger.sh
 ```
 
 | Command | Why it is used |
 |---|---|
-| `trigger-scenario-a.sh` | Builds the RSS image, creates `ca-mempct-a-below` with `TARGET_MB=400`, applies the memory scale rule `Utilization=50`, and starts the workload that holds ~40% anonymous memory. |
-| `trigger-scenario-b.sh` | Reuses the RSS image, creates `ca-mempct-b-above` with `TARGET_MB=560`, identical scale rule. |
-| `trigger-scenario-c.sh` | Builds the cache image, creates `ca-mempct-cache` with `MODE=cache` and `TARGET_MB=700`. The workload reads a 700 MiB file in a loop to inflate page cache without growing process RSS. |
+| `trigger.sh` | Single orchestrator. Phase 1-2 resolves ACR/environment and records the image manifest; Phase 3-5 creates `ca-mempct-a-below`, `ca-mempct-b-above`, and `ca-mempct-cache` from the same image `mempct:v1` with workload mode and target size passed as env vars (`MODE`/`TARGET_MB`); Phase 6 waits 1200 s for HPA stabilization; Phase 7-18 captures per-scenario revisions, `Replicas (Maximum)` metric, `MemoryPercentage (Average)` metric, and cgroup v1 `memory.{usage_in_bytes,limit_in_bytes,stat}` from a live replica (three separate `az containerapp exec` calls with a 20 s sleep between them to avoid HTTP 429 throttling); Phase 19-21 captures CLI versions, containerapp extension metadata, and region/subscription/tenant context. All 21 trigger snapshots are written under `labs/memory-percentage-vs-keda-utilization/evidence/01-*` through `21-*`. |
 
 ### Observe (wait at least 10 minutes)
 
-```bash
-sleep 1200
+The 20-minute HPA stabilization wait is already included as Phase 6 of
+`trigger.sh`; no additional wait is required before running `verify.sh`.
 
-for APP in ca-mempct-a-below ca-mempct-b-above ca-mempct-cache; do
-    APP_NAME=$APP bash labs/memory-percentage-vs-keda-utilization/verify.sh
-done
+```bash
+bash labs/memory-percentage-vs-keda-utilization/verify.sh
 ```
 
-`verify.sh` queries the `Replicas`, `MemoryPercentage`, and
-`WorkingSetBytes` metrics from Azure Monitor for the last 30 minutes, then
-opens an `az containerapp exec` session against a live replica and prints
-`/sys/fs/cgroup/memory.current` (or v1 `memory.usage_in_bytes`),
-`/sys/fs/cgroup/memory.max` (or v1 `memory.limit_in_bytes`), and the top of
-`memory.stat` from a live replica.
+`verify.sh` is a pure file processor — it reads
+`evidence/01-*` through `evidence/18-*` from disk and emits four
+falsifiable gate files: `22-h1-scenario-a-gate.json`,
+`23-h1-scenario-b-gate.json`, `24-h1-scenario-c-gate.json`, and
+`25-h2-differential-gate.json`. It does NOT call Azure, so the resource
+group can be deleted (via `cleanup.sh --no-wait`) before `verify.sh`
+finishes. Each H1 sub-gate is evaluated against a strict 2-path
+predicate (a Strong path that matches the exact lab specification, and a
+Fallback path that tolerates the same controlling behavior under minor
+numeric drift). The H2 gate then composes the per-scenario gates into a
+cross-scenario differential proof.
 
 Field naming in `memory.stat` differs by cgroup version:
 
@@ -308,7 +308,7 @@ KEDA did not scale further.
 ### Observed Evidence (Live Azure Test — 2026-06-24)
 
 Reproduced live in Azure region Korea Central on **2026-06-24** with
-az-cli **2.79.0** and containerapp extension **1.2.1**. The evidence
+az-cli **2.79.0** and containerapp extension **1.3.0b4**. The evidence
 pack is captured under `labs/memory-percentage-vs-keda-utilization/evidence/`
 and includes 21 trigger snapshots (`01-*` through `21-*`) plus 4 verify
 gates (`22-*` through `25-*`), all PII-scrubbed per AGENTS.md. See
