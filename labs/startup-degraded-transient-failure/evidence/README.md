@@ -114,44 +114,46 @@ The following caveats are intentionally documented so a future reviewer does not
 
 The table below separates canonical gate inputs from preserved supporting artifacts.
 
-| Artifact | Role | Notes |
-|---|---|---|
-| `qA-revision-state-20260620T223951Z.json` | **Canonical / consumed** | Consumed by Gates 10, 11, 12, 13. High-frequency `RevisionStateSample` records with `perturbation_id`, `active`, `revision`, `replicas`, `traffic`. |
-| `qB-replica-inventory-20260620T223955Z.json` | **Canonical / consumed** | Consumed by Gates 10 and 12. Audit-sampler inventory of replica `state` by revision. |
-| `qC-k6-buckets-20260620T224056Z.json` | **Canonical / supporting for Gate 10 narrative** | Canonical bucket-level aggregate; all `err_total == 0`. Not needed for Gate 12's decisive predicate because qF already stores the run verdict, but retained as supporting evidence. |
-| `qD-system-events-20260620T224002Z.json` | **Canonical / consumed** | Consumed by Gates 10 and 11. System-event rollup; key degraded-state evidence is `ProbeFailed`. |
-| `qE-perturbation-markers-20260620T224143Z.json` | **Canonical / consumed** | Consumed by Gates 10, 11, 13. Three start markers and three end markers. |
-| `qF-run-summary-20260620T224149Z.json` | **Canonical / consumed** | Consumed by Gates 10 and 12. One baseline row, one perturbation row, both `falsification_triggered: False`. |
-| `qG-audit-sampler-quirk-20260620T225143Z.json` | **Canonical / consumed** | Consumed by Gates 10 and 13 for pack completeness and documented quirk context. |
-| `10-canonical-evidence-integrity-gate.json` | **Derived / Phase B** | Gate 10 output emitted by the pure-file `verify.sh`. |
-| `11-failure-degraded-state-gate.json` | **Derived / Phase B** | Gate 11 output emitted by the pure-file `verify.sh`. |
-| `12-recovery-fix-gate.json` | **Derived / Phase B** | Gate 12 output emitted by the pure-file `verify.sh`. |
-| `13-cross-artifact-consistency-gate.json` | **Derived / Phase B** | Gate 13 output emitted by the pure-file `verify.sh`. |
-| `q1-per-run-summary-20260620222220.{json,tsv}` | Preserved, not consumed | Historical run-summary export from the 2026-06-20 repro; not part of gate predicates. |
-| `q2-buckets-10s-sum-vus-20260620222220.{json,tsv}` | Preserved, not consumed | Historical 2026-06-20 bucket export; superseded by qC for canonical gate inputs. |
-| `q3-revision-state-timeline-20260620222220.{json,tsv}` | Preserved, not consumed | Historical timeline export; qA is the canonical input for Phase B. |
-| `q4-replica-inventory-snapshot-20260620222220.{json,tsv}` | Preserved, not consumed | Historical inventory export; qB is the canonical input for Phase B. |
-| `q5-falsification-3-consecutive-bad-buckets-20260620222220.{json,tsv}` | Preserved, not consumed | Historical direct falsification query output; retained for manual cross-checking only. |
-| `q6-baseline-vs-perturb-vs-supplemental-20260620222220.{json,tsv}` | Preserved, not consumed | Historical phase-comparison export; not used by Phase B gates. |
-| `q7-system-events-timeline-20260620222220.{json,tsv}` | Preserved, not consumed | Historical timeline export; qD is the canonical gate input. |
-| `q1-*`, `q2-*`, `q3-*`, `q4-*`, `q5-*`, `q6-*`, `q7-*` from `20260612` / `20260613` | Preserved, not consumed | Original formal 12-event experiment exports. Critical historical context, deliberately excluded from Phase B predicates. |
-| `baseline-001.log` | Supporting | Baseline run launch/wait log. |
-| `perturbation-002.log` | Supporting | Original official perturbation run log from the formal experiment. |
-| `perturbation-003.log` | Supporting | 2026-06-20 repro perturbation log. |
-| `supplemental-restart-001.log` | Supporting | Supplemental explicit-restart phase log from the formal experiment. |
-| `deploy-001.log` | Supporting | Provisioning log; captures deploy-time environment details. |
-| `verify-001.log` | Supporting | Historical 9-check live-Azure verify output. |
-| `preflight-001.log` | Supporting | Pre-bug-fix preflight attempt; transparency artifact. |
-| `preflight-002.log` | Supporting | Successful preflight log; records `azure-cli 2.79.0`. |
-| `preflight-staircase-aggregation.tsv` | Supporting | Formal preflight RPS staircase aggregation. |
-| `preflight-buckets-10s.tsv` | Supporting | Formal preflight 10-second buckets. |
-| `baseline-start.txt` | Supporting | Timestamp anchor used by historical KQL slicing. |
-| `run_kql_pack.sh` | Supporting / reproducibility | Historical KQL harness for q1-q7 generation. |
-| `scrub-pii.sh` | Supporting / reproducibility | PII scrubber aligned to repo policy. |
-| `deploy-env.sh` | Supporting / reproducibility | Sanitized shell context for repro scripting. |
-| `design-constraints-20260612.md` | Supporting / binding | D1-D10 design contract that Phase B cites directly (especially D2, D3, D4, D6, D8). |
-| `deploy-env.local.sh` | Gitignored local secret context | Must not be committed as evidence input. |
-| `kql-pack.pid`, `perturbation.pid`, `supplemental-restart.pid` | Gitignored runtime metadata | Process IDs only, not evidence. |
+Sizes shown are bytes-on-disk at commit time; KB values use 1024-byte units.
+
+| Artifact | Role | Size | Notes |
+|---|---|---|---|
+| `qA-revision-state-20260620T223951Z.json` | **Canonical / consumed** | 226 KB | Consumed by Gates 10, 11, 12, 13. High-frequency `RevisionStateSample` records with `perturbation_id`, `active`, `revision`, `replicas`, `traffic`. |
+| `qB-replica-inventory-20260620T223955Z.json` | **Canonical / consumed** | 88 KB | Consumed by Gates 10 and 12. Audit-sampler inventory of replica `state` by revision. |
+| `qC-k6-buckets-20260620T224056Z.json` | **Canonical / supporting for Gate 10 narrative** | 33 KB | Canonical bucket-level aggregate; all `err_total == 0`. Not needed for Gate 12's decisive predicate because qF already stores the run verdict, but retained as supporting evidence. |
+| `qD-system-events-20260620T224002Z.json` | **Canonical / consumed** | 8.5 KB | Consumed by Gates 10 and 11. System-event rollup; key degraded-state evidence is `ProbeFailed`. |
+| `qE-perturbation-markers-20260620T224143Z.json` | **Canonical / consumed** | 1.1 KB | Consumed by Gates 10, 11, 13. Three start markers and three end markers. |
+| `qF-run-summary-20260620T224149Z.json` | **Canonical / consumed** | 509 B | Consumed by Gates 10 and 12. One baseline row, one perturbation row, both `falsification_triggered: False`. |
+| `qG-audit-sampler-quirk-20260620T225143Z.json` | **Canonical / consumed** | 1.5 KB | Consumed by Gates 10 and 13 for pack completeness and documented quirk context. |
+| `10-canonical-evidence-integrity-gate.json` | **Derived / Phase B** | 5.4 KB | Gate 10 output emitted by the pure-file `verify.sh`. |
+| `11-failure-degraded-state-gate.json` | **Derived / Phase B** | 4.8 KB | Gate 11 output emitted by the pure-file `verify.sh`. |
+| `12-recovery-fix-gate.json` | **Derived / Phase B** | 4.0 KB | Gate 12 output emitted by the pure-file `verify.sh`. |
+| `13-cross-artifact-consistency-gate.json` | **Derived / Phase B** | 3.9 KB | Gate 13 output emitted by the pure-file `verify.sh`. |
+| `q1-per-run-summary-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical run-summary export from the 2026-06-20 repro; not part of gate predicates. |
+| `q2-buckets-10s-sum-vus-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical 2026-06-20 bucket export; superseded by qC for canonical gate inputs. |
+| `q3-revision-state-timeline-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical timeline export; qA is the canonical input for Phase B. |
+| `q4-replica-inventory-snapshot-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical inventory export; qB is the canonical input for Phase B. |
+| `q5-falsification-3-consecutive-bad-buckets-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical direct falsification query output; retained for manual cross-checking only. |
+| `q6-baseline-vs-perturb-vs-supplemental-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical phase-comparison export; not used by Phase B gates. |
+| `q7-system-events-timeline-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical timeline export; qD is the canonical gate input. |
+| `q1-*`, `q2-*`, `q3-*`, `q4-*`, `q5-*`, `q6-*`, `q7-*` from `20260612` / `20260613` | Preserved, not consumed | varies | Original formal 12-event experiment exports. Critical historical context, deliberately excluded from Phase B predicates. |
+| `baseline-001.log` | Supporting | 2.5 KB | Baseline run launch/wait log. |
+| `perturbation-002.log` | Supporting | 30 KB | Original official perturbation run log from the formal experiment. |
+| `perturbation-003.log` | Supporting | 9.3 KB | 2026-06-20 repro perturbation log. |
+| `supplemental-restart-001.log` | Supporting | 1.9 KB | Supplemental explicit-restart phase log from the formal experiment. |
+| `deploy-001.log` | Supporting | 3.5 KB | Provisioning log; captures deploy-time environment details. |
+| `verify-001.log` | Supporting | 12 KB | Historical 9-check live-Azure verify output. |
+| `preflight-001.log` | Supporting | 1.9 KB | Pre-bug-fix preflight attempt; transparency artifact. |
+| `preflight-002.log` | Supporting | 5.0 KB | Successful preflight log; records `azure-cli 2.79.0`. |
+| `preflight-staircase-aggregation.tsv` | Supporting | 413 B | Formal preflight RPS staircase aggregation. |
+| `preflight-buckets-10s.tsv` | Supporting | 1.6 KB | Formal preflight 10-second buckets. |
+| `baseline-start.txt` | Supporting | 21 B | Timestamp anchor used by historical KQL slicing. |
+| `run_kql_pack.sh` | Supporting / reproducibility | 14 KB | Historical KQL harness for q1-q7 generation. |
+| `scrub-pii.sh` | Supporting / reproducibility | 5.6 KB | PII scrubber aligned to repo policy. |
+| `deploy-env.sh` | Supporting / reproducibility | 1.4 KB | Sanitized shell context for repro scripting. |
+| `design-constraints-20260612.md` | Supporting / binding | 6.4 KB | D1-D10 design contract that Phase B cites directly (especially D2, D3, D4, D6, D8). |
+| `deploy-env.local.sh` | Gitignored local secret context | (gitignored) | Must not be committed as evidence input. |
+| `kql-pack.pid`, `perturbation.pid`, `supplemental-restart.pid` | Gitignored runtime metadata | (gitignored) | Process IDs only, not evidence. |
 
 ## Reproducibility
 
