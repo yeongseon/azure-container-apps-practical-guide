@@ -1,0 +1,71 @@
+{
+  "utc_captured": "2026-06-24T07:02:27Z",
+  "scenario": "B_crash",
+  "hypothesis": "H1",
+  "claim": "crash_loop_no_metrics_persists_across_bins_with_unready_state",
+  "target_revision": "ca-nometrics-crash--xfn3h34",
+  "signal_substring": "no metrics returned from resource metrics API",
+  "crash_duration_min_seconds_threshold": 300,
+  "crash_long_duration_fallback_threshold": 600,
+  "predicate_inputs": {
+    "report_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-crash/report-20260620T004905Z.txt",
+    "revisions_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-crash/revisions-20260620T004905Z.json"
+  },
+  "sub_gate_a_signal_spans_multiple_bins": {
+    "section_6_bin_count": 3,
+    "section_6_bins": [
+      [
+        25,
+        "2026-06-20T00:35:00Z"
+      ],
+      [
+        1,
+        "2026-06-20T00:40:00Z"
+      ],
+      [
+        1,
+        "2026-06-20T00:45:00Z"
+      ]
+    ],
+    "signal_line_count_section_5": 27,
+    "signal_duration_seconds_section_5": 603.4253370761871,
+    "a_strong_path_multiple_bins": true,
+    "a_fallback_path_long_duration_gt_min": true,
+    "a_pass": true
+  },
+  "sub_gate_b_unready_state": {
+    "section_2_health_state": "Unhealthy",
+    "section_2_running_state": "Failed",
+    "section_2_provisioning_state": "Failed",
+    "sidecar_first_health_state": "Unhealthy",
+    "b_strong_path_section_2_unhealthy_and_failed": true,
+    "b_fallback_path_sidecar_unhealthy_or_provisioning_failed": true,
+    "b_pass": true
+  },
+  "sub_gate_c_persistent_pattern": {
+    "section_6_bins_sorted": [
+      [
+        25,
+        "2026-06-20T00:35:00Z"
+      ],
+      [
+        1,
+        "2026-06-20T00:40:00Z"
+      ],
+      [
+        1,
+        "2026-06-20T00:45:00Z"
+      ]
+    ],
+    "c_strong_path_bins_beyond_first": true,
+    "c_fallback_path_very_long_duration_gt": true,
+    "c_pass": true
+  },
+  "h1_crash_sub_gates": {
+    "a_signal_spans_multiple_bins": true,
+    "b_unready_state": true,
+    "c_persistent_pattern": true
+  },
+  "h1_crash_all_subgates_pass": true,
+  "gate_classification": "crash_loop_no_metrics_persists_across_bins_with_unready_state"
+}

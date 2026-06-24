@@ -1,0 +1,284 @@
+========================================================
+KEDA No-Metrics-Returned Lab — Evidence Report
+========================================================
+App:       ca-nometrics-crash
+RG:        rg-aca-no-metrics-lab
+Lookback:  PT30M
+Timestamp: 20260620T004905Z
+========================================================
+
+=== 0. Tool versions ===
+{
+  "azure-cli": "2.79.0",
+  "azure-cli-core": "2.79.0",
+  "azure-cli-telemetry": "1.1.0",
+  "extensions": {
+    "account": "0.2.5",
+    "application-insights": "2.0.0b1",
+    "azure-firewall": "2.2.0",
+    "containerapp": "1.3.0b4",
+    "log-analytics": "1.0.0b1",
+    "webpubsub": "1.7.2"
+  }
+}
+{
+  "name": "containerapp",
+  "version": "1.3.0b4"
+}
+
+=== 1. App configuration ===
+{
+  "cpu": 0.5,
+  "envVars": [
+    {
+      "name": "MODE",
+      "value": "crash-loop"
+    },
+    {
+      "name": "DELAY_SECONDS",
+      "value": "30"
+    }
+  ],
+  "location": "Korea Central",
+  "maxReplicas": 10,
+  "memory": "1Gi",
+  "minReplicas": 2,
+  "name": "ca-nometrics-crash",
+  "provisioningState": "Succeeded",
+  "revisionMode": "Single",
+  "scaleRules": [
+    {
+      "custom": {
+        "auth": [],
+        "metadata": {
+          "type": "Utilization",
+          "value": "50"
+        },
+        "type": "memory"
+      },
+      "name": "mem-rule"
+    }
+  ]
+}
+
+=== 1b. Container name ===
+Container name: ca-nometrics-crash
+
+=== 2. Active revision(s) ===
+Active revisions: ca-nometrics-crash--xfn3h34
+{
+  "active": true,
+  "createdTime": "2026-06-20T00:36:20+00:00",
+  "healthState": "Unhealthy",
+  "name": "ca-nometrics-crash--xfn3h34",
+  "provisioningState": "Failed",
+  "replicas": 2,
+  "runningState": "Failed"
+}
+
+=== 2b. Traffic configuration ===
+[
+  {
+    "latestRevision": true,
+    "weight": 100
+  }
+]
+
+=== 3. Replica list (all active revisions) ===
+--- Replicas for revision: ca-nometrics-crash--xfn3h34 ---
+Name                                          ResourceGroup
+--------------------------------------------  ---------------------
+ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p  rg-aca-no-metrics-lab
+ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2  rg-aca-no-metrics-lab
+
+=== 4. Log Analytics workspace ===
+Workspace ID (customerId): 00000000-0000-0000-0000-000000000000
+
+=== 5. System logs: metric errors ===
+(Log Analytics ingestion delay: 5-10 min)
+Log_s                                                                                                                                                                                                                                TableName      TimeGenerated
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  -------------  ----------------------------
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:46:40.5064266Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:41:39.250037Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:39:38.4474734Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:39:23.2680028Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:39:23.2680028Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:39:08.1360358Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:39:08.1360358Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:53.1883992Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:38:53.1883992Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:38:38.1847043Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:38.1847043Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:38:23.1106498Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:23.1106498Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:08.1709207Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:38:08.1709207Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:37:53.3286545Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:53.3286545Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:38.3955963Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:37:38.3955963Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:23.3210928Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:37:22.0675678Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:37:07.3206214Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:07.3206214Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:36:52.1381764Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:36:52.1381764Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:36:37.0810899Z
+failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API                                                                                                                 PrimaryResult  2026-06-20T00:36:37.0810899Z
+
+=== 6. Metric error count timeline (5-min bins) ===
+ErrorCount    TableName      TimeGenerated
+------------  -------------  --------------------
+25            PrimaryResult  2026-06-20T00:35:00Z
+1             PrimaryResult  2026-06-20T00:40:00Z
+1             PrimaryResult  2026-06-20T00:45:00Z
+
+=== 7. System logs: DEPRECATED warnings ===
+Log_s                                                                                                          TableName      TimeGenerated
+-------------------------------------------------------------------------------------------------------------  -------------  ----------------------------
+scaler memory info: The 'type' setting is DEPRECATED and will be removed in v2.18 - Use 'metricType' instead.  PrimaryResult  2026-06-20T00:36:22.1089532Z
+
+=== 8. System logs: all scaler-related logs (last 30) ===
+Log_s                                                                                                                                                                                                                                TableName      TimeGenerated
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  -------------  ----------------------------
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:39:23.2680028Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:39:08.1360358Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:53.1883992Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:38.1847043Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:23.1106498Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:38:08.1709207Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:53.3286545Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:38.3955963Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:23.3210928Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:37:07.3206214Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:36:52.1381764Z
+invalid metrics (1 invalid out of 5), first error is: failed to get ca-nometrics-crash container metric value: failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API  PrimaryResult  2026-06-20T00:36:37.0810899Z
+scaler memory info: The 'type' setting is DEPRECATED and will be removed in v2.18 - Use 'metricType' instead.                                                                                                                        PrimaryResult  2026-06-20T00:36:22.1089532Z
+Replica 'ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p' has been scheduled to run on a node.                                                                                                                                          PrimaryResult  2026-06-20T00:36:22.1089532Z
+Replica 'ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2' has been scheduled to run on a node.                                                                                                                                          PrimaryResult  2026-06-20T00:36:22.1089532Z
+Scaler memory is built                                                                                                                                                                                                               PrimaryResult  2026-06-20T00:36:22.1089532Z
+KEDA is starting a watch for revision 'ca-nometrics-crash--xfn3h34' to monitor scale operations for this revision                                                                                                                    PrimaryResult  2026-06-20T00:36:22.1089532Z
+Scaler external-push is built                                                                                                                                                                                                        PrimaryResult  2026-06-20T00:36:22.1089532Z
+
+=== 9. System logs: container lifecycle events ===
+Log_s                                                                                                        TableName      TimeGenerated
+-----------------------------------------------------------------------------------------------------------  -------------  ----------------------------
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:45:00.5508233Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:45:00.5508233Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:45:00.5508233Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:45:00.5508233Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:44:55.1551482Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:44:55.1551482Z
+Container 'ca-nometrics-crash' was terminated with exit code '1' and reason 'ProcessExited'                  PrimaryResult  2026-06-20T00:44:53.3052267Z
+Container 'ca-nometrics-crash' was terminated with exit code '1' and reason 'ProcessExited'                  PrimaryResult  2026-06-20T00:44:51.1119026Z
+Pulling image 'acrnometrics2aw3wk.azurecr.io/nometrics:v1'                                                   PrimaryResult  2026-06-20T00:44:23.6959096Z
+Started container 'ca-nometrics-crash'                                                                       PrimaryResult  2026-06-20T00:44:23.6959096Z
+Successfully pulled image "acrnometrics2aw3wk.azurecr.io/nometrics:v1" in 18ms. Image size: 44040192 bytes.  PrimaryResult  2026-06-20T00:44:23.6959096Z
+Created container 'ca-nometrics-crash'                                                                       PrimaryResult  2026-06-20T00:44:23.6959096Z
+Created container 'ca-nometrics-crash'                                                                       PrimaryResult  2026-06-20T00:44:20.1801813Z
+Pulling image 'acrnometrics2aw3wk.azurecr.io/nometrics:v1'                                                   PrimaryResult  2026-06-20T00:44:20.1801813Z
+Started container 'ca-nometrics-crash'                                                                       PrimaryResult  2026-06-20T00:44:20.1801813Z
+Successfully pulled image "acrnometrics2aw3wk.azurecr.io/nometrics:v1" in 16ms. Image size: 44040192 bytes.  PrimaryResult  2026-06-20T00:44:20.1801813Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:41:46.6496766Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:41:46.6496766Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:41:46.6496766Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:41:46.6496766Z
+Container 'ca-nometrics-crash' was terminated with exit code '1' and reason 'ProcessExited'                  PrimaryResult  2026-06-20T00:41:43.1875527Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:41:41.140188Z
+Container 'ca-nometrics-crash' was terminated with exit code '1'                                             PrimaryResult  2026-06-20T00:41:41.140188Z
+Container 'ca-nometrics-crash' was terminated with exit code '1' and reason 'ProcessExited'                  PrimaryResult  2026-06-20T00:41:40.1406451Z
+Successfully pulled image "acrnometrics2aw3wk.azurecr.io/nometrics:v1" in 23ms. Image size: 44040192 bytes.  PrimaryResult  2026-06-20T00:41:12.0980537Z
+Pulling image 'acrnometrics2aw3wk.azurecr.io/nometrics:v1'                                                   PrimaryResult  2026-06-20T00:41:12.0980537Z
+Started container 'ca-nometrics-crash'                                                                       PrimaryResult  2026-06-20T00:41:12.0980537Z
+Created container 'ca-nometrics-crash'                                                                       PrimaryResult  2026-06-20T00:41:12.0980537Z
+Successfully pulled image "acrnometrics2aw3wk.azurecr.io/nometrics:v1" in 17ms. Image size: 44040192 bytes.  PrimaryResult  2026-06-20T00:41:10.2019368Z
+Pulling image 'acrnometrics2aw3wk.azurecr.io/nometrics:v1'                                                   PrimaryResult  2026-06-20T00:41:10.2019368Z
+
+=== 10. Console logs (last 30 lines) ===
+{"TimeStamp": "2026-06-20T00:49:57.10083", "Log": "Connecting to the container 'ca-nometrics-crash'..."}
+{"TimeStamp": "2026-06-20T00:49:57.19211", "Log": "Successfully Connected to container: 'ca-nometrics-crash' [Revision: 'ca-nometrics-crash--xfn3h34', Replica: 'ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p']"}
+{"TimeStamp": "2026-06-20T00:49:50.9239721+00:00", "Log": "F [app] listening on :8000"}
+{"TimeStamp": "2026-06-20T00:49:50.9240086+00:00", "Log": "F [crash-loop] will exit in 30s"}
+
+=== 11. System logs via CLI (last 30 lines) ===
+{"TimeStamp": "2026-06-20T00:49:58Z", "Type": "Normal", "ContainerAppName": null, "RevisionName": null, "ReplicaName": null, "Msg": "Connecting to the events collector...", "Reason": "StartingGettingEvents", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-20T00:49:58Z", "Type": "Normal", "ContainerAppName": null, "RevisionName": null, "ReplicaName": null, "Msg": "Successfully connected to events server", "Reason": "ConnectedToEventsServer", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-20 00:46:39 +0000 UTC", "Type": "Warning", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "", "Msg": "failed to get memory usage: unable to get metrics for resource memory: no metrics returned from resource metrics API", "Reason": "FailedGetContainerResourceMetric", "EventSource": "Scaling", "Count": 41}
+{"TimeStamp": "2026-06-20 00:49:50.3269058 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p", "Msg": "Pulling image 'acrnometrics2aw3wk.azurecr.io/nometrics:v1'", "Reason": "PullingImage", "EventSource": "ContainerAppController", "Count": 7}
+{"TimeStamp": "2026-06-20 00:49:50.3514163 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p", "Msg": "Successfully pulled image \"acrnometrics2aw3wk.azurecr.io/nometrics:v1\" in 24ms. Image size: 44040192 bytes.", "Reason": "PulledImage", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-20 00:49:50.4489449 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p", "Msg": "Created container 'ca-nometrics-crash'", "Reason": "ContainerCreated", "EventSource": "ContainerAppController", "Count": 7}
+{"TimeStamp": "2026-06-20 00:49:50.4612578 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p", "Msg": "Started container 'ca-nometrics-crash'", "Reason": "ContainerStarted", "EventSource": "ContainerAppController", "Count": 7}
+{"TimeStamp": "2026-06-20 00:49:52.9177895 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2", "Msg": "Pulling image 'acrnometrics2aw3wk.azurecr.io/nometrics:v1'", "Reason": "PullingImage", "EventSource": "ContainerAppController", "Count": 7}
+{"TimeStamp": "2026-06-20 00:49:52.9386559 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2", "Msg": "Successfully pulled image \"acrnometrics2aw3wk.azurecr.io/nometrics:v1\" in 21ms. Image size: 44040192 bytes.", "Reason": "PulledImage", "EventSource": "ContainerAppController", "Count": 1}
+{"TimeStamp": "2026-06-20 00:49:53.0443508 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2", "Msg": "Created container 'ca-nometrics-crash'", "Reason": "ContainerCreated", "EventSource": "ContainerAppController", "Count": 7}
+{"TimeStamp": "2026-06-20 00:49:53.0664205 +0000 UTC", "Type": "Normal", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2", "Msg": "Started container 'ca-nometrics-crash'", "Reason": "ContainerStarted", "EventSource": "ContainerAppController", "Count": 7}
+{"TimeStamp": "2026-06-20 00:49:55 +0000 UTC", "Type": "Warning", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2", "Msg": "Container 'ca-nometrics-crash' was terminated with exit code '1'", "Reason": "ProcessExited", "EventSource": "ContainerAppController", "Count": 16}
+{"TimeStamp": "2026-06-20 00:49:55 +0000 UTC", "Type": "Warning", "ContainerAppName": "ca-nometrics-crash", "RevisionName": "ca-nometrics-crash--xfn3h34", "ReplicaName": "ca-nometrics-crash--xfn3h34-6f75d7c7f9-p8mf2", "Msg": "Container 'ca-nometrics-crash' was terminated with exit code '1'", "Reason": "ProcessExited", "EventSource": "ContainerAppController", "Count": 17}
+
+=== 12a. Replica count (Max) ===
+
+=== 12b. Restart count (Total) ===
+
+=== 12c. Memory Percentage (Avg) ===
+
+=== 12d. CPU Percentage (Avg) ===
+
+=== 12e. Memory Working Set Bytes (Avg) ===
+
+=== 12f. Request count (Total) ===
+
+=== 13. cgroup memory.stat from live replica ===
+Replica: ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p
+ERROR: The command failed with an unexpected error. Here is the traceback:
+ERROR: (19, 'Operation not supported by device')
+Traceback (most recent call last):
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/knack/cli.py", line 233, in invoke
+    cmd_result = self.invocation.execute(args)
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 666, in execute
+    raise ex
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 734, in _run_jobs_serially
+    results.append(self._run_job(expanded_arg, cmd_copy))
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 703, in _run_job
+    result = cmd_copy(params)
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/__init__.py", line 336, in __call__
+    return self.handler(*args, **kwargs)
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/core/commands/command_operation.py", line 120, in handler
+    return op(**command_args)
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/custom.py", line 3536, in containerapp_ssh
+    writer = get_stdin_writer(conn)
+  File "/Users/demouser/Library/Python/3.9/lib/python/site-packages/azure/cli/command_modules/containerapp/_ssh_utils.py", line 187, in get_stdin_writer
+    tty.setcbreak(sys.stdin.fileno())  # needed to prevent printing arrow key characters
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/tty.py", line 32, in setcbreak
+    mode = tcgetattr(fd)
+termios.error: (19, 'Operation not supported by device')
+To check existing issues, please visit: https://github.com/Azure/azure-cli/issues
+INFO: Connecting to the container 'ca-nometrics-crash'...
+INFO: Successfully connected to container: 'ca-nometrics-crash'. [ Revision: 'ca-nometrics-crash--xfn3h34', Replica: 'ca-nometrics-crash--xfn3h34-6f75d7c7f9-nhp2p'].
+(exec failed — replica may be initializing or crash-looping)
+
+=== 14. Activity log (resource group, last 1h) ===
+Time                          Operation                          Status
+----------------------------  ---------------------------------  ---------
+2026-06-20T00:36:30.5164285Z  Microsoft.App/containerApps/write  Succeeded
+2026-06-20T00:36:15.2032693Z  Microsoft.App/containerApps/write  Accepted
+2026-06-20T00:36:14.8906448Z  Microsoft.App/containerApps/write  Started
+
+========================================================
+Evidence collection complete for ca-nometrics-crash
+Report saved to: /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/keda-no-metrics-returned/evidence/ca-nometrics-crash/report-20260620T004905Z.txt
+========================================================
+
+Portal screenshots to capture manually:
+  1. Metrics blade → MemoryPercentage (Avg) split by Replica
+  2. Metrics blade → Replicas (Max)
+  3. Metrics blade → RestartCount (Total)
+  4. Log stream → System logs (filter: 'no metrics returned')
+  5. Revisions blade → Revision health state and replica count
+
+Save screenshots to: /Users/demouser/GitHub/azure-container-apps-practical-guide/labs/keda-no-metrics-returned/evidence/ca-nometrics-crash/
+  Naming convention:
+    ca-nometrics-crash-metrics-memory-percentage.png
+    ca-nometrics-crash-metrics-replica-count.png
+    ca-nometrics-crash-metrics-restart-count.png
+    ca-nometrics-crash-system-logs-no-metrics.png
+    ca-nometrics-crash-revisions-health.png

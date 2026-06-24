@@ -1,0 +1,8 @@
+[
+  {
+    "healthState": "Healthy",
+    "name": "ca-nometrics-healthy--9ovm8cn",
+    "replicas": 2,
+    "trafficWeight": 100
+  }
+]

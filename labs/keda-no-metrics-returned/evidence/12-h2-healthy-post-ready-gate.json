@@ -1,0 +1,50 @@
+{
+  "utc_captured": "2026-06-24T07:02:27Z",
+  "scenario": "C_healthy",
+  "hypothesis": "H2",
+  "claim": "healthy_no_metrics_bounded_to_warmup_does_not_persist",
+  "target_revision": "ca-nometrics-healthy--9ovm8cn",
+  "signal_substring": "no metrics returned from resource metrics API",
+  "healthy_duration_max_seconds_threshold": 300,
+  "healthy_lines_max_fallback_threshold": 20,
+  "predicate_inputs": {
+    "report_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-healthy/report-20260620T005025Z.txt",
+    "revisions_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-healthy/revisions-20260620T005025Z.json",
+    "traffic_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-healthy/traffic-20260620T005025Z.json"
+  },
+  "sub_gate_a_healthy_and_running": {
+    "section_2_health_state": "Healthy",
+    "section_2_running_state": "Running",
+    "sidecar_first_health_state": "Healthy",
+    "sidecar_first_traffic_weight": 100,
+    "a_strong_path_section_2_healthy_and_running": true,
+    "a_fallback_path_sidecar_healthy_and_full_traffic": true,
+    "a_pass": true
+  },
+  "sub_gate_b_single_bin": {
+    "section_6_bin_count": 1,
+    "section_6_bins": [
+      [
+        16,
+        "2026-06-20T00:35:00Z"
+      ]
+    ],
+    "b_strong_path_single_bin": true,
+    "b_fallback_path_few_bins_le_2": true,
+    "b_pass": true
+  },
+  "sub_gate_c_silent_after_warmup": {
+    "signal_line_count_section_5": 16,
+    "signal_duration_seconds_section_5": 106.33262896537781,
+    "c_strong_path_short_duration_le_threshold": true,
+    "c_fallback_path_few_lines_le_threshold": true,
+    "c_pass": true
+  },
+  "h2_healthy_sub_gates": {
+    "a_healthy_and_running": true,
+    "b_single_bin": true,
+    "c_silent_after_warmup": true
+  },
+  "h2_healthy_all_subgates_pass": true,
+  "gate_classification": "healthy_no_metrics_bounded_to_warmup_does_not_persist"
+}

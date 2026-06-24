@@ -1,0 +1,54 @@
+{
+  "utc_captured": "2026-06-24T07:02:27Z",
+  "scenario": "A_slow",
+  "hypothesis": "H1",
+  "claim": "slow_start_no_metrics_correlates_with_notready_and_resolves",
+  "target_revision": "ca-nometrics-slow--gd2u817",
+  "signal_substring": "no metrics returned from resource metrics API",
+  "signal_min_lines_threshold": 10,
+  "predicate_inputs": {
+    "report_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-slow/report-20260620T004802Z.txt",
+    "revisions_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-slow/revisions-20260620T004802Z.json",
+    "traffic_path": "labs/keda-no-metrics-returned/evidence/ca-nometrics-slow/traffic-20260620T004802Z.json"
+  },
+  "sub_gate_a_signal_observed": {
+    "signal_line_count_strong_path_section_5": 20,
+    "signal_bin_total_fallback_path_section_6": 20,
+    "section_6_bins": [
+      [
+        20,
+        "2026-06-20T00:35:00Z"
+      ]
+    ],
+    "a_strong_path_signal_lines_ge_threshold": true,
+    "a_fallback_path_bin_total_ge_threshold": true,
+    "a_pass": true
+  },
+  "sub_gate_b_not_ready_correlated": {
+    "probe_failure_line_count_section_9": 30,
+    "windows_overlap_strong_path": true,
+    "window_timestamps": {
+      "s5_first": "2026-06-20T00:35:49.1541392Z",
+      "s5_last": "2026-06-20T00:38:05.0694807Z",
+      "s9_probe_first": "2026-06-20T00:37:22.0675678Z",
+      "s9_probe_last": "2026-06-20T00:37:51.234906Z"
+    },
+    "b_strong_path_probe_present_and_overlap": true,
+    "b_fallback_path_probe_present_only": true,
+    "b_pass": true
+  },
+  "sub_gate_c_eventually_ready": {
+    "sidecar_revisions_first_health_state": "Healthy",
+    "sidecar_traffic_first_weight": 100,
+    "c_strong_path_sidecar_healthy": true,
+    "c_fallback_path_traffic_full": true,
+    "c_pass": true
+  },
+  "h1_slow_sub_gates": {
+    "a_signal_observed": true,
+    "b_not_ready_correlated": true,
+    "c_eventually_ready": true
+  },
+  "h1_slow_all_subgates_pass": true,
+  "gate_classification": "slow_start_no_metrics_correlates_with_notready_and_resolves"
+}

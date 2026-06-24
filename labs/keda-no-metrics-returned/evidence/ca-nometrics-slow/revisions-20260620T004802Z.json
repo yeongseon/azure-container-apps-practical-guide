@@ -1,0 +1,8 @@
+[
+  {
+    "healthState": "Healthy",
+    "name": "ca-nometrics-slow--gd2u817",
+    "replicas": 1,
+    "trafficWeight": 100
+  }
+]
