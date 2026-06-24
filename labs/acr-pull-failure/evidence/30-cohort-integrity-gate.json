@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T15:21:14Z",
+  "utc_captured": "2026-06-24T15:51:13Z",
   "scenario": "acr_pull_failure_manifest_unknown",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_temporally_coherent",

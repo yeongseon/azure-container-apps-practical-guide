@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T15:21:14Z",
+  "utc_captured": "2026-06-24T15:51:13Z",
   "scenario": "acr_pull_failure_manifest_unknown",
   "hypothesis": "H1_failure_attribution",
   "claim": "failed_deployment_cohort_is_fully_attributable_to_manifest_resolution_failure",

@@ -780,6 +780,7 @@ REVS_AFTER_FIX_FILE="$REVS_AFTER_FIX_FILE" \
 ACR_REPO_LIST_AFTER_FIX_FILE="$ACR_REPO_LIST_AFTER_FIX_FILE" \
 ACR_REPO_TAGS_AFTER_FIX_FILE="$ACR_REPO_TAGS_AFTER_FIX_FILE" \
 CURL_AFTER_FIX_FILE="$CURL_AFTER_FIX_FILE" \
+KQL_AFTER_FIX_FILE="$KQL_AFTER_FIX_FILE" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
 python3 <<'PY' > "$GATE32_FILE"
 import json
@@ -800,12 +801,31 @@ revs_after_fix_path = pathlib.Path(os.environ["REVS_AFTER_FIX_FILE"])
 acr_repo_list_after_fix_path = pathlib.Path(os.environ["ACR_REPO_LIST_AFTER_FIX_FILE"])
 acr_repo_tags_after_fix_path = pathlib.Path(os.environ["ACR_REPO_TAGS_AFTER_FIX_FILE"])
 curl_after_fix_path = pathlib.Path(os.environ["CURL_AFTER_FIX_FILE"])
+kql_after_fix_path = pathlib.Path(os.environ["KQL_AFTER_FIX_FILE"])
 
 containerapp_update = json.loads(containerapp_update_path.read_text())
 revs_after_fix = json.loads(revs_after_fix_path.read_text())
 acr_repo_list_after_fix = json.loads(acr_repo_list_after_fix_path.read_text())
 acr_repo_tags_after_fix = json.loads(acr_repo_tags_after_fix_path.read_text())
 curl_after_fix = json.loads(curl_after_fix_path.read_text())
+
+# Q5 informational-only KQL post-fix safe-load. The post-fix KQL silence
+# classification is NEVER promoted to a Gate 32 sub-gate (Oracle Q5 directive);
+# it is surfaced on the gate JSON as a top-level `post_fix_kql_observation`
+# field for transparency only. Safe-load with graceful fallback so a missing
+# file or malformed JSON does not break Gate 32 evaluation.
+if kql_after_fix_path.exists():
+    try:
+        kql_after_fix = json.loads(kql_after_fix_path.read_text())
+        kql_result = kql_after_fix.get("post_fix_kql_result", {})
+        kql_classification = kql_result.get("gate_classification")
+        kql_rows = kql_result.get("rows")
+    except (json.JSONDecodeError, KeyError):
+        kql_classification = None
+        kql_rows = None
+else:
+    kql_classification = None
+    kql_rows = None
 
 TARGET_REPO_NAME = "labacr"
 TARGET_TAG = "v1"
@@ -929,6 +949,21 @@ result = {
         "observed_tag_present": d_tag_present,
         "d_predicate_holds": d_predicate_holds,
         "d_pass": d_pass,
+    },
+    "post_fix_kql_observation": {
+        "classification": kql_classification,
+        "row_count": kql_rows,
+        "promoted_to_gate": False,
+        "rationale": (
+            "Per Oracle Q5 directive: post-fix KQL silence is INFORMATIONAL ONLY "
+            "and is NOT promoted to a Gate 32 sub-gate. The Gate 32 PASS verdict is "
+            "anchored to sub-gates (a)-(d) (update succeeded with revision, Healthy "
+            "revision with traffic=100, curl requests OK, ACR repo and tag present) "
+            "- not to ContainerAppSystemLogs_CL row count, which may surface 0 rows "
+            "during the lab capture window due to platform-side ingestion lag "
+            "(typically 2-5 minutes for newly-materialized custom tables)."
+        ),
+        "predicate_input": repo_rel(kql_after_fix_path) if kql_after_fix_path.exists() else None,
     },
 }
 result["acr_pull_failure_h2_recovery_materialization_sub_gates"] = {

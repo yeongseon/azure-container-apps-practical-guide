@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T15:21:14Z",
+  "utc_captured": "2026-06-24T15:51:13Z",
   "scenario": "acr_pull_failure_manifest_unknown",
   "hypothesis": "H2_recovery_materialization",
   "claim": "az_acr_build_plus_az_containerapp_update_materialized_a_healthy_serving_revision",
@@ -62,6 +62,13 @@
     "observed_tag_present": true,
     "d_predicate_holds": true,
     "d_pass": true
+  },
+  "post_fix_kql_observation": {
+    "classification": "silent_acceptable_post_fix",
+    "row_count": 0,
+    "promoted_to_gate": false,
+    "rationale": "Per Oracle Q5 directive: post-fix KQL silence is INFORMATIONAL ONLY and is NOT promoted to a Gate 32 sub-gate. The Gate 32 PASS verdict is anchored to sub-gates (a)-(d) (update succeeded with revision, Healthy revision with traffic=100, curl requests OK, ACR repo and tag present) - not to ContainerAppSystemLogs_CL row count, which may surface 0 rows during the lab capture window due to platform-side ingestion lag (typically 2-5 minutes for newly-materialized custom tables).",
+    "predicate_input": "labs/acr-pull-failure/evidence/13-kql-after-fix.json"
   },
   "acr_pull_failure_h2_recovery_materialization_sub_gates": {
     "a_update_succeeded_with_revision": true,

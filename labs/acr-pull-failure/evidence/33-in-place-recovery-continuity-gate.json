@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T15:21:14Z",
+  "utc_captured": "2026-06-24T15:51:13Z",
   "scenario": "acr_pull_failure_manifest_unknown",
   "hypothesis": "H_in_place_recovery_continuity",
   "claim": "recovery_is_in_place_same_app_same_registry_image_tag_only_delta",
