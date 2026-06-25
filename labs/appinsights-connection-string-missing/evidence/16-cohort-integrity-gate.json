@@ -1,0 +1,142 @@
+{
+  "utc_captured": "2026-06-25T02:51:47Z",
+  "scenario": "appinsights_connection_string_missing",
+  "hypothesis": "H_cohort_integrity",
+  "claim": "evidence_cohort_is_internally_consistent_and_temporally_coherent",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "evidence_dir": "labs/appinsights-connection-string-missing/evidence",
+    "canonical_files_manifest": [
+      "00-trigger-run.txt",
+      "00-verify-run.txt",
+      "01-env-before-fix.json",
+      "02-traffic-completed-before-fix.txt",
+      "03-ai-requests-before-fix.json",
+      "04-ai-traces-before-fix.json",
+      "05-containerapp-full-config-before-fix.json",
+      "06-env-telemetry-config.json",
+      "07-env-after-fix.json",
+      "08-traffic-completed-after-fix.txt",
+      "09-ai-requests-after-fix.json",
+      "10-ai-traces-after-fix.json",
+      "11-containerapp-full-config-after-fix.json",
+      "12-kql-requests-timeline.json",
+      "13-ai-traces-messages-after-fix.json",
+      "14-revisions-lifecycle.json",
+      "15-ai-requests-detail-after-fix.json",
+      "A1-v1-unguarded-sdk-crash-logs.json",
+      "A2-v1-unguarded-crashloop-replica-state.json",
+      "A3-revisions-pre-patch.json"
+    ],
+    "phase_b_outputs_manifest": [
+      "16-cohort-integrity-gate.json",
+      "17-failure-attribution-gate.json",
+      "18-recovery-materialization-gate.json",
+      "19-single-variable-falsification-gate.json"
+    ],
+    "expected_meta_files": [
+      "README.md"
+    ]
+  },
+  "sub_gate_a_predicate": "All 20 canonical Phase A files exist; fallback requires at least 18.",
+  "sub_gate_b_predicate": "Before-fix traffic-completed timestamp (02-traffic-completed-before-fix.txt:1) and after-fix traffic-completed timestamp (08-traffic-completed-after-fix.txt:1) both parse as strict ISO-8601 UTC (YYYY-MM-DDTHH:MM:SSZ), are monotonic, and span <= 30 minutes (strong) / <= 60 minutes (fallback). Both files are single-line runtime captures from trigger.sh / fix-and-capture.sh \u2014 NO backfilled timestamps in this lab.",
+  "sub_gate_c_predicate": "No unexpected non-junk extras under evidence/. Strong path requires exact match of the canonical 20 + 4 Phase B outputs + README.md; fallback tolerates only editor/OS junk (.swp/.bak/.tmp/.swo/.orig/.DS_Store/Thumbs.db) and STILL requires zero missing canonical files.",
+  "sub_gate_d_predicate": "evidence/README.md cross-references all 4 Phase B gate JSON filenames; fallback requires only that README.md exists.",
+  "required_canonical_file_count": 20,
+  "minimum_fallback_file_count": 18,
+  "sub_gate_a_canonical_files_present": {
+    "observed_present_file_count": 20,
+    "observed_first_5": [
+      {
+        "path": "labs/appinsights-connection-string-missing/evidence/00-trigger-run.txt",
+        "exists": true
+      },
+      {
+        "path": "labs/appinsights-connection-string-missing/evidence/00-verify-run.txt",
+        "exists": true
+      },
+      {
+        "path": "labs/appinsights-connection-string-missing/evidence/01-env-before-fix.json",
+        "exists": true
+      },
+      {
+        "path": "labs/appinsights-connection-string-missing/evidence/02-traffic-completed-before-fix.txt",
+        "exists": true
+      },
+      {
+        "path": "labs/appinsights-connection-string-missing/evidence/03-ai-requests-before-fix.json",
+        "exists": true
+      }
+    ],
+    "a_strong_path_all_20_files_exist": true,
+    "a_fallback_path_at_least_18_files_exist": true,
+    "a_pass": true
+  },
+  "sub_gate_b_temporal_coherence": {
+    "observed_temporal_records": {
+      "traffic_before_raw": "2026-06-22T05:02:57Z",
+      "traffic_after_raw": "2026-06-22T05:09:45Z",
+      "traffic_before_iso": "2026-06-22T05:02:57+00:00",
+      "traffic_after_iso": "2026-06-22T05:09:45+00:00",
+      "traffic_before_parsed_strict_iso_utc_z": true,
+      "traffic_after_parsed_strict_iso_utc_z": true,
+      "monotonic_before_after": true,
+      "span_seconds_before_to_after": 408.0
+    },
+    "b_strong_path_monotonic_within_30min": true,
+    "b_fallback_path_monotonic_within_60min": true,
+    "b_pass": true
+  },
+  "sub_gate_c_no_unexpected_extras": {
+    "observed_extras_count": 0,
+    "observed_extras": [],
+    "observed_missing_canonical": [],
+    "unexpected_non_junk_extras": [],
+    "allowed_junk_suffixes": [
+      ".swp",
+      ".bak",
+      ".tmp",
+      ".swo",
+      ".orig"
+    ],
+    "allowed_junk_exact_names": [
+      ".DS_Store",
+      "Thumbs.db"
+    ],
+    "c_strong_path_exact_match": true,
+    "c_fallback_path_no_foreign_files": true,
+    "c_pass": true
+  },
+  "sub_gate_d_readme_references_gate_outputs": {
+    "observed_readme_exists": true,
+    "observed_gate_reference_records": [
+      {
+        "gate_filename": "16-cohort-integrity-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "17-failure-attribution-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "18-recovery-materialization-gate.json",
+        "mentioned_in_readme": true
+      },
+      {
+        "gate_filename": "19-single-variable-falsification-gate.json",
+        "mentioned_in_readme": true
+      }
+    ],
+    "d_strong_path_readme_references_all_gates": true,
+    "d_fallback_path_readme_exists": true,
+    "d_pass": true
+  },
+  "appinsights_h_cohort_integrity_sub_gates": {
+    "a_canonical_files_present": true,
+    "b_temporal_coherence": true,
+    "c_no_unexpected_extras": true,
+    "d_readme_references_gate_outputs": true
+  },
+  "appinsights_h_cohort_integrity_all_subgates_pass": true,
+  "gate_classification": "evidence_cohort_is_internally_consistent_and_temporally_coherent"
+}

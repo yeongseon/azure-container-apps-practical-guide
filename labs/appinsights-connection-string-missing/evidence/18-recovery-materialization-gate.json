@@ -1,0 +1,115 @@
+{
+  "utc_captured": "2026-06-25T02:51:47Z",
+  "scenario": "appinsights_connection_string_missing",
+  "hypothesis": "H2_recovery_materialization",
+  "claim": "adding_applicationinsights_connection_string_materialized_end_to_end_telemetry",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "verify_log_path": "labs/appinsights-connection-string-missing/evidence/00-verify-run.txt",
+    "env_after_path": "labs/appinsights-connection-string-missing/evidence/07-env-after-fix.json",
+    "ai_requests_after_path": "labs/appinsights-connection-string-missing/evidence/09-ai-requests-after-fix.json",
+    "ai_traces_after_path": "labs/appinsights-connection-string-missing/evidence/10-ai-traces-after-fix.json",
+    "ai_traces_messages_path": "labs/appinsights-connection-string-missing/evidence/13-ai-traces-messages-after-fix.json"
+  },
+  "thresholds": {
+    "expected_env_name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "expected_image_suffix": ":v3",
+    "expected_container_name": "app",
+    "expected_role_name": "unknown_service",
+    "expected_request_count": 20,
+    "expected_trace_count": 21,
+    "expected_startup_message": "Azure Monitor configured: telemetry export enabled",
+    "expected_endpoint_message": "/ endpoint hit (conn_str_present=True)",
+    "expected_recovery_pass_marker": "PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "expected_verify_log_line_count": 111,
+    "http_200_marker": "HTTP 200",
+    "request_line_prefix": "request "
+  },
+  "sub_gate_a_predicate": "07-env-after-fix.envNames contains 'APPLICATIONINSIGHTS_CONNECTION_STRING' AND 07-env-after-fix.image endswith ':v3' AND 07-env-after-fix.containerName == 'app' (BOTH-not-OR across all three conditions). Single-path. Record-scoped: parsed JSON membership + endswith + equality checks. The containerName check pins the env var to the SAME container the before-fix capture (Gate 17 sub-gate (a)) anchored on, not a sibling container that a parallel template change might have introduced.",
+  "sub_gate_b_predicate": "09-ai-requests-after-fix.tables[0].rows has EXACTLY 1 element AND that element == ['unknown_service', 20] (BOTH-not-OR). Single-path. Record-scoped: parsed JSON array length + equality.",
+  "sub_gate_c_predicate": "10-ai-traces-after-fix.tables[0].rows has EXACTLY 1 element AND that element == ['unknown_service', 21] (BOTH-not-OR). Single-path. Record-scoped.",
+  "sub_gate_d_predicate": "13-ai-traces-messages-after-fix.tables[0].rows has EXACTLY 21 records AND EXACTLY 1 row's message column == 'Azure Monitor configured: telemetry export enabled' AND EXACTLY 20 rows' message column == '/ endpoint hit (conn_str_present=True)'. Single-path. Record-scoped iteration. Corroborates the aggregate count from sub-gate (c) by per-message breakdown.",
+  "sub_gate_e_predicate": "00-verify-run.txt contains exactly 20 lines matching stripped.startswith('request ') AND 'HTTP 200' in stripped, AND contains the literal recovery PASS marker 'PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING', AND the file's total line count is exactly 111 (BOTH-not-OR across all three conditions). Line-scoped count + substring membership + length check. Single-path. The total-line-count check guards against truncated or augmented fix-and-capture logs that would still happen to contain 20 HTTP 200 lines and the recovery marker.",
+  "sub_gate_a_env_var_present_image_and_container_unchanged": {
+    "observed_env_names": [
+      "APPLICATIONINSIGHTS_CONNECTION_STRING"
+    ],
+    "observed_image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+    "observed_container_name": "app",
+    "observed_env_present": true,
+    "observed_image_ends_v3": true,
+    "observed_container_name_is_app": true,
+    "a_predicate_holds": true,
+    "a_pass": true
+  },
+  "sub_gate_b_ai_requests_exactly_one_unknown_service_20": {
+    "observed_ai_requests_rows": [
+      [
+        "unknown_service",
+        20
+      ]
+    ],
+    "observed_ai_requests_row_count": 1,
+    "observed_rows_count_is_1": true,
+    "observed_first_row_matches_expected": true,
+    "expected_row": [
+      "unknown_service",
+      20
+    ],
+    "b_predicate_holds": true,
+    "b_pass": true
+  },
+  "sub_gate_c_ai_traces_exactly_one_unknown_service_21": {
+    "observed_ai_traces_rows": [
+      [
+        "unknown_service",
+        21
+      ]
+    ],
+    "observed_ai_traces_row_count": 1,
+    "observed_rows_count_is_1": true,
+    "observed_first_row_matches_expected": true,
+    "expected_row": [
+      "unknown_service",
+      21
+    ],
+    "c_predicate_holds": true,
+    "c_pass": true
+  },
+  "sub_gate_d_per_message_corroboration_1_startup_plus_20_endpoint": {
+    "observed_total_trace_records": 21,
+    "observed_startup_count": 1,
+    "observed_endpoint_count": 20,
+    "observed_message_column_index": 1,
+    "observed_total_count_is_21": true,
+    "observed_startup_count_is_1": true,
+    "observed_endpoint_count_is_20": true,
+    "d_predicate_holds": true,
+    "d_pass": true
+  },
+  "sub_gate_e_verify_run_20_http_200_plus_recovery_pass_marker": {
+    "observed_total_log_lines": 111,
+    "observed_http_200_count": 20,
+    "observed_first_5_http_200_lines": [
+      "request 01 \u2192 HTTP 200",
+      "request 02 \u2192 HTTP 200",
+      "request 03 \u2192 HTTP 200",
+      "request 04 \u2192 HTTP 200",
+      "request 05 \u2192 HTTP 200"
+    ],
+    "observed_http_200_count_is_20": true,
+    "observed_recovery_pass_marker_present": true,
+    "observed_total_log_lines_matches": true,
+    "e_predicate_holds": true,
+    "e_pass": true
+  },
+  "appinsights_h2_recovery_materialization_sub_gates": {
+    "a_env_var_present_image_and_container_unchanged": true,
+    "b_ai_requests_exactly_one_unknown_service_20": true,
+    "c_ai_traces_exactly_one_unknown_service_21": true,
+    "d_per_message_corroboration_1_startup_plus_20_endpoint": true,
+    "e_verify_run_20_http_200_plus_recovery_pass_marker": true
+  },
+  "appinsights_h2_recovery_materialization_all_subgates_pass": true,
+  "gate_classification": "adding_applicationinsights_connection_string_materialized_end_to_end_telemetry"
+}

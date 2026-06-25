@@ -1,0 +1,77 @@
+{
+  "utc_captured": "2026-06-25T02:51:47Z",
+  "scenario": "appinsights_connection_string_missing",
+  "hypothesis": "H3_single_variable_falsification",
+  "claim": "recovery_is_in_place_single_env_var_delta_same_image_container_registry",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "config_before_path": "labs/appinsights-connection-string-missing/evidence/05-containerapp-full-config-before-fix.json",
+    "config_after_path": "labs/appinsights-connection-string-missing/evidence/11-containerapp-full-config-after-fix.json",
+    "revisions_lifecycle_path": "labs/appinsights-connection-string-missing/evidence/14-revisions-lifecycle.json"
+  },
+  "thresholds": {
+    "expected_env_name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "expected_image_suffix": ":v3",
+    "expected_container_name": "app",
+    "expected_before_revision_name_suffix": "--0000006",
+    "expected_after_revision_name_suffix": "--0000007"
+  },
+  "sub_gate_a_predicate": "template.containers[0] of 05-containerapp-full-config-before-fix and 11-containerapp-full-config-after-fix are byte-identical when serialized with sort_keys=True AFTER removing the 'env' key from both, AND the before-fix env is absent/null/empty, AND the after-fix env is a list of exactly 1 element whose .name == 'APPLICATIONINSIGHTS_CONNECTION_STRING'. Single-path BOTH-not-OR across all conditions. NOT a whole-file byte comparison \u2014 that would falsely fail on unrelated systemData.lastModifiedAt timestamps and revision-suffixed FQDNs.",
+  "sub_gate_b_predicate": "14-revisions-lifecycle.json contains a record with .name endswith '--0000006' AND .image endswith ':v3' AND .hasConnStr is False (pre-fix pair member), AND a record with .name endswith '--0000007' AND .image endswith ':v3' AND .hasConnStr is True AND .active is True (post-fix pair member). Single-path BOTH-not-OR per record. Record-scoped.",
+  "sub_gate_c_predicate": "Same ACR registry login server prefix (everything before first '/') in template.containers[0].image of before/after configs, AND both template.containers[0].name == 'app' (BOTH-not-OR). Single-path. Record-scoped: parses .image and .name fields, splits image on '/' to extract registry prefix.",
+  "sub_gate_a_env_only_delta_byte_identical_otherwise": {
+    "observed_before_container_present": true,
+    "observed_after_container_present": true,
+    "observed_before_container_serialized_without_env": "{\"image\": \"acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3\", \"imageType\": \"ContainerImage\", \"name\": \"app\", \"resources\": {\"cpu\": 0.5, \"ephemeralStorage\": \"2Gi\", \"memory\": \"1Gi\"}}",
+    "observed_after_container_serialized_without_env": "{\"image\": \"acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3\", \"imageType\": \"ContainerImage\", \"name\": \"app\", \"resources\": {\"cpu\": 0.5, \"ephemeralStorage\": \"2Gi\", \"memory\": \"1Gi\"}}",
+    "observed_container_byte_identical_after_removing_env": true,
+    "observed_before_env_field": null,
+    "observed_after_env_field_first_record_name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "observed_after_env_field_length": 1,
+    "observed_before_env_absent_or_empty": true,
+    "observed_after_env_is_single_expected_var": true,
+    "a_predicate_holds": true,
+    "a_pass": true
+  },
+  "sub_gate_b_falsification_pair_in_revisions_lifecycle": {
+    "observed_before_pair_record_count": 1,
+    "observed_before_pair_first_record": {
+      "active": false,
+      "createdTime": "2026-06-22T05:01:48+00:00",
+      "hasConnStr": false,
+      "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+      "name": "ca-appiconn-x2lcxd--0000006"
+    },
+    "observed_after_pair_record_count": 1,
+    "observed_after_pair_first_record": {
+      "active": true,
+      "createdTime": "2026-06-22T05:08:34+00:00",
+      "hasConnStr": true,
+      "image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+      "name": "ca-appiconn-x2lcxd--0000007"
+    },
+    "observed_before_pair_present": true,
+    "observed_after_pair_present": true,
+    "b_predicate_holds": true,
+    "b_pass": true
+  },
+  "sub_gate_c_same_registry_same_container_name": {
+    "observed_before_image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+    "observed_after_image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+    "observed_before_registry": "acrappiconnx2lcxd.azurecr.io",
+    "observed_after_registry": "acrappiconnx2lcxd.azurecr.io",
+    "observed_before_container_name": "app",
+    "observed_after_container_name": "app",
+    "observed_same_registry": true,
+    "observed_same_container_name_app": true,
+    "c_predicate_holds": true,
+    "c_pass": true
+  },
+  "appinsights_h3_single_variable_falsification_sub_gates": {
+    "a_env_only_delta_byte_identical_otherwise": true,
+    "b_falsification_pair_in_revisions_lifecycle": true,
+    "c_same_registry_same_container_name": true
+  },
+  "appinsights_h3_single_variable_falsification_all_subgates_pass": true,
+  "gate_classification": "recovery_is_in_place_single_env_var_delta_same_image_container_registry"
+}
