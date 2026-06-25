@@ -106,6 +106,11 @@ cd labs/appinsights-connection-string-missing/
         --parameters baseName="appiconn"
     ```
 
+    | Command | Why it is used |
+    |---|---|
+    | `az group create` | Creates the lab resource group at `$LOCATION` (koreacentral) before any child resources are deployed. |
+    | `az deployment group create` | Deploys `infra/main.bicep` with the required `baseName="appiconn"` parameter. `--name main` gives the deployment a stable, queryable name so step 2 can read its outputs. |
+
     This creates the Log Analytics workspace, Application Insights, ACR, Container Apps Environment, and a Container App running the helloworld baseline image.
 
 2. Read the deployment outputs so the remaining commands and scripts know which resources to act on. `IMAGE_TAG` is required by `trigger.sh` ([`trigger.sh:8`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/appinsights-connection-string-missing/trigger.sh#L8)); `verify.sh` does not read `IMAGE_TAG` because it changes env vars on the already-deployed image rather than swapping the image:
@@ -151,6 +156,10 @@ cd labs/appinsights-connection-string-missing/
         --image "$IMAGE_TAG" \
         ./app
     ```
+
+    | Command | Why it is used |
+    |---|---|
+    | `az acr build` | Builds the instrumented Python image (`hellotelemetry:v3`) inside the lab's ACR. No local Docker daemon required. |
 
 ### Trigger the failure (run trigger.sh)
 
@@ -219,6 +228,12 @@ print(json.dumps(out, indent=2))
 "
 ```
 
+| Command | Why it is used |
+|---|---|
+| `az monitor app-insights query` (traces) | Emits `evidence/13-ai-traces-messages-after-fix.json`: projects `timestamp, message, severityLevel` from the last 15 minutes of `traces` and orders by time. |
+| `az monitor app-insights query` (requests) | Emits `evidence/15-ai-requests-detail-after-fix.json`: per-row request detail with `name, resultCode, success, duration, url`. |
+| `az containerapp revision list` + `python3` | Emits `evidence/14-revisions-lifecycle.json`: decorates each revision with a `hasConnStr` flag computed from the env array, sorted by `createdTime`. |
+
 ### Apply the fix manually (the canonical remediation command)
 
 Add `APPLICATIONINSIGHTS_CONNECTION_STRING` to the Container App env vars, sourcing the value directly from the Application Insights resource so the binding is deterministic:
@@ -237,6 +252,11 @@ az containerapp update \
     --resource-group "$RG" \
     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}"
 ```
+
+| Command | Why it is used |
+|---|---|
+| `az monitor app-insights component show` | Reads the connection string directly from the deployed Application Insights resource so the binding is deterministic and never depends on a hardcoded literal. |
+| `az containerapp update --set-env-vars` | Adds `APPLICATIONINSIGHTS_CONNECTION_STRING` to the Container App, triggering creation of a new Healthy revision that emits telemetry. |
 
 For production, store the connection string in Azure Key Vault and inject it via `--secrets` / `--env-vars` with a `secretref:` reference rather than embedding the literal value in the Container App template.
 
