@@ -1,0 +1,68 @@
+{
+  "utc_captured": "2026-06-25T01:52:45Z",
+  "scenario": "appinsights_connection_string_missing",
+  "hypothesis": "H1_failure_attribution",
+  "claim": "before_fix_cohort_is_fully_attributable_to_missing_applicationinsights_connection_string",
+  "claim_level": "Observed",
+  "predicate_inputs": {
+    "trigger_log_path": "labs/appinsights-connection-string-missing/evidence/00-trigger-run.txt",
+    "env_before_path": "labs/appinsights-connection-string-missing/evidence/01-env-before-fix.json",
+    "ai_requests_before_path": "labs/appinsights-connection-string-missing/evidence/03-ai-requests-before-fix.json",
+    "ai_traces_before_path": "labs/appinsights-connection-string-missing/evidence/04-ai-traces-before-fix.json"
+  },
+  "thresholds": {
+    "expected_image_suffix": ":v3",
+    "expected_container_name": "app",
+    "expected_request_count": 20,
+    "http_200_marker": "HTTP 200",
+    "request_line_prefix": "request "
+  },
+  "cohort_binding_note": "Sub-gates (b) and (c) are absence predicates (AppRequests empty / AppTraces empty) that are interpretable as missing-env-var evidence ONLY in conjunction with sub-gate (a) (env=null on the :v3 'app' container) AND sub-gate (d) (the app served 20 HTTP 200 during the before-fix capture window). Without (a)+(d), 'AI tables empty' could mean SDK is broken / workspace is misrouted / query is wrong / no traffic was sent \u2014 none of which is attributable to the missing APPLICATIONINSIGHTS_CONNECTION_STRING env var. The predicate_inputs block colocates the anchor and the absences in the same gate JSON so a reader cannot interpret them separately.",
+  "sub_gate_a_predicate": "01-env-before-fix.env is None AND .image endswith ':v3' AND .containerName == 'app' (BOTH-not-OR across all three conditions). Single-path. Record-scoped: parsed JSON field reads.",
+  "sub_gate_b_predicate": "03-ai-requests-before-fix.tables[0].rows == [] (exact equality, single-path). Record-scoped: parsed JSON array equality, not greppy substring.",
+  "sub_gate_c_predicate": "04-ai-traces-before-fix.tables[0].rows == [] (exact equality, single-path). Record-scoped: parsed JSON array equality, not greppy substring.",
+  "sub_gate_d_predicate": "00-trigger-run.txt contains exactly 20 lines matching pattern stripped.startswith('request ') AND 'HTTP 200' in stripped. Line-scoped: split on newline, strip, prefix-and-substring check; NOT whole-file regex. This availability anchor makes (b)/(c) attributable to missing instrumentation rather than 'app down'.",
+  "sub_gate_a_missing_env_var_anchor": {
+    "observed_env_field": null,
+    "observed_image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+    "observed_container_name": "app",
+    "observed_env_is_none": true,
+    "observed_image_ends_v3": true,
+    "observed_container_name_is_app": true,
+    "a_predicate_holds": true,
+    "a_pass": true
+  },
+  "sub_gate_b_ai_requests_empty": {
+    "observed_ai_requests_rows": [],
+    "observed_ai_requests_row_count": 0,
+    "b_predicate_holds": true,
+    "b_pass": true
+  },
+  "sub_gate_c_ai_traces_empty": {
+    "observed_ai_traces_rows": [],
+    "observed_ai_traces_row_count": 0,
+    "c_predicate_holds": true,
+    "c_pass": true
+  },
+  "sub_gate_d_availability_anchor_20_http_200": {
+    "observed_total_log_lines": 93,
+    "observed_http_200_count": 20,
+    "observed_first_5_http_200_lines": [
+      "request 01 \u2192 HTTP 200",
+      "request 02 \u2192 HTTP 200",
+      "request 03 \u2192 HTTP 200",
+      "request 04 \u2192 HTTP 200",
+      "request 05 \u2192 HTTP 200"
+    ],
+    "d_predicate_holds": true,
+    "d_pass": true
+  },
+  "appinsights_h1_failure_attribution_sub_gates": {
+    "a_missing_env_var_anchor": true,
+    "b_ai_requests_empty": true,
+    "c_ai_traces_empty": true,
+    "d_availability_anchor_20_http_200": true
+  },
+  "appinsights_h1_failure_attribution_all_subgates_pass": true,
+  "gate_classification": "before_fix_cohort_is_fully_attributable_to_missing_applicationinsights_connection_string"
+}
