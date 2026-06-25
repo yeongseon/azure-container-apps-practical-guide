@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-25T02:45:26Z",
+  "utc_captured": "2026-06-25T02:51:47Z",
   "scenario": "appinsights_connection_string_missing",
   "hypothesis": "H1_failure_attribution",
   "claim": "before_fix_signature_consistent_with_missing_applicationinsights_connection_string",

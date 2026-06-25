@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-25T02:45:26Z",
+  "utc_captured": "2026-06-25T02:51:47Z",
   "scenario": "appinsights_connection_string_missing",
   "hypothesis": "H2_recovery_materialization",
   "claim": "adding_applicationinsights_connection_string_materialized_end_to_end_telemetry",

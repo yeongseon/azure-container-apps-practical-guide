@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-25T02:45:26Z",
+  "utc_captured": "2026-06-25T02:51:47Z",
   "scenario": "appinsights_connection_string_missing",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_temporally_coherent",
