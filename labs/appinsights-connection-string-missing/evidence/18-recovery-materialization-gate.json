@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-25T01:52:45Z",
+  "utc_captured": "2026-06-25T02:45:26Z",
   "scenario": "appinsights_connection_string_missing",
   "hypothesis": "H2_recovery_materialization",
   "claim": "adding_applicationinsights_connection_string_materialized_end_to_end_telemetry",
@@ -14,27 +14,31 @@
   "thresholds": {
     "expected_env_name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
     "expected_image_suffix": ":v3",
+    "expected_container_name": "app",
     "expected_role_name": "unknown_service",
     "expected_request_count": 20,
     "expected_trace_count": 21,
     "expected_startup_message": "Azure Monitor configured: telemetry export enabled",
     "expected_endpoint_message": "/ endpoint hit (conn_str_present=True)",
     "expected_recovery_pass_marker": "PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "expected_verify_log_line_count": 111,
     "http_200_marker": "HTTP 200",
     "request_line_prefix": "request "
   },
-  "sub_gate_a_predicate": "07-env-after-fix.envNames contains 'APPLICATIONINSIGHTS_CONNECTION_STRING' AND 07-env-after-fix.image endswith ':v3' (BOTH-not-OR). Single-path. Record-scoped: parsed JSON membership + endswith checks.",
+  "sub_gate_a_predicate": "07-env-after-fix.envNames contains 'APPLICATIONINSIGHTS_CONNECTION_STRING' AND 07-env-after-fix.image endswith ':v3' AND 07-env-after-fix.containerName == 'app' (BOTH-not-OR across all three conditions). Single-path. Record-scoped: parsed JSON membership + endswith + equality checks. The containerName check pins the env var to the SAME container the before-fix capture (Gate 17 sub-gate (a)) anchored on, not a sibling container that a parallel template change might have introduced.",
   "sub_gate_b_predicate": "09-ai-requests-after-fix.tables[0].rows has EXACTLY 1 element AND that element == ['unknown_service', 20] (BOTH-not-OR). Single-path. Record-scoped: parsed JSON array length + equality.",
   "sub_gate_c_predicate": "10-ai-traces-after-fix.tables[0].rows has EXACTLY 1 element AND that element == ['unknown_service', 21] (BOTH-not-OR). Single-path. Record-scoped.",
   "sub_gate_d_predicate": "13-ai-traces-messages-after-fix.tables[0].rows has EXACTLY 21 records AND EXACTLY 1 row's message column == 'Azure Monitor configured: telemetry export enabled' AND EXACTLY 20 rows' message column == '/ endpoint hit (conn_str_present=True)'. Single-path. Record-scoped iteration. Corroborates the aggregate count from sub-gate (c) by per-message breakdown.",
-  "sub_gate_e_predicate": "00-verify-run.txt contains exactly 20 lines matching stripped.startswith('request ') AND 'HTTP 200' in stripped, AND contains the literal recovery PASS marker 'PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING' (BOTH-not-OR). Line-scoped count + substring membership. Single-path.",
-  "sub_gate_a_env_var_present_image_unchanged": {
+  "sub_gate_e_predicate": "00-verify-run.txt contains exactly 20 lines matching stripped.startswith('request ') AND 'HTTP 200' in stripped, AND contains the literal recovery PASS marker 'PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING', AND the file's total line count is exactly 111 (BOTH-not-OR across all three conditions). Line-scoped count + substring membership + length check. Single-path. The total-line-count check guards against truncated or augmented fix-and-capture logs that would still happen to contain 20 HTTP 200 lines and the recovery marker.",
+  "sub_gate_a_env_var_present_image_and_container_unchanged": {
     "observed_env_names": [
       "APPLICATIONINSIGHTS_CONNECTION_STRING"
     ],
     "observed_image": "acrappiconnx2lcxd.azurecr.io/hellotelemetry:v3",
+    "observed_container_name": "app",
     "observed_env_present": true,
     "observed_image_ends_v3": true,
+    "observed_container_name_is_app": true,
     "a_predicate_holds": true,
     "a_pass": true
   },
@@ -95,11 +99,12 @@
     ],
     "observed_http_200_count_is_20": true,
     "observed_recovery_pass_marker_present": true,
+    "observed_total_log_lines_matches": true,
     "e_predicate_holds": true,
     "e_pass": true
   },
   "appinsights_h2_recovery_materialization_sub_gates": {
-    "a_env_var_present_image_unchanged": true,
+    "a_env_var_present_image_and_container_unchanged": true,
     "b_ai_requests_exactly_one_unknown_service_20": true,
     "c_ai_traces_exactly_one_unknown_service_21": true,
     "d_per_message_corroboration_1_startup_plus_20_endpoint": true,

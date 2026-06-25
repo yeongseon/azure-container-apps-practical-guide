@@ -608,6 +608,7 @@ ai_traces_before = json.loads(ai_traces_before_path.read_text())
 EXPECTED_IMAGE_SUFFIX = ":v3"
 EXPECTED_CONTAINER_NAME = "app"
 EXPECTED_REQUEST_COUNT = 20
+EXPECTED_TOTAL_LOG_LINE_COUNT = 93
 HTTP_200_MARKER = "HTTP 200"
 REQUEST_LINE_PREFIX = "request "
 
@@ -648,11 +649,16 @@ c_pass = c_predicate_holds
 
 # Sub-gate (d): availability anchor. 00-trigger-run.txt must contain
 # exactly 20 lines matching the pattern "request NN -> HTTP 200" (after
-# stripping leading whitespace). Line-scoped (split on \n, strip, check
-# startswith() + substring), NOT whole-file regex. This sub-gate
-# transforms (b)/(c) from "tables empty" (could mean anything) into
-# "tables empty WHILE the app was healthy AND serving traffic" — which
-# is what makes the absence diagnostic for missing instrumentation.
+# stripping leading whitespace) AND the file's total line count must be
+# exactly 93 (the canonical length of the captured trigger.sh log).
+# Line-scoped (split on \n, strip, check startswith() + substring), NOT
+# whole-file regex. This sub-gate transforms (b)/(c) from "tables empty"
+# (could mean anything) into "tables empty WHILE the app was healthy AND
+# serving traffic" — which is what makes the absence diagnostic for
+# missing instrumentation. The total-line-count check guards against
+# truncated or augmented trigger logs that would still happen to contain
+# 20 HTTP 200 lines but differ in their surrounding context (a different
+# pre-traffic capture sequence would change the line count).
 trigger_log_lines = trigger_log_path.read_text().splitlines()
 http_200_request_lines = []
 for raw_line in trigger_log_lines:
@@ -660,14 +666,17 @@ for raw_line in trigger_log_lines:
     if stripped.startswith(REQUEST_LINE_PREFIX) and HTTP_200_MARKER in stripped:
         http_200_request_lines.append(stripped)
 observed_http_200_count = len(http_200_request_lines)
-d_predicate_holds = observed_http_200_count == EXPECTED_REQUEST_COUNT
+observed_total_log_lines = len(trigger_log_lines)
+d_http_200_count_matches = observed_http_200_count == EXPECTED_REQUEST_COUNT
+d_total_log_lines_matches = observed_total_log_lines == EXPECTED_TOTAL_LOG_LINE_COUNT
+d_predicate_holds = d_http_200_count_matches and d_total_log_lines_matches
 d_pass = d_predicate_holds
 
 result = {
     "utc_captured": os.environ["UTC_NOW"],
     "scenario": "appinsights_connection_string_missing",
     "hypothesis": "H1_failure_attribution",
-    "claim": "before_fix_cohort_is_fully_attributable_to_missing_applicationinsights_connection_string",
+    "claim": "before_fix_signature_consistent_with_missing_applicationinsights_connection_string",
     "claim_level": "Observed",
     "predicate_inputs": {
         "trigger_log_path": repo_rel(trigger_log_path),
@@ -679,6 +688,7 @@ result = {
         "expected_image_suffix": EXPECTED_IMAGE_SUFFIX,
         "expected_container_name": EXPECTED_CONTAINER_NAME,
         "expected_request_count": EXPECTED_REQUEST_COUNT,
+        "expected_total_log_line_count": EXPECTED_TOTAL_LOG_LINE_COUNT,
         "http_200_marker": HTTP_200_MARKER,
         "request_line_prefix": REQUEST_LINE_PREFIX,
     },
@@ -691,7 +701,15 @@ result = {
         "workspace is misrouted / query is wrong / no traffic was sent — none "
         "of which is attributable to the missing APPLICATIONINSIGHTS_CONNECTION_STRING "
         "env var. The predicate_inputs block colocates the anchor and the absences "
-        "in the same gate JSON so a reader cannot interpret them separately."
+        "in the same gate JSON so a reader cannot interpret them separately. "
+        "Additionally, full attribution to the missing env var as the UNIQUE cause "
+        "of the silent gap requires reading this gate together with Gate 18 "
+        "(recovery materialization proves adding the env var was sufficient) AND "
+        "Gate 19 (single-variable falsification proves nothing else changed between "
+        "the before-fix and after-fix configs). Gate 17 alone proves the before-fix "
+        "signature is CONSISTENT WITH the missing-env-var hypothesis, NOT that the "
+        "missing env var is the UNIQUE cause of the silent observability gap — that "
+        "stronger claim is only earned by reading Gates 17 + 18 + 19 together."
     ),
     "sub_gate_a_predicate": (
         "01-env-before-fix.env is None AND .image endswith ':v3' AND "
@@ -708,10 +726,14 @@ result = {
     ),
     "sub_gate_d_predicate": (
         "00-trigger-run.txt contains exactly 20 lines matching pattern "
-        "stripped.startswith('request ') AND 'HTTP 200' in stripped. "
-        "Line-scoped: split on newline, strip, prefix-and-substring check; "
-        "NOT whole-file regex. This availability anchor makes (b)/(c) "
-        "attributable to missing instrumentation rather than 'app down'."
+        "stripped.startswith('request ') AND 'HTTP 200' in stripped, AND "
+        "the file's total line count is exactly 93 (BOTH-not-OR across "
+        "both conditions). Line-scoped: split on newline, strip, "
+        "prefix-and-substring check; NOT whole-file regex. This availability "
+        "anchor makes (b)/(c) attributable to missing instrumentation rather "
+        "than 'app down'. The total-line-count check guards against truncated "
+        "or augmented trigger logs that would still happen to contain 20 "
+        "HTTP 200 lines but differ in their surrounding context."
     ),
     "sub_gate_a_missing_env_var_anchor": {
         "observed_env_field": observed_env_field,
@@ -740,9 +762,11 @@ result = {
         "c_pass": c_pass,
     },
     "sub_gate_d_availability_anchor_20_http_200": {
-        "observed_total_log_lines": len(trigger_log_lines),
+        "observed_total_log_lines": observed_total_log_lines,
         "observed_http_200_count": observed_http_200_count,
         "observed_first_5_http_200_lines": http_200_request_lines[:5],
+        "observed_http_200_count_matches": d_http_200_count_matches,
+        "observed_total_log_lines_matches": d_total_log_lines_matches,
         "d_predicate_holds": d_predicate_holds,
         "d_pass": d_pass,
     },
@@ -756,7 +780,7 @@ result["appinsights_h1_failure_attribution_sub_gates"] = {
 result["appinsights_h1_failure_attribution_all_subgates_pass"] = all(
     result["appinsights_h1_failure_attribution_sub_gates"].values()
 )
-result["gate_classification"] = "before_fix_cohort_is_fully_attributable_to_missing_applicationinsights_connection_string"
+result["gate_classification"] = "before_fix_signature_consistent_with_missing_applicationinsights_connection_string"
 print(json.dumps(result, indent=2))
 PY
 
@@ -791,20 +815,27 @@ ai_traces_messages = json.loads(ai_traces_messages_path.read_text())
 
 EXPECTED_ENV_NAME = "APPLICATIONINSIGHTS_CONNECTION_STRING"
 EXPECTED_IMAGE_SUFFIX = ":v3"
+EXPECTED_CONTAINER_NAME = "app"
 EXPECTED_ROLE_NAME = "unknown_service"
 EXPECTED_REQUEST_COUNT = 20
 EXPECTED_TRACE_COUNT = 21
 EXPECTED_STARTUP_MESSAGE = "Azure Monitor configured: telemetry export enabled"
 EXPECTED_ENDPOINT_MESSAGE = "/ endpoint hit (conn_str_present=True)"
 EXPECTED_RECOVERY_PASS_MARKER = "PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING"
+EXPECTED_VERIFY_LOG_LINE_COUNT = 111
 HTTP_200_MARKER = "HTTP 200"
 REQUEST_LINE_PREFIX = "request "
 
-# Sub-gate (a): env-var present on the same :v3 image. Single-path
-# BOTH-not-OR: envNames contains APPLICATIONINSIGHTS_CONNECTION_STRING
-# AND image endswith :v3.
+# Sub-gate (a): env-var present on the same :v3 image AND the same
+# container name as the before-fix anchor. Single-path BOTH-not-OR:
+# envNames contains APPLICATIONINSIGHTS_CONNECTION_STRING AND image
+# endswith :v3 AND containerName == "app". The containerName check is
+# what proves the env var landed on the SAME container the before-fix
+# capture (Gate 17 sub-gate (a)) anchored on, not a sibling container
+# that a parallel template change might have introduced.
 observed_env_names = env_after.get("envNames") or []
 observed_image = env_after.get("image")
+observed_container_name = env_after.get("containerName")
 a_env_present = (
     isinstance(observed_env_names, list)
     and EXPECTED_ENV_NAME in observed_env_names
@@ -813,7 +844,8 @@ a_image_ends_v3 = (
     isinstance(observed_image, str)
     and observed_image.endswith(EXPECTED_IMAGE_SUFFIX)
 )
-a_predicate_holds = a_env_present and a_image_ends_v3
+a_container_name_is_app = observed_container_name == EXPECTED_CONTAINER_NAME
+a_predicate_holds = a_env_present and a_image_ends_v3 and a_container_name_is_app
 a_pass = a_predicate_holds
 
 # Sub-gate (b): AppRequests now exactly [["unknown_service", 20]].
@@ -887,8 +919,14 @@ d_predicate_holds = d_total_count_is_21 and d_startup_count_is_1 and d_endpoint_
 d_pass = d_predicate_holds
 
 # Sub-gate (e): 00-verify-run.txt shows 20 fresh HTTP 200 responses AND
-# contains the literal recovery PASS marker. Line-scoped count plus
-# substring membership check on the marker. Single-path BOTH-not-OR.
+# contains the literal recovery PASS marker AND the file's total line
+# count is exactly 111. Line-scoped count + substring membership +
+# length check. Single-path BOTH-not-OR across all three conditions.
+# The total-line-count check guards against truncated or augmented
+# fix-and-capture logs that would still happen to contain 20 HTTP 200
+# lines and the recovery marker (e.g., a partial rerun that captured
+# only the recovery half, or an augmented log with additional spurious
+# request lines beyond the canonical 20).
 verify_log_text = verify_log_path.read_text()
 verify_log_lines = verify_log_text.splitlines()
 verify_http_200_request_lines = []
@@ -897,9 +935,15 @@ for raw_line in verify_log_lines:
     if stripped.startswith(REQUEST_LINE_PREFIX) and HTTP_200_MARKER in stripped:
         verify_http_200_request_lines.append(stripped)
 e_observed_http_200_count = len(verify_http_200_request_lines)
+e_observed_total_log_lines = len(verify_log_lines)
 e_http_200_count_is_20 = e_observed_http_200_count == EXPECTED_REQUEST_COUNT
 e_recovery_pass_marker_present = EXPECTED_RECOVERY_PASS_MARKER in verify_log_text
-e_predicate_holds = e_http_200_count_is_20 and e_recovery_pass_marker_present
+e_total_log_lines_matches = e_observed_total_log_lines == EXPECTED_VERIFY_LOG_LINE_COUNT
+e_predicate_holds = (
+    e_http_200_count_is_20
+    and e_recovery_pass_marker_present
+    and e_total_log_lines_matches
+)
 e_pass = e_predicate_holds
 
 result = {
@@ -918,19 +962,25 @@ result = {
     "thresholds": {
         "expected_env_name": EXPECTED_ENV_NAME,
         "expected_image_suffix": EXPECTED_IMAGE_SUFFIX,
+        "expected_container_name": EXPECTED_CONTAINER_NAME,
         "expected_role_name": EXPECTED_ROLE_NAME,
         "expected_request_count": EXPECTED_REQUEST_COUNT,
         "expected_trace_count": EXPECTED_TRACE_COUNT,
         "expected_startup_message": EXPECTED_STARTUP_MESSAGE,
         "expected_endpoint_message": EXPECTED_ENDPOINT_MESSAGE,
         "expected_recovery_pass_marker": EXPECTED_RECOVERY_PASS_MARKER,
+        "expected_verify_log_line_count": EXPECTED_VERIFY_LOG_LINE_COUNT,
         "http_200_marker": HTTP_200_MARKER,
         "request_line_prefix": REQUEST_LINE_PREFIX,
     },
     "sub_gate_a_predicate": (
         "07-env-after-fix.envNames contains 'APPLICATIONINSIGHTS_CONNECTION_STRING' "
-        "AND 07-env-after-fix.image endswith ':v3' (BOTH-not-OR). Single-path. "
-        "Record-scoped: parsed JSON membership + endswith checks."
+        "AND 07-env-after-fix.image endswith ':v3' AND 07-env-after-fix.containerName "
+        "== 'app' (BOTH-not-OR across all three conditions). Single-path. "
+        "Record-scoped: parsed JSON membership + endswith + equality checks. The "
+        "containerName check pins the env var to the SAME container the before-fix "
+        "capture (Gate 17 sub-gate (a)) anchored on, not a sibling container that a "
+        "parallel template change might have introduced."
     ),
     "sub_gate_b_predicate": (
         "09-ai-requests-after-fix.tables[0].rows has EXACTLY 1 element "
@@ -953,14 +1003,21 @@ result = {
         "00-verify-run.txt contains exactly 20 lines matching "
         "stripped.startswith('request ') AND 'HTTP 200' in stripped, "
         "AND contains the literal recovery PASS marker "
-        "'PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING' (BOTH-not-OR). "
-        "Line-scoped count + substring membership. Single-path."
+        "'PASS: After adding APPLICATIONINSIGHTS_CONNECTION_STRING', "
+        "AND the file's total line count is exactly 111 "
+        "(BOTH-not-OR across all three conditions). "
+        "Line-scoped count + substring membership + length check. Single-path. "
+        "The total-line-count check guards against truncated or augmented "
+        "fix-and-capture logs that would still happen to contain 20 HTTP 200 "
+        "lines and the recovery marker."
     ),
-    "sub_gate_a_env_var_present_image_unchanged": {
+    "sub_gate_a_env_var_present_image_and_container_unchanged": {
         "observed_env_names": observed_env_names,
         "observed_image": observed_image,
+        "observed_container_name": observed_container_name,
         "observed_env_present": a_env_present,
         "observed_image_ends_v3": a_image_ends_v3,
+        "observed_container_name_is_app": a_container_name_is_app,
         "a_predicate_holds": a_predicate_holds,
         "a_pass": a_pass,
     },
@@ -998,17 +1055,18 @@ result = {
         "d_pass": d_pass,
     },
     "sub_gate_e_verify_run_20_http_200_plus_recovery_pass_marker": {
-        "observed_total_log_lines": len(verify_log_lines),
+        "observed_total_log_lines": e_observed_total_log_lines,
         "observed_http_200_count": e_observed_http_200_count,
         "observed_first_5_http_200_lines": verify_http_200_request_lines[:5],
         "observed_http_200_count_is_20": e_http_200_count_is_20,
         "observed_recovery_pass_marker_present": e_recovery_pass_marker_present,
+        "observed_total_log_lines_matches": e_total_log_lines_matches,
         "e_predicate_holds": e_predicate_holds,
         "e_pass": e_pass,
     },
 }
 result["appinsights_h2_recovery_materialization_sub_gates"] = {
-    "a_env_var_present_image_unchanged": result["sub_gate_a_env_var_present_image_unchanged"]["a_pass"],
+    "a_env_var_present_image_and_container_unchanged": result["sub_gate_a_env_var_present_image_and_container_unchanged"]["a_pass"],
     "b_ai_requests_exactly_one_unknown_service_20": result["sub_gate_b_ai_requests_exactly_one_unknown_service_20"]["b_pass"],
     "c_ai_traces_exactly_one_unknown_service_21": result["sub_gate_c_ai_traces_exactly_one_unknown_service_21"]["c_pass"],
     "d_per_message_corroboration_1_startup_plus_20_endpoint": result["sub_gate_d_per_message_corroboration_1_startup_plus_20_endpoint"]["d_pass"],
