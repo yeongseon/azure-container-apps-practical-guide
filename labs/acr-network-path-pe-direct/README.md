@@ -95,8 +95,8 @@ The reusable Phase B cohort lives in [`evidence/`](evidence/README.md).
 - It captures one live Azure reproduction in `koreacentral` with ACR `publicNetworkAccess=Disabled`, the `privatelink.azurecr.io` VNet link removed for H1, and restored for H2.
 - The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
 - Gate 14 proves the cohort is structurally coherent: canonical files present, parseable, bounded in one UTC window, same lineage, and unchanged PE NIC IPs.
-- Gate 15 proves H1 really failed: the pre-fix link list is empty, ACR public access stayed `Disabled`, `ImagePullUnauthorized` surfaced for `v-broken`, and at least one `v-broken` revision entered a failing state.
-- Gate 16 proves H2 really recovered: exactly one VNet link is restored, the latest `v-recover` revision is `Healthy`, the post-fix KQL window shows `PullingImage` then `PulledImage`, and ACR public access still stayed `Disabled`.
+- Gate 15 proves H1 really failed: the pre-fix link list is empty, ACR public access stayed `Disabled`, `ImagePullUnauthorized` surfaced for `v-broken`, and the forced fresh pull produced either a failing `v-broken` revision state or a repeated named-replica unauthorized loop.
+- Gate 16 proves H2 really recovered: exactly one VNet link is restored, the latest active `v-recover` revision is `Healthy`, the post-fix KQL window contains both `PullingImage` and `PulledImage`, and ACR public access still stayed `Disabled`.
 - Gate 17 performs the full normalized overlapping H1↔H2 diff and bounds the causal claim to the VNet-to-Private-DNS link, not to public ACR access, PE topology drift, or a different workload lineage.
 
 For offline reruns:

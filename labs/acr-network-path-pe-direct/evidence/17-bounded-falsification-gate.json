@@ -44,6 +44,7 @@
   "predicate_inputs": {
     "revision_list_pre": "labs/acr-network-path-pe-direct/evidence/02-revision-list-pre-fix.json",
     "dns_links_pre": "labs/acr-network-path-pe-direct/evidence/03-private-dns-link-list-pre-fix.json",
+    "dns_links_post": "labs/acr-network-path-pe-direct/evidence/09-private-dns-link-list-post-fix.json",
     "pe_nic_pre": "labs/acr-network-path-pe-direct/evidence/04-pe-nic-config-pre-fix.json",
     "revision_list_post": "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json",
     "app_spec_post": "labs/acr-network-path-pe-direct/evidence/11-app-spec-post-fix.json"
@@ -161,7 +162,7 @@
       "sub_gate": "a_acr_public_access_and_pe_topology_stay_constant"
     },
     {
-      "claim": "The full overlapping H1\u2194H2 diff matches the bounded trigger story: the link count moves from 0 to 1 on the same VNet, the revision name changes, and the image moves from v-broken to v-recover with no unexpected overlapping diffs.",
+      "claim": "The full overlapping H1\u2194H2 diff matches the bounded trigger story: the overlapping normalized surface changes only on the documented trigger/output paths, and the direct post-link evidence in 09 shows that the restored single link points back to the same VNet.",
       "claim_level": "Observed",
       "evidence_files": [
         "labs/acr-network-path-pe-direct/evidence/01-app-spec-pre-fix.json",
@@ -269,7 +270,7 @@
         "pre_target_image": "acracrpedirnadfay.azurecr.io/pe-lab:v-broken",
         "post_target_image": "acracrpedirnadfay.azurecr.io/pe-lab:v-recover"
       },
-      "predicate": "Across the full normalized overlapping H1/H2 surface captured in 01/03/10/11, the only differing paths are the documented trigger/output paths: dns_link.count, dns_link.vnet_ids[0], latest revision names, target revision names, target images, and BUILD_TAG/image surfaces tied to the fresh pull. No other overlapping path may differ.",
+      "predicate": "Across the full normalized overlapping H1/H2 surface captured in 01/03/10/11, the only differing overlap paths are dns_link.count, latest revision names, target revision names, target images, and BUILD_TAG/image surfaces tied to the fresh pull; 09 separately shows that the restored single post-fix link points to the same VNet ID captured in 01. No other overlapping path may differ.",
       "result": "pass",
       "sub_gate": "b_full_overlapping_h1_h2_diff_matches_the_bounded_trigger_story"
     },

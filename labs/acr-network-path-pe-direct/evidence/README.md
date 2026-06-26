@@ -13,8 +13,8 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 ## Gate overview
 
 - **Gate 14 — `14-cohort-integrity-gate.json`**: validates canonical file presence, parseability, single-window UTC coherence, revision-lineage equality, unchanged PE NIC IP map, and README cross-references.
-- **Gate 15 — `15-h1-trigger-produces-failure-gate.json`**: proves the link list is empty, ACR public access stayed `Disabled`, the broken window contains `ImagePullUnauthorized` evidence for `v-broken`, and at least one `v-broken` revision entered a failing state.
-- **Gate 16 — `16-h2-fix-restores-recovery-gate.json`**: proves exactly one VNet link to the lab VNet was restored, the latest `v-recover` revision is `Healthy`, the recovery window contains `PullingImage` then `PulledImage`, and ACR public access still reads `Disabled`.
+- **Gate 15 — `15-h1-trigger-produces-failure-gate.json`**: proves the link list is empty, ACR public access stayed `Disabled`, the broken window contains `ImagePullUnauthorized` evidence for `v-broken`, and the forced fresh pull produced either a failing `v-broken` revision state or a repeated named-replica unauthorized loop.
+- **Gate 16 — `16-h2-fix-restores-recovery-gate.json`**: proves exactly one VNet link to the lab VNet was restored, the latest active `v-recover` revision is `Healthy`, the recovery window contains both `PullingImage` and `PulledImage`, and ACR public access still reads `Disabled`.
 - **Gate 17 — `17-bounded-falsification-gate.json`**: performs the full normalized overlapping H1↔H2 diff, isolates the VNet-to-private-DNS link as the trigger field, and explicitly lists the unsupported inferences.
 
 ## Honest disclosure
@@ -22,7 +22,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 - The pack captures one live Azure reproduction in `koreacentral`; it is not a statistical sample.
 - `06-system-logs-pre-fix.json` is JSONL/NDJSON, not a JSON array; `verify.sh` parses it one line at a time.
 - Gate 14 uses file-system UTC anchors (`birthtime`, falling back to `mtime`) so reruns are byte-stable and explicit about the time source for each file.
-- Gate 15 intentionally fails with `h1_trigger_outcome: "trigger_did_not_force_failure"` if the forced fresh pull does **not** surface a failing `v-broken` state.
+- Gate 15 intentionally fails with `h1_trigger_outcome: "trigger_did_not_force_failure"` if the forced fresh pull does **not** surface either a failing `v-broken` revision state or the repeated named-replica unauthorized loop.
 - The pack does not prove exact retry timing, exact pull durations, OCI layer SHA identity, pod UID continuity, replica suffix continuity, BUILD_TAG continuity, or revision suffix identity. Those ceilings are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 
 ## File index

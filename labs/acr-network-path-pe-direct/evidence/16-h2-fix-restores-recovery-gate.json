@@ -1,5 +1,5 @@
 {
-  "claim": "The H2 fix restored recovery on ca-acrpedir-nadfay: exactly one VNet link to privatelink.azurecr.io is present again, the latest v-recover revision is Healthy, the post-fix KQL window contains PullingImage then PulledImage for v-recover, and ACR publicNetworkAccess still reads Disabled after the recovery. The fix is therefore the DNS-link restore, not public exposure of ACR.",
+  "claim": "The H2 fix restored recovery on ca-acrpedir-nadfay: exactly one VNet link to privatelink.azurecr.io is present again, the latest active v-recover revision is Healthy, the post-fix KQL window contains both PullingImage and PulledImage for v-recover, and ACR publicNetworkAccess still reads Disabled after the recovery. The fix is therefore the DNS-link restore, not public exposure of ACR.",
   "claim_level": "Observed",
   "gate_classification": "H2 gate: confirms recovery after restoring the VNet-to-privatelink.azurecr.io link and deploying v-recover.",
   "hypothesis": "H2_fix_restores_recovery",
@@ -13,8 +13,8 @@
   "acr_network_path_pe_direct_h2_fix_restores_recovery_all_subgates_pass": true,
   "acr_network_path_pe_direct_h2_fix_restores_recovery_sub_gates": {
     "a_exactly_one_vnet_link_points_to_the_lab_vnet": true,
-    "b_latest_v_recover_revision_is_healthy": true,
-    "c_post_fix_kql_contains_pullingimage_then_pulledimage_for_v_recover": true,
+    "b_latest_active_v_recover_revision_is_healthy": true,
+    "c_post_fix_kql_contains_pullingimage_and_pulledimage_for_v_recover": true,
     "d_acr_public_network_access_stays_disabled_post_fix": true
   },
   "scenario": "acr_network_path_pe_direct",
@@ -43,7 +43,7 @@
       "sub_gate": "a_exactly_one_vnet_link_points_to_the_lab_vnet"
     },
     {
-      "claim": "The latest recovered v-recover revision is Healthy after the link is restored.",
+      "claim": "The latest recovered v-recover revision is Healthy and active after the link is restored.",
       "claim_level": "Observed",
       "evidence_files": [
         "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json"
@@ -144,12 +144,12 @@
           "type": "Microsoft.App/containerapps/revisions"
         }
       },
-      "predicate": "10 contains a revision whose image endswith ':v-recover', that revision has healthState == 'Healthy', and that same revision is the latest revision in the post-fix capture.",
+      "predicate": "10 contains a revision whose image endswith ':v-recover', that revision has healthState == 'Healthy' and active == true, and that same revision is the latest revision in the post-fix capture.",
       "result": "pass",
-      "sub_gate": "b_latest_v_recover_revision_is_healthy"
+      "sub_gate": "b_latest_active_v_recover_revision_is_healthy"
     },
     {
-      "claim": "The post-fix KQL window contains PullingImage followed by PulledImage for v-recover.",
+      "claim": "The post-fix KQL window contains both PullingImage and PulledImage for v-recover.",
       "claim_level": "Measured",
       "evidence_files": [
         "labs/acr-network-path-pe-direct/evidence/12-kql-imagepull-events-post-fix.json"
@@ -178,9 +178,9 @@
           }
         ]
       },
-      "predicate": "12 contains at least one row that references v-recover with Reason/PullingImage and at least one later row that references v-recover with Reason/PulledImage.",
+      "predicate": "12 contains at least one row that references v-recover with Reason/PullingImage and at least one row that references v-recover with Reason/PulledImage.",
       "result": "pass",
-      "sub_gate": "c_post_fix_kql_contains_pullingimage_then_pulledimage_for_v_recover"
+      "sub_gate": "c_post_fix_kql_contains_pullingimage_and_pulledimage_for_v_recover"
     },
     {
       "claim": "ACR publicNetworkAccess stays Disabled after the recovery, so the fix was not reopening the public path.",

@@ -1,5 +1,5 @@
 {
-  "claim": "The H1 trigger produced the documented failure surface on ca-acrpedir-nadfay: the pre-fix DNS-link list is empty, ACR publicNetworkAccess stayed Disabled, the failure window contains ImagePullUnauthorized evidence for v-broken, and at least one v-broken revision entered a failing health/running/provisioning state. If the fresh pull did not fail, this gate stays failed with h1_trigger_outcome=trigger_did_not_force_failure.",
+  "claim": "The H1 trigger produced the documented failure surface on ca-acrpedir-nadfay: the pre-fix DNS-link list is empty, ACR publicNetworkAccess stayed Disabled, the failure window contains ImagePullUnauthorized evidence for v-broken, and the forced fresh pull surfaced either a failing v-broken revision state or a repeated named-replica ImagePullUnauthorized loop. If the fresh pull did not fail, this gate stays failed with h1_trigger_outcome=trigger_did_not_force_failure.",
   "claim_level": "Observed",
   "gate_classification": "H1 gate: confirms that removing the VNet-to-privatelink.azurecr.io link forced a fresh-pull failure without opening ACR public access.",
   "hypothesis": "H1_trigger_produces_failure",

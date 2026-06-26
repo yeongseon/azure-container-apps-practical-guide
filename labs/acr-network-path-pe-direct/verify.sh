@@ -870,7 +870,7 @@ subgate_15d_pass = pre_unhealthy_revision is not None or pre_failed_replica_loop
 gate_15_all_subgates_pass = all([subgate_15a_pass, subgate_15b_pass, subgate_15c_pass, subgate_15d_pass])
 
 subgate_16a_pass = len(post_link_summary) == 1 and post_link_vnet_ids == [vnet_id]
-subgate_16b_pass = post_recover_revision is not None and post_recover_props.get("healthState") == "Healthy" and post_latest_revision and post_latest_revision.get("name") == post_recover_revision.get("name")
+subgate_16b_pass = post_recover_revision is not None and post_recover_props.get("healthState") == "Healthy" and post_recover_props.get("active") is True and post_latest_revision and post_latest_revision.get("name") == post_recover_revision.get("name")
 subgate_16c_pass = bool(post_pulling_rows) and bool(post_pulled_rows)
 subgate_16d_pass = post_acr.get("publicNetworkAccess") == "Disabled"
 gate_16_all_subgates_pass = all([subgate_16a_pass, subgate_16b_pass, subgate_16c_pass, subgate_16d_pass])
@@ -999,7 +999,7 @@ gate14 = {
 }
 
 gate15 = {
-    "claim": f"The H1 trigger produced the documented failure surface on {app_name}: the pre-fix DNS-link list is empty, ACR publicNetworkAccess stayed Disabled, the failure window contains ImagePullUnauthorized evidence for v-broken, and at least one v-broken revision entered a failing health/running/provisioning state. If the fresh pull did not fail, this gate stays failed with h1_trigger_outcome=trigger_did_not_force_failure.",
+    "claim": f"The H1 trigger produced the documented failure surface on {app_name}: the pre-fix DNS-link list is empty, ACR publicNetworkAccess stayed Disabled, the failure window contains ImagePullUnauthorized evidence for v-broken, and the forced fresh pull surfaced either a failing v-broken revision state or a repeated named-replica ImagePullUnauthorized loop. If the fresh pull did not fail, this gate stays failed with h1_trigger_outcome=trigger_did_not_force_failure.",
     "claim_level": "Observed",
     "gate_classification": "H1 gate: confirms that removing the VNet-to-privatelink.azurecr.io link forced a fresh-pull failure without opening ACR public access.",
     "hypothesis": "H1_trigger_produces_failure",
@@ -1085,7 +1085,7 @@ gate15 = {
 }
 
 gate16 = {
-    "claim": f"The H2 fix restored recovery on {app_name}: exactly one VNet link to {zone_name} is present again, the latest v-recover revision is Healthy, the post-fix KQL window contains PullingImage then PulledImage for v-recover, and ACR publicNetworkAccess still reads Disabled after the recovery. The fix is therefore the DNS-link restore, not public exposure of ACR.",
+    "claim": f"The H2 fix restored recovery on {app_name}: exactly one VNet link to {zone_name} is present again, the latest active v-recover revision is Healthy, the post-fix KQL window contains both PullingImage and PulledImage for v-recover, and ACR publicNetworkAccess still reads Disabled after the recovery. The fix is therefore the DNS-link restore, not public exposure of ACR.",
     "claim_level": "Observed",
     "gate_classification": "H2 gate: confirms recovery after restoring the VNet-to-privatelink.azurecr.io link and deploying v-recover.",
     "hypothesis": "H2_fix_restores_recovery",
@@ -1099,8 +1099,8 @@ gate16 = {
     "acr_network_path_pe_direct_h2_fix_restores_recovery_all_subgates_pass": gate_16_all_subgates_pass,
     "acr_network_path_pe_direct_h2_fix_restores_recovery_sub_gates": {
         "a_exactly_one_vnet_link_points_to_the_lab_vnet": subgate_16a_pass,
-        "b_latest_v_recover_revision_is_healthy": subgate_16b_pass,
-        "c_post_fix_kql_contains_pullingimage_then_pulledimage_for_v_recover": subgate_16c_pass,
+        "b_latest_active_v_recover_revision_is_healthy": subgate_16b_pass,
+        "c_post_fix_kql_contains_pullingimage_and_pulledimage_for_v_recover": subgate_16c_pass,
         "d_acr_public_network_access_stays_disabled_post_fix": subgate_16d_pass,
     },
     "scenario": "acr_network_path_pe_direct",
@@ -1119,19 +1119,19 @@ gate16 = {
             "sub_gate": "a_exactly_one_vnet_link_points_to_the_lab_vnet",
         },
         {
-            "claim": "The latest recovered v-recover revision is Healthy after the link is restored.",
+            "claim": "The latest recovered v-recover revision is Healthy and active after the link is restored.",
             "claim_level": "Observed",
             "evidence_files": [repo_rel("10-revision-list-post-fix.json")],
             "observed_values": {
                 "post_latest_revision": post_latest_revision,
                 "post_recover_revision": post_recover_revision,
             },
-            "predicate": "10 contains a revision whose image endswith ':v-recover', that revision has healthState == 'Healthy', and that same revision is the latest revision in the post-fix capture.",
+            "predicate": "10 contains a revision whose image endswith ':v-recover', that revision has healthState == 'Healthy' and active == true, and that same revision is the latest revision in the post-fix capture.",
             "result": "pass" if subgate_16b_pass else "fail",
-            "sub_gate": "b_latest_v_recover_revision_is_healthy",
+            "sub_gate": "b_latest_active_v_recover_revision_is_healthy",
         },
         {
-            "claim": "The post-fix KQL window contains PullingImage followed by PulledImage for v-recover.",
+            "claim": "The post-fix KQL window contains both PullingImage and PulledImage for v-recover.",
             "claim_level": "Measured",
             "evidence_files": [repo_rel("12-kql-imagepull-events-post-fix.json")],
             "observed_values": {
@@ -1140,9 +1140,9 @@ gate16 = {
                 "post_pulling_rows": post_pulling_rows[:5],
                 "post_pulled_rows": post_pulled_rows[:5],
             },
-            "predicate": "12 contains at least one row that references v-recover with Reason/PullingImage and at least one later row that references v-recover with Reason/PulledImage.",
+            "predicate": "12 contains at least one row that references v-recover with Reason/PullingImage and at least one row that references v-recover with Reason/PulledImage.",
             "result": "pass" if subgate_16c_pass else "fail",
-            "sub_gate": "c_post_fix_kql_contains_pullingimage_then_pulledimage_for_v_recover",
+            "sub_gate": "c_post_fix_kql_contains_pullingimage_and_pulledimage_for_v_recover",
         },
         {
             "claim": "ACR publicNetworkAccess stays Disabled after the recovery, so the fix was not reopening the public path.",
@@ -1177,6 +1177,7 @@ gate17 = {
     "predicate_inputs": {
         "revision_list_pre": repo_rel("02-revision-list-pre-fix.json"),
         "dns_links_pre": repo_rel("03-private-dns-link-list-pre-fix.json"),
+        "dns_links_post": repo_rel("09-private-dns-link-list-post-fix.json"),
         "pe_nic_pre": repo_rel("04-pe-nic-config-pre-fix.json"),
         "revision_list_post": repo_rel("10-revision-list-post-fix.json"),
         "app_spec_post": repo_rel("11-app-spec-post-fix.json"),
@@ -1203,7 +1204,7 @@ gate17 = {
             "sub_gate": "a_acr_public_access_and_pe_topology_stay_constant",
         },
         {
-            "claim": "The full overlapping H1↔H2 diff matches the bounded trigger story: the link count moves from 0 to 1 on the same VNet, the revision name changes, and the image moves from v-broken to v-recover with no unexpected overlapping diffs.",
+            "claim": "The full overlapping H1↔H2 diff matches the bounded trigger story: the overlapping normalized surface changes only on the documented trigger/output paths, and the direct post-link evidence in 09 shows that the restored single link points back to the same VNet.",
             "claim_level": "Observed",
             "evidence_files": [repo_rel("01-app-spec-pre-fix.json"), repo_rel("03-private-dns-link-list-pre-fix.json"), repo_rel("09-private-dns-link-list-post-fix.json"), repo_rel("10-revision-list-post-fix.json"), repo_rel("11-app-spec-post-fix.json")],
             "observed_values": {
@@ -1220,7 +1221,7 @@ gate17 = {
                 "pre_target_image": pre_broken_revision.get("properties", {}).get("template", {}).get("containers", [{}])[0].get("image") if pre_broken_revision else None,
                 "post_target_image": post_recover_revision.get("properties", {}).get("template", {}).get("containers", [{}])[0].get("image") if post_recover_revision else None,
             },
-            "predicate": "Across the full normalized overlapping H1/H2 surface captured in 01/03/10/11, the only differing paths are the documented trigger/output paths: dns_link.count, dns_link.vnet_ids[0], latest revision names, target revision names, target images, and BUILD_TAG/image surfaces tied to the fresh pull. No other overlapping path may differ.",
+            "predicate": "Across the full normalized overlapping H1/H2 surface captured in 01/03/10/11, the only differing overlap paths are dns_link.count, latest revision names, target revision names, target images, and BUILD_TAG/image surfaces tied to the fresh pull; 09 separately shows that the restored single post-fix link points to the same VNet ID captured in 01. No other overlapping path may differ.",
             "result": "pass" if subgate_17b_pass else "fail",
             "sub_gate": "b_full_overlapping_h1_h2_diff_matches_the_bounded_trigger_story",
         },
