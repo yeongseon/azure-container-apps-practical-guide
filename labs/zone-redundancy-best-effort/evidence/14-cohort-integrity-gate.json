@@ -1,0 +1,109 @@
+{
+  "all_sub_gates_pass": true,
+  "claim": "The committed 24-hour corpus is present, identity-coherent, temporally ordered, and sensor-consistent for the bounded-coverage Phase B design.",
+  "gate_id": "14",
+  "gate_name": "Cohort / corpus integrity",
+  "phase_b_variant": "non-falsification-bounded-coverage",
+  "predicate_inputs": {
+    "audit_job_config": "labs/zone-redundancy-best-effort/evidence/audit-job-config.json",
+    "baseline_window": "labs/zone-redundancy-best-effort/evidence/baseline-window.txt",
+    "deployment_outputs": "labs/zone-redundancy-best-effort/evidence/deployment-outputs.json",
+    "q1_fixed_ingestion": "labs/zone-redundancy-best-effort/evidence/q1-baseline-fixed-ingestion-20260614114618.json",
+    "q2_fixed_steady_state": "labs/zone-redundancy-best-effort/evidence/q2-baseline-fixed-steady-state-20260614114618.json",
+    "q7_multi_app_comparison": "labs/zone-redundancy-best-effort/evidence/q7-multi-app-comparison-20260614114318.json"
+  },
+  "scenario": "zone_redundancy_best_effort",
+  "sub_gates": {
+    "a": {
+      "claim": "Required Phase B corpus files exist in the committed evidence directory.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/baseline-window.txt",
+        "labs/zone-redundancy-best-effort/evidence/deployment-outputs.json",
+        "labs/zone-redundancy-best-effort/evidence/audit-job-config.json",
+        "labs/zone-redundancy-best-effort/evidence/q1-baseline-fixed-ingestion-20260614114618.json",
+        "labs/zone-redundancy-best-effort/evidence/q2-baseline-fixed-steady-state-20260614114618.json",
+        "labs/zone-redundancy-best-effort/evidence/q3-baseline-fixed-clustered-churn-20260614114618.json",
+        "labs/zone-redundancy-best-effort/evidence/q3-baseline-fixed-any-termination-20260614114618.json",
+        "labs/zone-redundancy-best-effort/evidence/q3-clustered-churn-20260614114318.json",
+        "labs/zone-redundancy-best-effort/evidence/q4-recovery-duration-20260614114318.json",
+        "labs/zone-redundancy-best-effort/evidence/q7-multi-app-comparison-20260614114318.json",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-a-restart-only-20260614110433.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log"
+      ],
+      "observed_values": {
+        "missing": [],
+        "present_count": 13,
+        "required_count": 13
+      },
+      "pass": true,
+      "predicate": "All 13 required corpus files listed in Oracle's Phase B design exist on disk."
+    },
+    "b": {
+      "claim": "Cohort identity is coherent across deployment outputs, Q2 steady state, and Q7 multi-app comparison.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/deployment-outputs.json",
+        "labs/zone-redundancy-best-effort/evidence/q2-baseline-fixed-steady-state-20260614114618.json",
+        "labs/zone-redundancy-best-effort/evidence/q7-multi-app-comparison-20260614114318.json"
+      ],
+      "observed_values": {
+        "deployment_subject_apps": [
+          "app-min2",
+          "app-min3",
+          "app-min6"
+        ],
+        "q2_apps": [
+          "app-min2",
+          "app-min3",
+          "app-min6"
+        ],
+        "q7_apps": [
+          "app-min2",
+          "app-min3",
+          "app-min6"
+        ]
+      },
+      "pass": true,
+      "predicate": "deployment-outputs.json subjectAppNames, Q2 app rows, and Q7 App rows all equal exactly {app-min2, app-min3, app-min6} with no extras."
+    },
+    "c": {
+      "claim": "Temporal structure is coherent: the baseline is exactly 24 hours and successful perturbations happen afterward in strict sequence.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/baseline-window.txt",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-a-restart-only-20260614110433.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log"
+      ],
+      "observed_values": {
+        "all_after_baseline": true,
+        "baseline_end": "2026-06-13T11:51:46Z",
+        "baseline_span_seconds": 86400,
+        "baseline_start": "2026-06-12T11:51:46Z",
+        "perturbation_submitted_utc": [
+          "2026-06-14T11:04:37.433000Z",
+          "2026-06-14T11:15:46.704000Z",
+          "2026-06-14T11:29:11.123000Z"
+        ],
+        "strictly_increasing": true
+      },
+      "pass": true,
+      "predicate": "baseline-window.txt spans exactly 86400 seconds AND perturbation submitted timestamps are strictly increasing AND every submitted timestamp is later than baseline end."
+    },
+    "d": {
+      "claim": "The audit sensor schedule and fixed-range sample math match the expected 24-hour cohort design.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/audit-job-config.json",
+        "labs/zone-redundancy-best-effort/evidence/q1-baseline-fixed-ingestion-20260614114618.json"
+      ],
+      "observed_values": {
+        "cron_expression": "*/5 * * * *",
+        "q1_expected_ok_samples": "864",
+        "q1_unique_apps": "3",
+        "sample_math": "24h * 12 ticks/hour * 3 apps = 864"
+      },
+      "pass": true,
+      "predicate": "audit-job-config cronExpression == '*/5 * * * *' AND Q1 UniqueApps == 3 AND Q1 ExpectedOkSamples == 864 for 24 hours \u00d7 12 ticks/hour \u00d7 3 apps."
+    }
+  },
+  "utc_captured": "2026-06-26T07:20:20Z"
+}

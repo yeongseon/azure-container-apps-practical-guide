@@ -1,0 +1,142 @@
+{
+  "all_sub_gates_pass": true,
+  "claim": "The perturbation sequence is complete, Q3 and Q4 observe the intended churn/recovery windows, and the H0b primary metric remains unfalsified under the tested load profile.",
+  "gate_id": "16",
+  "gate_name": "Positive-control perturbation validity",
+  "phase_b_variant": "non-falsification-bounded-coverage",
+  "predicate_inputs": {
+    "q3_clustered_churn": "labs/zone-redundancy-best-effort/evidence/q3-clustered-churn-20260614114318.json",
+    "q4_recovery_duration": "labs/zone-redundancy-best-effort/evidence/q4-recovery-duration-20260614114318.json",
+    "variant_a_log": "labs/zone-redundancy-best-effort/evidence/perturbation-variant-a-restart-only-20260614110433.log",
+    "variant_b_log": "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+    "variant_c_log": "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log"
+  },
+  "scenario": "zone_redundancy_best_effort",
+  "sub_gates": {
+    "a": {
+      "claim": "Exactly three successful perturbation logs exist and each contains the required event sequence for its variant.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-a-restart-only-20260614110433.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log"
+      ],
+      "observed_values": {
+        "events_by_log": {
+          "perturbation-variant-a-restart-only-20260614110433.log": [
+            "PerturbationStart",
+            "PerturbationSubmitted"
+          ],
+          "perturbation-variant-b-restart-load-20260614111457.log": [
+            "LoadEnd",
+            "LoadStart",
+            "PerturbationStart",
+            "PerturbationSubmitted"
+          ],
+          "perturbation-variant-c-retry-backoff-20260614112821.log": [
+            "LoadEnd",
+            "LoadStart",
+            "PerturbationStart",
+            "PerturbationSubmitted"
+          ]
+        },
+        "perturbation_logs": [
+          "perturbation-variant-a-restart-only-20260614110433.log",
+          "perturbation-variant-b-restart-load-20260614111457.log",
+          "perturbation-variant-c-retry-backoff-20260614112821.log"
+        ]
+      },
+      "pass": true,
+      "predicate": "Top-level evidence contains exactly the three Oracle-listed perturbation logs; Variant A has PerturbationStart + PerturbationSubmitted; Variants B/C also have LoadStart + LoadEnd."
+    },
+    "b": {
+      "claim": "Q3 detects churn for each successful perturbation at the expected 60-second cluster bins.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/q3-clustered-churn-20260614114318.json",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-a-restart-only-20260614110433.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log"
+      ],
+      "observed_values": {
+        "expected_cluster_bins": [
+          "2026-06-14T11:05:00Z",
+          "2026-06-14T11:16:00Z",
+          "2026-06-14T11:29:00Z"
+        ],
+        "observed_cluster_bins": [
+          "2026-06-14T11:05:00Z",
+          "2026-06-14T11:16:00Z",
+          "2026-06-14T11:29:00Z"
+        ],
+        "rounded_submitted_bins": [
+          "2026-06-14T11:05:00Z",
+          "2026-06-14T11:16:00Z",
+          "2026-06-14T11:29:00Z"
+        ]
+      },
+      "pass": true,
+      "predicate": "Q3 contains app-min3 rows at 11:05:00Z, 11:16:00Z, and 11:29:00Z, matching the perturbation submitted timestamps rounded to the 60-second cluster bin."
+    },
+    "c": {
+      "claim": "Recovery is observed for the same three successful perturbation events within the configured deadline.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/q4-recovery-duration-20260614114318.json"
+      ],
+      "observed_values": {
+        "observed_recovery_bins": [
+          "2026-06-14T11:05:00Z",
+          "2026-06-14T11:16:00Z",
+          "2026-06-14T11:29:00Z"
+        ],
+        "recovery_map": {
+          "2026-06-14T11:05:00Z": {
+            "recovery_secs": "22",
+            "within_deadline": "True"
+          },
+          "2026-06-14T11:16:00Z": {
+            "recovery_secs": "262",
+            "within_deadline": "True"
+          },
+          "2026-06-14T11:29:00Z": {
+            "recovery_secs": "83",
+            "within_deadline": "True"
+          }
+        }
+      },
+      "pass": true,
+      "predicate": "Q4 contains ChurnStart rows at 11:05:00Z, 11:16:00Z, and 11:29:00Z, all with WithinDeadline == True."
+    },
+    "d": {
+      "claim": "The H0b primary metric is not falsified under the tested load envelope.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log"
+      ],
+      "observed_values": {
+        "h0b_primary_metric": "variant_b_no_retry",
+        "variant_b_load_end": {
+          "app": "app-min3",
+          "avgLatencyMs": 65,
+          "client": "no-retry",
+          "event": "LoadEnd",
+          "fail": 0,
+          "success": 990,
+          "timestamp": "2026-06-14T11:18:00.388Z",
+          "total": 990
+        },
+        "variant_c_load_end": {
+          "app": "app-min3",
+          "avgLatencyMs": 69,
+          "client": "retry-backoff",
+          "event": "LoadEnd",
+          "fail": 0,
+          "success": 960,
+          "timestamp": "2026-06-14T11:31:27.543Z",
+          "total": 960
+        }
+      },
+      "pass": true,
+      "predicate": "Variant B LoadEnd has total=990 and fail=0; Variant C LoadEnd has total=960 and fail=0. Variant B is the H0b primary metric and Variant C is secondary mitigation context."
+    }
+  },
+  "utc_captured": "2026-06-26T07:20:20Z"
+}

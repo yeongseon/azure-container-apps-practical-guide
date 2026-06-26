@@ -17,13 +17,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
 content_validation:
   status: verified
-  last_reviewed: '2026-06-21'
+  last_reviewed: '2026-06-26'
   reviewer: agent
   lab_validation:
     status: reproduced
     tested_date: '2026-06-14'
     az_cli_version:
-    notes: 'Full reproduction completed 2026-06-12 → 2026-06-14 (koreacentral, RG rg-aca-zr-lab-260612114313). 24-hour baseline window 2026-06-12T11:51:46Z → 2026-06-13T11:51:46Z passed with BaselineChurnEvents=0 across all 3 apps (Q3 returned zero rows; Q2 SteadyStateOK=True for app-min2/app-min3/app-min6). H0a NOT falsified. Three perturbation variants (restart-only, combined no-retry 180s, combined retry-backoff 180s) executed 2026-06-14T11:04–11:31Z against app-min3; 0/1950 client-visible failures across the two load-bearing variants (H0b NOT falsified under this load profile). Q7 captured MaxReplacementFraction=1.0 on app-min3 (operator restart can momentarily replace all 3 replicas). Raw evidence corpus committed under labs/zone-redundancy-best-effort/evidence/. Claim 2 (zone distribution) remains capped at [Strongly Suggested] because ACA does not expose per-replica AZ identity; Claim 3 (multi-replica platform events) remains capped at [Strongly Suggested] because no platform-driven clustered churn was observed in the 24h baseline.'
+    notes: 'Full reproduction completed 2026-06-12 → 2026-06-14 (koreacentral, RG rg-aca-zr-lab-260612114313). 24-hour baseline window 2026-06-12T11:51:46Z → 2026-06-13T11:51:46Z passed with BaselineChurnEvents=0 across all 3 apps (Q3 returned zero rows; Q2 SteadyStateOK=True for app-min2/app-min3/app-min6). H0a NOT falsified. Three perturbation variants (restart-only, combined no-retry 180s, combined retry-backoff 180s) executed 2026-06-14T11:04–11:31Z against app-min3; 0/1950 client-visible failures across the two load-bearing variants (H0b NOT falsified under this load profile). Q7 captured MaxReplacementFraction=1.0 on app-min3 (operator restart can momentarily replace all 3 replicas). Raw evidence corpus committed under labs/zone-redundancy-best-effort/evidence/. Claim 2 (zone distribution) remains capped at [Strongly Suggested] because ACA does not expose per-replica AZ identity; Claim 3 (multi-replica platform events) remains capped at [Strongly Suggested] because no platform-driven clustered churn was observed in the 24h baseline. Phase B evidence pack added 2026-06-26: verify.sh now emits a 4-gate bounded-coverage overlay from the committed raw corpus without any fresh Azure deployment.'
   core_claims:
     - claim: Container Apps zone redundancy distributes replicas across Availability Zones on a best-effort basis subject to host capacity and resource requests.
       source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
@@ -417,6 +417,47 @@ This lab tests three distinct claims about Container Apps zone redundancy. Each 
 | **Claim 3** — "Multiple replicas of the same app can be affected simultaneously during platform events" | MS Learn implicitly via the [Planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) and [Reliability](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) articles | `[Strongly Suggested]` for this lab; `[Measured]` would require platform-initiated churn during the test window | The lab's 24-h baseline observed **zero** platform-driven clustered churn (Q3 returned 0 rows). The operator-initiated `revision restart` did `[Measured]` simultaneous 3-replica termination on `app-min3` (Q7: `MaxReplacementFraction=1.0`). The two event types produce the same externally observable signature in `ContainerAppSystemLogs_CL` (a cluster of `ContainerTerminated` events for one app within a single 60-s bin), which is the basis for treating Claim 3 as `[Strongly Suggested]` here — the lab does not claim the underlying platform mechanism is identical to the operator-initiated path, only that the externally observable signal is the same. `[Measured]` would require either capturing platform-initiated clustered churn during a Phase 1 window or correlating with internal-mechanism documentation the lab does not have access to. | `[Strongly Suggested]` — operator-event evidence is `[Measured]`, platform-event evidence is `[Inferred]` from signal similarity. |
 
 **Why this matters for incident response.** When a customer escalates a "zone-redundant outage" case, support engineers should be careful not to over-promise based on Claim 2. The permanent `[Strongly Suggested]` cap on Claim 2 means **there is no internal ACA signal that can prove a customer's replicas were spread across zones at the moment of incident**; the ACA management plane does not expose per-replica AZ identity, and that visibility limit is a known platform property rather than a defect. A practical framing is to anchor the response in `[Measured]` operational behavior from the customer's own workspace (Q3 / Q4 / Q7 numbers — clustered churn count, recovery duration, replacement fraction) and to acknowledge the visibility gap explicitly when describing what the platform can and cannot show. Customers whose RTO genuinely requires per-replica zone visibility have options beyond ACA — for example, AKS surfaces per-node zone identity via the standard Kubernetes topology labels — but that is an architectural choice driven by the RTO requirement, not the only available path.
+
+## 12.1 Phase B 4-gate evidence pack
+
+The committed Phase B overlay for this lab is a **non-falsification with bounded coverage** variant, not the standard H1-trigger / H2-fix repair loop used by canonical troubleshooting labs. It reuses the existing 24-hour reproduction corpus under `labs/zone-redundancy-best-effort/evidence/` and adds four derived gate files that re-validate what the corpus can honestly support.
+
+### Gate semantics
+
+| Gate | Name | What it proves |
+|---|---|---|
+| 14 | Cohort / corpus integrity | The required files exist, the app cohort is coherent (`app-min2`, `app-min3`, `app-min6`), the baseline spans exactly 24 hours, and the audit cron/sample math matches the design. |
+| 15 | Negative-control baseline validity | The fixed-range 24-hour baseline is trustworthy: ingestion is healthy, steady state held, and both baseline Q3 variants returned zero rows. |
+| 16 | Positive-control perturbation validity | The three successful perturbations are complete, Q3/Q4 see the expected churn/recovery windows, and the H0b primary metric remains unfalsified under the tested load. |
+| 17 | Bounded coverage / uncertainty ceilings | Scope is capped to `app-min3`, two client-bearing `10 RPS / 180 s` runs, the declared Q6 exclusions, and the permanent evidence ceilings on Claim 2 / Claim 3. |
+
+### Phase B 16-sub-gate result table
+
+| Gate | Sub-gate | Result | Evidence |
+|---|---|---|---|
+| 14 | 14a — Required corpus exists | PASS | `baseline-window.txt`, `deployment-outputs.json`, `audit-job-config.json`, fixed Q1/Q2/Q3 files, Q4/Q7, and the three successful perturbation logs all exist in the committed corpus. |
+| 14 | 14b — Cohort identity is coherent | PASS | `deployment-outputs.json`, fixed-range Q2, and Q7 all contain exactly `app-min2`, `app-min3`, and `app-min6` with no extras. |
+| 14 | 14c — Temporal structure is coherent | PASS | `baseline-window.txt` spans exactly `2026-06-12T11:51:46Z` → `2026-06-13T11:51:46Z` (24 h), and the three `PerturbationSubmitted` timestamps are strictly increasing at `11:04:37Z`, `11:15:46Z`, and `11:29:11Z`, all after baseline end. |
+| 14 | 14d — Sensor schedule matches sample math | PASS | `audit-job-config.json` shows cron `*/5 * * * *`; fixed Q1 shows `UniqueApps=3` and `ExpectedOkSamples=864` (= `24 h × 12 ticks/h × 3 apps`). |
+| 15 | 15a — Audit completeness is sufficient | PASS | Fixed Q1 reports `HealthRatio=1.0`, `ErrorSamples=0`, and `UniqueApps=3`. |
+| 15 | 15b — Baseline steady state held | PASS | Every fixed Q2 row has `SteadyStateOK=True` and `ObservedMin == ObservedMax == ConfiguredMin`. |
+| 15 | 15c — Fixed-range clustered churn is absent | PASS | `q3-baseline-fixed-clustered-churn-20260614114618.json` is `[]`. |
+| 15 | 15d — Fixed-range any-termination is absent | PASS | `q3-baseline-fixed-any-termination-20260614114618.json` is `[]`. |
+| 16 | 16a — Successful perturbation sequence is complete | PASS | Exactly three top-level successful perturbation logs exist; Variant A has `PerturbationStart` + `PerturbationSubmitted`, and Variants B/C also have `LoadStart` + `LoadEnd`. |
+| 16 | 16b — Q3 detects churn for each successful perturbation | PASS | Q3 contains `app-min3` rows at `11:05:00Z`, `11:16:00Z`, and `11:29:00Z`, matching the submitted perturbations rounded to the 60-second cluster bin. |
+| 16 | 16c — Recovery is observed for those same events | PASS | Q4 contains `ChurnStart` rows at `11:05:00Z`, `11:16:00Z`, and `11:29:00Z`, all with `WithinDeadline=True`. |
+| 16 | 16d — H0b primary metric is not falsified under tested load | PASS | Variant B `LoadEnd` = `total=990, fail=0`; Variant C `LoadEnd` = `total=960, fail=0`. Variant B remains the H0b primary metric; Variant C is secondary mitigation context. |
+| 17 | 17a — App scope is bounded to `app-min3` | PASS | All successful perturbation logs target `app-min3`, and Q7 shows churn only on `app-min3`. |
+| 17 | 17b — Load envelope is bounded | PASS | The only client-bearing runs are one `no-retry` and one `retry-backoff`, both at `rps=10` for `durationSec=180`. |
+| 17 | 17c — Historical contamination is explicitly excluded | PASS | The bad Q6 file is unparsable and excluded; the fixed Q6 file is parseable but excluded from H0a because its `Baseline (no perturb)` bucket includes earlier partial perturbations. |
+| 17 | 17d — Evidence ceiling is enforced | PASS | Claim 2 remains `[Strongly Suggested]`; Claim 3 remains `[Strongly Suggested]`. Neither is promoted to `[Measured]` in this Phase B summary. |
+
+### Bounded coverage disclosure
+
+- **Bounded subject scope.** The perturbation evidence is limited to `app-min3`. `app-min2` and `app-min6` appear only in the negative-control baseline and in the zero-churn comparison rows from Q7.
+- **Bounded load scope.** The only client-bearing measurements are the two successful `180 s` runs at `10 RPS` (Variant B `no-retry`, Variant C `retry-backoff`). The measured `0 / 1950` failures do **not** generalize beyond that envelope.
+- **Excluded Q6 artifacts.** `q6-baseline-vs-perturb-20260614114318.json` is excluded because it is unparsable (`datetime(...ZZ)` syntax error). `q6-baseline-vs-perturb-20260614114522.json` is excluded from H0a because its rolling baseline bucket includes earlier partial perturbations and is therefore contaminated.
+- **Evidence ceilings.** Claim 2 (zone distribution) stays at `[Strongly Suggested]` because ACA does not expose per-replica Availability Zone identity. Claim 3 (multi-replica platform events) also stays at `[Strongly Suggested]` because this corpus measures operator-triggered clustered churn, not platform-triggered clustered churn.
 
 ## 13. Solution
 
