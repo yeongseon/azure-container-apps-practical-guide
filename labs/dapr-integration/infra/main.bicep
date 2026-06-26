@@ -9,8 +9,14 @@ param location string = resourceGroup().location
 var suffix = take(uniqueString(resourceGroup().id, baseName), 6)
 var logAnalyticsName = 'log-${baseName}-${suffix}'
 var environmentName = 'cae-${baseName}-${suffix}'
+var registryName = toLower(replace('acr${baseName}${suffix}', '-', ''))
 var appName = 'ca-${baseName}-${suffix}'
 var daprAppId = 'dapr-${baseName}-${suffix}'
+
+@description('Container image reference to deploy. Leave empty to provision only the shared infra + ACR.')
+param containerImage string = ''
+
+var deployApp = !empty(containerImage)
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: logAnalyticsName
@@ -20,6 +26,17 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
       name: 'PerGB2018'
     }
     retentionInDays: 30
+  }
+}
+
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+  name: registryName
+  location: location
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: true
   }
 }
 
@@ -37,7 +54,7 @@ resource environment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   }
 }
 
-resource app 'Microsoft.App/containerApps@2023-05-01' = {
+resource app 'Microsoft.App/containerApps@2023-05-01' = if (deployApp) {
   name: appName
   location: location
   properties: {
@@ -52,12 +69,25 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
         appId: daprAppId
         appPort: 8000
       }
+      registries: [
+        {
+          server: containerRegistry.properties.loginServer
+          username: containerRegistry.listCredentials().username
+          passwordSecretRef: 'acr-password'
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-password'
+          value: containerRegistry.listCredentials().passwords[0].value
+        }
+      ]
     }
     template: {
       containers: [
         {
           name: 'app'
-          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          image: containerImage
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -72,6 +102,9 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
   }
 }
 
-output containerAppName string = app.name
+output logAnalyticsWorkspaceName string = logAnalytics.name
+output containerRegistryName string = containerRegistry.name
+output containerRegistryLoginServer string = containerRegistry.properties.loginServer
+output containerAppName string = appName
 output containerAppsEnvironmentName string = environment.name
 output daprAppId string = daprAppId
