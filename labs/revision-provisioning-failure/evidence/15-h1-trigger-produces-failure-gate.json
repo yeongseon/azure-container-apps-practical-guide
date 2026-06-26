@@ -1,0 +1,92 @@
+{
+  "claim": "The H1 trigger produced the documented failure on ca-labrevprov-e2upm2--badpath2: the revision surface is Unhealthy/Failed with provisioningError='Container crashing: app', raw system logs show a repeated ProbeFailed -> ContainerTerminated(ProbeFailure) loop, KQL rows bind the failure to badpath2, and nginx console evidence shows 404 responses on /nonexistent-health-endpoint.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms the bad-path startup probe produced a revision-scoped restart loop and nginx 404 evidence on the probe target.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "failed_revision_detail": "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+    "kql_console_logs": "labs/revision-provisioning-failure/evidence/10-kql-console-logs.json",
+    "kql_event_correlation": "labs/revision-provisioning-failure/evidence/08-kql-event-correlation.json",
+    "kql_probefailed_rows": "labs/revision-provisioning-failure/evidence/07-kql-probefailed-rows.json",
+    "system_logs": "labs/revision-provisioning-failure/evidence/04-system-logs.json"
+  },
+  "revision_provisioning_failure_h1_trigger_produces_failure_all_subgates_pass": true,
+  "revision_provisioning_failure_h1_trigger_produces_failure_sub_gates": {
+    "a_failed_revision_surface_matches_h1": true,
+    "b_raw_system_logs_show_restart_loop": true,
+    "c_kql_h1_rows_bind_to_badpath2": true,
+    "d_nginx_404_console_smoking_gun_present": true
+  },
+  "scenario": "revision_provisioning_failure",
+  "sub_gates": [
+    {
+      "claim": "The failed revision detail is the documented H1 smoking gun: Unhealthy + Failed + provisioningError='Container crashing: app'.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json"
+      ],
+      "observed_values": {
+        "health_state": "Unhealthy",
+        "provisioning_error": "Container crashing: app",
+        "provisioning_state": "Failed",
+        "revision_name": "ca-labrevprov-e2upm2--badpath2"
+      },
+      "predicate": "02.properties.provisioningState == 'Failed' AND 02.properties.healthState == 'Unhealthy' AND 02.properties.provisioningError == 'Container crashing: app'.",
+      "result": "pass",
+      "sub_gate": "a_failed_revision_surface_matches_h1"
+    },
+    {
+      "claim": "Raw system logs show repeated startup-probe failures and ProbeFailure terminations on badpath2.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/04-system-logs.json"
+      ],
+      "observed_values": {
+        "containerterminated_probefailure_count": 4,
+        "probefailed_event_count": 16
+      },
+      "predicate": "count(04.Reason == ProbeFailed on badpath2) >= 9 AND count(04.Reason == ContainerTerminated with ProbeFailure on badpath2) >= 4.",
+      "result": "pass",
+      "sub_gate": "b_raw_system_logs_show_restart_loop"
+    },
+    {
+      "claim": "The KQL H1 evidence is revision-scoped to badpath2 and includes ProbeFailure termination correlation.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/07-kql-probefailed-rows.json",
+        "labs/revision-provisioning-failure/evidence/08-kql-event-correlation.json"
+      ],
+      "observed_values": {
+        "correlation_has_containerterminated_probefailure": true,
+        "kql_event_correlation_row_count": 98,
+        "kql_probefailed_row_count": 50
+      },
+      "predicate": "count(07 rows where RevisionName_s == badpath2) >= 20 AND 08 contains at least one ContainerTerminated row with ProbeFailure on badpath2.",
+      "result": "pass",
+      "sub_gate": "c_kql_h1_rows_bind_to_badpath2"
+    },
+    {
+      "claim": "The application-level KQL console evidence shows nginx returning 404 on the bad probe path.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/10-kql-console-logs.json"
+      ],
+      "observed_values": {
+        "console_row_count_for_failed_revision": 100,
+        "has_404_access_log": true,
+        "has_open_failed_error_log": true
+      },
+      "predicate": "10 contains at least one row with GET /nonexistent-health-endpoint ... 404 AND one row with open() ... nonexistent-health-endpoint failed.",
+      "result": "pass",
+      "sub_gate": "d_nginx_404_console_smoking_gun_present"
+    }
+  ],
+  "thresholds": {
+    "bad_probe_path": "/nonexistent-health-endpoint",
+    "kql_probefailed_rows_min": 20,
+    "raw_system_containerterminated_min": 4,
+    "raw_system_probefailed_min": 9
+  },
+  "utc_captured": "2026-06-26T06:14:47Z"
+}

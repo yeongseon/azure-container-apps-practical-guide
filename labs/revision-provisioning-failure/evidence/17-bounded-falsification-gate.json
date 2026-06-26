@@ -1,0 +1,183 @@
+{
+  "claim": "This evidence pack falsifies the startup-probe failure hypothesis within a bounded scope. Gate 17 demonstrates that probe-path reachability is the mechanically observable trigger field while held-constant fields remain byte-identical on the bounded surface. The pack does not claim single-variable falsification because non-path probe fields also changed and are documented as explicit confounders.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that probe-path reachability is the mechanically observable trigger field in this cohort. The pack does NOT prove image byte identity, pod reuse, direct socket observation, or that the non-path probe-field deltas are bounded.",
+    "explicit_drops": [
+      {
+        "id": "probe_field_delta_minus_path_is_not_bounded",
+        "note": "initialDelaySeconds/timeoutSeconds/successThreshold differ between H1 and H2; these probe-field deltas are documented confounders, not bounded variables."
+      },
+      {
+        "id": "image_byte_identity_not_captured",
+        "note": "The image tag remains nginx:alpine, but the cohort does not capture image digests."
+      },
+      {
+        "id": "pod_reuse_not_proven",
+        "note": "Revision names differ (badpath2 vs badpath3), so the cohort does not claim pod reuse."
+      },
+      {
+        "id": "socket_listening_port_not_directly_observed",
+        "note": "Port 80 is inferred from the spec and nginx behavior, not from a direct socket capture inside the container."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the path reachability claim while explicitly documenting the confounding probe-field deltas and other unsupported inferences.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "container_app_spec": "labs/revision-provisioning-failure/evidence/03-containerapp-spec.yaml",
+    "failed_revision_detail": "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+    "recovered_revision_list": "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json",
+    "revision_list_before": "labs/revision-provisioning-failure/evidence/01-revision-list.json"
+  },
+  "revision_provisioning_failure_h3_bounded_falsification_all_subgates_pass": true,
+  "revision_provisioning_failure_h3_bounded_falsification_sub_gates": {
+    "a_probe_path_is_the_bounded_trigger_field": true,
+    "b_held_constant_fields_match_byte_for_byte": true,
+    "c_explicit_drops_document_the_confounders": true,
+    "d_revision_lineage_is_clear_and_ordered": true
+  },
+  "scenario": "revision_provisioning_failure",
+  "sub_gates": [
+    {
+      "claim": "The mechanically observable trigger field under test is the startup-probe httpGet.path: H1 uses /nonexistent-health-endpoint and H2 uses /.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+        "labs/revision-provisioning-failure/evidence/03-containerapp-spec.yaml",
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "h1_probe_path": "/nonexistent-health-endpoint",
+        "h2_probe_path": "/",
+        "spec_probe_path": "/nonexistent-health-endpoint"
+      },
+      "predicate": "H1 probe path == '/nonexistent-health-endpoint' AND H2 probe path == '/' AND the spec capture for badpath2 also shows '/nonexistent-health-endpoint'.",
+      "result": "pass",
+      "sub_gate": "a_probe_path_is_the_bounded_trigger_field"
+    },
+    {
+      "claim": "The held-constant fields across H1 and H2 are byte-identical for the bounded claim surface.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+        "labs/revision-provisioning-failure/evidence/03-containerapp-spec.yaml",
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "held_constant_checks": {
+          "container_app_name": true,
+          "cpu": true,
+          "failure_threshold": true,
+          "http_port": true,
+          "image": true,
+          "ingress_target_port": true,
+          "memory": true,
+          "period_seconds": true,
+          "probe_type": true,
+          "resource_group": true
+        },
+        "held_constant_observed": {
+          "container_app_name": [
+            "ca-labrevprov-e2upm2",
+            "ca-labrevprov-e2upm2",
+            "ca-labrevprov-e2upm2"
+          ],
+          "cpu": [
+            0.5,
+            0.5
+          ],
+          "failure_threshold": [
+            3,
+            3
+          ],
+          "http_port": [
+            80,
+            80
+          ],
+          "image": [
+            "nginx:alpine",
+            "nginx:alpine"
+          ],
+          "ingress_target_port": [
+            80,
+            80
+          ],
+          "memory": [
+            "1Gi",
+            "1Gi"
+          ],
+          "period_seconds": [
+            5,
+            5
+          ],
+          "probe_type": [
+            "Startup",
+            "Startup"
+          ],
+          "resource_group": [
+            "rg-aca-lab-revprov",
+            "rg-aca-lab-revprov"
+          ]
+        }
+      },
+      "predicate": "image, httpGet.port, type, failureThreshold, periodSeconds, cpu, memory, resource_group, ingress_target_port, and container_app_name all compare equal across H1 and H2.",
+      "result": "pass",
+      "sub_gate": "b_held_constant_fields_match_byte_for_byte"
+    },
+    {
+      "claim": "The bounded-falsification gate explicitly lists the four documented confounders rather than claiming they are bounded.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/17-bounded-falsification-gate.json"
+      ],
+      "observed_values": {
+        "expected_drop_ids": [
+          "image_byte_identity_not_captured",
+          "pod_reuse_not_proven",
+          "probe_field_delta_minus_path_is_not_bounded",
+          "socket_listening_port_not_directly_observed"
+        ],
+        "observed_drop_ids": [
+          "image_byte_identity_not_captured",
+          "pod_reuse_not_proven",
+          "probe_field_delta_minus_path_is_not_bounded",
+          "socket_listening_port_not_directly_observed"
+        ]
+      },
+      "predicate": "cohort_binding_note.explicit_drops ids equal {probe_field_delta_minus_path_is_not_bounded, image_byte_identity_not_captured, pod_reuse_not_proven, socket_listening_port_not_directly_observed}.",
+      "result": "pass",
+      "sub_gate": "c_explicit_drops_document_the_confounders"
+    },
+    {
+      "claim": "The lineage badpath -> badpath2 -> badpath3 is clear across the before/recovery captures.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/01-revision-list.json",
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "lineage_created_times": {
+          "ca-labrevprov-e2upm2--badpath": "2026-06-20T13:33:07+00:00",
+          "ca-labrevprov-e2upm2--badpath2": "2026-06-20T13:34:58+00:00",
+          "ca-labrevprov-e2upm2--badpath3": "2026-06-20T14:26:09+00:00"
+        },
+        "lineage_names": [
+          "ca-labrevprov-e2upm2--badpath",
+          "ca-labrevprov-e2upm2--badpath2",
+          "ca-labrevprov-e2upm2--badpath3"
+        ]
+      },
+      "predicate": "01 contains badpath and badpath2, 12 contains badpath3, and createdTime ordering is badpath < badpath2 < badpath3.",
+      "result": "pass",
+      "sub_gate": "d_revision_lineage_is_clear_and_ordered"
+    }
+  ],
+  "thresholds": {
+    "h1_path_expected": "/nonexistent-health-endpoint",
+    "h2_path_expected": "/",
+    "held_constant_field_count": 10
+  },
+  "utc_captured": "2026-06-26T06:14:47Z"
+}
