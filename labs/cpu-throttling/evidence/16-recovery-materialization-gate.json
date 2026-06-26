@@ -1,0 +1,83 @@
+{
+  "claim": "Raising the per-replica resource envelope from (cpu=0.25, memory=0.5Gi) to (cpu=1.0, memory=2.0Gi requested via Bicep, normalized to \"2Gi\" by the platform) materialized recovery in this cohort: the new revision ca-cputhrottle-65svxr--0000001 became the active traffic target with runningState=RunningAtMaxScale and trafficWeight=100, while the byte-identical 100/20 load test produced p95=773.2 ms -- a 70.0% reduction from the 2574.8 ms baseline (strictly below the 50% floor) -- with zero transport errors.",
+  "claim_level": "Measured",
+  "cpu_throttling_h2_recovery_materialization_all_subgates_pass": true,
+  "cpu_throttling_h2_recovery_materialization_sub_gates": {
+    "a_recovery_envelope": true,
+    "b_recovery_ratio": true,
+    "c_postfix_success_and_zero_errors": true,
+    "d_revision_state": true
+  },
+  "gate_classification": "Recovery materialization gate: confirms that the cohort observed both the platform-side state change (new revision active with traffic) and the workload-side performance change (p95 below half of baseline). Strict less-than on the ratio prevents borderline-noise observations from being counted as recovery. Falsifies whole Phase B if H2 fails.",
+  "hypothesis": "H2_recovery_materialization",
+  "predicate_inputs": {
+    "config_after": "labs/cpu-throttling/evidence/06-app-config-after.json",
+    "loadtest_baseline": "labs/cpu-throttling/evidence/03-loadtest-cpu025.json",
+    "loadtest_postfix": "labs/cpu-throttling/evidence/08-loadtest-cpu1.json",
+    "revisions_after": "labs/cpu-throttling/evidence/07-revisions-after.json",
+    "update_result": "labs/cpu-throttling/evidence/05-update-result.json"
+  },
+  "scenario": "cpu_throttling",
+  "sub_gate_a_predicate": "06-app-config-after.json records cpu==1.0 AND memory in {\"2Gi\",\"2.0Gi\"} AND minReplicas==1 AND maxReplicas==1 AND latestRevisionName == 05-update-result.json.latestRevisionName (cross-check pins the Phase 8 config-after read to the same revision that the Phase 6 update response named). Memory normalization is platform-driven: the Bicep template requests \"2.0Gi\", and the Microsoft.App API normalizes it to \"2Gi\" on read.",
+  "sub_gate_a_recovery_envelope": {
+    "a_pass": true,
+    "cpu_holds": true,
+    "latest_revision_match": true,
+    "max_replicas_holds": true,
+    "memory_holds": true,
+    "min_replicas_holds": true,
+    "observed_cpu": 1.0,
+    "observed_latest_revision_after": "ca-cputhrottle-65svxr--0000001",
+    "observed_latest_revision_update": "ca-cputhrottle-65svxr--0000001",
+    "observed_max_replicas": 1,
+    "observed_memory": "2Gi",
+    "observed_min_replicas": 1
+  },
+  "sub_gate_b_predicate": "08-loadtest-cpu1.json.latency_ms.p95 < 0.5 * 03-loadtest-cpu025.json.latency_ms.p95 (strict less-than: equal-to-50% is borderline noise, not recovery).",
+  "sub_gate_b_recovery_ratio": {
+    "b_pass": true,
+    "b_predicate_holds": true,
+    "computed_recovery_ratio": 0.3002951685567811,
+    "computed_threshold_ms": 1287.4,
+    "observed_baseline_p95_ms": 2574.8,
+    "observed_postfix_p95_ms": 773.2
+  },
+  "sub_gate_c_postfix_success_and_zero_errors": {
+    "c_pass": true,
+    "c_predicate_holds": true,
+    "observed_postfix_requests_err": 0,
+    "observed_postfix_requests_ok": 100,
+    "requests_ok_floor": 95
+  },
+  "sub_gate_c_predicate": "08-loadtest-cpu1.json.requests_ok >= 95 AND requests_err == 0 (post-fix measurement is not corrupted by transport failures).",
+  "sub_gate_d_predicate": "07-revisions-after.json (record-scoped): exactly 2 revision records AND exactly 1 record has trafficWeight==100 AND that record.runningState in {\"Running\",\"RunningAtMaxScale\"} AND that record.name == 06-app-config-after.json.latestRevisionName. The runningState predicate explicitly excludes \"Deprovisioning\" so the cohort cannot count a tearing-down old revision as the active traffic target (the cohort's old revision is in exactly this state: active==true, runningState==\"Deprovisioning\", trafficWeight==0).",
+  "sub_gate_d_revision_state": {
+    "d_pass": true,
+    "d_predicate_holds": true,
+    "exactly_one_traffic_holder": true,
+    "holder_name_matches_latest": true,
+    "holder_state_ok": true,
+    "observed_record_count": 2,
+    "observed_records_with_traffic_100_count": 1,
+    "observed_traffic_100_holder_name": "ca-cputhrottle-65svxr--0000001",
+    "observed_traffic_100_holder_running_state": "RunningAtMaxScale",
+    "record_count_holds": true
+  },
+  "thresholds": {
+    "cpu_after_expected": 1.0,
+    "max_replicas_expected": 1,
+    "memory_after_expected_variants": [
+      "2Gi",
+      "2.0Gi"
+    ],
+    "min_replicas_expected": 1,
+    "p95_recovery_ratio_max": 0.5,
+    "requests_ok_floor": 95,
+    "revision_count_after_expected": 2,
+    "revision_running_states_ok": [
+      "Running",
+      "RunningAtMaxScale"
+    ]
+  },
+  "utc_captured": "2026-06-26T03:27:45Z"
+}

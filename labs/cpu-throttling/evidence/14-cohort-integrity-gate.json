@@ -1,0 +1,85 @@
+{
+  "claim": "The 15-file evidence cohort produced by trigger.sh + fix-and-capture.sh on 2026-06-22 is internally consistent: all canonical files present, the experiment window is temporally monotonic and of sane duration, no unexpected non-junk files exist in evidence/, and evidence/README.md cross-references every Phase B gate JSON.",
+  "claim_level": "Observed",
+  "cpu_throttling_h_cohort_integrity_all_subgates_pass": true,
+  "cpu_throttling_h_cohort_integrity_sub_gates": {
+    "a_canonical_present": true,
+    "b_temporal_coherence": true,
+    "c_no_extras": true,
+    "d_readme_xref": true
+  },
+  "gate_classification": "Cohort integrity gate: a structural pre-condition that the 15-file evidence cohort is suitable to evaluate hypothesis gates 15/16/17. Falsifies the whole Phase B run if any sub-gate fails.",
+  "hypothesis": "H_cohort_integrity",
+  "predicate_inputs": {
+    "canonical_evidence_directory": "labs/cpu-throttling/evidence",
+    "loadtest_baseline": "labs/cpu-throttling/evidence/03-loadtest-cpu025.json",
+    "loadtest_postfix": "labs/cpu-throttling/evidence/08-loadtest-cpu1.json",
+    "readme": "labs/cpu-throttling/evidence/README.md"
+  },
+  "scenario": "cpu_throttling",
+  "sub_gate_a_canonical_present": {
+    "a_fallback_holds": true,
+    "a_pass": true,
+    "a_path": "strong",
+    "a_strong_holds": true,
+    "hypothesis_inputs_present": true,
+    "observed_missing": [],
+    "observed_present_count": 15
+  },
+  "sub_gate_a_predicate": "All 15 canonical evidence files are present in evidence/. Strong: exactly 15. Fallback: >= 13 present AND all five hypothesis-gate inputs (01, 03, 06, 07, 08) present.",
+  "sub_gate_b_predicate": "03-loadtest-cpu025.json.started_utc and 08-loadtest-cpu1.json.finished_utc both parse as strict ISO-8601 datetimes, are monotonic (start < finish), and the span is sane. Strong: span <= 30 minutes. Fallback: span <= 60 minutes.",
+  "sub_gate_b_temporal_coherence": {
+    "b_fallback_holds": false,
+    "b_pass": true,
+    "b_path": "strong",
+    "b_strong_holds": true,
+    "observed_baseline_started_utc": "2026-06-22T08:49:38Z",
+    "observed_postfix_finished_utc": "2026-06-22T08:51:13Z",
+    "observed_span_seconds": 95.0,
+    "parse_error": null
+  },
+  "sub_gate_c_no_extras": {
+    "c_fallback_holds": true,
+    "c_pass": true,
+    "c_path": "strong",
+    "c_strong_holds": true,
+    "extras_are_junk_only": true,
+    "observed_extras": [],
+    "observed_missing_count": 0
+  },
+  "sub_gate_c_predicate": "evidence/ contains no files outside the 15 canonical + 4 Phase B gates + README.md. Strong: zero extras AND zero missing canonical. Fallback: extras are limited to editor/OS junk (.swp/.bak/.tmp/.swo/.orig/.DS_Store/Thumbs.db) AND zero missing canonical.",
+  "sub_gate_d_predicate": "evidence/README.md exists and names every Phase B gate filename literally. Strong: all four gate filenames appear in the README body. Fallback: README exists (sub-gate runs before README has been authored in the same PR).",
+  "sub_gate_d_readme_xref": {
+    "d_fallback_holds": true,
+    "d_pass": true,
+    "d_path": "strong",
+    "d_strong_holds": true,
+    "expected_named_outputs": [
+      "14-cohort-integrity-gate.json",
+      "15-baseline-cpu-pressure-gate.json",
+      "16-recovery-materialization-gate.json",
+      "17-single-variable-falsification-gate.json"
+    ],
+    "observed_named_outputs": [
+      "14-cohort-integrity-gate.json",
+      "15-baseline-cpu-pressure-gate.json",
+      "16-recovery-materialization-gate.json",
+      "17-single-variable-falsification-gate.json"
+    ],
+    "observed_readme_exists": true
+  },
+  "thresholds": {
+    "canonical_count_fallback_floor": 13,
+    "canonical_count_strong": 15,
+    "hypothesis_gate_inputs_required": [
+      "01-app-config-before.json",
+      "03-loadtest-cpu025.json",
+      "06-app-config-after.json",
+      "07-revisions-after.json",
+      "08-loadtest-cpu1.json"
+    ],
+    "loadtest_span_fallback_seconds_max": 3600,
+    "loadtest_span_strong_seconds_max": 1800
+  },
+  "utc_captured": "2026-06-26T03:27:45Z"
+}

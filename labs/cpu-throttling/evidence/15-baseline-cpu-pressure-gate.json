@@ -1,0 +1,65 @@
+{
+  "claim": "At cpu=0.25, memory=0.5Gi, single replica, the deterministic CPU-bound endpoint produced observable CPU pressure in the cohort captured on 2026-06-22: p95 latency 2574.8 ms (strictly above the 100 ms floor that rules out a trivial-load misread), all 100 requests succeeded with zero transport errors, and the load test wall-clock was 8.65 seconds (above the 5-second floor that ensures the workload actually exercised CPU rather than completing trivially).",
+  "claim_level": "Measured",
+  "cpu_throttling_h1_baseline_cpu_pressure_all_subgates_pass": true,
+  "cpu_throttling_h1_baseline_cpu_pressure_sub_gates": {
+    "a_baseline_envelope": true,
+    "b_p95_above_floor": true,
+    "c_success_and_zero_errors": true,
+    "d_wall_clock_above_floor": true
+  },
+  "gate_classification": "Baseline gate: establishes that the cohort captured a measurable CPU pressure signal at cpu=0.25, which is the necessary pre-condition for the recovery hypothesis (Gate 16). Without H1 passing, the recovery ratio in Gate 16 is meaningless because there was no pressure to recover from.",
+  "hypothesis": "H1_baseline_cpu_pressure",
+  "predicate_inputs": {
+    "config_before": "labs/cpu-throttling/evidence/01-app-config-before.json",
+    "loadtest_baseline": "labs/cpu-throttling/evidence/03-loadtest-cpu025.json"
+  },
+  "scenario": "cpu_throttling",
+  "sub_gate_a_baseline_envelope": {
+    "a_pass": true,
+    "active_revisions_mode_holds": true,
+    "cpu_holds": true,
+    "max_replicas_holds": true,
+    "memory_holds": true,
+    "min_replicas_holds": true,
+    "observed_active_revisions_mode": "Single",
+    "observed_cpu": 0.25,
+    "observed_max_replicas": 1,
+    "observed_memory": "0.5Gi",
+    "observed_min_replicas": 1
+  },
+  "sub_gate_a_predicate": "01-app-config-before.json records cpu==0.25 AND memory==\"0.5Gi\" AND minReplicas==1 AND maxReplicas==1 AND activeRevisionsMode==\"Single\" (BOTH-not-OR: all five must hold simultaneously).",
+  "sub_gate_b_p95_above_floor": {
+    "b_pass": true,
+    "b_predicate_holds": true,
+    "observed_p95_ms": 2574.8,
+    "p95_floor_ms": 100
+  },
+  "sub_gate_b_predicate": "03-loadtest-cpu025.json.latency_ms.p95 > 100 ms (CPU pressure is observable above the trivial-load floor).",
+  "sub_gate_c_predicate": "03-loadtest-cpu025.json.requests_ok >= 95 AND requests_err == 0 (measurement is not corrupted by transport failures).",
+  "sub_gate_c_success_and_zero_errors": {
+    "c_pass": true,
+    "c_predicate_holds": true,
+    "observed_requests_err": 0,
+    "observed_requests_ok": 100,
+    "requests_ok_floor": 95
+  },
+  "sub_gate_d_predicate": "03-loadtest-cpu025.json.wall_clock_seconds > 5 seconds (the load test ran long enough to actually exercise CPU rather than completing trivially).",
+  "sub_gate_d_wall_clock_above_floor": {
+    "d_pass": true,
+    "d_predicate_holds": true,
+    "observed_wall_clock_seconds": 8.65,
+    "wall_clock_floor_seconds": 5
+  },
+  "thresholds": {
+    "active_revisions_mode_expected": "Single",
+    "baseline_wall_clock_floor_seconds": 5,
+    "cpu_before_expected": 0.25,
+    "max_replicas_expected": 1,
+    "memory_before_expected": "0.5Gi",
+    "min_replicas_expected": 1,
+    "p95_baseline_floor_ms": 100,
+    "requests_ok_floor": 95
+  },
+  "utc_captured": "2026-06-26T03:27:45Z"
+}
