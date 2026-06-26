@@ -22,7 +22,7 @@ Reproduce Key Vault access denial by running a managed-identity-enabled app with
 
 This lab is now backed by a 4-gate Phase B bounded-falsification evidence pack in `labs/managed-identity-key-vault-failure/evidence/README.md`. The committed pack captures one fresh H1/H2 Azure cohort and re-validates the narrow claim ceiling offline: the missing `Key Vault Secrets User` assignment at the Key Vault scope is the mechanically observable trigger field for this reproduction.
 
-Bounded-scope disclosure: the pack does **not** prove image byte-identity, exact RBAC propagation timing, or token-cache-only recovery without a revision restart. Those confounders are carried explicitly in Gate 17 `explicit_drops`, so readers can see exactly where the evidence ceiling stops.
+Bounded-scope disclosure: the pack does **not** prove image byte-identity, pod UID continuity, exact RBAC propagation timing, or token-cache-only recovery without a revision restart. Those confounders are carried explicitly in Gate 17 `explicit_drops`, so readers can see exactly where the evidence ceiling stops.
 
 ## Lab Metadata
 

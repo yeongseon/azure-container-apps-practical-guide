@@ -9,7 +9,7 @@ The lab tests two hypotheses:
 1. **H1 — Trigger produces failure.** A Container App using a system-assigned managed identity to read a Key Vault secret returns HTTP 500 with `ForbiddenByRbac` when the principal lacks `Key Vault Secrets User` at the vault scope, even though the revision surface remains healthy.
 2. **H2 — Fix restores recovery.** Assigning `Key Vault Secrets User` at the Key Vault scope and starting a new revision restores HTTP 200 on `/health` with the secret-length payload.
 
-This evidence pack falsifies the hypothesis within a bounded scope. Gate 17 demonstrates that the presence versus absence of the `Key Vault Secrets User` assignment at the Key Vault scope is the mechanically observable trigger field. The pack does **not** prove image byte identity, pod UID continuity, exact RBAC propagation timing, or token-cache-only recovery; those ceilings are carried explicitly in `cohort_binding_note.explicit_drops`.
+This evidence pack falsifies the hypothesis within a bounded scope. Gate 17 demonstrates that the presence versus absence of the `Key Vault Secrets User` assignment at the Key Vault scope is the mechanically observable trigger field. Gate 17 now compares the full overlapping H1↔H2 revision surface that this cohort actually captures: resource group, traffic weight, replica count, container name, image tag, `KEY_VAULT_URL`, `SECRET_NAME`, CPU, memory, scale bounds, and probes. The pack does **not** prove image byte identity, pod UID continuity, exact RBAC propagation timing, or token-cache-only recovery; those ceilings are carried explicitly in `cohort_binding_note.explicit_drops`.
 
 ## Structure
 
@@ -32,7 +32,8 @@ labs/managed-identity-key-vault-failure/
 - **Key Vault:** `kv-labkv-b3erju`
 - **Principal ID:** `00000000-0000-0000-0000-000000000000` (masked)
 - **Bounded trigger field:** presence versus absence of the `Key Vault Secrets User` assignment at the Key Vault scope
-- **Held constant fields:** app name, resource group, image tag `acrlabkvb3erju.azurecr.io/ca-labkv-b3erju:v1`, `KEY_VAULT_URL`, `SECRET_NAME`, CPU `0.5`, memory `1Gi`, ingress targetPort `8000`
+- **Held constant fields in the overlapping H1↔H2 revision diff:** app name, resource group, traffic weight `100`, replica count `1`, container name `app`, image tag `acrlabkvb3erju.azurecr.io/ca-labkv-b3erju:v1`, `KEY_VAULT_URL`, `SECRET_NAME`, CPU `0.5`, memory `1Gi`, `minReplicas=1`, `maxReplicas=2`, probes `[]`
+- **Pre-fix-only ingress pin:** `07-containerapp-spec-pre-fix.yaml` pins `targetPort: 8000`, but the post-fix raw cohort does not include a second full app-spec capture, so ingress target port is not claimed as part of the overlapping H1↔H2 diff.
 
 ## Evidence pack
 

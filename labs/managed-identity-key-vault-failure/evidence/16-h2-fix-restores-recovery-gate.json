@@ -77,13 +77,14 @@
       ],
       "observed_values": {
         "post_created_time": "2026-06-26T08:25:19+00:00",
+        "active": true,
         "post_health_state": "Healthy",
         "post_revision": "ca-labkv-b3erju--0000002",
         "post_running_state": "Running",
         "pre_created_time": "2026-06-26T08:18:50+00:00",
         "pre_revision": "ca-labkv-b3erju--0000001"
       },
-      "predicate": "11[0].properties.createdTime > 04[0].properties.createdTime AND 11[0].properties.healthState == 'Healthy' AND 11[0].properties.runningState == 'Running'.",
+      "predicate": "11[0].properties.active == true AND 11[0].properties.createdTime > 04[0].properties.createdTime AND 11[0].properties.healthState == 'Healthy' AND 11[0].properties.runningState == 'Running'.",
       "result": "pass",
       "sub_gate": "c_newer_post_fix_revision_is_active_and_healthy"
     },

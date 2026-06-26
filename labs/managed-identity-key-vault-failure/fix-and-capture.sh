@@ -316,6 +316,8 @@ from pathlib import Path
 base = Path(__import__('os').environ['EVIDENCE_DIR'])
 subs = [
     (re.compile(r'(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![0-9a-f])', re.I), '00000000-0000-0000-0000-000000000000'),
+    (re.compile(r'\bMCAPS[-A-Za-z0-9_]*\b'), 'Visual Studio Enterprise Subscription'),
+    (re.compile(r'Microsoft\s+Non-Production', re.I), 'Contoso'),
     (re.compile(r'\b[A-Za-z0-9._%+-]+@microsoft\.com(?![A-Za-z0-9.-])', re.I), 'user@example.com'),
     (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.onmicrosoft\.com(?![A-Za-z0-9.-])', re.I), 'user@example.com'),
     (re.compile(r'\b[A-Za-z0-9._%+-]+@gmail\.com(?![A-Za-z0-9.-])', re.I), 'user@example.com'),

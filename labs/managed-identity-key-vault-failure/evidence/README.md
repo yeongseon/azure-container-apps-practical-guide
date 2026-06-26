@@ -14,7 +14,7 @@ The claim ceiling is deliberately narrow: this pack proves only what this single
 
 - **Gate 14 — `14-cohort-integrity-gate.json`**: validates canonical file presence, parseability, temporal boundedness, lineage coherence, and README cross-references.
 - **Gate 15 — `15-h1-trigger-produces-failure-gate.json`**: proves the pre-fix state had no `Key Vault Secrets User` assignment at the vault scope and that `/health` failed with `ForbiddenByRbac` while the revision stayed healthy.
-- **Gate 16 — `16-h2-fix-restores-recovery-gate.json`**: proves the post-fix state had the scoped role assignment, a successful HTTP 200 body, and a newer healthy revision with clean startup/readiness summary rows.
+- **Gate 16 — `16-h2-fix-restores-recovery-gate.json`**: proves the post-fix state had the scoped role assignment, a successful HTTP 200 body, and a newer healthy revision with clean startup/readiness summary rows on the recovered revision only (older revisions may still show `ProbeFailed` entries).
 - **Gate 17 — `17-bounded-falsification-gate.json`**: bounds the causal claim to role-assignment presence at Key Vault scope and explicitly lists the unsupported inferences.
 
 ## Honest disclosure
@@ -22,7 +22,7 @@ The claim ceiling is deliberately narrow: this pack proves only what this single
 - The pack captures a single live Azure cohort from Jun 26 2026; it is not a statistical sample across regions or tenants.
 - `06-system-logs-pre-fix.json` is JSONL/NDJSON, not a JSON array; `verify.sh` parses it one record per line.
 - `08-kql-console-logs-pre-fix.json` does not contain request-body smoking-gun text because the Flask handler does not emit application logs for the caught exception. The smoking gun is the captured HTTP 500 body in `05-http-response-pre-fix.json`.
-- The pack does not capture image digests, pod UIDs, exact RBAC propagation latency, or token-cache-only recovery. Those gaps are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
+- The pack does not capture image digests, pod UID continuity, exact RBAC propagation latency, or token-cache-only recovery. Those gaps are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 
 ## File index
 

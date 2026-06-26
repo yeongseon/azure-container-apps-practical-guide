@@ -58,11 +58,12 @@
       ],
       "observed_values": {
         "health_state": "Healthy",
+        "active": true,
         "provisioning_state": "Provisioned",
         "revision_name": "ca-labkv-b3erju--0000001",
         "running_state": "Running"
       },
-      "predicate": "04[0].properties.healthState == 'Healthy' AND provisioningState == 'Provisioned' AND runningState == 'Running'.",
+      "predicate": "04[0].properties.active == true AND healthState == 'Healthy' AND provisioningState == 'Provisioned' AND runningState == 'Running'.",
       "result": "pass",
       "sub_gate": "c_revision_surface_stays_healthy_running_and_provisioned"
     },

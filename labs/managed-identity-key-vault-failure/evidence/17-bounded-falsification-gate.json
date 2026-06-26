@@ -5,19 +5,19 @@
     "claim_ceiling": "The bounded claim is that the presence versus absence of the Key Vault Secrets User role assignment at the Key Vault scope is the mechanically observable trigger field for this cohort. The pack does NOT prove image byte identity, pod UID continuity, exact RBAC propagation timing, or token-cache-only recovery.",
     "explicit_drops": [
       {
-        "id": "image_byte_identity_not_captured",
+        "id": "image_byte_identity",
         "note": "The cohort captures the same image tag across H1 and H2, but it does not capture OCI digests beyond the mutable tag surface stored in the revision JSON/YAML evidence."
       },
       {
-        "id": "pod_uids_not_captured",
+        "id": "pod_uid_continuity",
         "note": "The pack proves only revision-level recovery. It does not capture Kubernetes pod UIDs or claim pod reuse across the restart boundary."
       },
       {
-        "id": "rbac_propagation_timing_not_proven",
+        "id": "rbac_propagation_timing",
         "note": "The script waits for RBAC propagation, but this pack does not bound the exact propagation latency required before the retry succeeds."
       },
       {
-        "id": "token_cache_behavior_not_proven",
+        "id": "token_cache_state",
         "note": "Recovery is observed after the role assignment plus a new revision start. The pack does not isolate whether credential/token cache state alone would have recovered without the restart."
       }
     ]
@@ -70,18 +70,31 @@
         "held_constant_checks": {
           "app_name": true,
           "resource_group": true,
+          "traffic_weight": true,
+          "replicas": true,
+          "container_name": true,
           "image": true,
           "key_vault_url": true,
           "secret_name": true,
           "cpu": true,
           "memory": true,
-          "target_port": true
+          "min_replicas": true,
+          "max_replicas": true,
+          "probes": true
         },
         "held_constant_observed": {
+          "active_flags": [
+            true,
+            true
+          ],
           "app_name": [
             "ca-labkv-b3erju",
             "ca-labkv-b3erju",
             "ca-labkv-b3erju"
+          ],
+          "container_name": [
+            "app",
+            "app"
           ],
           "cpu": [
             0.5,
@@ -95,9 +108,25 @@
             "https://kv-labkv-b3erju.vault.azure.net/",
             "https://kv-labkv-b3erju.vault.azure.net/"
           ],
+          "max_replicas": [
+            2,
+            2
+          ],
           "memory": [
             "1Gi",
             "1Gi"
+          ],
+          "min_replicas": [
+            1,
+            1
+          ],
+          "probes": [
+            [],
+            []
+          ],
+          "replicas": [
+            1,
+            1
           ],
           "resource_group": [
             "rg-aca-lab-kv",
@@ -107,12 +136,14 @@
             "demo-secret",
             "demo-secret"
           ],
-          "target_port": [
-            8000
-          ]
+          "traffic_weight": [
+            100,
+            100
+          ],
+          "target_port_pre_fix_only": 8000
         }
       },
-      "predicate": "app name, resource group, image tag, KEY_VAULT_URL, SECRET_NAME, cpu, memory, and ingress targetPort compare equal across the pre/post captures.",
+      "predicate": "Across the overlapping pre/post revision surfaces, app name, resource group, trafficWeight, replicas, container name, image tag, KEY_VAULT_URL, SECRET_NAME, cpu, memory, minReplicas, maxReplicas, and probes compare equal. Ingress targetPort is pinned by the pre-fix spec only and is not part of the post-fix overlap diff.",
       "result": "pass",
       "sub_gate": "b_directly_captured_held_constant_fields_match"
     },
@@ -123,20 +154,20 @@
         "labs/managed-identity-key-vault-failure/evidence/17-bounded-falsification-gate.json"
       ],
       "observed_values": {
-        "expected_drop_ids": [
-          "image_byte_identity_not_captured",
-          "pod_uids_not_captured",
-          "rbac_propagation_timing_not_proven",
-          "token_cache_behavior_not_proven"
+        "documented_ceiling_ids": [
+          "image_byte_identity",
+          "pod_uid_continuity",
+          "rbac_propagation_timing",
+          "token_cache_state"
         ],
         "observed_drop_ids": [
-          "image_byte_identity_not_captured",
-          "pod_uids_not_captured",
-          "rbac_propagation_timing_not_proven",
-          "token_cache_behavior_not_proven"
+          "image_byte_identity",
+          "pod_uid_continuity",
+          "rbac_propagation_timing",
+          "token_cache_state"
         ]
       },
-      "predicate": "cohort_binding_note.explicit_drops ids equal {image_byte_identity_not_captured, pod_uids_not_captured, rbac_propagation_timing_not_proven, token_cache_behavior_not_proven}.",
+      "predicate": "cohort_binding_note.explicit_drops ids equal the static documented ceiling {image_byte_identity, pod_uid_continuity, token_cache_state, rbac_propagation_timing} with no additions and no omissions.",
       "result": "pass",
       "sub_gate": "c_explicit_drops_match_the_documented_ceiling"
     },
@@ -150,16 +181,18 @@
       "observed_values": {
         "post_revision": "ca-labkv-b3erju--0000002",
         "pre_revision": "ca-labkv-b3erju--0000001",
+        "post_revision_created_time": "2026-06-26T08:25:19+00:00",
         "restart_token_present": true,
-        "role_assignment_created_on": "2026-06-26T08:24:00.292625+00:00"
+        "role_assignment_created_on": "2026-06-26T08:24:00.292625+00:00",
+        "revision_after_role_assignment_delta_seconds": 78.707375
       },
-      "predicate": "11[0].properties.createdTime > 04[0].properties.createdTime AND the recovered revision environment contains RESTART_TOKEN after the 09 role-assignment capture.",
+      "predicate": "11[0].properties.createdTime > 09[0].createdOn with a positive delta in seconds, and the recovered revision environment contains RESTART_TOKEN.",
       "result": "pass",
       "sub_gate": "d_recovery_is_observed_after_role_assignment_plus_new_revision_start"
     }
   ],
   "thresholds": {
-    "held_constant_field_count": 8,
+    "held_constant_field_count": 13,
     "post_fix_status_code_expected": 200,
     "pre_fix_status_code_expected": "non-200"
   },

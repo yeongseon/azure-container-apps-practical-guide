@@ -333,6 +333,12 @@ GATE_FILES = [
     "16-h2-fix-restores-recovery-gate.json",
     "17-bounded-falsification-gate.json",
 ]
+DOCUMENTED_EXPLICIT_DROPS_CEILING = frozenset([
+    "image_byte_identity",
+    "pod_uid_continuity",
+    "token_cache_state",
+    "rbac_propagation_timing",
+])
 EXPECTED_EVIDENCE_FILES = RAW_FILES + GATE_FILES + ["README.md"]
 JUNK_NAMES = {".DS_Store"}
 
@@ -348,6 +354,13 @@ def load_jsonl(name: str):
 
 def load_yaml(name: str):
     return yaml.safe_load((EVIDENCE_DIR / name).read_text(encoding="utf-8"))
+
+def file_capture_time(name: str):
+    stat = (EVIDENCE_DIR / name).stat()
+    ts = getattr(stat, "st_birthtime", None)
+    if ts is None:
+        ts = stat.st_mtime
+    return datetime.fromtimestamp(ts, tz=timezone.utc)
 
 def parse_http_date(header_lines):
     for line in header_lines:
@@ -429,6 +442,49 @@ pre_http_date = parse_http_date(http_pre["headers"])
 post_http_date = parse_http_date(http_post["headers"])
 post_role_created = parse_iso(roles_post[0]["createdOn"])
 system_timestamps = [parse_system_timestamp(row["TimeStamp"]) for row in system_pre if row.get("TimeStamp")]
+pre_anchor_files = [
+    "01-app-identity-pre-fix.json",
+    "02-role-assignments-pre-fix.json",
+    "03-kv-rbac-config.json",
+    "04-revision-list-pre-fix.json",
+    "05-http-response-pre-fix.json",
+    "07-containerapp-spec-pre-fix.yaml",
+]
+post_anchor_files = [
+    "08-kql-console-logs-pre-fix.json",
+    "09-role-assignment-post-fix.json",
+    "10-http-response-post-fix.json",
+    "11-revision-list-post-fix.json",
+    "12-kql-recovery-summary-post-fix.json",
+]
+pre_anchor_mtimes = {
+    name: file_capture_time(name)
+    for name in pre_anchor_files
+}
+post_anchor_mtimes = {
+    name: file_capture_time(name)
+    for name in post_anchor_files
+}
+monotonic_pairs = []
+for pre_name, pre_time in pre_anchor_mtimes.items():
+    for post_name, post_time in post_anchor_mtimes.items():
+        monotonic_pairs.append({
+            "pre_file": pre_name,
+            "pre_mtime_utc": pre_time.isoformat(),
+            "post_file": post_name,
+            "post_mtime_utc": post_time.isoformat(),
+            "delta_seconds": (post_time - pre_time).total_seconds(),
+            "holds": post_time > pre_time,
+        })
+monotonic_ordering_holds = all(item["holds"] for item in monotonic_pairs)
+sorted_anchor_sequence = [
+    {
+        "file": name,
+        "mtime_utc": dt.isoformat(),
+        "phase": "pre_fix" if name in pre_anchor_mtimes else "post_fix_capture_order",
+    }
+    for name, dt in sorted({**pre_anchor_mtimes, **post_anchor_mtimes}.items(), key=lambda item: item[1])
+]
 anchor_times = [pre_created, pre_http_date, post_role_created, post_created, post_http_date]
 if system_timestamps:
     anchor_times.append(min(system_timestamps))
@@ -447,12 +503,17 @@ observed_xrefs = [name for name in expected_xrefs if name in readme_text]
 
 pre_latest_revision = spec_pre["properties"]["latestRevisionName"]
 pre_ready_revision = spec_pre["properties"]["latestReadyRevisionName"]
+pre_revision_id = revisions_pre[0]["id"]
+post_revision_id = revisions_post[0]["id"]
 pre_image = revisions_pre[0]["properties"]["template"]["containers"][0]["image"]
+pre_container_state = revisions_pre[0]["properties"]["template"]["containers"][0]
 post_container = revisions_post[0]["properties"]["template"]["containers"][0]
 post_image = post_container["image"]
 post_env = {item["name"]: item.get("value") for item in post_container.get("env", [])}
 pre_container = spec_pre["properties"]["template"]["containers"][0]
 pre_env = {item["name"]: item.get("value") for item in pre_container.get("env", [])}
+pre_scale = revisions_pre[0]["properties"]["template"].get("scale", {})
+post_scale = revisions_post[0]["properties"]["template"].get("scale", {})
 
 pre_role_match = [
     row for row in roles_pre
@@ -467,6 +528,8 @@ response_pre_body = str(http_pre.get("body", ""))
 response_post_body = str(http_post.get("body", ""))
 pre_revision_state = revisions_pre[0]["properties"]
 post_revision_state = revisions_post[0]["properties"]
+pre_revision_active = pre_revision_state.get("active") is True
+post_revision_active = post_revision_state.get("active") is True
 recovery_by_revision = {}
 for row in recovery_post:
     rev = row.get("RevisionName_s", "")
@@ -479,33 +542,71 @@ post_reasons = recovery_by_revision.get(post_revision, {})
 held_constant_checks = {
     "app_name": app_name == revisions_pre[0]["name"].split("--")[0] == revisions_post[0]["name"].split("--")[0],
     "resource_group": revisions_pre[0]["resourceGroup"] == revisions_post[0]["resourceGroup"] == resource_group,
+    "traffic_weight": pre_revision_state.get("trafficWeight") == post_revision_state.get("trafficWeight") == 100,
+    "replicas": pre_revision_state.get("replicas") == post_revision_state.get("replicas"),
+    "container_name": pre_container_state.get("name") == post_container.get("name"),
     "image": pre_image == post_image,
     "key_vault_url": pre_env.get("KEY_VAULT_URL") == post_env.get("KEY_VAULT_URL"),
     "secret_name": pre_env.get("SECRET_NAME") == post_env.get("SECRET_NAME"),
     "cpu": pre_container["resources"]["cpu"] == post_container["resources"]["cpu"],
     "memory": pre_container["resources"]["memory"] == post_container["resources"]["memory"],
-    "target_port": spec_pre["properties"]["configuration"]["ingress"]["targetPort"] == 8000,
+    "min_replicas": pre_scale.get("minReplicas") == post_scale.get("minReplicas"),
+    "max_replicas": pre_scale.get("maxReplicas") == post_scale.get("maxReplicas"),
+    "probes": pre_container_state.get("probes") == post_container.get("probes"),
 }
 
 explicit_drops = [
     {
-        "id": "image_byte_identity_not_captured",
+        "id": "image_byte_identity",
         "note": "The cohort captures the same image tag across H1 and H2, but it does not capture OCI digests beyond the mutable tag surface stored in the revision JSON/YAML evidence.",
     },
     {
-        "id": "pod_uids_not_captured",
+        "id": "pod_uid_continuity",
         "note": "The pack proves only revision-level recovery. It does not capture Kubernetes pod UIDs or claim pod reuse across the restart boundary.",
     },
     {
-        "id": "rbac_propagation_timing_not_proven",
+        "id": "rbac_propagation_timing",
         "note": "The script waits for RBAC propagation, but this pack does not bound the exact propagation latency required before the retry succeeds.",
     },
     {
-        "id": "token_cache_behavior_not_proven",
+        "id": "token_cache_state",
         "note": "Recovery is observed after the role assignment plus a new revision start. The pack does not isolate whether credential/token cache state alone would have recovered without the restart.",
     },
 ]
-expected_drop_ids = [item["id"] for item in explicit_drops]
+runtime_drop_ids = frozenset(item["id"] for item in explicit_drops)
+post_lineage_holds = (
+    f"/resourceGroups/{resource_group}/" in post_revision_id
+    and f"/containerApps/{app_name}/" in post_revision_id
+)
+pre_lineage_holds = (
+    f"/resourceGroups/{resource_group}/" in pre_revision_id
+    and f"/containerApps/{app_name}/" in pre_revision_id
+)
+role_assignment_to_revision_delta_seconds = (post_created - post_role_created).total_seconds()
+
+subgate_14a_pass = not parse_errors
+subgate_14b_pass = monotonic_ordering_holds and (strong_temporal or fallback_temporal)
+subgate_14c_pass = pre_latest_revision == pre_revision and pre_ready_revision == pre_revision and post_created > pre_created and pre_lineage_holds and post_lineage_holds
+subgate_14d_pass = not unexpected_non_junk and observed_xrefs == expected_xrefs
+gate_14_all_subgates_pass = all([subgate_14a_pass, subgate_14b_pass, subgate_14c_pass, subgate_14d_pass])
+
+subgate_15a_pass = not pre_role_match
+subgate_15b_pass = int(http_pre.get("status_code", 0)) != 200 and "ForbiddenByRbac" in response_pre_body
+subgate_15c_pass = pre_revision_active and pre_revision_state.get("healthState") == "Healthy" and pre_revision_state.get("provisioningState") == "Provisioned" and pre_revision_state.get("runningState") == "Running"
+subgate_15d_pass = kv_config.get("enableRbacAuthorization") is True
+gate_15_all_subgates_pass = all([subgate_15a_pass, subgate_15b_pass, subgate_15c_pass, subgate_15d_pass])
+
+subgate_16a_pass = bool(post_role_match)
+subgate_16b_pass = int(http_post.get("status_code", 0)) == 200 and '"status":"ok"' in response_post_body
+subgate_16c_pass = post_revision_active and post_created > pre_created and post_revision_state.get("healthState") == "Healthy" and post_revision_state.get("runningState") == "Running"
+subgate_16d_pass = post_reasons.get("ContainerStarted", 0) >= 1 and post_reasons.get("RevisionReady", 0) >= 1 and post_reasons.get("ProbeFailed", 0) == 0
+gate_16_all_subgates_pass = all([subgate_16a_pass, subgate_16b_pass, subgate_16c_pass, subgate_16d_pass])
+
+subgate_17a_pass = not pre_role_match and bool(post_role_match)
+subgate_17b_pass = all(held_constant_checks.values())
+subgate_17c_pass = runtime_drop_ids == DOCUMENTED_EXPLICIT_DROPS_CEILING
+subgate_17d_pass = role_assignment_to_revision_delta_seconds > 0 and bool(post_env.get("RESTART_TOKEN"))
+gate_17_all_subgates_pass = all([subgate_17a_pass, subgate_17b_pass, subgate_17c_pass, subgate_17d_pass])
 
 gate14 = {
     "claim": f"The 12-file managed-identity-key-vault-failure raw cohort is internally consistent: every file is present and parseable, the identity and lineage bind to {app_name} / {resource_group}, the temporal span stays within the documented temporal ceiling, and evidence/README.md cross-references all four Phase B gate JSON files.",
@@ -522,12 +623,12 @@ gate14 = {
         "revision_list_pre": repo_rel("04-revision-list-pre-fix.json"),
         "revision_list_post": repo_rel("11-revision-list-post-fix.json"),
     },
-    "managed_identity_key_vault_failure_h_cohort_integrity_all_subgates_pass": True,
+    "managed_identity_key_vault_failure_h_cohort_integrity_all_subgates_pass": gate_14_all_subgates_pass,
     "managed_identity_key_vault_failure_h_cohort_integrity_sub_gates": {
-        "a_canonical_raw_files_present_and_parse": not parse_errors,
-        "b_temporal_cohort_is_monotonic_and_bounded": strong_temporal or fallback_temporal,
-        "c_identity_and_lineage_are_consistent": pre_latest_revision == pre_revision and pre_ready_revision == pre_revision and post_created > pre_created,
-        "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist": not unexpected_non_junk and observed_xrefs == expected_xrefs,
+        "a_canonical_raw_files_present_and_parse": subgate_14a_pass,
+        "b_temporal_cohort_is_monotonic_and_bounded": subgate_14b_pass,
+        "c_identity_and_lineage_are_consistent": subgate_14c_pass,
+        "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist": subgate_14d_pass,
     },
     "scenario": "managed_identity_key_vault_failure",
     "sub_gates": [
@@ -544,23 +645,28 @@ gate14 = {
                 "fallback": {"expected_count": 12, "holds": not parse_errors},
             },
             "predicate": "Strong and fallback both require the full 12-file raw cohort to exist; 01,02,03,04,05,08,09,10,11,12 parse as JSON; 07 parses as YAML; 06 parses as JSONL.",
-            "result": "pass" if not parse_errors else "fail",
+            "result": "pass" if subgate_14a_pass else "fail",
             "sub_gate": "a_canonical_raw_files_present_and_parse",
         },
         {
-            "claim": "The captured H1 -> H2 cohort is temporally monotonic and stays within the strong <=1800-second window.",
+            "claim": "The captured H1 -> H2 cohort is temporally monotonic by capture order and stays within the documented temporal ceiling.",
             "claim_level": "Measured",
             "evidence_files": [repo_rel("04-revision-list-pre-fix.json"), repo_rel("05-http-response-pre-fix.json"), repo_rel("09-role-assignment-post-fix.json"), repo_rel("10-http-response-post-fix.json"), repo_rel("11-revision-list-post-fix.json")],
             "observed_values": {
                 "earliest_anchor_utc": earliest_anchor.isoformat(),
                 "latest_anchor_utc": latest_anchor.isoformat(),
+                "monotonic_ordering_holds": monotonic_ordering_holds,
                 "observed_span_seconds": span_seconds,
                 "path_satisfied": path_used,
+                "post_anchor_mtimes": {name: value.isoformat() for name, value in post_anchor_mtimes.items()},
+                "pre_anchor_mtimes": {name: value.isoformat() for name, value in pre_anchor_mtimes.items()},
+                "sorted_anchor_sequence": sorted_anchor_sequence,
                 "strong": {"holds": strong_temporal, "max_span_seconds": 1800},
                 "fallback": {"holds": fallback_temporal, "max_span_seconds": 5400},
+                "strict_pairwise_order_checks": monotonic_pairs,
             },
-            "predicate": "Strong: earliest revision/HTTP/role-assignment anchor through post-fix HTTP anchor <= 1800 seconds. Fallback: <= 5400 seconds.",
-            "result": "pass" if (strong_temporal or fallback_temporal) else "fail",
+            "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+            "result": "pass" if subgate_14b_pass else "fail",
             "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded",
         },
         {
@@ -569,14 +675,18 @@ gate14 = {
             "evidence_files": [repo_rel("04-revision-list-pre-fix.json"), repo_rel("07-containerapp-spec-pre-fix.yaml"), repo_rel("11-revision-list-post-fix.json")],
             "observed_values": {
                 "app_name": app_name,
+                "post_revision_id": post_revision_id,
                 "post_revision": post_revision,
                 "pre_latest_ready_revision": pre_ready_revision,
                 "pre_latest_revision": pre_latest_revision,
+                "pre_revision_id": pre_revision_id,
                 "pre_revision": pre_revision,
                 "resource_group": resource_group,
+                "post_lineage_holds": post_lineage_holds,
+                "pre_lineage_holds": pre_lineage_holds,
             },
-            "predicate": "07.properties.latestRevisionName == 07.properties.latestReadyRevisionName == 04[0].name AND 11[0].properties.createdTime > 04[0].properties.createdTime for the same app/resourceGroup.",
-            "result": "pass" if (pre_latest_revision == pre_revision and pre_ready_revision == pre_revision and post_created > pre_created) else "fail",
+            "predicate": "07.properties.latestRevisionName == 07.properties.latestReadyRevisionName == 04[0].name AND both 04[0].id and 11[0].id contain the same app/resourceGroup lineage substrings AND 11[0].properties.createdTime > 04[0].properties.createdTime.",
+            "result": "pass" if subgate_14c_pass else "fail",
             "sub_gate": "c_identity_and_lineage_are_consistent",
         },
         {
@@ -592,7 +702,7 @@ gate14 = {
                 "readme_exists": (EVIDENCE_DIR / "README.md").is_file(),
             },
             "predicate": "extras == [] AND evidence/README.md contains the four gate filenames literally.",
-            "result": "pass" if (not unexpected_non_junk and observed_xrefs == expected_xrefs) else "fail",
+            "result": "pass" if subgate_14d_pass else "fail",
             "sub_gate": "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist",
         },
     ],
@@ -617,12 +727,12 @@ gate15 = {
         "revision_list_pre": repo_rel("04-revision-list-pre-fix.json"),
         "role_assignments_pre": repo_rel("02-role-assignments-pre-fix.json"),
     },
-    "managed_identity_key_vault_failure_h1_trigger_produces_failure_all_subgates_pass": True,
+    "managed_identity_key_vault_failure_h1_trigger_produces_failure_all_subgates_pass": gate_15_all_subgates_pass,
     "managed_identity_key_vault_failure_h1_trigger_produces_failure_sub_gates": {
-        "a_kv_scope_lacks_key_vault_secrets_user": not pre_role_match,
-        "b_http_response_is_non_200_and_contains_forbiddenbyrbac": int(http_pre.get("status_code", 0)) != 200 and "ForbiddenByRbac" in response_pre_body,
-        "c_revision_surface_stays_healthy_running_and_provisioned": pre_revision_state.get("healthState") == "Healthy" and pre_revision_state.get("provisioningState") == "Provisioned" and pre_revision_state.get("runningState") == "Running",
-        "d_vault_is_in_rbac_authorization_mode": kv_config.get("enableRbacAuthorization") is True,
+        "a_kv_scope_lacks_key_vault_secrets_user": subgate_15a_pass,
+        "b_http_response_is_non_200_and_contains_forbiddenbyrbac": subgate_15b_pass,
+        "c_revision_surface_stays_healthy_running_and_provisioned": subgate_15c_pass,
+        "d_vault_is_in_rbac_authorization_mode": subgate_15d_pass,
     },
     "scenario": "managed_identity_key_vault_failure",
     "sub_gates": [
@@ -636,7 +746,7 @@ gate15 = {
                 "vault_name": kv_name,
             },
             "predicate": "count(02 rows where roleDefinitionName == 'Key Vault Secrets User' AND scope contains the vault name from 03.uri) == 0.",
-            "result": "pass" if not pre_role_match else "fail",
+            "result": "pass" if subgate_15a_pass else "fail",
             "sub_gate": "a_kv_scope_lacks_key_vault_secrets_user",
         },
         {
@@ -649,7 +759,7 @@ gate15 = {
                 "status_code": int(http_pre.get("status_code", 0)),
             },
             "predicate": "05.status_code != 200 AND 05.body contains 'ForbiddenByRbac'.",
-            "result": "pass" if (int(http_pre.get("status_code", 0)) != 200 and "ForbiddenByRbac" in response_pre_body) else "fail",
+            "result": "pass" if subgate_15b_pass else "fail",
             "sub_gate": "b_http_response_is_non_200_and_contains_forbiddenbyrbac",
         },
         {
@@ -658,12 +768,13 @@ gate15 = {
             "evidence_files": [repo_rel("04-revision-list-pre-fix.json")],
             "observed_values": {
                 "health_state": pre_revision_state.get("healthState"),
+                "active": pre_revision_state.get("active"),
                 "provisioning_state": pre_revision_state.get("provisioningState"),
                 "revision_name": pre_revision,
                 "running_state": pre_revision_state.get("runningState"),
             },
-            "predicate": "04[0].properties.healthState == 'Healthy' AND provisioningState == 'Provisioned' AND runningState == 'Running'.",
-            "result": "pass" if (pre_revision_state.get("healthState") == "Healthy" and pre_revision_state.get("provisioningState") == "Provisioned" and pre_revision_state.get("runningState") == "Running") else "fail",
+            "predicate": "04[0].properties.active == true AND healthState == 'Healthy' AND provisioningState == 'Provisioned' AND runningState == 'Running'.",
+            "result": "pass" if subgate_15c_pass else "fail",
             "sub_gate": "c_revision_surface_stays_healthy_running_and_provisioned",
         },
         {
@@ -676,7 +787,7 @@ gate15 = {
                 "uri": kv_uri,
             },
             "predicate": "03.enableRbacAuthorization == true.",
-            "result": "pass" if kv_config.get("enableRbacAuthorization") is True else "fail",
+            "result": "pass" if subgate_15d_pass else "fail",
             "sub_gate": "d_vault_is_in_rbac_authorization_mode",
         },
     ],
@@ -699,12 +810,12 @@ gate16 = {
         "revision_list_post": repo_rel("11-revision-list-post-fix.json"),
         "role_assignments_post": repo_rel("09-role-assignment-post-fix.json"),
     },
-    "managed_identity_key_vault_failure_h2_fix_restores_recovery_all_subgates_pass": True,
+    "managed_identity_key_vault_failure_h2_fix_restores_recovery_all_subgates_pass": gate_16_all_subgates_pass,
     "managed_identity_key_vault_failure_h2_fix_restores_recovery_sub_gates": {
-        "a_key_vault_secrets_user_exists_at_kv_scope": bool(post_role_match),
-        "b_http_response_is_200_with_success_marker": int(http_post.get("status_code", 0)) == 200 and '"status":"ok"' in response_post_body,
-        "c_newer_post_fix_revision_is_active_and_healthy": post_created > pre_created and post_revision_state.get("healthState") == "Healthy" and post_revision_state.get("runningState") == "Running",
-        "d_post_fix_kql_shows_startup_and_zero_probefailed_on_recovered_revision": post_reasons.get("ContainerStarted", 0) >= 1 and post_reasons.get("RevisionReady", 0) >= 1 and post_reasons.get("ProbeFailed", 0) == 0,
+        "a_key_vault_secrets_user_exists_at_kv_scope": subgate_16a_pass,
+        "b_http_response_is_200_with_success_marker": subgate_16b_pass,
+        "c_newer_post_fix_revision_is_active_and_healthy": subgate_16c_pass,
+        "d_post_fix_kql_shows_startup_and_zero_probefailed_on_recovered_revision": subgate_16d_pass,
     },
     "scenario": "managed_identity_key_vault_failure",
     "sub_gates": [
@@ -717,7 +828,7 @@ gate16 = {
                 "post_role_assignment_count": len(roles_post),
             },
             "predicate": "count(09 rows where roleDefinitionName == 'Key Vault Secrets User' AND scope contains the vault name) >= 1.",
-            "result": "pass" if post_role_match else "fail",
+            "result": "pass" if subgate_16a_pass else "fail",
             "sub_gate": "a_key_vault_secrets_user_exists_at_kv_scope",
         },
         {
@@ -729,7 +840,7 @@ gate16 = {
                 "status_code": int(http_post.get("status_code", 0)),
             },
             "predicate": "10.status_code == 200 AND 10.body contains '\"status\":\"ok\"'.",
-            "result": "pass" if (int(http_post.get("status_code", 0)) == 200 and '"status":"ok"' in response_post_body) else "fail",
+            "result": "pass" if subgate_16b_pass else "fail",
             "sub_gate": "b_http_response_is_200_with_success_marker",
         },
         {
@@ -738,14 +849,15 @@ gate16 = {
             "evidence_files": [repo_rel("04-revision-list-pre-fix.json"), repo_rel("11-revision-list-post-fix.json")],
             "observed_values": {
                 "post_created_time": revisions_post[0]["properties"]["createdTime"],
+                "active": post_revision_state.get("active"),
                 "post_health_state": post_revision_state.get("healthState"),
                 "post_revision": post_revision,
                 "post_running_state": post_revision_state.get("runningState"),
                 "pre_created_time": revisions_pre[0]["properties"]["createdTime"],
                 "pre_revision": pre_revision,
             },
-            "predicate": "11[0].properties.createdTime > 04[0].properties.createdTime AND 11[0].properties.healthState == 'Healthy' AND 11[0].properties.runningState == 'Running'.",
-            "result": "pass" if (post_created > pre_created and post_revision_state.get("healthState") == "Healthy" and post_revision_state.get("runningState") == "Running") else "fail",
+            "predicate": "11[0].properties.active == true AND 11[0].properties.createdTime > 04[0].properties.createdTime AND 11[0].properties.healthState == 'Healthy' AND 11[0].properties.runningState == 'Running'.",
+            "result": "pass" if subgate_16c_pass else "fail",
             "sub_gate": "c_newer_post_fix_revision_is_active_and_healthy",
         },
         {
@@ -756,7 +868,7 @@ gate16 = {
                 "post_revision_reason_counts": post_reasons,
             },
             "predicate": "12 rows for the recovered revision contain ContainerStarted >= 1 AND RevisionReady >= 1 AND ProbeFailed == 0.",
-            "result": "pass" if (post_reasons.get("ContainerStarted", 0) >= 1 and post_reasons.get("RevisionReady", 0) >= 1 and post_reasons.get("ProbeFailed", 0) == 0) else "fail",
+            "result": "pass" if subgate_16d_pass else "fail",
             "sub_gate": "d_post_fix_kql_shows_startup_and_zero_probefailed_on_recovered_revision",
         },
     ],
@@ -784,12 +896,12 @@ gate17 = {
         "role_assignments_pre": repo_rel("02-role-assignments-pre-fix.json"),
         "role_assignments_post": repo_rel("09-role-assignment-post-fix.json"),
     },
-    "managed_identity_key_vault_failure_h3_bounded_falsification_all_subgates_pass": True,
+    "managed_identity_key_vault_failure_h3_bounded_falsification_all_subgates_pass": gate_17_all_subgates_pass,
     "managed_identity_key_vault_failure_h3_bounded_falsification_sub_gates": {
-        "a_role_assignment_presence_is_the_bounded_trigger_field": not pre_role_match and bool(post_role_match),
-        "b_directly_captured_held_constant_fields_match": all(held_constant_checks.values()),
-        "c_explicit_drops_match_the_documented_ceiling": expected_drop_ids == [item["id"] for item in explicit_drops],
-        "d_recovery_is_observed_after_role_assignment_plus_new_revision_start": post_created > pre_created and bool(post_env.get("RESTART_TOKEN")),
+        "a_role_assignment_presence_is_the_bounded_trigger_field": subgate_17a_pass,
+        "b_directly_captured_held_constant_fields_match": subgate_17b_pass,
+        "c_explicit_drops_match_the_documented_ceiling": subgate_17c_pass,
+        "d_recovery_is_observed_after_role_assignment_plus_new_revision_start": subgate_17d_pass,
     },
     "scenario": "managed_identity_key_vault_failure",
     "sub_gates": [
@@ -804,7 +916,7 @@ gate17 = {
                 "vault_name": kv_name,
             },
             "predicate": "count(pre rows where roleDefinitionName == 'Key Vault Secrets User' AND scope contains the vault name) == 0 AND count(post rows with the same predicate) >= 1.",
-            "result": "pass" if (not pre_role_match and post_role_match) else "fail",
+            "result": "pass" if subgate_17a_pass else "fail",
             "sub_gate": "a_role_assignment_presence_is_the_bounded_trigger_field",
         },
         {
@@ -814,18 +926,25 @@ gate17 = {
             "observed_values": {
                 "held_constant_checks": held_constant_checks,
                 "held_constant_observed": {
+                    "active_flags": [pre_revision_state.get("active"), post_revision_state.get("active")],
                     "app_name": [app_name, pre_revision.split("--")[0], post_revision.split("--")[0]],
+                    "container_name": [pre_container_state.get("name"), post_container.get("name")],
                     "cpu": [pre_container["resources"]["cpu"], post_container["resources"]["cpu"]],
                     "image": [pre_image, post_image],
                     "key_vault_url": [pre_env.get("KEY_VAULT_URL"), post_env.get("KEY_VAULT_URL")],
+                    "max_replicas": [pre_scale.get("maxReplicas"), post_scale.get("maxReplicas")],
                     "memory": [pre_container["resources"]["memory"], post_container["resources"]["memory"]],
+                    "min_replicas": [pre_scale.get("minReplicas"), post_scale.get("minReplicas")],
+                    "probes": [pre_container_state.get("probes"), post_container.get("probes")],
+                    "replicas": [pre_revision_state.get("replicas"), post_revision_state.get("replicas")],
                     "resource_group": [revisions_pre[0]["resourceGroup"], revisions_post[0]["resourceGroup"]],
                     "secret_name": [pre_env.get("SECRET_NAME"), post_env.get("SECRET_NAME")],
-                    "target_port": [spec_pre["properties"]["configuration"]["ingress"]["targetPort"]],
+                    "traffic_weight": [pre_revision_state.get("trafficWeight"), post_revision_state.get("trafficWeight")],
+                    "target_port_pre_fix_only": spec_pre["properties"]["configuration"]["ingress"]["targetPort"],
                 },
             },
-            "predicate": "app name, resource group, image tag, KEY_VAULT_URL, SECRET_NAME, cpu, memory, and ingress targetPort compare equal across the pre/post captures.",
-            "result": "pass" if all(held_constant_checks.values()) else "fail",
+            "predicate": "Across the overlapping pre/post revision surfaces, app name, resource group, trafficWeight, replicas, container name, image tag, KEY_VAULT_URL, SECRET_NAME, cpu, memory, minReplicas, maxReplicas, and probes compare equal. Ingress targetPort is pinned by the pre-fix spec only and is not part of the post-fix overlap diff.",
+            "result": "pass" if subgate_17b_pass else "fail",
             "sub_gate": "b_directly_captured_held_constant_fields_match",
         },
         {
@@ -833,11 +952,11 @@ gate17 = {
             "claim_level": "Observed",
             "evidence_files": [repo_rel("17-bounded-falsification-gate.json")],
             "observed_values": {
-                "expected_drop_ids": expected_drop_ids,
+                "documented_ceiling_ids": sorted(DOCUMENTED_EXPLICIT_DROPS_CEILING),
                 "observed_drop_ids": [item["id"] for item in explicit_drops],
             },
-            "predicate": "cohort_binding_note.explicit_drops ids equal {image_byte_identity_not_captured, pod_uids_not_captured, rbac_propagation_timing_not_proven, token_cache_behavior_not_proven}.",
-            "result": "pass" if expected_drop_ids == [item["id"] for item in explicit_drops] else "fail",
+            "predicate": "cohort_binding_note.explicit_drops ids equal the static documented ceiling {image_byte_identity, pod_uid_continuity, token_cache_state, rbac_propagation_timing} with no additions and no omissions.",
+            "result": "pass" if subgate_17c_pass else "fail",
             "sub_gate": "c_explicit_drops_match_the_documented_ceiling",
         },
         {
@@ -847,11 +966,13 @@ gate17 = {
             "observed_values": {
                 "post_revision": post_revision,
                 "pre_revision": pre_revision,
+                "post_revision_created_time": revisions_post[0]["properties"]["createdTime"],
                 "restart_token_present": bool(post_env.get("RESTART_TOKEN")),
                 "role_assignment_created_on": roles_post[0]["createdOn"],
+                "revision_after_role_assignment_delta_seconds": role_assignment_to_revision_delta_seconds,
             },
-            "predicate": "11[0].properties.createdTime > 04[0].properties.createdTime AND the recovered revision environment contains RESTART_TOKEN after the 09 role-assignment capture.",
-            "result": "pass" if (post_created > pre_created and bool(post_env.get("RESTART_TOKEN"))) else "fail",
+            "predicate": "11[0].properties.createdTime > 09[0].createdOn with a positive delta in seconds, and the recovered revision environment contains RESTART_TOKEN.",
+            "result": "pass" if subgate_17d_pass else "fail",
             "sub_gate": "d_recovery_is_observed_after_role_assignment_plus_new_revision_start",
         },
     ],
