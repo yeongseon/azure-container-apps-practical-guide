@@ -1,0 +1,91 @@
+{
+  "claim": "The H1 trigger produced the documented failure on ca-labkv-b3erju--0000001: the Key Vault is in RBAC mode, no Key Vault Secrets User assignment exists at the vault scope before the fix, the /health response is non-200 with ForbiddenByRbac in the body, and the active revision still remains Healthy / Provisioned / Running.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms the missing Key Vault Secrets User assignment produced an application-level failure while the revision surface stayed healthy.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "http_response_pre": "labs/managed-identity-key-vault-failure/evidence/05-http-response-pre-fix.json",
+    "key_vault_config": "labs/managed-identity-key-vault-failure/evidence/03-kv-rbac-config.json",
+    "revision_list_pre": "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+    "role_assignments_pre": "labs/managed-identity-key-vault-failure/evidence/02-role-assignments-pre-fix.json"
+  },
+  "managed_identity_key_vault_failure_h1_trigger_produces_failure_all_subgates_pass": true,
+  "managed_identity_key_vault_failure_h1_trigger_produces_failure_sub_gates": {
+    "a_kv_scope_lacks_key_vault_secrets_user": true,
+    "b_http_response_is_non_200_and_contains_forbiddenbyrbac": true,
+    "c_revision_surface_stays_healthy_running_and_provisioned": true,
+    "d_vault_is_in_rbac_authorization_mode": true
+  },
+  "scenario": "managed_identity_key_vault_failure",
+  "sub_gates": [
+    {
+      "claim": "No Key Vault Secrets User assignment exists at the vault scope before the fix.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/02-role-assignments-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/03-kv-rbac-config.json"
+      ],
+      "observed_values": {
+        "matching_kv_scope_roles": [],
+        "pre_role_assignment_count": 0,
+        "vault_name": "kv-labkv-b3erju"
+      },
+      "predicate": "count(02 rows where roleDefinitionName == 'Key Vault Secrets User' AND scope contains the vault name from 03.uri) == 0.",
+      "result": "pass",
+      "sub_gate": "a_kv_scope_lacks_key_vault_secrets_user"
+    },
+    {
+      "claim": "The pre-fix /health response is non-200 and contains the ForbiddenByRbac smoking gun.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/05-http-response-pre-fix.json"
+      ],
+      "observed_values": {
+        "body_contains_assignment_not_found": true,
+        "body_contains_forbiddenbyrbac": true,
+        "status_code": 500
+      },
+      "predicate": "05.status_code != 200 AND 05.body contains 'ForbiddenByRbac'.",
+      "result": "pass",
+      "sub_gate": "b_http_response_is_non_200_and_contains_forbiddenbyrbac"
+    },
+    {
+      "claim": "The active pre-fix revision stays Healthy / Provisioned / Running despite the endpoint failure.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json"
+      ],
+      "observed_values": {
+        "health_state": "Healthy",
+        "active": true,
+        "provisioning_state": "Provisioned",
+        "revision_name": "ca-labkv-b3erju--0000001",
+        "running_state": "Running"
+      },
+      "predicate": "04[0].properties.active == true AND healthState == 'Healthy' AND provisioningState == 'Provisioned' AND runningState == 'Running'.",
+      "result": "pass",
+      "sub_gate": "c_revision_surface_stays_healthy_running_and_provisioned"
+    },
+    {
+      "claim": "The vault uses RBAC authorization, so the missing role assignment is the mechanically relevant surface under test.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/03-kv-rbac-config.json"
+      ],
+      "observed_values": {
+        "enable_rbac_authorization": true,
+        "public_network_access": "Enabled",
+        "uri": "https://kv-labkv-b3erju.vault.azure.net/"
+      },
+      "predicate": "03.enableRbacAuthorization == true.",
+      "result": "pass",
+      "sub_gate": "d_vault_is_in_rbac_authorization_mode"
+    }
+  ],
+  "thresholds": {
+    "expected_http_status_pre_fix": "non-200",
+    "expected_vault_role_name": "Key Vault Secrets User"
+  },
+  "utc_captured": "2026-06-26T08:38:34Z"
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "condition": null,
+    "conditionVersion": null,
+    "createdBy": "00000000-0000-0000-0000-000000000000",
+    "createdOn": "2026-06-26T08:24:00.292625+00:00",
+    "delegatedManagedIdentityResourceId": null,
+    "description": null,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-kv/providers/Microsoft.KeyVault/vaults/kv-labkv-b3erju/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000",
+    "name": "00000000-0000-0000-0000-000000000000",
+    "principalId": "00000000-0000-0000-0000-000000000000",
+    "principalName": "00000000-0000-0000-0000-000000000000",
+    "principalType": "ServicePrincipal",
+    "resourceGroup": "rg-aca-lab-kv",
+    "roleDefinitionId": "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000",
+    "roleDefinitionName": "Key Vault Secrets User",
+    "scope": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-kv/providers/Microsoft.KeyVault/vaults/kv-labkv-b3erju",
+    "type": "Microsoft.Authorization/roleAssignments",
+    "updatedBy": "00000000-0000-0000-0000-000000000000",
+    "updatedOn": "2026-06-26T08:24:00.292625+00:00"
+  }
+]

@@ -1,0 +1,628 @@
+{
+  "claim": "The 12-file managed-identity-key-vault-failure raw cohort is internally consistent: every file is present and parseable, the identity and lineage bind to ca-labkv-b3erju / rg-aca-lab-kv, the temporal span stays within the documented temporal ceiling, and evidence/README.md cross-references all four Phase B gate JSON files.",
+  "claim_level": "Observed",
+  "gate_classification": "Cohort integrity gate: structural pre-condition for the bounded-falsification pack.",
+  "hypothesis": "H_cohort_integrity",
+  "path_used": "strong",
+  "predicate_inputs": {
+    "app_identity": "labs/managed-identity-key-vault-failure/evidence/01-app-identity-pre-fix.json",
+    "container_app_spec": "labs/managed-identity-key-vault-failure/evidence/07-containerapp-spec-pre-fix.yaml",
+    "evidence_readme": "labs/managed-identity-key-vault-failure/evidence/README.md",
+    "http_response_pre": "labs/managed-identity-key-vault-failure/evidence/05-http-response-pre-fix.json",
+    "http_response_post": "labs/managed-identity-key-vault-failure/evidence/10-http-response-post-fix.json",
+    "revision_list_pre": "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+    "revision_list_post": "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json"
+  },
+  "managed_identity_key_vault_failure_h_cohort_integrity_all_subgates_pass": true,
+  "managed_identity_key_vault_failure_h_cohort_integrity_sub_gates": {
+    "a_canonical_raw_files_present_and_parse": true,
+    "b_temporal_cohort_is_monotonic_and_bounded": true,
+    "c_identity_and_lineage_are_consistent": true,
+    "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist": true
+  },
+  "scenario": "managed_identity_key_vault_failure",
+  "sub_gates": [
+    {
+      "claim": "All 12 canonical raw evidence files exist and parse as JSON, YAML, or JSONL.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/01-app-identity-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/02-role-assignments-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/03-kv-rbac-config.json",
+        "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/05-http-response-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/06-system-logs-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/managed-identity-key-vault-failure/evidence/08-kql-console-logs-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/10-http-response-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/12-kql-recovery-summary-post-fix.json"
+      ],
+      "observed_values": {
+        "observed_missing": [],
+        "observed_present_count": 12,
+        "parse_errors": [],
+        "path_satisfied": "strong",
+        "strong": {
+          "expected_count": 12,
+          "holds": true
+        },
+        "fallback": {
+          "expected_count": 12,
+          "holds": true
+        }
+      },
+      "predicate": "Strong and fallback both require the full 12-file raw cohort to exist; 01,02,03,04,05,08,09,10,11,12 parse as JSON; 07 parses as YAML; 06 parses as JSONL.",
+      "result": "pass",
+      "sub_gate": "a_canonical_raw_files_present_and_parse"
+    },
+    {
+      "claim": "The captured H1 -> H2 cohort is temporally monotonic by capture order and stays within the documented temporal ceiling.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/05-http-response-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/10-http-response-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "earliest_anchor_utc": "2026-06-26T08:18:50+00:00",
+        "latest_anchor_utc": "2026-06-26T08:26:59+00:00",
+        "monotonic_ordering_holds": true,
+        "observed_span_seconds": 489.0,
+        "path_satisfied": "strong",
+        "post_anchor_timestamps": {
+          "08-kql-console-logs-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462186.7642229
+          },
+          "09-role-assignment-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462419.980493
+          },
+          "10-http-response-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462423.315545
+          },
+          "11-revision-list-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462423.3273792
+          },
+          "12-kql-recovery-summary-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462426.8775444
+          }
+        },
+        "pre_anchor_timestamps": {
+          "01-app-identity-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462166.708343
+          },
+          "02-role-assignments-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462170.06041
+          },
+          "03-kv-rbac-config.json": {
+            "timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462173.0685968
+          },
+          "04-revision-list-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462174.5714424
+          },
+          "05-http-response-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462178.1106768
+          },
+          "07-containerapp-spec-pre-fix.yaml": {
+            "timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462182.563979
+          }
+        },
+        "sorted_anchor_sequence": [
+          {
+            "file": "01-app-identity-pre-fix.json",
+            "timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "02-role-assignments-pre-fix.json",
+            "timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "03-kv-rbac-config.json",
+            "timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "04-revision-list-pre-fix.json",
+            "timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "05-http-response-pre-fix.json",
+            "timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "07-containerapp-spec-pre-fix.yaml",
+            "timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "08-kql-console-logs-pre-fix.json",
+            "timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "09-role-assignment-post-fix.json",
+            "timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "10-http-response-post-fix.json",
+            "timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "11-revision-list-post-fix.json",
+            "timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "12-kql-recovery-summary-post-fix.json",
+            "timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          }
+        ],
+        "strong": {
+          "holds": true,
+          "max_span_seconds": 1800
+        },
+        "fallback": {
+          "holds": true,
+          "max_span_seconds": 5400
+        },
+        "strict_pairwise_order_checks": [
+          {
+            "pre_file": "01-app-identity-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "08-kql-console-logs-pre-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 20.05588,
+            "holds": true
+          },
+          {
+            "pre_file": "01-app-identity-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "09-role-assignment-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 253.27215,
+            "holds": true
+          },
+          {
+            "pre_file": "01-app-identity-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 256.607202,
+            "holds": true
+          },
+          {
+            "pre_file": "01-app-identity-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "11-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 256.619036,
+            "holds": true
+          },
+          {
+            "pre_file": "01-app-identity-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "12-kql-recovery-summary-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 260.169201,
+            "holds": true
+          },
+          {
+            "pre_file": "02-role-assignments-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "08-kql-console-logs-pre-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 16.703813,
+            "holds": true
+          },
+          {
+            "pre_file": "02-role-assignments-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "09-role-assignment-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 249.920083,
+            "holds": true
+          },
+          {
+            "pre_file": "02-role-assignments-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 253.255135,
+            "holds": true
+          },
+          {
+            "pre_file": "02-role-assignments-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "11-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 253.266969,
+            "holds": true
+          },
+          {
+            "pre_file": "02-role-assignments-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "12-kql-recovery-summary-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 256.817134,
+            "holds": true
+          },
+          {
+            "pre_file": "03-kv-rbac-config.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "08-kql-console-logs-pre-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 13.695626,
+            "holds": true
+          },
+          {
+            "pre_file": "03-kv-rbac-config.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "09-role-assignment-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 246.911896,
+            "holds": true
+          },
+          {
+            "pre_file": "03-kv-rbac-config.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 250.246948,
+            "holds": true
+          },
+          {
+            "pre_file": "03-kv-rbac-config.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "11-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 250.258782,
+            "holds": true
+          },
+          {
+            "pre_file": "03-kv-rbac-config.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "12-kql-recovery-summary-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 253.808947,
+            "holds": true
+          },
+          {
+            "pre_file": "04-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "08-kql-console-logs-pre-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 12.192781,
+            "holds": true
+          },
+          {
+            "pre_file": "04-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "09-role-assignment-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 245.409051,
+            "holds": true
+          },
+          {
+            "pre_file": "04-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 248.744103,
+            "holds": true
+          },
+          {
+            "pre_file": "04-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "11-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 248.755937,
+            "holds": true
+          },
+          {
+            "pre_file": "04-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "12-kql-recovery-summary-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 252.306102,
+            "holds": true
+          },
+          {
+            "pre_file": "05-http-response-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "08-kql-console-logs-pre-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 8.653546,
+            "holds": true
+          },
+          {
+            "pre_file": "05-http-response-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "09-role-assignment-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 241.869816,
+            "holds": true
+          },
+          {
+            "pre_file": "05-http-response-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 245.204868,
+            "holds": true
+          },
+          {
+            "pre_file": "05-http-response-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "11-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 245.216702,
+            "holds": true
+          },
+          {
+            "pre_file": "05-http-response-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "12-kql-recovery-summary-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 248.766867,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "08-kql-console-logs-pre-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 4.200244,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "09-role-assignment-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 237.416514,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 240.751566,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "11-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 240.7634,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "12-kql-recovery-summary-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
+            "delta_seconds": 244.313565,
+            "holds": true
+          }
+        ],
+        "time_source_summary": {
+          "birthtime_count": 11,
+          "mtime_count": 0,
+          "fallback_used": false
+        }
+      },
+      "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+      "result": "pass",
+      "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded"
+    },
+    {
+      "claim": "The pre-fix spec and revision captures bind to one app/resource-group lineage and show a newer post-fix revision.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "app_name": "ca-labkv-b3erju",
+        "post_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-kv/providers/Microsoft.App/containerApps/ca-labkv-b3erju/revisions/ca-labkv-b3erju--0000002",
+        "post_revision": "ca-labkv-b3erju--0000002",
+        "pre_latest_ready_revision": "ca-labkv-b3erju--0000001",
+        "pre_latest_revision": "ca-labkv-b3erju--0000001",
+        "pre_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-kv/providers/Microsoft.App/containerApps/ca-labkv-b3erju/revisions/ca-labkv-b3erju--0000001",
+        "pre_revision": "ca-labkv-b3erju--0000001",
+        "resource_group": "rg-aca-lab-kv",
+        "post_lineage_holds": true,
+        "pre_lineage_holds": true,
+        "pre_parse_ok": true,
+        "post_parse_ok": true,
+        "pre_resource_group": "rg-aca-lab-kv",
+        "post_resource_group": "rg-aca-lab-kv",
+        "pre_container_app": "ca-labkv-b3erju",
+        "post_container_app": "ca-labkv-b3erju",
+        "pre_post_rg_equal": true,
+        "pre_post_app_equal": true,
+        "pre_post_lineage_equal": true
+      },
+      "predicate": "07.properties.latestRevisionName == 07.properties.latestReadyRevisionName == 04[0].name AND both 04[0].id and 11[0].id contain the expected app/resourceGroup substrings AND the parsed resourceGroup/containerApp components extracted from 04[0].id and 11[0].id compare equal AND 11[0].properties.createdTime > 04[0].properties.createdTime.",
+      "result": "pass",
+      "sub_gate": "c_identity_and_lineage_are_consistent"
+    },
+    {
+      "claim": "The evidence directory has no unexpected non-junk extras and evidence/README.md literally names all four Phase B outputs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/01-app-identity-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/02-role-assignments-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/03-kv-rbac-config.json",
+        "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/05-http-response-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/06-system-logs-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/managed-identity-key-vault-failure/evidence/08-kql-console-logs-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/10-http-response-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/12-kql-recovery-summary-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/14-cohort-integrity-gate.json",
+        "labs/managed-identity-key-vault-failure/evidence/15-h1-trigger-produces-failure-gate.json",
+        "labs/managed-identity-key-vault-failure/evidence/16-h2-fix-restores-recovery-gate.json",
+        "labs/managed-identity-key-vault-failure/evidence/17-bounded-falsification-gate.json",
+        "labs/managed-identity-key-vault-failure/evidence/README.md"
+      ],
+      "observed_values": {
+        "expected_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "ignored_junk": [
+          ".DS_Store"
+        ],
+        "observed_files_on_disk": [
+          "01-app-identity-pre-fix.json",
+          "02-role-assignments-pre-fix.json",
+          "03-kv-rbac-config.json",
+          "04-revision-list-pre-fix.json",
+          "05-http-response-pre-fix.json",
+          "06-system-logs-pre-fix.json",
+          "07-containerapp-spec-pre-fix.yaml",
+          "08-kql-console-logs-pre-fix.json",
+          "09-role-assignment-post-fix.json",
+          "10-http-response-post-fix.json",
+          "11-revision-list-post-fix.json",
+          "12-kql-recovery-summary-post-fix.json",
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json",
+          "README.md"
+        ],
+        "observed_non_junk_extras": [],
+        "observed_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "readme_exists": true
+      },
+      "predicate": "extras == [] AND evidence/README.md contains the four gate filenames literally.",
+      "result": "pass",
+      "sub_gate": "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist"
+    }
+  ],
+  "thresholds": {
+    "canonical_count_fallback_floor": 12,
+    "canonical_count_strong": 12,
+    "temporal_span_fallback_seconds_max": 5400,
+    "temporal_span_strong_seconds_max": 1800
+  },
+  "utc_captured": "2026-06-26T08:38:34Z"
+}

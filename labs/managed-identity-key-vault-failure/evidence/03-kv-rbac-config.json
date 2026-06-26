@@ -1,0 +1,5 @@
+{
+  "enableRbacAuthorization": true,
+  "publicNetworkAccess": "Enabled",
+  "uri": "https://kv-labkv-b3erju.vault.azure.net/"
+}

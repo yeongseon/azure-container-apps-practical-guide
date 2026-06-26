@@ -1,0 +1,13 @@
+{
+  "request_url": "https://ca-labkv-b3erju.victoriousmushroom-d79e9f76.koreacentral.azurecontainerapps.io/health",
+  "status_code": 500,
+  "headers": [
+    "HTTP/2 500 ",
+    "server: gunicorn",
+    "date: Fri, 26 Jun 2026 08:20:53 GMT",
+    "content-type: application/json",
+    "content-length: 1556",
+    ""
+  ],
+  "body": "{\"message\":\"Access denied or Key Vault read failed: (Forbidden) Caller is not authorized to perform action on resource.\\r\\nIf role assignments, deny assignments or role definitions were changed recently, please observe propagation time.\\r\\nCaller: appid=00000000-0000-0000-0000-000000000000;oid=00000000-0000-0000-0000-000000000000;iss=https://sts.windows.net/00000000-0000-0000-0000-000000000000/\\r\\nAction: 'Microsoft.KeyVault/vaults/secrets/getSecret/action'\\r\\nResource: '/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-aca-lab-kv/providers/microsoft.keyvault/vaults/kv-labkv-b3erju/secrets/demo-secret'\\r\\nAssignment: (not found)\\r\\nDenyAssignmentId: null\\r\\nDecisionReason: null \\r\\nVault: kv-labkv-b3erju;location=koreacentral\\r\\n\\nCode: Forbidden\\nMessage: Caller is not authorized to perform action on resource.\\r\\nIf role assignments, deny assignments or role definitions were changed recently, please observe propagation time.\\r\\nCaller: appid=00000000-0000-0000-0000-000000000000;oid=00000000-0000-0000-0000-000000000000;iss=https://sts.windows.net/00000000-0000-0000-0000-000000000000/\\r\\nAction: 'Microsoft.KeyVault/vaults/secrets/getSecret/action'\\r\\nResource: '/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-aca-lab-kv/providers/microsoft.keyvault/vaults/kv-labkv-b3erju/secrets/demo-secret'\\r\\nAssignment: (not found)\\r\\nDenyAssignmentId: null\\r\\nDecisionReason: null \\r\\nVault: kv-labkv-b3erju;location=koreacentral\\r\\n\\nInner error: {\\n    \\\"code\\\": \\\"ForbiddenByRbac\\\"\\n}\",\"status\":\"error\"}\n"
+}
