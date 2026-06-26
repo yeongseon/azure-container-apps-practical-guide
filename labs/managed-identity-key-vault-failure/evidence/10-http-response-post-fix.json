@@ -1,0 +1,13 @@
+{
+  "request_url": "https://ca-labkv-b3erju.victoriousmushroom-d79e9f76.koreacentral.azurecontainerapps.io/health",
+  "status_code": 200,
+  "headers": [
+    "HTTP/2 200 ",
+    "server: gunicorn",
+    "date: Fri, 26 Jun 2026 08:26:59 GMT",
+    "content-type: application/json",
+    "content-length: 36",
+    ""
+  ],
+  "body": "{\"secretLength\":\"20\",\"status\":\"ok\"}\n"
+}

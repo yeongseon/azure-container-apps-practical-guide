@@ -1,0 +1,117 @@
+{
+  "claim": "The H2 fix restored recovery on ca-labkv-b3erju--0000002: a Key Vault Secrets User assignment is present at the vault scope, the /health response is HTTP 200 with a success body, a newer revision was created after the fix, and the post-fix KQL summary shows startup/readiness events on the recovered revision with zero ProbeFailed rows on that recovered revision.",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms recovery after the RBAC assignment plus a new revision start.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "path_used": "single",
+  "predicate_inputs": {
+    "http_response_post": "labs/managed-identity-key-vault-failure/evidence/10-http-response-post-fix.json",
+    "kql_recovery_summary": "labs/managed-identity-key-vault-failure/evidence/12-kql-recovery-summary-post-fix.json",
+    "revision_list_post": "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json",
+    "role_assignments_post": "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json"
+  },
+  "managed_identity_key_vault_failure_h2_fix_restores_recovery_all_subgates_pass": true,
+  "managed_identity_key_vault_failure_h2_fix_restores_recovery_sub_gates": {
+    "a_key_vault_secrets_user_exists_at_kv_scope": true,
+    "b_http_response_is_200_with_success_marker": true,
+    "c_newer_post_fix_revision_is_active_and_healthy": true,
+    "d_post_fix_kql_shows_startup_and_zero_probefailed_on_recovered_revision": true
+  },
+  "scenario": "managed_identity_key_vault_failure",
+  "sub_gates": [
+    {
+      "claim": "A Key Vault Secrets User assignment exists at the vault scope after the fix.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json"
+      ],
+      "observed_values": {
+        "matching_kv_scope_roles": [
+          {
+            "condition": null,
+            "conditionVersion": null,
+            "createdBy": "00000000-0000-0000-0000-000000000000",
+            "createdOn": "2026-06-26T08:24:00.292625+00:00",
+            "delegatedManagedIdentityResourceId": null,
+            "description": null,
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-kv/providers/Microsoft.KeyVault/vaults/kv-labkv-b3erju/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000",
+            "name": "00000000-0000-0000-0000-000000000000",
+            "principalId": "00000000-0000-0000-0000-000000000000",
+            "principalName": "00000000-0000-0000-0000-000000000000",
+            "principalType": "ServicePrincipal",
+            "resourceGroup": "rg-aca-lab-kv",
+            "roleDefinitionId": "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000",
+            "roleDefinitionName": "Key Vault Secrets User",
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-kv/providers/Microsoft.KeyVault/vaults/kv-labkv-b3erju",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "updatedBy": "00000000-0000-0000-0000-000000000000",
+            "updatedOn": "2026-06-26T08:24:00.292625+00:00"
+          }
+        ],
+        "post_role_assignment_count": 1
+      },
+      "predicate": "count(09 rows where roleDefinitionName == 'Key Vault Secrets User' AND scope contains the vault name) >= 1.",
+      "result": "pass",
+      "sub_gate": "a_key_vault_secrets_user_exists_at_kv_scope"
+    },
+    {
+      "claim": "The post-fix /health response is HTTP 200 and carries the success marker.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/10-http-response-post-fix.json"
+      ],
+      "observed_values": {
+        "body": "{\"secretLength\":\"20\",\"status\":\"ok\"}",
+        "status_code": 200
+      },
+      "predicate": "10.status_code == 200 AND 10.body contains '\"status\":\"ok\"'.",
+      "result": "pass",
+      "sub_gate": "b_http_response_is_200_with_success_marker"
+    },
+    {
+      "claim": "A newer revision was created after the fix and is active / healthy / running.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "post_created_time": "2026-06-26T08:25:19+00:00",
+        "post_health_state": "Healthy",
+        "post_revision": "ca-labkv-b3erju--0000002",
+        "post_running_state": "Running",
+        "pre_created_time": "2026-06-26T08:18:50+00:00",
+        "pre_revision": "ca-labkv-b3erju--0000001"
+      },
+      "predicate": "11[0].properties.createdTime > 04[0].properties.createdTime AND 11[0].properties.healthState == 'Healthy' AND 11[0].properties.runningState == 'Running'.",
+      "result": "pass",
+      "sub_gate": "c_newer_post_fix_revision_is_active_and_healthy"
+    },
+    {
+      "claim": "The post-fix KQL summary shows startup/readiness on the recovered revision with zero ProbeFailed rows on that recovered revision.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/12-kql-recovery-summary-post-fix.json"
+      ],
+      "observed_values": {
+        "post_revision_reason_counts": {
+          "AssigningReplica": 1,
+          "ContainerCreated": 1,
+          "ContainerStarted": 1,
+          "KEDAScalersStarted": 3,
+          "PulledImage": 1,
+          "PullingImage": 1,
+          "RevisionReady": 1
+        }
+      },
+      "predicate": "12 rows for the recovered revision contain ContainerStarted >= 1 AND RevisionReady >= 1 AND ProbeFailed == 0.",
+      "result": "pass",
+      "sub_gate": "d_post_fix_kql_shows_startup_and_zero_probefailed_on_recovered_revision"
+    }
+  ],
+  "thresholds": {
+    "post_fix_probefailed_expected": 0,
+    "post_fix_status_code_expected": 200
+  },
+  "utc_captured": "2026-06-26T08:38:34Z"
+}

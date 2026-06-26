@@ -7,22 +7,6 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
         - https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide
-content_validation:
-  status: verified
-  last_reviewed: '2026-06-03'
-  reviewer: ai-agent
-  lab_validation:
-    status: reproduced
-    tested_date: 2026-06-03
-    az_cli_version: 2.71.0
-    notes: ForbiddenByRbac confirmed pre-fix; HTTP 200 confirmed after Key Vault Secrets User role assignment + revision restart. Portal captures attached.
-  core_claims:
-    - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
-      verified: true
-    - claim: The Key Vault Secrets User built-in role permits reading secret values from Azure Key Vault.
-      source: https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide
-      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-03'
@@ -35,6 +19,10 @@ validation:
 # Managed Identity Key Vault Failure Lab
 
 Reproduce Key Vault access denial by running a managed-identity-enabled app without the required RBAC role assignment.
+
+This lab is now backed by a 4-gate Phase B bounded-falsification evidence pack in `labs/managed-identity-key-vault-failure/evidence/README.md`. The committed pack captures one fresh H1/H2 Azure cohort and re-validates the narrow claim ceiling offline: the missing `Key Vault Secrets User` assignment at the Key Vault scope is the mechanically observable trigger field for this reproduction.
+
+Bounded-scope disclosure: the pack does **not** prove image byte-identity, exact RBAC propagation timing, or token-cache-only recovery without a revision restart. Those confounders are carried explicitly in Gate 17 `explicit_drops`, so readers can see exactly where the evidence ceiling stops.
 
 ## Lab Metadata
 
@@ -156,13 +144,15 @@ Expected output:
 - Commands return no console output.
 - Environment variables resolve to the deployed app, registry, environment, and vault names.
 
-### Trigger the failure
+### Run the end-to-end capture workflow
 
 ```bash
-./labs/managed-identity-key-vault-failure/trigger.sh
+bash ./labs/managed-identity-key-vault-failure/fix-and-capture.sh
 ```
 
-The trigger script runs these key actions (shown here as the Azure CLI 2.71.0-compatible two-step form — see the warning below for context):
+`fix-and-capture.sh` is the canonical Phase A live workflow for this lab. It deploys or reuses the resource group, captures deployment outputs outside `evidence/`, builds and pushes the workload image, triggers H1, writes raw evidence files `01-...` through `12-...`, applies the H2 fix, runs the hermetic offline verifier, and starts `az group delete --no-wait` cleanup.
+
+The script uses this Azure CLI 2.71.0-compatible two-step registry flow (see the warning below for context):
 
 ```bash
 az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
@@ -192,22 +182,33 @@ az containerapp update \
 Expected output:
 
 - The app is updated to an image that reads Key Vault at runtime.
-- The script prints `Waiting for app startup with missing Key Vault RBAC...`.
+- Raw evidence files `01-...` through `08-...` are written under `labs/managed-identity-key-vault-failure/evidence/`.
 - The `/health` request does not return success before the fix.
 
-### Observe and diagnose the failure
+### Re-run the hermetic offline verifier
 
 ```bash
-./labs/managed-identity-key-vault-failure/verify.sh
+bash ./labs/managed-identity-key-vault-failure/verify.sh
 ```
 
-Before the RBAC fix, the verification script should print:
+`verify.sh` is now a hermetic offline verifier. It reads only the committed evidence files under `labs/managed-identity-key-vault-failure/evidence/`, emits Gate 14 through Gate 17 JSONs, and touches no Azure resources.
+
+On a valid cohort, the verifier prints 17/17 gate passes. The Phase B gates prove four bounded claims:
+
+- **Gate 14:** cohort integrity (file presence, parseability, temporal bound, lineage coherence, README cross-references)
+- **Gate 15:** H1 trigger produces failure
+- **Gate 16:** H2 fix restores recovery
+- **Gate 17:** bounded falsification with explicit drops and claim ceiling
+
+The pre-fix HTTP observation inside the evidence pack is a non-200 `/health` capture with `ForbiddenByRbac` in `05-http-response-pre-fix.json`.
 
 ```text
-PASS: App returned HTTP <non-200> before RBAC fix
+HTTP/2 500
+...
+Inner error: {"code": "ForbiddenByRbac"}
 ```
 
-Collect direct evidence:
+If you want to inspect the raw evidence directly after `fix-and-capture.sh`, use:
 
 ```bash
 az containerapp show \
@@ -251,7 +252,7 @@ Name               Active    TrafficWeight    Replicas    HealthState    Running
 ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
-### Apply the RBAC fix
+### Apply the RBAC fix manually (optional)
 
 If you want the direct fix command, use:
 
@@ -273,7 +274,7 @@ az role assignment create \
 |---|---|
 | `az keyvault show ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
 
-The verification script then rolls a new revision with:
+The live script rolls a new revision with:
 
 ```bash
 az containerapp update \
@@ -291,9 +292,9 @@ Expected output:
 - The role assignment create command returns a role assignment object.
 - A new revision starts after the restart token update.
 
-### Verify recovery
+### Verify recovery from the evidence pack
 
-Re-run the lab verification flow:
+Re-run the offline verifier or inspect the post-fix raw files:
 
 ```bash
 ./labs/managed-identity-key-vault-failure/verify.sh
@@ -306,7 +307,7 @@ az role assignment list \
 
 Expected output:
 
-- `PASS: App returned 200 after RBAC fix`
+- Gate 16 passes and `10-http-response-post-fix.json` shows `HTTP 200`
 - The role assignment is visible at the Key Vault scope.
 - The secret-dependent endpoint succeeds.
 
@@ -316,11 +317,11 @@ Expected output:
 |---|---|---|---|---|
 | 1 | Deploy baseline infrastructure | Deployment succeeds | `provisioningState: Succeeded` in `koreacentral`; app `ca-labkv-gtlopy`, KV `kv-labkv-gtlopy`, ACR `acrlabkvgtlopy` provisioned. | Pass |
 | 2 | Capture outputs | App, registry, environment, and vault names resolved | All four names resolved from deployment outputs; FQDN `ca-labkv-gtlopy.calmriver-ae84e755.koreacentral.azurecontainerapps.io`. | Pass |
-| 3 | Run `trigger.sh` | App starts with missing Key Vault RBAC | Image built and pushed; revision started after the CLI 2.71.0 registry-flag workaround was applied. | Pass |
-| 4 | Run `verify.sh` before fix | Non-200 response before RBAC assignment | App returned HTTP 500 with body `Access denied or Key Vault read failed: (Forbidden) ... Inner error: ForbiddenByRbac ... Assignment: (not found)`. | Pass |
-| 5 | Check identity and role assignments | Principal exists, required role missing | `identity.principalId = <principal-id>`; `az role assignment list` returned no `Key Vault Secrets User` at the Key Vault scope. | Pass |
-| 6 | Create Key Vault role assignment | Role assignment succeeds | `az role assignment create --role "Key Vault Secrets User" --scope <KV_ID>` returned a role assignment object; revision restarted via `RESTART_TOKEN`. | Pass |
-| 7 | Re-run verification | App returns HTTP 200 after fix | App returned HTTP 200 with body `{"secretLength":"20","status":"ok"}`. | Pass |
+| 3 | Run `fix-and-capture.sh` | App starts with missing Key Vault RBAC and evidence capture begins | Image built and pushed; the script captured `01-...` through `08-...` for the failing state. | Pass |
+| 4 | Inspect `05-http-response-pre-fix.json` | Non-200 response before RBAC assignment | HTTP 500 body included `ForbiddenByRbac` and `Assignment: (not found)`. | Pass |
+| 5 | Inspect `01-...` / `02-...` / `04-...` | Principal exists, required role missing, revision stays healthy | `identity.principalId` present; no `Key Vault Secrets User` at Key Vault scope; active revision remained Healthy / Running. | Pass |
+| 6 | Apply Key Vault role assignment + revision restart | Role assignment succeeds and a new revision starts | `09-role-assignment-post-fix.json` recorded the scoped role assignment; `11-revision-list-post-fix.json` recorded the newer revision. | Pass |
+| 7 | Re-run `verify.sh` | All 17 gates pass and post-fix HTTP 200 is preserved | Gate 16 passed; `10-http-response-post-fix.json` contained `{"secretLength":"20","status":"ok"}`. | Pass |
 
 ## Expected Evidence
 

@@ -1,0 +1,218 @@
+[
+  {
+    "EventCount": "10",
+    "Reason_s": "ContainerAppReady",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "7",
+    "Reason_s": "RevisionDeactivating",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "9",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "5",
+    "Reason_s": "RollingRevisionCompleted",
+    "RevisionName_s": "",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionReady",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "6",
+    "Reason_s": "ScaledObjectCheckFailed",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "ca-labkv-b3erju--0000001",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labkv-b3erju--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labkv-b3erju--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labkv-b3erju--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-labkv-b3erju--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labkv-b3erju--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labkv-b3erju--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionReady",
+    "RevisionName_s": "ca-labkv-b3erju--0000002",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "FailedGetScale",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "3",
+    "Reason_s": "KEDAScalersStarted",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "KEDAScalersStopped",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "260",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionCreation",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "6",
+    "Reason_s": "ScaledObjectCheckFailed",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "ScaledObjectDeleted",
+    "RevisionName_s": "ca-labkv-b3erju--nczenoj",
+    "TableName": "PrimaryResult"
+  }
+]

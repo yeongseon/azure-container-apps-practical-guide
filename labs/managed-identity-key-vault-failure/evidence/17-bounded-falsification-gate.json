@@ -1,0 +1,167 @@
+{
+  "claim": "This evidence pack falsifies the managed-identity Key Vault failure hypothesis within a bounded scope. Gate 17 demonstrates that the missing Key Vault Secrets User role assignment at the Key Vault scope is the mechanically observable trigger field. The pack does not claim image byte identity, pod UID continuity, exact RBAC propagation timing, or token-cache isolation.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that the presence versus absence of the Key Vault Secrets User role assignment at the Key Vault scope is the mechanically observable trigger field for this cohort. The pack does NOT prove image byte identity, pod UID continuity, exact RBAC propagation timing, or token-cache-only recovery.",
+    "explicit_drops": [
+      {
+        "id": "image_byte_identity_not_captured",
+        "note": "The cohort captures the same image tag across H1 and H2, but it does not capture OCI digests beyond the mutable tag surface stored in the revision JSON/YAML evidence."
+      },
+      {
+        "id": "pod_uids_not_captured",
+        "note": "The pack proves only revision-level recovery. It does not capture Kubernetes pod UIDs or claim pod reuse across the restart boundary."
+      },
+      {
+        "id": "rbac_propagation_timing_not_proven",
+        "note": "The script waits for RBAC propagation, but this pack does not bound the exact propagation latency required before the retry succeeds."
+      },
+      {
+        "id": "token_cache_behavior_not_proven",
+        "note": "Recovery is observed after the role assignment plus a new revision start. The pack does not isolate whether credential/token cache state alone would have recovered without the restart."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the missing Key Vault Secrets User assignment as the trigger field while explicitly listing the unproven confounders and ceilings.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "app_identity": "labs/managed-identity-key-vault-failure/evidence/01-app-identity-pre-fix.json",
+    "revision_list_pre": "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+    "revision_list_post": "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json",
+    "role_assignments_pre": "labs/managed-identity-key-vault-failure/evidence/02-role-assignments-pre-fix.json",
+    "role_assignments_post": "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json"
+  },
+  "managed_identity_key_vault_failure_h3_bounded_falsification_all_subgates_pass": true,
+  "managed_identity_key_vault_failure_h3_bounded_falsification_sub_gates": {
+    "a_role_assignment_presence_is_the_bounded_trigger_field": true,
+    "b_directly_captured_held_constant_fields_match": true,
+    "c_explicit_drops_match_the_documented_ceiling": true,
+    "d_recovery_is_observed_after_role_assignment_plus_new_revision_start": true
+  },
+  "scenario": "managed_identity_key_vault_failure",
+  "sub_gates": [
+    {
+      "claim": "The bounded trigger field under test is the presence versus absence of the Key Vault Secrets User role assignment at the vault scope.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/02-role-assignments-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json"
+      ],
+      "observed_values": {
+        "post_matching_role_count": 1,
+        "pre_matching_role_count": 0,
+        "role_name": "Key Vault Secrets User",
+        "vault_name": "kv-labkv-b3erju"
+      },
+      "predicate": "count(pre rows where roleDefinitionName == 'Key Vault Secrets User' AND scope contains the vault name) == 0 AND count(post rows with the same predicate) >= 1.",
+      "result": "pass",
+      "sub_gate": "a_role_assignment_presence_is_the_bounded_trigger_field"
+    },
+    {
+      "claim": "The directly captured held-constant fields match across H1 and H2 on the bounded surface.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "held_constant_checks": {
+          "app_name": true,
+          "resource_group": true,
+          "image": true,
+          "key_vault_url": true,
+          "secret_name": true,
+          "cpu": true,
+          "memory": true,
+          "target_port": true
+        },
+        "held_constant_observed": {
+          "app_name": [
+            "ca-labkv-b3erju",
+            "ca-labkv-b3erju",
+            "ca-labkv-b3erju"
+          ],
+          "cpu": [
+            0.5,
+            0.5
+          ],
+          "image": [
+            "acrlabkvb3erju.azurecr.io/ca-labkv-b3erju:v1",
+            "acrlabkvb3erju.azurecr.io/ca-labkv-b3erju:v1"
+          ],
+          "key_vault_url": [
+            "https://kv-labkv-b3erju.vault.azure.net/",
+            "https://kv-labkv-b3erju.vault.azure.net/"
+          ],
+          "memory": [
+            "1Gi",
+            "1Gi"
+          ],
+          "resource_group": [
+            "rg-aca-lab-kv",
+            "rg-aca-lab-kv"
+          ],
+          "secret_name": [
+            "demo-secret",
+            "demo-secret"
+          ],
+          "target_port": [
+            8000
+          ]
+        }
+      },
+      "predicate": "app name, resource group, image tag, KEY_VAULT_URL, SECRET_NAME, cpu, memory, and ingress targetPort compare equal across the pre/post captures.",
+      "result": "pass",
+      "sub_gate": "b_directly_captured_held_constant_fields_match"
+    },
+    {
+      "claim": "The bounded-falsification gate explicitly lists the documented ceilings and unsupported inferences.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/17-bounded-falsification-gate.json"
+      ],
+      "observed_values": {
+        "expected_drop_ids": [
+          "image_byte_identity_not_captured",
+          "pod_uids_not_captured",
+          "rbac_propagation_timing_not_proven",
+          "token_cache_behavior_not_proven"
+        ],
+        "observed_drop_ids": [
+          "image_byte_identity_not_captured",
+          "pod_uids_not_captured",
+          "rbac_propagation_timing_not_proven",
+          "token_cache_behavior_not_proven"
+        ]
+      },
+      "predicate": "cohort_binding_note.explicit_drops ids equal {image_byte_identity_not_captured, pod_uids_not_captured, rbac_propagation_timing_not_proven, token_cache_behavior_not_proven}.",
+      "result": "pass",
+      "sub_gate": "c_explicit_drops_match_the_documented_ceiling"
+    },
+    {
+      "claim": "Recovery is observed only after the role assignment plus a new revision start, which is why token-cache isolation remains an explicit drop rather than a proven claim.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json",
+        "labs/managed-identity-key-vault-failure/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "post_revision": "ca-labkv-b3erju--0000002",
+        "pre_revision": "ca-labkv-b3erju--0000001",
+        "restart_token_present": true,
+        "role_assignment_created_on": "2026-06-26T08:24:00.292625+00:00"
+      },
+      "predicate": "11[0].properties.createdTime > 04[0].properties.createdTime AND the recovered revision environment contains RESTART_TOKEN after the 09 role-assignment capture.",
+      "result": "pass",
+      "sub_gate": "d_recovery_is_observed_after_role_assignment_plus_new_revision_start"
+    }
+  ],
+  "thresholds": {
+    "held_constant_field_count": 8,
+    "post_fix_status_code_expected": 200,
+    "pre_fix_status_code_expected": "non-200"
+  },
+  "utc_captured": "2026-06-26T08:38:34Z"
+}
