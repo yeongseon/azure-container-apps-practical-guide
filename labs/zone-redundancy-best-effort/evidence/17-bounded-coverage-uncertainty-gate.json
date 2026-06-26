@@ -1,0 +1,124 @@
+{
+  "all_sub_gates_pass": true,
+  "claim": "The evidence pack is explicitly bounded to app-min3, two 10-RPS client-bearing runs, and a documented exclusion set; Claims 2 and 3 remain capped at Strongly Suggested rather than Measured.",
+  "evidence_ceilings": {
+    "claim_2": "Strongly Suggested",
+    "claim_3": "Strongly Suggested"
+  },
+  "excluded_artifacts": [
+    {
+      "path": "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114318.json",
+      "rationale": "Exclude from H0a because the file is unparsable: the query contains datetime(...ZZ) and returns BadArgumentError / SyntaxError."
+    },
+    {
+      "path": "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114522.json",
+      "rationale": "Exclude from H0a because its 'Baseline (no perturb)' bucket is a rolling last-24h tail that includes 3 earlier partial perturbation events, so it is contaminated rather than a true fixed-range baseline."
+    }
+  ],
+  "gate_id": "17",
+  "gate_name": "Bounded coverage / uncertainty ceilings",
+  "phase_b_variant": "non-falsification-bounded-coverage",
+  "predicate_inputs": {
+    "lab_guide": "docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md",
+    "q6_bad": "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114318.json",
+    "q6_fixed": "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114522.json",
+    "q7_multi_app_comparison": "labs/zone-redundancy-best-effort/evidence/q7-multi-app-comparison-20260614114318.json"
+  },
+  "scenario": "zone_redundancy_best_effort",
+  "sub_gates": {
+    "a": {
+      "claim": "The app scope is explicitly bounded to app-min3.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-a-restart-only-20260614110433.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log",
+        "labs/zone-redundancy-best-effort/evidence/q7-multi-app-comparison-20260614114318.json"
+      ],
+      "observed_values": {
+        "all_logs_target_app_min3": true,
+        "q7_positive_apps": [
+          "app-min3"
+        ]
+      },
+      "pass": true,
+      "predicate": "All successful perturbation logs target app-min3 AND Q7 shows clustered churn only on app-min3, with no client-impact generalization to app-min2 or app-min6."
+    },
+    "b": {
+      "claim": "The load envelope is bounded to two client-bearing 180-second runs at 10 RPS.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-b-restart-load-20260614111457.log",
+        "labs/zone-redundancy-best-effort/evidence/perturbation-variant-c-retry-backoff-20260614112821.log"
+      ],
+      "observed_values": {
+        "client_bearing_run_count": 2,
+        "load_start_rows": [
+          {
+            "app": "app-min3",
+            "client": "no-retry",
+            "durationSec": 180,
+            "event": "LoadStart",
+            "rps": 10,
+            "timestamp": "2026-06-14T11:14:59.871Z",
+            "url": "https://app-min3.bravefield-51ee5cb1.koreacentral.azurecontainerapps.io/"
+          },
+          {
+            "app": "app-min3",
+            "client": "retry-backoff",
+            "durationSec": 180,
+            "event": "LoadStart",
+            "rps": 10,
+            "timestamp": "2026-06-14T11:28:28.025Z",
+            "url": "https://app-min3.bravefield-51ee5cb1.koreacentral.azurecontainerapps.io/"
+          }
+        ]
+      },
+      "pass": true,
+      "predicate": "Only Variants B and C carry client load, and each LoadStart row has rps=10 and durationSec=180. No higher-RPS or repeated-run evidence is in scope."
+    },
+    "c": {
+      "claim": "Historical contamination is explicitly excluded from the bounded-coverage verdict.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114318.json",
+        "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114522.json"
+      ],
+      "observed_values": {
+        "bad_q6_signature": "BadArgumentError + datetime(...ZZ)",
+        "excluded_artifacts": [
+          {
+            "path": "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114318.json",
+            "rationale": "Exclude from H0a because the file is unparsable: the query contains datetime(...ZZ) and returns BadArgumentError / SyntaxError."
+          },
+          {
+            "path": "labs/zone-redundancy-best-effort/evidence/q6-baseline-vs-perturb-20260614114522.json",
+            "rationale": "Exclude from H0a because its 'Baseline (no perturb)' bucket is a rolling last-24h tail that includes 3 earlier partial perturbation events, so it is contaminated rather than a true fixed-range baseline."
+          }
+        ],
+        "fixed_q6_baseline_bucket": {
+          "App": "app-min3",
+          "Bucket": "Baseline (no perturb)",
+          "ChurnEvents": "3",
+          "ChurnPerHour": "0.13",
+          "TableName": "PrimaryResult",
+          "WindowMinutes": "1380"
+        }
+      },
+      "pass": true,
+      "predicate": "The bad Q6 file is ignored as unparsable, and the fixed Q6 file is ignored for H0a because its baseline bucket includes prior partial perturbations."
+    },
+    "d": {
+      "claim": "The evidence ceiling is enforced: Claim 2 and Claim 3 remain capped at [Strongly Suggested].",
+      "evidence": [
+        "docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md"
+      ],
+      "observed_values": {
+        "claim_2_level": "Strongly Suggested",
+        "claim_2_measured_present": false,
+        "claim_3_level": "Strongly Suggested",
+        "claim_3_measured_present": false
+      },
+      "pass": true,
+      "predicate": "The Phase B summary must not promote Claim 2 or Claim 3 to [Measured], and Gate 17 records both ceilings as Strongly Suggested."
+    }
+  },
+  "utc_captured": "2026-06-26T07:20:20Z"
+}

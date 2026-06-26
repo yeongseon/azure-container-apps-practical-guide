@@ -1,0 +1,81 @@
+{
+  "all_sub_gates_pass": true,
+  "claim": "The fixed-range 24-hour baseline is a valid negative control: ingestion is sufficient, steady state holds, and neither clustered churn nor any-termination appears.",
+  "gate_id": "15",
+  "gate_name": "Negative-control baseline validity",
+  "phase_b_variant": "non-falsification-bounded-coverage",
+  "predicate_inputs": {
+    "q1_fixed_ingestion": "labs/zone-redundancy-best-effort/evidence/q1-baseline-fixed-ingestion-20260614114618.json",
+    "q2_fixed_steady_state": "labs/zone-redundancy-best-effort/evidence/q2-baseline-fixed-steady-state-20260614114618.json",
+    "q3_fixed_any_termination": "labs/zone-redundancy-best-effort/evidence/q3-baseline-fixed-any-termination-20260614114618.json",
+    "q3_fixed_clustered": "labs/zone-redundancy-best-effort/evidence/q3-baseline-fixed-clustered-churn-20260614114618.json"
+  },
+  "scenario": "zone_redundancy_best_effort",
+  "sub_gates": {
+    "a": {
+      "claim": "Audit completeness is sufficient to trust the fixed-range baseline queries.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/q1-baseline-fixed-ingestion-20260614114618.json"
+      ],
+      "observed_values": {
+        "error_samples": 0,
+        "health_ratio": 1.0,
+        "ok_samples": 867,
+        "unique_apps": 3
+      },
+      "pass": true,
+      "predicate": "Q1 HealthRatio >= 0.5 AND ErrorSamples == 0 AND UniqueApps == 3."
+    },
+    "b": {
+      "claim": "The 24-hour fixed-range baseline held steady for all three apps.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/q2-baseline-fixed-steady-state-20260614114618.json"
+      ],
+      "observed_values": {
+        "app-min2": {
+          "configured_min": "2",
+          "observed_max": "2",
+          "observed_min": "2",
+          "steady_state_ok": "True"
+        },
+        "app-min3": {
+          "configured_min": "3",
+          "observed_max": "3",
+          "observed_min": "3",
+          "steady_state_ok": "True"
+        },
+        "app-min6": {
+          "configured_min": "6",
+          "observed_max": "6",
+          "observed_min": "6",
+          "steady_state_ok": "True"
+        }
+      },
+      "pass": true,
+      "predicate": "Every Q2 row has SteadyStateOK == True AND ObservedMin == ObservedMax == ConfiguredMin."
+    },
+    "c": {
+      "claim": "The fixed-range baseline shows no clustered churn events.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/q3-baseline-fixed-clustered-churn-20260614114618.json"
+      ],
+      "observed_values": {
+        "row_count": 0
+      },
+      "pass": true,
+      "predicate": "q3-baseline-fixed-clustered-churn-20260614114618.json is exactly []."
+    },
+    "d": {
+      "claim": "The fixed-range baseline shows no any-termination events.",
+      "evidence": [
+        "labs/zone-redundancy-best-effort/evidence/q3-baseline-fixed-any-termination-20260614114618.json"
+      ],
+      "observed_values": {
+        "row_count": 0
+      },
+      "pass": true,
+      "predicate": "q3-baseline-fixed-any-termination-20260614114618.json is exactly []."
+    }
+  },
+  "utc_captured": "2026-06-26T07:20:20Z"
+}
