@@ -30,7 +30,7 @@
   "scenario": "ingress_target_port_mismatch",
   "sub_gates": [
     {
-      "claim": "Across the baseline\u2192trigger\u2192fix sequence, the ingress field-level diff is bounded to targetPort while external, transport, and fqdn stay constant.",
+      "claim": "Across the baseline\u2192trigger\u2192fix sequence, the ingress field-level diff is bounded to targetPort: the full ingress object with targetPort removed is byte-equal across all three states, and targetPort itself follows the 80\u21928081\u219280 sequence.",
       "claim_level": "Observed",
       "evidence_files": [
         "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
@@ -48,6 +48,22 @@
           "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
           "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io"
         ],
+        "ingress_field_keys_compared_minus_target_port": [
+          "additionalPortMappings",
+          "allowInsecure",
+          "clientCertificateMode",
+          "corsPolicy",
+          "customDomains",
+          "exposedPort",
+          "external",
+          "fqdn",
+          "ipSecurityRestrictions",
+          "stickySessions",
+          "targetPortHttpScheme",
+          "traffic",
+          "transport"
+        ],
+        "ingress_minus_target_port_byte_equal_across_three_states": true,
         "target_port_values": [
           80,
           8081,
@@ -59,7 +75,7 @@
           "Auto"
         ]
       },
-      "predicate": "01.ingress.external == 05.ingress.external == 11.ingress.external AND 01.ingress.transport == 05.ingress.transport == 11.ingress.transport AND 01.ingress.fqdn == 05.ingress.fqdn == 11.ingress.fqdn AND 01.ingress.targetPort != 05.ingress.targetPort AND 05.ingress.targetPort != 11.ingress.targetPort AND 01.ingress.targetPort == 11.ingress.targetPort.",
+      "predicate": "(01.ingress minus {targetPort}) == (05.ingress minus {targetPort}) == (11.ingress minus {targetPort}) AND [01.ingress.targetPort, 05.ingress.targetPort, 11.ingress.targetPort] == [80, 8081, 80].",
       "result": "pass",
       "sub_gate": "a_only_ingress_target_port_changed_across_three_states"
     },
@@ -137,5 +153,5 @@
     "target_port_trigger_expected": 8081,
     "transport_expected": "Auto"
   },
-  "utc_captured": "2026-06-26T05:25:01Z"
+  "utc_captured": "2026-06-26T05:41:52Z"
 }

@@ -276,6 +276,12 @@ The Gate 17 falsification framing is intentionally bounded. It is accurate to sa
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
+| Command | Purpose |
+|---|---|
+| `curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/` | Probe the edge URL and print only the HTTP status code; used to compare baseline (200) vs triggered (503) vs post-fix (200) behavior. |
+| `az containerapp ingress update --name <app> --resource-group <rg> --target-port 9999` | Trigger the failure by pointing ingress at a port the container is not listening on; this is an application-scope update and does not create a new revision. |
+| `az containerapp ingress update --name <app> --resource-group <rg> --target-port 80` | Restore the correct target port; the edge recovers to HTTP 200 within seconds without a new revision being created. |
+
 ```text
 # Baseline: targetPort=80, app listens on 80 → HTTP 200
 curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/
@@ -569,7 +575,7 @@ This subsection captures the hypothesis a third time using the scripted falsific
 
 | Independent variable changed | Dependent variables that flipped on the same revision | Variables held constant |
 |---|---|---|
-| Ingress `targetPort`: `80` → `8081` → `80` | Edge HTTP response (200 → 503 → 200, n=10 per state), `ContainerAppSystemLogs_CL` gate classification (`silent_valid_baseline` → `populated_table` → `silent_valid_baseline`), `portmismatch_rows` (0 → 25 → 0 in the corresponding UTC windows) | Revision name (`ca-ingressport-2inkav--n6v50k0`), container image (`containerapps-helloworld:latest`), container listening port (`:80`), ingress transport (`Auto`), Log Analytics workspace, scripted KQL query (only the `datetime(...)` cutoff differs between H1 and H2) |
+| Ingress `targetPort`: `80` → `8081` → `80` | Edge HTTP response (200 → 503 → 200, n=10 per state), `ContainerAppSystemLogs_CL` gate classification (`silent_valid_baseline` → `populated_table` → `silent_valid_baseline`), `portmismatch_rows` (0 → 25 → 0 in the corresponding UTC windows) | Revision name (`ca-ingressport-2inkav--n6v50k0`), container image (`containerapps-helloworld:latest`), container listening port (`:80`), ingress transport (`Auto`), Log Analytics workspace, same KQL shape/predicates (the only intended query delta between H1 and H2 is the strict `datetime(...)` cutoff) |
 
 [Inferred] Holding the revision name, container image, listening port, ingress transport, and KQL query body constant and flipping only the integer `targetPort` value, the edge HTTP response and the `ContainerAppSystemLogs_CL` PortMismatch row count flipped together in the documented direction. The strict post-fix UTC cutoff (`datetime(2026-06-22T12:25:06Z)` rather than `ago(5m)`) is what permits the H2 gate to be machine-readable — a relative window beginning at query time would include the pre-fix tail and falsely falsify the fix.
 

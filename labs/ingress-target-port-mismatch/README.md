@@ -9,7 +9,7 @@ The lab tests two hypotheses:
 1. **H1 — Trigger produces the documented failure.** After `az containerapp ingress update --target-port 8081`, within 60 s the edge returns ≤ 1/10 HTTP 200 responses, and within a 300 s ingestion window `ContainerAppSystemLogs_CL` records ≥ 1 row whose `Reason_s == "Pending:PortMismatch"` or whose `Log_s` contains `TargetPort`, scoped to `TimeGenerated > datetime(<TRIGGER_UTC>)`.
 2. **H2 — Fix restores recovery.** After `az containerapp ingress update --target-port 80`, within 30 s the edge returns ≥ 8/10 HTTP 200 responses, and a 300 s post-fix ingestion window shows 0 PortMismatch rows when scoped to `TimeGenerated > datetime(<FIX_UTC>)`.
 
-If both hold, the lab proves that `ingress.targetPort` (relative to the container's listening port) is the single controlling variable for this failure mode. The container image, the listening port, the revision name, the ingress transport, and the workspace are all held constant across the baseline, the triggered state, and the post-fix state; the only experimental variable is the `targetPort` integer.
+If both hold, the bounded falsification is that the integer `ingress.targetPort` is the controlling variable for this failure mode. Gate 17 anchors that claim to the cohort-evidenced constants — preserved ingress surface outside `targetPort`, preserved revision name, preserved Container App identity/FQDN, and the smoking-gun `Log_s` string — while the evidence pack explicitly does not claim image byte-identity, pod reuse, or a direct socket capture of the container's listening port.
 
 > **Why the strict post-fix UTC cutoff (and not `ago(5m)`).** The platform may continue emitting PortMismatch attribution rows for a short tail after the underlying ingress was already updated, because the probe-failure events were generated in the triggered window and ingestion is asynchronous. A relative window like `ago(5m)` that begins counting at query time would include that tail and would falsely falsify H2. The lab captures `FIX_UTC` at the exact moment of the `az containerapp ingress update --target-port 80` call and scopes the H2 KQL to `TimeGenerated > datetime(${FIX_UTC})`, which is the only window that can validly demonstrate that the platform stopped attributing PortMismatch failures AFTER the fix. The Microsoft Learn KQL example at [Logging in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash) documents the `ago(...)` pattern for general-purpose queries; the strict cutoff is a lab-specific rigor choice, not a Learn-documented requirement.
 
@@ -150,7 +150,7 @@ This lab measures ingress-to-container port wiring, not application behavior. Us
 
 - No ACR provisioning, no ACR pull authentication failure path.
 - Predictable single listening port (`:80`) that matches the documented placeholder image contract.
-- The image is identical across the baseline, the triggered state, and the post-fix state, so the only experimental variable is the integer `targetPort`.
+- The image tag is the same across the baseline, the triggered state, and the post-fix state; the evidence pack does not capture image digests, so Gate 17 treats image byte-identity as out of scope rather than directly proved.
 
 ## Cost notes
 

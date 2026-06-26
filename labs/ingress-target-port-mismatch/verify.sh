@@ -591,13 +591,18 @@ g17_transport = [fields_before.get("transport"), fields_after_trigger.get("trans
 g17_fqdn = [fields_before.get("fqdn"), fields_after_trigger.get("fqdn"), fields_after_fix.get("fqdn")]
 g17_target = [fields_before.get("targetPort"), fields_after_trigger.get("targetPort"), fields_after_fix.get("targetPort")]
 
+ingress_without_target_before = {k: v for k, v in fields_before.items() if k != "targetPort"}
+ingress_without_target_after_trigger = {k: v for k, v in fields_after_trigger.items() if k != "targetPort"}
+ingress_without_target_after_fix = {k: v for k, v in fields_after_fix.items() if k != "targetPort"}
+
+ingress_minus_target_constant_across_three_states = (
+    ingress_without_target_before == ingress_without_target_after_trigger == ingress_without_target_after_fix
+)
+ingress_field_keys_compared_minus_target_port = sorted(ingress_without_target_before.keys())
+
 a17_pass = (
-    g17_external == [True, True, True]
-    and g17_transport == ["Auto", "Auto", "Auto"]
-    and len(set(g17_fqdn)) == 1
-    and g17_target[0] != g17_target[1]
-    and g17_target[1] != g17_target[2]
-    and g17_target[0] == g17_target[2] == 80
+    ingress_minus_target_constant_across_three_states
+    and g17_target == [80, 8081, 80]
 )
 
 revisions = [cfg_before.get("latestRevisionName"), cfg_after_trigger.get("latestRevisionName"), cfg_after_fix.get("latestRevisionName")]
@@ -615,12 +620,14 @@ d17_pass = len(literal_matches) >= 1
 gate17_sub_gates = [
     sub_gate(
         sub_gate_name="a_only_ingress_target_port_changed_across_three_states",
-        claim="Across the baseline→trigger→fix sequence, the ingress field-level diff is bounded to targetPort while external, transport, and fqdn stay constant.",
-        predicate="01.ingress.external == 05.ingress.external == 11.ingress.external AND 01.ingress.transport == 05.ingress.transport == 11.ingress.transport AND 01.ingress.fqdn == 05.ingress.fqdn == 11.ingress.fqdn AND 01.ingress.targetPort != 05.ingress.targetPort AND 05.ingress.targetPort != 11.ingress.targetPort AND 01.ingress.targetPort == 11.ingress.targetPort.",
+        claim="Across the baseline→trigger→fix sequence, the ingress field-level diff is bounded to targetPort: the full ingress object with targetPort removed is byte-equal across all three states, and targetPort itself follows the 80→8081→80 sequence.",
+        predicate="(01.ingress minus {targetPort}) == (05.ingress minus {targetPort}) == (11.ingress minus {targetPort}) AND [01.ingress.targetPort, 05.ingress.targetPort, 11.ingress.targetPort] == [80, 8081, 80].",
         claim_level="Observed",
         passed=a17_pass,
         evidence_files=[repo_rel("01-ingress-config-before.json"), repo_rel("05-ingress-config-after-trigger.json"), repo_rel("11-ingress-config-after-fix.json")],
         observed_values={
+            "ingress_minus_target_port_byte_equal_across_three_states": ingress_minus_target_constant_across_three_states,
+            "ingress_field_keys_compared_minus_target_port": ingress_field_keys_compared_minus_target_port,
             "external_values": g17_external,
             "transport_values": g17_transport,
             "fqdn_values": g17_fqdn,
