@@ -74,7 +74,7 @@
         ]
       },
       "pass": true,
-      "predicate": "Q3 contains app-min3 rows at 11:05:00Z, 11:16:00Z, and 11:29:00Z, matching the perturbation submitted timestamps rounded down to the minute."
+      "predicate": "Q3 contains app-min3 rows at 11:05:00Z, 11:16:00Z, and 11:29:00Z, matching the perturbation submitted timestamps rounded to the 60-second cluster bin."
     },
     "c": {
       "claim": "Recovery is observed for the same three successful perturbation events within the configured deadline.",
