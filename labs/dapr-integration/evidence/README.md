@@ -21,6 +21,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single `k
 
 - The pack captures a single live Azure cohort; it is not a statistical sample across regions or tenants.
 - `06-system-logs-pre-fix.json` is JSONL/NDJSON, not a JSON array; `verify.sh` parses it one record per line.
+- `05-dapr-invoke-pre-fix.json` preserves the exact `az containerapp exec` transcript observed during the loopback Dapr probe attempt. The gate treats it as an exec-failure artifact, while `06-system-logs-pre-fix.json` carries the sidecar `ProbeFailed` evidence.
 - The historical 2026-06-03 Portal screenshots remain important because they document the original `containerapps-helloworld` limitation that kept the older reproduction `[Not Proven]` for clean falsification.
 - The pack does not prove image byte identity, pod UID continuity, Dapr sidecar PID continuity, exact Dapr health-probe timing, or exact DNS-resolution timing. Those ceilings are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 

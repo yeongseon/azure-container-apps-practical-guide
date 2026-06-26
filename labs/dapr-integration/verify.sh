@@ -167,11 +167,11 @@ if gate_number == 8:
         print(f"05 parse failure: {type(exc).__name__}: {exc}")
         raise SystemExit(1)
     combined = f"{invoke.get('stdout', '')}\n{invoke.get('stderr', '')}"
-    ok = int(invoke.get("exit_code", 0)) != 0 or any(token in combined for token in ["ERR_DIRECT_INVOKE", "connection refused", "502", "500", "failed"])
+    ok = "ClusterExecFailure" in combined or int(invoke.get("exit_code", 0)) != 0 or any(token in combined for token in ["ERR_DIRECT_INVOKE", "connection refused", "502", "500"])
     if ok:
-        print("05 parses and captures a failing pre-fix Dapr invocation attempt")
+        print("05 parses and captures a failing pre-fix exec transcript while probing the Dapr invoke path")
         raise SystemExit(0)
-    print("05 does not capture the expected failing Dapr invocation")
+    print("05 does not capture the expected failing exec transcript")
     raise SystemExit(1)
 
 if gate_number == 9:
@@ -569,6 +569,10 @@ pre_post_lineage_equal = both_parse_ok and pre_post_rg_equal and pre_post_app_eq
 response_pre_body = str(http_pre.get("body", "")).strip()
 response_post_body = str(http_post.get("body", "")).strip()
 invoke_pre_combined = f"{invoke_pre.get('stdout', '')}\n{invoke_pre.get('stderr', '')}"
+pre_probe_failed_rows = [
+    row for row in system_pre
+    if row.get("ContainerAppName") == app_name and row.get("Reason") == "ProbeFailed"
+]
 
 pre_dapr_enabled = dapr_pre.get("enabled") is True
 post_dapr_enabled = dapr_post.get("enabled") is True
@@ -671,9 +675,10 @@ gate_14_all_subgates_pass = all([subgate_14a_pass, subgate_14b_pass, subgate_14c
 
 subgate_15a_pass = pre_dapr_enabled and pre_app_port == 8081
 subgate_15b_pass = int(http_pre.get("status_code", 0)) == 200 and "OK" in response_pre_body
-subgate_15c_pass = int(invoke_pre.get("exit_code", 0)) != 0 or any(token.lower() in invoke_pre_combined.lower() for token in ["err_direct_invoke", "connection refused", "failed", "500", "502"])
-subgate_15d_pass = pre_revision_state.get("active") is True and pre_revision_state.get("runningState") == "Running"
-gate_15_all_subgates_pass = all([subgate_15a_pass, subgate_15b_pass, subgate_15c_pass, subgate_15d_pass])
+subgate_15c_pass = "ClusterExecFailure" in invoke_pre_combined or int(invoke_pre.get("exit_code", 0)) != 0 or any(token.lower() in invoke_pre_combined.lower() for token in ["err_direct_invoke", "connection refused", "500", "502"])
+subgate_15d_pass = bool(pre_probe_failed_rows)
+subgate_15e_pass = pre_revision_state.get("active") is True and pre_revision_state.get("runningState") == "Running"
+gate_15_all_subgates_pass = all([subgate_15a_pass, subgate_15b_pass, subgate_15c_pass, subgate_15d_pass, subgate_15e_pass])
 
 subgate_16a_pass = post_dapr_enabled and post_app_port == 8000
 subgate_16b_pass = int(http_post.get("status_code", 0)) == 200 and "OK" in response_post_body
@@ -824,23 +829,25 @@ gate14 = {
 }
 
 gate15 = {
-    "claim": f"The H1 trigger produced the documented Dapr failure on {pre_revision}: Dapr remained enabled but appPort changed to 8081, ingress / still returned HTTP 200 from the app, the loopback Dapr invoke path failed, and the active revision stayed Running.",
+    "claim": f"The H1 trigger produced the documented pre-fix failure surface on {pre_revision}: Dapr remained enabled but appPort changed to 8081, ingress / still returned HTTP 200 from the app, the exec transcript used to probe the loopback Dapr invoke path failed, system logs showed ProbeFailed rows, and the active revision stayed Running.",
     "claim_level": "Observed",
-    "gate_classification": "H1 gate: confirms the Dapr appPort mismatch produced a sidecar-to-app failure while ingress reachability remained intact.",
+    "gate_classification": "H1 gate: confirms the Dapr appPort mismatch produced the observed pre-fix failure surface while ingress reachability remained intact.",
     "hypothesis": "H1_trigger_produces_failure",
     "path_used": "single",
     "predicate_inputs": {
         "dapr_config_pre": repo_rel("03-dapr-config-pre-fix.json"),
         "http_response_pre": repo_rel("04-http-response-pre-fix.json"),
         "dapr_invoke_pre": repo_rel("05-dapr-invoke-pre-fix.json"),
+        "system_logs_pre": repo_rel("06-system-logs-pre-fix.json"),
         "revision_list_pre": repo_rel("02-revision-list-pre-fix.json"),
     },
     "dapr_integration_h1_trigger_produces_failure_all_subgates_pass": gate_15_all_subgates_pass,
     "dapr_integration_h1_trigger_produces_failure_sub_gates": {
         "a_dapr_stays_enabled_while_appport_is_8081": subgate_15a_pass,
         "b_ingress_root_still_returns_http_200": subgate_15b_pass,
-        "c_loopback_dapr_invoke_fails": subgate_15c_pass,
-        "d_active_revision_stays_running": subgate_15d_pass,
+        "c_exec_transcript_for_loopback_dapr_probe_fails": subgate_15c_pass,
+        "d_system_logs_show_probefailed_rows": subgate_15d_pass,
+        "e_active_revision_stays_running": subgate_15e_pass,
     },
     "scenario": "dapr_integration",
     "sub_gates": [
@@ -871,7 +878,7 @@ gate15 = {
             "sub_gate": "b_ingress_root_still_returns_http_200",
         },
         {
-            "claim": "The pre-fix loopback Dapr invocation fails.",
+            "claim": "The pre-fix exec transcript used to probe the loopback Dapr invoke path fails.",
             "claim_level": "Observed",
             "evidence_files": [repo_rel("05-dapr-invoke-pre-fix.json")],
             "observed_values": {
@@ -879,12 +886,24 @@ gate15 = {
                 "stderr": invoke_pre.get("stderr", ""),
                 "stdout": invoke_pre.get("stdout", ""),
             },
-            "predicate": "05.exit_code != 0 OR the combined stdout/stderr contains one of {ERR_DIRECT_INVOKE, connection refused, failed, 500, 502}.",
+            "predicate": "05.exit_code != 0 OR the combined stdout/stderr contains one of {ClusterExecFailure, ERR_DIRECT_INVOKE, connection refused, 500, 502}.",
             "result": "pass" if subgate_15c_pass else "fail",
-            "sub_gate": "c_loopback_dapr_invoke_fails",
+            "sub_gate": "c_exec_transcript_for_loopback_dapr_probe_fails",
         },
         {
-            "claim": "The active pre-fix revision stays Running while the Dapr invoke path is broken.",
+            "claim": "The pre-fix system-log capture shows ProbeFailed rows on the triggered appPort 8081 window.",
+            "claim_level": "Observed",
+            "evidence_files": [repo_rel("06-system-logs-pre-fix.json")],
+            "observed_values": {
+                "probe_failed_row_count": len(pre_probe_failed_rows),
+                "sample_probe_failed_rows": pre_probe_failed_rows[:3],
+            },
+            "predicate": "06 contains at least one row where ContainerAppName matches the app and Reason == 'ProbeFailed'.",
+            "result": "pass" if subgate_15d_pass else "fail",
+            "sub_gate": "d_system_logs_show_probefailed_rows",
+        },
+        {
+            "claim": "The active pre-fix revision stays Running while the observed failure surface is present.",
             "claim_level": "Observed",
             "evidence_files": [repo_rel("02-revision-list-pre-fix.json")],
             "observed_values": {
@@ -895,8 +914,8 @@ gate15 = {
                 "running_state": pre_revision_state.get("runningState"),
             },
             "predicate": "02[0].properties.active == true AND 02[0].properties.runningState == 'Running'.",
-            "result": "pass" if subgate_15d_pass else "fail",
-            "sub_gate": "d_active_revision_stays_running",
+            "result": "pass" if subgate_15e_pass else "fail",
+            "sub_gate": "e_active_revision_stays_running",
         },
     ],
     "thresholds": {

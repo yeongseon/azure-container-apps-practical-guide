@@ -324,6 +324,7 @@ subs = [
     (re.compile(r'Microsoft\s+Non-Production', re.I), 'Contoso'),
     (re.compile(r'\b[A-Za-z0-9._%+-]+@microsoft\.com(?![A-Za-z0-9.-])', re.I), 'user@example.com'),
     (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.onmicrosoft\.com(?![A-Za-z0-9.-])', re.I), 'user@example.com'),
+    (re.compile(r'\b[A-Za-z0-9._%+-]+@gmail\.com(?![A-Za-z0-9.-])', re.I), 'user@example.com'),
     (re.compile(r'\b[A-Za-z0-9-]+\.onmicrosoft\.com(?![A-Za-z0-9.-])', re.I), 'contoso.onmicrosoft.com'),
     (re.compile(r'\bychoe\b', re.I), 'demouser'),
     (re.compile(r'Yeongseon\s+Choe', re.I), 'Demo User'),

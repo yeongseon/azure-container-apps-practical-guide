@@ -245,9 +245,9 @@ properties:
 resourceGroup: rg-aca-lab-dapr
 systemData:
   createdAt: '2026-06-26T10:07:06.2864778'
-  createdBy: demouser.choe@gmail.com
+  createdBy: user@example.com
   createdByType: User
   lastModifiedAt: '2026-06-26T10:28:39.4566763'
-  lastModifiedBy: demouser.choe@gmail.com
+  lastModifiedBy: user@example.com
   lastModifiedByType: User
 type: Microsoft.App/containerApps

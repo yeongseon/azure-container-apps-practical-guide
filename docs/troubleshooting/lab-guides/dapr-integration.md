@@ -343,7 +343,7 @@ Resource group `rg-aca-lab-dapr` in `koreacentral`, Container App `ca-labdapr-5n
 
 - `[Observed]` `01-app-spec-pre-fix.json` records ingress `targetPort: 8000` while `03-dapr-config-pre-fix.json` records `enabled: true`, `appProtocol: http`, and `appPort: 8081`.
 - `[Observed]` `04-http-response-pre-fix.json` shows `HTTP/2 200`, `server: gunicorn`, and body `OK`, so ingress remained reachable while the Dapr setting was wrong.
-- `[Observed]` `05-dapr-invoke-pre-fix.json` captures the failing loopback Dapr invoke attempt through `127.0.0.1:3500`; the captured exec transcript includes `ClusterExecFailure` with container-side code `500`.
+- `[Observed]` `05-dapr-invoke-pre-fix.json` preserves the exact failed `az containerapp exec` transcript captured while probing the loopback Dapr invoke path through `127.0.0.1:3500`; the transcript includes `ClusterExecFailure` with container-side code `500`, so it is used as an exec-failure artifact rather than as a direct Dapr-response body.
 - `[Observed]` `06-system-logs-pre-fix.json` shows repeated `ProbeFailed` rows on the triggered `appPort: 8081` window.
 - `[Observed]` `09-dapr-config-post-fix.json` restores `appPort: 8000` with `enabled: true`, and `10-http-response-post-fix.json` again records `HTTP/2 200` with body `OK` at a later timestamp.
 - `[Observed]` `11-revision-list-post-fix.json` records the post-fix capture window as `active: true`, `healthState: Healthy`, and `runningState: Running`.
