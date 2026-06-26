@@ -1,0 +1,7 @@
+{
+  "networkRuleSet": {
+    "defaultAction": "Deny",
+    "ipRules": []
+  },
+  "publicNetworkAccess": "Disabled"
+}

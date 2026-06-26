@@ -1,0 +1,77 @@
+{
+  "auxiliaryMode": "None",
+  "auxiliarySku": "None",
+  "disableTcpStateTracking": false,
+  "dnsSettings": {
+    "appliedDnsServers": [],
+    "dnsServers": [],
+    "internalDomainNameSuffix": "iczbdttaoq2udpmrij2moxx04e.syx.internal.cloudapp.net"
+  },
+  "enableAcceleratedNetworking": false,
+  "enableIPForwarding": false,
+  "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+  "hostedWorkloads": [],
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/networkInterfaces/pe-acracrpedirnadfay.nic.00000000-0000-0000-0000-000000000000",
+  "ipConfigurations": [
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/networkInterfaces/pe-acracrpedirnadfay.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": true,
+      "privateIPAddress": "10.50.4.4",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrpedirnadfay.koreacentral.data.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry_data_koreacentral"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-acr-pe-direct-lab",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrpedir-nadfay/subnets/snet-pe",
+        "resourceGroup": "rg-acr-pe-direct-lab"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    },
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/networkInterfaces/pe-acracrpedirnadfay.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": false,
+      "privateIPAddress": "10.50.4.5",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrpedirnadfay.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-acr-pe-direct-lab",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrpedir-nadfay/subnets/snet-pe",
+        "resourceGroup": "rg-acr-pe-direct-lab"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    }
+  ],
+  "location": "koreacentral",
+  "macAddress": "",
+  "name": "pe-acracrpedirnadfay.nic.00000000-0000-0000-0000-000000000000",
+  "nicType": "Standard",
+  "privateEndpoint": {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/privateEndpoints/pe-acracrpedirnadfay",
+    "resourceGroup": "rg-acr-pe-direct-lab"
+  },
+  "provisioningState": "Succeeded",
+  "resourceGroup": "rg-acr-pe-direct-lab",
+  "resourceGuid": "00000000-0000-0000-0000-000000000000",
+  "tapConfigurations": [],
+  "type": "Microsoft.Network/networkInterfaces",
+  "vnetEncryptionSupported": false
+}

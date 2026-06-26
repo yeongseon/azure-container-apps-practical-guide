@@ -1,0 +1,23 @@
+{
+  "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrpedir-nadfay' | where TimeGenerated >= todatetime('2026-06-26T12:46:54Z') | where Reason_s in ('PullingImage','PulledImage','ImagePullUnauthorized','ImagePullFailed','BackOff') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
+  "window_start_utc": "2026-06-26T12:46:54Z",
+  "window_end_utc": "2026-06-26T12:47:01.8792156Z",
+  "rows": [
+    {
+      "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-recover'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000002-8574fbc69f-2h6gv",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000002",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:47:01.8792156Z"
+    },
+    {
+      "Log_s": "Successfully pulled image \"acracrpedirnadfay.azurecr.io/pe-lab:v-recover\" in 1.61s. Image size: 44040192 bytes.",
+      "Reason_s": "PulledImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000002-8574fbc69f-2h6gv",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000002",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:47:01.8792156Z"
+    }
+  ]
+}

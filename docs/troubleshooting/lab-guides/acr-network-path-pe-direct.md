@@ -8,34 +8,6 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
-content_validation:
-  status: verified
-  last_reviewed: '2026-06-05'
-  reviewer: agent
-  lab_validation:
-    status: reproduced
-    tested_date: '2026-06-05'
-    az_cli_version: 2.79.0
-    notes: |
-      End-to-end reproduction in koreacentral confirmed Path B: image pulls
-      succeeded through the PE NIC (RFC1918 IP) while ACR public access was
-      disabled, then fresh-pull attempts failed with ImagePullUnauthorized
-      after the VNet link to privatelink.azurecr.io was removed, then
-      recovered after the link was restored. See "Observed Evidence
-      (Live Azure Test - 2026-06-05)".
-  core_claims:
-    - claim: ACR Premium SKU is required to host a Private Endpoint.
-      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
-      verified: true
-    - claim: When ACR is reached via a Private Endpoint, the AzureContainerRegistry service tag egress rule is not required for the image data path.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
-      verified: true
-    - claim: A /32 Private Endpoint system route beats a 0.0.0.0/0 user-defined route, so default routing keeps PE traffic on the Azure backbone (does not traverse a firewall).
-      source: https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall
-      verified: true
-    - claim: The ACR Private Endpoint exposes one sub-resource named 'registry' whose NIC holds private IPs for the login endpoint and each region's data endpoint, all of which must resolve inside privatelink.azurecr.io for end-to-end Private Link pulls.
-      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
-      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-05'

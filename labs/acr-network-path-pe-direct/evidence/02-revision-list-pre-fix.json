@@ -1,0 +1,49 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.App/containerApps/ca-acrpedir-nadfay/revisions/ca-acrpedir-nadfay--0000001",
+    "name": "ca-acrpedir-nadfay--0000001",
+    "properties": {
+      "active": true,
+      "createdTime": "2026-06-26T12:38:23+00:00",
+      "fqdn": "ca-acrpedir-nadfay--0000001.orangeocean-3adcfb2e.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "provisioningState": "Provisioned",
+      "replicas": 2,
+      "runningState": "RunningAtMaxScale",
+      "template": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "BUILD_TAG",
+                "value": "v-broken"
+              }
+            ],
+            "image": "acracrpedirnadfay.azurecr.io/pe-lab:v-broken",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.5,
+              "memory": "1Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 100
+    },
+    "resourceGroup": "rg-acr-pe-direct-lab",
+    "type": "Microsoft.App/containerapps/revisions"
+  }
+]
