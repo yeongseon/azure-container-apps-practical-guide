@@ -235,7 +235,7 @@ if gate_number == 12:
         and len(post_kql) >= 1
     )
     if ok:
-        print("09-12 parse and capture the restored Dapr config, HTTP 200, newer revision, and KQL summary")
+        print("09-12 parse and capture the restored Dapr config, HTTP 200, same-lineage post-fix revision surface, and KQL summary")
         raise SystemExit(0)
     print("09-12 do not capture the expected post-fix Dapr / revision / 200-response surface")
     raise SystemExit(1)
@@ -1036,7 +1036,7 @@ gate17 = {
     "claim": "This evidence pack falsifies the Dapr integration failure hypothesis within a bounded scope. Gate 17 demonstrates that the Dapr appPort field is the mechanically observable trigger field for this cohort while Dapr stays enabled and the app keeps listening on ingress targetPort 8000. The pack does not claim image byte identity, pod UID continuity, Dapr sidecar PID continuity, exact Dapr health-probe timing, or exact DNS-resolution timing.",
     "claim_level": "Observed",
     "cohort_binding_note": {
-        "claim_ceiling": "The bounded claim is that the Dapr appPort field is the mechanically observable trigger field for this cohort: 8081 breaks loopback Dapr invocation while ingress / remains HTTP 200, and 8000 restores the recovered revision. The pack does NOT prove image byte identity, pod UID continuity, Dapr sidecar PID continuity, exact Dapr health-probe timing, or exact DNS-resolution timing.",
+        "claim_ceiling": "The bounded claim is that the Dapr appPort field is the mechanically observable trigger field for this cohort: 8081 produces the observed pre-fix failure surface (failed exec transcript while probing the loopback Dapr path plus ProbeFailed system-log rows) while ingress / remains HTTP 200, and 8000 restores the later healthy/running post-fix capture window on the same revision lineage. The pack does NOT prove image byte identity, pod UID continuity, Dapr sidecar PID continuity, exact Dapr health-probe timing, or exact DNS-resolution timing.",
         "explicit_drops": explicit_drops,
     },
     "gate_classification": "Bounded falsification gate: isolates the Dapr appPort field as the trigger while explicitly listing the unproven confounders and ceilings.",
