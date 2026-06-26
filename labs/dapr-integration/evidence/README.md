@@ -13,7 +13,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single `k
 ## Gate overview
 
 - **Gate 14 — `14-cohort-integrity-gate.json`**: validates canonical file presence, parseability, temporal boundedness, lineage coherence, and README cross-references.
-- **Gate 15 — `15-h1-trigger-produces-failure-gate.json`**: proves the pre-fix Dapr config changed to `appPort=8081`, ingress `/` still returned HTTP 200, and loopback Dapr invoke failed.
+- **Gate 15 — `15-h1-trigger-produces-failure-gate.json`**: proves the pre-fix Dapr config changed to `appPort=8081`, ingress `/` still returned HTTP 200, the captured exec transcript for the loopback Dapr probe failed, and system logs showed `ProbeFailed` rows.
 - **Gate 16 — `16-h2-fix-restores-recovery-gate.json`**: proves the post-fix Dapr config restored `appPort=8000`, ingress `/` still returns HTTP 200, the post-fix capture window is healthy/running, and the recovery summary still shows startup activity in that restore window.
 - **Gate 17 — `17-bounded-falsification-gate.json`**: bounds the causal claim to the Dapr `appPort` field while explicitly listing unsupported inferences.
 

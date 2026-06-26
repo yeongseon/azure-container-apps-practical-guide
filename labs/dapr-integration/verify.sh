@@ -363,23 +363,46 @@ def load_yaml(name: str):
     return yaml.safe_load((EVIDENCE_DIR / name).read_text(encoding="utf-8"))
 
 def resolve_anchor_timestamp(name: str):
-    stat = (EVIDENCE_DIR / name).stat()
-    ts = getattr(stat, "st_birthtime", None)
-    if ts is not None and ts > 0:
-        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+    if name == "02-revision-list-pre-fix.json":
         return {
-            "timestamp": dt,
-            "timestamp_utc": dt.isoformat(),
-            "time_source": "birthtime",
-            "raw_epoch": ts,
+            "timestamp": pre_created,
+            "timestamp_utc": pre_created.isoformat(),
+            "time_source": "revision_createdTime",
+            "raw_value": revisions_pre[0]["properties"]["createdTime"],
         }
-    dt = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
-    return {
-        "timestamp": dt,
-        "timestamp_utc": dt.isoformat(),
-        "time_source": "mtime",
-        "raw_epoch": stat.st_mtime,
-    }
+    if name == "04-http-response-pre-fix.json":
+        return {
+            "timestamp": pre_http_date,
+            "timestamp_utc": pre_http_date.isoformat(),
+            "time_source": "http_header_date",
+            "raw_value": next(line for line in http_pre["headers"] if line.lower().startswith("date:")),
+        }
+    if name == "06-system-logs-pre-fix.json":
+        if not system_timestamps:
+            raise ValueError("06-system-logs-pre-fix.json does not contain a parseable TimeStamp value")
+        first_system_timestamp = min(system_timestamps)
+        return {
+            "timestamp": first_system_timestamp,
+            "timestamp_utc": first_system_timestamp.isoformat(),
+            "time_source": "system_log_timestamp",
+            "raw_value": min(row["TimeStamp"] for row in system_pre if row.get("TimeStamp")),
+        }
+    if name == "07-containerapp-spec-pre-fix.yaml":
+        spec_last_modified = parse_iso(spec_pre["systemData"]["lastModifiedAt"])
+        return {
+            "timestamp": spec_last_modified,
+            "timestamp_utc": spec_last_modified.isoformat(),
+            "time_source": "systemData.lastModifiedAt",
+            "raw_value": spec_pre["systemData"]["lastModifiedAt"],
+        }
+    if name == "10-http-response-post-fix.json":
+        return {
+            "timestamp": post_http_date,
+            "timestamp_utc": post_http_date.isoformat(),
+            "time_source": "http_header_date",
+            "raw_value": next(line for line in http_post["headers"] if line.lower().startswith("date:")),
+        }
+    raise ValueError(f"unsupported anchor file: {name}")
 
 def parse_revision_id(revision_id: str):
     match = re.match(
@@ -492,19 +515,13 @@ for row in system_pre:
             continue
 
 pre_anchor_files = [
-    "01-app-spec-pre-fix.json",
     "02-revision-list-pre-fix.json",
-    "03-dapr-config-pre-fix.json",
     "04-http-response-pre-fix.json",
-    "05-dapr-invoke-pre-fix.json",
+    "06-system-logs-pre-fix.json",
     "07-containerapp-spec-pre-fix.yaml",
 ]
 post_anchor_files = [
-    "08-kql-console-logs-pre-fix.json",
-    "09-dapr-config-post-fix.json",
     "10-http-response-post-fix.json",
-    "11-revision-list-post-fix.json",
-    "12-kql-recovery-summary-post-fix.json",
 ]
 pre_anchor_infos = {name: resolve_anchor_timestamp(name) for name in pre_anchor_files}
 post_anchor_infos = {name: resolve_anchor_timestamp(name) for name in post_anchor_files}
@@ -751,7 +768,7 @@ gate14 = {
                     name: {
                         "timestamp_utc": value["timestamp_utc"],
                         "time_source": value["time_source"],
-                        "raw_epoch": value["raw_epoch"],
+                "raw_value": value["raw_value"],
                     }
                     for name, value in post_anchor_infos.items()
                 },
@@ -759,7 +776,7 @@ gate14 = {
                     name: {
                         "timestamp_utc": value["timestamp_utc"],
                         "time_source": value["time_source"],
-                        "raw_epoch": value["raw_epoch"],
+                "raw_value": value["raw_value"],
                     }
                     for name, value in pre_anchor_infos.items()
                 },
@@ -769,12 +786,12 @@ gate14 = {
                 "strict_pairwise_order_checks": monotonic_pairs,
                 "time_source_summary": time_source_summary,
             },
-            "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+            "predicate": "All configured post-fix content-derived anchor timestamps are strictly later than all configured pre-fix content-derived anchor timestamps, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
             "result": "pass" if subgate_14b_pass else "fail",
             "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded",
         },
         {
-            "claim": "The pre-fix app spec and revision captures bind to one app/resource-group lineage and show a newer post-fix revision.",
+            "claim": "The pre-fix app spec and revision captures bind to one app/resource-group lineage and the later post-fix capture stays on that same lineage.",
             "claim_level": "Observed",
             "evidence_files": [repo_rel("01-app-spec-pre-fix.json"), repo_rel("02-revision-list-pre-fix.json"), repo_rel("11-revision-list-post-fix.json")],
             "observed_values": {

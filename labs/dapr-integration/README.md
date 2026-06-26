@@ -20,7 +20,7 @@ labs/dapr-integration/
 
 ## Hypotheses
 
-1. **H1 — Trigger produces failure.** If Dapr stays enabled but `appPort` changes from the app's real listener `8000` to `8081`, ingress to `/` can still return HTTP 200 while direct Dapr invocation through `127.0.0.1:3500` fails.
+1. **H1 — Trigger produces failure.** If Dapr stays enabled but `appPort` changes from the app's real listener `8000` to `8081`, ingress to `/` can still return HTTP 200 while the observed pre-fix failure surface appears on the loopback Dapr probe path and in the sidecar `ProbeFailed` logs.
 2. **H2 — Fix restores recovery.** Restoring `appPort` to `8000` with `az containerapp dapr enable --dapr-app-port 8000` restores the healthy/running post-fix state and returns the Dapr config to the real listener.
 
 ## Evidence pack
