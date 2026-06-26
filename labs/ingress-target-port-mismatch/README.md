@@ -9,7 +9,7 @@ The lab tests two hypotheses:
 1. **H1 — Trigger produces the documented failure.** After `az containerapp ingress update --target-port 8081`, within 60 s the edge returns ≤ 1/10 HTTP 200 responses, and within a 300 s ingestion window `ContainerAppSystemLogs_CL` records ≥ 1 row whose `Reason_s == "Pending:PortMismatch"` or whose `Log_s` contains `TargetPort`, scoped to `TimeGenerated > datetime(<TRIGGER_UTC>)`.
 2. **H2 — Fix restores recovery.** After `az containerapp ingress update --target-port 80`, within 30 s the edge returns ≥ 8/10 HTTP 200 responses, and a 300 s post-fix ingestion window shows 0 PortMismatch rows when scoped to `TimeGenerated > datetime(<FIX_UTC>)`.
 
-If both hold, the lab proves that `ingress.targetPort` (relative to the container's listening port) is the single controlling variable for this failure mode. The container image, the listening port, the revision name, the ingress transport, and the workspace are all held constant across the baseline, the triggered state, and the post-fix state; the only experimental variable is the `targetPort` integer.
+If both hold, the bounded falsification is that the integer `ingress.targetPort` is the controlling variable for this failure mode. Gate 17 anchors that claim to the cohort-evidenced constants — preserved ingress surface outside `targetPort`, preserved revision name, preserved Container App identity/FQDN, and the smoking-gun `Log_s` string — while the evidence pack explicitly does not claim image byte-identity, pod reuse, or a direct socket capture of the container's listening port.
 
 > **Why the strict post-fix UTC cutoff (and not `ago(5m)`).** The platform may continue emitting PortMismatch attribution rows for a short tail after the underlying ingress was already updated, because the probe-failure events were generated in the triggered window and ingestion is asynchronous. A relative window like `ago(5m)` that begins counting at query time would include that tail and would falsely falsify H2. The lab captures `FIX_UTC` at the exact moment of the `az containerapp ingress update --target-port 80` call and scopes the H2 KQL to `TimeGenerated > datetime(${FIX_UTC})`, which is the only window that can validly demonstrate that the platform stopped attributing PortMismatch failures AFTER the fix. The Microsoft Learn KQL example at [Logging in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash) documents the `ago(...)` pattern for general-purpose queries; the strict cutoff is a lab-specific rigor choice, not a Learn-documented requirement.
 
@@ -20,12 +20,13 @@ If both hold, the lab proves that `ingress.targetPort` (relative to the containe
 ```text
 labs/ingress-target-port-mismatch/
 ├── infra/main.bicep      # LAW + Container Apps env (appLogsConfiguration populated) + 1 helloworld app (targetPort=80, minReplicas=1, maxReplicas=1)
-├── trigger.sh            # Phases 1-10: pre-trigger ingress + replicas + 10 requests, az containerapp ingress update --target-port 8081, post-trigger ingress + replicas + 10 requests, 300s wait, KQL PortMismatch (expect populated_table)
-├── verify.sh             # Phases 11-17: az containerapp ingress update --target-port 80, post-fix ingress + replicas + 10 requests, 300s wait, KQL PortMismatch scoped to TimeGenerated > FIX_UTC (expect silent_valid_baseline)
+├── trigger.sh            # Phase A — Phases 1-10: baseline ingress + 10 requests, trigger targetPort=8081, failed traffic, 300s wait, KQL PortMismatch (expect populated_table)
+├── fix-and-capture.sh    # Phase A — Phases 11-17: restore targetPort=80, post-fix traffic, 300s wait, KQL PortMismatch scoped to TimeGenerated > FIX_UTC (expect silent_valid_baseline) (renamed from verify.sh)
+├── verify.sh             # Phase B — Offline evidence-pack verifier (4 gates / 16 sub-gates, no Azure calls). Reads only committed evidence and emits 4 derived gate JSONs.
 ├── cleanup.sh            # Delete the resource group
 └── evidence/             # Captured CLI evidence
     ├── 00-trigger-run.txt                            # Full trigger.sh stdout/stderr
-    ├── 00-verify-run.txt                             # Full verify.sh stdout/stderr
+    ├── 00-verify-run.txt                             # Full fix-and-capture.sh stdout/stderr (filename preserved across the Phase B rename)
     ├── 01-ingress-config-before.json                 # Phase 1: ingress + revision before trigger (expect targetPort=80, external=true)
     ├── 02-replicas-before.json                       # Phase 2: replica list before trigger
     ├── 03-curl-before.json                           # Phase 3: 10 HTTPS request results to baseline (expect >=8/10 HTTP 200)
@@ -48,12 +49,17 @@ labs/ingress-target-port-mismatch/
     ├── 20-cli-versions.json                          # Post-run: `az version`
     ├── 21-cli-containerapp-ext.json                  # Post-run: containerapp extension version
     ├── 22-region.json                                # Post-run: deployment region
-    └── 23-deployment-outputs.json                    # Post-run: full deployment outputs
+    ├── 23-deployment-outputs.json                    # Post-run: full deployment outputs
+    ├── 14-cohort-integrity-gate.json                 # Phase B Gate 14: Strong/Fallback cohort integrity over the 25 canonical files
+    ├── 15-h1-trigger-produces-failure-gate.json      # Phase B Gate 15 (H1): ingress mutated + traffic broke + KQL populated + smoking-gun sample
+    ├── 16-h2-fix-restores-recovery-gate.json         # Phase B Gate 16 (H2): ingress restored + traffic recovered + KQL silenced + strict post-fix UTC cutoff
+    ├── 17-single-variable-falsification-gate.json    # Phase B Gate 17 (H3): only targetPort changed + no new revision + identity preserved + listening-port constancy substantiated
+    └── README.md                                     # Phase B evidence tour: timeline, gate descriptions, disclosures, file index
 ```
 
 ## Quick Start
 
-These commands assume the working directory is `labs/ingress-target-port-mismatch/`. All `az` invocations pin `--subscription` explicitly to immunize the run against Azure CLI default-subscription drift, and the deployment is given the explicit name `main` so its outputs can be read back deterministically. Total wall-clock runtime is approximately 18 minutes (3 min deploy + 8 min trigger including 60 s propagation wait and 300 s ingestion wait + 6 min verify including 30 s propagation wait and 300 s post-fix wait + 1 min cleanup initiation).
+These commands assume the working directory is `labs/ingress-target-port-mismatch/`. All `az` invocations pin `--subscription` explicitly to immunize the run against Azure CLI default-subscription drift, and the deployment is given the explicit name `main` so its outputs can be read back deterministically. Total wall-clock runtime is approximately 19 minutes (3 min deploy + 8 min trigger including 60 s propagation wait and 300 s ingestion wait + 6 min fix-and-capture including 30 s propagation wait and 300 s post-fix wait + 1 min offline Phase B verify + 1 min cleanup initiation).
 
 ```bash
 cd labs/ingress-target-port-mismatch/
@@ -96,11 +102,23 @@ export WORKSPACE_CUSTOMER_ID=$(az deployment group show \
     --query "properties.outputs.logAnalyticsCustomerId.value" \
     --output tsv)
 
-# 4) Run the falsification experiment.
-./trigger.sh 2>&1 | tee evidence/00-trigger-run.txt   # pre-trigger checks + 10 requests + ingress update + post-trigger 10 requests + 300s wait + KQL (expect populated_table)
-./verify.sh  2>&1 | tee evidence/00-verify-run.txt    # ingress update --target-port 80 + 10 requests + 300s wait + KQL (expect silent_valid_baseline in strict post-fix window)
-./cleanup.sh                                          # delete the resource group
+# 4) Run Phase A (live Azure capture).
+./trigger.sh           2>&1 | tee evidence/00-trigger-run.txt   # pre-trigger checks + 10 requests + ingress update + post-trigger 10 requests + 300s wait + KQL (expect populated_table)
+./fix-and-capture.sh   2>&1 | tee evidence/00-verify-run.txt    # ingress update --target-port 80 + 10 requests + 300s wait + KQL (expect silent_valid_baseline in strict post-fix window)
+
+# 5) Run Phase B (offline evidence-pack verification).
+bash verify.sh                                                # emits Gate 14/15/16/17 JSONs; expect 16/16 PASS
+
+# 6) Clean up.
+./cleanup.sh                                                  # delete the resource group
 ```
+
+## Phase A vs Phase B
+
+This lab now splits the live-Azure reproduction from the offline evidence-pack verification:
+
+- **Phase A — Live Azure reproduction.** `trigger.sh` captures the healthy baseline, applies the trigger (`targetPort=8081`), drives failed traffic, waits for system-log ingestion, and captures the populated PortMismatch window. `fix-and-capture.sh` then restores `targetPort=80`, re-runs traffic, waits for the strict post-fix ingestion window, and captures the silent PortMismatch result. The historical Phase A script name was `verify.sh`; it was renamed to `fix-and-capture.sh` so `verify.sh` could become the offline verifier. The captured log file remains `00-verify-run.txt` for schema stability.
+- **Phase B — Offline evidence-pack verification.** `verify.sh` is now a pure file processor that reads the committed Phase A cohort plus `evidence/README.md` and the `evidence/` directory listing for Gate 14 integrity checks, emits four derived gate JSONs, and exits 0 only when all 16 sub-gates pass. See [`evidence/README.md`](evidence/README.md) for the full evidence-pack tour.
 
 ## What this lab demonstrates
 
@@ -109,12 +127,13 @@ export WORKSPACE_CUSTOMER_ID=$(az deployment group show \
 - `activeRevisionsMode: 'Single'` is used so the only revision is the one being modified by the trigger. Ingress updates are documented at [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to) as application-scope (they do not create a new revision); the lab asserts this by capturing `latestRevisionName` before and after the trigger and flagging any change as a `NOTE` (not a hard failure, because the documentation behavior could in principle evolve).
 - `minReplicas: 1, maxReplicas: 1` is used so the platform reliably emits probe-failure events into `ContainerAppSystemLogs_CL` with no scale-to-zero confounder. The container itself stays Running across the trigger; what fails is the ingress's ability to reach a process on the configured port.
 - `trigger.sh` Phase 4 captures `TRIGGER_UTC` and calls `az containerapp ingress update --target-port 8081`. Phase 6 waits 60 s for the ingress configuration to propagate and for the first probe failures to land. Phase 8 issues 10 HTTPS requests against the public FQDN; the H1 sub-gate A is `requests_ok <= 1/10`. Phase 9 waits 300 s for system log ingestion. Phase 10 runs two KQL queries: a `summarize` to count rows and a `project ... take 5` to capture sample evidence, both scoped to `TimeGenerated > datetime(${TRIGGER_UTC})` to keep the window strictly post-trigger. The KQL summarize is parsed by a phase-aware classifier that emits one of four `gate_classification` values: `populated_table` (≥1 PortMismatch row — expected here), `silent_failure` (0 PortMismatch rows in the post-trigger window — wrong outcome, trigger ineffective or ingestion delayed), `silent_valid_baseline` (used only by `verify.sh`), or `query_error_invalid_run` (the KQL CLI returned an unexpected error signature). The H1 sub-gate B is therefore `gate_classification == populated_table`, which means `portmismatch_rows >= 1` in the strictly post-trigger window.
-- `verify.sh` Phase 11 captures `FIX_UTC` and calls `az containerapp ingress update --target-port 80`. Phase 13 waits 30 s for the ingress configuration to propagate. Phase 15 issues 10 HTTPS requests; the H2 sub-gate A is `requests_ok >= 8/10`. Phase 16 waits 300 s for any final probe-failure events generated in the post-fix wait to land. Phase 17 runs the same two KQL queries scoped to `TimeGenerated > datetime(${FIX_UTC})`; the same phase-aware classifier emits `silent_valid_baseline` (0 PortMismatch rows — expected post-fix), `populated_table` (≥1 PortMismatch row — fix did not hold), `silent_failure` (used only by `trigger.sh`), or `query_error_invalid_run`. The H2 sub-gate B is therefore `gate_classification == silent_valid_baseline`, which means `portmismatch_rows == 0` in the strictly post-fix window.
+- `fix-and-capture.sh` Phase 11 captures `FIX_UTC` and calls `az containerapp ingress update --target-port 80`. Phase 13 waits 30 s for the ingress configuration to propagate. Phase 15 issues 10 HTTPS requests; the H2 sub-gate A is `requests_ok >= 8/10`. Phase 16 waits 300 s for any final probe-failure events generated in the post-fix wait to land. Phase 17 runs the same two KQL queries scoped to `TimeGenerated > datetime(${FIX_UTC})`; the same phase-aware classifier emits `silent_valid_baseline` (0 PortMismatch rows — expected post-fix), `populated_table` (≥1 PortMismatch row — fix did not hold), `silent_failure` (used only by `trigger.sh`), or `query_error_invalid_run`. The H2 sub-gate B is therefore `gate_classification == silent_valid_baseline`, which means `portmismatch_rows == 0` in the strictly post-fix window.
 - The pass/fail logic encodes three outcomes plus one invalid-run guard:
-    - **H1 PASS + H2 PASS** ⇒ the falsification hypothesis is SUPPORTED. `verify.sh` exits 0.
-    - **H1 FALSIFIED in `trigger.sh`** (post-trigger curl still returned ≥ 2/10 HTTP 200, OR `portmismatch_rows` was 0 in the post-trigger window — `gate_classification == silent_failure`) ⇒ the trigger did not produce the documented failure. `trigger.sh` exits 2 and `verify.sh` is never reached.
-    - **H2 FALSIFIED in `verify.sh`** (post-fix curl did not return ≥ 8/10 HTTP 200, OR PortMismatch rows continued to appear in the strictly post-fix window — `gate_classification == populated_table`) ⇒ the fix did not restore recovery. `verify.sh` exits 2.
-    - **INVALID RUN** (baseline did not hold, or KQL produced an unexpected error signature that is neither valid JSON nor the documented "table not yet materialized" signature) ⇒ exit 1.
+    - **H1 PASS + H2 PASS** ⇒ the falsification hypothesis is SUPPORTED. `fix-and-capture.sh` exits 0.
+    - **H1 FALSIFIED in `trigger.sh`** (post-trigger curl still returned ≥ 2/10 HTTP 200, OR `portmismatch_rows` was 0 in the post-trigger window — `gate_classification == silent_failure`) ⇒ the trigger did not produce the documented failure. `trigger.sh` exits 2 and `fix-and-capture.sh` is never reached.
+    - **H2 FALSIFIED in `fix-and-capture.sh`** (post-fix curl did not return ≥ 8/10 HTTP 200, OR PortMismatch rows continued to appear in the strictly post-fix window — `gate_classification == populated_table`) ⇒ the fix did not restore recovery. `fix-and-capture.sh` exits 2.
+    - **INVALID RUN** (baseline did not hold, or KQL produced an unexpected error signature that is neither valid JSON nor the documented "table not yet materialized" signature) ⇒ `trigger.sh` or `fix-and-capture.sh` exits 1.
+    - **Phase B (`verify.sh`)** — offline only: exits 0 when all 4 gates / 16 sub-gates PASS, else exits 1.
 
 ## Why the lab tests `ContainerAppSystemLogs_CL` (not `ContainerAppConsoleLogs_CL`)
 
@@ -131,7 +150,7 @@ This lab measures ingress-to-container port wiring, not application behavior. Us
 
 - No ACR provisioning, no ACR pull authentication failure path.
 - Predictable single listening port (`:80`) that matches the documented placeholder image contract.
-- The image is identical across the baseline, the triggered state, and the post-fix state, so the only experimental variable is the integer `targetPort`.
+- The image tag is the same across the baseline, the triggered state, and the post-fix state; the evidence pack does not capture image digests, so Gate 17 treats image byte-identity as out of scope rather than directly proved.
 
 ## Cost notes
 
@@ -148,12 +167,12 @@ When you ship this lab's evidence into a docs PR or a support ticket, ALWAYS rec
 - **Azure region** (e.g., `koreacentral`). Captured to `evidence/22-region.json`.
 - **Azure CLI version** and **`containerapp` extension version** (`az version`, `az extension list --query "[?name=='containerapp']"`). Captured to `evidence/20-cli-versions.json` and `evidence/21-cli-containerapp-ext.json`.
 - **Date of the run in UTC** (visible at the top of `00-trigger-run.txt` and `00-verify-run.txt`).
-- **The exit code of `trigger.sh` and `verify.sh`** (0 = hypothesis supported, 1 = invalid run, 2 = falsified).
+- **The exit code of `trigger.sh`, `fix-and-capture.sh`, and Phase B `verify.sh`** (0 = Phase A supported or Phase B all gates PASS, 1 = invalid run or Phase B gate failure, 2 = Phase A falsified).
 - **Full deployment outputs** so the reader can reproduce the LAW guid, env name, app name, FQDN. Captured to `evidence/23-deployment-outputs.json`.
 - **The two UTC anchors `TRIGGER_UTC` and `FIX_UTC`** (visible in `00-trigger-run.txt` and `00-verify-run.txt`). These are what the strict KQL window filters are based on; reproducibility of the H2 gate requires both anchors to be recorded alongside the row counts.
 
-The log ingestion lag between platform event emission and KQL queryability in `ContainerAppSystemLogs_CL` is not documented as a strict SLA. This lab uses a 300 s wait window after the trigger and another 300 s after the fix, which has been observed to be sufficient in this reproduction, but a slower region or a busier workspace may need a longer wait. Recording the wait window and the post-wait row counts is critical for reproducibility.
+The log ingestion lag between platform event emission and KQL queryability in `ContainerAppSystemLogs_CL` is not documented as a strict SLA. This lab uses a 300 s wait window after the trigger and another 300 s after the fix, which has been observed to be sufficient in this reproduction, but a slower region or a busier workspace may need a longer wait. Recording the wait window and the post-wait row counts is critical for reproducibility. The offline Phase B overlay in [`evidence/README.md`](evidence/README.md) documents the four-gate falsification structure over the committed cohort.
 
 ## Operator takeaway
 
-This lab observed (2026-06-22 reproduction in `koreacentral`) that when `ingress.targetPort` is configured to a port that no process inside the container is listening on, the Azure Container Apps platform produces a deterministic, machine-readable failure signature: every external HTTPS request to the FQDN returns HTTP 503, and `ContainerAppSystemLogs_CL` ingests rows whose `Reason_s == "Pending:PortMismatch"` and whose `Log_s` carries the smoking-gun string `The TargetPort <X> does not match the listening port <Y>.` (the surrounding text varies — typical form is `Deployment Progress Deadline Exceeded. N/N replicas ready. The TargetPort <X> does not match the listening port <Y>.`). Microsoft Learn documents that ingress is the application-scope routing layer that forwards traffic to the configured target port ([Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview), [How to configure ingress](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)) and that probes default to the ingress target port when none are defined ([Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)); the consequence of misconfiguring that target port is what this lab demonstrates. The fix is at the app's ingress configuration scope: `az containerapp ingress update --target-port <correct-port>`. After the fix, the platform stops emitting PortMismatch attribution rows in the strictly post-fix UTC window, and the edge returns HTTP 200 within 30 s without requiring a new revision. The cheapest diagnostic during a live incident is the smoking-gun KQL query in [`docs/troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md`](../../docs/troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md); reproduce locally with `./trigger.sh` and `./verify.sh` to validate it against your own environment before training on-call engineers.
+This lab observed (2026-06-22 reproduction in `koreacentral`) that when `ingress.targetPort` is configured to a port that no process inside the container is listening on, the Azure Container Apps platform produces a deterministic, machine-readable failure signature: every external HTTPS request to the FQDN returns HTTP 503, and `ContainerAppSystemLogs_CL` ingests rows whose `Reason_s == "Pending:PortMismatch"` and whose `Log_s` carries the smoking-gun string `The TargetPort <X> does not match the listening port <Y>.` (the surrounding text varies — typical form is `Deployment Progress Deadline Exceeded. N/N replicas ready. The TargetPort <X> does not match the listening port <Y>.`). Microsoft Learn documents that ingress is the application-scope routing layer that forwards traffic to the configured target port ([Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview), [How to configure ingress](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)) and that probes default to the ingress target port when none are defined ([Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)); the consequence of misconfiguring that target port is what this lab demonstrates. The fix is at the app's ingress configuration scope: `az containerapp ingress update --target-port <correct-port>`. After the fix, the platform stops emitting PortMismatch attribution rows in the strictly post-fix UTC window, and the edge returns HTTP 200 within 30 s without requiring a new revision. The cheapest diagnostic during a live incident is the smoking-gun KQL query in [`docs/troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md`](../../docs/troubleshooting/kql/system-and-revisions/target-port-mismatch-detection.md); reproduce locally with `./trigger.sh`, `./fix-and-capture.sh`, and `bash verify.sh` to validate it against your own environment before training on-call engineers.

@@ -1,0 +1,157 @@
+{
+  "claim": "The bounded falsification is that the integer ingress.targetPort is the controlling variable across the baseline\u2192trigger\u2192fix sequence: external, transport, fqdn, revision name, and Container App identity stay constant, while the platform-attributed smoking-gun log explicitly states 'The TargetPort 8081 does not match the listening port 80.'.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded falsification is `only the integer ingress.targetPort changed across the baseline\u2192trigger\u2192fix sequence`. The cohort directly evidences (i) ingress field-level diff bounded to targetPort, (ii) revision name preserved (no new revision), (iii) container app identity preserved across all three states, and (iv) platform-attributed listening-port constancy via the smoking-gun Log_s string `The TargetPort 8081 does not match the listening port 80.`",
+    "explicit_drops": [
+      "Image byte-identity NOT cohort-evidenced \u2014 the cohort does not capture image digest; inferred from the Phase A scripts not invoking any `az containerapp update --image` operation.",
+      "Pod reuse NOT claimed \u2014 replica count varied (1\u21922\u21921 across 02, 06, 12) so different pod UIDs were created within the same revision; the cohort does not capture pod UIDs.",
+      "5-minute ingestion latency window is a per-reproduction observation, NOT an SLA \u2014 Microsoft Learn does not document a strict SLA for `_CL` table ingestion lag for `ContainerAppSystemLogs_CL`.",
+      "Listening port of the container is NOT directly captured in the cohort \u2014 it is inferred from the smoking-gun KQL Log_s string `does not match the listening port 80`; a custom image or a runtime port change inside the container would invalidate this inference but is outside the lab's test surface."
+    ]
+  },
+  "gate_classification": "H3 gate: bounds the single-variable claim to the ingress.targetPort integer and explicitly documents what the cohort does not directly prove.",
+  "hypothesis": "H3_single_variable_falsification",
+  "ingress_target_port_mismatch_h3_single_variable_falsification_all_subgates_pass": true,
+  "ingress_target_port_mismatch_h3_single_variable_falsification_sub_gates": {
+    "a_only_ingress_target_port_changed_across_three_states": true,
+    "b_no_new_revision_created": true,
+    "c_container_app_identity_preserved": true,
+    "d_smoking_gun_substantiates_listening_port_constancy": true
+  },
+  "path_used": "single",
+  "predicate_inputs": {
+    "deployment_outputs": "labs/ingress-target-port-mismatch/evidence/23-deployment-outputs.json",
+    "ingress_after_fix": "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json",
+    "ingress_after_trigger": "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json",
+    "ingress_before": "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+    "trigger_kql": "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json"
+  },
+  "scenario": "ingress_target_port_mismatch",
+  "sub_gates": [
+    {
+      "claim": "Across the baseline\u2192trigger\u2192fix sequence, the ingress field-level diff is bounded to targetPort: the full ingress object with targetPort removed is byte-equal across all three states, and targetPort itself follows the 80\u21928081\u219280 sequence.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+        "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json"
+      ],
+      "observed_values": {
+        "external_values": [
+          true,
+          true,
+          true
+        ],
+        "fqdn_values": [
+          "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+          "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+          "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io"
+        ],
+        "ingress_field_keys_compared_minus_target_port": [
+          "additionalPortMappings",
+          "allowInsecure",
+          "clientCertificateMode",
+          "corsPolicy",
+          "customDomains",
+          "exposedPort",
+          "external",
+          "fqdn",
+          "ipSecurityRestrictions",
+          "stickySessions",
+          "targetPortHttpScheme",
+          "traffic",
+          "transport"
+        ],
+        "ingress_minus_target_port_byte_equal_across_three_states": true,
+        "target_port_values": [
+          80,
+          8081,
+          80
+        ],
+        "transport_values": [
+          "Auto",
+          "Auto",
+          "Auto"
+        ]
+      },
+      "predicate": "(01.ingress minus {targetPort}) == (05.ingress minus {targetPort}) == (11.ingress minus {targetPort}) AND [01.ingress.targetPort, 05.ingress.targetPort, 11.ingress.targetPort] == [80, 8081, 80].",
+      "result": "pass",
+      "sub_gate": "a_only_ingress_target_port_changed_across_three_states"
+    },
+    {
+      "claim": "The ingress mutation remained app-scope and did not create a new revision in this cohort.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+        "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json"
+      ],
+      "observed_values": {
+        "latest_revision_values": [
+          "ca-ingressport-2inkav--n6v50k0",
+          "ca-ingressport-2inkav--n6v50k0",
+          "ca-ingressport-2inkav--n6v50k0"
+        ]
+      },
+      "predicate": "01.latestRevisionName == 05.latestRevisionName == 11.latestRevisionName.",
+      "result": "pass",
+      "sub_gate": "b_no_new_revision_created"
+    },
+    {
+      "claim": "The same Container App resource and FQDN are preserved across all three ingress states.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+        "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/23-deployment-outputs.json"
+      ],
+      "observed_values": {
+        "container_app_name_values": [
+          "ca-ingressport-2inkav",
+          "ca-ingressport-2inkav",
+          "ca-ingressport-2inkav"
+        ],
+        "deployment_outputs_container_app_name": "ca-ingressport-2inkav",
+        "deployment_outputs_log_analytics_customer_id": "<redacted>",
+        "fqdn_values": [
+          "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+          "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io",
+          "ca-ingressport-2inkav.agreeablefield-fa2b72d9.koreacentral.azurecontainerapps.io"
+        ]
+      },
+      "predicate": "01.name == 05.name == 11.name AND 01.ingress.fqdn == 05.ingress.fqdn == 11.ingress.fqdn.",
+      "result": "pass",
+      "sub_gate": "c_container_app_identity_preserved"
+    },
+    {
+      "claim": "The platform-attributed smoking-gun row directly substantiates that the container was still listening on :80 during the trigger while ingress.targetPort was 8081.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger-portmismatch-sample-raw.txt"
+      ],
+      "observed_values": {
+        "expected_literal": "The TargetPort 8081 does not match the listening port 80.",
+        "matching_log_examples": [
+          "The TargetPort 8081 does not match the listening port 80.",
+          "The TargetPort 8081 does not match the listening port 80.",
+          "The TargetPort 8081 does not match the listening port 80."
+        ],
+        "matching_sample_count": 5
+      },
+      "predicate": "09.system_portmismatch_sample.samples[*].Log_s contains the literal 'The TargetPort 8081 does not match the listening port 80.'.",
+      "result": "pass",
+      "sub_gate": "d_smoking_gun_substantiates_listening_port_constancy"
+    }
+  ],
+  "thresholds": {
+    "external_expected": true,
+    "target_port_baseline_expected": 80,
+    "target_port_post_fix_expected": 80,
+    "target_port_trigger_expected": 8081,
+    "transport_expected": "Auto"
+  },
+  "utc_captured": "2026-06-26T05:41:52Z"
+}

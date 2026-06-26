@@ -1,0 +1,94 @@
+{
+  "claim": "The fix restored ingress.targetPort to 80, edge traffic recovered to 10/10 HTTP 200, the strictly post-fix KQL window returned portmismatch_rows='0' with gate_classification='silent_valid_baseline', and the query string proves the silence claim was bounded to TimeGenerated > datetime(2026-06-22T12:25:06Z).",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms that the same app recovered when ingress.targetPort returned to the listening port and that the post-fix silence claim is bounded to a strict UTC cutoff.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "ingress_target_port_mismatch_h2_fix_restores_recovery_all_subgates_pass": true,
+  "ingress_target_port_mismatch_h2_fix_restores_recovery_sub_gates": {
+    "a_fix_restored_ingress": true,
+    "b_fix_restored_traffic": true,
+    "c_fix_silenced_kql": true,
+    "d_strict_post_fix_kql_window": true
+  },
+  "path_used": "single",
+  "predicate_inputs": {
+    "curl_after_fix": "labs/ingress-target-port-mismatch/evidence/14-curl-after-fix.json",
+    "ingress_after_fix": "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json",
+    "ingress_update_fix_result": "labs/ingress-target-port-mismatch/evidence/10-ingress-update-fix-result.json",
+    "kql_after_fix": "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json"
+  },
+  "scenario": "ingress_target_port_mismatch",
+  "sub_gates": [
+    {
+      "claim": "The fix returned ingress.targetPort to the healthy baseline.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/10-ingress-update-fix-result.json",
+        "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json"
+      ],
+      "observed_values": {
+        "after_fix_target_port": 80,
+        "fix_update_target_port": 80
+      },
+      "predicate": "11.ingress.targetPort == 80 AND 10.targetPort == 80.",
+      "result": "pass",
+      "sub_gate": "a_fix_restored_ingress"
+    },
+    {
+      "claim": "After the fix, the edge returned to the documented healthy threshold surface.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/14-curl-after-fix.json"
+      ],
+      "observed_values": {
+        "requests_ok": 10,
+        "requests_sent": 10
+      },
+      "predicate": "int(14.requests_ok) >= 8.",
+      "result": "pass",
+      "sub_gate": "b_fix_restored_traffic"
+    },
+    {
+      "claim": "The strictly post-fix KQL window is silent for PortMismatch and classified as a valid silent baseline.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json"
+      ],
+      "observed_values": {
+        "gate_classification": "silent_valid_baseline",
+        "portmismatch_rows": 0,
+        "probefailed_rows": 12
+      },
+      "predicate": "int(15.portmismatch_rows) == 0 AND 15.gate_classification == 'silent_valid_baseline'.",
+      "result": "pass",
+      "sub_gate": "c_fix_silenced_kql"
+    },
+    {
+      "claim": "The post-fix KQL was scoped to a strict UTC cutoff anchored on the fix moment, not a relative ago(...) window.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json"
+      ],
+      "observed_values": {
+        "expected_datetime_literal": "datetime(2026-06-22T12:25:06Z)",
+        "expected_strict_cutoff_clause": "TimeGenerated > datetime(2026-06-22T12:25:06Z)",
+        "fix_utc": "2026-06-22T12:25:06Z",
+        "query_contains_ago": false,
+        "query_contains_strict_cutoff_clause": true,
+        "query_is_strictly_bounded": true,
+        "temporal_sanity_holds": true,
+        "utc_query": "2026-06-22T12:31:23Z"
+      },
+      "predicate": "15.fix_utc < 15.utc_query AND 15.system_portmismatch_query contains 'datetime(' and the literal substring datetime(${FIX_UTC}).",
+      "result": "pass",
+      "sub_gate": "d_strict_post_fix_kql_window"
+    }
+  ],
+  "thresholds": {
+    "post_fix_gate_classification_expected": "silent_valid_baseline",
+    "post_fix_portmismatch_rows_expected": 0,
+    "post_fix_requests_ok_min": 8,
+    "target_port_fix_expected": 80
+  },
+  "utc_captured": "2026-06-26T05:41:52Z"
+}
