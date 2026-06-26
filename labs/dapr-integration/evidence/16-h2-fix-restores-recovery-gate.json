@@ -1,0 +1,104 @@
+{
+  "claim": "The H2 fix restored recovery on ca-labdapr-5nichn--md3mnmx: Dapr stayed enabled while appPort returned to 8000, ingress / returned HTTP 200, the active revision was healthy/running in the post-fix capture window, and the post-fix KQL summary still shows startup activity for the revision in that restore window.",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms recovery after restoring Dapr appPort to the real listener.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "path_used": "single",
+  "predicate_inputs": {
+    "dapr_config_post": "labs/dapr-integration/evidence/09-dapr-config-post-fix.json",
+    "http_response_post": "labs/dapr-integration/evidence/10-http-response-post-fix.json",
+    "revision_list_post": "labs/dapr-integration/evidence/11-revision-list-post-fix.json",
+    "kql_recovery_summary": "labs/dapr-integration/evidence/12-kql-recovery-summary-post-fix.json"
+  },
+  "dapr_integration_h2_fix_restores_recovery_all_subgates_pass": true,
+  "dapr_integration_h2_fix_restores_recovery_sub_gates": {
+    "a_dapr_stays_enabled_while_appport_returns_to_8000": true,
+    "b_ingress_root_returns_http_200_after_fix": true,
+    "c_post_fix_revision_is_active_healthy_running_and_later_in_time": true,
+    "d_post_fix_kql_shows_containerstarted_in_restore_window": true
+  },
+  "scenario": "dapr_integration",
+  "sub_gates": [
+    {
+      "claim": "The post-fix Dapr config keeps Dapr enabled while restoring appPort to 8000.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/09-dapr-config-post-fix.json"
+      ],
+      "observed_values": {
+        "app_id": "dapr-labdapr-5nichn",
+        "app_port": 8000,
+        "app_protocol": "http",
+        "enabled": true
+      },
+      "predicate": "09.enabled == true AND 09.appPort == 8000.",
+      "result": "pass",
+      "sub_gate": "a_dapr_stays_enabled_while_appport_returns_to_8000"
+    },
+    {
+      "claim": "The post-fix ingress root returns HTTP 200 from the app workload.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/10-http-response-post-fix.json"
+      ],
+      "observed_values": {
+        "body": "OK",
+        "status_code": 200
+      },
+      "predicate": "10.status_code == 200 AND 10.body contains 'OK'.",
+      "result": "pass",
+      "sub_gate": "b_ingress_root_returns_http_200_after_fix"
+    },
+    {
+      "claim": "The post-fix capture shows an active / healthy / running revision after the restore window.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+        "labs/dapr-integration/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_created_time": "2026-06-26T10:07:13+00:00",
+        "post_created_time": "2026-06-26T10:07:13+00:00",
+        "pre_http_date": "2026-06-26T10:30:27+00:00",
+        "post_http_date": "2026-06-26T10:32:48+00:00",
+        "post_revision": "ca-labdapr-5nichn--md3mnmx",
+        "post_health_state": "Healthy",
+        "post_running_state": "Running",
+        "active": true
+      },
+      "predicate": "11[0].properties.active == true AND 11[0].properties.healthState == 'Healthy' AND 11[0].properties.runningState == 'Running' AND the HTTP Date header captured in 10 is later than the HTTP Date header captured in 04.",
+      "result": "pass",
+      "sub_gate": "c_post_fix_revision_is_active_healthy_running_and_later_in_time"
+    },
+    {
+      "claim": "The post-fix KQL summary shows ContainerStarted activity for the revision in the restore window.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/12-kql-recovery-summary-post-fix.json"
+      ],
+      "observed_values": {
+        "post_revision_reason_counts": {
+          "AssigningReplica": 1,
+          "ContainerCreated": 2,
+          "ContainerStarted": 2,
+          "ContainerTerminated": 2,
+          "ProbeFailed": 9,
+          "ProbeStarted": 4,
+          "PulledImage": 1,
+          "PullingImage": 1,
+          "RevisionUpdate": 1
+        },
+        "post_container_started": 2,
+        "post_probe_failed": 9
+      },
+      "predicate": "12 rows for the recovered revision contain ContainerStarted >= 1.",
+      "result": "pass",
+      "sub_gate": "d_post_fix_kql_shows_containerstarted_in_restore_window"
+    }
+  ],
+  "thresholds": {
+    "expected_post_fix_app_port": 8000,
+    "post_fix_status_code_expected": 200
+  },
+  "utc_captured": "2026-06-26T10:32:57Z"
+}

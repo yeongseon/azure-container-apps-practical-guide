@@ -1,0 +1,207 @@
+{
+  "claim": "This evidence pack falsifies the Dapr integration failure hypothesis within a bounded scope. Gate 17 demonstrates that the Dapr appPort field is the mechanically observable trigger field for this cohort while Dapr stays enabled and the app keeps listening on ingress targetPort 8000. The pack does not claim image byte identity, pod UID continuity, Dapr sidecar PID continuity, exact Dapr health-probe timing, or exact DNS-resolution timing.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that the Dapr appPort field is the mechanically observable trigger field for this cohort: 8081 breaks loopback Dapr invocation while ingress / remains HTTP 200, and 8000 restores the recovered revision. The pack does NOT prove image byte identity, pod UID continuity, Dapr sidecar PID continuity, exact Dapr health-probe timing, or exact DNS-resolution timing.",
+    "explicit_drops": [
+      {
+        "id": "image_byte_identity",
+        "note": "The pack proves only the ACR image tag visible in the spec/revision surfaces. It does not capture immutable OCI digests."
+      },
+      {
+        "id": "pod_uid_continuity",
+        "note": "The cohort stays at the revision surface and does not capture Kubernetes pod UIDs or container restart reuse."
+      },
+      {
+        "id": "dapr_sidecar_pid_continuity",
+        "note": "The pack proves only revision-level behavior; it does not capture the sidecar process ID before and after the restore."
+      },
+      {
+        "id": "dapr_health_probe_timing",
+        "note": "The reproduction proves failure versus recovery but does not bound the exact number of probe intervals required before each state became visible."
+      },
+      {
+        "id": "dns_resolution_timing",
+        "note": "The scenario does not isolate or measure internal name-resolution timing for Dapr sidecar calls."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the Dapr appPort field as the trigger while explicitly listing the unproven confounders and ceilings.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "app_spec_pre": "labs/dapr-integration/evidence/01-app-spec-pre-fix.json",
+    "dapr_config_pre": "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json",
+    "dapr_config_post": "labs/dapr-integration/evidence/09-dapr-config-post-fix.json",
+    "revision_list_pre": "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+    "revision_list_post": "labs/dapr-integration/evidence/11-revision-list-post-fix.json"
+  },
+  "dapr_integration_h3_bounded_falsification_all_subgates_pass": true,
+  "dapr_integration_h3_bounded_falsification_sub_gates": {
+    "a_appport_is_the_bounded_trigger_field": true,
+    "b_directly_captured_held_constant_fields_match": true,
+    "c_explicit_drops_match_the_documented_ceiling": true,
+    "d_recovery_is_observed_after_restoring_8000_in_a_later_capture_window": true
+  },
+  "scenario": "dapr_integration",
+  "sub_gates": [
+    {
+      "claim": "The bounded trigger field under test is the Dapr appPort value while Dapr stays enabled on both sides.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json",
+        "labs/dapr-integration/evidence/09-dapr-config-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_app_port": 8081,
+        "post_app_port": 8000,
+        "pre_enabled": true,
+        "post_enabled": true
+      },
+      "predicate": "03.enabled == true AND 09.enabled == true AND 03.appPort == 8081 AND 09.appPort == 8000.",
+      "result": "pass",
+      "sub_gate": "a_appport_is_the_bounded_trigger_field"
+    },
+    {
+      "claim": "The directly captured held-constant fields match across H1 and H2 on the bounded Dapr config surface, and the pre-fix full app spec cross-references the same Dapr + ingress pairing.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json",
+        "labs/dapr-integration/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/dapr-integration/evidence/09-dapr-config-post-fix.json"
+      ],
+      "observed_values": {
+        "full_overlap_diff": {
+          "appPort": {
+            "pre_value": 8081,
+            "post_value": 8000
+          }
+        },
+        "full_overlap_equal": {
+          "appHealth": null,
+          "appId": "dapr-labdapr-5nichn",
+          "appProtocol": "http",
+          "enableApiLogging": false,
+          "enabled": true,
+          "httpMaxRequestSize": null,
+          "httpReadBufferSize": null,
+          "logLevel": "info",
+          "maxConcurrency": null
+        },
+        "overlap_paths": [
+          "appHealth",
+          "appId",
+          "appPort",
+          "appProtocol",
+          "enableApiLogging",
+          "enabled",
+          "httpMaxRequestSize",
+          "httpReadBufferSize",
+          "logLevel",
+          "maxConcurrency"
+        ],
+        "held_constant_checks": {
+          "dapr.enabled": {
+            "pre_value": true,
+            "post_value": true,
+            "equal": true
+          },
+          "dapr.appId": {
+            "pre_value": "dapr-labdapr-5nichn",
+            "post_value": "dapr-labdapr-5nichn",
+            "equal": true
+          },
+          "dapr.appProtocol": {
+            "pre_value": "http",
+            "post_value": "http",
+            "equal": true
+          }
+        },
+        "pre_fix_spec_cross_reference": {
+          "image": "acrlabdapr5nichn.azurecr.io/ca-labdapr-5nichn:v1",
+          "ingress_target_port": 8000,
+          "pre_fix_spec_dapr": {
+            "appHealth": null,
+            "appId": "dapr-labdapr-5nichn",
+            "appPort": 8081,
+            "appProtocol": "http",
+            "enableApiLogging": false,
+            "enabled": true,
+            "httpMaxRequestSize": null,
+            "httpReadBufferSize": null,
+            "logLevel": "info",
+            "maxConcurrency": null
+          },
+          "resources": {
+            "cpu": 0.5,
+            "ephemeralStorage": "2Gi",
+            "memory": "1Gi"
+          },
+          "scale": {
+            "cooldownPeriod": 300,
+            "maxReplicas": 2,
+            "minReplicas": 1,
+            "pollingInterval": 30,
+            "rules": null
+          }
+        }
+      },
+      "predicate": "Across the full overlapping field set captured in both 03 and 09, the only differing path is appPort; appId, appProtocol, and enabled compare equal. 07 cross-references the same pre-fix app spec with Dapr enabled, appPort 8081, and ingress targetPort 8000 on the ACR-backed Flask workload.",
+      "result": "pass",
+      "sub_gate": "b_directly_captured_held_constant_fields_match"
+    },
+    {
+      "claim": "The bounded-falsification gate explicitly lists the documented ceilings and unsupported inferences.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/17-bounded-falsification-gate.json"
+      ],
+      "observed_values": {
+        "documented_ceiling_ids": [
+          "dapr_health_probe_timing",
+          "dapr_sidecar_pid_continuity",
+          "dns_resolution_timing",
+          "image_byte_identity",
+          "pod_uid_continuity"
+        ],
+        "observed_drop_ids": [
+          "image_byte_identity",
+          "pod_uid_continuity",
+          "dapr_sidecar_pid_continuity",
+          "dapr_health_probe_timing",
+          "dns_resolution_timing"
+        ]
+      },
+      "predicate": "cohort_binding_note.explicit_drops ids equal the static documented ceiling {image_byte_identity, pod_uid_continuity, dapr_sidecar_pid_continuity, dapr_health_probe_timing, dns_resolution_timing} with no additions and no omissions.",
+      "result": "pass",
+      "sub_gate": "c_explicit_drops_match_the_documented_ceiling"
+    },
+    {
+      "claim": "Recovery is observed only after restoring Dapr appPort to 8000 in a later post-fix capture window.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+        "labs/dapr-integration/evidence/09-dapr-config-post-fix.json",
+        "labs/dapr-integration/evidence/10-http-response-post-fix.json",
+        "labs/dapr-integration/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "post_fix_http_status": 200,
+        "post_revision": "ca-labdapr-5nichn--md3mnmx",
+        "post_http_date": "2026-06-26T10:32:48+00:00",
+        "pre_revision": "ca-labdapr-5nichn--md3mnmx",
+        "pre_http_date": "2026-06-26T10:30:27+00:00",
+        "restored_app_port": 8000
+      },
+      "predicate": "09.appPort == 8000 AND 10.status_code == 200 AND the HTTP Date header captured in 10 is later than the HTTP Date header captured in 04.",
+      "result": "pass",
+      "sub_gate": "d_recovery_is_observed_after_restoring_8000_in_a_later_capture_window"
+    }
+  ],
+  "thresholds": {
+    "held_constant_field_count": 3,
+    "post_fix_status_code_expected": 200,
+    "pre_fix_status_code_expected": 200
+  },
+  "utc_captured": "2026-06-26T10:32:57Z"
+}

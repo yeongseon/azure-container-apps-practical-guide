@@ -1,0 +1,56 @@
+[
+  {
+    "EventCount": "1",
+    "Reason_s": "AssigningReplica",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "ContainerCreated",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "ContainerStarted",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "2",
+    "Reason_s": "ContainerTerminated",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "9",
+    "Reason_s": "ProbeFailed",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "4",
+    "Reason_s": "ProbeStarted",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PulledImage",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "PullingImage",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  },
+  {
+    "EventCount": "1",
+    "Reason_s": "RevisionUpdate",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "TableName": "PrimaryResult"
+  }
+]

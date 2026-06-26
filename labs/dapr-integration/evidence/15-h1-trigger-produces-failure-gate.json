@@ -1,0 +1,90 @@
+{
+  "claim": "The H1 trigger produced the documented Dapr failure on ca-labdapr-5nichn--md3mnmx: Dapr remained enabled but appPort changed to 8081, ingress / still returned HTTP 200 from the app, the loopback Dapr invoke path failed, and the active revision stayed Running.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms the Dapr appPort mismatch produced a sidecar-to-app failure while ingress reachability remained intact.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "dapr_config_pre": "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json",
+    "http_response_pre": "labs/dapr-integration/evidence/04-http-response-pre-fix.json",
+    "dapr_invoke_pre": "labs/dapr-integration/evidence/05-dapr-invoke-pre-fix.json",
+    "revision_list_pre": "labs/dapr-integration/evidence/02-revision-list-pre-fix.json"
+  },
+  "dapr_integration_h1_trigger_produces_failure_all_subgates_pass": true,
+  "dapr_integration_h1_trigger_produces_failure_sub_gates": {
+    "a_dapr_stays_enabled_while_appport_is_8081": true,
+    "b_ingress_root_still_returns_http_200": true,
+    "c_loopback_dapr_invoke_fails": true,
+    "d_active_revision_stays_running": true
+  },
+  "scenario": "dapr_integration",
+  "sub_gates": [
+    {
+      "claim": "The pre-fix Dapr config keeps Dapr enabled while changing appPort to 8081.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json"
+      ],
+      "observed_values": {
+        "app_id": "dapr-labdapr-5nichn",
+        "app_port": 8081,
+        "app_protocol": "http",
+        "enabled": true
+      },
+      "predicate": "03.enabled == true AND 03.appPort == 8081.",
+      "result": "pass",
+      "sub_gate": "a_dapr_stays_enabled_while_appport_is_8081"
+    },
+    {
+      "claim": "The pre-fix ingress root still returns HTTP 200 from the app workload.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/04-http-response-pre-fix.json"
+      ],
+      "observed_values": {
+        "body": "OK",
+        "status_code": 200
+      },
+      "predicate": "04.status_code == 200 AND 04.body contains 'OK'.",
+      "result": "pass",
+      "sub_gate": "b_ingress_root_still_returns_http_200"
+    },
+    {
+      "claim": "The pre-fix loopback Dapr invocation fails.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/05-dapr-invoke-pre-fix.json"
+      ],
+      "observed_values": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "^D\b\b\u001b[93mUse ctrl + D to exit.\u001b[0m\nINFO: Connecting to the container 'app'...\nINFO: Successfully connected to container: 'app'. [ Revision: 'ca-labdapr-5nichn--md3mnmx', Replica: 'ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm'].\nERROR: {\"Error\":{\"Code\":\"ClusterExecFailure\",\"Message\":\"Cluster exec API returns error: Internal error occurred: error executing command in container: websocket: close 1011 (internal server error): Microsoft.Legion.Common.PodrAbstractions.PodrException: Execute in pod: greenpond-1bb3f31b|ca-labdapr-5nichn--md3mnmx-b7..., code: 500.\",\"Details\":null,\"Target\":null,\"AdditionalInfo\":null,\"TraceId\":null}}\n\u001b[93mDisconnecting...\u001b[0m\n"
+      },
+      "predicate": "05.exit_code != 0 OR the combined stdout/stderr contains one of {ERR_DIRECT_INVOKE, connection refused, failed, 500, 502}.",
+      "result": "pass",
+      "sub_gate": "c_loopback_dapr_invoke_fails"
+    },
+    {
+      "claim": "The active pre-fix revision stays Running while the Dapr invoke path is broken.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/02-revision-list-pre-fix.json"
+      ],
+      "observed_values": {
+        "active": true,
+        "health_state": "Healthy",
+        "provisioning_state": "Provisioned",
+        "revision_name": "ca-labdapr-5nichn--md3mnmx",
+        "running_state": "Running"
+      },
+      "predicate": "02[0].properties.active == true AND 02[0].properties.runningState == 'Running'.",
+      "result": "pass",
+      "sub_gate": "d_active_revision_stays_running"
+    }
+  ],
+  "thresholds": {
+    "expected_pre_fix_app_port": 8081,
+    "expected_pre_fix_ingress_status": 200
+  },
+  "utc_captured": "2026-06-26T10:32:57Z"
+}

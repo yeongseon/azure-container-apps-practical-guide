@@ -1,0 +1,402 @@
+[
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:47.288361Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:30:40.672314241Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:41.7052212Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:41.2535592Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:35.4177161Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:30:30.608464804Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:31.0883328Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:29.1520037Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:23.499754Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:30:20.550226083Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:21.0582118Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:17.1733164Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:30:10.489970456Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:11.2239245Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:11.067669Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:05.4232619Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:30:00.43036893Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:30:01.3986028Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:59.1222815Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:53.0885702Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:50.367533496Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:51.4507582Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:47.032829Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:41.5680647Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:40.309522675Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:41.0739803Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:35.0696595Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:30.251025053Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:31.1068723Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:30.3821593Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:23.0674696Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:20.193942335Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:21.2136012Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:17.088372Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:11.2758157Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:10.133400107Z\" level=info msg=\"waiting for application to listen on port 8081\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:11.051791Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Container 'daprd' was terminated with exit code '' and reason 'ManuallyStopped'",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.5522413Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Container 'app' was terminated with exit code '' and reason 'ManuallyStopped'",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.5522413Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:07.458777783Z\" level=info msg=\"Dapr is shutting down\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-cbc8c8b4-5k5sf scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.066888Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:07.458829284Z\" level=info msg=\"Dapr runtime stopped\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-cbc8c8b4-5k5sf scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.066888Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:07.458969485Z\" level=info msg=\"Daprd shutdown gracefully\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-cbc8c8b4-5k5sf scope=dapr.runtime type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.066888Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:07.45843118Z\" level=info msg=\"Closing HTTP server 127.0.0.1:3500…\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-cbc8c8b4-5k5sf scope=dapr.runtime.http type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.066888Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:07.458395579Z\" level=info msg=\"Closing HTTP server [::1]:3500…\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-cbc8c8b4-5k5sf scope=dapr.runtime.http type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.066888Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:07.458344979Z\" level=info msg=\"Closing HTTP server :3501…\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-cbc8c8b4-5k5sf scope=dapr.runtime.http type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.066888Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:07.457976575Z\" level=info msg=\"Received signal 'terminated'; beginning shutdown\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-cbc8c8b4-5k5sf scope=dapr.signals type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.066888Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:07 +0000] [1] [INFO] Handling signal: term",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.004925Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:07 +0000] [8] [INFO] Worker exiting (pid: 8)",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.004925Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:07 +0000] [1] [INFO] Shutting down: Master",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.004925Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:07 +0000] [7] [INFO] Worker exiting (pid: 7)",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:08.004925Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Container daprd failed readiness probe",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:05.0361406Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Readiness Probe of Readiness reached failure threshold 3, changing status to Failure.",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:05.0361406Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Container daprd failed readiness probe",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:05.0361406Z"
+  },
+  {
+    "ContainerName_s": "",
+    "Message": "Probe of Readiness failed with status code: 500",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "System",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:05.0361406Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:00 +0000] [8] [INFO] Booting worker with pid: 8",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:02.0519293Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:00 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:02.0519293Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:00 +0000] [7] [INFO] Booting worker with pid: 7",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:02.0519293Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:00 +0000] [1] [INFO] Starting gunicorn 22.0.0",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:02.0519293Z"
+  },
+  {
+    "ContainerName_s": "app",
+    "Message": "[2026-06-26 10:29:00 +0000] [1] [INFO] Using worker: sync",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:02.0519293Z"
+  },
+  {
+    "ContainerName_s": "daprd",
+    "Message": "time=\"2026-06-26T10:29:00.034972175Z\" level=info msg=\"Loaded token from DAPR_SENTRY_TOKEN environmental variable\" app_id=dapr-labdapr-5nichn instance=ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm scope=dapr.security.token type=log ver=1.16.4-msft.9",
+    "RevisionName_s": "ca-labdapr-5nichn--md3mnmx",
+    "Table": "Console",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-06-26T10:29:01.129391Z"
+  }
+]
