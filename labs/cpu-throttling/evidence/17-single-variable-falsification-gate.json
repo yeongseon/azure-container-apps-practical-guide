@@ -1,7 +1,7 @@
 {
   "claim": "The cohort cannot attribute recovery in Gate 16 to anything other than the (cpu, memory) delta. On the shared-fields surface of 01-app-config-before.json and 06-app-config-after.json the diff is exactly {cpu, memory}; revision lineage shows the old revision is still present in the post-fix list and the new revision (named by 06.latestRevisionName) is the trafficWeight==100 holder and did not exist before the fix; and every revision in both lists shares the Container App resource name (ca-cputhrottle-65svxr) as a literal prefix, proving the cohort observed a single resource across the fix boundary.",
   "claim_level": "Observed",
-  "cohort_binding_note": "Single-variable claim is bounded to the (cpu, memory) delta on the shared-fields surface of 01 and 06. The cohort does NOT prove: (1) that the underlying Kubernetes pod was reused -- lineage in sub-gate (b) explicitly shows a NEW revision was created and the old revision is now in runningState==Deprovisioning; (2) that the container image is byte-identical -- this is inferred from the fact that the Phase A fix-and-capture.sh issued `az containerapp update --cpu --memory` with no `--image`, `--command`, or `--args` flag, but the cohort does not capture image digests so this inference is a documented gap in the claim ceiling. (3) The activeRevisionsMode field appears only in 01 and the latestRevisionName field appears only in 06; this is a known asymmetry in the `az containerapp show` query projection used in Phase A and is intentionally excluded from the diff set.",
+  "cohort_binding_note": "Single-variable claim is bounded to the (cpu, memory) delta on the shared-fields surface of 01 and 06; activeRevisionsMode-only-in-01 and latestRevisionName-only-in-06 are a known query-projection asymmetry and are intentionally excluded from the diff set. The cohort does NOT prove: (1) that the underlying Kubernetes pod was reused -- lineage in sub-gate (b) explicitly shows a NEW revision was created and the old revision is now in runningState==Deprovisioning; (2) that the container image is byte-identical -- this is inferred from the Phase A fix-and-capture.sh issuing `az containerapp update --cpu --memory` with no `--image`, `--command`, or `--args` flag, but the cohort does not capture image digests; (3) that Azure Container Apps generally activates the new revision within 15 seconds -- the cohort captured one 15-second observation (08:50:45Z Activating -> 08:51:00Z RunningAtMaxScale), not a multi-run timing bound.",
   "cpu_throttling_h3_single_variable_falsification_all_subgates_pass": true,
   "cpu_throttling_h3_single_variable_falsification_sub_gates": {
     "a_shared_fields_diff": true,
@@ -83,5 +83,5 @@
       "memory"
     ]
   },
-  "utc_captured": "2026-06-26T02:30:59Z"
+  "utc_captured": "2026-06-26T03:27:45Z"
 }
