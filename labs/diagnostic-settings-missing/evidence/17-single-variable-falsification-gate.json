@@ -1,0 +1,105 @@
+{
+  "claim": "The observed before/after ingestion change is bounded to the intentional environment log-routing mutation plus the forced revision creation used to emit fresh platform events; no additional shared env-config field changed within the cohort surface.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The falsification claim is bounded to the intentional environment log-routing payload and the forced revision lineage captured in this cohort.",
+    "explicit_drops": [
+      "Image byte-identity NOT cohort-evidenced \u2014 inferred from the Phase A fix-and-capture.sh Phase 8 env-var-only app update having no --image flag; the cohort does not capture image digests, so byte-identity is argued only from the absence of an image change in that operation.",
+      "Pod reuse NOT claimed \u2014 under activeRevisionsMode: Single, the FIXAPPLIED env-var update creates a new revision by design; sub-gate (b) shows post_fix_revision != baseline_revision, and the cohort does not capture pod UIDs.",
+      "5-minute ingestion latency window is a per-reproduction observation, NOT an SLA \u2014 Microsoft Learn does not document a strict SLA for *_CL table ingestion lag (https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash); 300 seconds was sufficient on 2026-06-22 in koreacentral, but slower regions or busier workspaces may need longer.",
+      "Helloworld stdout volume per request is NOT a row-per-request guarantee \u2014 mcr.microsoft.com/azuredocs/containerapps-helloworld emits Nginx access logs, but row counts vary with buffering and ingestion behavior; this cohort observed 1 console row and 34 system rows from 10 post-fix requests, so Gate 16 uses a >= 1 row threshold."
+    ]
+  },
+  "diagnostic_settings_missing_h3_single_variable_falsification_all_subgates_pass": true,
+  "diagnostic_settings_missing_h3_single_variable_falsification_sub_gates": {
+    "a_shared_env_config_surface_bounded_to_intentional_payload": true,
+    "b_revision_lineage_new_revision_created_for_fix": true,
+    "c_container_app_identity_preserved_across_revisions": true
+  },
+  "gate_classification": "Single-variable falsification gate: bounds the observed change to the intentional env-config mutation surface and the forced post-fix revision lineage, while explicitly documenting what the cohort does not prove.",
+  "hypothesis": "H3_single_variable_falsification",
+  "path_used": "single",
+  "predicate_inputs": {
+    "app_config_before": "labs/diagnostic-settings-missing/evidence/02-app-config-before.json",
+    "curl_after": "labs/diagnostic-settings-missing/evidence/08-curl-after.json",
+    "deployment_outputs": "labs/diagnostic-settings-missing/evidence/13-deployment-outputs.json",
+    "env_config_after": "labs/diagnostic-settings-missing/evidence/06-env-config-after.json",
+    "env_config_before": "labs/diagnostic-settings-missing/evidence/01-env-config-before.json",
+    "revisions_after": "labs/diagnostic-settings-missing/evidence/07-revisions-after.json"
+  },
+  "scenario": "diagnostic_settings_missing",
+  "sub_gates": [
+    {
+      "claim": "The entire shared-key surface diff is bounded to the intentional environment log-routing payload.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/01-env-config-before.json",
+        "labs/diagnostic-settings-missing/evidence/06-env-config-after.json"
+      ],
+      "observed_values": {
+        "co_set_operation_note": "destination and logAnalyticsConfiguration were co-set by one az containerapp env update --logs-destination --logs-workspace-id --logs-workspace-key call; this is a single platform-mutable diff bounded to the intentional env-config payload, not a single-key claim.",
+        "destination_after": "log-analytics",
+        "destination_before": null,
+        "log_analytics_configuration_changed": true,
+        "observed_diff_keys": [
+          "destination",
+          "logAnalyticsConfiguration"
+        ],
+        "observed_shared_keys": [
+          "destination",
+          "logAnalyticsConfiguration"
+        ],
+        "observed_unchanged_shared_keys": []
+      },
+      "predicate": "Shared keys between 01-env-config-before.json and 06-env-config-after.json are exactly {destination, logAnalyticsConfiguration} AND the diff set on that shared surface is exactly {destination, logAnalyticsConfiguration}.",
+      "result": "pass",
+      "sub_gate": "a_shared_env_config_surface_bounded_to_intentional_payload"
+    },
+    {
+      "claim": "The baseline revision remains in lineage, and the traffic-holding revision after the fix is a new revision.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/02-app-config-before.json",
+        "labs/diagnostic-settings-missing/evidence/07-revisions-after.json",
+        "labs/diagnostic-settings-missing/evidence/08-curl-after.json"
+      ],
+      "observed_values": {
+        "baseline_revision_present_after_fix": true,
+        "observed_baseline_revision": "ca-diagsetting-7dcl4v--4usom8i",
+        "observed_post_fix_revision": "ca-diagsetting-7dcl4v--0000001",
+        "observed_revision_names_after": [
+          "ca-diagsetting-7dcl4v--4usom8i",
+          "ca-diagsetting-7dcl4v--0000001"
+        ],
+        "observed_traffic_holder_names": [
+          "ca-diagsetting-7dcl4v--0000001"
+        ],
+        "post_fix_revision_differs_from_baseline": true,
+        "post_fix_revision_is_traffic_holder": true
+      },
+      "predicate": "02-app-config-before.json.latestRevisionName appears in 07-revisions-after.json[*].name AND 08-curl-after.json.post_fix_revision appears in 07 with trafficWeight == 100 AND post_fix_revision != 02.latestRevisionName.",
+      "result": "pass",
+      "sub_gate": "b_revision_lineage_new_revision_created_for_fix"
+    },
+    {
+      "claim": "All post-fix revisions belong to the same Container App resource.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/07-revisions-after.json",
+        "labs/diagnostic-settings-missing/evidence/13-deployment-outputs.json"
+      ],
+      "observed_values": {
+        "observed_container_app_name": "ca-diagsetting-7dcl4v",
+        "observed_expected_prefix": "ca-diagsetting-7dcl4v--",
+        "observed_prefix_checks": {
+          "ca-diagsetting-7dcl4v--0000001": true,
+          "ca-diagsetting-7dcl4v--4usom8i": true
+        }
+      },
+      "predicate": "Every 07-revisions-after.json[*].name starts with 13-deployment-outputs.json.outputs.containerAppName.value + '--'.",
+      "result": "pass",
+      "sub_gate": "c_container_app_identity_preserved_across_revisions"
+    }
+  ],
+  "utc_captured": "2026-06-26T04:28:15Z"
+}

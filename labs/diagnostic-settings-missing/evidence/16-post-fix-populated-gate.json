@@ -1,0 +1,93 @@
+{
+  "claim": "After the environment-level log routing fix and a forced new revision, both ContainerAppConsoleLogs_CL and ContainerAppSystemLogs_CL materialized and populated for the same app and same workspace.",
+  "claim_level": "Observed",
+  "diagnostic_settings_missing_h2_post_fix_populated_all_subgates_pass": true,
+  "diagnostic_settings_missing_h2_post_fix_populated_sub_gates": {
+    "a_env_destination_and_customer_id_match": true,
+    "b_post_fix_rows_populated_in_both_tables": true,
+    "c_post_fix_classifications_populated_table": true,
+    "d_post_fix_traffic_holder_is_new_running_revision": true
+  },
+  "gate_classification": "Post-fix materialization gate: proves the environment update restored ingestion to both tables and that the observed post-fix traffic belongs to the new traffic-holding revision.",
+  "hypothesis": "H2_post_fix_populated",
+  "path_used": "single",
+  "predicate_inputs": {
+    "curl_after": "labs/diagnostic-settings-missing/evidence/08-curl-after.json",
+    "deployment_outputs": "labs/diagnostic-settings-missing/evidence/13-deployment-outputs.json",
+    "env_config_after": "labs/diagnostic-settings-missing/evidence/06-env-config-after.json",
+    "kql_after": "labs/diagnostic-settings-missing/evidence/09-kql-after.json",
+    "revisions_after": "labs/diagnostic-settings-missing/evidence/07-revisions-after.json"
+  },
+  "scenario": "diagnostic_settings_missing",
+  "sub_gates": [
+    {
+      "claim": "The post-fix environment readback is pinned to the intended Log Analytics workspace.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/06-env-config-after.json",
+        "labs/diagnostic-settings-missing/evidence/13-deployment-outputs.json"
+      ],
+      "observed_values": {
+        "customer_id_matches_deployment_output": true,
+        "customer_id_redacted": "<workspace-customer-id>",
+        "observed_destination": "log-analytics",
+        "observed_log_analytics_configuration_present": true
+      },
+      "predicate": "06-env-config-after.json records destination == 'log-analytics' AND logAnalyticsConfiguration is not None AND logAnalyticsConfiguration.customerId == 13-deployment-outputs.json.outputs.logAnalyticsCustomerId.value.",
+      "result": "pass",
+      "sub_gate": "a_env_destination_and_customer_id_match"
+    },
+    {
+      "claim": "The post-fix KQL result contains at least one row in both tables.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/09-kql-after.json"
+      ],
+      "observed_values": {
+        "observed_console_rows": 1,
+        "observed_system_rows": 34,
+        "rows_are_string_encoded_in_source_json": true
+      },
+      "predicate": "09-kql-after.json records int(console_rows) >= 1 AND int(system_rows) >= 1.",
+      "result": "pass",
+      "sub_gate": "b_post_fix_rows_populated_in_both_tables"
+    },
+    {
+      "claim": "The post-fix rows are classified as populated_table in both tables.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/09-kql-after.json"
+      ],
+      "observed_values": {
+        "observed_console_gate_classification": "populated_table",
+        "observed_system_gate_classification": "populated_table"
+      },
+      "predicate": "09-kql-after.json records console_gate_classification == 'populated_table' AND system_gate_classification == 'populated_table'.",
+      "result": "pass",
+      "sub_gate": "c_post_fix_classifications_populated_table"
+    },
+    {
+      "claim": "Traffic after the fix was served by the single running post-fix revision.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/07-revisions-after.json",
+        "labs/diagnostic-settings-missing/evidence/08-curl-after.json",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after.json"
+      ],
+      "observed_values": {
+        "holder_name_matches_all_three_sources": true,
+        "observed_curl_post_fix_revision": "ca-diagsetting-7dcl4v--0000001",
+        "observed_kql_post_fix_revision": "ca-diagsetting-7dcl4v--0000001",
+        "observed_requests_ok": 10,
+        "observed_revision_record_count": 2,
+        "observed_traffic_holder_count": 1,
+        "observed_traffic_holder_name": "ca-diagsetting-7dcl4v--0000001",
+        "observed_traffic_holder_running_state": "RunningAtMaxScale"
+      },
+      "predicate": "08-curl-after.json.requests_ok >= 8 AND 07-revisions-after.json is a 2-record top-level array AND exactly 1 record has trafficWeight == 100 AND that record.runningState in {'Running','RunningAtMaxScale'} AND that record.name == 08-curl-after.json.post_fix_revision == 09-kql-after.json.post_fix_revision.",
+      "result": "pass",
+      "sub_gate": "d_post_fix_traffic_holder_is_new_running_revision"
+    }
+  ],
+  "utc_captured": "2026-06-26T04:28:15Z"
+}

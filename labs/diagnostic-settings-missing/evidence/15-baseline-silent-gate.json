@@ -1,0 +1,79 @@
+{
+  "claim": "With appLogsConfiguration absent at the environment scope, the baseline cohort is silent in both ContainerAppConsoleLogs_CL and ContainerAppSystemLogs_CL after real request traffic and a full ingestion wait.",
+  "claim_level": "Observed",
+  "diagnostic_settings_missing_h1_baseline_silent_all_subgates_pass": true,
+  "diagnostic_settings_missing_h1_baseline_silent_sub_gates": {
+    "a_env_destination_and_workspace_null": true,
+    "b_baseline_rows_zero_in_both_tables": true,
+    "c_baseline_classifications_silent_valid_baseline": true,
+    "d_baseline_traffic_generated": true
+  },
+  "gate_classification": "Baseline silence gate: proves the null environment configuration coincided with zero rows in both log tables after traffic.",
+  "hypothesis": "H1_baseline_silent",
+  "path_used": "single",
+  "predicate_inputs": {
+    "curl_before": "labs/diagnostic-settings-missing/evidence/03-curl-before.json",
+    "env_config_before": "labs/diagnostic-settings-missing/evidence/01-env-config-before.json",
+    "kql_before": "labs/diagnostic-settings-missing/evidence/04-kql-before.json"
+  },
+  "scenario": "diagnostic_settings_missing",
+  "sub_gates": [
+    {
+      "claim": "The baseline environment has no configured Log Analytics destination.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/01-env-config-before.json"
+      ],
+      "observed_values": {
+        "observed_destination": null,
+        "observed_log_analytics_configuration_is_none": true
+      },
+      "predicate": "01-env-config-before.json records destination == None AND logAnalyticsConfiguration == None.",
+      "result": "pass",
+      "sub_gate": "a_env_destination_and_workspace_null"
+    },
+    {
+      "claim": "The baseline KQL result is silent in both console and system tables.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/04-kql-before.json"
+      ],
+      "observed_values": {
+        "observed_console_rows": 0,
+        "observed_system_rows": 0
+      },
+      "predicate": "04-kql-before.json records int(console_rows) == 0 AND int(system_rows) == 0.",
+      "result": "pass",
+      "sub_gate": "b_baseline_rows_zero_in_both_tables"
+    },
+    {
+      "claim": "The baseline silence is classified as valid baseline silence, not as an unexpected query error.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/04-kql-before.json"
+      ],
+      "observed_values": {
+        "observed_console_gate_classification": "silent_valid_baseline",
+        "observed_system_gate_classification": "silent_valid_baseline"
+      },
+      "predicate": "04-kql-before.json records console_gate_classification == 'silent_valid_baseline' AND system_gate_classification == 'silent_valid_baseline'.",
+      "result": "pass",
+      "sub_gate": "c_baseline_classifications_silent_valid_baseline"
+    },
+    {
+      "claim": "The baseline silence is meaningful because traffic was actually sent to the baseline revision.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/03-curl-before.json"
+      ],
+      "observed_values": {
+        "observed_requests_ok": 10,
+        "observed_requests_sent": 10
+      },
+      "predicate": "03-curl-before.json.requests_ok >= 8.",
+      "result": "pass",
+      "sub_gate": "d_baseline_traffic_generated"
+    }
+  ],
+  "utc_captured": "2026-06-26T04:28:15Z"
+}

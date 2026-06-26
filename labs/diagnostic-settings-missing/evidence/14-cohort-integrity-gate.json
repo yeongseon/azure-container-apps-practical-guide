@@ -1,0 +1,211 @@
+{
+  "claim": "The 20-file diagnostic-settings-missing evidence cohort is internally consistent: the canonical files are present, the baseline and post-fix traffic captures form a sane monotonic window, the evidence directory contains no unexpected non-junk extras, and evidence/README.md documents the Phase B gate outputs.",
+  "claim_level": "Observed",
+  "diagnostic_settings_missing_h_cohort_integrity_all_subgates_pass": true,
+  "diagnostic_settings_missing_h_cohort_integrity_sub_gates": {
+    "a_canonical_files_present": true,
+    "b_temporal_coherence": true,
+    "c_no_unexpected_extras": true,
+    "d_readme_cross_reference": true
+  },
+  "fallback_path": {
+    "all_subgates_pass": true,
+    "description": "All four sub-gates satisfy at least their Fallback predicates.",
+    "sub_gates": {
+      "a_canonical_files_present": true,
+      "b_temporal_coherence": true,
+      "c_no_unexpected_extras": true,
+      "d_readme_cross_reference": true
+    }
+  },
+  "gate_classification": "Cohort integrity gate: structural pre-condition for the three hypothesis gates. Strong and Fallback are both evaluated and recorded, but any failing sub-gate falsifies the full Phase B run.",
+  "hypothesis": "H_cohort_integrity",
+  "path_used": "strong",
+  "predicate_inputs": {
+    "canonical_evidence_directory": "labs/diagnostic-settings-missing/evidence",
+    "curl_after": "labs/diagnostic-settings-missing/evidence/08-curl-after.json",
+    "curl_before": "labs/diagnostic-settings-missing/evidence/03-curl-before.json",
+    "readme": "labs/diagnostic-settings-missing/evidence/README.md"
+  },
+  "scenario": "diagnostic_settings_missing",
+  "strong_path": {
+    "all_subgates_pass": true,
+    "description": "All four sub-gates satisfy their Strong predicates.",
+    "sub_gates": {
+      "a_canonical_files_present": true,
+      "b_temporal_coherence": true,
+      "c_no_unexpected_extras": true,
+      "d_readme_cross_reference": true
+    }
+  },
+  "sub_gates": [
+    {
+      "claim": "The canonical Phase A evidence cohort is sufficiently complete to support hypothesis evaluation.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/00-trigger-run.txt",
+        "labs/diagnostic-settings-missing/evidence/00-verify-run.txt",
+        "labs/diagnostic-settings-missing/evidence/01-env-config-before.json",
+        "labs/diagnostic-settings-missing/evidence/02-app-config-before.json",
+        "labs/diagnostic-settings-missing/evidence/03-curl-before.json",
+        "labs/diagnostic-settings-missing/evidence/04-kql-before-console-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/04-kql-before-system-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/04-kql-before.json",
+        "labs/diagnostic-settings-missing/evidence/05-env-update-result.json",
+        "labs/diagnostic-settings-missing/evidence/06-env-config-after.json",
+        "labs/diagnostic-settings-missing/evidence/07-revisions-after.json",
+        "labs/diagnostic-settings-missing/evidence/08-curl-after.json",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after-console-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after-system-by-revision.json",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after-system-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after.json",
+        "labs/diagnostic-settings-missing/evidence/10-cli-versions.json",
+        "labs/diagnostic-settings-missing/evidence/11-cli-containerapp-ext.json",
+        "labs/diagnostic-settings-missing/evidence/12-region.json",
+        "labs/diagnostic-settings-missing/evidence/13-deployment-outputs.json"
+      ],
+      "observed_values": {
+        "fallback_holds": true,
+        "observed_missing": [],
+        "observed_present_count": 20,
+        "path_satisfied": "strong",
+        "required_fallback_inputs_present": true,
+        "strong_holds": true
+      },
+      "predicate": "Strong: exactly 20 canonical files present. Fallback: at least 18 canonical files present AND all five hypothesis-gate inputs (01-env-config-before.json, 04-kql-before.json, 06-env-config-after.json, 07-revisions-after.json, 09-kql-after.json) are present.",
+      "result": "pass",
+      "sub_gate": "a_canonical_files_present"
+    },
+    {
+      "claim": "The baseline curl completion and post-fix curl completion form a monotonic, bounded experiment window.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/03-curl-before.json",
+        "labs/diagnostic-settings-missing/evidence/08-curl-after.json"
+      ],
+      "observed_values": {
+        "fallback_holds": true,
+        "monotonic": true,
+        "observed_baseline_utc_completed": "2026-06-22T09:44:18Z",
+        "observed_post_fix_utc_completed": "2026-06-22T09:53:02Z",
+        "observed_span_seconds": 524.0,
+        "parse_error": null,
+        "path_satisfied": "strong",
+        "strong_holds": true
+      },
+      "predicate": "03-curl-before.json.utc_completed < 08-curl-after.json.utc_completed AND span <= 30 minutes for Strong or <= 90 minutes for Fallback.",
+      "result": "pass",
+      "sub_gate": "b_temporal_coherence"
+    },
+    {
+      "claim": "The evidence directory contains no unexpected non-junk extra files.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/00-trigger-run.txt",
+        "labs/diagnostic-settings-missing/evidence/00-verify-run.txt",
+        "labs/diagnostic-settings-missing/evidence/01-env-config-before.json",
+        "labs/diagnostic-settings-missing/evidence/02-app-config-before.json",
+        "labs/diagnostic-settings-missing/evidence/03-curl-before.json",
+        "labs/diagnostic-settings-missing/evidence/04-kql-before-console-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/04-kql-before-system-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/04-kql-before.json",
+        "labs/diagnostic-settings-missing/evidence/05-env-update-result.json",
+        "labs/diagnostic-settings-missing/evidence/06-env-config-after.json",
+        "labs/diagnostic-settings-missing/evidence/07-revisions-after.json",
+        "labs/diagnostic-settings-missing/evidence/08-curl-after.json",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after-console-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after-system-by-revision.json",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after-system-raw.txt",
+        "labs/diagnostic-settings-missing/evidence/09-kql-after.json",
+        "labs/diagnostic-settings-missing/evidence/10-cli-versions.json",
+        "labs/diagnostic-settings-missing/evidence/11-cli-containerapp-ext.json",
+        "labs/diagnostic-settings-missing/evidence/12-region.json",
+        "labs/diagnostic-settings-missing/evidence/13-deployment-outputs.json",
+        "labs/diagnostic-settings-missing/evidence/14-cohort-integrity-gate.json",
+        "labs/diagnostic-settings-missing/evidence/15-baseline-silent-gate.json",
+        "labs/diagnostic-settings-missing/evidence/16-post-fix-populated-gate.json",
+        "labs/diagnostic-settings-missing/evidence/17-single-variable-falsification-gate.json",
+        "labs/diagnostic-settings-missing/evidence/README.md"
+      ],
+      "observed_values": {
+        "extras_junk_only": true,
+        "fallback_holds": true,
+        "observed_extras": [],
+        "observed_files_on_disk": [
+          "00-trigger-run.txt",
+          "00-verify-run.txt",
+          "01-env-config-before.json",
+          "02-app-config-before.json",
+          "03-curl-before.json",
+          "04-kql-before-console-raw.txt",
+          "04-kql-before-system-raw.txt",
+          "04-kql-before.json",
+          "05-env-update-result.json",
+          "06-env-config-after.json",
+          "07-revisions-after.json",
+          "08-curl-after.json",
+          "09-kql-after-console-raw.txt",
+          "09-kql-after-system-by-revision.json",
+          "09-kql-after-system-raw.txt",
+          "09-kql-after.json",
+          "10-cli-versions.json",
+          "11-cli-containerapp-ext.json",
+          "12-region.json",
+          "13-deployment-outputs.json",
+          "14-cohort-integrity-gate.json",
+          "15-baseline-silent-gate.json",
+          "16-post-fix-populated-gate.json",
+          "17-single-variable-falsification-gate.json",
+          "README.md"
+        ],
+        "path_satisfied": "strong",
+        "strong_holds": true
+      },
+      "predicate": "Strong: zero extras beyond the 20 canonical files, 4 Phase B gate files, and README.md. Fallback: extras limited to editor/OS junk only.",
+      "result": "pass",
+      "sub_gate": "c_no_unexpected_extras"
+    },
+    {
+      "claim": "The evidence-pack README exists and documents the Phase B gate outputs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/diagnostic-settings-missing/evidence/README.md"
+      ],
+      "observed_values": {
+        "expected_named_outputs": [
+          "14-cohort-integrity-gate.json",
+          "15-baseline-silent-gate.json",
+          "16-post-fix-populated-gate.json",
+          "17-single-variable-falsification-gate.json"
+        ],
+        "fallback_holds": true,
+        "observed_named_outputs": [
+          "14-cohort-integrity-gate.json",
+          "15-baseline-silent-gate.json",
+          "16-post-fix-populated-gate.json",
+          "17-single-variable-falsification-gate.json"
+        ],
+        "path_satisfied": "strong",
+        "readme_exists": true,
+        "strong_holds": true
+      },
+      "predicate": "Strong: evidence/README.md exists and literally names all four Phase B gate JSON filenames. Fallback: evidence/README.md exists.",
+      "result": "pass",
+      "sub_gate": "d_readme_cross_reference"
+    }
+  ],
+  "thresholds": {
+    "canonical_count_fallback_floor": 18,
+    "canonical_count_strong": 20,
+    "required_fallback_inputs": [
+      "01-env-config-before.json",
+      "04-kql-before.json",
+      "06-env-config-after.json",
+      "07-revisions-after.json",
+      "09-kql-after.json"
+    ],
+    "temporal_span_fallback_seconds_max": 5400,
+    "temporal_span_strong_seconds_max": 1800
+  },
+  "utc_captured": "2026-06-26T04:28:15Z"
+}
