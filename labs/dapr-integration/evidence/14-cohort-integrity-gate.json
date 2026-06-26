@@ -96,22 +96,22 @@
             "raw_value": "2026-06-26 10:28:47.0520591 +0000 UTC"
           },
           "07-containerapp-spec-pre-fix.yaml": {
-            "timestamp_utc": "2026-06-26T01:28:39.456676+00:00",
+            "timestamp_utc": "2026-06-26T10:28:39.456676+00:00",
             "time_source": "systemData.lastModifiedAt",
             "raw_value": "2026-06-26T10:28:39.4566763"
           }
         },
         "sorted_anchor_sequence": [
           {
-            "file": "07-containerapp-spec-pre-fix.yaml",
-            "timestamp_utc": "2026-06-26T01:28:39.456676+00:00",
-            "time_source": "systemData.lastModifiedAt",
-            "anchor_class": "pre"
-          },
-          {
             "file": "02-revision-list-pre-fix.json",
             "timestamp_utc": "2026-06-26T10:07:13+00:00",
             "time_source": "revision_createdTime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "07-containerapp-spec-pre-fix.yaml",
+            "timestamp_utc": "2026-06-26T10:28:39.456676+00:00",
+            "time_source": "systemData.lastModifiedAt",
             "anchor_class": "pre"
           },
           {
@@ -174,12 +174,12 @@
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-26T01:28:39.456676+00:00",
+            "pre_timestamp_utc": "2026-06-26T10:28:39.456676+00:00",
             "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "10-http-response-post-fix.json",
             "post_timestamp_utc": "2026-06-26T10:32:48+00:00",
             "post_time_source": "http_header_date",
-            "delta_seconds": 32648.543324,
+            "delta_seconds": 248.543324,
             "holds": true
           }
         ],

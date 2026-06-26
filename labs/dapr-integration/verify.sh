@@ -424,7 +424,10 @@ def parse_http_date(header_lines):
     raise ValueError("HTTP response is missing a Date header")
 
 def parse_iso(text: str):
-    return datetime.fromisoformat(text.replace("Z", "+00:00")).astimezone(timezone.utc)
+    parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 def parse_system_timestamp(text: str):
     value = text.strip()
@@ -553,9 +556,10 @@ time_source_summary = {
     "mtime_count": sum(1 for info in [*pre_anchor_infos.values(), *post_anchor_infos.values()] if info["time_source"] == "mtime"),
     "fallback_used": any(info["time_source"] == "mtime" for info in [*pre_anchor_infos.values(), *post_anchor_infos.values()]),
 }
-anchor_times = [pre_created, pre_http_date, post_created, post_http_date]
-if system_timestamps:
-    anchor_times.append(min(system_timestamps))
+anchor_times = [
+    info["timestamp"]
+    for info in [*pre_anchor_infos.values(), *post_anchor_infos.values()]
+]
 earliest_anchor = min(anchor_times)
 latest_anchor = max(anchor_times)
 span_seconds = (latest_anchor - earliest_anchor).total_seconds()
