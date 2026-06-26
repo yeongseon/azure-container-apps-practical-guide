@@ -1,0 +1,418 @@
+{
+  "claim": "This evidence pack falsifies the ACR Private Endpoint direct-path failure hypothesis within a bounded scope. Gate 17 demonstrates that the VNet-to-privatelink.azurecr.io link is the mechanically observable trigger field for this cohort: ACR public access stays Disabled on both sides, the PE NIC IP map stays constant, the same container-app lineage is preserved, the link count changes from 0 to 1 on the same VNet, and the image moves from v-broken to v-recover on a new revision. The pack does not claim exact retry timing, exact pull durations, layer SHA identity, pod UID continuity, replica suffix continuity, BUILD_TAG continuity, or revision suffix identity.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that the VNet-to-privatelink.azurecr.io link is the mechanically observable trigger field for this single koreacentral cohort. The pack proves the broken window only when the link count is 0 while ACR public access remains Disabled, and proves recovery when the same VNet link count returns to 1 on the same PE topology with v-recover. The pack does NOT prove exact retry cadence, exact pull durations, layer SHA identity, pod UID continuity, replica suffix continuity, BUILD_TAG continuity, or revision suffix identity.",
+    "explicit_drops": [
+      {
+        "id": "backoff_retry_timestamps",
+        "note": "BackOff retry cadence is platform jitter, not the variable under test."
+      },
+      {
+        "id": "build_tag_env_value",
+        "note": "BUILD_TAG changes on purpose to force a fresh pull and must not be treated as a held-constant field."
+      },
+      {
+        "id": "dns_resolution_timing",
+        "note": "The pack proves link presence versus absence, not the exact resolver-latency delta for each lookup."
+      },
+      {
+        "id": "image_layer_sha",
+        "note": "The raw cohort captures image tags, not immutable OCI layer digests."
+      },
+      {
+        "id": "pod_uid",
+        "note": "The cohort proves revision-level pull behavior, not Kubernetes pod UID continuity."
+      },
+      {
+        "id": "pull_duration_milliseconds",
+        "note": "Pull durations vary naturally across retries and are not the causal field under test."
+      },
+      {
+        "id": "replica_name_suffix",
+        "note": "Replica suffixes are scheduler-generated and expected to differ across retries."
+      },
+      {
+        "id": "revision_name_suffix",
+        "note": "Revision names change by design when a new image is deployed and are checked separately as a fresh-pull marker."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the VNet-to-private-DNS link as the trigger while explicitly listing the unproven confounders and ceilings.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "revision_list_pre": "labs/acr-network-path-pe-direct/evidence/02-revision-list-pre-fix.json",
+    "dns_links_pre": "labs/acr-network-path-pe-direct/evidence/03-private-dns-link-list-pre-fix.json",
+    "pe_nic_pre": "labs/acr-network-path-pe-direct/evidence/04-pe-nic-config-pre-fix.json",
+    "revision_list_post": "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json",
+    "app_spec_post": "labs/acr-network-path-pe-direct/evidence/11-app-spec-post-fix.json"
+  },
+  "acr_network_path_pe_direct_h3_bounded_falsification_all_subgates_pass": true,
+  "acr_network_path_pe_direct_h3_bounded_falsification_sub_gates": {
+    "a_acr_public_access_and_pe_topology_stay_constant": true,
+    "b_full_overlapping_h1_h2_diff_matches_the_bounded_trigger_story": true,
+    "c_explicit_drops_match_the_documented_ceiling": true,
+    "d_held_constant_fields_match_and_h1_really_failed": true
+  },
+  "scenario": "acr_network_path_pe_direct",
+  "sub_gates": [
+    {
+      "claim": "ACR public access, PE NIC topology, and container-app lineage stay constant across H1 and H2.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/04-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/05-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/11-app-spec-post-fix.json"
+      ],
+      "observed_values": {
+        "held_constant_checks": {
+          "acr_public_network_access_disabled": {
+            "pre_value": "Disabled",
+            "post_value": "Disabled",
+            "equal": true
+          },
+          "container_app_name": {
+            "pre_value": "ca-acrpedir-nadfay",
+            "post_value": "ca-acrpedir-nadfay",
+            "equal": true
+          },
+          "resource_group": {
+            "pre_value": "rg-acr-pe-direct-lab",
+            "post_value": "rg-acr-pe-direct-lab",
+            "equal": true
+          },
+          "identity_type": {
+            "pre_value": "SystemAssigned",
+            "post_value": "SystemAssigned",
+            "equal": true
+          },
+          "container_name": {
+            "pre_value": "app",
+            "post_value": "app",
+            "equal": true
+          },
+          "cpu": {
+            "pre_value": 0.5,
+            "post_value": 0.5,
+            "equal": true
+          },
+          "memory": {
+            "pre_value": "1Gi",
+            "post_value": "1Gi",
+            "equal": true
+          },
+          "ingress_target_port": {
+            "pre_value": 80,
+            "post_value": 80,
+            "equal": true
+          },
+          "min_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "max_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "pe_nic_ip_map": {
+            "pre_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.4",
+                "fqdns": [
+                  "acracrpedirnadfay.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.5",
+                "fqdns": [
+                  "acracrpedirnadfay.azurecr.io"
+                ]
+              }
+            ],
+            "post_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.4",
+                "fqdns": [
+                  "acracrpedirnadfay.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.5",
+                "fqdns": [
+                  "acracrpedirnadfay.azurecr.io"
+                ]
+              }
+            ],
+            "equal": true
+          }
+        },
+        "pre_post_lineage_equal": true
+      },
+      "predicate": "05.publicNetworkAccess == 'Disabled' AND 11.acr.publicNetworkAccess == 'Disabled' AND the normalized PE NIC ipConfigurations compare equal AND the parsed pre/post revision IDs compare equal on resourceGroup + containerApp.",
+      "result": "pass",
+      "sub_gate": "a_acr_public_access_and_pe_topology_stay_constant"
+    },
+    {
+      "claim": "The full overlapping H1\u2194H2 diff matches the bounded trigger story: the link count moves from 0 to 1 on the same VNet, the revision name changes, and the image moves from v-broken to v-recover with no unexpected overlapping diffs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/03-private-dns-link-list-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/09-private-dns-link-list-post-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/11-app-spec-post-fix.json"
+      ],
+      "observed_values": {
+        "allowed_expected_diff_paths": [
+          "container_app.container.build_tag",
+          "container_app.container.image",
+          "container_app.revision.latest_ready_revision_name",
+          "container_app.revision.latest_revision_name",
+          "container_app.revision.target_image",
+          "container_app.revision.target_revision_name",
+          "dns_link.count",
+          "dns_link.vnet_ids[0]"
+        ],
+        "full_overlap_diff": {
+          "container_app.container.build_tag": {
+            "pre_value": "v-broken",
+            "post_value": "v-recover"
+          },
+          "container_app.container.image": {
+            "pre_value": "acracrpedirnadfay.azurecr.io/pe-lab:v-broken",
+            "post_value": "acracrpedirnadfay.azurecr.io/pe-lab:v-recover"
+          },
+          "container_app.revision.latest_ready_revision_name": {
+            "pre_value": "ca-acrpedir-nadfay--0000001",
+            "post_value": "ca-acrpedir-nadfay--0000002"
+          },
+          "container_app.revision.latest_revision_name": {
+            "pre_value": "ca-acrpedir-nadfay--0000001",
+            "post_value": "ca-acrpedir-nadfay--0000002"
+          },
+          "container_app.revision.target_image": {
+            "pre_value": "acracrpedirnadfay.azurecr.io/pe-lab:v-broken",
+            "post_value": "acracrpedirnadfay.azurecr.io/pe-lab:v-recover"
+          },
+          "container_app.revision.target_revision_name": {
+            "pre_value": "ca-acrpedir-nadfay--0000001",
+            "post_value": "ca-acrpedir-nadfay--0000002"
+          },
+          "dns_link.count": {
+            "pre_value": 0,
+            "post_value": 1
+          }
+        },
+        "full_overlap_equal": {
+          "acr.defaultAction": "Deny",
+          "acr.publicNetworkAccess": "Disabled",
+          "container_app.container.cpu": 0.5,
+          "container_app.container.memory": "1Gi",
+          "container_app.container.name": "app",
+          "container_app.identity_type": "SystemAssigned",
+          "container_app.ingress.external": true,
+          "container_app.ingress.target_port": 80,
+          "container_app.name": "ca-acrpedir-nadfay",
+          "container_app.resource_group": "rg-acr-pe-direct-lab",
+          "container_app.scale.max_replicas": 1,
+          "container_app.scale.min_replicas": 1,
+          "pe_nic[0].fqdns[0]": "acracrpedirnadfay.koreacentral.data.azurecr.io",
+          "pe_nic[0].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+          "pe_nic[0].private_ip": "10.50.4.4",
+          "pe_nic[1].fqdns[0]": "acracrpedirnadfay.azurecr.io",
+          "pe_nic[1].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+          "pe_nic[1].private_ip": "10.50.4.5"
+        },
+        "overlap_paths": [
+          "acr.defaultAction",
+          "acr.publicNetworkAccess",
+          "container_app.container.build_tag",
+          "container_app.container.cpu",
+          "container_app.container.image",
+          "container_app.container.memory",
+          "container_app.container.name",
+          "container_app.identity_type",
+          "container_app.ingress.external",
+          "container_app.ingress.target_port",
+          "container_app.name",
+          "container_app.resource_group",
+          "container_app.revision.latest_ready_revision_name",
+          "container_app.revision.latest_revision_name",
+          "container_app.revision.target_image",
+          "container_app.revision.target_revision_name",
+          "container_app.scale.max_replicas",
+          "container_app.scale.min_replicas",
+          "dns_link.count",
+          "pe_nic[0].fqdns[0]",
+          "pe_nic[0].name",
+          "pe_nic[0].private_ip",
+          "pe_nic[1].fqdns[0]",
+          "pe_nic[1].name",
+          "pe_nic[1].private_ip"
+        ],
+        "unexpected_overlap_diffs": {},
+        "pre_link_count": 0,
+        "post_link_count": 1,
+        "post_link_vnet_ids": [
+          "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrpedir-nadfay"
+        ],
+        "pre_target_revision": "ca-acrpedir-nadfay--0000001",
+        "post_target_revision": "ca-acrpedir-nadfay--0000002",
+        "pre_target_image": "acracrpedirnadfay.azurecr.io/pe-lab:v-broken",
+        "post_target_image": "acracrpedirnadfay.azurecr.io/pe-lab:v-recover"
+      },
+      "predicate": "Across the full normalized overlapping H1/H2 surface captured in 01/03/10/11, the only differing paths are the documented trigger/output paths: dns_link.count, dns_link.vnet_ids[0], latest revision names, target revision names, target images, and BUILD_TAG/image surfaces tied to the fresh pull. No other overlapping path may differ.",
+      "result": "pass",
+      "sub_gate": "b_full_overlapping_h1_h2_diff_matches_the_bounded_trigger_story"
+    },
+    {
+      "claim": "The bounded-falsification gate explicitly lists the documented ceilings and unsupported inferences.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/17-bounded-falsification-gate.json"
+      ],
+      "observed_values": {
+        "documented_ceiling_ids": [
+          "backoff_retry_timestamps",
+          "build_tag_env_value",
+          "dns_resolution_timing",
+          "image_layer_sha",
+          "pod_uid",
+          "pull_duration_milliseconds",
+          "replica_name_suffix",
+          "revision_name_suffix"
+        ],
+        "observed_drop_ids": [
+          "backoff_retry_timestamps",
+          "build_tag_env_value",
+          "dns_resolution_timing",
+          "image_layer_sha",
+          "pod_uid",
+          "pull_duration_milliseconds",
+          "replica_name_suffix",
+          "revision_name_suffix"
+        ]
+      },
+      "predicate": "cohort_binding_note.explicit_drops ids equal the static documented ceiling {backoff_retry_timestamps, build_tag_env_value, dns_resolution_timing, image_layer_sha, pod_uid, pull_duration_milliseconds, replica_name_suffix, revision_name_suffix} with no additions and no omissions.",
+      "result": "pass",
+      "sub_gate": "c_explicit_drops_match_the_documented_ceiling"
+    },
+    {
+      "claim": "The held-constant fields match and H1 really failed before H2 recovered.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/06-system-logs-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/11-app-spec-post-fix.json"
+      ],
+      "observed_values": {
+        "h1_trigger_outcome": "trigger_produced_failure",
+        "held_constant_checks": {
+          "acr_public_network_access_disabled": {
+            "pre_value": "Disabled",
+            "post_value": "Disabled",
+            "equal": true
+          },
+          "container_app_name": {
+            "pre_value": "ca-acrpedir-nadfay",
+            "post_value": "ca-acrpedir-nadfay",
+            "equal": true
+          },
+          "resource_group": {
+            "pre_value": "rg-acr-pe-direct-lab",
+            "post_value": "rg-acr-pe-direct-lab",
+            "equal": true
+          },
+          "identity_type": {
+            "pre_value": "SystemAssigned",
+            "post_value": "SystemAssigned",
+            "equal": true
+          },
+          "container_name": {
+            "pre_value": "app",
+            "post_value": "app",
+            "equal": true
+          },
+          "cpu": {
+            "pre_value": 0.5,
+            "post_value": 0.5,
+            "equal": true
+          },
+          "memory": {
+            "pre_value": "1Gi",
+            "post_value": "1Gi",
+            "equal": true
+          },
+          "ingress_target_port": {
+            "pre_value": 80,
+            "post_value": 80,
+            "equal": true
+          },
+          "min_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "max_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "pe_nic_ip_map": {
+            "pre_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.4",
+                "fqdns": [
+                  "acracrpedirnadfay.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.5",
+                "fqdns": [
+                  "acracrpedirnadfay.azurecr.io"
+                ]
+              }
+            ],
+            "post_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.4",
+                "fqdns": [
+                  "acracrpedirnadfay.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.50.4.5",
+                "fqdns": [
+                  "acracrpedirnadfay.azurecr.io"
+                ]
+              }
+            ],
+            "equal": true
+          }
+        }
+      },
+      "predicate": "All held_constant_checks equal == true AND h1_trigger_outcome == 'trigger_produced_failure'.",
+      "result": "pass",
+      "sub_gate": "d_held_constant_fields_match_and_h1_really_failed"
+    }
+  ],
+  "thresholds": {
+    "held_constant_field_count": 11,
+    "expected_post_fix_link_count": 1,
+    "expected_pre_fix_link_count": 0
+  },
+  "utc_captured": "2026-06-26T12:48:47Z"
+}

@@ -1,0 +1,282 @@
+{
+  "claim": "The H1 trigger produced the documented failure surface on ca-acrpedir-nadfay: the pre-fix DNS-link list is empty, ACR publicNetworkAccess stayed Disabled, the failure window contains ImagePullUnauthorized evidence for v-broken, and at least one v-broken revision entered a failing health/running/provisioning state. If the fresh pull did not fail, this gate stays failed with h1_trigger_outcome=trigger_did_not_force_failure.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms that removing the VNet-to-privatelink.azurecr.io link forced a fresh-pull failure without opening ACR public access.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "dns_links_pre": "labs/acr-network-path-pe-direct/evidence/03-private-dns-link-list-pre-fix.json",
+    "acr_public_access_pre": "labs/acr-network-path-pe-direct/evidence/05-acr-public-access-pre-fix.json",
+    "system_logs_pre": "labs/acr-network-path-pe-direct/evidence/06-system-logs-pre-fix.json",
+    "kql_pre": "labs/acr-network-path-pe-direct/evidence/08-kql-imagepull-events-pre-fix.json",
+    "revision_list_pre": "labs/acr-network-path-pe-direct/evidence/02-revision-list-pre-fix.json"
+  },
+  "acr_network_path_pe_direct_h1_trigger_produces_failure_all_subgates_pass": true,
+  "acr_network_path_pe_direct_h1_trigger_produces_failure_sub_gates": {
+    "a_pre_fix_dns_link_list_is_empty": true,
+    "b_acr_public_network_access_stays_disabled": true,
+    "c_failure_window_contains_imagepullunauthorized_for_v_broken": true,
+    "d_at_least_one_v_broken_revision_is_unhealthy_or_a_named_replica_enters_the_failure_loop": true
+  },
+  "scenario": "acr_network_path_pe_direct",
+  "h1_trigger_outcome": "trigger_produced_failure",
+  "sub_gates": [
+    {
+      "claim": "The pre-fix DNS-link list is empty after the VNet link was removed.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/03-private-dns-link-list-pre-fix.json"
+      ],
+      "observed_values": {
+        "link_count": 0,
+        "links": []
+      },
+      "predicate": "len(03) == 0.",
+      "result": "pass",
+      "sub_gate": "a_pre_fix_dns_link_list_is_empty"
+    },
+    {
+      "claim": "ACR publicNetworkAccess remains Disabled during the broken pull window.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/05-acr-public-access-pre-fix.json"
+      ],
+      "observed_values": {
+        "publicNetworkAccess": "Disabled",
+        "defaultAction": "Deny"
+      },
+      "predicate": "05.publicNetworkAccess == 'Disabled'.",
+      "result": "pass",
+      "sub_gate": "b_acr_public_network_access_stays_disabled"
+    },
+    {
+      "claim": "The broken window contains ImagePullUnauthorized evidence correlated with the v-broken pull attempt.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/06-system-logs-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/08-kql-imagepull-events-pre-fix.json"
+      ],
+      "observed_values": {
+        "pre_system_imagepullunauthorized_rows": [
+          {
+            "TimeStamp": "2026-06-26 12:40:54.7869523 +0000 UTC",
+            "Type": "Normal",
+            "ContainerAppName": "ca-acrpedir-nadfay",
+            "RevisionName": "ca-acrpedir-nadfay--0000001",
+            "ReplicaName": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "Msg": "Container pull image failed with unauthorized error.",
+            "Reason": "ImagePullUnauthorized",
+            "EventSource": "ContainerAppController",
+            "Count": 1
+          },
+          {
+            "TimeStamp": "2026-06-26 12:41:07.8583572 +0000 UTC",
+            "Type": "Normal",
+            "ContainerAppName": "ca-acrpedir-nadfay",
+            "RevisionName": "ca-acrpedir-nadfay--0000001",
+            "ReplicaName": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "Msg": "Container pull image failed with unauthorized error.",
+            "Reason": "ImagePullUnauthorized",
+            "EventSource": "ContainerAppController",
+            "Count": 2
+          },
+          {
+            "TimeStamp": "2026-06-26 12:41:17.9014521 +0000 UTC",
+            "Type": "Normal",
+            "ContainerAppName": "ca-acrpedir-nadfay",
+            "RevisionName": "ca-acrpedir-nadfay--0000001",
+            "ReplicaName": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "Msg": "Container pull image failed with unauthorized error.",
+            "Reason": "ImagePullUnauthorized",
+            "EventSource": "ContainerAppController",
+            "Count": 3
+          },
+          {
+            "TimeStamp": "2026-06-26 12:41:37.93871 +0000 UTC",
+            "Type": "Normal",
+            "ContainerAppName": "ca-acrpedir-nadfay",
+            "RevisionName": "ca-acrpedir-nadfay--0000001",
+            "ReplicaName": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "Msg": "Container pull image failed with unauthorized error.",
+            "Reason": "ImagePullUnauthorized",
+            "EventSource": "ContainerAppController",
+            "Count": 4
+          },
+          {
+            "TimeStamp": "2026-06-26 12:42:17.9887728 +0000 UTC",
+            "Type": "Normal",
+            "ContainerAppName": "ca-acrpedir-nadfay",
+            "RevisionName": "ca-acrpedir-nadfay--0000001",
+            "ReplicaName": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "Msg": "Container pull image failed with unauthorized error.",
+            "Reason": "ImagePullUnauthorized",
+            "EventSource": "ContainerAppController",
+            "Count": 5
+          }
+        ],
+        "pre_system_v_broken_rows": [],
+        "pre_kql_imagepullunauthorized_rows": [
+          {
+            "Log_s": "Container pull image failed with unauthorized error.",
+            "Reason_s": "ImagePullUnauthorized",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:06.988343Z"
+          },
+          {
+            "Log_s": "Container pull image failed with unauthorized error.",
+            "Reason_s": "ImagePullUnauthorized",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:09.0740502Z"
+          },
+          {
+            "Log_s": "Container pull image failed with unauthorized error.",
+            "Reason_s": "ImagePullUnauthorized",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:19.2255844Z"
+          },
+          {
+            "Log_s": "Container pull image failed with unauthorized error.",
+            "Reason_s": "ImagePullUnauthorized",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:38.8278786Z"
+          },
+          {
+            "Log_s": "Container pull image failed with unauthorized error.",
+            "Reason_s": "ImagePullUnauthorized",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:42:19.1020228Z"
+          }
+        ],
+        "pre_kql_v_broken_rows": [
+          {
+            "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:06.988343Z"
+          },
+          {
+            "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:09.0740502Z"
+          },
+          {
+            "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:19.2255844Z"
+          },
+          {
+            "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:41:38.8278786Z"
+          },
+          {
+            "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:42:19.1020228Z"
+          }
+        ],
+        "pre_kql_window_start_utc": "2026-06-26T12:40:48Z",
+        "pre_kql_window_end_utc": "2026-06-26T12:43:38.7939227Z"
+      },
+      "predicate": "At least one 06 or 08 row has Reason/ImagePullUnauthorized and at least one 06 or 08 row in the same broken window references v-broken.",
+      "result": "pass",
+      "sub_gate": "c_failure_window_contains_imagepullunauthorized_for_v_broken"
+    },
+    {
+      "claim": "At least one v-broken revision becomes unhealthy or a named v-broken replica enters the repeated ImagePullUnauthorized failure loop after the forced fresh pull attempt.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/06-system-logs-pre-fix.json",
+        "labs/acr-network-path-pe-direct/evidence/08-kql-imagepull-events-pre-fix.json"
+      ],
+      "observed_values": {
+        "h1_trigger_outcome": "trigger_produced_failure",
+        "failed_replica_counts": {
+          "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5": 12
+        },
+        "pre_failed_replica_loop": true,
+        "matching_unhealthy_revision": null,
+        "v_broken_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.App/containerApps/ca-acrpedir-nadfay/revisions/ca-acrpedir-nadfay--0000001",
+          "name": "ca-acrpedir-nadfay--0000001",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-26T12:38:23+00:00",
+            "fqdn": "ca-acrpedir-nadfay--0000001.orangeocean-3adcfb2e.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 2,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "env": [
+                    {
+                      "name": "BUILD_TAG",
+                      "value": "v-broken"
+                    }
+                  ],
+                  "image": "acracrpedirnadfay.azurecr.io/pe-lab:v-broken",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.5,
+                    "memory": "1Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-acr-pe-direct-lab",
+          "type": "Microsoft.App/containerapps/revisions"
+        }
+      },
+      "predicate": "Either 02 contains a revision whose image endswith ':v-broken' and whose healthState == 'Unhealthy' OR runningState in {'Failed','NotRunning','Degraded'} OR provisioningState in {'Failed','ProvisioningFailed'}, OR the 06/08 unauthorized rows show the same named replica at least twice in the v-broken failure loop; otherwise the gate fails with h1_trigger_outcome='trigger_did_not_force_failure'.",
+      "result": "pass",
+      "sub_gate": "d_at_least_one_v_broken_revision_is_unhealthy_or_a_named_replica_enters_the_failure_loop"
+    }
+  ],
+  "thresholds": {
+    "expected_acr_public_network_access": "Disabled",
+    "expected_pre_fix_link_count": 0
+  },
+  "utc_captured": "2026-06-26T12:48:47Z"
+}

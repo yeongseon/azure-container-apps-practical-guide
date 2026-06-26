@@ -1,0 +1,103 @@
+{
+  "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrpedir-nadfay' | where TimeGenerated >= todatetime('2026-06-26T12:40:48Z') | where Reason_s in ('PullingImage','ImagePullUnauthorized','ImagePullFailed','BackOff','PulledImage') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
+  "window_start_utc": "2026-06-26T12:40:48Z",
+  "window_end_utc": "2026-06-26T12:43:38.7939227Z",
+  "rows": [
+    {
+      "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:06.988343Z"
+    },
+    {
+      "Log_s": "Container pull image failed with unauthorized error.",
+      "Reason_s": "ImagePullUnauthorized",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:06.988343Z"
+    },
+    {
+      "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:09.0740502Z"
+    },
+    {
+      "Log_s": "Container pull image failed with unauthorized error.",
+      "Reason_s": "ImagePullUnauthorized",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:09.0740502Z"
+    },
+    {
+      "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:19.2255844Z"
+    },
+    {
+      "Log_s": "Container pull image failed with unauthorized error.",
+      "Reason_s": "ImagePullUnauthorized",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:19.2255844Z"
+    },
+    {
+      "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:38.8278786Z"
+    },
+    {
+      "Log_s": "Container pull image failed with unauthorized error.",
+      "Reason_s": "ImagePullUnauthorized",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:41:38.8278786Z"
+    },
+    {
+      "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:42:19.1020228Z"
+    },
+    {
+      "Log_s": "Container pull image failed with unauthorized error.",
+      "Reason_s": "ImagePullUnauthorized",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:42:19.1020228Z"
+    },
+    {
+      "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:43:38.7939227Z"
+    },
+    {
+      "Log_s": "Container pull image failed with unauthorized error.",
+      "Reason_s": "ImagePullUnauthorized",
+      "ReplicaName_s": "ca-acrpedir-nadfay--0000001-b56bc4564-qrhk5",
+      "RevisionName_s": "ca-acrpedir-nadfay--0000001",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-26T12:43:38.7939227Z"
+    }
+  ]
+}

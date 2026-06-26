@@ -88,6 +88,29 @@ The lab is reproduced when **all** of the following hold:
 
 Steps 3-4 together prove the PE-via-private-DNS path was the cause.
 
+## Phase B Evidence Pack
+
+The reusable Phase B cohort lives in [`evidence/`](evidence/README.md).
+
+- It captures one live Azure reproduction in `koreacentral` with ACR `publicNetworkAccess=Disabled`, the `privatelink.azurecr.io` VNet link removed for H1, and restored for H2.
+- The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
+- Gate 14 proves the cohort is structurally coherent: canonical files present, parseable, bounded in one UTC window, same lineage, and unchanged PE NIC IPs.
+- Gate 15 proves H1 really failed: the pre-fix link list is empty, ACR public access stayed `Disabled`, `ImagePullUnauthorized` surfaced for `v-broken`, and at least one `v-broken` revision entered a failing state.
+- Gate 16 proves H2 really recovered: exactly one VNet link is restored, the latest `v-recover` revision is `Healthy`, the post-fix KQL window shows `PullingImage` then `PulledImage`, and ACR public access still stayed `Disabled`.
+- Gate 17 performs the full normalized overlapping H1↔H2 diff and bounds the causal claim to the VNet-to-Private-DNS link, not to public ACR access, PE topology drift, or a different workload lineage.
+
+For offline reruns:
+
+| Command | Why it is used |
+|---|---|
+| `cd labs/acr-network-path-pe-direct/` | Enters the lab directory so relative evidence paths resolve correctly. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. |
+
+```bash
+cd labs/acr-network-path-pe-direct/
+bash verify.sh
+```
+
 ## Estimated Cost
 
 | Resource | Approx. cost (Korea Central) |

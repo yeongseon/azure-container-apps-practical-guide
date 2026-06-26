@@ -1,0 +1,18 @@
+[
+  {
+    "etag": "\"00000000-0000-0000-0000-000000000000\"",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/privateDnsZones/privatelink.azurecr.io/virtualNetworkLinks/vnet-acrpedir-nadfay-link",
+    "location": "global",
+    "name": "vnet-acrpedir-nadfay-link",
+    "provisioningState": "Succeeded",
+    "registrationEnabled": false,
+    "resolutionPolicy": "Default",
+    "resourceGroup": "rg-acr-pe-direct-lab",
+    "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+    "virtualNetwork": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrpedir-nadfay",
+      "resourceGroup": "rg-acr-pe-direct-lab"
+    },
+    "virtualNetworkLinkState": "Completed"
+  }
+]

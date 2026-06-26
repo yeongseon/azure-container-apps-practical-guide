@@ -1,0 +1,205 @@
+{
+  "claim": "The H2 fix restored recovery on ca-acrpedir-nadfay: exactly one VNet link to privatelink.azurecr.io is present again, the latest v-recover revision is Healthy, the post-fix KQL window contains PullingImage then PulledImage for v-recover, and ACR publicNetworkAccess still reads Disabled after the recovery. The fix is therefore the DNS-link restore, not public exposure of ACR.",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms recovery after restoring the VNet-to-privatelink.azurecr.io link and deploying v-recover.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "path_used": "single",
+  "predicate_inputs": {
+    "dns_links_post": "labs/acr-network-path-pe-direct/evidence/09-private-dns-link-list-post-fix.json",
+    "revision_list_post": "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json",
+    "app_spec_post": "labs/acr-network-path-pe-direct/evidence/11-app-spec-post-fix.json",
+    "kql_post": "labs/acr-network-path-pe-direct/evidence/12-kql-imagepull-events-post-fix.json"
+  },
+  "acr_network_path_pe_direct_h2_fix_restores_recovery_all_subgates_pass": true,
+  "acr_network_path_pe_direct_h2_fix_restores_recovery_sub_gates": {
+    "a_exactly_one_vnet_link_points_to_the_lab_vnet": true,
+    "b_latest_v_recover_revision_is_healthy": true,
+    "c_post_fix_kql_contains_pullingimage_then_pulledimage_for_v_recover": true,
+    "d_acr_public_network_access_stays_disabled_post_fix": true
+  },
+  "scenario": "acr_network_path_pe_direct",
+  "sub_gates": [
+    {
+      "claim": "Exactly one restored VNet link points to the lab VNet.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/09-private-dns-link-list-post-fix.json"
+      ],
+      "observed_values": {
+        "link_count": 1,
+        "links": [
+          {
+            "name": "vnet-acrpedir-nadfay-link",
+            "virtualNetworkId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrpedir-nadfay",
+            "registrationEnabled": false,
+            "virtualNetworkLinkState": "Completed",
+            "provisioningState": "Succeeded"
+          }
+        ],
+        "expected_vnet_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrpedir-nadfay"
+      },
+      "predicate": "len(09) == 1 AND 09[0].virtualNetwork.id == the VNet ID captured in 01.capture_metadata.vnet_id.",
+      "result": "pass",
+      "sub_gate": "a_exactly_one_vnet_link_points_to_the_lab_vnet"
+    },
+    {
+      "claim": "The latest recovered v-recover revision is Healthy after the link is restored.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/10-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "post_latest_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.App/containerApps/ca-acrpedir-nadfay/revisions/ca-acrpedir-nadfay--0000002",
+          "name": "ca-acrpedir-nadfay--0000002",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-26T12:46:45+00:00",
+            "fqdn": "ca-acrpedir-nadfay--0000002.orangeocean-3adcfb2e.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "env": [
+                    {
+                      "name": "BUILD_TAG",
+                      "value": "v-recover"
+                    }
+                  ],
+                  "image": "acracrpedirnadfay.azurecr.io/pe-lab:v-recover",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.5,
+                    "memory": "1Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-acr-pe-direct-lab",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "post_recover_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-pe-direct-lab/providers/Microsoft.App/containerApps/ca-acrpedir-nadfay/revisions/ca-acrpedir-nadfay--0000002",
+          "name": "ca-acrpedir-nadfay--0000002",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-26T12:46:45+00:00",
+            "fqdn": "ca-acrpedir-nadfay--0000002.orangeocean-3adcfb2e.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "env": [
+                    {
+                      "name": "BUILD_TAG",
+                      "value": "v-recover"
+                    }
+                  ],
+                  "image": "acracrpedirnadfay.azurecr.io/pe-lab:v-recover",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.5,
+                    "memory": "1Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-acr-pe-direct-lab",
+          "type": "Microsoft.App/containerapps/revisions"
+        }
+      },
+      "predicate": "10 contains a revision whose image endswith ':v-recover', that revision has healthState == 'Healthy', and that same revision is the latest revision in the post-fix capture.",
+      "result": "pass",
+      "sub_gate": "b_latest_v_recover_revision_is_healthy"
+    },
+    {
+      "claim": "The post-fix KQL window contains PullingImage followed by PulledImage for v-recover.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/12-kql-imagepull-events-post-fix.json"
+      ],
+      "observed_values": {
+        "post_kql_window_start_utc": "2026-06-26T12:46:54Z",
+        "post_kql_window_end_utc": "2026-06-26T12:47:01.8792156Z",
+        "post_pulling_rows": [
+          {
+            "Log_s": "Pulling image 'acracrpedirnadfay.azurecr.io/pe-lab:v-recover'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000002-8574fbc69f-2h6gv",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000002",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:47:01.8792156Z"
+          }
+        ],
+        "post_pulled_rows": [
+          {
+            "Log_s": "Successfully pulled image \"acracrpedirnadfay.azurecr.io/pe-lab:v-recover\" in 1.61s. Image size: 44040192 bytes.",
+            "Reason_s": "PulledImage",
+            "ReplicaName_s": "ca-acrpedir-nadfay--0000002-8574fbc69f-2h6gv",
+            "RevisionName_s": "ca-acrpedir-nadfay--0000002",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-26T12:47:01.8792156Z"
+          }
+        ]
+      },
+      "predicate": "12 contains at least one row that references v-recover with Reason/PullingImage and at least one later row that references v-recover with Reason/PulledImage.",
+      "result": "pass",
+      "sub_gate": "c_post_fix_kql_contains_pullingimage_then_pulledimage_for_v_recover"
+    },
+    {
+      "claim": "ACR publicNetworkAccess stays Disabled after the recovery, so the fix was not reopening the public path.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-direct/evidence/11-app-spec-post-fix.json"
+      ],
+      "observed_values": {
+        "post_fix_publicNetworkAccess": "Disabled",
+        "post_fix_defaultAction": "Deny"
+      },
+      "predicate": "11.acr.publicNetworkAccess == 'Disabled'.",
+      "result": "pass",
+      "sub_gate": "d_acr_public_network_access_stays_disabled_post_fix"
+    }
+  ],
+  "thresholds": {
+    "expected_post_fix_link_count": 1,
+    "expected_post_fix_public_network_access": "Disabled"
+  },
+  "utc_captured": "2026-06-26T12:48:47Z"
+}
