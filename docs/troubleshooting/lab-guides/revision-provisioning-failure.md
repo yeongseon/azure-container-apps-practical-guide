@@ -72,12 +72,12 @@ This lab now ships a **Phase B 4-gate falsification evidence pack** under [`labs
 
 This is deliberately framed as **bounded falsification**, not single-variable falsification. The mechanically observable trigger field is the startup-probe `httpGet.path` (`/nonexistent-health-endpoint` → `/`), but Gate 17 explicitly documents the confounders that are **not** bounded:
 
-- `probe_field_delta_minus_path_is_not_bounded` — `initialDelaySeconds`, `timeoutSeconds`, and `successThreshold` differ across H1 and H2
-- `image_byte_identity_not_captured` — `nginx:alpine` tag is constant but digests were not captured
+- `probe_field_delta_minus_path_is_not_bounded` — `httpGet.scheme`, `initialDelaySeconds`, `timeoutSeconds`, and `successThreshold` differ across H1 and H2
+- `image_byte_identity_not_captured` — `nginx:alpine` tag is constant across H1 and H2, but digests were not captured
 - `pod_reuse_not_proven` — `badpath2` and `badpath3` are different revisions, so pod reuse is not claimed
 - `socket_listening_port_not_directly_observed` — port `80` is inferred from spec and behavior, not from direct socket capture
 
-The held-constant surface across H1 and H2 is still strong enough to support the bounded claim: same Container App (`ca-labrevprov-e2upm2`), same resource group (`rg-aca-lab-revprov`), same image tag (`nginx:alpine`), same startup-probe type, same probe port `80`, same `failureThreshold=3`, same `periodSeconds=5`, same CPU `0.5`, same memory `1Gi`, same ingress target port `80`.
+The directly captured held-constant surface across H1 and H2 is still strong enough to support the bounded claim: same Container App (`ca-labrevprov-e2upm2`), same resource group (`rg-aca-lab-revprov`), same image tag (`nginx:alpine`), same startup-probe type, same probe port `80`, same `failureThreshold=3`, same `periodSeconds=5`, same CPU `0.5`, same memory `1Gi`. The pre-trigger baseline `badpath` revision is disclosed separately and still used the original `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image, so the bounded H1↔H2 comparison is scoped to `badpath2` and `badpath3` only.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
@@ -258,7 +258,7 @@ bash ./labs/revision-provisioning-failure/verify.sh
 |---|---|
 | `bash ./labs/revision-provisioning-failure/verify.sh` | Re-runs the offline 17-gate Phase B verifier against the committed or freshly captured evidence cohort and emits `14-17` gate JSONs. The live recovery itself is performed by `fix-and-capture.sh`; `verify.sh` is now a hermetic evidence-pack validator. |
 
-The live recovery step inside `fix-and-capture.sh` patches the Container App via YAML so the startup probe targets a healthy path on the same `nginx:alpine` image:
+The live recovery step inside `fix-and-capture.sh` patches the Container App via YAML so the startup probe targets a healthy path on the same `nginx:alpine` image tag:
 
 ```bash
 cat > /tmp/probe-recovery.yaml <<EOF
@@ -561,7 +561,7 @@ Reproduced in `rg-aca-lab-revprov` / `cae-labrevprov-e2upm2`, `koreacentral`, Co
 
 ![KQL falsification showing healthy revision has zero ProbeFailed events](../../assets/troubleshooting/revision-provisioning-failure/34-kql-falsification-healthy.png)
 
-[Inferred] Falsifying the alternative hypothesis ("the environment itself is broken") confirms the failure mode is **isolated to the misconfigured probe on the new revision**. The environment is healthy; only the new revision's probe path is wrong.
+[Inferred] Falsifying the alternative hypothesis ("the environment itself is broken") confirms the failure mode is **isolated to the new revision's startup-probe configuration**. The environment is healthy; the evidence does not support an environment-wide failure.
 
 [Observed] **KQL timechart** rendering of probe failures over time showing the bursting pattern of probe failures every ~5 seconds (matching `periodSeconds=5`).
 
@@ -589,7 +589,7 @@ Reproduced in `rg-aca-lab-revprov` / `cae-labrevprov-e2upm2`, `koreacentral`, Co
 
 ![Container Exit Events detector post-fix drilldown view](../../assets/troubleshooting/revision-provisioning-failure/40-detector-container-exit-events-postfix.png)
 
-[Strongly Suggested] The recovery sequence (captures 36-40) **falsifies the original failure hypothesis in reverse**: by changing only the startup probe path (everything else identical: same nginx:alpine image, same resource limits, same environment), the revision becomes Healthy. This causal isolation confirms the startup probe path was the sole root cause.
+[Strongly Suggested] The recovery sequence (captures 36-40) supports a **bounded** causal claim in reverse: when `badpath2` is replaced by `badpath3`, the startup-probe path changes from `/nonexistent-health-endpoint` to `/` and the revision becomes Healthy. Other probe-field deltas (`httpGet.scheme`, `initialDelaySeconds`, `timeoutSeconds`, `successThreshold`) remain documented confounders, so this is bounded falsification rather than single-variable proof.
 
 ### Operator Takeaway
 

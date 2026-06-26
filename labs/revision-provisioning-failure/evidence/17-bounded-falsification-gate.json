@@ -6,11 +6,11 @@
     "explicit_drops": [
       {
         "id": "probe_field_delta_minus_path_is_not_bounded",
-        "note": "initialDelaySeconds/timeoutSeconds/successThreshold differ between H1 and H2; these probe-field deltas are documented confounders, not bounded variables."
+        "note": "H1 vs H2 also differ in httpGet.scheme, initialDelaySeconds, timeoutSeconds, and successThreshold; these probe-field deltas are documented confounders, not bounded variables."
       },
       {
         "id": "image_byte_identity_not_captured",
-        "note": "The image tag remains nginx:alpine, but the cohort does not capture image digests."
+        "note": "The H1/H2 image tag remains nginx:alpine, but the cohort does not capture image digests."
       },
       {
         "id": "pod_reuse_not_proven",
@@ -58,7 +58,7 @@
       "sub_gate": "a_probe_path_is_the_bounded_trigger_field"
     },
     {
-      "claim": "The held-constant fields across H1 and H2 are byte-identical for the bounded claim surface.",
+      "claim": "The directly captured held-constant fields across H1 and H2 are byte-identical, and the full H1\u2194H2 probe diff shows no unexpected deltas beyond the documented confounders.",
       "claim_level": "Observed",
       "evidence_files": [
         "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
@@ -66,13 +66,19 @@
         "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
       ],
       "observed_values": {
+        "expected_probe_difference_keys": [
+          "httpGet.path",
+          "httpGet.scheme",
+          "initialDelaySeconds",
+          "successThreshold",
+          "timeoutSeconds"
+        ],
         "held_constant_checks": {
           "container_app_name": true,
           "cpu": true,
           "failure_threshold": true,
           "http_port": true,
-          "image": true,
-          "ingress_target_port": true,
+          "image_tag": true,
           "memory": true,
           "period_seconds": true,
           "probe_type": true,
@@ -96,13 +102,9 @@
             80,
             80
           ],
-          "image": [
+          "image_tag": [
             "nginx:alpine",
             "nginx:alpine"
-          ],
-          "ingress_target_port": [
-            80,
-            80
           ],
           "memory": [
             "1Gi",
@@ -120,14 +122,36 @@
             "rg-aca-lab-revprov",
             "rg-aca-lab-revprov"
           ]
+        },
+        "observed_probe_differences": {
+          "httpGet.path": [
+            "/nonexistent-health-endpoint",
+            "/"
+          ],
+          "httpGet.scheme": [
+            "HTTP",
+            null
+          ],
+          "initialDelaySeconds": [
+            null,
+            5
+          ],
+          "successThreshold": [
+            1,
+            null
+          ],
+          "timeoutSeconds": [
+            1,
+            2
+          ]
         }
       },
-      "predicate": "image, httpGet.port, type, failureThreshold, periodSeconds, cpu, memory, resource_group, ingress_target_port, and container_app_name all compare equal across H1 and H2.",
+      "predicate": "container_app_name, image_tag, httpGet.port, type, failureThreshold, periodSeconds, cpu, memory, and resource_group compare equal across H1 and H2 AND observed probe diff keys equal {httpGet.path, httpGet.scheme, initialDelaySeconds, successThreshold, timeoutSeconds}.",
       "result": "pass",
       "sub_gate": "b_held_constant_fields_match_byte_for_byte"
     },
     {
-      "claim": "The bounded-falsification gate explicitly lists the four documented confounders rather than claiming they are bounded.",
+      "claim": "The bounded-falsification gate explicitly lists the documented confounders, and the probe-field drop matches the actual H1\u2194H2 diff.",
       "claim_level": "Observed",
       "evidence_files": [
         "labs/revision-provisioning-failure/evidence/17-bounded-falsification-gate.json"
@@ -139,25 +163,47 @@
           "probe_field_delta_minus_path_is_not_bounded",
           "socket_listening_port_not_directly_observed"
         ],
+        "expected_probe_difference_keys": [
+          "httpGet.path",
+          "httpGet.scheme",
+          "initialDelaySeconds",
+          "successThreshold",
+          "timeoutSeconds"
+        ],
         "observed_drop_ids": [
           "image_byte_identity_not_captured",
           "pod_reuse_not_proven",
           "probe_field_delta_minus_path_is_not_bounded",
           "socket_listening_port_not_directly_observed"
+        ],
+        "observed_probe_difference_keys": [
+          "httpGet.path",
+          "httpGet.scheme",
+          "initialDelaySeconds",
+          "successThreshold",
+          "timeoutSeconds"
         ]
       },
-      "predicate": "cohort_binding_note.explicit_drops ids equal {probe_field_delta_minus_path_is_not_bounded, image_byte_identity_not_captured, pod_reuse_not_proven, socket_listening_port_not_directly_observed}.",
+      "predicate": "cohort_binding_note.explicit_drops ids equal {probe_field_delta_minus_path_is_not_bounded, image_byte_identity_not_captured, pod_reuse_not_proven, socket_listening_port_not_directly_observed} AND observed probe diff keys equal {httpGet.path, httpGet.scheme, initialDelaySeconds, successThreshold, timeoutSeconds}.",
       "result": "pass",
       "sub_gate": "c_explicit_drops_document_the_confounders"
     },
     {
-      "claim": "The lineage badpath -> badpath2 -> badpath3 is clear across the before/recovery captures.",
+      "claim": "The lineage badpath -> badpath2 -> badpath3 is clear across the before/recovery captures, and the pre-trigger baseline disclosure records that badpath still used the original helloworld image while the bounded comparison begins at badpath2 -> badpath3.",
       "claim_level": "Observed",
       "evidence_files": [
         "labs/revision-provisioning-failure/evidence/01-revision-list.json",
+        "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
         "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
       ],
       "observed_values": {
+        "baseline_image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+        "bounded_comparison_revisions": [
+          "ca-labrevprov-e2upm2--badpath2",
+          "ca-labrevprov-e2upm2--badpath3"
+        ],
+        "h1_image": "nginx:alpine",
+        "h2_image": "nginx:alpine",
         "lineage_created_times": {
           "ca-labrevprov-e2upm2--badpath": "2026-06-20T13:33:07+00:00",
           "ca-labrevprov-e2upm2--badpath2": "2026-06-20T13:34:58+00:00",
@@ -169,7 +215,7 @@
           "ca-labrevprov-e2upm2--badpath3"
         ]
       },
-      "predicate": "01 contains badpath and badpath2, 12 contains badpath3, and createdTime ordering is badpath < badpath2 < badpath3.",
+      "predicate": "01 contains badpath and badpath2, 12 contains badpath3, createdTime ordering is badpath < badpath2 < badpath3, and baseline image != H1/H2 image while H1/H2 image tags match.",
       "result": "pass",
       "sub_gate": "d_revision_lineage_is_clear_and_ordered"
     }
@@ -177,7 +223,7 @@
   "thresholds": {
     "h1_path_expected": "/nonexistent-health-endpoint",
     "h2_path_expected": "/",
-    "held_constant_field_count": 10
+    "held_constant_field_count": 9
   },
-  "utc_captured": "2026-06-26T06:14:47Z"
+  "utc_captured": "2026-06-26T06:43:52Z"
 }

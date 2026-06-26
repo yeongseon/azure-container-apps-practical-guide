@@ -32,6 +32,7 @@ if ! az group show \
 fi
 
 echo "=== Phase 2: deploy or redeploy baseline infra ==="
+DEPLOYMENT_RESULT_FILE="$(mktemp -t revprov-deployment-XXXXXX.json)"
 az deployment group create \
     --subscription "${AZ_SUBSCRIPTION}" \
     --resource-group "${RG}" \
@@ -39,8 +40,8 @@ az deployment group create \
     --template-file "${SCRIPT_DIR}/infra/main.bicep" \
     --parameters baseName="${BASE_NAME}" location="${LOCATION}" \
     --output json \
-    > "${EVIDENCE_DIR}/00-deployment-result.json"
-echo "Deployment result captured to evidence/00-deployment-result.json"
+    > "${DEPLOYMENT_RESULT_FILE}"
+echo "Deployment result captured to ${DEPLOYMENT_RESULT_FILE} (kept outside evidence/ so Gate 14 sees no unexpected extras)"
 echo
 
 APP_NAME="$(az deployment group show \
@@ -50,18 +51,32 @@ APP_NAME="$(az deployment group show \
     --query 'properties.outputs.containerAppName.value' \
     --output tsv)"
 
-echo "=== Phase 3: capture baseline revision list ==="
-az containerapp revision list \
+echo "=== Phase 3: create deterministic pre-trigger baseline revision ==="
+BASELINE_PATCH="$(mktemp -t revprov-baseline-XXXXXX.yaml)"
+TRIGGER_PATCH="$(mktemp -t revprov-trigger-XXXXXX.yaml)"
+trap 'rm -f "${BASELINE_PATCH}" "${TRIGGER_PATCH}" "${FIX_PATCH:-}" "${DEPLOYMENT_RESULT_FILE}"' EXIT
+cat > "${BASELINE_PATCH}" <<'EOF'
+properties:
+  template:
+    revisionSuffix: badpath
+    containers:
+      - name: app
+        image: mcr.microsoft.com/azuredocs/containerapps-helloworld:latest
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+EOF
+
+az containerapp update \
     --subscription "${AZ_SUBSCRIPTION}" \
     --resource-group "${RG}" \
     --name "${APP_NAME}" \
-    --output json \
-    > "${EVIDENCE_DIR}/01-revision-list.json"
+    --yaml "${BASELINE_PATCH}" \
+    --output none
+sleep 30
 echo
 
 echo "=== Phase 4: trigger H1 with bad-path startup probe ==="
-TRIGGER_PATCH="$(mktemp -t revprov-trigger-XXXXXX.yaml)"
-trap 'rm -f "${TRIGGER_PATCH}" "${FIX_PATCH:-}"' EXIT
 cat > "${TRIGGER_PATCH}" <<'EOF'
 properties:
   template:
@@ -93,12 +108,15 @@ sleep 60
 echo
 
 echo "=== Phase 5: capture H1 raw evidence surfaces ==="
-FAILED_REVISION="$(az containerapp revision list \
+FAILED_REVISION="${APP_NAME}--badpath2"
+
+az containerapp revision list \
     --subscription "${AZ_SUBSCRIPTION}" \
     --resource-group "${RG}" \
     --name "${APP_NAME}" \
-    --query 'sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name' \
-    --output tsv)"
+    --query "sort_by([?name=='${APP_NAME}--badpath' || name=='${APP_NAME}--badpath2'], &properties.createdTime)" \
+    --output json \
+    > "${EVIDENCE_DIR}/01-revision-list.json"
 
 az containerapp revision show \
     --subscription "${AZ_SUBSCRIPTION}" \
@@ -222,7 +240,7 @@ az containerapp revision list \
     --subscription "${AZ_SUBSCRIPTION}" \
     --resource-group "${RG}" \
     --name "${APP_NAME}" \
-    --query "[?name=='ca-labrevprov-e2upm2--badpath3']" \
+    --query "[?name=='${APP_NAME}--badpath3']" \
     --output json \
     > "${EVIDENCE_DIR}/12-revision-list-recovered.json"
 

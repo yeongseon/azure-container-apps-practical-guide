@@ -955,9 +955,32 @@ spec_probe = spec["properties"]["template"]["containers"][0]["probes"][0]
 path_delta = [h1_probe["httpGet"].get("path"), h2_probe["httpGet"].get("path")]
 a_pass = path_delta == [BAD_PATH, "/"] and spec_probe["httpGet"].get("path") == BAD_PATH
 
+probe_surface_differences = {}
+for key, h1_value, h2_value in [
+    ("httpGet.path", h1_probe["httpGet"].get("path"), h2_probe["httpGet"].get("path")),
+    ("httpGet.port", h1_probe["httpGet"].get("port"), h2_probe["httpGet"].get("port")),
+    ("httpGet.scheme", h1_probe["httpGet"].get("scheme"), h2_probe["httpGet"].get("scheme")),
+    ("type", h1_probe.get("type"), h2_probe.get("type")),
+    ("failureThreshold", h1_probe.get("failureThreshold"), h2_probe.get("failureThreshold")),
+    ("periodSeconds", h1_probe.get("periodSeconds"), h2_probe.get("periodSeconds")),
+    ("initialDelaySeconds", h1_probe.get("initialDelaySeconds"), h2_probe.get("initialDelaySeconds")),
+    ("successThreshold", h1_probe.get("successThreshold"), h2_probe.get("successThreshold")),
+    ("timeoutSeconds", h1_probe.get("timeoutSeconds"), h2_probe.get("timeoutSeconds")),
+]:
+    if h1_value != h2_value:
+        probe_surface_differences[key] = [h1_value, h2_value]
+
+expected_probe_difference_keys = {
+    "httpGet.path",
+    "httpGet.scheme",
+    "initialDelaySeconds",
+    "successThreshold",
+    "timeoutSeconds",
+}
+
 held_constant_observed = {
     "container_app_name": [spec.get("name"), before.get("name").rsplit("--", 1)[0], after.get("name").rsplit("--", 1)[0]],
-    "image": [before["properties"]["template"]["containers"][0].get("image"), after["properties"]["template"]["containers"][0].get("image")],
+    "image_tag": [before["properties"]["template"]["containers"][0].get("image"), after["properties"]["template"]["containers"][0].get("image")],
     "http_port": [h1_probe["httpGet"].get("port"), h2_probe["httpGet"].get("port")],
     "probe_type": [h1_probe.get("type"), h2_probe.get("type")],
     "failure_threshold": [h1_probe.get("failureThreshold"), h2_probe.get("failureThreshold")],
@@ -965,22 +988,21 @@ held_constant_observed = {
     "cpu": [before["properties"]["template"]["containers"][0]["resources"].get("cpu"), after["properties"]["template"]["containers"][0]["resources"].get("cpu")],
     "memory": [before["properties"]["template"]["containers"][0]["resources"].get("memory"), after["properties"]["template"]["containers"][0]["resources"].get("memory")],
     "resource_group": [before.get("resourceGroup"), after.get("resourceGroup")],
-    "ingress_target_port": [spec["properties"]["configuration"]["ingress"].get("targetPort"), spec["properties"]["configuration"]["ingress"].get("targetPort")],
 }
 
 all_constant_checks = {
     key: len(set(values)) == 1 for key, values in held_constant_observed.items()
 }
-b_pass = all(all_constant_checks.values())
+b_pass = all(all_constant_checks.values()) and set(probe_surface_differences) == expected_probe_difference_keys
 
 explicit_drops = [
     {
         "id": "probe_field_delta_minus_path_is_not_bounded",
-        "note": "initialDelaySeconds/timeoutSeconds/successThreshold differ between H1 and H2; these probe-field deltas are documented confounders, not bounded variables.",
+        "note": "H1 vs H2 also differ in httpGet.scheme, initialDelaySeconds, timeoutSeconds, and successThreshold; these probe-field deltas are documented confounders, not bounded variables.",
     },
     {
         "id": "image_byte_identity_not_captured",
-        "note": "The image tag remains nginx:alpine, but the cohort does not capture image digests.",
+        "note": "The H1/H2 image tag remains nginx:alpine, but the cohort does not capture image digests.",
     },
     {
         "id": "pod_reuse_not_proven",
@@ -991,13 +1013,16 @@ explicit_drops = [
         "note": "Port 80 is inferred from the spec and nginx behavior, not from a direct socket capture inside the container.",
     },
 ]
+baseline_image = lineage[0]["properties"]["template"]["containers"][0].get("image")
+h1_image = before["properties"]["template"]["containers"][0].get("image")
+h2_image = after["properties"]["template"]["containers"][0].get("image")
 expected_drop_ids = {
     "probe_field_delta_minus_path_is_not_bounded",
     "image_byte_identity_not_captured",
     "pod_reuse_not_proven",
     "socket_listening_port_not_directly_observed",
 }
-c_pass = {item["id"] for item in explicit_drops} == expected_drop_ids
+c_pass = {item["id"] for item in explicit_drops} == expected_drop_ids and set(probe_surface_differences) == expected_probe_difference_keys
 
 created = {item["name"]: item["properties"]["createdTime"] for item in lineage}
 d_pass = (
@@ -1008,6 +1033,8 @@ d_pass = (
     and FAILED_REVISION in created
     and created[BASELINE_REVISION] < created[FAILED_REVISION] < after["properties"]["createdTime"]
     and all(name.startswith(f"{APP_NAME}--badpath") for name in [BASELINE_REVISION, FAILED_REVISION, RECOVERED_REVISION])
+    and baseline_image != h1_image
+    and h1_image == h2_image
 )
 
 sub_gates = [
@@ -1026,35 +1053,39 @@ sub_gates = [
     ),
     sub_gate(
         "b_held_constant_fields_match_byte_for_byte",
-        "The held-constant fields across H1 and H2 are byte-identical for the bounded claim surface.",
-        "image, httpGet.port, type, failureThreshold, periodSeconds, cpu, memory, resource_group, ingress_target_port, and container_app_name all compare equal across H1 and H2.",
+        "The directly captured held-constant fields across H1 and H2 are byte-identical, and the full H1↔H2 probe diff shows no unexpected deltas beyond the documented confounders.",
+        "container_app_name, image_tag, httpGet.port, type, failureThreshold, periodSeconds, cpu, memory, and resource_group compare equal across H1 and H2 AND observed probe diff keys equal {httpGet.path, httpGet.scheme, initialDelaySeconds, successThreshold, timeoutSeconds}.",
         "Observed",
         b_pass,
         [repo_rel("02-failed-revision-detail.json"), repo_rel("03-containerapp-spec.yaml"), repo_rel("12-revision-list-recovered.json")],
         {
             "held_constant_observed": held_constant_observed,
             "held_constant_checks": all_constant_checks,
+            "expected_probe_difference_keys": sorted(expected_probe_difference_keys),
+            "observed_probe_differences": probe_surface_differences,
         },
     ),
     sub_gate(
         "c_explicit_drops_document_the_confounders",
-        "The bounded-falsification gate explicitly lists the four documented confounders rather than claiming they are bounded.",
-        "cohort_binding_note.explicit_drops ids equal {probe_field_delta_minus_path_is_not_bounded, image_byte_identity_not_captured, pod_reuse_not_proven, socket_listening_port_not_directly_observed}.",
+        "The bounded-falsification gate explicitly lists the documented confounders, and the probe-field drop matches the actual H1↔H2 diff.",
+        "cohort_binding_note.explicit_drops ids equal {probe_field_delta_minus_path_is_not_bounded, image_byte_identity_not_captured, pod_reuse_not_proven, socket_listening_port_not_directly_observed} AND observed probe diff keys equal {httpGet.path, httpGet.scheme, initialDelaySeconds, successThreshold, timeoutSeconds}.",
         "Observed",
         c_pass,
         [repo_rel("17-bounded-falsification-gate.json")],
         {
             "expected_drop_ids": sorted(expected_drop_ids),
             "observed_drop_ids": sorted(item["id"] for item in explicit_drops),
+            "expected_probe_difference_keys": sorted(expected_probe_difference_keys),
+            "observed_probe_difference_keys": sorted(probe_surface_differences),
         },
     ),
     sub_gate(
         "d_revision_lineage_is_clear_and_ordered",
-        "The lineage badpath -> badpath2 -> badpath3 is clear across the before/recovery captures.",
-        "01 contains badpath and badpath2, 12 contains badpath3, and createdTime ordering is badpath < badpath2 < badpath3.",
+        "The lineage badpath -> badpath2 -> badpath3 is clear across the before/recovery captures, and the pre-trigger baseline disclosure records that badpath still used the original helloworld image while the bounded comparison begins at badpath2 -> badpath3.",
+        "01 contains badpath and badpath2, 12 contains badpath3, createdTime ordering is badpath < badpath2 < badpath3, and baseline image != H1/H2 image while H1/H2 image tags match.",
         "Observed",
         d_pass,
-        [repo_rel("01-revision-list.json"), repo_rel("12-revision-list-recovered.json")],
+        [repo_rel("01-revision-list.json"), repo_rel("02-failed-revision-detail.json"), repo_rel("12-revision-list-recovered.json")],
         {
             "lineage_created_times": {
                 BASELINE_REVISION: created.get(BASELINE_REVISION),
@@ -1062,6 +1093,10 @@ sub_gates = [
                 RECOVERED_REVISION: after["properties"].get("createdTime"),
             },
             "lineage_names": [BASELINE_REVISION, FAILED_REVISION, RECOVERED_REVISION],
+            "baseline_image": baseline_image,
+            "h1_image": h1_image,
+            "h2_image": h2_image,
+            "bounded_comparison_revisions": [FAILED_REVISION, RECOVERED_REVISION],
         },
     ),
 ]

@@ -9,7 +9,7 @@ The lab tests two hypotheses:
 1. **H1 — Trigger produces failure.** A startup probe that targets `/nonexistent-health-endpoint` on `nginx:alpine` produces repeated `ProbeFailed` events, `ContainerTerminated(ProbeFailure)` restarts, and a Failed / Unhealthy revision.
 2. **H2 — Fix restores recovery.** Replacing the startup probe path with `/` produces a new Healthy / Provisioned revision with zero post-fix `ProbeFailed` rows on the recovered revision.
 
-This evidence pack falsifies the hypothesis within a bounded scope. Gate 17 demonstrates that probe path reachability is the mechanically observable trigger field. The pack does NOT prove: image byte-identity (tag `nginx:alpine` is the same but digests not captured); pod reuse (revisions have different replica pods); socket listening port (inferred from spec, not directly captured); probe field delta minus path (initialDelaySeconds, timeoutSeconds, successThreshold differ between H1 and H2 — these confounders are documented in `cohort_binding_note.explicit_drops`, not bounded).
+This evidence pack falsifies the hypothesis within a bounded scope. Gate 17 demonstrates that probe path reachability is the mechanically observable trigger field. The pack does NOT prove: image byte-identity (the H1/H2 tag remains `nginx:alpine`, but digests were not captured); pod reuse (revisions have different replica pods); socket listening port (inferred from spec, not directly captured); probe field delta minus path (H1 vs H2 also differ in `httpGet.scheme`, `initialDelaySeconds`, `timeoutSeconds`, and `successThreshold` — these confounders are documented in `cohort_binding_note.explicit_drops`, not bounded).
 
 ## Structure
 
@@ -28,9 +28,9 @@ labs/revision-provisioning-failure/
 - **Resource group:** `rg-aca-lab-revprov`
 - **Container app:** `ca-labrevprov-e2upm2`
 - **Region:** `koreacentral`
-- **Revision lineage:** `ca-labrevprov-e2upm2--badpath` → `ca-labrevprov-e2upm2--badpath2` → `ca-labrevprov-e2upm2--badpath3`
+- **Revision lineage:** `ca-labrevprov-e2upm2--badpath` → `ca-labrevprov-e2upm2--badpath2` → `ca-labrevprov-e2upm2--badpath3` (the pre-trigger baseline `badpath` revision still used `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`; the bounded H1↔H2 comparison begins at `badpath2` → `badpath3`)
 - **Bounded trigger field:** startup-probe `httpGet.path`
-- **Held constant fields:** image `nginx:alpine`, CPU `0.5`, memory `1Gi`, probe type `Startup`, probe port `80`, `failureThreshold=3`, `periodSeconds=5`
+- **Held constant fields:** image tag `nginx:alpine`, CPU `0.5`, memory `1Gi`, probe type `Startup`, probe port `80`, `failureThreshold=3`, `periodSeconds=5`
 
 ## Evidence pack
 
