@@ -1,0 +1,44 @@
+{
+  "location": "Korea Central",
+  "name": "ca-labdapr-5nichn",
+  "properties": {
+    "configuration": {
+      "dapr": {
+        "appHealth": null,
+        "appId": "dapr-labdapr-5nichn",
+        "appPort": 8081,
+        "appProtocol": "http",
+        "enableApiLogging": false,
+        "enabled": true,
+        "httpMaxRequestSize": null,
+        "httpReadBufferSize": null,
+        "logLevel": "info",
+        "maxConcurrency": null
+      },
+      "ingress": {
+        "additionalPortMappings": null,
+        "allowInsecure": false,
+        "clientCertificateMode": null,
+        "corsPolicy": null,
+        "customDomains": null,
+        "exposedPort": 0,
+        "external": true,
+        "fqdn": "ca-labdapr-5nichn.greenpond-1bb3f31b.koreacentral.azurecontainerapps.io",
+        "ipSecurityRestrictions": null,
+        "stickySessions": null,
+        "targetPort": 8000,
+        "targetPortHttpScheme": null,
+        "traffic": [
+          {
+            "latestRevision": true,
+            "weight": 100
+          }
+        ],
+        "transport": "Auto"
+      }
+    },
+    "latestReadyRevisionName": "ca-labdapr-5nichn--md3mnmx",
+    "latestRevisionName": "ca-labdapr-5nichn--md3mnmx"
+  },
+  "resourceGroup": "rg-aca-lab-dapr"
+}

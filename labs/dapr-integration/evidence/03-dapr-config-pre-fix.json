@@ -1,0 +1,12 @@
+{
+  "appHealth": null,
+  "appId": "dapr-labdapr-5nichn",
+  "appPort": 8081,
+  "appProtocol": "http",
+  "enableApiLogging": false,
+  "enabled": true,
+  "httpMaxRequestSize": null,
+  "httpReadBufferSize": null,
+  "logLevel": "info",
+  "maxConcurrency": null
+}

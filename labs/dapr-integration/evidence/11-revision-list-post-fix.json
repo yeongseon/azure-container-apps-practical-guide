@@ -1,0 +1,43 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-dapr/providers/Microsoft.App/containerApps/ca-labdapr-5nichn/revisions/ca-labdapr-5nichn--md3mnmx",
+    "name": "ca-labdapr-5nichn--md3mnmx",
+    "properties": {
+      "active": true,
+      "createdTime": "2026-06-26T10:07:13+00:00",
+      "fqdn": "ca-labdapr-5nichn--md3mnmx.greenpond-1bb3f31b.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "provisioningState": "Provisioned",
+      "replicas": 1,
+      "runningState": "Running",
+      "template": {
+        "containers": [
+          {
+            "image": "acrlabdapr5nichn.azurecr.io/ca-labdapr-5nichn:v1",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.5,
+              "memory": "1Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 2,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 100
+    },
+    "resourceGroup": "rg-aca-lab-dapr",
+    "type": "Microsoft.App/containerapps/revisions"
+  }
+]

@@ -1,0 +1,301 @@
+{
+  "claim": "The 12-file dapr-integration raw cohort is internally consistent: every file is present and parseable, the app lineage binds to ca-labdapr-5nichn / rg-aca-lab-dapr, the temporal span stays within the documented temporal ceiling, and evidence/README.md cross-references all four Phase B gate JSON files.",
+  "claim_level": "Observed",
+  "gate_classification": "Cohort integrity gate: structural pre-condition for the bounded-falsification pack.",
+  "hypothesis": "H_cohort_integrity",
+  "path_used": "strong",
+  "predicate_inputs": {
+    "app_spec_pre": "labs/dapr-integration/evidence/01-app-spec-pre-fix.json",
+    "http_response_pre": "labs/dapr-integration/evidence/04-http-response-pre-fix.json",
+    "http_response_post": "labs/dapr-integration/evidence/10-http-response-post-fix.json",
+    "revision_list_pre": "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+    "revision_list_post": "labs/dapr-integration/evidence/11-revision-list-post-fix.json",
+    "evidence_readme": "labs/dapr-integration/evidence/README.md"
+  },
+  "dapr_integration_h_cohort_integrity_all_subgates_pass": true,
+  "dapr_integration_h_cohort_integrity_sub_gates": {
+    "a_canonical_raw_files_present_and_parse": true,
+    "b_temporal_cohort_is_monotonic_and_bounded": true,
+    "c_identity_and_lineage_are_consistent": true,
+    "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist": true
+  },
+  "scenario": "dapr_integration",
+  "sub_gates": [
+    {
+      "claim": "All 12 canonical raw evidence files exist and parse as JSON, YAML, or JSONL.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/01-app-spec-pre-fix.json",
+        "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+        "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json",
+        "labs/dapr-integration/evidence/04-http-response-pre-fix.json",
+        "labs/dapr-integration/evidence/05-dapr-invoke-pre-fix.json",
+        "labs/dapr-integration/evidence/06-system-logs-pre-fix.json",
+        "labs/dapr-integration/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/dapr-integration/evidence/08-kql-console-logs-pre-fix.json",
+        "labs/dapr-integration/evidence/09-dapr-config-post-fix.json",
+        "labs/dapr-integration/evidence/10-http-response-post-fix.json",
+        "labs/dapr-integration/evidence/11-revision-list-post-fix.json",
+        "labs/dapr-integration/evidence/12-kql-recovery-summary-post-fix.json"
+      ],
+      "observed_values": {
+        "observed_missing": [],
+        "observed_present_count": 12,
+        "parse_errors": [],
+        "path_satisfied": "strong",
+        "strong": {
+          "expected_count": 12,
+          "holds": true
+        },
+        "fallback": {
+          "expected_count": 12,
+          "holds": true
+        }
+      },
+      "predicate": "Strong and fallback both require the full 12-file raw cohort to exist; 01,02,03,04,05,08,09,10,11,12 parse as JSON; 07 parses as YAML; 06 parses as JSONL.",
+      "result": "pass",
+      "sub_gate": "a_canonical_raw_files_present_and_parse"
+    },
+    {
+      "claim": "The captured H1 -> H2 cohort is temporally monotonic by capture order and stays within the documented temporal ceiling.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+        "labs/dapr-integration/evidence/04-http-response-pre-fix.json",
+        "labs/dapr-integration/evidence/09-dapr-config-post-fix.json",
+        "labs/dapr-integration/evidence/10-http-response-post-fix.json",
+        "labs/dapr-integration/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "earliest_anchor_utc": "2026-06-26T10:07:13+00:00",
+        "latest_anchor_utc": "2026-06-26T10:32:48+00:00",
+        "monotonic_ordering_holds": true,
+        "observed_span_seconds": 1535.0,
+        "path_satisfied": "strong",
+        "post_anchor_timestamps": {
+          "10-http-response-post-fix.json": {
+            "timestamp_utc": "2026-06-26T10:32:48+00:00",
+            "time_source": "http_header_date",
+            "raw_value": "date: Fri, 26 Jun 2026 10:32:48 GMT"
+          }
+        },
+        "pre_anchor_timestamps": {
+          "02-revision-list-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T10:07:13+00:00",
+            "time_source": "revision_createdTime",
+            "raw_value": "2026-06-26T10:07:13+00:00"
+          },
+          "04-http-response-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T10:30:27+00:00",
+            "time_source": "http_header_date",
+            "raw_value": "date: Fri, 26 Jun 2026 10:30:27 GMT"
+          },
+          "06-system-logs-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T10:28:47.052059+00:00",
+            "time_source": "system_log_timestamp",
+            "raw_value": "2026-06-26 10:28:47.0520591 +0000 UTC"
+          },
+          "07-containerapp-spec-pre-fix.yaml": {
+            "timestamp_utc": "2026-06-26T10:28:39.456676+00:00",
+            "time_source": "systemData.lastModifiedAt",
+            "raw_value": "2026-06-26T10:28:39.4566763"
+          }
+        },
+        "sorted_anchor_sequence": [
+          {
+            "file": "02-revision-list-pre-fix.json",
+            "timestamp_utc": "2026-06-26T10:07:13+00:00",
+            "time_source": "revision_createdTime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "07-containerapp-spec-pre-fix.yaml",
+            "timestamp_utc": "2026-06-26T10:28:39.456676+00:00",
+            "time_source": "systemData.lastModifiedAt",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "06-system-logs-pre-fix.json",
+            "timestamp_utc": "2026-06-26T10:28:47.052059+00:00",
+            "time_source": "system_log_timestamp",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "04-http-response-pre-fix.json",
+            "timestamp_utc": "2026-06-26T10:30:27+00:00",
+            "time_source": "http_header_date",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "10-http-response-post-fix.json",
+            "timestamp_utc": "2026-06-26T10:32:48+00:00",
+            "time_source": "http_header_date",
+            "anchor_class": "post"
+          }
+        ],
+        "strong": {
+          "holds": true,
+          "max_span_seconds": 1800
+        },
+        "fallback": {
+          "holds": true,
+          "max_span_seconds": 5400
+        },
+        "strict_pairwise_order_checks": [
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T10:07:13+00:00",
+            "pre_time_source": "revision_createdTime",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T10:32:48+00:00",
+            "post_time_source": "http_header_date",
+            "delta_seconds": 1535.0,
+            "holds": true
+          },
+          {
+            "pre_file": "04-http-response-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T10:30:27+00:00",
+            "pre_time_source": "http_header_date",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T10:32:48+00:00",
+            "post_time_source": "http_header_date",
+            "delta_seconds": 141.0,
+            "holds": true
+          },
+          {
+            "pre_file": "06-system-logs-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-26T10:28:47.052059+00:00",
+            "pre_time_source": "system_log_timestamp",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T10:32:48+00:00",
+            "post_time_source": "http_header_date",
+            "delta_seconds": 240.947941,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-26T10:28:39.456676+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
+            "post_file": "10-http-response-post-fix.json",
+            "post_timestamp_utc": "2026-06-26T10:32:48+00:00",
+            "post_time_source": "http_header_date",
+            "delta_seconds": 248.543324,
+            "holds": true
+          }
+        ],
+        "time_source_summary": {
+          "birthtime_count": 0,
+          "mtime_count": 0,
+          "fallback_used": false
+        }
+      },
+      "predicate": "All configured post-fix content-derived anchor timestamps are strictly later than all configured pre-fix content-derived anchor timestamps, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+      "result": "pass",
+      "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded"
+    },
+    {
+      "claim": "The pre-fix app spec and revision captures bind to one app/resource-group lineage and the later post-fix capture stays on that same lineage.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/01-app-spec-pre-fix.json",
+        "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+        "labs/dapr-integration/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "app_name": "ca-labdapr-5nichn",
+        "resource_group": "rg-aca-lab-dapr",
+        "pre_revision": "ca-labdapr-5nichn--md3mnmx",
+        "post_revision": "ca-labdapr-5nichn--md3mnmx",
+        "pre_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-dapr/providers/Microsoft.App/containerApps/ca-labdapr-5nichn/revisions/ca-labdapr-5nichn--md3mnmx",
+        "post_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-lab-dapr/providers/Microsoft.App/containerApps/ca-labdapr-5nichn/revisions/ca-labdapr-5nichn--md3mnmx",
+        "pre_latest_revision": "ca-labdapr-5nichn--md3mnmx",
+        "pre_latest_ready_revision": "ca-labdapr-5nichn--md3mnmx",
+        "pre_lineage_holds": true,
+        "post_lineage_holds": true,
+        "pre_parse_ok": true,
+        "post_parse_ok": true,
+        "pre_resource_group": "rg-aca-lab-dapr",
+        "post_resource_group": "rg-aca-lab-dapr",
+        "pre_container_app": "ca-labdapr-5nichn",
+        "post_container_app": "ca-labdapr-5nichn",
+        "pre_post_rg_equal": true,
+        "pre_post_app_equal": true,
+        "pre_post_lineage_equal": true
+      },
+      "predicate": "01.properties.latestRevisionName == 01.properties.latestReadyRevisionName == 02[0].name AND both 02[0].id and 11[0].id contain the expected app/resourceGroup substrings AND the parsed resourceGroup/containerApp components extracted from 02[0].id and 11[0].id compare equal.",
+      "result": "pass",
+      "sub_gate": "c_identity_and_lineage_are_consistent"
+    },
+    {
+      "claim": "The evidence directory has no unexpected non-junk extras and evidence/README.md literally names all four Phase B outputs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/dapr-integration/evidence/01-app-spec-pre-fix.json",
+        "labs/dapr-integration/evidence/02-revision-list-pre-fix.json",
+        "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json",
+        "labs/dapr-integration/evidence/04-http-response-pre-fix.json",
+        "labs/dapr-integration/evidence/05-dapr-invoke-pre-fix.json",
+        "labs/dapr-integration/evidence/06-system-logs-pre-fix.json",
+        "labs/dapr-integration/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/dapr-integration/evidence/08-kql-console-logs-pre-fix.json",
+        "labs/dapr-integration/evidence/09-dapr-config-post-fix.json",
+        "labs/dapr-integration/evidence/10-http-response-post-fix.json",
+        "labs/dapr-integration/evidence/11-revision-list-post-fix.json",
+        "labs/dapr-integration/evidence/12-kql-recovery-summary-post-fix.json",
+        "labs/dapr-integration/evidence/14-cohort-integrity-gate.json",
+        "labs/dapr-integration/evidence/15-h1-trigger-produces-failure-gate.json",
+        "labs/dapr-integration/evidence/16-h2-fix-restores-recovery-gate.json",
+        "labs/dapr-integration/evidence/17-bounded-falsification-gate.json",
+        "labs/dapr-integration/evidence/README.md"
+      ],
+      "observed_values": {
+        "expected_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "ignored_junk": [
+          ".DS_Store"
+        ],
+        "observed_files_on_disk": [
+          "01-app-spec-pre-fix.json",
+          "02-revision-list-pre-fix.json",
+          "03-dapr-config-pre-fix.json",
+          "04-http-response-pre-fix.json",
+          "05-dapr-invoke-pre-fix.json",
+          "06-system-logs-pre-fix.json",
+          "07-containerapp-spec-pre-fix.yaml",
+          "08-kql-console-logs-pre-fix.json",
+          "09-dapr-config-post-fix.json",
+          "10-http-response-post-fix.json",
+          "11-revision-list-post-fix.json",
+          "12-kql-recovery-summary-post-fix.json",
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json",
+          "README.md"
+        ],
+        "observed_non_junk_extras": [],
+        "observed_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "readme_exists": true
+      },
+      "predicate": "extras == [] AND evidence/README.md contains the four gate filenames literally.",
+      "result": "pass",
+      "sub_gate": "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist"
+    }
+  ],
+  "thresholds": {
+    "canonical_count_fallback_floor": 12,
+    "canonical_count_strong": 12,
+    "temporal_span_fallback_seconds_max": 5400,
+    "temporal_span_strong_seconds_max": 1800
+  },
+  "utc_captured": "2026-06-26T10:32:57Z"
+}

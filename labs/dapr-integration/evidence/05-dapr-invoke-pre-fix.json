@@ -1,0 +1,6 @@
+{
+  "command": "curl --silent --show-error --fail http://127.0.0.1:3500/v1.0/invoke/dapr-labdapr-5nichn/method/",
+  "exit_code": 0,
+  "stdout": "^D\b\b\u001b[93mUse ctrl + D to exit.\u001b[0m\nINFO: Connecting to the container 'app'...\nINFO: Successfully connected to container: 'app'. [ Revision: 'ca-labdapr-5nichn--md3mnmx', Replica: 'ca-labdapr-5nichn--md3mnmx-b779b858-kl4lm'].\nERROR: {\"Error\":{\"Code\":\"ClusterExecFailure\",\"Message\":\"Cluster exec API returns error: Internal error occurred: error executing command in container: websocket: close 1011 (internal server error): Microsoft.Legion.Common.PodrAbstractions.PodrException: Execute in pod: greenpond-1bb3f31b|ca-labdapr-5nichn--md3mnmx-b7..., code: 500.\",\"Details\":null,\"Target\":null,\"AdditionalInfo\":null,\"TraceId\":null}}\n\u001b[93mDisconnecting...\u001b[0m\n",
+  "stderr": ""
+}

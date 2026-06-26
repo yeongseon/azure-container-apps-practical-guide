@@ -1,0 +1,13 @@
+{
+  "request_url": "https://ca-labdapr-5nichn.greenpond-1bb3f31b.koreacentral.azurecontainerapps.io/",
+  "status_code": 200,
+  "headers": [
+    "HTTP/2 200 ",
+    "server: gunicorn",
+    "date: Fri, 26 Jun 2026 10:32:48 GMT",
+    "content-type: text/html; charset=utf-8",
+    "content-length: 3",
+    ""
+  ],
+  "body": "OK\n"
+}
