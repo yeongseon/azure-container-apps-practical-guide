@@ -66,6 +66,7 @@ Capture phases:
 | Phase B gate JSON | `15-baseline-silent-gate.json` | 3526 B | `bash verify.sh` Gate 15 output |
 | Phase B gate JSON | `16-post-fix-populated-gate.json` | 4944 B | `bash verify.sh` Gate 16 output |
 | Phase B gate JSON | `17-single-variable-falsification-gate.json` | 6782 B | `bash verify.sh` Gate 17 output |
+| Documentation | `README.md` | (this file) | Phase B evidence-pack tour, capture timeline, gate descriptions, disclosures, file index |
 
 ## CLI versions and platform context
 

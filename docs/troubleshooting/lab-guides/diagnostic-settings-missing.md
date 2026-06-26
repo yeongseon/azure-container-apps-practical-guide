@@ -12,17 +12,6 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/log-options
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-content_validation:
-  status: verified
-  last_reviewed: '2026-06-22'
-  reviewer: agent
-  core_claims:
-    - claim: Container Apps environment log routing is configured through environment-level appLogsConfiguration.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
-      verified: true
-    - claim: Container Apps environments can send logs to Log Analytics after log-analytics destination and workspace credentials are configured.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-22'
@@ -110,7 +99,7 @@ export LOCATION="koreacentral"
 
 ## 2) Hypothesis
 
-The environment-level `appLogsConfiguration.destination` setting is the single controlling variable for Log Analytics ingestion from a Container Apps Environment. With the property omitted from the Bicep declaration (live state: `destination: null, logAnalyticsConfiguration: null`), no log path exists between the environment and the workspace, so neither `ContainerAppConsoleLogs_CL` nor `ContainerAppSystemLogs_CL` is ever populated by the platform — and because Log Analytics `_CL` tables are schema-on-write, neither table is even created in the workspace. After applying the environment-level fix via `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` and forcing a new revision so the platform emits fresh `RevisionReady` events into the now-configured destination, both tables materialize and populate within a 5-minute ingestion window.
+The environment-level `appLogsConfiguration` log-routing state is the controlling variable for Log Analytics ingestion from a Container Apps Environment. With the property omitted from the Bicep declaration (live state: `destination: null, logAnalyticsConfiguration: null`), no log path exists between the environment and the workspace, so neither `ContainerAppConsoleLogs_CL` nor `ContainerAppSystemLogs_CL` is ever populated by the platform — and because Log Analytics `_CL` tables are schema-on-write, neither table is even created in the workspace. After applying the environment-level fix via `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` and forcing a new revision so the platform emits fresh `RevisionReady` events into the now-configured destination, both tables materialize and populate within a 5-minute ingestion window.
 
 The alternative hypothesis being tested is that **some other variable controls ingestion** — for example a per-app setting, a Container Apps system-managed identity, or a delayed background reconciliation loop that eventually catches up — meaning the documented `appLogsConfiguration` setting is not necessary, or not sufficient, to control ingestion.
 
@@ -300,7 +289,7 @@ The supporting environment captures (`evidence/10-cli-versions.json`, `evidence/
 
 ### Conclusion
 
-The controlling-variable hypothesis is SUPPORTED in this reproduction. The environment-level `appLogsConfiguration.destination` is the single controlling variable for Log Analytics ingestion from a Container Apps Environment — H1 holds (with `destination: null`, both tables reported 0 rows AND raised `Failed to resolve table` errors, which is stronger than the predicted 0-rows-with-existing-tables) AND H2 holds (after the env update plus a forced new revision and a 5-minute wait, both tables exist and report ≥ 1 row). The corrective operator action — `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` followed by `az containerapp update --set-env-vars FIXAPPLIED=<UTC-nonce>` — landed in a new revision within 20 seconds of the `az` call and required no application code change.
+The controlling-variable hypothesis is SUPPORTED in this reproduction. The environment-level `appLogsConfiguration` log-routing state is the controlling variable for Log Analytics ingestion from a Container Apps Environment — H1 holds (with `destination: null`, both tables reported 0 rows AND raised `Failed to resolve table` errors, which is stronger than the predicted 0-rows-with-existing-tables) AND H2 holds (after the env update plus a forced new revision and a 5-minute wait, both tables exist and report ≥ 1 row). The corrective operator action — `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` followed by `az containerapp update --set-env-vars FIXAPPLIED=<UTC-nonce>` — landed in a new revision within 20 seconds of the `az` call and required no application code change.
 
 ### Falsification
 
@@ -308,7 +297,7 @@ The alternative hypothesis ("some other variable controls ingestion; the documen
 
 - `[Measured]` `evidence/04-kql-before.json`: with `destination: null`, both `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL` raise `Failed to resolve table` (tables do not exist in the workspace).
 - `[Measured]` `evidence/09-kql-after.json`: after `az containerapp env update --logs-destination log-analytics ...` plus a new revision plus a 5-minute wait, both tables exist and report 1 and 34 rows respectively.
-- `[Observed]` Both runs used byte-identical client code (same 10-request Python loop, same FQDN, same wait window). The only changed variable is the environment's `appLogsConfiguration.destination`.
+- `[Observed]` Both runs used byte-identical client code (same 10-request Python loop, same FQDN, same wait window). The only observed change on the shared env-config surface was the environment's `appLogsConfiguration` payload (`destination` plus `logAnalyticsConfiguration`).
 
 If the alternative hypothesis were correct, the environment-level update alone would not have caused both tables to materialize and populate. Additional steps (per-app config, identity grant, delayed reconciliation) would be required. The observed end-to-end success of the environment-level update rules that out.
 
