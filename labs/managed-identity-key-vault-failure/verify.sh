@@ -355,12 +355,35 @@ def load_jsonl(name: str):
 def load_yaml(name: str):
     return yaml.safe_load((EVIDENCE_DIR / name).read_text(encoding="utf-8"))
 
-def file_capture_time(name: str):
+def resolve_anchor_timestamp(name: str):
     stat = (EVIDENCE_DIR / name).stat()
     ts = getattr(stat, "st_birthtime", None)
-    if ts is None:
-        ts = stat.st_mtime
-    return datetime.fromtimestamp(ts, tz=timezone.utc)
+    if ts is not None and ts > 0:
+        return {
+            "timestamp": datetime.fromtimestamp(ts, tz=timezone.utc),
+            "timestamp_utc": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
+            "time_source": "birthtime",
+            "raw_epoch": ts,
+        }
+    return {
+        "timestamp": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
+        "timestamp_utc": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+        "time_source": "mtime",
+        "raw_epoch": stat.st_mtime,
+    }
+
+def parse_revision_id(revision_id: str):
+    match = re.match(
+        r"^/subscriptions/(?P<sub>[^/]+)/resourceGroups/(?P<rg>[^/]+)/providers/Microsoft\.App/containerApps/(?P<app>[^/]+)/revisions/(?P<rev>[^/]+)$",
+        revision_id,
+    )
+    if not match:
+        return {"resource_group": None, "container_app": None, "revision": None}
+    return {
+        "resource_group": match.group("rg"),
+        "container_app": match.group("app"),
+        "revision": match.group("rev"),
+    }
 
 def parse_http_date(header_lines):
     for line in header_lines:
@@ -457,34 +480,42 @@ post_anchor_files = [
     "11-revision-list-post-fix.json",
     "12-kql-recovery-summary-post-fix.json",
 ]
-pre_anchor_mtimes = {
-    name: file_capture_time(name)
+pre_anchor_infos = {
+    name: resolve_anchor_timestamp(name)
     for name in pre_anchor_files
 }
-post_anchor_mtimes = {
-    name: file_capture_time(name)
+post_anchor_infos = {
+    name: resolve_anchor_timestamp(name)
     for name in post_anchor_files
 }
 monotonic_pairs = []
-for pre_name, pre_time in pre_anchor_mtimes.items():
-    for post_name, post_time in post_anchor_mtimes.items():
+for pre_name, pre_info in pre_anchor_infos.items():
+    for post_name, post_info in post_anchor_infos.items():
         monotonic_pairs.append({
             "pre_file": pre_name,
-            "pre_mtime_utc": pre_time.isoformat(),
+            "pre_timestamp_utc": pre_info["timestamp_utc"],
+            "pre_time_source": pre_info["time_source"],
             "post_file": post_name,
-            "post_mtime_utc": post_time.isoformat(),
-            "delta_seconds": (post_time - pre_time).total_seconds(),
-            "holds": post_time > pre_time,
+            "post_timestamp_utc": post_info["timestamp_utc"],
+            "post_time_source": post_info["time_source"],
+            "delta_seconds": (post_info["timestamp"] - pre_info["timestamp"]).total_seconds(),
+            "holds": post_info["timestamp"] > pre_info["timestamp"],
         })
 monotonic_ordering_holds = all(item["holds"] for item in monotonic_pairs)
 sorted_anchor_sequence = [
     {
         "file": name,
-        "mtime_utc": dt.isoformat(),
-        "phase": "pre_fix" if name in pre_anchor_mtimes else "post_fix_capture_order",
+        "timestamp_utc": info["timestamp_utc"],
+        "time_source": info["time_source"],
+        "anchor_class": "pre" if name in pre_anchor_infos else "post",
     }
-    for name, dt in sorted({**pre_anchor_mtimes, **post_anchor_mtimes}.items(), key=lambda item: item[1])
+    for name, info in sorted({**pre_anchor_infos, **post_anchor_infos}.items(), key=lambda item: item[1]["timestamp"])
 ]
+time_source_summary = {
+    "birthtime_count": sum(1 for info in [*pre_anchor_infos.values(), *post_anchor_infos.values()] if info["time_source"] == "birthtime"),
+    "mtime_count": sum(1 for info in [*pre_anchor_infos.values(), *post_anchor_infos.values()] if info["time_source"] == "mtime"),
+    "fallback_used": any(info["time_source"] == "mtime" for info in [*pre_anchor_infos.values(), *post_anchor_infos.values()]),
+}
 anchor_times = [pre_created, pre_http_date, post_role_created, post_created, post_http_date]
 if system_timestamps:
     anchor_times.append(min(system_timestamps))
@@ -505,6 +536,8 @@ pre_latest_revision = spec_pre["properties"]["latestRevisionName"]
 pre_ready_revision = spec_pre["properties"]["latestReadyRevisionName"]
 pre_revision_id = revisions_pre[0]["id"]
 post_revision_id = revisions_post[0]["id"]
+pre_revision_parts = parse_revision_id(pre_revision_id)
+post_revision_parts = parse_revision_id(post_revision_id)
 pre_image = revisions_pre[0]["properties"]["template"]["containers"][0]["image"]
 pre_container_state = revisions_pre[0]["properties"]["template"]["containers"][0]
 post_container = revisions_post[0]["properties"]["template"]["containers"][0]
@@ -540,6 +573,11 @@ for row in recovery_post:
 post_reasons = recovery_by_revision.get(post_revision, {})
 
 held_constant_checks = {
+    "active": {
+        "pre_value": pre_revision_state.get("active"),
+        "post_value": post_revision_state.get("active"),
+        "equal": pre_revision_state.get("active") == post_revision_state.get("active"),
+    },
     "app_name": app_name == revisions_pre[0]["name"].split("--")[0] == revisions_post[0]["name"].split("--")[0],
     "resource_group": revisions_pre[0]["resourceGroup"] == revisions_post[0]["resourceGroup"] == resource_group,
     "traffic_weight": pre_revision_state.get("trafficWeight") == post_revision_state.get("trafficWeight") == 100,
@@ -582,11 +620,14 @@ pre_lineage_holds = (
     f"/resourceGroups/{resource_group}/" in pre_revision_id
     and f"/containerApps/{app_name}/" in pre_revision_id
 )
+pre_post_rg_equal = pre_revision_parts["resource_group"] == post_revision_parts["resource_group"]
+pre_post_app_equal = pre_revision_parts["container_app"] == post_revision_parts["container_app"]
+pre_post_lineage_equal = pre_post_rg_equal and pre_post_app_equal
 role_assignment_to_revision_delta_seconds = (post_created - post_role_created).total_seconds()
 
 subgate_14a_pass = not parse_errors
 subgate_14b_pass = monotonic_ordering_holds and (strong_temporal or fallback_temporal)
-subgate_14c_pass = pre_latest_revision == pre_revision and pre_ready_revision == pre_revision and post_created > pre_created and pre_lineage_holds and post_lineage_holds
+subgate_14c_pass = pre_latest_revision == pre_revision and pre_ready_revision == pre_revision and post_created > pre_created and pre_lineage_holds and post_lineage_holds and pre_post_lineage_equal
 subgate_14d_pass = not unexpected_non_junk and observed_xrefs == expected_xrefs
 gate_14_all_subgates_pass = all([subgate_14a_pass, subgate_14b_pass, subgate_14c_pass, subgate_14d_pass])
 
@@ -603,7 +644,7 @@ subgate_16d_pass = post_reasons.get("ContainerStarted", 0) >= 1 and post_reasons
 gate_16_all_subgates_pass = all([subgate_16a_pass, subgate_16b_pass, subgate_16c_pass, subgate_16d_pass])
 
 subgate_17a_pass = not pre_role_match and bool(post_role_match)
-subgate_17b_pass = all(held_constant_checks.values())
+subgate_17b_pass = all(item["equal"] if isinstance(item, dict) else item for item in held_constant_checks.values())
 subgate_17c_pass = runtime_drop_ids == DOCUMENTED_EXPLICIT_DROPS_CEILING
 subgate_17d_pass = role_assignment_to_revision_delta_seconds > 0 and bool(post_env.get("RESTART_TOKEN"))
 gate_17_all_subgates_pass = all([subgate_17a_pass, subgate_17b_pass, subgate_17c_pass, subgate_17d_pass])
@@ -658,12 +699,27 @@ gate14 = {
                 "monotonic_ordering_holds": monotonic_ordering_holds,
                 "observed_span_seconds": span_seconds,
                 "path_satisfied": path_used,
-                "post_anchor_mtimes": {name: value.isoformat() for name, value in post_anchor_mtimes.items()},
-                "pre_anchor_mtimes": {name: value.isoformat() for name, value in pre_anchor_mtimes.items()},
+                "post_anchor_timestamps": {
+                    name: {
+                        "timestamp_utc": value["timestamp_utc"],
+                        "time_source": value["time_source"],
+                        "raw_epoch": value["raw_epoch"],
+                    }
+                    for name, value in post_anchor_infos.items()
+                },
+                "pre_anchor_timestamps": {
+                    name: {
+                        "timestamp_utc": value["timestamp_utc"],
+                        "time_source": value["time_source"],
+                        "raw_epoch": value["raw_epoch"],
+                    }
+                    for name, value in pre_anchor_infos.items()
+                },
                 "sorted_anchor_sequence": sorted_anchor_sequence,
                 "strong": {"holds": strong_temporal, "max_span_seconds": 1800},
                 "fallback": {"holds": fallback_temporal, "max_span_seconds": 5400},
                 "strict_pairwise_order_checks": monotonic_pairs,
+                "time_source_summary": time_source_summary,
             },
             "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
             "result": "pass" if subgate_14b_pass else "fail",
@@ -684,8 +740,15 @@ gate14 = {
                 "resource_group": resource_group,
                 "post_lineage_holds": post_lineage_holds,
                 "pre_lineage_holds": pre_lineage_holds,
+                "pre_resource_group": pre_revision_parts["resource_group"],
+                "post_resource_group": post_revision_parts["resource_group"],
+                "pre_container_app": pre_revision_parts["container_app"],
+                "post_container_app": post_revision_parts["container_app"],
+                "pre_post_rg_equal": pre_post_rg_equal,
+                "pre_post_app_equal": pre_post_app_equal,
+                "pre_post_lineage_equal": pre_post_lineage_equal,
             },
-            "predicate": "07.properties.latestRevisionName == 07.properties.latestReadyRevisionName == 04[0].name AND both 04[0].id and 11[0].id contain the same app/resourceGroup lineage substrings AND 11[0].properties.createdTime > 04[0].properties.createdTime.",
+            "predicate": "07.properties.latestRevisionName == 07.properties.latestReadyRevisionName == 04[0].name AND both 04[0].id and 11[0].id contain the expected app/resourceGroup substrings AND the parsed resourceGroup/containerApp components extracted from 04[0].id and 11[0].id compare equal AND 11[0].properties.createdTime > 04[0].properties.createdTime.",
             "result": "pass" if subgate_14c_pass else "fail",
             "sub_gate": "c_identity_and_lineage_are_consistent",
         },
@@ -926,7 +989,6 @@ gate17 = {
             "observed_values": {
                 "held_constant_checks": held_constant_checks,
                 "held_constant_observed": {
-                    "active_flags": [pre_revision_state.get("active"), post_revision_state.get("active")],
                     "app_name": [app_name, pre_revision.split("--")[0], post_revision.split("--")[0]],
                     "container_name": [pre_container_state.get("name"), post_container.get("name")],
                     "cpu": [pre_container["resources"]["cpu"], post_container["resources"]["cpu"]],

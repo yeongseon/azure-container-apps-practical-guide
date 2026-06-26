@@ -73,76 +73,131 @@
         "monotonic_ordering_holds": true,
         "observed_span_seconds": 489.0,
         "path_satisfied": "strong",
-        "post_anchor_mtimes": {
-          "08-kql-console-logs-pre-fix.json": "2026-06-26T08:23:06.764223+00:00",
-          "09-role-assignment-post-fix.json": "2026-06-26T08:26:59.980493+00:00",
-          "10-http-response-post-fix.json": "2026-06-26T08:27:03.315545+00:00",
-          "11-revision-list-post-fix.json": "2026-06-26T08:27:03.327379+00:00",
-          "12-kql-recovery-summary-post-fix.json": "2026-06-26T08:27:06.877544+00:00"
+        "post_anchor_timestamps": {
+          "08-kql-console-logs-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462186.7642229
+          },
+          "09-role-assignment-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462419.980493
+          },
+          "10-http-response-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462423.315545
+          },
+          "11-revision-list-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462423.3273792
+          },
+          "12-kql-recovery-summary-post-fix.json": {
+            "timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462426.8775444
+          }
         },
-        "pre_anchor_mtimes": {
-          "01-app-identity-pre-fix.json": "2026-06-26T08:22:46.708343+00:00",
-          "02-role-assignments-pre-fix.json": "2026-06-26T08:22:50.060410+00:00",
-          "03-kv-rbac-config.json": "2026-06-26T08:22:53.068597+00:00",
-          "04-revision-list-pre-fix.json": "2026-06-26T08:22:54.571442+00:00",
-          "05-http-response-pre-fix.json": "2026-06-26T08:22:58.110677+00:00",
-          "07-containerapp-spec-pre-fix.yaml": "2026-06-26T08:23:02.563979+00:00"
+        "pre_anchor_timestamps": {
+          "01-app-identity-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462166.708343
+          },
+          "02-role-assignments-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462170.06041
+          },
+          "03-kv-rbac-config.json": {
+            "timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462173.0685968
+          },
+          "04-revision-list-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462174.5714424
+          },
+          "05-http-response-pre-fix.json": {
+            "timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462178.1106768
+          },
+          "07-containerapp-spec-pre-fix.yaml": {
+            "timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782462182.563979
+          }
         },
         "sorted_anchor_sequence": [
           {
             "file": "01-app-identity-pre-fix.json",
-            "mtime_utc": "2026-06-26T08:22:46.708343+00:00",
-            "phase": "pre_fix"
+            "timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
           },
           {
             "file": "02-role-assignments-pre-fix.json",
-            "mtime_utc": "2026-06-26T08:22:50.060410+00:00",
-            "phase": "pre_fix"
+            "timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
           },
           {
             "file": "03-kv-rbac-config.json",
-            "mtime_utc": "2026-06-26T08:22:53.068597+00:00",
-            "phase": "pre_fix"
+            "timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
           },
           {
             "file": "04-revision-list-pre-fix.json",
-            "mtime_utc": "2026-06-26T08:22:54.571442+00:00",
-            "phase": "pre_fix"
+            "timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
           },
           {
             "file": "05-http-response-pre-fix.json",
-            "mtime_utc": "2026-06-26T08:22:58.110677+00:00",
-            "phase": "pre_fix"
+            "timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
           },
           {
             "file": "07-containerapp-spec-pre-fix.yaml",
-            "mtime_utc": "2026-06-26T08:23:02.563979+00:00",
-            "phase": "pre_fix"
+            "timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
           },
           {
             "file": "08-kql-console-logs-pre-fix.json",
-            "mtime_utc": "2026-06-26T08:23:06.764223+00:00",
-            "phase": "post_fix_capture_order"
+            "timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
           },
           {
             "file": "09-role-assignment-post-fix.json",
-            "mtime_utc": "2026-06-26T08:26:59.980493+00:00",
-            "phase": "post_fix_capture_order"
+            "timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
           },
           {
             "file": "10-http-response-post-fix.json",
-            "mtime_utc": "2026-06-26T08:27:03.315545+00:00",
-            "phase": "post_fix_capture_order"
+            "timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
           },
           {
             "file": "11-revision-list-post-fix.json",
-            "mtime_utc": "2026-06-26T08:27:03.327379+00:00",
-            "phase": "post_fix_capture_order"
+            "timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
           },
           {
             "file": "12-kql-recovery-summary-post-fix.json",
-            "mtime_utc": "2026-06-26T08:27:06.877544+00:00",
-            "phase": "post_fix_capture_order"
+            "timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
           }
         ],
         "strong": {
@@ -156,245 +211,310 @@
         "strict_pairwise_order_checks": [
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_mtime_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 20.05588,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 253.27215,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "10-http-response-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 256.607202,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 256.619036,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 260.169201,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_mtime_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 16.703813,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 249.920083,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "10-http-response-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 253.255135,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 253.266969,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 256.817134,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_mtime_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_mtime_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 13.695626,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_mtime_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 246.911896,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_mtime_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "10-http-response-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 250.246948,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_mtime_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 250.258782,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_mtime_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 253.808947,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_mtime_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 12.192781,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 245.409051,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "10-http-response-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 248.744103,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 248.755937,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 252.306102,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_mtime_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 8.653546,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 241.869816,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "10-http-response-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 245.204868,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 245.216702,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_mtime_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 248.766867,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_mtime_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_mtime_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 4.200244,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_mtime_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 237.416514,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_mtime_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "10-http-response-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 240.751566,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_mtime_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 240.7634,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_mtime_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
+            "pre_time_source": "birthtime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_mtime_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
+            "post_time_source": "birthtime",
             "delta_seconds": 244.313565,
             "holds": true
           }
-        ]
+        ],
+        "time_source_summary": {
+          "birthtime_count": 11,
+          "mtime_count": 0,
+          "fallback_used": false
+        }
       },
       "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
       "result": "pass",
@@ -418,9 +538,16 @@
         "pre_revision": "ca-labkv-b3erju--0000001",
         "resource_group": "rg-aca-lab-kv",
         "post_lineage_holds": true,
-        "pre_lineage_holds": true
+        "pre_lineage_holds": true,
+        "pre_resource_group": "rg-aca-lab-kv",
+        "post_resource_group": "rg-aca-lab-kv",
+        "pre_container_app": "ca-labkv-b3erju",
+        "post_container_app": "ca-labkv-b3erju",
+        "pre_post_rg_equal": true,
+        "pre_post_app_equal": true,
+        "pre_post_lineage_equal": true
       },
-      "predicate": "07.properties.latestRevisionName == 07.properties.latestReadyRevisionName == 04[0].name AND both 04[0].id and 11[0].id contain the same app/resourceGroup lineage substrings AND 11[0].properties.createdTime > 04[0].properties.createdTime.",
+      "predicate": "07.properties.latestRevisionName == 07.properties.latestReadyRevisionName == 04[0].name AND both 04[0].id and 11[0].id contain the expected app/resourceGroup substrings AND the parsed resourceGroup/containerApp components extracted from 04[0].id and 11[0].id compare equal AND 11[0].properties.createdTime > 04[0].properties.createdTime.",
       "result": "pass",
       "sub_gate": "c_identity_and_lineage_are_consistent"
     },

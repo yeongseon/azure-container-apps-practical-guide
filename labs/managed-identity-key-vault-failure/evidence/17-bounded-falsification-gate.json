@@ -68,6 +68,11 @@
       ],
       "observed_values": {
         "held_constant_checks": {
+          "active": {
+            "pre_value": true,
+            "post_value": true,
+            "equal": true
+          },
           "app_name": true,
           "resource_group": true,
           "traffic_weight": true,
@@ -83,10 +88,6 @@
           "probes": true
         },
         "held_constant_observed": {
-          "active_flags": [
-            true,
-            true
-          ],
           "app_name": [
             "ca-labkv-b3erju",
             "ca-labkv-b3erju",
@@ -192,7 +193,7 @@
     }
   ],
   "thresholds": {
-    "held_constant_field_count": 13,
+    "held_constant_field_count": 14,
     "post_fix_status_code_expected": 200,
     "pre_fix_status_code_expected": "non-200"
   },
