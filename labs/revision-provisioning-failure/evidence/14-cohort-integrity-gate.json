@@ -1,0 +1,183 @@
+{
+  "claim": "The 12-file revision-provisioning-failure raw cohort is internally consistent: every file is present and parseable, the identity and lineage bind to ca-labrevprov-e2upm2 / rg-aca-lab-revprov, the temporal span uses the documented <=5400-second fallback ceiling, and evidence/README.md cross-references all four Phase B gate JSON files.",
+  "claim_level": "Observed",
+  "gate_classification": "Cohort integrity gate: structural pre-condition for the bounded-falsification pack. The temporal bound uses the documented fallback ceiling because the 53-minute baseline-to-fix span exceeds the 30-minute strong ceiling.",
+  "hypothesis": "H_cohort_integrity",
+  "path_used": "fallback",
+  "predicate_inputs": {
+    "canonical_evidence_directory": "labs/revision-provisioning-failure/evidence",
+    "container_app_spec": "labs/revision-provisioning-failure/evidence/03-containerapp-spec.yaml",
+    "failed_revision_detail": "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+    "readme": "labs/revision-provisioning-failure/evidence/README.md",
+    "recovered_revision_list": "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json",
+    "revision_list_before": "labs/revision-provisioning-failure/evidence/01-revision-list.json"
+  },
+  "revision_provisioning_failure_h_cohort_integrity_all_subgates_pass": true,
+  "revision_provisioning_failure_h_cohort_integrity_sub_gates": {
+    "a_canonical_raw_files_present_and_parse": true,
+    "b_temporal_cohort_is_monotonic_and_bounded": true,
+    "c_identity_and_lineage_are_consistent": true,
+    "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist": true
+  },
+  "scenario": "revision_provisioning_failure",
+  "sub_gates": [
+    {
+      "claim": "All 12 canonical Jun 21 raw evidence files exist and parse as JSON, YAML, or JSONL.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/01-revision-list.json",
+        "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+        "labs/revision-provisioning-failure/evidence/03-containerapp-spec.yaml",
+        "labs/revision-provisioning-failure/evidence/04-system-logs.json",
+        "labs/revision-provisioning-failure/evidence/05-replicas-failed.json",
+        "labs/revision-provisioning-failure/evidence/06-console-logs.json",
+        "labs/revision-provisioning-failure/evidence/07-kql-probefailed-rows.json",
+        "labs/revision-provisioning-failure/evidence/08-kql-event-correlation.json",
+        "labs/revision-provisioning-failure/evidence/09-kql-summary-by-reason.json",
+        "labs/revision-provisioning-failure/evidence/10-kql-console-logs.json",
+        "labs/revision-provisioning-failure/evidence/11-kql-postfix-verification.json",
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "fallback": {
+          "expected_count": 12,
+          "holds": true
+        },
+        "observed_missing": [],
+        "observed_present_count": 12,
+        "parse_errors": [],
+        "path_satisfied": "strong",
+        "strong": {
+          "expected_count": 12,
+          "holds": true
+        }
+      },
+      "predicate": "Strong and fallback both require the full 12-file raw cohort to exist; 01,02,05,07,08,09,10,11,12 parse as JSON; 03 parses as YAML; 04 and 06 parse as JSONL.",
+      "result": "pass",
+      "sub_gate": "a_canonical_raw_files_present_and_parse"
+    },
+    {
+      "claim": "The baseline -> H1 failure -> H2 recovery anchors form a monotonic cohort with fallback ceiling <= 5400 seconds.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/01-revision-list.json",
+        "labs/revision-provisioning-failure/evidence/04-system-logs.json",
+        "labs/revision-provisioning-failure/evidence/07-kql-probefailed-rows.json",
+        "labs/revision-provisioning-failure/evidence/08-kql-event-correlation.json",
+        "labs/revision-provisioning-failure/evidence/10-kql-console-logs.json",
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "earliest_anchor_utc": "2026-06-20T13:33:07+00:00",
+        "fallback": {
+          "holds": true,
+          "max_span_seconds": 5400
+        },
+        "latest_anchor_utc": "2026-06-20T14:26:09+00:00",
+        "observed_span_seconds": 3182.0,
+        "path_satisfied": "fallback",
+        "strong": {
+          "holds": false,
+          "max_span_seconds": 1800
+        }
+      },
+      "predicate": "Strong: earliest raw anchor through badpath3 creation <= 1800 seconds. Fallback: <= 5400 seconds.",
+      "result": "pass",
+      "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded"
+    },
+    {
+      "claim": "All raw files bind to the same Container App / resource group and the expected revision lineage badpath -> badpath2 -> badpath3.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/01-revision-list.json",
+        "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+        "labs/revision-provisioning-failure/evidence/03-containerapp-spec.yaml",
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "holds": true,
+        "raw_revision_names": [
+          "ca-labrevprov-e2upm2--badpath",
+          "ca-labrevprov-e2upm2--badpath2"
+        ],
+        "recovered_revision_name": "ca-labrevprov-e2upm2--badpath3",
+        "spec_name": "ca-labrevprov-e2upm2",
+        "spec_resource_group": "rg-aca-lab-revprov"
+      },
+      "predicate": "spec.name == ca-labrevprov-e2upm2 AND spec.resourceGroup == rg-aca-lab-revprov AND raw revision names are {badpath,badpath2} before recovery and badpath3 after recovery.",
+      "result": "pass",
+      "sub_gate": "c_identity_and_lineage_are_consistent"
+    },
+    {
+      "claim": "The evidence directory has no unexpected non-junk extras and evidence/README.md literally names all four Phase B outputs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/01-revision-list.json",
+        "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
+        "labs/revision-provisioning-failure/evidence/03-containerapp-spec.yaml",
+        "labs/revision-provisioning-failure/evidence/04-system-logs.json",
+        "labs/revision-provisioning-failure/evidence/05-replicas-failed.json",
+        "labs/revision-provisioning-failure/evidence/06-console-logs.json",
+        "labs/revision-provisioning-failure/evidence/07-kql-probefailed-rows.json",
+        "labs/revision-provisioning-failure/evidence/08-kql-event-correlation.json",
+        "labs/revision-provisioning-failure/evidence/09-kql-summary-by-reason.json",
+        "labs/revision-provisioning-failure/evidence/10-kql-console-logs.json",
+        "labs/revision-provisioning-failure/evidence/11-kql-postfix-verification.json",
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json",
+        "labs/revision-provisioning-failure/evidence/14-cohort-integrity-gate.json",
+        "labs/revision-provisioning-failure/evidence/15-h1-trigger-produces-failure-gate.json",
+        "labs/revision-provisioning-failure/evidence/16-h2-fix-restores-recovery-gate.json",
+        "labs/revision-provisioning-failure/evidence/17-bounded-falsification-gate.json",
+        "labs/revision-provisioning-failure/evidence/README.md"
+      ],
+      "observed_values": {
+        "expected_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "extras_holds": true,
+        "ignored_junk": [],
+        "observed_files_on_disk": [
+          "01-revision-list.json",
+          "02-failed-revision-detail.json",
+          "03-containerapp-spec.yaml",
+          "04-system-logs.json",
+          "05-replicas-failed.json",
+          "06-console-logs.json",
+          "07-kql-probefailed-rows.json",
+          "08-kql-event-correlation.json",
+          "09-kql-summary-by-reason.json",
+          "10-kql-console-logs.json",
+          "11-kql-postfix-verification.json",
+          "12-revision-list-recovered.json",
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json",
+          "README.md"
+        ],
+        "observed_non_junk_extras": [],
+        "observed_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "readme_exists": true,
+        "readme_holds": true
+      },
+      "predicate": "extras == [] AND evidence/README.md contains the four gate filenames literally.",
+      "result": "pass",
+      "sub_gate": "d_no_unexpected_non_junk_extras_and_readme_xrefs_exist"
+    }
+  ],
+  "thresholds": {
+    "canonical_count_fallback_floor": 12,
+    "canonical_count_strong": 12,
+    "temporal_span_fallback_seconds_max": 5400,
+    "temporal_span_strong_seconds_max": 1800
+  },
+  "utc_captured": "2026-06-26T06:14:47Z"
+}

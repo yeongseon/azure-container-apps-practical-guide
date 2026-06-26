@@ -1,0 +1,127 @@
+{
+  "claim": "The H2 fix restored recovery: ca-labrevprov-e2upm2--badpath3 is Healthy/Provisioned with startup probe path=/ on port 80, and the post-fix KQL verification shows badpath3 with startup success events but zero ProbeFailed / zero ContainerTerminated while the historical H1 failures remain isolated to badpath2.",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms recovery on the fixed revision and explicitly scopes the retained ProbeFailed history to the old failed revision.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "path_used": "single",
+  "predicate_inputs": {
+    "postfix_verification": "labs/revision-provisioning-failure/evidence/11-kql-postfix-verification.json",
+    "recovered_revision_list": "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+  },
+  "revision_provisioning_failure_h2_fix_restores_recovery_all_subgates_pass": true,
+  "revision_provisioning_failure_h2_fix_restores_recovery_sub_gates": {
+    "a_recovered_revision_is_healthy_and_provisioned": true,
+    "b_fix_changed_probe_path_to_root": true,
+    "c_postfix_kql_shows_clean_badpath3_surface": true,
+    "d_postfix_kql_retains_h1_history_only_on_badpath2": true
+  },
+  "scenario": "revision_provisioning_failure",
+  "sub_gates": [
+    {
+      "claim": "The recovered revision badpath3 is Healthy / Provisioned / RunningAtMaxScale with 100% traffic.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "health_state": "Healthy",
+        "provisioning_state": "Provisioned",
+        "revision_name": "ca-labrevprov-e2upm2--badpath3",
+        "running_state": "RunningAtMaxScale",
+        "traffic_weight": 100
+      },
+      "predicate": "12[0].name == badpath3 AND healthState == Healthy AND provisioningState == Provisioned AND runningState == RunningAtMaxScale AND trafficWeight == 100.",
+      "result": "pass",
+      "sub_gate": "a_recovered_revision_is_healthy_and_provisioned"
+    },
+    {
+      "claim": "The fix deployed the same nginx image with Startup probe path=/ on port 80.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json"
+      ],
+      "observed_values": {
+        "image": "nginx:alpine",
+        "probe_path": "/",
+        "probe_port": 80,
+        "probe_type": "Startup"
+      },
+      "predicate": "12[0].template.containers[0].image == nginx:alpine AND probe.type == Startup AND probe.httpGet.path == '/' AND probe.httpGet.port == 80.",
+      "result": "pass",
+      "sub_gate": "b_fix_changed_probe_path_to_root"
+    },
+    {
+      "claim": "Post-fix KQL shows badpath3 started successfully with zero ProbeFailed and zero ContainerTerminated rows.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/11-kql-postfix-verification.json"
+      ],
+      "observed_values": {
+        "badpath3_reason_counts": {
+          "AssigningReplica": 1,
+          "ContainerCreated": 1,
+          "ContainerStarted": 1,
+          "KEDAScalersStarted": 3,
+          "PulledImage": 1,
+          "PullingImage": 1,
+          "RevisionUpdate": 1
+        },
+        "badpath3_reasons_present": [
+          "AssigningReplica",
+          "ContainerCreated",
+          "ContainerStarted",
+          "KEDAScalersStarted",
+          "PulledImage",
+          "PullingImage",
+          "RevisionUpdate"
+        ]
+      },
+      "predicate": "11 rows for badpath3 contain ContainerStarted >= 1 AND ContainerCreated >= 1 AND ProbeFailed == 0 AND ContainerTerminated == 0.",
+      "result": "pass",
+      "sub_gate": "c_postfix_kql_shows_clean_badpath3_surface"
+    },
+    {
+      "claim": "The post-fix KQL evidence retains the historical H1 failures on badpath2 while showing none on badpath3.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/revision-provisioning-failure/evidence/11-kql-postfix-verification.json"
+      ],
+      "observed_values": {
+        "badpath2_reason_counts": {
+          "AssigningReplica": 1,
+          "ContainerCreated": 14,
+          "ContainerStarted": 14,
+          "ContainerTerminated": 14,
+          "KEDAScalersStarted": 3,
+          "KEDAScalersStopped": 1,
+          "ProbeFailed": 56,
+          "ProbeFailure": 1,
+          "PulledImage": 14,
+          "PullingImage": 14,
+          "RevisionCreation": 1,
+          "RevisionUpdate": 1,
+          "ScaledObjectDeleted": 1
+        },
+        "badpath3_reason_counts": {
+          "AssigningReplica": 1,
+          "ContainerCreated": 1,
+          "ContainerStarted": 1,
+          "KEDAScalersStarted": 3,
+          "PulledImage": 1,
+          "PullingImage": 1,
+          "RevisionUpdate": 1
+        }
+      },
+      "predicate": "11 contains ProbeFailed >= 56 and ContainerTerminated >= 14 on badpath2 AND zero ProbeFailed rows on badpath3.",
+      "result": "pass",
+      "sub_gate": "d_postfix_kql_retains_h1_history_only_on_badpath2"
+    }
+  ],
+  "thresholds": {
+    "badpath2_containerterminated_floor": 14,
+    "badpath2_probefailed_floor": 56,
+    "badpath3_containerterminated_expected": 0,
+    "badpath3_probefailed_expected": 0
+  },
+  "utc_captured": "2026-06-26T06:14:47Z"
+}

@@ -7,34 +7,6 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-content_validation:
-  status: verified
-  last_reviewed: '2026-06-21'
-  reviewer: ai-agent
-  lab_validation:
-    status: reproduced
-    tested_date: 2026-05-01
-    az_cli_version: 2.70.0
-    notes: |
-      Original reproduction (2026-05-01, az 2.70.0) confirmed ProbeFailed +
-      ContainerTerminated(ProbeFailure) + revision Failed. Re-verified end-to-end
-      on 2026-06-20 with a rewritten trigger script using the supported
-      `az containerapp update --yaml` authoring path; the re-verification chain
-      lives under `labs/revision-provisioning-failure/evidence/` (12 RAW JSON
-      files including `evidence/10-kql-console-logs.json` as the application-level
-      smoking gun: nginx 404 on the bad probe path + SIGCHLD propagation) and the
-      paired Portal captures (40 total) in
-      `docs/assets/troubleshooting/revision-provisioning-failure/`. Post-fix
-      recovery verified across 3 healthy revisions via
-      `evidence/11-kql-postfix-verification.json` and
-      `evidence/12-revision-list-recovered.json`.
-  core_claims:
-    - claim: Azure Container Apps supports startup probes to check whether a containerized app has started successfully.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-      verified: true
-    - claim: In Azure Container Apps, revisions are immutable snapshots of a container app version.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-20'
@@ -88,6 +60,24 @@ flowchart TD
 ## 2) Hypothesis
 
 **IF** a startup probe is configured to target an endpoint the container cannot satisfy (either a path that returns 404, or a port that refuses connection), **THEN** the revision will be created but never become ready, and system logs will show `ProbeFailed` events until the probe configuration is fixed.
+
+### Bounded falsification framing
+
+This lab now ships a **Phase B 4-gate falsification evidence pack** under [`labs/revision-provisioning-failure/evidence/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/revision-provisioning-failure/evidence) using the reusable 2026-06-20 / 2026-06-21 captures. The gate files are:
+
+- `14-cohort-integrity-gate.json`
+- `15-h1-trigger-produces-failure-gate.json`
+- `16-h2-fix-restores-recovery-gate.json`
+- `17-bounded-falsification-gate.json`
+
+This is deliberately framed as **bounded falsification**, not single-variable falsification. The mechanically observable trigger field is the startup-probe `httpGet.path` (`/nonexistent-health-endpoint` → `/`), but Gate 17 explicitly documents the confounders that are **not** bounded:
+
+- `probe_field_delta_minus_path_is_not_bounded` — `httpGet.scheme`, `initialDelaySeconds`, `timeoutSeconds`, and `successThreshold` differ across H1 and H2
+- `image_byte_identity_not_captured` — `nginx:alpine` tag is constant across H1 and H2, but digests were not captured
+- `pod_reuse_not_proven` — `badpath2` and `badpath3` are different revisions, so pod reuse is not claimed
+- `socket_listening_port_not_directly_observed` — port `80` is inferred from spec and behavior, not from direct socket capture
+
+The directly captured held-constant surface across H1 and H2 is still strong enough to support the bounded claim: same Container App (`ca-labrevprov-e2upm2`), same resource group (`rg-aca-lab-revprov`), same image tag (`nginx:alpine`), same startup-probe type, same probe port `80`, same `failureThreshold=3`, same `periodSeconds=5`, same CPU `0.5`, same memory `1Gi`. The pre-trigger baseline `badpath` revision is disclosed separately and still used the original `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image, so the bounded H1↔H2 comparison is scoped to `badpath2` and `badpath3` only.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
@@ -170,10 +160,14 @@ CreatedTime                Active    Replicas    TrafficWeight    HealthState   
 ### Trigger the failure
 
 ```bash
-./labs/revision-provisioning-failure/trigger.sh
+bash ./labs/revision-provisioning-failure/fix-and-capture.sh
 ```
 
-The trigger script patches the Container App via YAML to add a startup probe targeting a non-existent path:
+| Command | Why it is used |
+|---|---|
+| `bash ./labs/revision-provisioning-failure/fix-and-capture.sh` | Runs the full live Phase A flow for future reproductions: deploy/reuse infra, trigger the bad-path startup probe, capture the 12 raw evidence files, apply the `/` fix, and then invoke the offline verifier. |
+
+The live script internally patches the Container App via YAML to add a startup probe targeting a non-existent path:
 
 ```bash
 cat > /tmp/probe-trigger.yaml <<EOF
@@ -257,10 +251,14 @@ ContainerRestart     Container 'app' was restarted
 Recover by replacing the bad startup probe path with `/` (which `nginx:alpine` serves with HTTP 200):
 
 ```bash
-./labs/revision-provisioning-failure/verify.sh
+bash ./labs/revision-provisioning-failure/verify.sh
 ```
 
-The verify script patches the Container App via YAML so the startup probe targets a healthy path on the same `nginx:alpine` image:
+| Command | Why it is used |
+|---|---|
+| `bash ./labs/revision-provisioning-failure/verify.sh` | Re-runs the offline 17-gate Phase B verifier against the committed or freshly captured evidence cohort and emits `14-17` gate JSONs. The live recovery itself is performed by `fix-and-capture.sh`; `verify.sh` is now a hermetic evidence-pack validator. |
+
+The live recovery step inside `fix-and-capture.sh` patches the Container App via YAML so the startup probe targets a healthy path on the same `nginx:alpine` image tag:
 
 ```bash
 cat > /tmp/probe-recovery.yaml <<EOF
@@ -316,10 +314,10 @@ Healthy        Provisioned
 |---|---|---|---|---|
 | 1 | Deploy baseline infrastructure | Deployment succeeds | | |
 | 2 | Verify baseline health | Revision is Healthy | | |
-| 3 | Run `trigger.sh` | New revision created with bad probe | | |
+| 3 | Run `fix-and-capture.sh` | New revision created with bad probe, then fixed to a healthy revision | | |
 | 4 | Check revision list | New revision is Degraded/Failed | | |
 | 5 | Check system logs | ProbeFailed events visible | | |
-| 6 | Run `verify.sh` | Probe removed, new revision created | | |
+| 6 | Run `verify.sh` | 17/17 gates PASS; Gate 17 records bounded falsification disclosure | | |
 | 7 | Verify recovery | Latest revision is Healthy | | |
 
 ## Expected Evidence
@@ -338,7 +336,7 @@ Healthy        Provisioned
 |---|---|
 | `az containerapp revision list` | Latest revision shows `Healthy` |
 | System logs | Normal startup events |
-| `./verify.sh` | PASS |
+| `bash ./labs/revision-provisioning-failure/verify.sh` | PASS with 17/17 gates and 16/16 Phase B sub-gates |
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
@@ -563,7 +561,7 @@ Reproduced in `rg-aca-lab-revprov` / `cae-labrevprov-e2upm2`, `koreacentral`, Co
 
 ![KQL falsification showing healthy revision has zero ProbeFailed events](../../assets/troubleshooting/revision-provisioning-failure/34-kql-falsification-healthy.png)
 
-[Inferred] Falsifying the alternative hypothesis ("the environment itself is broken") confirms the failure mode is **isolated to the misconfigured probe on the new revision**. The environment is healthy; only the new revision's probe path is wrong.
+[Inferred] Falsifying the alternative hypothesis ("the environment itself is broken") confirms the failure mode is **isolated to the new revision's startup-probe configuration**. The environment is healthy; the evidence does not support an environment-wide failure.
 
 [Observed] **KQL timechart** rendering of probe failures over time showing the bursting pattern of probe failures every ~5 seconds (matching `periodSeconds=5`).
 
@@ -591,7 +589,7 @@ Reproduced in `rg-aca-lab-revprov` / `cae-labrevprov-e2upm2`, `koreacentral`, Co
 
 ![Container Exit Events detector post-fix drilldown view](../../assets/troubleshooting/revision-provisioning-failure/40-detector-container-exit-events-postfix.png)
 
-[Strongly Suggested] The recovery sequence (captures 36-40) **falsifies the original failure hypothesis in reverse**: by changing only the startup probe path (everything else identical: same nginx:alpine image, same resource limits, same environment), the revision becomes Healthy. This causal isolation confirms the startup probe path was the sole root cause.
+[Strongly Suggested] The recovery sequence (captures 36-40) supports a **bounded** causal claim in reverse: when `badpath2` is replaced by `badpath3`, the startup-probe path changes from `/nonexistent-health-endpoint` to `/` and the revision becomes Healthy. Other probe-field deltas (`httpGet.scheme`, `initialDelaySeconds`, `timeoutSeconds`, `successThreshold`) remain documented confounders, so this is bounded falsification rather than single-variable proof.
 
 ### Operator Takeaway
 
