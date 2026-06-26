@@ -18,12 +18,13 @@ If both hold, the lab proves that the environment-level `appLogsConfiguration` i
 ```text
 labs/diagnostic-settings-missing/
 ├── infra/main.bicep      # LAW + Container Apps env (NO appLogsConfiguration) + 1 helloworld app (minReplicas=1, maxReplicas=1)
-├── trigger.sh            # Phases 1-5: env config check, app config check, 10 HTTP requests, 5m wait, KQL baseline (expect 0 rows)
-├── verify.sh             # Phases 6-12: env update, env config readback, force new revision, wait Running, 10 HTTP requests, 5m wait, KQL post-fix (expect ≥1 row)
+├── trigger.sh            # Phase A — Phases 1-5: env config check, app config check, 10 HTTP requests, 5m wait, KQL baseline (expect 0 rows)
+├── fix-and-capture.sh    # Phase A — Phases 6-12: env update, env config readback, force new revision, wait Running, 10 HTTP requests, 5m wait, KQL post-fix (expect ≥1 row) (renamed from verify.sh)
+├── verify.sh             # Phase B — Evidence-pack verifier (4 gates / 15 sub-gates, no Azure calls). Reads only committed evidence and emits 4 derived gate JSONs.
 ├── cleanup.sh            # Delete the resource group
 └── evidence/             # Captured CLI evidence
     ├── 00-trigger-run.txt          # Full trigger.sh stdout/stderr
-    ├── 00-verify-run.txt           # Full verify.sh stdout/stderr
+    ├── 00-verify-run.txt           # Full fix-and-capture.sh stdout/stderr (filename preserved across the Phase B rename)
     ├── 01-env-config-before.json   # Phase 1: env appLogsConfiguration before fix (expect destination=null)
     ├── 02-app-config-before.json   # Phase 2: app config + active revision before fix
     ├── 03-curl-before.json         # Phase 3: 10 HTTP request results to baseline revision
@@ -36,12 +37,17 @@ labs/diagnostic-settings-missing/
     ├── 10-cli-versions.json        # Post-run: `az version`
     ├── 11-cli-containerapp-ext.json # Post-run: containerapp extension version
     ├── 12-region.json              # Post-run: deployment region
-    └── 13-deployment-outputs.json  # Post-run: full deployment outputs
+    ├── 13-deployment-outputs.json  # Post-run: full deployment outputs
+    ├── 14-cohort-integrity-gate.json # Phase B Gate 14: Strong/Fallback cohort integrity
+    ├── 15-baseline-silent-gate.json # Phase B Gate 15 (H1): null env config + zero-row baseline
+    ├── 16-post-fix-populated-gate.json # Phase B Gate 16 (H2): destination restored + populated tables
+    ├── 17-single-variable-falsification-gate.json # Phase B Gate 17 (H3): bounded env-config diff + revision lineage
+    └── README.md                   # Phase B evidence tour: timeline, gate descriptions, disclosures, file index
 ```
 
 ## Quick Start
 
-These commands assume the working directory is `labs/diagnostic-settings-missing/`. All `az` invocations pin `--subscription` explicitly to immunize the run against Azure CLI default-subscription drift, and the deployment is given the explicit name `main` so its outputs can be read back deterministically. Total wall-clock runtime is approximately 25 minutes (3 min deploy + 7 min trigger including 5 min ingestion wait + 13 min verify including 5 min ingestion wait + 1 min cleanup initiation).
+These commands assume the working directory is `labs/diagnostic-settings-missing/`. All `az` invocations pin `--subscription` explicitly to immunize the run against Azure CLI default-subscription drift, and the deployment is given the explicit name `main` so its outputs can be read back deterministically. Total wall-clock runtime is approximately 25 minutes (3 min deploy + 7 min trigger including 5 min ingestion wait + 13 min fix-and-capture including 5 min ingestion wait + 1 min offline Phase B verify + 1 min cleanup initiation).
 
 ```bash
 cd labs/diagnostic-settings-missing/
@@ -96,11 +102,21 @@ export WORKSPACE_RESOURCE_ID=$(az deployment group show \
     --query "properties.outputs.logAnalyticsWorkspaceId.value" \
     --output tsv)
 
-# 4) Run the falsification experiment.
-./trigger.sh 2>&1 | tee evidence/00-trigger-run.txt   # env config + app config + 10 requests + 5m wait + KQL (expect 0 rows)
-./verify.sh  2>&1 | tee evidence/00-verify-run.txt    # env update + force new revision + 10 requests + 5m wait + KQL (expect ≥1 row)
-./cleanup.sh                                          # delete the resource group
+# 4) Run Phase A (capture the live Azure evidence cohort).
+./trigger.sh            2>&1 | tee evidence/00-trigger-run.txt   # env config + app config + 10 requests + 5m wait + KQL (expect 0 rows)
+./fix-and-capture.sh    2>&1 | tee evidence/00-verify-run.txt    # env update + force new revision + 10 requests + 5m wait + KQL (expect ≥1 row)
+
+# 5) Run Phase B (offline evidence-pack verification) and clean up.
+bash verify.sh                                                # emits Gate 14/15/16/17 JSONs; expect 15/15 PASS
+./cleanup.sh                                                  # delete the resource group
 ```
+
+## Phase A vs Phase B
+
+This lab now splits the live-Azure reproduction from the offline evidence-pack verification:
+
+- **Phase A — Live Azure reproduction.** `trigger.sh` captures the null-destination baseline, then `fix-and-capture.sh` applies the environment-level fix, forces a new revision, waits for the new revision to run, drives post-fix traffic, and captures the populated KQL result. The historical Phase A script name was `verify.sh`; it was renamed to `fix-and-capture.sh` so `verify.sh` could become the offline verifier. The captured log file remains `00-verify-run.txt` for schema stability.
+- **Phase B — Offline evidence-pack verification.** `verify.sh` is now a pure file processor that reads the committed evidence cohort under `evidence/`, emits four derived gate JSONs, and exits 0 only when all 15 sub-gates pass. See [`evidence/README.md`](evidence/README.md) for the full evidence-pack tour.
 
 ## What this lab demonstrates
 
@@ -108,14 +124,13 @@ export WORKSPACE_RESOURCE_ID=$(az deployment group show \
 - The Container App uses the public placeholder image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` because this lab does not measure app behavior — it measures whether the environment routes platform/console logs to Log Analytics at all. The image is identical across the baseline and the post-fix runs.
 - `minReplicas: 1, maxReplicas: 1` is used so that the platform reliably emits `RevisionReady` and `ContainerStarted` system events into `ContainerAppSystemLogs_CL` on both the baseline revision and the post-fix revision, with no scale-to-zero confounder.
 - `trigger.sh` Phase 3 issues 10 sequential HTTPS requests against the public FQDN, then Phase 4 waits 300 seconds for any potential log ingestion lag, then Phase 5 runs the KQL on both `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL`. If either table returns rows, H1 is FALSIFIED — the lab exits 1 (INVALID RUN) because the baseline state did not hold.
-- `verify.sh` Phase 6 calls `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>`. The shared key is read from `az monitor log-analytics workspace get-shared-keys` at script runtime — it is never persisted to evidence files and never logged to stdout.
+- `fix-and-capture.sh` Phase 6 calls `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>`. The shared key is read from `az monitor log-analytics workspace get-shared-keys` at script runtime — it is never persisted to evidence files and never logged to stdout.
 - Phase 8 then forces a new revision by setting an env var `FIXAPPLIED=<UTC nonce>` on the app. Any env var change is sufficient to invalidate the previous template hash and create a new revision under `activeRevisionsMode: 'Single'`. This guarantees the platform emits a fresh `RevisionReady` event into `ContainerAppSystemLogs_CL` AFTER the environment was updated.
 - Phase 9 polls the revision list until `runningState` is `Running` or `RunningAtMaxScale` (or 30 attempts × 10 s = 5 min ceiling).
 - Phase 10 sends another 10 requests against the new revision. Phase 11 waits 300 seconds for ingestion. Phase 12 re-runs the same KQL. Both tables must now report ≥ 1 row, otherwise H2 is FALSIFIED.
-- The pass/fail logic encodes two outcomes plus one invalid-run guard:
-    - **H1 PASS + H2 PASS** ⇒ the falsification hypothesis is SUPPORTED. Exit 0.
-    - **H2 FALSIFIED** ⇒ the environment fix did NOT restore ingestion. Update the lab and the playbook to reflect the new platform behavior. Exit 2.
-    - **H1 FALSIFIED** (rows present at baseline) ⇒ INVALID RUN. Re-deploy and re-run. Exit 1.
+- The pass/fail logic now has separate Phase A and Phase B semantics:
+    - **Phase A (`fix-and-capture.sh`)** — **H1 PASS + H2 PASS** ⇒ falsification hypothesis SUPPORTED. Exit 0. **H2 FALSIFIED** ⇒ exit 2. **H1 FALSIFIED** ⇒ INVALID RUN, exit 1.
+    - **Phase B (`verify.sh`)** — 4 derived gates / 15 sub-gates over the committed evidence pack. Exit 0 only when every sub-gate passes; otherwise exit 1.
 
 ## Why the lab tests both `ContainerAppConsoleLogs_CL` AND `ContainerAppSystemLogs_CL`
 
@@ -149,8 +164,10 @@ When you ship this lab's evidence into a docs PR or a support ticket, ALWAYS rec
 - **Azure region** (e.g., `koreacentral`). Captured to `evidence/12-region.json`.
 - **Azure CLI version** and **`containerapp` extension version** (`az version`, `az extension list --query "[?name=='containerapp']"`). Captured to `evidence/10-cli-versions.json` and `evidence/11-cli-containerapp-ext.json`.
 - **Date of the run in UTC** (visible at the top of `00-trigger-run.txt` and `00-verify-run.txt`).
-- **The exit code of `trigger.sh` and `verify.sh`** (0 = hypothesis supported, 1 = invalid run, 2 = falsified).
+- **The exit code of `trigger.sh`, `fix-and-capture.sh`, and `verify.sh`** (0 = Phase A supported or Phase B all gates PASS, 1 = invalid run or Phase B gate failure, 2 = Phase A H2 falsified).
 - **Full deployment outputs** so the reader can reproduce the LAW guid, env name, app name, FQDN. Captured to `evidence/13-deployment-outputs.json`.
+
+The full evidence-pack tour and the derived gate descriptions live in [`evidence/README.md`](evidence/README.md).
 
 The log ingestion lag between event emission and KQL queryability in `*_CL` tables is not documented as a strict SLA. This lab uses a 5-minute wait window, which has been observed to be sufficient for `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL` in this reproduction, but a slower region or a busier workspace may need a longer wait. Recording the wait window and the post-wait row counts is critical for reproducibility.
 

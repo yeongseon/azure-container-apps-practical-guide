@@ -25,6 +25,9 @@ validation:
 
 Reproducible falsification lab demonstrating that the environment-level `properties.appLogsConfiguration` is the single controlling variable for Log Analytics ingestion from Azure Container Apps, and that when this property is omitted at provisioning time, neither `ContainerAppConsoleLogs_CL` nor `ContainerAppSystemLogs_CL` materializes in the workspace at all — the queries return `BadArgumentError: SEM0100 'where' operator: Failed to resolve table` rather than empty result sets, because the tables never came into existence. After `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` is applied and a new revision is forced via an env-var-only update, both tables materialize and populate within a 5-minute ingestion window.
 
+!!! info "Evidence depth"
+    This lab now uses a two-phase evidence model: Phase A (`trigger.sh` + `fix-and-capture.sh`) captures the live Azure reproduction, and Phase B (`verify.sh`) re-reads the committed evidence pack and emits four derived falsification gates without making any Azure calls.
+
 ## Lab Metadata
 
 | Field | Value |
@@ -62,8 +65,9 @@ flowchart TD
 
     - `infra/main.bicep` provisions a Log Analytics workspace (PerGB, 30-day retention), a Container Apps Environment with `properties: {}` (the `appLogsConfiguration` property is intentionally omitted — this is the experimental baseline state), and one Container App running the public `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image at `cpu: '0.25'`, `memory: '0.5Gi'`, `minReplicas: 1`, `maxReplicas: 1`, and `activeRevisionsMode: 'Single'`. The image is identical across the baseline and post-fix runs; the only experimental variable is the environment's log routing setting.
     - `trigger.sh` runs Phases 1-5: capture env config (fails fast if `destination != null`), capture app config + active revision, send 10 sequential HTTPS GETs against the public FQDN, wait 300 seconds for any potential log ingestion lag, then run the KQL on both `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL`. The KQL result parser tolerates the `BadArgumentError: SEM0100 'where' operator: Failed to resolve table` response that Azure returns when a `_CL` table has never been materialized in the workspace, and records it as 0 rows with explicit `is_bad_argument_error: true, is_table_missing: true` flags so the operator can see the difference between "the table exists and is empty" and "the table never came into existence". Exits 1 (INVALID RUN) if either table reports rows.
-    - `verify.sh` runs Phases 6-12: read the workspace shared key via `az monitor log-analytics workspace get-shared-keys` (the key is passed directly to the next `az` call and never persisted to evidence files or stdout), apply the fix via `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>`, capture the env config readback (expect `destination=log-analytics`), force a new revision via `az containerapp update --set-env-vars FIXAPPLIED=<UTC-nonce>` so the platform emits a fresh `RevisionReady` event AFTER the destination was set, poll the new revision until `runningState=Running` (or `RunningAtMaxScale`) with a 5-minute deadline, send another 10 HTTPS GETs, wait 300 seconds for ingestion, re-run the KQL, and evaluate H1+H2 with explicit exit codes (0=supported, 1=invalid, 2=falsified).
-    - `evidence/` carries 19 raw captures from the 2026-06-22 reproduction in `koreacentral`: full script execution logs (`00-trigger-run.txt`, `00-verify-run.txt`), per-phase JSON captures of the env config, app config, curl results, KQL output, env update result, revision list, KQL output (after fix), plus the raw KQL stdout/stderr from the baseline (`04-kql-before-*-raw.txt`) and post-fix (`09-kql-after-*-raw.txt`) calls, a by-revision system-log breakdown (`09-kql-after-system-by-revision.json`), and the supporting environment captures (CLI version, `containerapp` extension version, region, Bicep deployment outputs).
+    - `fix-and-capture.sh` runs Phases 6-12: read the workspace shared key via `az monitor log-analytics workspace get-shared-keys` (the key is passed directly to the next `az` call and never persisted to evidence files or stdout), apply the fix via `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>`, capture the env config readback (expect `destination=log-analytics`), force a new revision via `az containerapp update --set-env-vars FIXAPPLIED=<UTC-nonce>` so the platform emits a fresh `RevisionReady` event AFTER the destination was set, poll the new revision until `runningState=Running` (or `RunningAtMaxScale`) with a 5-minute deadline, send another 10 HTTPS GETs, wait 300 seconds for ingestion, re-run the KQL, and evaluate H1+H2 with explicit exit codes (0=supported, 1=invalid, 2=falsified).
+    - `verify.sh` is Phase B only: it reads the committed evidence cohort from disk, emits `14-cohort-integrity-gate.json`, `15-baseline-silent-gate.json`, `16-post-fix-populated-gate.json`, and `17-single-variable-falsification-gate.json`, and exits 0 only when all 15 sub-gates pass.
+    - `evidence/` carries 20 canonical Phase A captures from the 2026-06-22 reproduction in `koreacentral` plus the 4 derived Phase B gate JSONs: full script execution logs (`00-trigger-run.txt`, `00-verify-run.txt`), per-phase JSON captures of the env config, app config, curl results, KQL output, env update result, revision list, KQL output (after fix), the raw KQL stdout/stderr from the baseline (`04-kql-before-*-raw.txt`) and post-fix (`09-kql-after-*-raw.txt`) calls, a by-revision system-log breakdown (`09-kql-after-system-by-revision.json`), the supporting environment captures (CLI version, `containerapp` extension version, region, Bicep deployment outputs), and the Phase B falsification gates.
 
     Azure Portal screenshots (Container Apps Environment Overview, Logs blade showing destination=None then destination=log-analytics, KQL editor showing BadArgumentError then populated results) are **pending in a follow-up PR**. The follow-up will re-deploy the same Bicep template in a short-lived environment purely to capture the Portal blades, then close out.
 
@@ -95,7 +99,7 @@ export LOCATION="koreacentral"
 
 ## 2) Hypothesis
 
-The environment-level `appLogsConfiguration.destination` setting is the single controlling variable for Log Analytics ingestion from a Container Apps Environment. With the property omitted from the Bicep declaration (live state: `destination: null, logAnalyticsConfiguration: null`), no log path exists between the environment and the workspace, so neither `ContainerAppConsoleLogs_CL` nor `ContainerAppSystemLogs_CL` is ever populated by the platform — and because Log Analytics `_CL` tables are schema-on-write, neither table is even created in the workspace. After applying the environment-level fix via `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` and forcing a new revision so the platform emits fresh `RevisionReady` events into the now-configured destination, both tables materialize and populate within a 5-minute ingestion window.
+The environment-level `appLogsConfiguration` log-routing state is the controlling variable for Log Analytics ingestion from a Container Apps Environment. With the property omitted from the Bicep declaration (live state: `destination: null, logAnalyticsConfiguration: null`), no log path exists between the environment and the workspace, so neither `ContainerAppConsoleLogs_CL` nor `ContainerAppSystemLogs_CL` is ever populated by the platform — and because Log Analytics `_CL` tables are schema-on-write, neither table is even created in the workspace. After applying the environment-level fix via `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` and forcing a new revision so the platform emits fresh `RevisionReady` events into the now-configured destination, both tables materialize and populate within a 5-minute ingestion window.
 
 The alternative hypothesis being tested is that **some other variable controls ingestion** — for example a per-app setting, a Container Apps system-managed identity, or a delayed background reconciliation loop that eventually catches up — meaning the documented `appLogsConfiguration` setting is not necessary, or not sufficient, to control ingestion.
 
@@ -110,7 +114,7 @@ The alternative hypothesis being tested is that **some other variable controls i
 
 ### Deploy infrastructure
 
-All `az`, `./trigger.sh`, `./verify.sh`, and `./cleanup.sh` invocations below assume the working directory is the lab folder. Switch into it from the repository root before running anything:
+All `az`, `./trigger.sh`, `./fix-and-capture.sh`, `bash ./verify.sh`, and `./cleanup.sh` invocations below assume the working directory is the lab folder. Switch into it from the repository root before running anything:
 
 ```bash
 cd labs/diagnostic-settings-missing/
@@ -186,13 +190,13 @@ Run `trigger.sh`, which:
     - `silent_valid_baseline` — valid JSON with `rows == 0`, OR an empty list, OR the documented `BadArgumentError: SEM0100 'where' operator: Failed to resolve table` response (which Azure returns when a `_CL` table has never been materialized in the workspace). All three sub-cases are the expected baseline state under `destination: null`.
     - `populated_table` — valid JSON with `rows > 0`. This contradicts the expected baseline and falsifies H1.
     - `query_error_invalid_run` — any other parse or error state (transient auth failure, unexpected error format, malformed JSON without the expected `BadArgumentError + Failed to resolve table` signature). The run is invalid; do NOT treat this as either pass or falsified.
-- Exit codes: **Exit 0** if both tables are classified `silent_valid_baseline` (H1 PASS, baseline silent — proceed to `verify.sh`). **Exit 1** if either table is `populated_table` (H1 FALSIFIED) OR `query_error_invalid_run` (INVALID RUN — KQL transport/format failure, inspect the raw stderr file before re-running).
+- Exit codes: **Exit 0** if both tables are classified `silent_valid_baseline` (H1 PASS, baseline silent — proceed to `fix-and-capture.sh`). **Exit 1** if either table is `populated_table` (H1 FALSIFIED) OR `query_error_invalid_run` (INVALID RUN — KQL transport/format failure, inspect the raw stderr file before re-running).
 
 All scripts pass `--subscription "$AZ_SUBSCRIPTION"` on every `az` invocation to immunize the run against the Azure CLI's default-subscription drift, which has been observed in long-running shells where unrelated commands silently switch back to a different subscription.
 
-### Apply the fix and re-measure (run verify.sh)
+### Apply the fix and re-measure (run fix-and-capture.sh)
 
-Run `verify.sh`, which:
+Run `fix-and-capture.sh`, which:
 
 - Reads the baseline `console_rows` and `system_rows` from `04-kql-before.json` (the file `trigger.sh` produced).
 - Reads the workspace shared key via `az monitor log-analytics workspace get-shared-keys --workspace-name $(basename "$WORKSPACE_RESOURCE_ID")`. The shared key is held in a shell variable for exactly one subsequent `az containerapp env update` call and is never echoed to stdout, never written to any evidence file, and never logged anywhere on disk. After the env-update call, the shell variable goes out of scope when the script exits.
@@ -210,7 +214,7 @@ Run `verify.sh`, which:
 
 ### Apply the fix manually (the canonical operator response)
 
-The fix that `verify.sh` applies is also the canonical operator response for a real "no logs in Log Analytics" incident on Container Apps. When the lab proves the environment-level setting is the controlling variable, the operator action is:
+The fix that `fix-and-capture.sh` applies is also the canonical operator response for a real "no logs in Log Analytics" incident on Container Apps. When the lab proves the environment-level setting is the controlling variable, the operator action is:
 
 ```bash
 WS_SHARED_KEY="$(az monitor log-analytics workspace get-shared-keys \
@@ -285,7 +289,7 @@ The supporting environment captures (`evidence/10-cli-versions.json`, `evidence/
 
 ### Conclusion
 
-The controlling-variable hypothesis is SUPPORTED in this reproduction. The environment-level `appLogsConfiguration.destination` is the single controlling variable for Log Analytics ingestion from a Container Apps Environment — H1 holds (with `destination: null`, both tables reported 0 rows AND raised `Failed to resolve table` errors, which is stronger than the predicted 0-rows-with-existing-tables) AND H2 holds (after the env update plus a forced new revision and a 5-minute wait, both tables exist and report ≥ 1 row). The corrective operator action — `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` followed by `az containerapp update --set-env-vars FIXAPPLIED=<UTC-nonce>` — landed in a new revision within 20 seconds of the `az` call and required no application code change.
+The controlling-variable hypothesis is SUPPORTED in this reproduction. The environment-level `appLogsConfiguration` log-routing state is the controlling variable for Log Analytics ingestion from a Container Apps Environment — H1 holds (with `destination: null`, both tables reported 0 rows AND raised `Failed to resolve table` errors, which is stronger than the predicted 0-rows-with-existing-tables) AND H2 holds (after the env update plus a forced new revision and a 5-minute wait, both tables exist and report ≥ 1 row). The corrective operator action — `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` followed by `az containerapp update --set-env-vars FIXAPPLIED=<UTC-nonce>` — landed in a new revision within 20 seconds of the `az` call and required no application code change.
 
 ### Falsification
 
@@ -293,11 +297,11 @@ The alternative hypothesis ("some other variable controls ingestion; the documen
 
 - `[Measured]` `evidence/04-kql-before.json`: with `destination: null`, both `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL` raise `Failed to resolve table` (tables do not exist in the workspace).
 - `[Measured]` `evidence/09-kql-after.json`: after `az containerapp env update --logs-destination log-analytics ...` plus a new revision plus a 5-minute wait, both tables exist and report 1 and 34 rows respectively.
-- `[Observed]` Both runs used byte-identical client code (same 10-request Python loop, same FQDN, same wait window). The only changed variable is the environment's `appLogsConfiguration.destination`.
+- `[Observed]` Both runs used byte-identical client code (same 10-request Python loop, same FQDN, same wait window). The only observed change on the shared env-config surface was the environment's `appLogsConfiguration` payload (`destination` plus `logAnalyticsConfiguration`).
 
 If the alternative hypothesis were correct, the environment-level update alone would not have caused both tables to materialize and populate. Additional steps (per-app config, identity grant, delayed reconciliation) would be required. The observed end-to-end success of the environment-level update rules that out.
 
-To re-falsify in a future re-reproduction: re-run `trigger.sh` against an environment where some OTHER variable has been independently broken (for example, the workspace shared key has been rotated without updating the environment, or the workspace has been moved to a different region without updating the customer ID). In that case, `verify.sh`'s env update will either fail at the `az containerapp env update` call or succeed-but-not-ingest, and the H2 check will exit 2 — proving that the env-level `appLogsConfiguration` is necessary but not sufficient when an upstream invariant is broken.
+To re-falsify in a future re-reproduction: re-run `trigger.sh` against an environment where some OTHER variable has been independently broken (for example, the workspace shared key has been rotated without updating the environment, or the workspace has been moved to a different region without updating the customer ID). In that case, `fix-and-capture.sh`'s env update will either fail at the `az containerapp env update` call or succeed-but-not-ingest, and the H2 check will exit 2 — proving that the env-level `appLogsConfiguration` is necessary but not sufficient when an upstream invariant is broken.
 
 ### Operator takeaway
 
@@ -337,7 +341,7 @@ When escalating an "apps are running but Log Analytics is empty" case on Contain
 
     A `BadArgumentError: SEM0100 'where' operator: Failed to resolve table` response means no Container Apps environment has EVER ingested to this workspace; the configuration may have been mutated by a subsequent `az deployment group create` reverting the live state to the IaC's omitted property. A successful response with an empty result set means the table exists (some other env writes to this workspace) but the specific app or environment under investigation is silent — investigate that environment's `appLogsConfiguration` next.
 
-4. Recommend the controlled experiment in this lab (`trigger.sh` + `verify.sh` pattern) on a non-production environment before mutating a production environment's `appLogsConfiguration`. The lab's H1 baseline and H2 post-fix evidence are reproducible in 25 minutes for under USD $0.05 and produce a complete falsifiable evidence pack for the case record.
+4. Recommend the controlled experiment in this lab (`trigger.sh` + `fix-and-capture.sh` + `verify.sh` pattern) on a non-production environment before mutating a production environment's `appLogsConfiguration`. The lab's H1 baseline, H2 post-fix evidence, and Phase B falsification gates are reproducible in under 25 minutes and produce a complete evidence pack for the case record.
 
 ## Expected Evidence
 
@@ -346,7 +350,7 @@ Reproduced end-to-end in `koreacentral` on 2026-06-22. All raw evidence is commi
 | File | Content |
 |---|---|
 | `00-trigger-run.txt` | Full `trigger.sh` execution log (env config check + app config check + 10 HTTPS GETs + 5 min wait + KQL baseline showing `Failed to resolve table` on both `*_CL` tables, exit 0) |
-| `00-verify-run.txt` | Full `verify.sh` execution log (env update + readback + force new revision via FIXAPPLIED + revision swap + 10 HTTPS GETs + 5 min wait + KQL post-fix + H1+H2 evaluation, exit 0 / SUPPORTED) |
+| `00-verify-run.txt` | Full `fix-and-capture.sh` execution log (env update + readback + force new revision via FIXAPPLIED + revision swap + 10 HTTPS GETs + 5 min wait + KQL post-fix + H1+H2 evaluation, exit 0 / SUPPORTED; filename preserved across the Phase B rename) |
 | `01-env-config-before.json` | `{"destination": null, "logAnalyticsConfiguration": null}` — env baseline state |
 | `02-app-config-before.json` | App config + active revision name (`ca-diagsetting-7dcl4v--4usom8i`) before fix |
 | `03-curl-before.json` | 10 HTTP request results to baseline revision — 10/10 ok, ~438 ms per request |
@@ -405,6 +409,17 @@ The 0 → 1 transition on `ContainerAppConsoleLogs_CL` and the 0 → 34 transiti
 ## Related Playbook
 
 - [Diagnostic Settings Missing](../playbooks/observability/diagnostic-settings-missing.md)
+
+## Phase B evidence pack
+
+The committed evidence pack now includes a Phase B offline verifier and four derived falsification gates:
+
+- [`labs/diagnostic-settings-missing/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/diagnostic-settings-missing/evidence/README.md) — provenance, timeline, claim ceiling, honest disclosure, and file index for the evidence pack.
+- [`labs/diagnostic-settings-missing/verify.sh`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/diagnostic-settings-missing/verify.sh) — pure file processor that re-evaluates the evidence cohort without touching Azure.
+- [`14-cohort-integrity-gate.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/diagnostic-settings-missing/evidence/14-cohort-integrity-gate.json) — Strong/Fallback structural gate over the 20 canonical Phase A files.
+- [`15-baseline-silent-gate.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/diagnostic-settings-missing/evidence/15-baseline-silent-gate.json) — H1 gate proving null environment routing plus zero-row baseline silence after real traffic.
+- [`16-post-fix-populated-gate.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/diagnostic-settings-missing/evidence/16-post-fix-populated-gate.json) — H2 gate proving destination restoration plus populated console/system tables on the new traffic-holding revision.
+- [`17-single-variable-falsification-gate.json`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/diagnostic-settings-missing/evidence/17-single-variable-falsification-gate.json) — H3 gate bounding the observed change to the intentional env-config payload and documented revision lineage.
 
 ## See Also
 
