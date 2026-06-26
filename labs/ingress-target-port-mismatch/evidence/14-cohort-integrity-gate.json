@@ -1,0 +1,231 @@
+{
+  "claim": "The 25-file ingress-target-port-mismatch evidence cohort is internally consistent: the canonical files are present, the baseline\u2192trigger\u2192fix\u2192post-fix anchors are monotonic and bounded, no unexpected non-junk extras exist, and evidence/README.md cross-references all four Phase B gate JSON files.",
+  "claim_level": "Observed",
+  "gate_classification": "Cohort integrity gate: structural pre-condition for the three hypothesis gates. Strong and fallback evidence paths are both recorded for sub-gates (a) and (b), but any failing sub-gate falsifies the full Phase B run.",
+  "hypothesis": "H_cohort_integrity",
+  "ingress_target_port_mismatch_h_cohort_integrity_all_subgates_pass": true,
+  "ingress_target_port_mismatch_h_cohort_integrity_sub_gates": {
+    "a_canonical_files_presence": true,
+    "b_monotonic_temporal_coherence": true,
+    "c_no_unexpected_non_junk_extras": true,
+    "d_readme_cross_references_all_gate_filenames": true
+  },
+  "path_used": "strong",
+  "predicate_inputs": {
+    "baseline_curl": "labs/ingress-target-port-mismatch/evidence/03-curl-before.json",
+    "canonical_evidence_directory": "labs/ingress-target-port-mismatch/evidence",
+    "fix_kql": "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json",
+    "readme": "labs/ingress-target-port-mismatch/evidence/README.md",
+    "trigger_kql": "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json"
+  },
+  "scenario": "ingress_target_port_mismatch",
+  "sub_gates": [
+    {
+      "claim": "The Phase A cohort is sufficiently complete to support the four-gate falsification overlay.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/00-trigger-run.txt",
+        "labs/ingress-target-port-mismatch/evidence/00-verify-run.txt",
+        "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+        "labs/ingress-target-port-mismatch/evidence/02-replicas-before.json",
+        "labs/ingress-target-port-mismatch/evidence/03-curl-before.json",
+        "labs/ingress-target-port-mismatch/evidence/04-ingress-update-result.json",
+        "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/06-replicas-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/07-revision-status-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/08-curl-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger-portmismatch-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger-portmismatch-sample-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/10-ingress-update-fix-result.json",
+        "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/12-replicas-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/13-revision-status-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/14-curl-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix-portmismatch-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix-portmismatch-sample-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/20-cli-versions.json",
+        "labs/ingress-target-port-mismatch/evidence/21-cli-containerapp-ext.json",
+        "labs/ingress-target-port-mismatch/evidence/22-region.json",
+        "labs/ingress-target-port-mismatch/evidence/23-deployment-outputs.json"
+      ],
+      "observed_values": {
+        "fallback": {
+          "holds": true,
+          "minimum_present_count": 23,
+          "required_inputs": [
+            "01-ingress-config-before.json",
+            "05-ingress-config-after-trigger.json",
+            "11-ingress-config-after-fix.json",
+            "03-curl-before.json",
+            "08-curl-after-trigger.json",
+            "14-curl-after-fix.json",
+            "09-kql-after-trigger.json",
+            "15-kql-after-fix.json"
+          ],
+          "required_inputs_present": true
+        },
+        "observed_missing": [],
+        "observed_present_count": 25,
+        "path_satisfied": "strong",
+        "strong": {
+          "expected_count": 25,
+          "holds": true
+        }
+      },
+      "predicate": "Strong: all 25 canonical files are present. Fallback: at least 23 canonical files are present AND the required inputs {01,05,11,03,08,14,09-kql-after-trigger.json,15-kql-after-fix.json} are all present.",
+      "result": "pass",
+      "sub_gate": "a_canonical_files_presence"
+    },
+    {
+      "claim": "The baseline, trigger, fix, and post-fix query anchors form a monotonic experiment window of sane duration.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/03-curl-before.json",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json"
+      ],
+      "observed_values": {
+        "03_utc_completed": "2026-06-22T12:17:34Z",
+        "09_trigger_utc": "2026-06-22T12:17:44Z",
+        "15_fix_utc": "2026-06-22T12:25:06Z",
+        "15_utc_query": "2026-06-22T12:31:23Z",
+        "fallback": {
+          "holds": true,
+          "max_span_seconds": 5400
+        },
+        "monotonic": true,
+        "observed_span_seconds": 829.0,
+        "parse_error": null,
+        "path_satisfied": "strong",
+        "strong": {
+          "holds": true,
+          "max_span_seconds": 1800
+        }
+      },
+      "predicate": "03.utc_completed < 09.trigger_utc < 15.fix_utc < 15.utc_query. Strong: total span <= 1800 seconds. Fallback: total span <= 5400 seconds.",
+      "result": "pass",
+      "sub_gate": "b_monotonic_temporal_coherence"
+    },
+    {
+      "claim": "The evidence directory contains no unexpected non-junk files beyond the canonical cohort, four gate JSONs, and the evidence README.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/00-trigger-run.txt",
+        "labs/ingress-target-port-mismatch/evidence/00-verify-run.txt",
+        "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+        "labs/ingress-target-port-mismatch/evidence/02-replicas-before.json",
+        "labs/ingress-target-port-mismatch/evidence/03-curl-before.json",
+        "labs/ingress-target-port-mismatch/evidence/04-ingress-update-result.json",
+        "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/06-replicas-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/07-revision-status-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/08-curl-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger-portmismatch-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger-portmismatch-sample-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/10-ingress-update-fix-result.json",
+        "labs/ingress-target-port-mismatch/evidence/11-ingress-config-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/12-replicas-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/13-revision-status-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/14-cohort-integrity-gate.json",
+        "labs/ingress-target-port-mismatch/evidence/14-curl-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/15-h1-trigger-produces-failure-gate.json",
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix-portmismatch-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix-portmismatch-sample-raw.txt",
+        "labs/ingress-target-port-mismatch/evidence/15-kql-after-fix.json",
+        "labs/ingress-target-port-mismatch/evidence/16-h2-fix-restores-recovery-gate.json",
+        "labs/ingress-target-port-mismatch/evidence/17-single-variable-falsification-gate.json",
+        "labs/ingress-target-port-mismatch/evidence/20-cli-versions.json",
+        "labs/ingress-target-port-mismatch/evidence/21-cli-containerapp-ext.json",
+        "labs/ingress-target-port-mismatch/evidence/22-region.json",
+        "labs/ingress-target-port-mismatch/evidence/23-deployment-outputs.json",
+        "labs/ingress-target-port-mismatch/evidence/README.md"
+      ],
+      "observed_values": {
+        "holds": true,
+        "ignored_junk": [],
+        "observed_files_on_disk": [
+          "00-trigger-run.txt",
+          "00-verify-run.txt",
+          "01-ingress-config-before.json",
+          "02-replicas-before.json",
+          "03-curl-before.json",
+          "04-ingress-update-result.json",
+          "05-ingress-config-after-trigger.json",
+          "06-replicas-after-trigger.json",
+          "07-revision-status-after-trigger.json",
+          "08-curl-after-trigger.json",
+          "09-kql-after-trigger-portmismatch-raw.txt",
+          "09-kql-after-trigger-portmismatch-sample-raw.txt",
+          "09-kql-after-trigger.json",
+          "10-ingress-update-fix-result.json",
+          "11-ingress-config-after-fix.json",
+          "12-replicas-after-fix.json",
+          "13-revision-status-after-fix.json",
+          "14-cohort-integrity-gate.json",
+          "14-curl-after-fix.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "15-kql-after-fix-portmismatch-raw.txt",
+          "15-kql-after-fix-portmismatch-sample-raw.txt",
+          "15-kql-after-fix.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-single-variable-falsification-gate.json",
+          "20-cli-versions.json",
+          "21-cli-containerapp-ext.json",
+          "22-region.json",
+          "23-deployment-outputs.json",
+          "README.md"
+        ],
+        "observed_non_junk_extras": []
+      },
+      "predicate": "Every file under evidence/ that is not one of the 25 canonical files, 4 gate JSONs, or README.md must be junk only; any non-junk extra falsifies the gate.",
+      "result": "pass",
+      "sub_gate": "c_no_unexpected_non_junk_extras"
+    },
+    {
+      "claim": "The evidence-pack README literally names all four Phase B gate JSON files.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/README.md"
+      ],
+      "observed_values": {
+        "expected_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-single-variable-falsification-gate.json"
+        ],
+        "holds": true,
+        "observed_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-single-variable-falsification-gate.json"
+        ],
+        "readme_exists": true
+      },
+      "predicate": "evidence/README.md must contain the literal substrings 14-cohort-integrity-gate.json, 15-h1-trigger-produces-failure-gate.json, 16-h2-fix-restores-recovery-gate.json, and 17-single-variable-falsification-gate.json.",
+      "result": "pass",
+      "sub_gate": "d_readme_cross_references_all_gate_filenames"
+    }
+  ],
+  "thresholds": {
+    "canonical_count_fallback_floor": 23,
+    "canonical_count_strong": 25,
+    "required_fallback_inputs": [
+      "01-ingress-config-before.json",
+      "05-ingress-config-after-trigger.json",
+      "11-ingress-config-after-fix.json",
+      "03-curl-before.json",
+      "08-curl-after-trigger.json",
+      "14-curl-after-fix.json",
+      "09-kql-after-trigger.json",
+      "15-kql-after-fix.json"
+    ],
+    "temporal_span_fallback_seconds_max": 5400,
+    "temporal_span_strong_seconds_max": 1800
+  },
+  "utc_captured": "2026-06-26T05:25:01Z"
+}

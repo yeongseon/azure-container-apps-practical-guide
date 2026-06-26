@@ -1,0 +1,99 @@
+{
+  "claim": "The trigger mutated ingress.targetPort from 80 to 8081, edge traffic collapsed to 0/10 HTTP 200, the strictly post-trigger KQL window materialized 25 PortMismatch rows with gate_classification='populated_table', and the sample evidence includes the smoking-gun platform attribution 'The TargetPort 8081 does not match the listening port 80.'.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms that the app-scope ingress mutation produced the documented failure signature on both the edge-traffic surface and the system-log attribution surface.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "ingress_target_port_mismatch_h1_trigger_produces_failure_all_subgates_pass": true,
+  "ingress_target_port_mismatch_h1_trigger_produces_failure_sub_gates": {
+    "a_trigger_mutated_ingress": true,
+    "b_trigger_broke_traffic": true,
+    "c_trigger_populated_kql": true,
+    "d_trigger_has_smoking_gun_evidence": true
+  },
+  "path_used": "single",
+  "predicate_inputs": {
+    "curl_after_trigger": "labs/ingress-target-port-mismatch/evidence/08-curl-after-trigger.json",
+    "ingress_after_trigger": "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json",
+    "ingress_before": "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+    "ingress_update_result": "labs/ingress-target-port-mismatch/evidence/04-ingress-update-result.json",
+    "kql_after_trigger": "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json"
+  },
+  "scenario": "ingress_target_port_mismatch",
+  "sub_gates": [
+    {
+      "claim": "The trigger changed ingress.targetPort from the healthy baseline to the mismatched target port.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/01-ingress-config-before.json",
+        "labs/ingress-target-port-mismatch/evidence/04-ingress-update-result.json",
+        "labs/ingress-target-port-mismatch/evidence/05-ingress-config-after-trigger.json"
+      ],
+      "observed_values": {
+        "after_trigger_target_port": 8081,
+        "before_target_port": 80,
+        "trigger_update_target_port": 8081
+      },
+      "predicate": "01.ingress.targetPort == 80 AND 05.ingress.targetPort == 8081 AND 04.targetPort == 8081.",
+      "result": "pass",
+      "sub_gate": "a_trigger_mutated_ingress"
+    },
+    {
+      "claim": "After the trigger, the edge stopped returning HTTP 200 on the documented threshold surface.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/08-curl-after-trigger.json"
+      ],
+      "observed_values": {
+        "requests_non_200": 10,
+        "requests_ok": 0,
+        "requests_sent": 10
+      },
+      "predicate": "int(08.requests_ok) <= 1.",
+      "result": "pass",
+      "sub_gate": "b_trigger_broke_traffic"
+    },
+    {
+      "claim": "The strictly post-trigger KQL window materialized PortMismatch rows and classified the result as populated_table.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json"
+      ],
+      "observed_values": {
+        "gate_classification": "populated_table",
+        "portmismatch_rows": 25,
+        "probefailed_rows": 374
+      },
+      "predicate": "int(09.portmismatch_rows) >= 1 AND 09.gate_classification == 'populated_table'.",
+      "result": "pass",
+      "sub_gate": "c_trigger_populated_kql"
+    },
+    {
+      "claim": "The sample rows include the platform-attributed smoking-gun message naming both the configured target port and the listening port.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger.json",
+        "labs/ingress-target-port-mismatch/evidence/09-kql-after-trigger-portmismatch-sample-raw.txt"
+      ],
+      "observed_values": {
+        "matching_log_examples": [
+          "The TargetPort 8081 does not match the listening port 80.",
+          "The TargetPort 8081 does not match the listening port 80.",
+          "The TargetPort 8081 does not match the listening port 80."
+        ],
+        "matching_sample_count": 5,
+        "sample_row_count": 5
+      },
+      "predicate": "09.system_portmismatch_sample.sample_row_count >= 1 AND at least one sample has Reason_s == 'Pending:PortMismatch' AND Log_s contains both 'TargetPort' and 'does not match the listening port'.",
+      "result": "pass",
+      "sub_gate": "d_trigger_has_smoking_gun_evidence"
+    }
+  ],
+  "thresholds": {
+    "expected_gate_classification": "populated_table",
+    "portmismatch_rows_min": 1,
+    "post_trigger_requests_ok_max": 1,
+    "target_port_before_expected": 80,
+    "target_port_trigger_expected": 8081
+  },
+  "utc_captured": "2026-06-26T05:25:01Z"
+}
