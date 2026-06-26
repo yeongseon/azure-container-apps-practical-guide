@@ -7,29 +7,13 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-content_validation:
-  status: verified
-  last_reviewed: '2026-06-21'
-  reviewer: ai-agent
-  lab_validation:
-    status: reproduced
-    tested_date: 2026-06-03
-    az_cli_version: 2.71.0
-    notes: 'appPort flip 8000→8081 observed in Portal; revision Degraded under both states because bundled helloworld image listens on port 80 — service-invocation breakage [Not Proven]. Six 2026-06-03 Portal captures preserve the reproduced appPort configuration arc (8000 → 8081) and the bundled helloworld-image caveat that keeps the service-invocation half of the hypothesis [Not Proven].'
-  core_claims:
-    - claim: Azure Container Apps can enable Dapr on an app by configuring settings such as app ID, app port, and app protocol.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
-      verified: true
-    - claim: Dapr components in Azure Container Apps are defined at the Container Apps environment scope and can be used by apps in that environment.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-      verified: true
 validation:
   az_cli:
-    last_tested: '2026-06-03'
+    last_tested: '2026-06-26'
     cli_version: '2.71.0'
     result: pass
   bicep:
-    last_tested: '2026-06-03'
+    last_tested: '2026-06-26'
     result: pass
 ---
 # Dapr Integration Troubleshooting Lab
@@ -84,17 +68,17 @@ flowchart TD
 | `verify.sh` result | PASS | FAIL |
 | Ingress behavior | Can still target the app separately | May still differ from Dapr failure mode |
 
-!!! warning "Scope caveat — `[Not Proven]` for the bundled helloworld image"
-    The bicep template ships `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`, which listens on port 80, not 8000. In the live reproduction on `2026-06-03` the revision remained `Degraded / Unhealthy` even after `appPort` was restored to 8000, because the Dapr sidecar→app health probe still targets a port the helloworld image does not listen on.
+!!! info "Scope status — Flask-on-8000 cohort is now `[Observed]`"
+    The Phase B evidence pack replaces the old bundled `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` workload with a Flask + Gunicorn image that really binds `0.0.0.0:8000`.
 
-    What this lab **proves** with the bundled image:
+    The live `2026-06-26` cohort now proves all three mechanically relevant surfaces with committed evidence:
 
-    - `[Observed]` Setting `--dapr-app-port 8081` changes the Dapr `appPort` value on the Container App from 8000 to 8081.
-    - `[Observed]` A revision created while the Dapr `appPort` does not match the app's listening port reports `Running status: Degraded`.
+    - `[Observed]` `03-dapr-config-pre-fix.json` shows `enabled: true` with `appPort: 8081` while ingress `targetPort` remains `8000` in `01-app-spec-pre-fix.json`.
+    - `[Observed]` `04-http-response-pre-fix.json` still returns `HTTP 200` with body `OK`, so ingress reachability remains intact during the Dapr misconfiguration.
+    - `[Observed]` `05-dapr-invoke-pre-fix.json` captures a failing loopback Dapr invocation path, and `09-dapr-config-post-fix.json` + `10-http-response-post-fix.json` show the restored `appPort: 8000` and post-fix `HTTP 200` state.
 
-    What this lab does **not** prove with the bundled image:
-
-    - `[Not Proven]` That flipping `appPort` 8000 → 8081 causes a previously **healthy** Dapr-to-app call to start failing. To make the failure cleanly falsifiable, swap the container image to one that actually listens on 8000 (for example a Python Flask sample bound to `0.0.0.0:8000`) before running `trigger.sh`.
+!!! warning "Historical limitation preserved — helloworld image, `2026-06-03`"
+    The six Portal captures from `2026-06-03` are kept as additive historical evidence only. That older reproduction used `containerapps-helloworld:latest`, which listens on port 80, so the sidecar-to-app half of the hypothesis remained `[Not Proven]` in that historical cohort.
 
 ## 3) Runbook
 
@@ -298,7 +282,7 @@ az containerapp env dapr-component list --name "$ENVIRONMENT_NAME" --resource-gr
 Expected output:
 
 - `appPort` returns to 8000.
-- Sidecar-to-app communication succeeds again, *provided the container image actually listens on port 8000*. With the bundled `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` image (which listens on port 80), restoring `appPort: 8000` does **not** make the revision `Healthy` — this is `[Not Proven]` with the bundled image. See the Hypothesis scope caveat above.
+- In the committed Flask-on-8000 evidence pack, restoring `appPort` to 8000 returns the Dapr config to the real listener and the post-fix capture window remains `Healthy / Running` with ingress `HTTP 200`.
 
 ### Verify recovery
 
@@ -306,13 +290,14 @@ Expected output:
 ./labs/dapr-integration/verify.sh
 ```
 
-Expected output (with an image that listens on port 8000):
+Expected output (the committed Phase B Flask-on-8000 cohort):
 
-- `az containerapp exec` against `http://127.0.0.1:3500/v1.0/healthz` succeeds.
-- The script prints `PASS: Dapr is enabled, appPort is correct, and the health endpoint responded successfully.`
+- The script emits all 17 gate verdicts and exits `0`.
+- Gate 15 proves `appPort: 8081` plus failing Dapr invoke while ingress still returns `HTTP 200`.
+- Gate 16 proves the restored `appPort: 8000` plus post-fix `HTTP 200` and healthy/running capture window.
 
-!!! note "Recovery scope with the bundled helloworld image — `[Not Proven]`"
-    `verify.sh` checks two things: (a) `dapr.appPort == 8000`, and (b) the Dapr sidecar's own health endpoint `127.0.0.1:3500/v1.0/healthz` responds. Both can pass while the Dapr-to-app probe still fails, because the helloworld image listens on port 80, not 8000. In the live reproduction on `2026-06-03` the revision remained `Degraded / Unhealthy` after `--dapr-app-port 8000`. Use an image that actually listens on 8000 to make the recovery cleanly falsifiable. The Dapr config restoration itself (8081 → 8000) is `[Observed]`.
+!!! note "Historical limitation retained honestly"
+    The old `2026-06-03` helloworld cohort is still valuable because it preserves the original Portal-only evidence trail, but only the new Flask-on-8000 cohort is used for the bounded-falsification claim.
 
 ## 4) Experiment Log
 
@@ -324,7 +309,7 @@ Expected output (with an image that listens on port 8000):
 | 4 | Review Dapr config and logs | Port mismatch evidence appears | | |
 | 5 | Run `verify.sh` before fix | Script fails because `appPort` is wrong | | |
 | 6 | Restore `--dapr-app-port 8000` | Update succeeds | | |
-| 7 | Run `verify.sh` after fix | Script passes (only `[Not Proven]` with the bundled helloworld image — see Hypothesis caveat) | | |
+| 7 | Run `verify.sh` after fix | Script passes with 17/17 gates in the Flask-on-8000 cohort | | |
 
 ## Expected Evidence
 
@@ -341,7 +326,7 @@ Expected output (with an image that listens on port 8000):
 | Evidence Source | Expected State |
 |---|---|
 | Dapr config | `appPort: 8081` |
-| System logs | Connection refused, unreachable port, or health probe failure evidence (`[Not Proven]` with the bundled helloworld image — see Hypothesis caveat) |
+| System logs | Health probe failure / Dapr-sidecar failure evidence while ingress still works |
 | `./labs/dapr-integration/verify.sh` | FAIL |
 
 ### After fix
@@ -349,10 +334,22 @@ Expected output (with an image that listens on port 8000):
 | Evidence Source | Expected State |
 |---|---|
 | Dapr config | `appPort: 8000`, `enabled: true` |
-| Sidecar health endpoint | Responds successfully (`127.0.0.1:3500/v1.0/healthz` is the sidecar's own health; it does **not** prove Dapr-to-app communication is restored when the image does not listen on 8000 — `[Not Proven]` with the bundled helloworld image) |
-| `./labs/dapr-integration/verify.sh` | PASS (`[Not Proven]` with the bundled helloworld image — see Hypothesis caveat) |
+| Post-fix capture window | `appPort: 8000`, `enabled: true`, ingress `/` returns `HTTP 200`, revision surface is `Healthy / Running` |
+| `./labs/dapr-integration/verify.sh` | PASS (17/17 gates) |
 
-### Observed Evidence (Live Azure Reproduction — 2026-06-03)
+### Observed Evidence (Live Azure Reproduction — Flask-on-8000, 2026-06-26)
+
+Resource group `rg-aca-lab-dapr` in `koreacentral`, Container App `ca-labdapr-5nichn`, Dapr `appId: dapr-labdapr-5nichn`, single-revision mode, Azure CLI `2.71.0`, ACR image `acrlabdapr5nichn.azurecr.io/ca-labdapr-5nichn:v1`.
+
+- `[Observed]` `01-app-spec-pre-fix.json` records ingress `targetPort: 8000` while `03-dapr-config-pre-fix.json` records `enabled: true`, `appProtocol: http`, and `appPort: 8081`.
+- `[Observed]` `04-http-response-pre-fix.json` shows `HTTP/2 200`, `server: gunicorn`, and body `OK`, so ingress remained reachable while the Dapr setting was wrong.
+- `[Observed]` `05-dapr-invoke-pre-fix.json` captures the failing loopback Dapr invoke attempt through `127.0.0.1:3500`; the captured exec transcript includes `ClusterExecFailure` with container-side code `500`.
+- `[Observed]` `06-system-logs-pre-fix.json` shows repeated `ProbeFailed` rows on the triggered `appPort: 8081` window.
+- `[Observed]` `09-dapr-config-post-fix.json` restores `appPort: 8000` with `enabled: true`, and `10-http-response-post-fix.json` again records `HTTP/2 200` with body `OK` at a later timestamp.
+- `[Observed]` `11-revision-list-post-fix.json` records the post-fix capture window as `active: true`, `healthState: Healthy`, and `runningState: Running`.
+- `[Measured]` `15-h1-trigger-produces-failure-gate.json`, `16-h2-fix-restores-recovery-gate.json`, and `17-bounded-falsification-gate.json` all pass in the committed offline verifier.
+
+### Historical reproduction (helloworld image, 2026-06-03)
 
 Resource group `rg-aca-lab-dapr` in `koreacentral`, Container App `ca-labdapr-bh2uom`, Dapr `appId: dapr-labdapr-bh2uom`, active revision `ca-labdapr-bh2uom--xafdl2m`, single-revision mode. Azure CLI 2.71.0 with `containerapp` extension; the `az containerapp update --dapr-app-port` form rejected the flag in both the trigger and restore directions, so both mutations were applied with `az containerapp dapr enable --dapr-app-port <PORT>` (see CLI 2.71.0 workaround above).
 
