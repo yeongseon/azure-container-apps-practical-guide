@@ -242,7 +242,7 @@ The alternative hypothesis ("CPU is NOT the dominant bottleneck; raising CPU alo
 - `[Measured]` `evidence/03-loadtest-cpu025.json` (cpu=0.25): p95 = 2575 ms with 100/100 successful requests.
 - `[Measured]` `evidence/08-loadtest-cpu1.json` (cpu=1.0): p95 = 773 ms with 100/100 successful requests.
 - `[Measured]` ratio: 773 / 2575 = 0.300, well below the 50% H2 threshold.
-- `[Observed]` Both runs used byte-identical client code (`load_test.py`), same FQDN, same warm-up sequence, same `total=100, concurrency=20`. The only changed variable on the server is the per-replica CPU/memory envelope.
+- `[Observed]` Both runs used byte-identical client code (`load_test.py`), same FQDN, same warm-up sequence, same `total=100, concurrency=20`. On the server side, Gate 17 shows the only observed diff on the shared-fields surface captured by the cohort is the per-replica CPU/memory envelope.
 
 If the alternative hypothesis were correct, the p95 at cpu=1.0 would be ≥ 50% of the p95 at cpu=0.25 because the bottleneck would be something CPU does not address. The observed ratio of 30.0% rules that out.
 
