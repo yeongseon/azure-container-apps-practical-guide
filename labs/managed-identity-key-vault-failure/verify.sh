@@ -620,14 +620,23 @@ pre_lineage_holds = (
     f"/resourceGroups/{resource_group}/" in pre_revision_id
     and f"/containerApps/{app_name}/" in pre_revision_id
 )
-pre_post_rg_equal = pre_revision_parts["resource_group"] == post_revision_parts["resource_group"]
-pre_post_app_equal = pre_revision_parts["container_app"] == post_revision_parts["container_app"]
-pre_post_lineage_equal = pre_post_rg_equal and pre_post_app_equal
+pre_parse_ok = (
+    pre_revision_parts.get("resource_group") is not None
+    and pre_revision_parts.get("container_app") is not None
+)
+post_parse_ok = (
+    post_revision_parts.get("resource_group") is not None
+    and post_revision_parts.get("container_app") is not None
+)
+both_parse_ok = pre_parse_ok and post_parse_ok
+pre_post_rg_equal = both_parse_ok and pre_revision_parts["resource_group"] == post_revision_parts["resource_group"]
+pre_post_app_equal = both_parse_ok and pre_revision_parts["container_app"] == post_revision_parts["container_app"]
+pre_post_lineage_equal = both_parse_ok and pre_post_rg_equal and pre_post_app_equal
 role_assignment_to_revision_delta_seconds = (post_created - post_role_created).total_seconds()
 
 subgate_14a_pass = not parse_errors
 subgate_14b_pass = monotonic_ordering_holds and (strong_temporal or fallback_temporal)
-subgate_14c_pass = pre_latest_revision == pre_revision and pre_ready_revision == pre_revision and post_created > pre_created and pre_lineage_holds and post_lineage_holds and pre_post_lineage_equal
+subgate_14c_pass = pre_latest_revision == pre_revision and pre_ready_revision == pre_revision and post_created > pre_created and pre_lineage_holds and post_lineage_holds and both_parse_ok and pre_post_lineage_equal
 subgate_14d_pass = not unexpected_non_junk and observed_xrefs == expected_xrefs
 gate_14_all_subgates_pass = all([subgate_14a_pass, subgate_14b_pass, subgate_14c_pass, subgate_14d_pass])
 
@@ -740,6 +749,8 @@ gate14 = {
                 "resource_group": resource_group,
                 "post_lineage_holds": post_lineage_holds,
                 "pre_lineage_holds": pre_lineage_holds,
+                "pre_parse_ok": pre_parse_ok,
+                "post_parse_ok": post_parse_ok,
                 "pre_resource_group": pre_revision_parts["resource_group"],
                 "post_resource_group": post_revision_parts["resource_group"],
                 "pre_container_app": pre_revision_parts["container_app"],

@@ -539,6 +539,8 @@
         "resource_group": "rg-aca-lab-kv",
         "post_lineage_holds": true,
         "pre_lineage_holds": true,
+        "pre_parse_ok": true,
+        "post_parse_ok": true,
         "pre_resource_group": "rg-aca-lab-kv",
         "post_resource_group": "rg-aca-lab-kv",
         "pre_container_app": "ca-labkv-b3erju",
