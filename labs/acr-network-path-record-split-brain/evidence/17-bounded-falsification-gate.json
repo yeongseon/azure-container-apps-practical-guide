@@ -1,0 +1,449 @@
+{
+  "claim": "This evidence pack falsifies the ACR record-level zone-authority failure hypothesis within a bounded scope. Gate 17 demonstrates that the deleted regional data A record is the mechanically observable trigger field for this cohort: the container-app lineage stays constant, the same revision stays Healthy on both sides, the PE NIC IP map stays constant, the data record transitions from absent to present on the same zone, the workload probe transitions from data_nxdomain to both_private, and the broken-window pull-failure query stays empty. The pack does not claim exact DNS timing, exact retry counts, control-plane fresh-pull behavior, or byte-identical backend payloads.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that this single koreacentral cohort proves a workload-path record-level zone-authority failure: deleting the regional data A record makes the in-replica /probe surface move from both_private to data_nxdomain while the already-running revision stays Healthy, and restoring that same record with the same PE data IP moves the probe back to both_private without deploying a new revision. The pack does NOT prove broken-window control-plane fresh-pull behavior, exact resolver latency, exact retry counts, byte-identical backend bodies, cache-layer inventory, system-log ingestion latency, or negotiated TLS cipher suites.",
+    "explicit_drops": [
+      {
+        "id": "acr_control_plane_fresh_pull",
+        "note": "The pack intentionally does not prove broken-window control-plane fresh-pull behavior because this workload-path lab keeps the already-running revision in place."
+      },
+      {
+        "id": "dns_resolution_timing",
+        "note": "The pack proves DNS-class transitions, not the exact resolver-latency delta for each lookup."
+      },
+      {
+        "id": "exact_http_body_bytes",
+        "note": "The probe records status codes and errors, not a byte-identical backend body."
+      },
+      {
+        "id": "image_layer_cache_state",
+        "note": "The already-running revision remains healthy, but the raw cohort does not enumerate every cached OCI layer."
+      },
+      {
+        "id": "probe_retry_attempt_count",
+        "note": "Retry disclosure is preserved explicitly, but the causal claim is about the final selected topology transition, not an exact retry count contract."
+      },
+      {
+        "id": "resource_provider_poll_latency",
+        "note": "Azure control-plane poll timing is outside the causal field under test."
+      },
+      {
+        "id": "system_log_ingestion_latency",
+        "note": "The zero-row pull-failure query proves absence in the captured window, not the exact ingestion delay of every platform event."
+      },
+      {
+        "id": "tls_cipher_suite",
+        "note": "The pack proves TLS handshake success or skip, not the negotiated cipher suite bytes."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the deleted regional data A record as the trigger while explicitly listing the unproven confounders and ceilings.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "app_spec_pre": "labs/acr-network-path-record-split-brain/evidence/01-app-spec-pre-fix.json",
+    "revision_list_pre": "labs/acr-network-path-record-split-brain/evidence/02-revision-list-pre-fix.json",
+    "dns_records_pre": "labs/acr-network-path-record-split-brain/evidence/03-private-dns-record-list-pre-fix.json",
+    "pe_nic_pre": "labs/acr-network-path-record-split-brain/evidence/04-pe-nic-config-pre-fix.json",
+    "system_logs_pre": "labs/acr-network-path-record-split-brain/evidence/06-system-logs-pre-fix.json",
+    "probe_pre": "labs/acr-network-path-record-split-brain/evidence/08-probe-response-pre-fix.json",
+    "dns_records_post": "labs/acr-network-path-record-split-brain/evidence/09-private-dns-record-list-post-fix.json",
+    "revision_list_post": "labs/acr-network-path-record-split-brain/evidence/10-revision-list-post-fix.json",
+    "probe_post": "labs/acr-network-path-record-split-brain/evidence/11-probe-response-post-fix.json",
+    "composite_post": "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
+  },
+  "acr_network_path_record_split_brain_h3_bounded_falsification_all_subgates_pass": true,
+  "acr_network_path_record_split_brain_h3_bounded_falsification_sub_gates": {
+    "a_held_constant_fields_and_lineage_stay_equal": true,
+    "b_full_overlapping_h1_h2_diff_matches_the_record_level_trigger_story": true,
+    "c_explicit_drops_match_the_documented_ceiling": true,
+    "d_workload_path_silence_invariant_is_checked": true
+  },
+  "scenario": "acr_network_path_record_split_brain",
+  "sub_gates": [
+    {
+      "claim": "The held-constant fields, PE topology, lineage, and live revision identity stay equal across H1 and H2.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/04-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
+      ],
+      "observed_values": {
+        "held_constant_checks": {
+          "acr_public_network_access": {
+            "pre_value": "Disabled",
+            "post_value": "Disabled",
+            "equal": true
+          },
+          "acr_default_action": {
+            "pre_value": "Deny",
+            "post_value": "Deny",
+            "equal": true
+          },
+          "container_app_name": {
+            "pre_value": "ca-acrrecsplitbrain-ijb7kz",
+            "post_value": "ca-acrrecsplitbrain-ijb7kz",
+            "equal": true
+          },
+          "resource_group": {
+            "pre_value": "rg-acr-record-split-brain-lab",
+            "post_value": "rg-acr-record-split-brain-lab",
+            "equal": true
+          },
+          "identity_type": {
+            "pre_value": "SystemAssigned",
+            "post_value": "SystemAssigned",
+            "equal": true
+          },
+          "container_name": {
+            "pre_value": "app",
+            "post_value": "app",
+            "equal": true
+          },
+          "container_image": {
+            "pre_value": "acracrrecsplitbrainijb7kz.azurecr.io/record-split-brain-lab:v1",
+            "post_value": "acracrrecsplitbrainijb7kz.azurecr.io/record-split-brain-lab:v1",
+            "equal": true
+          },
+          "build_tag": {
+            "pre_value": "v1",
+            "post_value": "v1",
+            "equal": true
+          },
+          "cpu": {
+            "pre_value": 0.5,
+            "post_value": 0.5,
+            "equal": true
+          },
+          "memory": {
+            "pre_value": "1Gi",
+            "post_value": "1Gi",
+            "equal": true
+          },
+          "acr_fqdn_env": {
+            "pre_value": "acracrrecsplitbrainijb7kz.azurecr.io",
+            "post_value": "acracrrecsplitbrainijb7kz.azurecr.io",
+            "equal": true
+          },
+          "acr_data_fqdn_env": {
+            "pre_value": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+            "post_value": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+            "equal": true
+          },
+          "ingress_target_port": {
+            "pre_value": 80,
+            "post_value": 80,
+            "equal": true
+          },
+          "min_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "max_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "pe_nic_ip_map": {
+            "pre_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.70.4.4",
+                "fqdns": [
+                  "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.70.4.5",
+                "fqdns": [
+                  "acracrrecsplitbrainijb7kz.azurecr.io"
+                ]
+              }
+            ],
+            "post_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.70.4.4",
+                "fqdns": [
+                  "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.70.4.5",
+                "fqdns": [
+                  "acracrrecsplitbrainijb7kz.azurecr.io"
+                ]
+              }
+            ],
+            "equal": true
+          },
+          "registry_record_name": {
+            "pre_value": "acracrrecsplitbrainijb7kz",
+            "post_value": "acracrrecsplitbrainijb7kz",
+            "equal": true
+          },
+          "data_record_name": {
+            "pre_value": "acracrrecsplitbrainijb7kz.koreacentral.data",
+            "post_value": "acracrrecsplitbrainijb7kz.koreacentral.data",
+            "equal": true
+          },
+          "live_revision_name": {
+            "pre_value": "ca-acrrecsplitbrain-ijb7kz--0000003",
+            "post_value": "ca-acrrecsplitbrain-ijb7kz--0000003",
+            "equal": true
+          }
+        },
+        "pre_post_lineage_equal": true,
+        "pre_post_revision_equal": true
+      },
+      "predicate": "Every held_constant_checks entry has equal == true, the normalized PE NIC ipConfigurations compare equal, and the parsed pre/post live revision IDs compare equal on resourceGroup + containerApp + revision when both parses succeed.",
+      "result": "pass",
+      "sub_gate": "a_held_constant_fields_and_lineage_stay_equal"
+    },
+    {
+      "claim": "The full overlapping H1\u2194H2 diff matches the bounded record-level trigger story and no overlapping field outside the documented record/probe outputs changes.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/03-private-dns-record-list-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/08-probe-response-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/09-private-dns-record-list-post-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/11-probe-response-post-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
+      ],
+      "observed_values": {
+        "allowed_expected_diff_paths": [
+          "dns_records.data_record_ips[0]",
+          "dns_records.data_record_present",
+          "dns_records.record_count",
+          "probe.data_dns_class",
+          "probe.data_dns_error",
+          "probe.data_dns_ip",
+          "probe.data_http_error",
+          "probe.data_http_status",
+          "probe.data_tcp_connected",
+          "probe.data_tcp_error",
+          "probe.data_tls_error",
+          "probe.data_tls_handshake",
+          "probe.topology_class"
+        ],
+        "required_expected_diff_paths": [
+          "dns_records.data_record_present",
+          "probe.data_dns_class",
+          "probe.data_dns_error",
+          "probe.topology_class"
+        ],
+        "full_overlap_diff": {
+          "dns_records.data_record_present": {
+            "pre_value": false,
+            "post_value": true
+          },
+          "dns_records.record_count": {
+            "pre_value": 1,
+            "post_value": 2
+          },
+          "probe.data_dns_class": {
+            "pre_value": null,
+            "post_value": "private"
+          },
+          "probe.data_dns_error": {
+            "pre_value": "gaierror: [Errno -2] Name or service not known",
+            "post_value": null
+          },
+          "probe.data_dns_ip": {
+            "pre_value": null,
+            "post_value": "10.70.4.4"
+          },
+          "probe.data_http_error": {
+            "pre_value": "skipped (no DNS)",
+            "post_value": null
+          },
+          "probe.data_http_status": {
+            "pre_value": null,
+            "post_value": 403
+          },
+          "probe.data_tcp_connected": {
+            "pre_value": null,
+            "post_value": true
+          },
+          "probe.data_tcp_error": {
+            "pre_value": "skipped (no DNS)",
+            "post_value": null
+          },
+          "probe.data_tls_error": {
+            "pre_value": "skipped (no DNS)",
+            "post_value": null
+          },
+          "probe.data_tls_handshake": {
+            "pre_value": null,
+            "post_value": "ok"
+          },
+          "probe.topology_class": {
+            "pre_value": "data_nxdomain",
+            "post_value": "both_private"
+          }
+        },
+        "full_overlap_equal": {
+          "acr.defaultAction": "Deny",
+          "acr.publicNetworkAccess": "Disabled",
+          "container_app.container.acr_data_fqdn": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+          "container_app.container.acr_fqdn": "acracrrecsplitbrainijb7kz.azurecr.io",
+          "container_app.container.build_tag": "v1",
+          "container_app.container.cpu": 0.5,
+          "container_app.container.image": "acracrrecsplitbrainijb7kz.azurecr.io/record-split-brain-lab:v1",
+          "container_app.container.memory": "1Gi",
+          "container_app.container.name": "app",
+          "container_app.identity_type": "SystemAssigned",
+          "container_app.ingress.external": true,
+          "container_app.ingress.target_port": 80,
+          "container_app.name": "ca-acrrecsplitbrain-ijb7kz",
+          "container_app.resource_group": "rg-acr-record-split-brain-lab",
+          "container_app.revision.latest_ready_revision_name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+          "container_app.revision.latest_revision_name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+          "container_app.revision.live_revision_active": true,
+          "container_app.revision.live_revision_health_state": "Healthy",
+          "container_app.revision.live_revision_name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+          "container_app.revision.live_revision_provisioning_state": "Provisioned",
+          "container_app.revision.live_revision_running_state": "RunningAtMaxScale",
+          "container_app.scale.max_replicas": 1,
+          "container_app.scale.min_replicas": 1,
+          "dns_records.registry_record_ips[0]": "10.70.4.5",
+          "dns_records.registry_record_present": true,
+          "pe_nic[0].fqdns[0]": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+          "pe_nic[0].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+          "pe_nic[0].private_ip": "10.70.4.4",
+          "pe_nic[1].fqdns[0]": "acracrrecsplitbrainijb7kz.azurecr.io",
+          "pe_nic[1].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+          "pe_nic[1].private_ip": "10.70.4.5",
+          "probe.registry_dns_class": "private",
+          "probe.registry_dns_error": null,
+          "probe.registry_dns_ip": "10.70.4.5",
+          "probe.registry_http_status": 401,
+          "probe.registry_tcp_connected": true,
+          "probe.registry_tls_handshake": "ok"
+        },
+        "overlap_paths": [
+          "acr.defaultAction",
+          "acr.publicNetworkAccess",
+          "container_app.container.acr_data_fqdn",
+          "container_app.container.acr_fqdn",
+          "container_app.container.build_tag",
+          "container_app.container.cpu",
+          "container_app.container.image",
+          "container_app.container.memory",
+          "container_app.container.name",
+          "container_app.identity_type",
+          "container_app.ingress.external",
+          "container_app.ingress.target_port",
+          "container_app.name",
+          "container_app.resource_group",
+          "container_app.revision.latest_ready_revision_name",
+          "container_app.revision.latest_revision_name",
+          "container_app.revision.live_revision_active",
+          "container_app.revision.live_revision_health_state",
+          "container_app.revision.live_revision_name",
+          "container_app.revision.live_revision_provisioning_state",
+          "container_app.revision.live_revision_running_state",
+          "container_app.scale.max_replicas",
+          "container_app.scale.min_replicas",
+          "dns_records.data_record_present",
+          "dns_records.record_count",
+          "dns_records.registry_record_ips[0]",
+          "dns_records.registry_record_present",
+          "pe_nic[0].fqdns[0]",
+          "pe_nic[0].name",
+          "pe_nic[0].private_ip",
+          "pe_nic[1].fqdns[0]",
+          "pe_nic[1].name",
+          "pe_nic[1].private_ip",
+          "probe.data_dns_class",
+          "probe.data_dns_error",
+          "probe.data_dns_ip",
+          "probe.data_http_error",
+          "probe.data_http_status",
+          "probe.data_tcp_connected",
+          "probe.data_tcp_error",
+          "probe.data_tls_error",
+          "probe.data_tls_handshake",
+          "probe.registry_dns_class",
+          "probe.registry_dns_error",
+          "probe.registry_dns_ip",
+          "probe.registry_http_status",
+          "probe.registry_tcp_connected",
+          "probe.registry_tls_handshake",
+          "probe.topology_class"
+        ],
+        "unexpected_overlap_diffs": {},
+        "missing_required_diff_paths": []
+      },
+      "predicate": "Across the full normalized overlapping H1/H2 surface, the only differing overlap paths are the documented data-record and data-probe output fields; no other overlapping path may differ, and the required paths {dns_records.data_record_present, probe.data_dns_class, probe.data_dns_error, probe.topology_class} must all differ.",
+      "result": "pass",
+      "sub_gate": "b_full_overlapping_h1_h2_diff_matches_the_record_level_trigger_story"
+    },
+    {
+      "claim": "The bounded-falsification gate explicitly lists the documented ceilings and unsupported inferences.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/17-bounded-falsification-gate.json"
+      ],
+      "observed_values": {
+        "documented_ceiling_ids": [
+          "acr_control_plane_fresh_pull",
+          "dns_resolution_timing",
+          "exact_http_body_bytes",
+          "image_layer_cache_state",
+          "probe_retry_attempt_count",
+          "resource_provider_poll_latency",
+          "system_log_ingestion_latency",
+          "tls_cipher_suite"
+        ],
+        "observed_drop_ids": [
+          "acr_control_plane_fresh_pull",
+          "dns_resolution_timing",
+          "exact_http_body_bytes",
+          "image_layer_cache_state",
+          "probe_retry_attempt_count",
+          "resource_provider_poll_latency",
+          "system_log_ingestion_latency",
+          "tls_cipher_suite"
+        ]
+      },
+      "predicate": "cohort_binding_note.explicit_drops ids equal the static documented ceiling {acr_control_plane_fresh_pull, dns_resolution_timing, exact_http_body_bytes, image_layer_cache_state, probe_retry_attempt_count, resource_provider_poll_latency, system_log_ingestion_latency, tls_cipher_suite} with no additions and no omissions.",
+      "result": "pass",
+      "sub_gate": "c_explicit_drops_match_the_documented_ceiling"
+    },
+    {
+      "claim": "The workload-path silence invariant is checked actively: the same revision stays Healthy on both sides, H1 shows data_nxdomain, H2 shows both_private, and the broken-window pull-failure query stays empty.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/06-system-logs-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/11-probe-response-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_live_revision_name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+        "post_live_revision_name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+        "pre_health_state": "Healthy",
+        "post_health_state": "Healthy",
+        "pre_topology_class": "data_nxdomain",
+        "post_topology_class": "both_private",
+        "broken_window_pull_failure_row_count": 0
+      },
+      "predicate": "02.selected live revision name == 10.selected live revision name AND both selected live revisions have healthState == 'Healthy' AND 08.response.topology_class == 'data_nxdomain' AND 11.response.topology_class == 'both_private' AND len(06.rows) == 0.",
+      "result": "pass",
+      "sub_gate": "d_workload_path_silence_invariant_is_checked"
+    }
+  ],
+  "thresholds": {
+    "held_constant_field_count": 19,
+    "expected_broken_pull_failure_rows": 0
+  },
+  "utc_captured": "2026-06-28T22:37:05Z"
+}

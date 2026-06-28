@@ -1,0 +1,77 @@
+{
+  "auxiliaryMode": "None",
+  "auxiliarySku": "None",
+  "disableTcpStateTracking": false,
+  "dnsSettings": {
+    "appliedDnsServers": [],
+    "dnsServers": [],
+    "internalDomainNameSuffix": "p5exxzk0mtre1aac3czd51exff.syx.internal.cloudapp.net"
+  },
+  "enableAcceleratedNetworking": false,
+  "enableIPForwarding": false,
+  "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+  "hostedWorkloads": [],
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.Network/networkInterfaces/pe-acracrrecsplitbrainijb7kz.nic.00000000-0000-0000-0000-000000000000",
+  "ipConfigurations": [
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.Network/networkInterfaces/pe-acracrrecsplitbrainijb7kz.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": true,
+      "privateIPAddress": "10.70.4.4",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry_data_koreacentral"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-acr-record-split-brain-lab",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrrecsplitbrain-ijb7kz/subnets/snet-pe",
+        "resourceGroup": "rg-acr-record-split-brain-lab"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    },
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.Network/networkInterfaces/pe-acracrrecsplitbrainijb7kz.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": false,
+      "privateIPAddress": "10.70.4.5",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrrecsplitbrainijb7kz.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-acr-record-split-brain-lab",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.Network/virtualNetworks/vnet-acrrecsplitbrain-ijb7kz/subnets/snet-pe",
+        "resourceGroup": "rg-acr-record-split-brain-lab"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    }
+  ],
+  "location": "koreacentral",
+  "macAddress": "",
+  "name": "pe-acracrrecsplitbrainijb7kz.nic.00000000-0000-0000-0000-000000000000",
+  "nicType": "Standard",
+  "privateEndpoint": {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.Network/privateEndpoints/pe-acracrrecsplitbrainijb7kz",
+    "resourceGroup": "rg-acr-record-split-brain-lab"
+  },
+  "provisioningState": "Succeeded",
+  "resourceGroup": "rg-acr-record-split-brain-lab",
+  "resourceGuid": "00000000-0000-0000-0000-000000000000",
+  "tapConfigurations": [],
+  "type": "Microsoft.Network/networkInterfaces",
+  "vnetEncryptionSupported": false
+}

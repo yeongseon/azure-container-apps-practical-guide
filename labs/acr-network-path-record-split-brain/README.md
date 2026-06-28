@@ -232,6 +232,29 @@ No VM cost in this lab (vs. ~$0.05/hour B1s + disk in the sibling
 Scenario E lab). Tear down with `cleanup.sh` immediately after capturing
 evidence.
 
+## Phase B Evidence Pack
+
+The reusable Phase B cohort lives in [`evidence/`](evidence/README.md).
+
+- It captures one live Azure reproduction in `koreacentral` where the already-running revision stays `Healthy` while the regional data A record is deleted and later restored.
+- The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
+- Gate 14 proves the cohort is structurally coherent: canonical files present, parseable, bounded in one UTC window, same lineage, unchanged PE NIC IPs, and deterministic gate outputs.
+- Gate 15 proves H1 really fired: the data A record is absent, `/probe` returns `topology_class=data_nxdomain`, the selected live revision stays `Healthy`, and the broken-window pull-failure query stays empty.
+- Gate 16 proves H2 really recovered: the data A record is restored with the original PE NIC IP, `/probe` returns `topology_class=both_private`, and the same revision remains `Healthy` with no new revision created during the lab.
+- Gate 17 performs the full normalized overlapping H1↔H2 diff and bounds the causal claim to the record-level zone-authority change, not to PE drift, ACR public-access drift, or a new revision deployment.
+
+For offline reruns:
+
+| Command | Why it is used |
+|---|---|
+| `cd labs/acr-network-path-record-split-brain/` | Enters the lab directory so relative evidence paths resolve correctly. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. |
+
+```bash
+cd labs/acr-network-path-record-split-brain/
+bash verify.sh
+```
+
 ## See Also
 
 - Lab guide: `docs/troubleshooting/lab-guides/acr-network-path-record-split-brain.md`
