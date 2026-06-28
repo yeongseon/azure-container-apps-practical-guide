@@ -184,7 +184,7 @@ create_evidence_readme() {
 import json
 from pathlib import Path
 
-root = Path("/Users/yeongseonchoe/GitHub/azure-container-apps-practical-guide/labs/acr-network-path-record-split-brain/evidence")
+root = Path(__import__('os').environ['EVIDENCE_DIR'])
 pre = json.loads(root.joinpath('01-app-spec-pre-fix.json').read_text(encoding='utf-8'))
 probe_pre = json.loads(root.joinpath('08-probe-response-pre-fix.json').read_text(encoding='utf-8'))
 probe_post = json.loads(root.joinpath('11-probe-response-post-fix.json').read_text(encoding='utf-8'))
