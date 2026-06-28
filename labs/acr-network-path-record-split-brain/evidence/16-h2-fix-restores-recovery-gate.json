@@ -1,0 +1,306 @@
+{
+  "claim": "The H2 fix restored recovery on ca-acrrecsplitbrain-ijb7kz: the regional data A record is present again with the PE NIC data IP, the /probe endpoint returns topology_class=both_private, the same already-running revision stays Healthy, and no new revision was created during the lab. This is the workload-path silence invariant.",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms recovery after restoring the deleted regional data A record and proves that the workload-path lab never deployed a new revision.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "path_used": "single",
+  "predicate_inputs": {
+    "dns_records_post": "labs/acr-network-path-record-split-brain/evidence/09-private-dns-record-list-post-fix.json",
+    "revision_list_post": "labs/acr-network-path-record-split-brain/evidence/10-revision-list-post-fix.json",
+    "probe_post": "labs/acr-network-path-record-split-brain/evidence/11-probe-response-post-fix.json",
+    "composite_post": "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
+  },
+  "acr_network_path_record_split_brain_h2_fix_restores_recovery_all_subgates_pass": true,
+  "acr_network_path_record_split_brain_h2_fix_restores_recovery_sub_gates": {
+    "a_data_record_is_restored_with_the_pe_data_ip": true,
+    "b_probe_returns_both_private_again": true,
+    "c_same_revision_stays_healthy_without_a_new_revision": true,
+    "d_acr_access_and_pe_topology_stay_constant": true
+  },
+  "scenario": "acr_network_path_record_split_brain",
+  "sub_gates": [
+    {
+      "claim": "The post-fix DNS record list contains exactly one restored regional data A record with the original PE NIC data IP.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/09-private-dns-record-list-post-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/04-pe-nic-config-pre-fix.json"
+      ],
+      "observed_values": {
+        "expected_data_ip": "10.70.4.4",
+        "post_data_records": [
+          {
+            "name": "acracrrecsplitbrainijb7kz.koreacentral.data",
+            "fqdn": "acracrrecsplitbrainijb7kz.koreacentral.data.privatelink.azurecr.io.",
+            "ttl": 3600,
+            "a_records": [
+              "10.70.4.4"
+            ]
+          }
+        ],
+        "post_registry_records": [
+          {
+            "name": "acracrrecsplitbrainijb7kz",
+            "fqdn": "acracrrecsplitbrainijb7kz.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.70.4.5"
+            ]
+          }
+        ]
+      },
+      "predicate": "len(post data record matches) == 1 AND post data record a_records == [the PE data IP captured from 04].",
+      "result": "pass",
+      "sub_gate": "a_data_record_is_restored_with_the_pe_data_ip"
+    },
+    {
+      "claim": "The post-fix /probe response returns topology_class=both_private and both FQDNs resolve to the expected PE NIC IPs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/11-probe-response-post-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/04-pe-nic-config-pre-fix.json"
+      ],
+      "observed_values": {
+        "expected_registry_ip": "10.70.4.5",
+        "expected_data_ip": "10.70.4.4",
+        "selected_attempt": 1,
+        "attempt_count": 1,
+        "attempts": [
+          {
+            "attempt": 1,
+            "topology_class": "both_private",
+            "registry_dns_class": "private",
+            "data_dns_class": "private",
+            "data_dns_error": null
+          }
+        ],
+        "final_response": {
+          "build": "v1",
+          "registry": {
+            "fqdn": "acracrrecsplitbrainijb7kz.azurecr.io",
+            "dns": {
+              "ip": "10.70.4.5",
+              "class": "private",
+              "error": null
+            },
+            "tcp": {
+              "connected": true,
+              "error": null
+            },
+            "tls": {
+              "handshake": "ok",
+              "error": null
+            },
+            "http": {
+              "status": 401,
+              "status_line": "HTTP/1.1 401 Unauthorized",
+              "error": null
+            }
+          },
+          "data": {
+            "fqdn": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+            "dns": {
+              "ip": "10.70.4.4",
+              "class": "private",
+              "error": null
+            },
+            "tcp": {
+              "connected": true,
+              "error": null
+            },
+            "tls": {
+              "handshake": "ok",
+              "error": null
+            },
+            "http": {
+              "status": 403,
+              "status_line": "HTTP/1.1 403 Forbidden",
+              "error": null
+            }
+          },
+          "topology_class": "both_private"
+        }
+      },
+      "predicate": "11.response.topology_class == 'both_private' AND 11.response.registry.dns.ip == expected registry PE IP AND 11.response.data.dns.ip == expected data PE IP AND 11.selected_attempt >= 1 AND len(11.attempts) >= 11.selected_attempt.",
+      "result": "pass",
+      "sub_gate": "b_probe_returns_both_private_again"
+    },
+    {
+      "claim": "The same already-running revision stays Healthy after the fix and no new revision was created during the lab.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_live_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.App/containerApps/ca-acrrecsplitbrain-ijb7kz/revisions/ca-acrrecsplitbrain-ijb7kz--0000003",
+          "name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-28T22:32:19+00:00",
+            "fqdn": "ca-acrrecsplitbrain-ijb7kz--0000003.wonderfulmushroom-d6373f0e.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "env": [
+                    {
+                      "name": "ACR_FQDN",
+                      "value": "acracrrecsplitbrainijb7kz.azurecr.io"
+                    },
+                    {
+                      "name": "ACR_DATA_FQDN",
+                      "value": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+                    },
+                    {
+                      "name": "BUILD_TAG",
+                      "value": "v1"
+                    }
+                  ],
+                  "image": "acracrrecsplitbrainijb7kz.azurecr.io/record-split-brain-lab:v1",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.5,
+                    "memory": "1Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-acr-record-split-brain-lab",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "post_live_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.App/containerApps/ca-acrrecsplitbrain-ijb7kz/revisions/ca-acrrecsplitbrain-ijb7kz--0000003",
+          "name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-28T22:32:19+00:00",
+            "fqdn": "ca-acrrecsplitbrain-ijb7kz--0000003.wonderfulmushroom-d6373f0e.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "env": [
+                    {
+                      "name": "ACR_FQDN",
+                      "value": "acracrrecsplitbrainijb7kz.azurecr.io"
+                    },
+                    {
+                      "name": "ACR_DATA_FQDN",
+                      "value": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+                    },
+                    {
+                      "name": "BUILD_TAG",
+                      "value": "v1"
+                    }
+                  ],
+                  "image": "acracrrecsplitbrainijb7kz.azurecr.io/record-split-brain-lab:v1",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.5,
+                    "memory": "1Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-acr-record-split-brain-lab",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "pre_post_revision_equal": true,
+        "all_post_revision_healthy": true
+      },
+      "predicate": "The live revision selected from 10 has healthState == 'Healthy' and active == true, every revision captured in 10 has healthState == 'Healthy', and the selected revision name in 10 equals the selected revision name in 02.",
+      "result": "pass",
+      "sub_gate": "c_same_revision_stays_healthy_without_a_new_revision"
+    },
+    {
+      "claim": "ACR public access and PE topology stay constant across H1 and H2.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/05-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_publicNetworkAccess": "Disabled",
+        "post_publicNetworkAccess": "Disabled",
+        "pre_nic_map": [
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.70.4.4",
+            "fqdns": [
+              "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+            ]
+          },
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.70.4.5",
+            "fqdns": [
+              "acracrrecsplitbrainijb7kz.azurecr.io"
+            ]
+          }
+        ],
+        "post_nic_map": [
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.70.4.4",
+            "fqdns": [
+              "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+            ]
+          },
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.70.4.5",
+            "fqdns": [
+              "acracrrecsplitbrainijb7kz.azurecr.io"
+            ]
+          }
+        ]
+      },
+      "predicate": "05.publicNetworkAccess == 12.acr.publicNetworkAccess AND the normalized PE NIC ipConfigurations captured in 04 and 12.pe_nic compare equal.",
+      "result": "pass",
+      "sub_gate": "d_acr_access_and_pe_topology_stay_constant"
+    }
+  ],
+  "thresholds": {
+    "expected_post_fix_data_record_count": 1
+  },
+  "utc_captured": "2026-06-28T22:37:05Z"
+}

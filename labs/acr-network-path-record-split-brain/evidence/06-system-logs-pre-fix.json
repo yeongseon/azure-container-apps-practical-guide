@@ -1,0 +1,6 @@
+{
+  "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrrecsplitbrain-ijb7kz' | where TimeGenerated >= todatetime('2026-06-28T22:34:36Z') | where Reason_s in ('PullingImage','PulledImage','ImagePullUnauthorized','ImagePullFailed','BackOff') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
+  "window_start_utc": "2026-06-28T22:34:36Z",
+  "window_end_utc": "2026-06-28T22:34:36Z",
+  "rows": []
+}

@@ -1,0 +1,106 @@
+{
+  "expected_topology": "both_private",
+  "captured_before_utc": "2026-06-28T22:36:42Z",
+  "captured_after_utc": "2026-06-28T22:36:42Z",
+  "attempts": [
+    {
+      "attempt": 1,
+      "valid_json": true,
+      "raw_response": "{\n  \"build\": \"v1\",\n  \"registry\": {\n    \"fqdn\": \"acracrrecsplitbrainijb7kz.azurecr.io\",\n    \"dns\": {\n      \"ip\": \"10.70.4.5\",\n      \"class\": \"private\",\n      \"error\": null\n    },\n    \"tcp\": {\n      \"connected\": true,\n      \"error\": null\n    },\n    \"tls\": {\n      \"handshake\": \"ok\",\n      \"error\": null\n    },\n    \"http\": {\n      \"status\": 401,\n      \"status_line\": \"HTTP/1.1 401 Unauthorized\",\n      \"error\": null\n    }\n  },\n  \"data\": {\n    \"fqdn\": \"acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io\",\n    \"dns\": {\n      \"ip\": \"10.70.4.4\",\n      \"class\": \"private\",\n      \"error\": null\n    },\n    \"tcp\": {\n      \"connected\": true,\n      \"error\": null\n    },\n    \"tls\": {\n      \"handshake\": \"ok\",\n      \"error\": null\n    },\n    \"http\": {\n      \"status\": 403,\n      \"status_line\": \"HTTP/1.1 403 Forbidden\",\n      \"error\": null\n    }\n  },\n  \"topology_class\": \"both_private\"\n}",
+      "response": {
+        "build": "v1",
+        "registry": {
+          "fqdn": "acracrrecsplitbrainijb7kz.azurecr.io",
+          "dns": {
+            "ip": "10.70.4.5",
+            "class": "private",
+            "error": null
+          },
+          "tcp": {
+            "connected": true,
+            "error": null
+          },
+          "tls": {
+            "handshake": "ok",
+            "error": null
+          },
+          "http": {
+            "status": 401,
+            "status_line": "HTTP/1.1 401 Unauthorized",
+            "error": null
+          }
+        },
+        "data": {
+          "fqdn": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+          "dns": {
+            "ip": "10.70.4.4",
+            "class": "private",
+            "error": null
+          },
+          "tcp": {
+            "connected": true,
+            "error": null
+          },
+          "tls": {
+            "handshake": "ok",
+            "error": null
+          },
+          "http": {
+            "status": 403,
+            "status_line": "HTTP/1.1 403 Forbidden",
+            "error": null
+          }
+        },
+        "topology_class": "both_private"
+      },
+      "topology_class": "both_private"
+    }
+  ],
+  "selected_attempt": 1,
+  "response": {
+    "build": "v1",
+    "registry": {
+      "fqdn": "acracrrecsplitbrainijb7kz.azurecr.io",
+      "dns": {
+        "ip": "10.70.4.5",
+        "class": "private",
+        "error": null
+      },
+      "tcp": {
+        "connected": true,
+        "error": null
+      },
+      "tls": {
+        "handshake": "ok",
+        "error": null
+      },
+      "http": {
+        "status": 401,
+        "status_line": "HTTP/1.1 401 Unauthorized",
+        "error": null
+      }
+    },
+    "data": {
+      "fqdn": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+      "dns": {
+        "ip": "10.70.4.4",
+        "class": "private",
+        "error": null
+      },
+      "tcp": {
+        "connected": true,
+        "error": null
+      },
+      "tls": {
+        "handshake": "ok",
+        "error": null
+      },
+      "http": {
+        "status": 403,
+        "status_line": "HTTP/1.1 403 Forbidden",
+        "error": null
+      }
+    },
+    "topology_class": "both_private"
+  }
+}

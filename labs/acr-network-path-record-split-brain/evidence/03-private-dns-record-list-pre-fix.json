@@ -1,0 +1,20 @@
+[
+  {
+    "aRecords": [
+      {
+        "ipv4Address": "10.70.4.5"
+      }
+    ],
+    "etag": "00000000-0000-0000-0000-000000000000",
+    "fqdn": "acracrrecsplitbrainijb7kz.privatelink.azurecr.io.",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.Network/privateDnsZones/privatelink.azurecr.io/A/acracrrecsplitbrainijb7kz",
+    "isAutoRegistered": false,
+    "metadata": {
+      "creator": "created by private endpoint pe-acracrrecsplitbrainijb7kz with resource guid 00000000-0000-0000-0000-000000000000"
+    },
+    "name": "acracrrecsplitbrainijb7kz",
+    "resourceGroup": "rg-acr-record-split-brain-lab",
+    "ttl": 10,
+    "type": "Microsoft.Network/privateDnsZones/A"
+  }
+]

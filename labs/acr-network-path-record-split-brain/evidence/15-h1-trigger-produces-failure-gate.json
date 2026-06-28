@@ -1,0 +1,224 @@
+{
+  "claim": "The H1 trigger produced the documented workload-path failure surface on ca-acrrecsplitbrain-ijb7kz: the data A record is absent while the registry record stays present, the /probe endpoint returns topology_class=data_nxdomain with explicit retry disclosure, the already-running revision stays Healthy, and the captured pull-failure KQL window stays empty. This is the silent workload-path failure mode for record-level zone authority.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms that deleting the regional data A record flips only the workload probe surface while the already-running revision stays healthy.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "dns_records_pre": "labs/acr-network-path-record-split-brain/evidence/03-private-dns-record-list-pre-fix.json",
+    "acr_public_access_pre": "labs/acr-network-path-record-split-brain/evidence/05-acr-public-access-pre-fix.json",
+    "system_logs_pre": "labs/acr-network-path-record-split-brain/evidence/06-system-logs-pre-fix.json",
+    "probe_pre": "labs/acr-network-path-record-split-brain/evidence/08-probe-response-pre-fix.json",
+    "revision_list_pre": "labs/acr-network-path-record-split-brain/evidence/02-revision-list-pre-fix.json"
+  },
+  "acr_network_path_record_split_brain_h1_trigger_produces_failure_all_subgates_pass": true,
+  "acr_network_path_record_split_brain_h1_trigger_produces_failure_sub_gates": {
+    "a_data_record_is_absent_while_registry_record_stays_present": true,
+    "b_probe_reports_data_nxdomain_with_retry_disclosure": true,
+    "c_already_running_revision_stays_healthy": true,
+    "d_broken_window_contains_no_pull_failure_rows": true,
+    "e_acr_public_access_stays_constant": true
+  },
+  "scenario": "acr_network_path_record_split_brain",
+  "sub_gates": [
+    {
+      "claim": "The pre-fix DNS record list is missing the regional data A record while the registry A record is still present.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/03-private-dns-record-list-pre-fix.json"
+      ],
+      "observed_values": {
+        "registry_record_name": "acracrrecsplitbrainijb7kz",
+        "data_record_name": "acracrrecsplitbrainijb7kz.koreacentral.data",
+        "registry_record_matches": [
+          {
+            "name": "acracrrecsplitbrainijb7kz",
+            "fqdn": "acracrrecsplitbrainijb7kz.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.70.4.5"
+            ]
+          }
+        ],
+        "data_record_matches": []
+      },
+      "predicate": "len(pre registry record matches) == 1 AND len(pre data record matches) == 0.",
+      "result": "pass",
+      "sub_gate": "a_data_record_is_absent_while_registry_record_stays_present"
+    },
+    {
+      "claim": "The broken-window /probe response reports topology_class=data_nxdomain and explicitly discloses how many retries were needed before that final selected response.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/08-probe-response-pre-fix.json"
+      ],
+      "observed_values": {
+        "expected_topology": "data_nxdomain",
+        "selected_attempt": 1,
+        "attempt_count": 1,
+        "attempts": [
+          {
+            "attempt": 1,
+            "topology_class": "data_nxdomain",
+            "registry_dns_class": "private",
+            "data_dns_class": null,
+            "data_dns_error": "gaierror: [Errno -2] Name or service not known"
+          }
+        ],
+        "final_response": {
+          "build": "v1",
+          "registry": {
+            "fqdn": "acracrrecsplitbrainijb7kz.azurecr.io",
+            "dns": {
+              "ip": "10.70.4.5",
+              "class": "private",
+              "error": null
+            },
+            "tcp": {
+              "connected": true,
+              "error": null
+            },
+            "tls": {
+              "handshake": "ok",
+              "error": null
+            },
+            "http": {
+              "status": 401,
+              "status_line": "HTTP/1.1 401 Unauthorized",
+              "error": null
+            }
+          },
+          "data": {
+            "fqdn": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io",
+            "dns": {
+              "ip": null,
+              "class": null,
+              "error": "gaierror: [Errno -2] Name or service not known"
+            },
+            "tcp": {
+              "connected": null,
+              "error": "skipped (no DNS)"
+            },
+            "tls": {
+              "handshake": null,
+              "error": "skipped (no DNS)"
+            },
+            "http": {
+              "status": null,
+              "status_line": null,
+              "error": "skipped (no DNS)"
+            }
+          },
+          "topology_class": "data_nxdomain"
+        }
+      },
+      "predicate": "08.response.topology_class == 'data_nxdomain' AND 08.response.registry.dns.class == 'private' AND 08.response.data.dns.class == null AND 08.response.data.dns.error contains 'gaierror' AND 08.selected_attempt >= 1 AND len(08.attempts) >= 08.selected_attempt.",
+      "result": "pass",
+      "sub_gate": "b_probe_reports_data_nxdomain_with_retry_disclosure"
+    },
+    {
+      "claim": "The already-running revision stays Healthy throughout the broken window.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/02-revision-list-pre-fix.json"
+      ],
+      "observed_values": {
+        "pre_live_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-acr-record-split-brain-lab/providers/Microsoft.App/containerApps/ca-acrrecsplitbrain-ijb7kz/revisions/ca-acrrecsplitbrain-ijb7kz--0000003",
+          "name": "ca-acrrecsplitbrain-ijb7kz--0000003",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-28T22:32:19+00:00",
+            "fqdn": "ca-acrrecsplitbrain-ijb7kz--0000003.wonderfulmushroom-d6373f0e.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "env": [
+                    {
+                      "name": "ACR_FQDN",
+                      "value": "acracrrecsplitbrainijb7kz.azurecr.io"
+                    },
+                    {
+                      "name": "ACR_DATA_FQDN",
+                      "value": "acracrrecsplitbrainijb7kz.koreacentral.data.azurecr.io"
+                    },
+                    {
+                      "name": "BUILD_TAG",
+                      "value": "v1"
+                    }
+                  ],
+                  "image": "acracrrecsplitbrainijb7kz.azurecr.io/record-split-brain-lab:v1",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.5,
+                    "memory": "1Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-acr-record-split-brain-lab",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "all_pre_revision_healthy": true
+      },
+      "predicate": "The live revision selected from 02 has healthState == 'Healthy' and active == true, and every revision captured in 02 has healthState == 'Healthy'.",
+      "result": "pass",
+      "sub_gate": "c_already_running_revision_stays_healthy"
+    },
+    {
+      "claim": "The captured broken-window pull-failure query stays empty, proving that the failure is silent at the revision-health and pull-failure observability layer.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/06-system-logs-pre-fix.json"
+      ],
+      "observed_values": {
+        "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrrecsplitbrain-ijb7kz' | where TimeGenerated >= todatetime('2026-06-28T22:34:36Z') | where Reason_s in ('PullingImage','PulledImage','ImagePullUnauthorized','ImagePullFailed','BackOff') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
+        "window_start_utc": "2026-06-28T22:34:36Z",
+        "window_end_utc": "2026-06-28T22:34:36Z",
+        "row_count": 0,
+        "rows": []
+      },
+      "predicate": "len(06.rows) == 0.",
+      "result": "pass",
+      "sub_gate": "d_broken_window_contains_no_pull_failure_rows"
+    },
+    {
+      "claim": "ACR publicNetworkAccess stays constant during the broken window, so the H1 outcome is not explained by a public-access toggle.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-record-split-brain/evidence/05-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_public_network_access": "Disabled",
+        "post_public_network_access": "Disabled"
+      },
+      "predicate": "05.publicNetworkAccess == 12.acr.publicNetworkAccess.",
+      "result": "pass",
+      "sub_gate": "e_acr_public_access_stays_constant"
+    }
+  ],
+  "thresholds": {
+    "expected_broken_pull_failure_rows": 0
+  },
+  "utc_captured": "2026-06-28T22:37:05Z"
+}
