@@ -1,0 +1,35 @@
+{
+  "firewall": {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.Network/azureFirewalls/afw-acrfw33-xi7y5a",
+    "name": "afw-acrfw33-xi7y5a",
+    "policyId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.Network/firewallPolicies/afwp-acrfw33-xi7y5a",
+    "privateIp": "10.80.2.4",
+    "sku": "Basic"
+  },
+  "public_ip": {
+    "ddosSettings": {
+      "protectionMode": "VirtualNetworkInherited"
+    },
+    "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.Network/publicIPAddresses/pip-afw-acrfw33-xi7y5a",
+    "idleTimeoutInMinutes": 4,
+    "ipAddress": "20.200.208.116",
+    "ipConfiguration": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.Network/azureFirewalls/afw-acrfw33-xi7y5a/azureFirewallIpConfigurations/fwIpConfig",
+      "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135"
+    },
+    "ipTags": [],
+    "location": "koreacentral",
+    "name": "pip-afw-acrfw33-xi7y5a",
+    "provisioningState": "Succeeded",
+    "publicIPAddressVersion": "IPv4",
+    "publicIPAllocationMethod": "Static",
+    "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+    "resourceGuid": "00000000-0000-0000-0000-000000000000",
+    "sku": {
+      "name": "Standard",
+      "tier": "Regional"
+    },
+    "type": "Microsoft.Network/publicIPAddresses"
+  }
+}

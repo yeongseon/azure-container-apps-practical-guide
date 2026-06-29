@@ -1,0 +1,117 @@
+{
+  "h2_recovery_ts_utc": "2026-06-29T08:52:43Z",
+  "recover_revision_name": "ca-acrfw33-xi7y5a--0000006",
+  "broken_revision_name": "ca-acrfw33-xi7y5a--0000005",
+  "baseline_revision_name": "ca-acrfw33-xi7y5a--0000004",
+  "http_response": {
+    "request_url": "https://ca-acrfw33-xi7y5a.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io/",
+    "status_code": 200,
+    "headers": [
+      "server: gunicorn",
+      "date: Mon, 29 Jun 2026 08:53:35 GMT",
+      "content-type: application/json",
+      "content-length: 74",
+      "connection: close"
+    ],
+    "body": "{\"build_tag\":\"v-recover\",\"message\":\"ACR firewall allowlist lab workload\"}\n",
+    "body_json": {
+      "build_tag": "v-recover",
+      "message": "ACR firewall allowlist lab workload"
+    }
+  },
+  "row_count": 9,
+  "rows": [
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Successfully provisioned revision 'ca-acrfw33-xi7y5a--0000006'",
+      "Reason_s": "RevisionReady",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:02.4103172Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Scaler external-push is built",
+      "Reason_s": "KEDAScalersStarted",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:02.4103172Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Replica 'ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj' has been scheduled to run on a node.",
+      "Reason_s": "AssigningReplica",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:02.4103172Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "KEDA is starting a watch for revision 'ca-acrfw33-xi7y5a--0000006' to monitor scale operations for this revision",
+      "Reason_s": "KEDAScalersStarted",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:02.4103172Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Scaler external-push is built",
+      "Reason_s": "KEDAScalersStarted",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:02.4103172Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Successfully pulled image \"acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover\" in 5.04s. Image size: 49283072 bytes.",
+      "Reason_s": "PulledImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:15.3226664Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:15.3226664Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Created container 'app'",
+      "Reason_s": "ContainerCreated",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:17.4707482Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Started container 'app'",
+      "Reason_s": "ContainerStarted",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:53:17.4707482Z",
+      "Type_s": "Normal"
+    }
+  ],
+  "pulledimage_count": 1,
+  "pullingimage_count": 1
+}

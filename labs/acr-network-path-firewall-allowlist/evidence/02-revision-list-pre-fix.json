@@ -1,0 +1,254 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--g72o3de",
+    "name": "ca-acrfw33-xi7y5a--g72o3de",
+    "properties": {
+      "active": false,
+      "createdTime": "2026-06-29T08:32:16+00:00",
+      "fqdn": "ca-acrfw33-xi7y5a--g72o3de.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "lastActiveTime": "2026-06-29T08:36:25+00:00",
+      "provisioningState": "Provisioned",
+      "replicas": 0,
+      "runningState": "Stopped",
+      "template": {
+        "containers": [
+          {
+            "image": "mcr.microsoft.com/k8se/quickstart:latest",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.25,
+              "memory": "0.5Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 0
+    },
+    "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+    "type": "Microsoft.App/containerapps/revisions"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000001",
+    "name": "ca-acrfw33-xi7y5a--0000001",
+    "properties": {
+      "active": false,
+      "createdTime": "2026-06-29T08:36:09+00:00",
+      "fqdn": "ca-acrfw33-xi7y5a--0000001.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "lastActiveTime": "2026-06-29T08:42:56+00:00",
+      "provisioningState": "Provisioned",
+      "replicas": 0,
+      "runningState": "Stopped",
+      "template": {
+        "containers": [
+          {
+            "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.25,
+              "memory": "0.5Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 0
+    },
+    "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+    "type": "Microsoft.App/containerapps/revisions"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000002",
+    "name": "ca-acrfw33-xi7y5a--0000002",
+    "properties": {
+      "active": false,
+      "createdTime": "2026-06-29T08:39:25+00:00",
+      "fqdn": "ca-acrfw33-xi7y5a--0000002.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "lastActiveTime": "2026-06-29T08:41:16+00:00",
+      "provisioningState": "Provisioned",
+      "replicas": 0,
+      "runningState": "Stopped",
+      "template": {
+        "containers": [
+          {
+            "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.25,
+              "memory": "0.5Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 0
+    },
+    "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+    "type": "Microsoft.App/containerapps/revisions"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000003",
+    "name": "ca-acrfw33-xi7y5a--0000003",
+    "properties": {
+      "active": false,
+      "createdTime": "2026-06-29T08:42:34+00:00",
+      "fqdn": "ca-acrfw33-xi7y5a--0000003.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "lastActiveTime": "2026-06-29T08:48:51+00:00",
+      "provisioningState": "Provisioned",
+      "replicas": 0,
+      "runningState": "Stopped",
+      "template": {
+        "containers": [
+          {
+            "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.25,
+              "memory": "0.5Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 0
+    },
+    "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+    "type": "Microsoft.App/containerapps/revisions"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000004",
+    "name": "ca-acrfw33-xi7y5a--0000004",
+    "properties": {
+      "active": true,
+      "createdTime": "2026-06-29T08:48:25+00:00",
+      "fqdn": "ca-acrfw33-xi7y5a--0000004.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "provisioningState": "Provisioned",
+      "replicas": 1,
+      "runningState": "RunningAtMaxScale",
+      "template": {
+        "containers": [
+          {
+            "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.25,
+              "memory": "0.5Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 0
+    },
+    "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+    "type": "Microsoft.App/containerapps/revisions"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000005",
+    "name": "ca-acrfw33-xi7y5a--0000005",
+    "properties": {
+      "active": true,
+      "createdTime": "2026-06-29T08:50:14+00:00",
+      "fqdn": "ca-acrfw33-xi7y5a--0000005.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+      "healthState": "Unhealthy",
+      "provisioningError": "Pending:ImagePullBackOff on legion",
+      "provisioningState": "Failed",
+      "replicas": 1,
+      "runningState": "Failed",
+      "runningStateDetails": "1/1 Pending:ImagePullBackOff on legion",
+      "template": {
+        "containers": [
+          {
+            "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.25,
+              "memory": "0.5Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 100
+    },
+    "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+    "type": "Microsoft.App/containerapps/revisions"
+  }
+]

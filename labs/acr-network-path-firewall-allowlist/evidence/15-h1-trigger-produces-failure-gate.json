@@ -1,0 +1,285 @@
+{
+  "claim": "The H1 trigger produced the documented Path A failure surface on ca-acrfw33-xi7y5a: the baseline window already proved the allow-listed path produced successful pull markers, the pre-fix ACR rule set removed the firewall public IP while ACR stayed locked down, the broken v-broken pull emitted DENIED/403 evidence naming 20.200.208.116, the v-broken revision entered a failed state, and the already-cached ca-acrfw33-xi7y5a--0000004 revision kept serving build_tag=v1 during the broken window.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms that removing the firewall public IP from ACR ipRules forced a fresh-pull failure without degrading the already-cached v1 revision.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "baseline_success_window": "labs/acr-network-path-firewall-allowlist/evidence/05-baseline-success-window.json",
+    "acr_rules_pre": "labs/acr-network-path-firewall-allowlist/evidence/03-acr-network-rules-pre-fix.json",
+    "system_logs_pre": "labs/acr-network-path-firewall-allowlist/evidence/06-system-logs-pre-fix.json",
+    "h1_failure_window": "labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json",
+    "revision_list_pre": "labs/acr-network-path-firewall-allowlist/evidence/02-revision-list-pre-fix.json"
+  },
+  "acr_network_path_firewall_allowlist_h1_trigger_produces_failure_all_subgates_pass": true,
+  "acr_network_path_firewall_allowlist_h1_trigger_produces_failure_sub_gates": {
+    "a_baseline_presence_proves_success_markers_exist_when_fw_pip_is_allowlisted": true,
+    "b_acr_stays_locked_down_while_fw_pip_is_removed": true,
+    "c_h1_window_contains_denied_403_for_v_broken_naming_the_firewall_public_ip": true,
+    "d_v_broken_revision_enters_a_failed_state": true,
+    "e_cached_v1_revision_keeps_serving_during_the_broken_window": true
+  },
+  "scenario": "acr_network_path_firewall_allowlist",
+  "sub_gates": [
+    {
+      "claim": "The baseline window proves the allow-listed path emits successful pull markers.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/05-baseline-success-window.json"
+      ],
+      "observed_values": {
+        "baseline_revision_name": "ca-acrfw33-xi7y5a--0000004",
+        "pulling_rows_preview": [
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000004-7955dd64c5-45ksd",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000004",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:48:39.3354024Z",
+            "Type_s": "Normal"
+          }
+        ],
+        "pulled_rows_preview": [
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Successfully pulled image \"acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1\" in 4.99s. Image size: 49283072 bytes.",
+            "Reason_s": "PulledImage",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000004-7955dd64c5-45ksd",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000004",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:48:39.3354024Z",
+            "Type_s": "Normal"
+          }
+        ],
+        "baseline_window_start_utc": "2026-06-29T08:48:09Z",
+        "baseline_window_end_utc": "2026-06-29T08:48:39.3354024Z"
+      },
+      "predicate": "At least one baseline PullingImage row and at least one baseline PulledImage row exist for the captured baseline revision.",
+      "result": "pass",
+      "sub_gate": "a_baseline_presence_proves_success_markers_exist_when_fw_pip_is_allowlisted"
+    },
+    {
+      "claim": "The pre-fix ACR rule set removed the firewall public IP while ACR stayed publicly reachable but locked down.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/03-acr-network-rules-pre-fix.json"
+      ],
+      "observed_values": {
+        "publicNetworkAccess": "Enabled",
+        "networkRuleBypassOptions": "None",
+        "defaultAction": "Deny",
+        "ipRules": [],
+        "firewall_public_ip": "20.200.208.116"
+      },
+      "predicate": "03.publicNetworkAccess == 'Enabled' AND 03.networkRuleBypassOptions == 'None' AND 03.networkRuleSet.defaultAction == 'Deny' AND 03.networkRuleSet.ipRules == [].",
+      "result": "pass",
+      "sub_gate": "b_acr_stays_locked_down_while_fw_pip_is_removed"
+    },
+    {
+      "claim": "The broken H1 window contains DENIED/403 evidence for v-broken that names the firewall public IP.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/06-system-logs-pre-fix.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json"
+      ],
+      "observed_values": {
+        "denied_rows_preview": [
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+            "Reason_s": "ContainerTerminated",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+            "Type_s": "Warning"
+          },
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+            "Reason_s": "ContainerTerminated",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+            "Type_s": "Warning"
+          },
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+            "Reason_s": "ContainerTerminated",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:41.5904904Z",
+            "Type_s": "Warning"
+          },
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+            "Reason_s": "ContainerTerminated",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:51:01.3478195Z",
+            "Type_s": "Warning"
+          }
+        ],
+        "v_broken_rows_preview": [
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+            "Type_s": "Normal"
+          },
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+            "Reason_s": "ContainerTerminated",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+            "Type_s": "Warning"
+          },
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+            "Type_s": "Normal"
+          },
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+            "Reason_s": "ContainerTerminated",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+            "Type_s": "Warning"
+          },
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+            "Reason_s": "ContainerTerminated",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:50:41.5904904Z",
+            "Type_s": "Warning"
+          }
+        ],
+        "firewall_public_ip": "20.200.208.116",
+        "h1_trigger_ts_utc": "2026-06-29T08:48:55Z"
+      },
+      "predicate": "At least one H1 row contains the DENIED message naming the firewall public IP, and at least one H1 row references v-broken in the same broken window.",
+      "result": "pass",
+      "sub_gate": "c_h1_window_contains_denied_403_for_v_broken_naming_the_firewall_public_ip"
+    },
+    {
+      "claim": "The v-broken revision enters a failed state during H1.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/02-revision-list-pre-fix.json"
+      ],
+      "observed_values": {
+        "broken_revision_name": "ca-acrfw33-xi7y5a--0000005",
+        "broken_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000005",
+          "name": "ca-acrfw33-xi7y5a--0000005",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T08:50:14+00:00",
+            "fqdn": "ca-acrfw33-xi7y5a--0000005.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+            "healthState": "Unhealthy",
+            "provisioningError": "Pending:ImagePullBackOff on legion",
+            "provisioningState": "Failed",
+            "replicas": 1,
+            "runningState": "Failed",
+            "runningStateDetails": "1/1 Pending:ImagePullBackOff on legion",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "pre_broken_failed": true
+      },
+      "predicate": "The v-broken revision's provisioningState is Failed/ProvisioningFailed OR its healthState is Unhealthy/None OR its runningState is Failed/NotRunning/Degraded.",
+      "result": "pass",
+      "sub_gate": "d_v_broken_revision_enters_a_failed_state"
+    },
+    {
+      "claim": "The cached v1 revision keeps serving during the broken window.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json"
+      ],
+      "observed_values": {
+        "baseline_revision_name": "ca-acrfw33-xi7y5a--0000004",
+        "baseline_revision_healthy_pre": true,
+        "http_response": {
+          "request_url": "https://ca-acrfw33-xi7y5a.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io/",
+          "status_code": 200,
+          "headers": [
+            "server: gunicorn",
+            "date: Mon, 29 Jun 2026 08:51:13 GMT",
+            "content-type: application/json",
+            "content-length: 67",
+            "connection: close"
+          ],
+          "body": "{\"build_tag\":\"v1\",\"message\":\"ACR firewall allowlist lab workload\"}\n",
+          "body_json": {
+            "build_tag": "v1",
+            "message": "ACR firewall allowlist lab workload"
+          }
+        },
+        "workload_silence_revision_same": true
+      },
+      "predicate": "The captured baseline revision is Healthy in 02, the H1 / response returns build_tag='v1', and the cached revision name stays the same continuity anchor.",
+      "result": "pass",
+      "sub_gate": "e_cached_v1_revision_keeps_serving_during_the_broken_window"
+    }
+  ],
+  "thresholds": {
+    "baseline_presence_expected_min": 1,
+    "expected_pre_fix_ip_rule_count": 0,
+    "expected_pre_fix_public_network_access": "Enabled"
+  },
+  "utc_captured": "2026-06-29T08:53:46Z"
+}
