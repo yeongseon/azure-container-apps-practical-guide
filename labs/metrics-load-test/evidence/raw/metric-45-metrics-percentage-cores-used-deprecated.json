@@ -1,0 +1,22 @@
+{
+  "cost": 119,
+  "interval": "PT1M",
+  "namespace": "Microsoft.App/managedEnvironments",
+  "resourceregion": "koreacentral",
+  "timespan": "2026-06-28T22:25:19Z/2026-06-29T00:25:19Z",
+  "value": [
+    {
+      "displayDescription": "The cores quota utilization of managed environment (Deprecated)",
+      "errorCode": "Success",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/managedEnvironments/cae-wp-d38538/providers/Microsoft.Insights/metrics/EnvCoresQuotaUtilization",
+      "name": {
+        "localizedValue": "Percentage Cores Used Out Of Limit (Deprecated)",
+        "value": "EnvCoresQuotaUtilization"
+      },
+      "resourceGroup": "rg-aca-basics-d38538",
+      "timeseries": [],
+      "type": "Microsoft.Insights/metrics",
+      "unit": "Percent"
+    }
+  ]
+}

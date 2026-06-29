@@ -10,6 +10,17 @@ the metrics reference: 8 Container Apps split across 2 Container Apps
 environments, sized so each metric in the catalog has at least one app that
 produces a non-trivial signal under sustained load.
 
+## Evidence baseline
+
+This lab now ships an **Option C special-case evidence baseline** under
+[`evidence/README.md`](evidence/README.md). That pack captures 45 sanitized
+raw Azure Monitor metric exports aligned to the 45 metrics-reference Portal
+screenshot states.
+
+- It is **not** a Phase B falsification pack.
+- It intentionally includes **no gate JSONs** and **no `verify.sh`**.
+- Repository framing: **27/28 falsification labs + 1 metrics evidence baseline = 28 total**.
+
 ## Topology
 
 ```mermaid

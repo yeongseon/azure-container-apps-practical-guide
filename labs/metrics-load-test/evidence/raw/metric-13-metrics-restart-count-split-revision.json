@@ -1,0 +1,516 @@
+{
+  "cost": 119,
+  "interval": "PT1M",
+  "namespace": "Microsoft.App/containerapps",
+  "resourceregion": "koreacentral",
+  "timespan": "2026-06-28T22:25:19Z/2026-06-29T00:25:19Z",
+  "value": [
+    {
+      "displayDescription": "The cumulative number of times the replica has restarted since it was created.",
+      "errorCode": "Success",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-crashloop-d38538/providers/Microsoft.Insights/metrics/RestartCount",
+      "name": {
+        "localizedValue": "Total Replica Restart Count",
+        "value": "RestartCount"
+      },
+      "resourceGroup": "rg-aca-basics-d38538",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:25:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:26:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:27:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:28:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:29:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:30:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:31:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:32:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:33:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:34:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:35:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:36:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:37:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:38:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:39:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:40:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:41:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:42:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:43:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:44:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:45:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:46:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:47:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:48:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:49:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:50:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:51:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:52:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:53:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:54:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:55:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:56:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:57:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:58:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T22:59:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:00:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:01:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:02:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:03:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:04:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:05:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:06:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:07:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:08:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:09:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:10:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:11:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:12:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:13:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:14:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:15:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:16:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:17:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:18:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:19:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:20:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:21:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:22:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:23:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:24:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:25:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:26:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:27:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:28:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:29:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:30:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:31:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:32:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:33:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:34:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:35:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:36:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:37:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:38:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:39:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:40:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:41:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:42:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:43:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:44:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:45:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:46:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:47:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:48:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:49:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:50:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:51:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:52:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:53:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:54:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:55:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-28T23:56:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:57:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:58:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-28T23:59:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:00:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-29T00:01:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:02:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:03:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:04:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:05:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:06:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-29T00:07:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:08:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:09:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:10:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:11:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-29T00:12:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:13:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:14:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:15:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:16:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-29T00:17:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:18:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:19:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:20:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:21:00Z"
+            },
+            {
+              "maximum": 1.0,
+              "timeStamp": "2026-06-29T00:22:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:23:00Z"
+            },
+            {
+              "maximum": 0.0,
+              "timeStamp": "2026-06-29T00:24:00Z"
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "revisionname",
+                "value": "revisionname"
+              },
+              "value": "ca-crashloop-d38538--4h6vseg"
+            }
+          ]
+        }
+      ],
+      "type": "Microsoft.Insights/metrics",
+      "unit": "Count"
+    }
+  ]
+}

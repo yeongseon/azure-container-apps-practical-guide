@@ -71,6 +71,8 @@ Hands-on labs in `labs/` with Bicep templates that reproduce real-world Containe
 - Expected Evidence sections with falsification logic
 - Cross-links to corresponding playbooks
 
+Current evidence-pack framing across the lab corpus: **27/28 falsification labs + 1 metrics evidence baseline = 28 total**. The special-case exception is `labs/metrics-load-test/`, which is the data source for the metrics reference rather than a trigger/fix/falsification lab.
+
 ### ACR Network Path Series
 
 A focused 5-lab series in `labs/acr-network-path-*` reproduces the five distinct network paths a Container App can take to reach Azure Container Registry:
