@@ -1,0 +1,21 @@
+{
+  "phase": "broken",
+  "vm_name": "vm-dns-rdumlp",
+  "resolved_upstream": "8.8.8.8",
+  "service_state": "active",
+  "listen_address": "10.60.5.4",
+  "config_path": "/etc/dnsmasq.d/acr-lab.conf",
+  "server_lines": [
+    "15:server=8.8.8.8"
+  ],
+  "run_command": {
+    "value": [
+      {
+        "code": "ProvisioningState/succeeded",
+        "displayStatus": "Provisioning succeeded",
+        "level": "Info",
+        "message": "Enable succeeded: \n[stdout]\nconfig_path=/etc/dnsmasq.d/acr-lab.conf\n15:server=8.8.8.8\nresolved_upstream=8.8.8.8\nservice_state=active\nlisten_address=10.60.5.4\n\n[stderr]\n"
+      }
+    ]
+  }
+}

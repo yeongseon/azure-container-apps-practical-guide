@@ -87,13 +87,15 @@ workload sees that.
 ```text
 labs/acr-network-path-dns-forwarder-bypass/
 ├── infra/main.bicep            # RG-scoped: VNet + dnsmasq VM + LAW + ACR Premium + PE + DNS zone + CAE + App + AcrPull
+├── fix-and-capture.sh          # Phase A live reproduction: deploy, capture the 12 raw files, run verify.sh, and start cleanup
 ├── workload/
 │   ├── app.py                  # /probe returns JSON {addresses, first_class} from inside the replica
 │   └── Dockerfile
 ├── trigger.sh                  # build image in ACR, switch app to private image (sets BUILD_TAG)
-├── verify.sh                   # confirm Healthy + /probe returns first_class=private (PE NIC IP)
+├── verify.sh                   # hermetic 17-gate Phase B verifier; emits Gate 14-17 JSONs from committed evidence
 ├── falsify.sh                  # swap dnsmasq upstream to 8.8.8.8 → /probe flips to public → restore → /probe back to private
 ├── cleanup.sh                  # az group delete --no-wait
+├── evidence/                   # 12 raw files + 4 derived gate JSONs + evidence README
 └── README.md                   # this file
 ```
 
@@ -117,7 +119,12 @@ az deployment group create \
     --parameters baseName="$BASE_NAME" vmAdminPassword="$VM_ADMIN_PASSWORD"
 
 bash labs/acr-network-path-dns-forwarder-bypass/trigger.sh
-bash labs/acr-network-path-dns-forwarder-bypass/verify.sh
+
+APP_NAME="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.containerAppName.value --output tsv)"
+APP_FQDN="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.containerAppFqdn.value --output tsv)"
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+curl -sS "https://${APP_FQDN}/probe"
+
 bash labs/acr-network-path-dns-forwarder-bypass/falsify.sh
 bash labs/acr-network-path-dns-forwarder-bypass/cleanup.sh
 ```
@@ -131,10 +138,7 @@ required by Azure VM provisioning, but it is discarded after deploy.
 
 The lab is reproduced when **all** of the following hold:
 
-1. `verify.sh` exits `PASS` — latest revision is `Healthy`, and the
-   `/probe` endpoint on the Container App's ingress returns JSON with
-   `first_class=private` and `addresses[0].ip` equal to the PE NIC's
-   `privateIPAddress`.
+1. After `trigger.sh`, `az containerapp revision list` shows the active revision as `Healthy`, and `curl https://<app fqdn>/probe` returns JSON with `first_class=private` and `addresses[0].ip` equal to the PE NIC's `privateIPAddress`.
 2. `falsify.sh` baseline step → `first_class=private`.
 3. `falsify.sh` broken step (after upstream swap to `8.8.8.8`) →
    `first_class=public`, and revision health is still `Healthy`.
@@ -157,6 +161,29 @@ unaffected during the broken window.
 | **Total for a 2-3 hour run** | **~$1-3** |
 
 Tear down with `cleanup.sh` immediately after capturing evidence.
+
+## Phase B Evidence Pack
+
+The reusable Phase B cohort lives in [`evidence/`](evidence/README.md).
+
+- It captures one live `koreacentral` reproduction where the dnsmasq VM is switched from Azure DNS (`168.63.129.16`) to public DNS (`8.8.8.8`) and then restored, while the already-running revision stays `Healthy` throughout.
+- The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
+- Gate 14 proves the cohort is structurally coherent: canonical files present, parseable, bounded in one UTC window, same lineage, and unchanged PE NIC + Private DNS surfaces.
+- Gate 15 proves H1 really fired: dnsmasq points at `8.8.8.8`, `/probe` returns `first_class=public`, the selected live revision stays `Healthy`, and the H1+H2 failure-event query stays empty.
+- Gate 16 proves H2 really recovered: dnsmasq is restored to `168.63.129.16`, `/probe` returns `first_class=private`, and the same revision remains `Healthy` with no new revision created during the lab.
+- Gate 17 performs the full normalized overlapping H1↔H2 diff and bounds the causal claim to `dnsmasq_upstream` plus the workload probe's `first_class`, not to PE drift, Private DNS drift, ACR public-access drift, or a new revision deployment.
+
+For offline reruns:
+
+| Command | Why it is used |
+|---|---|
+| `cd labs/acr-network-path-dns-forwarder-bypass/` | Enters the lab directory so relative evidence paths resolve correctly. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. This is the Phase B offline verifier, not the live post-deploy health check. |
+
+```bash
+cd labs/acr-network-path-dns-forwarder-bypass/
+bash verify.sh
+```
 
 ## See Also
 
