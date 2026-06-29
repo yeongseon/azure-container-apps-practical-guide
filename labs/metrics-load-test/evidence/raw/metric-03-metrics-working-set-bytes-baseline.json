@@ -1,0 +1,453 @@
+{
+  "cost": 119,
+  "interval": "PT1M",
+  "namespace": "Microsoft.App/containerapps",
+  "resourceregion": "koreacentral",
+  "timespan": "2026-06-28T22:25:19Z/2026-06-29T00:25:19Z",
+  "value": [
+    {
+      "displayDescription": "Container App working set memory used in bytes.",
+      "errorCode": "Success",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-loadtest-d38538/providers/Microsoft.Insights/metrics/WorkingSetBytes",
+      "name": {
+        "localizedValue": "Memory Working Set Bytes",
+        "value": "WorkingSetBytes"
+      },
+      "resourceGroup": "rg-aca-basics-d38538",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-06-28T22:25:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:26:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:27:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:28:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:29:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:30:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:31:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:32:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:33:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:34:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:35:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:36:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:37:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:38:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:39:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:40:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:41:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:42:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:43:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:44:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:45:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:46:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:47:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:48:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:49:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:50:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:51:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:52:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:53:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:54:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:55:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:56:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:57:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:58:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T22:59:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:00:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:01:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:02:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:03:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:04:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:05:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:06:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:07:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:08:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:09:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:10:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:11:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:12:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:13:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:14:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:15:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:16:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:17:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:18:00Z"
+            },
+            {
+              "timeStamp": "2026-06-28T23:19:00Z"
+            },
+            {
+              "average": 30572544.0,
+              "timeStamp": "2026-06-28T23:20:00Z"
+            },
+            {
+              "average": 30594048.0,
+              "timeStamp": "2026-06-28T23:21:00Z"
+            },
+            {
+              "average": 30623744.0,
+              "timeStamp": "2026-06-28T23:22:00Z"
+            },
+            {
+              "average": 90199040.0,
+              "timeStamp": "2026-06-28T23:23:00Z"
+            },
+            {
+              "average": 165670365.86666667,
+              "timeStamp": "2026-06-28T23:24:00Z"
+            },
+            {
+              "average": 233534464.0,
+              "timeStamp": "2026-06-28T23:25:00Z"
+            },
+            {
+              "average": 334080204.8,
+              "timeStamp": "2026-06-28T23:26:00Z"
+            },
+            {
+              "average": 435668377.6,
+              "timeStamp": "2026-06-28T23:27:00Z"
+            },
+            {
+              "average": 537216819.2,
+              "timeStamp": "2026-06-28T23:28:00Z"
+            },
+            {
+              "average": 638982758.4,
+              "timeStamp": "2026-06-28T23:29:00Z"
+            },
+            {
+              "average": 739843686.4,
+              "timeStamp": "2026-06-28T23:30:00Z"
+            },
+            {
+              "average": 788900659.2,
+              "timeStamp": "2026-06-28T23:31:00Z"
+            },
+            {
+              "average": 734309785.6,
+              "timeStamp": "2026-06-28T23:32:00Z"
+            },
+            {
+              "average": 627930316.8,
+              "timeStamp": "2026-06-28T23:33:00Z"
+            },
+            {
+              "average": 521141452.8,
+              "timeStamp": "2026-06-28T23:34:00Z"
+            },
+            {
+              "average": 311480524.8,
+              "timeStamp": "2026-06-28T23:35:00Z"
+            },
+            {
+              "average": 308501094.4,
+              "timeStamp": "2026-06-28T23:36:00Z"
+            },
+            {
+              "average": 410299187.2,
+              "timeStamp": "2026-06-28T23:37:00Z"
+            },
+            {
+              "average": 511349145.6,
+              "timeStamp": "2026-06-28T23:38:00Z"
+            },
+            {
+              "average": 612896153.6,
+              "timeStamp": "2026-06-28T23:39:00Z"
+            },
+            {
+              "average": 713741312.0,
+              "timeStamp": "2026-06-28T23:40:00Z"
+            },
+            {
+              "average": 763286528.0,
+              "timeStamp": "2026-06-28T23:41:00Z"
+            },
+            {
+              "average": 605218406.4,
+              "timeStamp": "2026-06-28T23:42:00Z"
+            },
+            {
+              "average": 706046976.0,
+              "timeStamp": "2026-06-28T23:43:00Z"
+            },
+            {
+              "average": 599354982.4,
+              "timeStamp": "2026-06-28T23:44:00Z"
+            },
+            {
+              "average": 389907865.6,
+              "timeStamp": "2026-06-28T23:45:00Z"
+            },
+            {
+              "average": 387496960.0,
+              "timeStamp": "2026-06-28T23:46:00Z"
+            },
+            {
+              "average": 488532787.2,
+              "timeStamp": "2026-06-28T23:47:00Z"
+            },
+            {
+              "average": 486221414.4,
+              "timeStamp": "2026-06-28T23:48:00Z"
+            },
+            {
+              "average": 587399577.6,
+              "timeStamp": "2026-06-28T23:49:00Z"
+            },
+            {
+              "average": 584753152.0,
+              "timeStamp": "2026-06-28T23:50:00Z"
+            },
+            {
+              "average": 686089625.6,
+              "timeStamp": "2026-06-28T23:51:00Z"
+            },
+            {
+              "average": 683457126.4,
+              "timeStamp": "2026-06-28T23:52:00Z"
+            },
+            {
+              "average": 554472038.4,
+              "timeStamp": "2026-06-28T23:53:00Z"
+            },
+            {
+              "average": 556983091.2,
+              "timeStamp": "2026-06-28T23:54:00Z"
+            },
+            {
+              "average": 556982886.4,
+              "timeStamp": "2026-06-28T23:55:00Z"
+            },
+            {
+              "average": 556983091.2,
+              "timeStamp": "2026-06-28T23:56:00Z"
+            },
+            {
+              "average": 556982681.6,
+              "timeStamp": "2026-06-28T23:57:00Z"
+            },
+            {
+              "average": 474616180.3636364,
+              "timeStamp": "2026-06-28T23:58:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-28T23:59:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:00:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:01:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:02:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:03:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:04:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:05:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:06:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:07:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:08:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:09:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:10:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:11:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:12:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:13:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:14:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:15:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:16:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:17:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:18:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:19:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:20:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:21:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:22:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:23:00Z"
+            },
+            {
+              "average": 106829824.0,
+              "timeStamp": "2026-06-29T00:24:00Z"
+            }
+          ],
+          "metadatavalues": []
+        }
+      ],
+      "type": "Microsoft.Insights/metrics",
+      "unit": "Bytes"
+    }
+  ]
+}

@@ -20,6 +20,9 @@ The numeric samples above came from a deliberate load test environment to demons
 !!! info "Reproduce these captures"
     See [`labs/metrics-load-test/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/metrics-load-test/README.md) for the full reproduction guide — provisioning script, load generator, dual-environment topology diagram, metric → app mapping, prerequisites, estimated cost, capture-refresh checklist, and known limitations.
 
+!!! note "Evidence baseline status"
+    The lab now ships a committed **Option C special-case evidence baseline** at [`labs/metrics-load-test/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/metrics-load-test/evidence/README.md). It is intentionally **not** a standard Phase B falsification pack: no gate JSONs, no `verify.sh`, and no H1/H2/falsification claim. Repository framing: **27/28 falsification labs + 1 metrics evidence baseline = 28 total**.
+
 | App | Role | Configuration | Drives metric(s) |
 |---|---|---|---|
 | `ca-loadtest-d38538` | Public ingress test target (in `cae-basics-d38538`) | `--cpu 0.5 --memory 1Gi --min-replicas 2 --max-replicas 10`, HTTP scaler at 20 concurrency | `UsageNanoCores`, `WorkingSetBytes`, `RxBytes`, `TxBytes`, `Replicas`, `Requests`, `ResponseTime`, `CpuPercentage`, `MemoryPercentage`, `CoresQuotaUsed`, `TotalCoresQuotaUsed` |

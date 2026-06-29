@@ -1,0 +1,516 @@
+{
+  "cost": 119,
+  "interval": "PT1M",
+  "namespace": "Microsoft.App/containerapps",
+  "resourceregion": "koreacentral",
+  "timespan": "2026-06-28T22:25:19Z/2026-06-29T00:25:19Z",
+  "value": [
+    {
+      "displayDescription": "Number of ejections aborted due to the max ejection %",
+      "errorCode": "Success",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-res-503/providers/Microsoft.Insights/metrics/ResiliencyEjectionsAborted",
+      "name": {
+        "localizedValue": "Resiliency Ejections Aborted",
+        "value": "ResiliencyEjectionsAborted"
+      },
+      "resourceGroup": "rg-aca-basics-d38538",
+      "timeseries": [
+        {
+          "data": [
+            {
+              "timeStamp": "2026-06-28T22:25:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:26:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:27:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:28:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:29:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:30:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:31:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:32:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:33:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:34:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:35:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:36:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:37:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:38:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:39:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:40:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:41:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:42:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:43:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:44:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:45:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:46:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:47:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:48:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:49:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:50:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:51:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:52:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:53:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:54:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:55:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:56:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:57:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:58:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T22:59:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:00:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:01:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:02:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:03:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:04:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:05:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:06:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:07:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:08:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:09:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:10:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:11:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:12:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:13:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:14:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:15:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:16:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:17:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:18:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:19:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:20:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:21:00Z",
+              "total": 0.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:22:00Z",
+              "total": 12506.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:23:00Z",
+              "total": 17239.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:24:00Z",
+              "total": 20258.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:25:00Z",
+              "total": 21730.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:26:00Z",
+              "total": 19446.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:27:00Z",
+              "total": 25485.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:28:00Z",
+              "total": 21449.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:29:00Z",
+              "total": 21800.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:30:00Z",
+              "total": 28192.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:31:00Z",
+              "total": 24485.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:32:00Z",
+              "total": 21345.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:33:00Z",
+              "total": 24655.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:34:00Z",
+              "total": 23805.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:35:00Z",
+              "total": 18439.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:36:00Z",
+              "total": 22515.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:37:00Z",
+              "total": 25248.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:38:00Z",
+              "total": 26015.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:39:00Z",
+              "total": 19548.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:40:00Z",
+              "total": 21036.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:41:00Z",
+              "total": 21169.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:42:00Z",
+              "total": 16021.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:43:00Z",
+              "total": 19665.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:44:00Z",
+              "total": 20652.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:45:00Z",
+              "total": 22678.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:46:00Z",
+              "total": 24662.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:47:00Z",
+              "total": 21325.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:48:00Z",
+              "total": 21903.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:49:00Z",
+              "total": 22471.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:50:00Z",
+              "total": 23415.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:51:00Z",
+              "total": 26233.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:52:00Z",
+              "total": 16609.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:53:00Z",
+              "total": 20849.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:54:00Z",
+              "total": 20457.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:55:00Z",
+              "total": 24702.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:56:00Z",
+              "total": 21621.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:57:00Z",
+              "total": 18535.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:58:00Z",
+              "total": 15818.0
+            },
+            {
+              "timeStamp": "2026-06-28T23:59:00Z",
+              "total": 17130.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:00:00Z",
+              "total": 22864.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:01:00Z",
+              "total": 19227.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:02:00Z",
+              "total": 25602.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:03:00Z",
+              "total": 25895.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:04:00Z",
+              "total": 21436.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:05:00Z",
+              "total": 21710.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:06:00Z",
+              "total": 21774.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:07:00Z",
+              "total": 21508.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:08:00Z",
+              "total": 25081.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:09:00Z",
+              "total": 22393.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:10:00Z",
+              "total": 16840.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:11:00Z",
+              "total": 15193.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:12:00Z",
+              "total": 16941.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:13:00Z",
+              "total": 24088.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:14:00Z",
+              "total": 22630.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:15:00Z",
+              "total": 24663.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:16:00Z",
+              "total": 22155.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:17:00Z",
+              "total": 19718.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:18:00Z",
+              "total": 19726.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:19:00Z",
+              "total": 20371.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:20:00Z",
+              "total": 16877.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:21:00Z",
+              "total": 18831.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:22:00Z",
+              "total": 22608.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:23:00Z",
+              "total": 21518.0
+            },
+            {
+              "timeStamp": "2026-06-29T00:24:00Z",
+              "total": 16975.0
+            }
+          ],
+          "metadatavalues": [
+            {
+              "name": {
+                "localizedValue": "revisionname",
+                "value": "revisionname"
+              },
+              "value": "ca-res-503--xqvxw04"
+            }
+          ]
+        }
+      ],
+      "type": "Microsoft.Insights/metrics",
+      "unit": "Count"
+    }
+  ]
+}

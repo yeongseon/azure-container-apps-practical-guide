@@ -1,0 +1,440 @@
+{
+  "captured_at_utc": "2026-06-29T00:25:19Z",
+  "window_start_utc": "2026-06-28T22:25:19Z",
+  "window_end_utc": "2026-06-29T00:25:19Z",
+  "window_minutes": 120,
+  "resource_group": "rg-aca-basics-d38538",
+  "region": "koreacentral",
+  "subscription": {
+    "environmentName": "AzureCloud",
+    "homeTenantId": "00000000-0000-0000-0000-000000000000",
+    "id": "00000000-0000-0000-0000-000000000000",
+    "isDefault": true,
+    "managedByTenants": [],
+    "name": "Visual Studio Enterprise Subscription",
+    "state": "Enabled",
+    "tenantDefaultDomain": "contoso.onmicrosoft.com",
+    "tenantDisplayName": "\uae30\ubcf8 \ub514\ub809\ud130\ub9ac",
+    "tenantId": "00000000-0000-0000-0000-000000000000",
+    "user": {
+      "name": "user@example.com",
+      "type": "user"
+    }
+  },
+  "resources": {
+    "ca-loadtest-d38538": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-loadtest-d38538",
+    "ca-crashloop-d38538": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-crashloop-d38538",
+    "ca-res-503": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-res-503",
+    "ca-res-slow": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-res-slow",
+    "ca-res-pool": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-res-pool",
+    "ca-res-blackhole": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/containerapps/ca-res-blackhole",
+    "cae-wp-d38538": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-basics-d38538/providers/Microsoft.App/managedEnvironments/cae-wp-d38538"
+  },
+  "entries": [
+    {
+      "index": 1,
+      "output_file": "metric-01-metrics-usage-nano-cores-baseline.json",
+      "screenshot_slug": "metrics-usage-nano-cores-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "UsageNanoCores",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 2,
+      "output_file": "metric-02-metrics-usage-nano-cores-split-replica.json",
+      "screenshot_slug": "metrics-usage-nano-cores-split-replica",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "UsageNanoCores",
+      "aggregation": "Average",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 3,
+      "output_file": "metric-03-metrics-working-set-bytes-baseline.json",
+      "screenshot_slug": "metrics-working-set-bytes-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "WorkingSetBytes",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 4,
+      "output_file": "metric-04-metrics-working-set-bytes-split-replica.json",
+      "screenshot_slug": "metrics-working-set-bytes-split-replica",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "WorkingSetBytes",
+      "aggregation": "Average",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 5,
+      "output_file": "metric-05-metrics-rx-bytes-baseline.json",
+      "screenshot_slug": "metrics-rx-bytes-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "RxBytes",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 6,
+      "output_file": "metric-06-metrics-rx-bytes-split-replica.json",
+      "screenshot_slug": "metrics-rx-bytes-split-replica",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "RxBytes",
+      "aggregation": "Total",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 7,
+      "output_file": "metric-07-metrics-tx-bytes-baseline.json",
+      "screenshot_slug": "metrics-tx-bytes-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "TxBytes",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 8,
+      "output_file": "metric-08-metrics-tx-bytes-split-replica.json",
+      "screenshot_slug": "metrics-tx-bytes-split-replica",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "TxBytes",
+      "aggregation": "Total",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 9,
+      "output_file": "metric-09-metrics-replicas-baseline.json",
+      "screenshot_slug": "metrics-replicas-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "Replicas",
+      "aggregation": "Maximum",
+      "filter": null
+    },
+    {
+      "index": 10,
+      "output_file": "metric-10-metrics-replicas-split-revision.json",
+      "screenshot_slug": "metrics-replicas-split-revision",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "Replicas",
+      "aggregation": "Maximum",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 11,
+      "output_file": "metric-11-metrics-restart-count-baseline.json",
+      "screenshot_slug": "metrics-restart-count-baseline",
+      "resource_key": "ca-crashloop-d38538",
+      "metric": "RestartCount",
+      "aggregation": "Maximum",
+      "filter": null
+    },
+    {
+      "index": 12,
+      "output_file": "metric-12-metrics-restart-count-split-replica.json",
+      "screenshot_slug": "metrics-restart-count-split-replica",
+      "resource_key": "ca-crashloop-d38538",
+      "metric": "RestartCount",
+      "aggregation": "Maximum",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 13,
+      "output_file": "metric-13-metrics-restart-count-split-revision.json",
+      "screenshot_slug": "metrics-restart-count-split-revision",
+      "resource_key": "ca-crashloop-d38538",
+      "metric": "RestartCount",
+      "aggregation": "Maximum",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 14,
+      "output_file": "metric-14-metrics-requests-baseline.json",
+      "screenshot_slug": "metrics-requests-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "Requests",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 15,
+      "output_file": "metric-15-metrics-requests-split-replica.json",
+      "screenshot_slug": "metrics-requests-split-replica",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "Requests",
+      "aggregation": "Total",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 16,
+      "output_file": "metric-16-metrics-requests-split-status-category.json",
+      "screenshot_slug": "metrics-requests-split-status-category",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "Requests",
+      "aggregation": "Total",
+      "filter": "statusCodeCategory eq '*'"
+    },
+    {
+      "index": 17,
+      "output_file": "metric-17-metrics-requests-split-status-code.json",
+      "screenshot_slug": "metrics-requests-split-status-code",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "Requests",
+      "aggregation": "Total",
+      "filter": "statusCode eq '*'"
+    },
+    {
+      "index": 18,
+      "output_file": "metric-18-metrics-response-time-baseline.json",
+      "screenshot_slug": "metrics-response-time-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "ResponseTime",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 19,
+      "output_file": "metric-19-metrics-response-time-split-status-category.json",
+      "screenshot_slug": "metrics-response-time-split-status-category",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "ResponseTime",
+      "aggregation": "Average",
+      "filter": "statusCodeCategory eq '*'"
+    },
+    {
+      "index": 20,
+      "output_file": "metric-20-metrics-cpu-percentage-baseline.json",
+      "screenshot_slug": "metrics-cpu-percentage-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "CpuPercentage",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 21,
+      "output_file": "metric-21-metrics-cpu-percentage-split-replica.json",
+      "screenshot_slug": "metrics-cpu-percentage-split-replica",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "CpuPercentage",
+      "aggregation": "Average",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 22,
+      "output_file": "metric-22-metrics-memory-percentage-baseline.json",
+      "screenshot_slug": "metrics-memory-percentage-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "MemoryPercentage",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 23,
+      "output_file": "metric-23-metrics-memory-percentage-split-replica.json",
+      "screenshot_slug": "metrics-memory-percentage-split-replica",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "MemoryPercentage",
+      "aggregation": "Average",
+      "filter": "podName eq '*'"
+    },
+    {
+      "index": 24,
+      "output_file": "metric-24-metrics-cores-quota-used-baseline.json",
+      "screenshot_slug": "metrics-cores-quota-used-baseline",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "CoresQuotaUsed",
+      "aggregation": "Maximum",
+      "filter": null
+    },
+    {
+      "index": 25,
+      "output_file": "metric-25-metrics-cores-quota-used-split-revision.json",
+      "screenshot_slug": "metrics-cores-quota-used-split-revision",
+      "resource_key": "ca-loadtest-d38538",
+      "metric": "CoresQuotaUsed",
+      "aggregation": "Maximum",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 26,
+      "output_file": "metric-26-metrics-resiliency-connect-timeouts-baseline.json",
+      "screenshot_slug": "metrics-resiliency-connect-timeouts-baseline",
+      "resource_key": "ca-res-blackhole",
+      "metric": "ResiliencyConnectTimeouts",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 27,
+      "output_file": "metric-27-metrics-resiliency-ejected-hosts-baseline.json",
+      "screenshot_slug": "metrics-resiliency-ejected-hosts-baseline",
+      "resource_key": "ca-res-503",
+      "metric": "ResiliencyEjectedHosts",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 28,
+      "output_file": "metric-28-metrics-resiliency-ejected-hosts-split-revision.json",
+      "screenshot_slug": "metrics-resiliency-ejected-hosts-split-revision",
+      "resource_key": "ca-res-503",
+      "metric": "ResiliencyEjectedHosts",
+      "aggregation": "Total",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 29,
+      "output_file": "metric-29-metrics-resiliency-ejections-aborted-baseline.json",
+      "screenshot_slug": "metrics-resiliency-ejections-aborted-baseline",
+      "resource_key": "ca-res-503",
+      "metric": "ResiliencyEjectionsAborted",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 30,
+      "output_file": "metric-30-metrics-resiliency-ejections-aborted-split-revision.json",
+      "screenshot_slug": "metrics-resiliency-ejections-aborted-split-revision",
+      "resource_key": "ca-res-503",
+      "metric": "ResiliencyEjectionsAborted",
+      "aggregation": "Total",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 31,
+      "output_file": "metric-31-metrics-resiliency-ejections-aborted-blackhole-baseline.json",
+      "screenshot_slug": "metrics-resiliency-ejections-aborted-blackhole-baseline",
+      "resource_key": "ca-res-blackhole",
+      "metric": "ResiliencyEjectionsAborted",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 32,
+      "output_file": "metric-32-metrics-resiliency-request-retries-baseline.json",
+      "screenshot_slug": "metrics-resiliency-request-retries-baseline",
+      "resource_key": "ca-res-503",
+      "metric": "ResiliencyRequestRetries",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 33,
+      "output_file": "metric-33-metrics-resiliency-request-retries-split-revision.json",
+      "screenshot_slug": "metrics-resiliency-request-retries-split-revision",
+      "resource_key": "ca-res-503",
+      "metric": "ResiliencyRequestRetries",
+      "aggregation": "Total",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 34,
+      "output_file": "metric-34-metrics-resiliency-request-timeouts-baseline.json",
+      "screenshot_slug": "metrics-resiliency-request-timeouts-baseline",
+      "resource_key": "ca-res-slow",
+      "metric": "ResiliencyRequestTimeouts",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 35,
+      "output_file": "metric-35-metrics-resiliency-request-timeouts-split-revision.json",
+      "screenshot_slug": "metrics-resiliency-request-timeouts-split-revision",
+      "resource_key": "ca-res-slow",
+      "metric": "ResiliencyRequestTimeouts",
+      "aggregation": "Total",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 36,
+      "output_file": "metric-36-metrics-resiliency-pending-pool-baseline.json",
+      "screenshot_slug": "metrics-resiliency-pending-pool-baseline",
+      "resource_key": "ca-res-pool",
+      "metric": "ResiliencyRequestsPendingConnectionPool",
+      "aggregation": "Total",
+      "filter": null
+    },
+    {
+      "index": 37,
+      "output_file": "metric-37-metrics-resiliency-pending-pool-split-revision.json",
+      "screenshot_slug": "metrics-resiliency-pending-pool-split-revision",
+      "resource_key": "ca-res-pool",
+      "metric": "ResiliencyRequestsPendingConnectionPool",
+      "aggregation": "Total",
+      "filter": "revisionName eq '*'"
+    },
+    {
+      "index": 38,
+      "output_file": "metric-38-metrics-nodecount-baseline.json",
+      "screenshot_slug": "metrics-nodecount-baseline",
+      "resource_key": "cae-wp-d38538",
+      "metric": "NodeCount",
+      "aggregation": "Maximum",
+      "filter": null
+    },
+    {
+      "index": 39,
+      "output_file": "metric-39-metrics-nodecount-split-profile.json",
+      "screenshot_slug": "metrics-nodecount-split-profile",
+      "resource_key": "cae-wp-d38538",
+      "metric": "NodeCount",
+      "aggregation": "Maximum",
+      "filter": "workloadProfileName eq '*'"
+    },
+    {
+      "index": 40,
+      "output_file": "metric-40-metrics-ingress-cpu-usage-baseline.json",
+      "screenshot_slug": "metrics-ingress-cpu-usage-baseline",
+      "resource_key": "cae-wp-d38538",
+      "metric": "IngressUsageNanoCores",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 41,
+      "output_file": "metric-41-metrics-ingress-memory-bytes-baseline.json",
+      "screenshot_slug": "metrics-ingress-memory-bytes-baseline",
+      "resource_key": "cae-wp-d38538",
+      "metric": "IngressUsageBytes",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 42,
+      "output_file": "metric-42-metrics-ingress-cpu-percentage-baseline.json",
+      "screenshot_slug": "metrics-ingress-cpu-percentage-baseline",
+      "resource_key": "cae-wp-d38538",
+      "metric": "IngressCpuPercentage",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 43,
+      "output_file": "metric-43-metrics-ingress-memory-percentage-baseline.json",
+      "screenshot_slug": "metrics-ingress-memory-percentage-baseline",
+      "resource_key": "cae-wp-d38538",
+      "metric": "IngressMemoryPercentage",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 44,
+      "output_file": "metric-44-metrics-cores-quota-limit-deprecated.json",
+      "screenshot_slug": "metrics-cores-quota-limit-deprecated",
+      "resource_key": "cae-wp-d38538",
+      "metric": "EnvCoresQuotaLimit",
+      "aggregation": "Average",
+      "filter": null
+    },
+    {
+      "index": 45,
+      "output_file": "metric-45-metrics-percentage-cores-used-deprecated.json",
+      "screenshot_slug": "metrics-percentage-cores-used-deprecated",
+      "resource_key": "cae-wp-d38538",
+      "metric": "EnvCoresQuotaUtilization",
+      "aggregation": "Average",
+      "filter": null
+    }
+  ]
+}
