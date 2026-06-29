@@ -81,8 +81,8 @@
             "equal": true
           },
           "dns_vm_name": {
-            "pre_value": "vm-dns-y4qtor",
-            "post_value": "vm-dns-y4qtor",
+            "pre_value": "vm-dns-rdumlp",
+            "post_value": "vm-dns-rdumlp",
             "equal": true
           },
           "dns_vm_private_ip": {
@@ -91,13 +91,13 @@
             "equal": true
           },
           "container_app_name": {
-            "pre_value": "ca-acrdnsfwdbyp-y4qtor",
-            "post_value": "ca-acrdnsfwdbyp-y4qtor",
+            "pre_value": "ca-acrdnsfwdbyp-rdumlp",
+            "post_value": "ca-acrdnsfwdbyp-rdumlp",
             "equal": true
           },
           "resource_group": {
-            "pre_value": "rg-lab-dns-forwarder-bypass-202606290905",
-            "post_value": "rg-lab-dns-forwarder-bypass-202606290905",
+            "pre_value": "rg-lab-dns-forwarder-bypass-202606290940",
+            "post_value": "rg-lab-dns-forwarder-bypass-202606290940",
             "equal": true
           },
           "identity_type": {
@@ -111,8 +111,8 @@
             "equal": true
           },
           "container_image": {
-            "pre_value": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
-            "post_value": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+            "pre_value": "acracrdnsfwdbyprdumlp.azurecr.io/dns-forwarder-bypass-lab:v1",
+            "post_value": "acracrdnsfwdbyprdumlp.azurecr.io/dns-forwarder-bypass-lab:v1",
             "equal": true
           },
           "build_tag": {
@@ -121,8 +121,8 @@
             "equal": true
           },
           "acr_fqdn_env": {
-            "pre_value": "acracrdnsfwdbypy4qtor.azurecr.io",
-            "post_value": "acracrdnsfwdbypy4qtor.azurecr.io",
+            "pre_value": "acracrdnsfwdbyprdumlp.azurecr.io",
+            "post_value": "acracrdnsfwdbyprdumlp.azurecr.io",
             "equal": true
           },
           "ingress_target_port": {
@@ -141,13 +141,13 @@
             "equal": true
           },
           "registry_record_name": {
-            "pre_value": "acracrdnsfwdbypy4qtor",
-            "post_value": "acracrdnsfwdbypy4qtor",
+            "pre_value": "acracrdnsfwdbyprdumlp",
+            "post_value": "acracrdnsfwdbyprdumlp",
             "equal": true
           },
           "data_record_name": {
-            "pre_value": "acracrdnsfwdbypy4qtor.koreacentral.data",
-            "post_value": "acracrdnsfwdbypy4qtor.koreacentral.data",
+            "pre_value": "acracrdnsfwdbyprdumlp.koreacentral.data",
+            "post_value": "acracrdnsfwdbyprdumlp.koreacentral.data",
             "equal": true
           },
           "pe_nic_ip_map": {
@@ -156,14 +156,14 @@
                 "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
                 "private_ip": "10.60.4.4",
                 "fqdns": [
-                  "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+                  "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io"
                 ]
               },
               {
                 "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
                 "private_ip": "10.60.4.5",
                 "fqdns": [
-                  "acracrdnsfwdbypy4qtor.azurecr.io"
+                  "acracrdnsfwdbyprdumlp.azurecr.io"
                 ]
               }
             ],
@@ -172,14 +172,14 @@
                 "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
                 "private_ip": "10.60.4.4",
                 "fqdns": [
-                  "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+                  "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io"
                 ]
               },
               {
                 "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
                 "private_ip": "10.60.4.5",
                 "fqdns": [
-                  "acracrdnsfwdbypy4qtor.azurecr.io"
+                  "acracrdnsfwdbyprdumlp.azurecr.io"
                 ]
               }
             ],
@@ -188,8 +188,8 @@
           "private_dns_records_registry": {
             "pre_value": [
               {
-                "name": "acracrdnsfwdbypy4qtor",
-                "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+                "name": "acracrdnsfwdbyprdumlp",
+                "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
                 "ttl": 10,
                 "a_records": [
                   "10.60.4.5"
@@ -198,8 +198,8 @@
             ],
             "post_value": [
               {
-                "name": "acracrdnsfwdbypy4qtor",
-                "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+                "name": "acracrdnsfwdbyprdumlp",
+                "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
                 "ttl": 10,
                 "a_records": [
                   "10.60.4.5"
@@ -211,8 +211,8 @@
           "private_dns_records_data": {
             "pre_value": [
               {
-                "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-                "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+                "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+                "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
                 "ttl": 10,
                 "a_records": [
                   "10.60.4.4"
@@ -221,8 +221,8 @@
             ],
             "post_value": [
               {
-                "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-                "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+                "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+                "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
                 "ttl": 10,
                 "a_records": [
                   "10.60.4.4"
@@ -232,8 +232,8 @@
             "equal": true
           },
           "live_revision_name": {
-            "pre_value": "ca-acrdnsfwdbyp-y4qtor--0000001",
-            "post_value": "ca-acrdnsfwdbyp-y4qtor--0000001",
+            "pre_value": "ca-acrdnsfwdbyp-rdumlp--0000001",
+            "post_value": "ca-acrdnsfwdbyp-rdumlp--0000001",
             "equal": true
           }
         },
@@ -291,22 +291,22 @@
         "full_overlap_equal": {
           "acr.defaultAction": "Deny",
           "acr.publicNetworkAccess": "Disabled",
-          "container_app.container.acr_fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "container_app.container.acr_fqdn": "acracrdnsfwdbyprdumlp.azurecr.io",
           "container_app.container.build_tag": "v1",
           "container_app.container.cpu": 0.5,
-          "container_app.container.image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+          "container_app.container.image": "acracrdnsfwdbyprdumlp.azurecr.io/dns-forwarder-bypass-lab:v1",
           "container_app.container.memory": "1Gi",
           "container_app.container.name": "app",
           "container_app.identity_type": "SystemAssigned",
           "container_app.ingress.external": true,
           "container_app.ingress.target_port": 80,
-          "container_app.name": "ca-acrdnsfwdbyp-y4qtor",
-          "container_app.resource_group": "rg-lab-dns-forwarder-bypass-202606290905",
-          "container_app.revision.latest_ready_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
-          "container_app.revision.latest_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "container_app.name": "ca-acrdnsfwdbyp-rdumlp",
+          "container_app.resource_group": "rg-lab-dns-forwarder-bypass-202606290940",
+          "container_app.revision.latest_ready_revision_name": "ca-acrdnsfwdbyp-rdumlp--0000001",
+          "container_app.revision.latest_revision_name": "ca-acrdnsfwdbyp-rdumlp--0000001",
           "container_app.revision.live_revision_active": true,
           "container_app.revision.live_revision_health_state": "Healthy",
-          "container_app.revision.live_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "container_app.revision.live_revision_name": "ca-acrdnsfwdbyp-rdumlp--0000001",
           "container_app.revision.live_revision_provisioning_state": "Provisioned",
           "container_app.revision.live_revision_running_state": "RunningAtMaxScale",
           "container_app.scale.max_replicas": 1,
@@ -318,10 +318,10 @@
           "dns_records.registry_record_present": true,
           "dnsmasq.listen_address": "10.60.5.4",
           "dnsmasq.service_state": "active",
-          "pe_nic[0].fqdns[0]": "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io",
+          "pe_nic[0].fqdns[0]": "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io",
           "pe_nic[0].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
           "pe_nic[0].private_ip": "10.60.4.4",
-          "pe_nic[1].fqdns[0]": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "pe_nic[1].fqdns[0]": "acracrdnsfwdbyprdumlp.azurecr.io",
           "pe_nic[1].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
           "pe_nic[1].private_ip": "10.60.4.5",
           "probe.address_count": 1,
@@ -420,8 +420,8 @@
         "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
       ],
       "observed_values": {
-        "pre_live_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
-        "post_live_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+        "pre_live_revision_name": "ca-acrdnsfwdbyp-rdumlp--0000001",
+        "post_live_revision_name": "ca-acrdnsfwdbyp-rdumlp--0000001",
         "pre_health_state": "Healthy",
         "post_health_state": "Healthy",
         "pre_first_class": "public",
@@ -437,5 +437,5 @@
     "held_constant_field_count": 19,
     "expected_failure_event_rows": 0
   },
-  "utc_captured": "2026-06-29T00:18:50Z"
+  "utc_captured": "2026-06-29T00:53:14Z"
 }

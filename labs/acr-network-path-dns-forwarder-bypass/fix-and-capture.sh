@@ -381,7 +381,7 @@ if ! capture_probe_payload "${APP_FQDN}" "private" "${BASELINE_FILE}" "${BASELIN
 fi
 
 PE_REGISTRY_IP="$(az network nic show --subscription "${AZ_SUBSCRIPTION}" --ids "${NIC_ID}" --query "ipConfigurations[?contains(to_string(privateLinkConnectionProperties.fqdns), '${ACR_LOGIN_SERVER}')] | [0].privateIPAddress" --output tsv)"
-PE_DATA_IP="$(az network nic show --subscription "${AZ_SUBSCRIPTION}" --ids "${NIC_ID}" --query "ipConfigurations[?contains(to_string(privateLinkConnectionProperties.fqdns), '${ACR_LOGIN_SERVER}.${LOCATION}.data.azurecr.io')] | [0].privateIPAddress" --output tsv)"
+PE_DATA_IP="$(az network nic show --subscription "${AZ_SUBSCRIPTION}" --ids "${NIC_ID}" --query "ipConfigurations[?contains(to_string(privateLinkConnectionProperties.fqdns), '${REGISTRY_RECORD_NAME}.${LOCATION}.data.azurecr.io')] | [0].privateIPAddress" --output tsv)"
 export PE_REGISTRY_IP PE_DATA_IP
 
 capture_dnsmasq_state "${SCRATCH_DIR}/dnsmasq-baseline.json" "baseline"

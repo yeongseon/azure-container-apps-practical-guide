@@ -8,20 +8,20 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 
 | Parameter | Value |
 |---|---|
-| Resource group | `rg-lab-dns-forwarder-bypass-202606290905` |
+| Resource group | `rg-lab-dns-forwarder-bypass-202606290940` |
 | Base name | `acrdnsfwdbyp` |
-| Suffix | `y4qtor` |
+| Suffix | `rdumlp` |
 | Build tag | `v1` |
 | Azure region | `koreacentral` |
-| Registry login FQDN | `acracrdnsfwdbypy4qtor.azurecr.io` |
+| Registry login FQDN | `acracrdnsfwdbyprdumlp.azurecr.io` |
 | Private DNS zone | `privatelink.azurecr.io` |
-| dnsmasq VM | `vm-dns-y4qtor` |
+| dnsmasq VM | `vm-dns-rdumlp` |
 | dnsmasq VM private IP | `10.60.5.4` |
-| Broken probe capture window | `2026-06-29T00:15:30Z` → `2026-06-29T00:15:31Z` |
-| Recovered probe capture window | `2026-06-29T00:18:22Z` → `2026-06-29T00:18:22Z` |
+| Broken probe capture window | `2026-06-29T00:49:36Z` → `2026-06-29T00:49:37Z` |
+| Recovered probe capture window | `2026-06-29T00:52:31Z` → `2026-06-29T00:52:32Z` |
 | Broken upstream | `8.8.8.8` |
 | Restored upstream | `168.63.129.16` |
-| Post-fix composite capture anchor | `2026-06-29T00:18:43Z` |
+| Post-fix composite capture anchor | `2026-06-29T00:52:56Z` |
 
 ## Capture timeline
 

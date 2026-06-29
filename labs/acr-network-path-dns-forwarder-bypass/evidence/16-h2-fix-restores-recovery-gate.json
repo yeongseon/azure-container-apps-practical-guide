@@ -1,5 +1,5 @@
 {
-  "claim": "The H2 fix restored recovery on ca-acrdnsfwdbyp-y4qtor: dnsmasq was restored to 168.63.129.16, the /probe endpoint returns first_class=private again with the PE registry IP, the same already-running revision stays Healthy, and no new revision was created during the lab. This is the workload-path silence invariant.",
+  "claim": "The H2 fix restored recovery on ca-acrdnsfwdbyp-rdumlp: dnsmasq was restored to 168.63.129.16, the /probe endpoint returns first_class=private again with the PE registry IP, the same already-running revision stays Healthy, and no new revision was created during the lab. This is the workload-path silence invariant.",
   "claim_level": "Observed",
   "gate_classification": "H2 gate: confirms recovery after restoring the dnsmasq upstream and proves that the workload-path lab never deployed a new revision.",
   "hypothesis": "H2_fix_restores_recovery",
@@ -55,7 +55,7 @@
           }
         ],
         "final_response": {
-          "fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "fqdn": "acracrdnsfwdbyprdumlp.azurecr.io",
           "addresses": [
             {
               "ip": "10.60.4.5",
@@ -79,12 +79,12 @@
       ],
       "observed_values": {
         "pre_live_revision": {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
-          "name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-rdumlp/revisions/ca-acrdnsfwdbyp-rdumlp--0000001",
+          "name": "ca-acrdnsfwdbyp-rdumlp--0000001",
           "properties": {
             "active": true,
-            "createdTime": "2026-06-29T00:08:55+00:00",
-            "fqdn": "ca-acrdnsfwdbyp-y4qtor--0000001.purplebeach-f1e87cc8.koreacentral.azurecontainerapps.io",
+            "createdTime": "2026-06-29T00:45:39+00:00",
+            "fqdn": "ca-acrdnsfwdbyp-rdumlp--0000001.blackrock-8fe9bedb.koreacentral.azurecontainerapps.io",
             "healthState": "Healthy",
             "provisioningState": "Provisioned",
             "replicas": 1,
@@ -95,14 +95,14 @@
                   "env": [
                     {
                       "name": "ACR_FQDN",
-                      "value": "acracrdnsfwdbypy4qtor.azurecr.io"
+                      "value": "acracrdnsfwdbyprdumlp.azurecr.io"
                     },
                     {
                       "name": "BUILD_TAG",
                       "value": "v1"
                     }
                   ],
-                  "image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+                  "image": "acracrdnsfwdbyprdumlp.azurecr.io/dns-forwarder-bypass-lab:v1",
                   "name": "app",
                   "probes": [],
                   "resources": {
@@ -126,16 +126,16 @@
             },
             "trafficWeight": 100
           },
-          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
           "type": "Microsoft.App/containerapps/revisions"
         },
         "post_live_revision": {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
-          "name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-rdumlp/revisions/ca-acrdnsfwdbyp-rdumlp--0000001",
+          "name": "ca-acrdnsfwdbyp-rdumlp--0000001",
           "properties": {
             "active": true,
-            "createdTime": "2026-06-29T00:08:55+00:00",
-            "fqdn": "ca-acrdnsfwdbyp-y4qtor--0000001.purplebeach-f1e87cc8.koreacentral.azurecontainerapps.io",
+            "createdTime": "2026-06-29T00:45:39+00:00",
+            "fqdn": "ca-acrdnsfwdbyp-rdumlp--0000001.blackrock-8fe9bedb.koreacentral.azurecontainerapps.io",
             "healthState": "Healthy",
             "provisioningState": "Provisioned",
             "replicas": 1,
@@ -146,14 +146,14 @@
                   "env": [
                     {
                       "name": "ACR_FQDN",
-                      "value": "acracrdnsfwdbypy4qtor.azurecr.io"
+                      "value": "acracrdnsfwdbyprdumlp.azurecr.io"
                     },
                     {
                       "name": "BUILD_TAG",
                       "value": "v1"
                     }
                   ],
-                  "image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+                  "image": "acracrdnsfwdbyprdumlp.azurecr.io/dns-forwarder-bypass-lab:v1",
                   "name": "app",
                   "probes": [],
                   "resources": {
@@ -177,7 +177,7 @@
             },
             "trafficWeight": 100
           },
-          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
           "type": "Microsoft.App/containerapps/revisions"
         },
         "pre_post_revision_equal": true,
@@ -205,14 +205,14 @@
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.4",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+              "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io"
             ]
           },
           {
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.5",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.azurecr.io"
+              "acracrdnsfwdbyprdumlp.azurecr.io"
             ]
           }
         ],
@@ -221,21 +221,21 @@
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.4",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+              "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io"
             ]
           },
           {
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.5",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.azurecr.io"
+              "acracrdnsfwdbyprdumlp.azurecr.io"
             ]
           }
         ],
         "pre_registry_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor",
-            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp",
+            "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.5"
@@ -244,8 +244,8 @@
         ],
         "post_registry_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor",
-            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp",
+            "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.5"
@@ -254,8 +254,8 @@
         ],
         "pre_data_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+            "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.4"
@@ -264,8 +264,8 @@
         ],
         "post_data_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+            "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.4"
@@ -281,5 +281,5 @@
   "thresholds": {
     "expected_post_fix_failure_event_rows": 0
   },
-  "utc_captured": "2026-06-29T00:18:50Z"
+  "utc_captured": "2026-06-29T00:53:14Z"
 }

@@ -1,5 +1,5 @@
 {
-  "claim": "The 12-file acr-network-path-dns-forwarder-bypass raw cohort is internally consistent: every canonical file is present and parseable, every per-file UTC anchor falls within one bounded capture window, the pre/post live revision IDs parse to the same rg-lab-dns-forwarder-bypass-202606290905 / ca-acrdnsfwdbyp-y4qtor lineage, and the PE NIC plus private-DNS surfaces stay unchanged across H1 and H2.",
+  "claim": "The 12-file acr-network-path-dns-forwarder-bypass raw cohort is internally consistent: every canonical file is present and parseable, every per-file UTC anchor falls within one bounded capture window, the pre/post live revision IDs parse to the same rg-lab-dns-forwarder-bypass-202606290940 / ca-acrdnsfwdbyp-rdumlp lineage, and the PE NIC plus private-DNS surfaces stay unchanged across H1 and H2.",
   "claim_level": "Observed",
   "gate_classification": "Cohort integrity gate: structural pre-condition for the bounded-falsification pack.",
   "hypothesis": "H_cohort_integrity",
@@ -75,144 +75,144 @@
         "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
       ],
       "observed_values": {
-        "utc_window_start": "2026-06-29T00:11:45.087211+00:00",
-        "utc_window_end": "2026-06-29T00:18:48.647566+00:00",
-        "utc_window_span_seconds": 423.560355,
+        "utc_window_start": "2026-06-29T00:46:57.092912+00:00",
+        "utc_window_end": "2026-06-29T00:53:10.398277+00:00",
+        "utc_window_span_seconds": 373.305365,
         "monotonic_ordering_holds": true,
         "pre_anchor_timestamps": {
           "01-app-spec-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "timestamp_utc": "2026-06-29T00:49:42.847455+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692135.9358613
+            "raw_epoch": 1782694182.8474548
           },
           "02-revision-list-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "timestamp_utc": "2026-06-29T00:49:42.855594+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692135.941402
+            "raw_epoch": 1782694182.855594
           },
           "03-dnsmasq-config-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "timestamp_utc": "2026-06-29T00:49:36.602192+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692130.3201208
+            "raw_epoch": 1782694176.6021924
           },
           "04-private-dns-record-list-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "timestamp_utc": "2026-06-29T00:49:45.310868+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692138.4902158
+            "raw_epoch": 1782694185.310868
           },
           "05-pe-nic-config-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "timestamp_utc": "2026-06-29T00:49:48.421028+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692141.4710135
+            "raw_epoch": 1782694188.4210281
           },
           "06-acr-public-access-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "timestamp_utc": "2026-06-29T00:49:51.134345+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692144.107378
+            "raw_epoch": 1782694191.1343446
           },
           "07-system-logs-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "timestamp_utc": "2026-06-29T00:46:57.092912+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782691905.0872111
+            "raw_epoch": 1782694017.0929117
           },
           "08-probe-response-pre-fix.json": {
-            "timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "timestamp_utc": "2026-06-29T00:49:37.385784+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692131.2707121
+            "raw_epoch": 1782694177.385784
           }
         },
         "post_anchor_timestamps": {
           "09-dnsmasq-config-post-fix.json": {
-            "timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692302.3494365
+            "raw_epoch": 1782694351.3879054
           },
           "10-private-dns-record-list-post-fix.json": {
-            "timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692311.9318633
+            "raw_epoch": 1782694362.148174
           },
           "11-revision-list-post-fix.json": {
-            "timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692314.5330007
+            "raw_epoch": 1782694364.87931
           },
           "12-recovery-surface-post-fix.json": {
-            "timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "time_source": "birthtime",
-            "raw_epoch": 1782692328.6475663
+            "raw_epoch": 1782694390.3982768
           }
         },
         "sorted_anchor_sequence": [
           {
             "file": "07-system-logs-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "timestamp_utc": "2026-06-29T00:46:57.092912+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "03-dnsmasq-config-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "timestamp_utc": "2026-06-29T00:49:36.602192+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "08-probe-response-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "timestamp_utc": "2026-06-29T00:49:37.385784+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "01-app-spec-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "timestamp_utc": "2026-06-29T00:49:42.847455+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "02-revision-list-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "timestamp_utc": "2026-06-29T00:49:42.855594+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "04-private-dns-record-list-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "timestamp_utc": "2026-06-29T00:49:45.310868+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "05-pe-nic-config-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "timestamp_utc": "2026-06-29T00:49:48.421028+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "06-acr-public-access-pre-fix.json",
-            "timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "timestamp_utc": "2026-06-29T00:49:51.134345+00:00",
             "time_source": "birthtime",
             "anchor_class": "pre"
           },
           {
             "file": "09-dnsmasq-config-post-fix.json",
-            "timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "time_source": "birthtime",
             "anchor_class": "post"
           },
           {
             "file": "10-private-dns-record-list-post-fix.json",
-            "timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "time_source": "birthtime",
             "anchor_class": "post"
           },
           {
             "file": "11-revision-list-post-fix.json",
-            "timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "time_source": "birthtime",
             "anchor_class": "post"
           },
           {
             "file": "12-recovery-surface-post-fix.json",
-            "timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "time_source": "birthtime",
             "anchor_class": "post"
           }
@@ -221,320 +221,320 @@
           {
             "pre_file": "01-app-spec-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 166.413576,
+            "delta_seconds": 168.54045,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.847455+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "01-app-spec-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 175.996002,
+            "delta_seconds": 179.300719,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.847455+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "01-app-spec-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 178.59714,
+            "delta_seconds": 182.031855,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.847455+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "01-app-spec-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 192.711705,
+            "delta_seconds": 207.550822,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.847455+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "02-revision-list-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 166.408035,
+            "delta_seconds": 168.532311,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.855594+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "02-revision-list-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 175.990461,
+            "delta_seconds": 179.29258,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.855594+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "02-revision-list-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 178.591599,
+            "delta_seconds": 182.023716,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.855594+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "02-revision-list-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 192.706164,
+            "delta_seconds": 207.542683,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:42.855594+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "03-dnsmasq-config-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 172.029316,
+            "delta_seconds": 174.785713,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:36.602192+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "03-dnsmasq-config-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 181.611742,
+            "delta_seconds": 185.545982,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:36.602192+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "03-dnsmasq-config-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 184.21288,
+            "delta_seconds": 188.277118,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:36.602192+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "03-dnsmasq-config-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 198.327445,
+            "delta_seconds": 213.796085,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:36.602192+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "04-private-dns-record-list-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 163.859221,
+            "delta_seconds": 166.077037,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:45.310868+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "04-private-dns-record-list-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 173.441647,
+            "delta_seconds": 176.837306,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:45.310868+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "04-private-dns-record-list-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 176.042785,
+            "delta_seconds": 179.568442,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:45.310868+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "04-private-dns-record-list-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 190.15735,
+            "delta_seconds": 205.087409,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:45.310868+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "05-pe-nic-config-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 160.878423,
+            "delta_seconds": 162.966877,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:48.421028+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "05-pe-nic-config-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 170.460849,
+            "delta_seconds": 173.727146,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:48.421028+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "05-pe-nic-config-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 173.061987,
+            "delta_seconds": 176.458282,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:48.421028+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "05-pe-nic-config-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 187.176552,
+            "delta_seconds": 201.977249,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:48.421028+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "06-acr-public-access-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 158.242059,
+            "delta_seconds": 160.25356,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:51.134345+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "06-acr-public-access-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 167.824485,
+            "delta_seconds": 171.013829,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:51.134345+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "06-acr-public-access-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 170.425623,
+            "delta_seconds": 173.744965,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:51.134345+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "06-acr-public-access-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 184.540188,
+            "delta_seconds": 199.263932,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:51.134345+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "07-system-logs-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 397.262226,
+            "delta_seconds": 334.294993,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:46:57.092912+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "07-system-logs-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 406.844652,
+            "delta_seconds": 345.055262,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:46:57.092912+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "07-system-logs-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 409.44579,
+            "delta_seconds": 347.786398,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:46:57.092912+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "07-system-logs-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 423.560355,
+            "delta_seconds": 373.305365,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:46:57.092912+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
             "post_file": "09-dnsmasq-config-post-fix.json",
-            "delta_seconds": 171.078725,
+            "delta_seconds": 174.002121,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:37.385784+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:31.387905+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
             "post_file": "10-private-dns-record-list-post-fix.json",
-            "delta_seconds": 180.661151,
+            "delta_seconds": 184.76239,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:37.385784+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:42.148174+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
             "post_file": "11-revision-list-post-fix.json",
-            "delta_seconds": 183.262289,
+            "delta_seconds": 187.493526,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:37.385784+00:00",
+            "post_timestamp_utc": "2026-06-29T00:52:44.879310+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
             "post_file": "12-recovery-surface-post-fix.json",
-            "delta_seconds": 197.376854,
+            "delta_seconds": 213.012493,
             "holds": true,
-            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
-            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_timestamp_utc": "2026-06-29T00:49:37.385784+00:00",
+            "post_timestamp_utc": "2026-06-29T00:53:10.398277+00:00",
             "pre_time_source": "birthtime",
             "post_time_source": "birthtime"
           }
@@ -565,15 +565,15 @@
         "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json"
       ],
       "observed_values": {
-        "pre_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
-        "post_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
+        "pre_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-rdumlp/revisions/ca-acrdnsfwdbyp-rdumlp--0000001",
+        "post_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-rdumlp/revisions/ca-acrdnsfwdbyp-rdumlp--0000001",
         "pre_parse_ok": true,
         "post_parse_ok": true,
         "both_parse_ok": true,
-        "pre_resource_group": "rg-lab-dns-forwarder-bypass-202606290905",
-        "post_resource_group": "rg-lab-dns-forwarder-bypass-202606290905",
-        "pre_container_app": "ca-acrdnsfwdbyp-y4qtor",
-        "post_container_app": "ca-acrdnsfwdbyp-y4qtor",
+        "pre_resource_group": "rg-lab-dns-forwarder-bypass-202606290940",
+        "post_resource_group": "rg-lab-dns-forwarder-bypass-202606290940",
+        "pre_container_app": "ca-acrdnsfwdbyp-rdumlp",
+        "post_container_app": "ca-acrdnsfwdbyp-rdumlp",
         "pre_post_rg_equal": true,
         "pre_post_app_equal": true,
         "pre_post_lineage_equal": true,
@@ -634,14 +634,14 @@
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.4",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+              "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io"
             ]
           },
           {
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.5",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.azurecr.io"
+              "acracrdnsfwdbyprdumlp.azurecr.io"
             ]
           }
         ],
@@ -650,21 +650,21 @@
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.4",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+              "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io"
             ]
           },
           {
             "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
             "private_ip": "10.60.4.5",
             "fqdns": [
-              "acracrdnsfwdbypy4qtor.azurecr.io"
+              "acracrdnsfwdbyprdumlp.azurecr.io"
             ]
           }
         ],
         "pre_registry_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor",
-            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp",
+            "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.5"
@@ -673,8 +673,8 @@
         ],
         "post_registry_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor",
-            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp",
+            "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.5"
@@ -683,8 +683,8 @@
         ],
         "pre_data_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+            "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.4"
@@ -693,8 +693,8 @@
         ],
         "post_data_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+            "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.4"
@@ -725,9 +725,9 @@
         "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
       ],
       "observed_values": {
-        "utc_window_start": "2026-06-29T00:11:45.087211+00:00",
-        "utc_window_end": "2026-06-29T00:18:48.647566+00:00",
-        "utc_window_span_seconds": 423.560355,
+        "utc_window_start": "2026-06-29T00:46:57.092912+00:00",
+        "utc_window_end": "2026-06-29T00:53:10.398277+00:00",
+        "utc_window_span_seconds": 373.305365,
         "time_source_summary": {
           "birthtime_count": 12,
           "mtime_count": 0,
@@ -745,5 +745,5 @@
     "utc_window_span_strong_seconds_max": 1800,
     "utc_window_span_fallback_seconds_max": 5400
   },
-  "utc_captured": "2026-06-29T00:18:50Z"
+  "utc_captured": "2026-06-29T00:53:14Z"
 }

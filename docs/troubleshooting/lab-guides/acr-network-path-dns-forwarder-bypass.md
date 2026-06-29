@@ -202,26 +202,48 @@ Expected output: `provisioningState: Succeeded`. A new revision is created and b
 ### Verify the healthy resolver path is live
 
 ```bash
-bash labs/acr-network-path-dns-forwarder-bypass/verify.sh
+APP_NAME="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.containerAppName.value --output tsv)"
+APP_FQDN="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.containerAppFqdn.value --output tsv)"
+ACR_LOGIN_SERVER="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.containerRegistryLoginServer.value --output tsv)"
+PE_NAME="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.privateEndpointName.value --output tsv)"
+NIC_ID="$(az network private-endpoint show --resource-group "$RG" --name "$PE_NAME" --query 'networkInterfaces[0].id' --output tsv)"
+PE_IP="$(az network nic show --ids "$NIC_ID" --query "ipConfigurations[?contains(to_string(privateLinkConnectionProperties.fqdns), '$ACR_LOGIN_SERVER')] | [0].privateIPAddress" --output tsv)"
+
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+curl -sS "https://${APP_FQDN}/probe"
 ```
 
-The verify script proves three independent signals simultaneously hold:
+| Command | Why it is used |
+|---|---|
+| `az deployment group show ... --query properties.outputs.containerAppName.value` | Reads the deployed Container App name from the Bicep outputs so the follow-up live checks target the correct resource. |
+| `az deployment group show ... --query properties.outputs.containerAppFqdn.value` | Reads the public ingress FQDN that exposes the workload `/probe` endpoint. |
+| `az deployment group show ... --query properties.outputs.containerRegistryLoginServer.value` | Reads the ACR login FQDN so the PE NIC lookup can bind the private IP to the same hostname the workload resolves. |
+| `az deployment group show ... --query properties.outputs.privateEndpointName.value` | Reads the ACR Private Endpoint name so the NIC ID can be looked up without guessing generated names. |
+| `az network private-endpoint show ... --query 'networkInterfaces[0].id'` | Resolves the PE-attached NIC resource ID; the registry/data FQDN-to-private-IP mapping lives on the NIC `ipConfigurations`. |
+| `az network nic show ... --query "ipConfigurations[?contains(...)] | [0].privateIPAddress"` | Extracts the PE NIC private IP for the registry FQDN so the workload `/probe` answer can be compared against the expected private endpoint address. |
+| `az containerapp revision list --output table` | Confirms the active revision is `Healthy` before falsification begins. |
+| `curl -sS "https://${APP_FQDN}/probe"` | Executes the in-replica `socket.getaddrinfo()` probe that must return `first_class=private` on the healthy resolver path. |
 
-1. The latest revision's `healthState` is `Healthy`.
+The live post-deploy validation proves three independent signals simultaneously hold:
+
+1. The active revision's `healthState` is `Healthy`.
 2. The ACR Private Endpoint NIC holds an RFC1918 IP for the registry FQDN inside `snet-pe`.
 3. `GET https://<app>.<env>.azurecontainerapps.io/probe` returns JSON with `first_class=private` and `addresses[0].ip == <PE NIC IP>` — meaning a `socket.getaddrinfo()` call from inside the replica went through dnsmasq, dnsmasq forwarded to `168.63.129.16`, Azure DNS consulted the linked Private DNS Zone, and returned the PE NIC IP.
 
-All three must hold for the resolver path to be Path B end-to-end at the workload layer. The script exits non-zero on any mismatch.
+All three must hold for the resolver path to be Path B end to end at the workload layer.
 
 Expected pattern:
 
 ```text
-[verify] latest revision: healthState=Healthy provisioningState=Provisioned
-[verify] /probe response: {"fqdn": "acracrdnsfwd34jpw6.azurecr.io", "addresses": [{"ip": "10.60.4.5", "class": "private"}], "first_class": "private"}
-[verify] PASS: revision is Healthy
-[verify] PASS: workload /probe resolved acracrdnsfwd34jpw6.azurecr.io -> 10.60.4.5 (private, matches PE NIC IP 10.60.4.5)
-[verify] PASS: dnsmasq forwarder is correctly routing workload DNS to Azure DNS -> Private DNS Zone -> PE NIC
+Name                               Active    TrafficWeight    HealthState    ProvisioningState
+---------------------------------  --------  ---------------  -------------  -------------------
+ca-acrdnsfwd-<suffix>--0000001     True      100              Healthy        Provisioned
+
+{"fqdn": "acracrdnsfwd<suffix>.azurecr.io", "addresses": [{"ip": "10.60.4.5", "class": "private"}], "first_class": "private"}
 ```
+
+!!! info "Phase B verifier scope"
+    `bash labs/acr-network-path-dns-forwarder-bypass/verify.sh` is the hermetic Phase B evidence verifier. It replays the committed evidence cohort and does **not** validate a fresh Azure deployment.
 
 ### Falsify the hypothesis
 

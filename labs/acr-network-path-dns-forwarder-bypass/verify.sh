@@ -117,11 +117,12 @@ if gate_number == 5:
         print(f'01 parse failure: {type(exc).__name__}: {exc}')
         raise SystemExit(1)
     app = pre.get('container_app', {})
-    ok = bool(app.get('name')) and bool(app.get('resourceGroup')) and bool(pre.get('capture_metadata', {}).get('dns_vm_name'))
+    meta = pre.get('capture_metadata', {})
+    ok = bool(app.get('name')) and bool(app.get('resourceGroup')) and bool(meta.get('dns_vm_name')) and bool(meta.get('pe_registry_ip')) and bool(meta.get('pe_data_ip'))
     if ok:
-        print('01 parses and captures the pre-fix container app + dns forwarder metadata')
+        print('01 parses and captures the pre-fix container app + dns forwarder metadata with both PE IPs populated')
         raise SystemExit(0)
-    print('01 missing expected pre-fix app or metadata fields')
+    print('01 missing expected pre-fix app fields or populated PE/dns-forwarder metadata')
     raise SystemExit(1)
 
 if gate_number == 6:

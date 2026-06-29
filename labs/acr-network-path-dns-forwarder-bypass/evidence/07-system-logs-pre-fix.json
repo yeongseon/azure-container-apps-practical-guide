@@ -1,6 +1,6 @@
 {
-  "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrdnsfwdbyp-y4qtor' | where TimeGenerated between (todatetime('2026-06-29T00:11:45Z') .. todatetime('2026-06-29T00:18:31Z')) | where Reason_s in ('ImagePullFailed','ImagePullUnauthorized','BackOff','RevisionFailed','ReplicaFailed') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
-  "window_start_utc": "2026-06-29T00:11:45Z",
-  "window_end_utc": "2026-06-29T00:18:31Z",
+  "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrdnsfwdbyp-rdumlp' | where TimeGenerated between (todatetime('2026-06-29T00:46:57Z') .. todatetime('2026-06-29T00:52:42Z')) | where Reason_s in ('ImagePullFailed','ImagePullUnauthorized','BackOff','RevisionFailed','ReplicaFailed') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
+  "window_start_utc": "2026-06-29T00:46:57Z",
+  "window_end_utc": "2026-06-29T00:52:42Z",
   "rows": []
 }

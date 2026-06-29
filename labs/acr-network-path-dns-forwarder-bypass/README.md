@@ -119,7 +119,12 @@ az deployment group create \
     --parameters baseName="$BASE_NAME" vmAdminPassword="$VM_ADMIN_PASSWORD"
 
 bash labs/acr-network-path-dns-forwarder-bypass/trigger.sh
-bash labs/acr-network-path-dns-forwarder-bypass/verify.sh
+
+APP_NAME="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.containerAppName.value --output tsv)"
+APP_FQDN="$(az deployment group show --resource-group "$RG" --name acr-dns-forwarder-bypass --query properties.outputs.containerAppFqdn.value --output tsv)"
+az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
+curl -sS "https://${APP_FQDN}/probe"
+
 bash labs/acr-network-path-dns-forwarder-bypass/falsify.sh
 bash labs/acr-network-path-dns-forwarder-bypass/cleanup.sh
 ```
@@ -133,10 +138,7 @@ required by Azure VM provisioning, but it is discarded after deploy.
 
 The lab is reproduced when **all** of the following hold:
 
-1. `verify.sh` exits `PASS` — latest revision is `Healthy`, and the
-   `/probe` endpoint on the Container App's ingress returns JSON with
-   `first_class=private` and `addresses[0].ip` equal to the PE NIC's
-   `privateIPAddress`.
+1. After `trigger.sh`, `az containerapp revision list` shows the active revision as `Healthy`, and `curl https://<app fqdn>/probe` returns JSON with `first_class=private` and `addresses[0].ip` equal to the PE NIC's `privateIPAddress`.
 2. `falsify.sh` baseline step → `first_class=private`.
 3. `falsify.sh` broken step (after upstream swap to `8.8.8.8`) →
    `first_class=public`, and revision health is still `Healthy`.
@@ -176,7 +178,7 @@ For offline reruns:
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-dns-forwarder-bypass/` | Enters the lab directory so relative evidence paths resolve correctly. |
-| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. This is the Phase B offline verifier, not the live post-deploy health check. |
 
 ```bash
 cd labs/acr-network-path-dns-forwarder-bypass/

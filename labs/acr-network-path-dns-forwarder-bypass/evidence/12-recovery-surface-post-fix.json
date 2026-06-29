@@ -1,25 +1,25 @@
 {
   "capture_metadata": {
-    "post_window_start_utc": "2026-06-29T00:18:43Z",
-    "h_window_start_utc": "2026-06-29T00:11:45Z",
-    "h_window_end_utc": "2026-06-29T00:18:31Z",
-    "resource_group": "rg-lab-dns-forwarder-bypass-202606290905",
+    "post_window_start_utc": "2026-06-29T00:52:56Z",
+    "h_window_start_utc": "2026-06-29T00:46:57Z",
+    "h_window_end_utc": "2026-06-29T00:52:42Z",
+    "resource_group": "rg-lab-dns-forwarder-bypass-202606290940",
     "base_name": "acrdnsfwdbyp",
-    "suffix": "y4qtor",
+    "suffix": "rdumlp",
     "build_tag": "v1",
     "location": "koreacentral",
     "pe_registry_ip": "10.60.4.5",
-    "pe_data_ip": ""
+    "pe_data_ip": "10.60.4.4"
   },
   "container_app": {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerapps/ca-acrdnsfwdbyp-y4qtor",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/containerapps/ca-acrdnsfwdbyp-rdumlp",
     "identity": {
       "principalId": "00000000-0000-0000-0000-000000000000",
       "tenantId": "00000000-0000-0000-0000-000000000000",
       "type": "SystemAssigned"
     },
     "location": "Korea Central",
-    "name": "ca-acrdnsfwdbyp-y4qtor",
+    "name": "ca-acrdnsfwdbyp-rdumlp",
     "properties": {
       "configuration": {
         "activeRevisionsMode": "Single",
@@ -33,7 +33,7 @@
           "customDomains": null,
           "exposedPort": 0,
           "external": true,
-          "fqdn": "ca-acrdnsfwdbyp-y4qtor.purplebeach-f1e87cc8.koreacentral.azurecontainerapps.io",
+          "fqdn": "ca-acrdnsfwdbyp-rdumlp.blackrock-8fe9bedb.koreacentral.azurecontainerapps.io",
           "ipSecurityRestrictions": null,
           "stickySessions": null,
           "targetPort": 80,
@@ -51,7 +51,7 @@
           {
             "identity": "system",
             "passwordSecretRef": "",
-            "server": "acracrdnsfwdbypy4qtor.azurecr.io",
+            "server": "acracrdnsfwdbyprdumlp.azurecr.io",
             "username": ""
           }
         ],
@@ -63,12 +63,12 @@
       },
       "customDomainVerificationId": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
       "delegatedIdentities": [],
-      "environmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/managedEnvironments/cae-acrdnsfwdbyp-y4qtor",
-      "eventStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/containerApps/ca-acrdnsfwdbyp-y4qtor/eventstream",
-      "latestReadyRevisionName": "ca-acrdnsfwdbyp-y4qtor--0000001",
-      "latestRevisionFqdn": "ca-acrdnsfwdbyp-y4qtor--0000001.purplebeach-f1e87cc8.koreacentral.azurecontainerapps.io",
-      "latestRevisionName": "ca-acrdnsfwdbyp-y4qtor--0000001",
-      "managedEnvironmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/managedEnvironments/cae-acrdnsfwdbyp-y4qtor",
+      "environmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/managedEnvironments/cae-acrdnsfwdbyp-rdumlp",
+      "eventStreamEndpoint": "https://koreacentral.azurecontainerapps.dev/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/containerApps/ca-acrdnsfwdbyp-rdumlp/eventstream",
+      "latestReadyRevisionName": "ca-acrdnsfwdbyp-rdumlp--0000001",
+      "latestRevisionFqdn": "ca-acrdnsfwdbyp-rdumlp--0000001.blackrock-8fe9bedb.koreacentral.azurecontainerapps.io",
+      "latestRevisionName": "ca-acrdnsfwdbyp-rdumlp--0000001",
+      "managedEnvironmentId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/managedEnvironments/cae-acrdnsfwdbyp-rdumlp",
       "outboundIpAddresses": [
         "20.196.231.61",
         "20.196.243.56",
@@ -230,7 +230,7 @@
         "20.249.44.147",
         "20.196.239.120",
         "20.249.44.196",
-        "20.249.141.105"
+        "20.249.43.127"
       ],
       "patchingMode": "Automatic",
       "provisioningState": "Succeeded",
@@ -241,14 +241,14 @@
             "env": [
               {
                 "name": "ACR_FQDN",
-                "value": "acracrdnsfwdbypy4qtor.azurecr.io"
+                "value": "acracrdnsfwdbyprdumlp.azurecr.io"
               },
               {
                 "name": "BUILD_TAG",
                 "value": "v1"
               }
             ],
-            "image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+            "image": "acracrdnsfwdbyprdumlp.azurecr.io/dns-forwarder-bypass-lab:v1",
             "imageType": "ContainerImage",
             "name": "app",
             "resources": {
@@ -274,12 +274,12 @@
       },
       "workloadProfileName": "Consumption"
     },
-    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
     "systemData": {
-      "createdAt": "2026-06-29T00:05:01.8393509",
+      "createdAt": "2026-06-29T00:41:48.3169617",
       "createdBy": "demouser.choe@gmail.com",
       "createdByType": "User",
-      "lastModifiedAt": "2026-06-29T00:08:48.2627729",
+      "lastModifiedAt": "2026-06-29T00:45:33.6003355",
       "lastModifiedBy": "demouser.choe@gmail.com",
       "lastModifiedByType": "User"
     },
@@ -299,17 +299,17 @@
     "dnsSettings": {
       "appliedDnsServers": [],
       "dnsServers": [],
-      "internalDomainNameSuffix": "a4aw1vdj0ngevibbnmrbjix5vd.syx.internal.cloudapp.net"
+      "internalDomainNameSuffix": "nl5ikcovissepml3afdga0hwrh.syx.internal.cloudapp.net"
     },
     "enableAcceleratedNetworking": false,
     "enableIPForwarding": false,
     "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
     "hostedWorkloads": [],
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbyprdumlp.nic.00000000-0000-0000-0000-000000000000",
     "ipConfigurations": [
       {
         "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
-        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbyprdumlp.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
         "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
         "primary": true,
         "privateIPAddress": "10.60.4.4",
@@ -317,22 +317,22 @@
         "privateIPAllocationMethod": "Dynamic",
         "privateLinkConnectionProperties": {
           "fqdns": [
-            "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+            "acracrdnsfwdbyprdumlp.koreacentral.data.azurecr.io"
           ],
           "groupId": "registry",
           "requiredMemberName": "registry_data_koreacentral"
         },
         "provisioningState": "Succeeded",
-        "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+        "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
         "subnet": {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/virtualNetworks/vnet-acrdnsfwdbyp-y4qtor/subnets/snet-pe",
-          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905"
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/virtualNetworks/vnet-acrdnsfwdbyp-rdumlp/subnets/snet-pe",
+          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940"
         },
         "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
       },
       {
         "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
-        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbyprdumlp.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
         "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
         "primary": false,
         "privateIPAddress": "10.60.4.5",
@@ -340,30 +340,30 @@
         "privateIPAllocationMethod": "Dynamic",
         "privateLinkConnectionProperties": {
           "fqdns": [
-            "acracrdnsfwdbypy4qtor.azurecr.io"
+            "acracrdnsfwdbyprdumlp.azurecr.io"
           ],
           "groupId": "registry",
           "requiredMemberName": "registry"
         },
         "provisioningState": "Succeeded",
-        "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+        "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
         "subnet": {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/virtualNetworks/vnet-acrdnsfwdbyp-y4qtor/subnets/snet-pe",
-          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905"
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/virtualNetworks/vnet-acrdnsfwdbyp-rdumlp/subnets/snet-pe",
+          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940"
         },
         "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
       }
     ],
     "location": "koreacentral",
     "macAddress": "",
-    "name": "pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000",
+    "name": "pe-acracrdnsfwdbyprdumlp.nic.00000000-0000-0000-0000-000000000000",
     "nicType": "Standard",
     "privateEndpoint": {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/privateEndpoints/pe-acracrdnsfwdbypy4qtor",
-      "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905"
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/privateEndpoints/pe-acracrdnsfwdbyprdumlp",
+      "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940"
     },
     "provisioningState": "Succeeded",
-    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
     "resourceGuid": "00000000-0000-0000-0000-000000000000",
     "tapConfigurations": [],
     "type": "Microsoft.Network/networkInterfaces",
@@ -371,7 +371,7 @@
   },
   "dnsmasq_post": {
     "phase": "recovered",
-    "vm_name": "vm-dns-y4qtor",
+    "vm_name": "vm-dns-rdumlp",
     "resolved_upstream": "168.63.129.16",
     "service_state": "active",
     "listen_address": "10.60.5.4",
@@ -392,15 +392,15 @@
   },
   "probe_capture": {
     "expected_first_class": "private",
-    "captured_before_utc": "2026-06-29T00:18:22Z",
-    "captured_after_utc": "2026-06-29T00:18:22Z",
+    "captured_before_utc": "2026-06-29T00:52:31Z",
+    "captured_after_utc": "2026-06-29T00:52:32Z",
     "attempts": [
       {
         "attempt": 1,
         "valid_json": true,
-        "raw_response": "{\"fqdn\": \"acracrdnsfwdbypy4qtor.azurecr.io\", \"addresses\": [{\"ip\": \"10.60.4.5\", \"class\": \"private\"}], \"first_class\": \"private\"}",
+        "raw_response": "{\"fqdn\": \"acracrdnsfwdbyprdumlp.azurecr.io\", \"addresses\": [{\"ip\": \"10.60.4.5\", \"class\": \"private\"}], \"first_class\": \"private\"}",
         "response": {
-          "fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "fqdn": "acracrdnsfwdbyprdumlp.azurecr.io",
           "addresses": [
             {
               "ip": "10.60.4.5",
@@ -414,7 +414,7 @@
     ],
     "selected_attempt": 1,
     "response": {
-      "fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+      "fqdn": "acracrdnsfwdbyprdumlp.azurecr.io",
       "addresses": [
         {
           "ip": "10.60.4.5",

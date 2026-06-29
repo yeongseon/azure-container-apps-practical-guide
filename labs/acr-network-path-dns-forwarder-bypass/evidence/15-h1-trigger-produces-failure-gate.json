@@ -1,5 +1,5 @@
 {
-  "claim": "The H1 trigger produced the documented workload-path failure surface on ca-acrdnsfwdbyp-y4qtor: dnsmasq points at 8.8.8.8, the /probe endpoint returns first_class=public with explicit retry disclosure, the already-running revision stays Healthy, and the captured H1+H2 failure-event KQL window stays empty. This is the silent workload-path failure mode for DNS-forwarder bypass.",
+  "claim": "The H1 trigger produced the documented workload-path failure surface on ca-acrdnsfwdbyp-rdumlp: dnsmasq points at 8.8.8.8, the /probe endpoint returns first_class=public with explicit retry disclosure, the already-running revision stays Healthy, and the captured H1+H2 failure-event KQL window stays empty. This is the silent workload-path failure mode for DNS-forwarder bypass.",
   "claim_level": "Observed",
   "gate_classification": "H1 gate: confirms that swapping dnsmasq to public DNS flips only the workload probe surface while the already-running revision stays healthy.",
   "hypothesis": "H1_trigger_produces_failure",
@@ -58,7 +58,7 @@
           }
         ],
         "final_response": {
-          "fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "fqdn": "acracrdnsfwdbyprdumlp.azurecr.io",
           "addresses": [
             {
               "ip": "20.41.69.128",
@@ -81,12 +81,12 @@
       ],
       "observed_values": {
         "pre_live_revision": {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
-          "name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-rdumlp/revisions/ca-acrdnsfwdbyp-rdumlp--0000001",
+          "name": "ca-acrdnsfwdbyp-rdumlp--0000001",
           "properties": {
             "active": true,
-            "createdTime": "2026-06-29T00:08:55+00:00",
-            "fqdn": "ca-acrdnsfwdbyp-y4qtor--0000001.purplebeach-f1e87cc8.koreacentral.azurecontainerapps.io",
+            "createdTime": "2026-06-29T00:45:39+00:00",
+            "fqdn": "ca-acrdnsfwdbyp-rdumlp--0000001.blackrock-8fe9bedb.koreacentral.azurecontainerapps.io",
             "healthState": "Healthy",
             "provisioningState": "Provisioned",
             "replicas": 1,
@@ -97,14 +97,14 @@
                   "env": [
                     {
                       "name": "ACR_FQDN",
-                      "value": "acracrdnsfwdbypy4qtor.azurecr.io"
+                      "value": "acracrdnsfwdbyprdumlp.azurecr.io"
                     },
                     {
                       "name": "BUILD_TAG",
                       "value": "v1"
                     }
                   ],
-                  "image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+                  "image": "acracrdnsfwdbyprdumlp.azurecr.io/dns-forwarder-bypass-lab:v1",
                   "name": "app",
                   "probes": [],
                   "resources": {
@@ -128,7 +128,7 @@
             },
             "trafficWeight": 100
           },
-          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
           "type": "Microsoft.App/containerapps/revisions"
         },
         "all_pre_revision_healthy": true
@@ -144,9 +144,9 @@
         "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json"
       ],
       "observed_values": {
-        "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrdnsfwdbyp-y4qtor' | where TimeGenerated between (todatetime('2026-06-29T00:11:45Z') .. todatetime('2026-06-29T00:18:31Z')) | where Reason_s in ('ImagePullFailed','ImagePullUnauthorized','BackOff','RevisionFailed','ReplicaFailed') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
-        "window_start_utc": "2026-06-29T00:11:45Z",
-        "window_end_utc": "2026-06-29T00:18:31Z",
+        "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrdnsfwdbyp-rdumlp' | where TimeGenerated between (todatetime('2026-06-29T00:46:57Z') .. todatetime('2026-06-29T00:52:42Z')) | where Reason_s in ('ImagePullFailed','ImagePullUnauthorized','BackOff','RevisionFailed','ReplicaFailed') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
+        "window_start_utc": "2026-06-29T00:46:57Z",
+        "window_end_utc": "2026-06-29T00:52:42Z",
         "row_count": 0,
         "rows": []
       },
@@ -168,8 +168,8 @@
         "post_public_network_access": "Disabled",
         "pre_registry_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor",
-            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp",
+            "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.5"
@@ -178,8 +178,8 @@
         ],
         "post_registry_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor",
-            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp",
+            "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.5"
@@ -188,8 +188,8 @@
         ],
         "pre_data_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+            "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.4"
@@ -198,8 +198,8 @@
         ],
         "post_data_records": [
           {
-            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+            "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
             "ttl": 10,
             "a_records": [
               "10.60.4.4"
@@ -215,5 +215,5 @@
   "thresholds": {
     "expected_failure_event_rows": 0
   },
-  "utc_captured": "2026-06-29T00:18:50Z"
+  "utc_captured": "2026-06-29T00:53:14Z"
 }

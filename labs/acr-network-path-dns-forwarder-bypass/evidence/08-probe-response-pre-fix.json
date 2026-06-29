@@ -1,14 +1,14 @@
 {
   "expected_first_class": "public",
-  "captured_before_utc": "2026-06-29T00:15:30Z",
-  "captured_after_utc": "2026-06-29T00:15:31Z",
+  "captured_before_utc": "2026-06-29T00:49:36Z",
+  "captured_after_utc": "2026-06-29T00:49:37Z",
   "attempts": [
     {
       "attempt": 1,
       "valid_json": true,
-      "raw_response": "{\"fqdn\": \"acracrdnsfwdbypy4qtor.azurecr.io\", \"addresses\": [{\"ip\": \"20.41.69.128\", \"class\": \"public\"}], \"first_class\": \"public\"}",
+      "raw_response": "{\"fqdn\": \"acracrdnsfwdbyprdumlp.azurecr.io\", \"addresses\": [{\"ip\": \"20.41.69.128\", \"class\": \"public\"}], \"first_class\": \"public\"}",
       "response": {
-        "fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+        "fqdn": "acracrdnsfwdbyprdumlp.azurecr.io",
         "addresses": [
           {
             "ip": "20.41.69.128",
@@ -22,7 +22,7 @@
   ],
   "selected_attempt": 1,
   "response": {
-    "fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+    "fqdn": "acracrdnsfwdbyprdumlp.azurecr.io",
     "addresses": [
       {
         "ip": "20.41.69.128",

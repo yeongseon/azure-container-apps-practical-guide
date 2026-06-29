@@ -6,14 +6,14 @@
       }
     ],
     "etag": "00000000-0000-0000-0000-000000000000",
-    "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/privateDnsZones/privatelink.azurecr.io/A/acracrdnsfwdbypy4qtor",
+    "fqdn": "acracrdnsfwdbyprdumlp.privatelink.azurecr.io.",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/privateDnsZones/privatelink.azurecr.io/A/acracrdnsfwdbyprdumlp",
     "isAutoRegistered": false,
     "metadata": {
-      "creator": "created by private endpoint pe-acracrdnsfwdbypy4qtor with resource guid 00000000-0000-0000-0000-000000000000"
+      "creator": "created by private endpoint pe-acracrdnsfwdbyprdumlp with resource guid 00000000-0000-0000-0000-000000000000"
     },
-    "name": "acracrdnsfwdbypy4qtor",
-    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+    "name": "acracrdnsfwdbyprdumlp",
+    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
     "ttl": 10,
     "type": "Microsoft.Network/privateDnsZones/A"
   },
@@ -24,14 +24,14 @@
       }
     ],
     "etag": "00000000-0000-0000-0000-000000000000",
-    "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/privateDnsZones/privatelink.azurecr.io/A/acracrdnsfwdbypy4qtor.koreacentral.data",
+    "fqdn": "acracrdnsfwdbyprdumlp.koreacentral.data.privatelink.azurecr.io.",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290940/providers/Microsoft.Network/privateDnsZones/privatelink.azurecr.io/A/acracrdnsfwdbyprdumlp.koreacentral.data",
     "isAutoRegistered": false,
     "metadata": {
-      "creator": "created by private endpoint pe-acracrdnsfwdbypy4qtor with resource guid 00000000-0000-0000-0000-000000000000"
+      "creator": "created by private endpoint pe-acracrdnsfwdbyprdumlp with resource guid 00000000-0000-0000-0000-000000000000"
     },
-    "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
-    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+    "name": "acracrdnsfwdbyprdumlp.koreacentral.data",
+    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290940",
     "ttl": 10,
     "type": "Microsoft.Network/privateDnsZones/A"
   }
