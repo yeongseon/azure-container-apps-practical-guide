@@ -175,7 +175,7 @@ The committed Phase B cohort lives in [`evidence/`](evidence/README.md).
 - It captures one live `koreacentral` reproduction of the **silence-gate** pattern: baseline firewall presence, H1 bypass absence, H2 recovery presence, with pulls succeeding throughout.
 - The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
 - Gate 15 carries the lab-specific **baseline-presence proof** so the H1 `count == 0` silence claim is not vacuously true.
-- Gate 17 carries the three required silence-gate subproofs together: `baseline_presence + bypass_absence + recovery_presence + workload_silence`.
+- Gate 17 carries the three required silence-gate subproofs together: `baseline_presence + bypass_absence + recovery_presence + bounded_terminal_failure_silence`.
 - The bounded claim is intentionally narrow: explicit `/32` UDR routes for the captured PE NIC IPs are the mechanically observable trigger field for Azure Firewall visibility in this Path C topology. The pack does **not** overclaim exact pull timing, OCI digests, cache internals, or pod continuity.
 
 For offline reruns:
@@ -195,7 +195,7 @@ For future live reproductions:
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-pe-forced-inspection/` | Enters the lab directory for the live capture workflow. |
-| `bash fix-and-capture.sh` | Provisions the lab, captures the baseline/H1/H2 evidence pack, runs the hermetic verifier, and starts RG cleanup immediately to minimize Firewall Basic cost. |
+| `bash fix-and-capture.sh` | Provisions the lab, captures the baseline/H1/H2 evidence pack, runs the hermetic verifier, and starts RG cleanup immediately to minimize Firewall Basic cost while disclosing any non-terminal `ImagePullUnauthorized` rows separately from the zero terminal-failure claim. |
 
 ```bash
 cd labs/acr-network-path-pe-forced-inspection/
