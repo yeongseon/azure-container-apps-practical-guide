@@ -565,9 +565,9 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 ## Gate overview
 
 - **Gate 14 — `14-cohort-integrity-gate.json`**: validates canonical file presence, parseability, single-window UTC coherence, revision-lineage equality, unchanged PE NIC IP map, and README cross-references.
-- **Gate 15 — `15-h1-trigger-produces-failure-gate.json`**: proves the baseline-presence subgate, the `/32` routes were removed while the default route stayed, the v-bypass pull still succeeded under PE-only ACR, the H1 firewall query returned zero rows, and the workload-silence invariant held.
-- **Gate 16 — `16-h2-fix-restores-recovery-gate.json`**: proves the exact `/32` routes were restored, the latest active `v-recover` revision is Healthy, the H2 firewall query returned rows again, and the workload-silence invariant still held.
-- **Gate 17 — `17-bounded-falsification-gate.json`**: performs the full silence-gate bounded-falsification check: baseline-presence, bypass-absence, recovery-presence, workload-silence, held constants, and explicit claim ceiling.
+- **Gate 15 — `15-h1-trigger-produces-failure-gate.json`**: proves the baseline-presence subgate, the `/32` routes were removed while the default route stayed, the v-bypass pull still succeeded under PE-only ACR, the H1 firewall query returned zero rows, and no terminal `ImagePullFailed` / `RevisionFailed` events surfaced.
+- **Gate 16 — `16-h2-fix-restores-recovery-gate.json`**: proves the exact `/32` routes were restored, the latest active `v-recover` revision is Healthy, the H2 firewall query returned rows again, and the same bounded terminal-failure-silence invariant still held.
+- **Gate 17 — `17-bounded-falsification-gate.json`**: performs the full silence-gate bounded-falsification check: baseline-presence, bypass-absence, recovery-presence, bounded workload silence, held constants, and explicit claim ceiling.
 
 ## Honest disclosure
 

@@ -1,5 +1,5 @@
 {
-  "claim": "The H2 fix restored recovery on ca-acrpefci-d6pdtg: the exact PE /32 UDR routes were re-added, the latest active v-recover revision is Healthy, the H2 window contains new firewall ACR rows again, and ACR public access still reads Disabled while the workload-silence invariant remains intact.",
+  "claim": "The H2 fix restored recovery on ca-acrpefci-d6pdtg: the exact PE /32 UDR routes were re-added, the latest active v-recover revision is Healthy, the H2 window contains new firewall ACR rows again, and ACR public access still reads Disabled while the bounded terminal-failure-silence invariant remains intact (zero ImagePullFailed and zero RevisionFailed, with any non-terminal ImagePullUnauthorized rows disclosed separately).",
   "claim_level": "Observed",
   "gate_classification": "H2 gate: confirms that re-adding the PE /32 UDR routes restores firewall visibility without changing pull success semantics.",
   "hypothesis": "H2_fix_restores_recovery",
@@ -334,7 +334,7 @@
       "sub_gate": "c_h2_window_contains_new_acr_firewall_rows_and_v_recover_response"
     },
     {
-      "claim": "ACR stays PE-only and the workload-silence invariant still holds after recovery.",
+      "claim": "ACR stays PE-only and the bounded terminal-failure-silence invariant still holds after recovery.",
       "claim_level": "Observed",
       "evidence_files": [
         "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
@@ -352,7 +352,7 @@
           "all_revisions_healthy": true
         }
       },
-      "predicate": "11.acr.publicNetworkAccess == 'Disabled' and 12 records all_revisions_healthy plus zero ImagePullFailed and zero RevisionFailed while 10 shows all revisions Healthy.",
+      "predicate": "11.acr.publicNetworkAccess == 'Disabled' and 12 records all_revisions_healthy plus zero ImagePullFailed and zero RevisionFailed while separately disclosing any ImagePullUnauthorized counts and 10 shows all revisions Healthy.",
       "result": "pass",
       "sub_gate": "d_acr_stays_pe_only_and_workload_silence_remains_intact"
     }

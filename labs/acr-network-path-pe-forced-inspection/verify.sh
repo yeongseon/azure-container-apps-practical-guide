@@ -1193,7 +1193,7 @@ gate15 = {
 }
 
 gate16 = {
-    "claim": f"The H2 fix restored recovery on {app_name}: the exact PE /32 UDR routes were re-added, the latest active v-recover revision is Healthy, the H2 window contains new firewall ACR rows again, and ACR public access still reads Disabled while the workload-silence invariant remains intact.",
+    "claim": f"The H2 fix restored recovery on {app_name}: the exact PE /32 UDR routes were re-added, the latest active v-recover revision is Healthy, the H2 window contains new firewall ACR rows again, and ACR public access still reads Disabled while the bounded terminal-failure-silence invariant remains intact (zero ImagePullFailed and zero RevisionFailed, with any non-terminal ImagePullUnauthorized rows disclosed separately).",
     "claim_level": "Observed",
     "gate_classification": "H2 gate: confirms that re-adding the PE /32 UDR routes restores firewall visibility without changing pull success semantics.",
     "hypothesis": "H2_fix_restores_recovery",
@@ -1255,7 +1255,7 @@ gate16 = {
             "sub_gate": "c_h2_window_contains_new_acr_firewall_rows_and_v_recover_response",
         },
         {
-            "claim": "ACR stays PE-only and the workload-silence invariant still holds after recovery.",
+            "claim": "ACR stays PE-only and the bounded terminal-failure-silence invariant still holds after recovery.",
             "claim_level": "Observed",
             "evidence_files": [repo_rel("11-app-spec-post-fix.json"), repo_rel("12-h2-recovery-window.json")],
             "observed_values": {
@@ -1263,7 +1263,7 @@ gate16 = {
                 "all_revisions_healthy_post": all_revisions_healthy_post,
                 "h2_counts": post_h2_counts,
             },
-            "predicate": "11.acr.publicNetworkAccess == 'Disabled' and 12 records all_revisions_healthy plus zero ImagePullFailed and zero RevisionFailed while 10 shows all revisions Healthy.",
+            "predicate": "11.acr.publicNetworkAccess == 'Disabled' and 12 records all_revisions_healthy plus zero ImagePullFailed and zero RevisionFailed while separately disclosing any ImagePullUnauthorized counts and 10 shows all revisions Healthy.",
             "result": "pass" if subgate_16d_pass else "fail",
             "sub_gate": "d_acr_stays_pe_only_and_workload_silence_remains_intact",
         },
@@ -1276,7 +1276,7 @@ gate16 = {
 }
 
 gate17 = {
-    "claim": "This evidence pack falsifies the Path C inspection assumption within a bounded scope. Silence-gate proof requires three non-vacuous observations together: baseline-presence (the firewall did see ACR when the /32 routes were intact), bypass-absence (the firewall saw zero ACR rows after the /32 routes were removed), and workload-silence (pulls still succeeded and revisions stayed Healthy throughout). Recovery-presence then closes the loop by showing the firewall sees ACR again once the /32 routes return.",
+    "claim": "This evidence pack falsifies the Path C inspection assumption within a bounded scope. Silence-gate proof requires three non-vacuous observations together: baseline-presence (the firewall did see ACR when the /32 routes were intact), bypass-absence (the firewall saw zero ACR rows after the /32 routes were removed), and bounded workload silence (pulls still succeeded, revisions stayed Healthy throughout, and no terminal ImagePullFailed or RevisionFailed events surfaced). Recovery-presence then closes the loop by showing the firewall sees ACR again once the /32 routes return.",
     "claim_level": "Observed",
     "cohort_binding_note": {
         "claim_ceiling": "The bounded claim is that explicit /32 UDR routes for the captured PE NIC IPs are the mechanically observable trigger field controlling Azure Firewall visibility into this ACR Private Endpoint pull path. The pack does NOT prove exact pull durations, OCI layer digests, cache internals, pod continuity, replica suffix continuity, precise route-propagation timing, or the internal identity of the ACA workload-subnet component that emitted the pull.",
@@ -1329,7 +1329,7 @@ gate17 = {
             "sub_gate": "b_recovery_presence_restores_firewall_visibility",
         },
         {
-            "claim": "The lab is truly silent at the workload surface: all revisions stayed Healthy throughout and zero ImagePullFailed / RevisionFailed events were recorded.",
+            "claim": "The lab is silent at the bounded terminal-failure surface: all revisions stayed Healthy throughout and zero ImagePullFailed / RevisionFailed events were recorded, while any non-terminal ImagePullUnauthorized rows are disclosed separately.",
             "claim_level": "Observed",
             "evidence_files": [repo_rel("02-revision-list-pre-fix.json"), repo_rel("08-h1-silence-window.json"), repo_rel("10-revision-list-post-fix.json"), repo_rel("12-h2-recovery-window.json")],
             "observed_values": {
