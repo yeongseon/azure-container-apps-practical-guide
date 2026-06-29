@@ -1,0 +1,296 @@
+{
+  "claim": "The H2 fix restored fresh-pull recovery on ca-acrfw33-xi7y5a: the firewall public IP 20.200.208.116 is back in the ACR allowlist, the latest active v-recover revision is Healthy, the post-fix window contains PullingImage and PulledImage for v-recover with / returning build_tag=v-recover, and the earlier v-broken revision was not retroactively repaired after explicit deactivation.",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms recovery after re-adding the firewall public IP and deploying v-recover.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "path_used": "single",
+  "predicate_inputs": {
+    "acr_rules_post": "labs/acr-network-path-firewall-allowlist/evidence/09-acr-network-rules-post-fix.json",
+    "revision_list_post": "labs/acr-network-path-firewall-allowlist/evidence/10-revision-list-post-fix.json",
+    "app_spec_post": "labs/acr-network-path-firewall-allowlist/evidence/11-app-spec-post-fix.json",
+    "h2_recovery_window": "labs/acr-network-path-firewall-allowlist/evidence/12-h2-recovery-window.json"
+  },
+  "acr_network_path_firewall_allowlist_h2_fix_restores_recovery_all_subgates_pass": true,
+  "acr_network_path_firewall_allowlist_h2_fix_restores_recovery_sub_gates": {
+    "a_fw_pip_is_restored_as_the_only_acr_allowlist_entry": true,
+    "b_latest_active_v_recover_revision_is_healthy": true,
+    "c_post_fix_window_contains_successful_v_recover_pull_markers": true,
+    "d_v_broken_revision_is_not_retroactively_repaired_after_explicit_deactivation": true
+  },
+  "scenario": "acr_network_path_firewall_allowlist",
+  "sub_gates": [
+    {
+      "claim": "The firewall public IP is restored as the only ACR allowlist entry.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/09-acr-network-rules-post-fix.json"
+      ],
+      "observed_values": {
+        "publicNetworkAccess": "Enabled",
+        "networkRuleBypassOptions": "None",
+        "defaultAction": "Deny",
+        "ipRules": [
+          "20.200.208.116"
+        ],
+        "firewall_public_ip": "20.200.208.116"
+      },
+      "predicate": "09.publicNetworkAccess == 'Enabled' AND 09.networkRuleBypassOptions == 'None' AND 09.defaultAction == 'Deny' AND 09.ipRules == [fw_pip].",
+      "result": "pass",
+      "sub_gate": "a_fw_pip_is_restored_as_the_only_acr_allowlist_entry"
+    },
+    {
+      "claim": "The latest recovered v-recover revision is Healthy and active.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/10-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "post_latest_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000006",
+          "name": "ca-acrfw33-xi7y5a--0000006",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T08:53:01+00:00",
+            "fqdn": "ca-acrfw33-xi7y5a--0000006.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "post_recover_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000006",
+          "name": "ca-acrfw33-xi7y5a--0000006",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T08:53:01+00:00",
+            "fqdn": "ca-acrfw33-xi7y5a--0000006.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "type": "Microsoft.App/containerapps/revisions"
+        }
+      },
+      "predicate": "10 contains a revision whose image endswith ':v-recover', that revision has healthState == 'Healthy' and active == true, and it is the latest post-fix revision.",
+      "result": "pass",
+      "sub_gate": "b_latest_active_v_recover_revision_is_healthy"
+    },
+    {
+      "claim": "The post-fix recovery window contains successful v-recover pull markers and the workload reports build_tag=v-recover.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "pulling_rows_preview": [
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover'",
+            "Reason_s": "PullingImage",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:53:15.3226664Z",
+            "Type_s": "Normal"
+          }
+        ],
+        "pulled_rows_preview": [
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Successfully pulled image \"acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover\" in 5.04s. Image size: 49283072 bytes.",
+            "Reason_s": "PulledImage",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:53:15.3226664Z",
+            "Type_s": "Normal"
+          }
+        ],
+        "http_response": {
+          "request_url": "https://ca-acrfw33-xi7y5a.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io/",
+          "status_code": 200,
+          "headers": [
+            "server: gunicorn",
+            "date: Mon, 29 Jun 2026 08:53:35 GMT",
+            "content-type: application/json",
+            "content-length: 74",
+            "connection: close"
+          ],
+          "body": "{\"build_tag\":\"v-recover\",\"message\":\"ACR firewall allowlist lab workload\"}\n",
+          "body_json": {
+            "build_tag": "v-recover",
+            "message": "ACR firewall allowlist lab workload"
+          }
+        }
+      },
+      "predicate": "12 contains at least one PullingImage row and at least one PulledImage row for v-recover, and 12.http_response.body_json.build_tag == 'v-recover'.",
+      "result": "pass",
+      "sub_gate": "c_post_fix_window_contains_successful_v_recover_pull_markers"
+    },
+    {
+      "claim": "The v-broken revision is not retroactively repaired after explicit deactivation and does not emit a successful PulledImage row in H2.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/11-app-spec-post-fix.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "post_broken_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000005",
+          "name": "ca-acrfw33-xi7y5a--0000005",
+          "properties": {
+            "active": false,
+            "createdTime": "2026-06-29T08:50:14+00:00",
+            "fqdn": "ca-acrfw33-xi7y5a--0000005.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "lastActiveTime": "2026-06-29T08:51:38+00:00",
+            "provisioningState": "Provisioned",
+            "replicas": 0,
+            "runningState": "Stopped",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 0
+          },
+          "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "post_broken_snapshot": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000005",
+          "name": "ca-acrfw33-xi7y5a--0000005",
+          "properties": {
+            "active": false,
+            "createdTime": "2026-06-29T08:50:14+00:00",
+            "fqdn": "ca-acrfw33-xi7y5a--0000005.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "lastActiveTime": "2026-06-29T08:51:38+00:00",
+            "provisioningState": "Provisioned",
+            "replicas": 0,
+            "runningState": "Stopped",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "post_broken_failure_persists": false,
+        "post_broken_inactive_after_explicit_deactivate": true,
+        "post_broken_no_h2_pull_success": true,
+        "post_broken_not_retroactively_repaired": true,
+        "post_broken_success_rows": []
+      },
+      "predicate": "The post-fix evidence proves either that the v-broken revision still carries a failed/unhealthy broken-pull state OR that the explicitly deactivated v-broken revision is inactive (active=false, replicas=0, runningState='Stopped', image endswith ':v-broken'), and no H2 PulledImage row references v-broken.",
+      "result": "pass",
+      "sub_gate": "d_v_broken_revision_is_not_retroactively_repaired_after_explicit_deactivation"
+    }
+  ],
+  "thresholds": {
+    "expected_post_fix_ip_rule_count": 1,
+    "expected_post_fix_public_network_access": "Enabled"
+  },
+  "utc_captured": "2026-06-29T08:53:46Z"
+}

@@ -1,0 +1,28 @@
+{
+  "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrfw33-xi7y5a' | where TimeGenerated >= todatetime('2026-06-29T08:48:09Z') | where RevisionName_s == 'ca-acrfw33-xi7y5a--0000004' | where Reason_s in ('PullingImage','PulledImage','ImagePullUnauthorized','ImagePullFailed','BackOff','ContainerTerminated') | project TimeGenerated, ContainerAppName_s, RevisionName_s, ReplicaName_s, Reason_s, Log_s, Type_s | order by TimeGenerated asc",
+  "window_start_utc": "2026-06-29T08:48:09Z",
+  "window_end_utc": "2026-06-29T08:48:39.3354024Z",
+  "row_count": 2,
+  "rows": [
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000004-7955dd64c5-45ksd",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000004",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:48:39.3354024Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Successfully pulled image \"acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1\" in 4.99s. Image size: 49283072 bytes.",
+      "Reason_s": "PulledImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000004-7955dd64c5-45ksd",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000004",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:48:39.3354024Z",
+      "Type_s": "Normal"
+    }
+  ]
+}

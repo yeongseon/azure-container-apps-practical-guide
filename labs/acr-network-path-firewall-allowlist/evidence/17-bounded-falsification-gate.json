@@ -1,0 +1,397 @@
+{
+  "claim": "This evidence pack falsifies the Path A firewall-allowlist hypothesis within a bounded scope. Non-vacuous proof requires four observations together: baseline-presence (successful pull markers existed before the allowlist entry was removed), bypass-absence (the broken window produced zero successful v-broken pull markers and instead emitted DENIED/403 evidence naming the firewall public IP), recovery-presence (successful v-recover pull markers returned after the allowlist entry was restored), and workload-path silence (the H1 broken-window / response continued to report build_tag=v1 from the cached baseline path). The bounded claim is only that the single firewall public IP entry in ACR ipRules is the mechanically observable trigger field for this cohort.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that the single firewall public IP entry in ACR networkRuleSet.ipRules is the mechanically observable trigger field controlling fresh-pull success in this one koreacentral cohort. The pack does NOT prove exact retry cadence, exact pull durations, OCI digests, pod continuity, replica suffix continuity, revision suffix identity, internal firewall ingestion latency, or the specific internal ACA component identity behind the pull attempt.",
+    "explicit_drops": [
+      {
+        "id": "acr_firewall_internal_retry_schedule",
+        "note": "The pack proves failure before fix and recovery after fix, not the exact internal retry cadence for the failed puller."
+      },
+      {
+        "id": "exact_pull_duration_milliseconds",
+        "note": "The pack proves success-versus-failure, not the exact duration of every layer download."
+      },
+      {
+        "id": "firewall_application_log_ingestion_latency",
+        "note": "This pack relies on Container Apps and ACR surfaces, not the exact second that every firewall diagnostic row lands."
+      },
+      {
+        "id": "image_layer_sha",
+        "note": "The pack proves tag-level image identity, not immutable OCI digests."
+      },
+      {
+        "id": "pod_uid",
+        "note": "The pack reasons at the revision/workload-response layer, not the Kubernetes pod UID layer."
+      },
+      {
+        "id": "replica_suffix_continuity",
+        "note": "Replica suffixes are scheduler-generated and are not part of the causal claim."
+      },
+      {
+        "id": "revision_suffix_identity",
+        "note": "Revision suffixes change by design on each deployment and are treated only as fresh-pull markers."
+      },
+      {
+        "id": "workload_source_ip_component_identity",
+        "note": "The evidence proves the firewall public IP that ACR rejected, not the exact internal ACA component identity behind the pull attempt."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the ACR firewall allowlist entry as the trigger field while explicitly listing the claim ceiling and the cached-revision silence invariant.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "baseline_success_window": "labs/acr-network-path-firewall-allowlist/evidence/05-baseline-success-window.json",
+    "h1_failure_window": "labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json",
+    "acr_rules_pre": "labs/acr-network-path-firewall-allowlist/evidence/03-acr-network-rules-pre-fix.json",
+    "acr_rules_post": "labs/acr-network-path-firewall-allowlist/evidence/09-acr-network-rules-post-fix.json",
+    "h2_recovery_window": "labs/acr-network-path-firewall-allowlist/evidence/12-h2-recovery-window.json"
+  },
+  "acr_network_path_firewall_allowlist_h3_bounded_falsification_all_subgates_pass": true,
+  "acr_network_path_firewall_allowlist_h3_bounded_falsification_sub_gates": {
+    "a_bypass_absence_is_real_only_because_baseline_presence_was_proven": true,
+    "b_recovery_presence_restores_successful_pull_markers": true,
+    "c_workload_silence_holds_on_the_cached_v1_revision": true,
+    "d_only_the_documented_rule_and_revision_fields_change_and_the_claim_ceiling_is_static": true
+  },
+  "scenario": "acr_network_path_firewall_allowlist",
+  "sub_gates": [
+    {
+      "claim": "The H1 absence claim is non-vacuous only because the baseline window already proved successful pull markers existed while the firewall public IP was allow-listed.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/05-baseline-success-window.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json"
+      ],
+      "observed_values": {
+        "baseline_pulled_count": 1,
+        "h1_zero_successful_pulls_for_v_broken": true,
+        "baseline_window": {
+          "start": "2026-06-29T08:48:09Z",
+          "end": "2026-06-29T08:48:39.3354024Z"
+        },
+        "h1_trigger_ts_utc": "2026-06-29T08:48:55Z"
+      },
+      "predicate": "baseline_pulled_count > 0 AND h1_zero_successful_pulls_for_v_broken == true.",
+      "result": "pass",
+      "sub_gate": "a_bypass_absence_is_real_only_because_baseline_presence_was_proven"
+    },
+    {
+      "claim": "The H2 recovery window restores successful v-recover pull markers.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "pulled_count": 1,
+        "h2_recovery_ts_utc": "2026-06-29T08:52:43Z",
+        "rows_preview": [
+          {
+            "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+            "Log_s": "Successfully pulled image \"acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover\" in 5.04s. Image size: 49283072 bytes.",
+            "Reason_s": "PulledImage",
+            "ReplicaName_s": "ca-acrfw33-xi7y5a--0000006-79c8bc7db5-qrddj",
+            "RevisionName_s": "ca-acrfw33-xi7y5a--0000006",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T08:53:15.3226664Z",
+            "Type_s": "Normal"
+          }
+        ]
+      },
+      "predicate": "len(post_pulled_rows) > 0.",
+      "result": "pass",
+      "sub_gate": "b_recovery_presence_restores_successful_pull_markers"
+    },
+    {
+      "claim": "The workload path is silent during H1: the cached baseline path stayed healthy before the break and the broken-window / response continued to report build_tag=v1.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/10-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "baseline_revision_name": "ca-acrfw33-xi7y5a--0000004",
+        "pre_baseline_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000004",
+          "name": "ca-acrfw33-xi7y5a--0000004",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T08:48:25+00:00",
+            "fqdn": "ca-acrfw33-xi7y5a--0000004.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 0
+          },
+          "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "post_baseline_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.App/containerApps/ca-acrfw33-xi7y5a/revisions/ca-acrfw33-xi7y5a--0000004",
+          "name": "ca-acrfw33-xi7y5a--0000004",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T08:48:25+00:00",
+            "fqdn": "ca-acrfw33-xi7y5a--0000004.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "Deprovisioning",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v1",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 0
+          },
+          "resourceGroup": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "baseline_revision_healthy_pre": true,
+        "http_response": {
+          "request_url": "https://ca-acrfw33-xi7y5a.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io/",
+          "status_code": 200,
+          "headers": [
+            "server: gunicorn",
+            "date: Mon, 29 Jun 2026 08:51:13 GMT",
+            "content-type: application/json",
+            "content-length: 67",
+            "connection: close"
+          ],
+          "body": "{\"build_tag\":\"v1\",\"message\":\"ACR firewall allowlist lab workload\"}\n",
+          "body_json": {
+            "build_tag": "v1",
+            "message": "ACR firewall allowlist lab workload"
+          }
+        }
+      },
+      "predicate": "The captured baseline revision is Healthy in 02 and 08.http_response.body_json.build_tag == 'v1', proving the cached v1 revision kept serving throughout H1.",
+      "result": "pass",
+      "sub_gate": "c_workload_silence_holds_on_the_cached_v1_revision"
+    },
+    {
+      "claim": "Only the documented rule/revision overlap fields change across H1 and H2, and the explicit claim ceiling stays static.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-firewall-allowlist/evidence/03-acr-network-rules-pre-fix.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/09-acr-network-rules-post-fix.json",
+        "labs/acr-network-path-firewall-allowlist/evidence/11-app-spec-post-fix.json"
+      ],
+      "observed_values": {
+        "held_constant_checks": {
+          "acr_public_network_access_enabled": {
+            "pre_value": "Enabled",
+            "post_value": "Enabled",
+            "equal": true
+          },
+          "acr_network_rule_bypass_none": {
+            "pre_value": "None",
+            "post_value": "None",
+            "equal": true
+          },
+          "acr_default_action_deny": {
+            "pre_value": "Deny",
+            "post_value": "Deny",
+            "equal": true
+          },
+          "acr_name": {
+            "pre_value": "acracrfw33xi7y5a",
+            "post_value": "acracrfw33xi7y5a",
+            "equal": true
+          },
+          "container_app_name": {
+            "pre_value": "ca-acrfw33-xi7y5a",
+            "post_value": "ca-acrfw33-xi7y5a",
+            "equal": true
+          },
+          "resource_group": {
+            "pre_value": "rg-aca-firewall-allowlist-lab33-20260629082135",
+            "post_value": "rg-aca-firewall-allowlist-lab33-20260629082135",
+            "equal": true
+          },
+          "container_name": {
+            "pre_value": "app",
+            "post_value": "app",
+            "equal": true
+          },
+          "image_repository": {
+            "pre_value": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab",
+            "post_value": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab",
+            "equal": true
+          },
+          "cpu": {
+            "pre_value": 0.25,
+            "post_value": 0.25,
+            "equal": true
+          },
+          "memory": {
+            "pre_value": "0.5Gi",
+            "post_value": "0.5Gi",
+            "equal": true
+          },
+          "ingress_target_port": {
+            "pre_value": 8080,
+            "post_value": 8080,
+            "equal": true
+          },
+          "min_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "max_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "firewall_public_ip": {
+            "pre_value": "20.200.208.116",
+            "post_value": "20.200.208.116",
+            "equal": true
+          },
+          "firewall_private_ip": {
+            "pre_value": "10.80.2.4",
+            "post_value": "10.80.2.4",
+            "equal": true
+          }
+        },
+        "allowed_expected_diff_paths": [
+          "acr.fw_pip_allowlisted",
+          "container_app.revision.latest_ready_revision_name",
+          "container_app.revision.latest_revision_name",
+          "container_app.revision.target_image",
+          "container_app.revision.target_revision_name",
+          "workload.build_tag"
+        ],
+        "overlap_diff_map": {
+          "acr.fw_pip_allowlisted": {
+            "pre_value": false,
+            "post_value": true
+          },
+          "container_app.revision.latest_ready_revision_name": {
+            "pre_value": "ca-acrfw33-xi7y5a--0000004",
+            "post_value": "ca-acrfw33-xi7y5a--0000006"
+          },
+          "container_app.revision.latest_revision_name": {
+            "pre_value": "ca-acrfw33-xi7y5a--0000005",
+            "post_value": "ca-acrfw33-xi7y5a--0000006"
+          },
+          "container_app.revision.target_image": {
+            "pre_value": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken",
+            "post_value": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-recover"
+          },
+          "container_app.revision.target_revision_name": {
+            "pre_value": "ca-acrfw33-xi7y5a--0000005",
+            "post_value": "ca-acrfw33-xi7y5a--0000006"
+          },
+          "workload.build_tag": {
+            "pre_value": "v1",
+            "post_value": "v-recover"
+          }
+        },
+        "overlap_same_map": {
+          "acr.defaultAction": "Deny",
+          "acr.networkRuleBypassOptions": "None",
+          "acr.publicNetworkAccess": "Enabled",
+          "container_app.container.acr_login_server": "acracrfw33xi7y5a.azurecr.io",
+          "container_app.container.cpu": 0.25,
+          "container_app.container.image_repository": "acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab",
+          "container_app.container.memory": "0.5Gi",
+          "container_app.container.name": "app",
+          "container_app.ingress.external": true,
+          "container_app.ingress.target_port": 8080,
+          "container_app.name": "ca-acrfw33-xi7y5a",
+          "container_app.resource_group": "rg-aca-firewall-allowlist-lab33-20260629082135",
+          "container_app.scale.max_replicas": 1,
+          "container_app.scale.min_replicas": 1,
+          "firewall.policy_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-aca-firewall-allowlist-lab33-20260629082135/providers/Microsoft.Network/firewallPolicies/afwp-acrfw33-xi7y5a",
+          "firewall.private_ip": "10.80.2.4",
+          "firewall.public_ip": "20.200.208.116",
+          "workload.healthy_cached_revision_name": "ca-acrfw33-xi7y5a--0000004"
+        },
+        "unexpected_overlap_diffs": {},
+        "runtime_drop_ids": [
+          "acr_firewall_internal_retry_schedule",
+          "exact_pull_duration_milliseconds",
+          "firewall_application_log_ingestion_latency",
+          "image_layer_sha",
+          "pod_uid",
+          "replica_suffix_continuity",
+          "revision_suffix_identity",
+          "workload_source_ip_component_identity"
+        ],
+        "documented_drop_ids": [
+          "acr_firewall_internal_retry_schedule",
+          "exact_pull_duration_milliseconds",
+          "firewall_application_log_ingestion_latency",
+          "image_layer_sha",
+          "pod_uid",
+          "replica_suffix_continuity",
+          "revision_suffix_identity",
+          "workload_source_ip_component_identity"
+        ],
+        "post_broken_failure_persists": false,
+        "post_broken_inactive_after_explicit_deactivate": true,
+        "post_broken_no_h2_pull_success": true,
+        "post_broken_not_retroactively_repaired": true
+      },
+      "predicate": "All held_constant_checks compare equal, overlap diffs are limited to the documented rule/revision/build_tag fields, explicit_drops exactly match the documented ceiling, and the post-fix evidence shows the v-broken revision was not retroactively repaired.",
+      "result": "pass",
+      "sub_gate": "d_only_the_documented_rule_and_revision_fields_change_and_the_claim_ceiling_is_static"
+    }
+  ],
+  "thresholds": {
+    "baseline_presence_expected_min": 1,
+    "h1_successful_pull_expected": 0,
+    "h2_successful_pull_expected_min": 1
+  },
+  "utc_captured": "2026-06-29T08:53:46Z"
+}

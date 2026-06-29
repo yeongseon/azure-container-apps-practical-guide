@@ -1,0 +1,10 @@
+{
+  "loginServer": "acracrfw33xi7y5a.azurecr.io",
+  "name": "acracrfw33xi7y5a",
+  "networkRuleBypassOptions": "None",
+  "networkRuleSet": {
+    "defaultAction": "Deny",
+    "ipRules": []
+  },
+  "publicNetworkAccess": "Enabled"
+}

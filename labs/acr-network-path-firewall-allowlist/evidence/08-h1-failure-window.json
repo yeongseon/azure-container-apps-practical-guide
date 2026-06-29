@@ -1,0 +1,163 @@
+{
+  "h1_trigger_ts_utc": "2026-06-29T08:48:55Z",
+  "broken_revision_name": "ca-acrfw33-xi7y5a--0000005",
+  "baseline_revision_name": "ca-acrfw33-xi7y5a--0000004",
+  "firewall_public_ip": "20.200.208.116",
+  "http_response": {
+    "request_url": "https://ca-acrfw33-xi7y5a.icyrock-cbb5d98d.koreacentral.azurecontainerapps.io/",
+    "status_code": 200,
+    "headers": [
+      "server: gunicorn",
+      "date: Mon, 29 Jun 2026 08:51:13 GMT",
+      "content-type: application/json",
+      "content-length: 67",
+      "connection: close"
+    ],
+    "body": "{\"build_tag\":\"v1\",\"message\":\"ACR firewall allowlist lab workload\"}\n",
+    "body_json": {
+      "build_tag": "v1",
+      "message": "ACR firewall allowlist lab workload"
+    }
+  },
+  "row_count": 13,
+  "rows": [
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Scaler external-push is built",
+      "Reason_s": "KEDAScalersStarted",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:15.7662306Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Scaler external-push is built",
+      "Reason_s": "KEDAScalersStarted",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:15.7662306Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "KEDA is starting a watch for revision 'ca-acrfw33-xi7y5a--0000005' to monitor scale operations for this revision",
+      "Reason_s": "KEDAScalersStarted",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:15.7662306Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Successfully provisioned revision 'ca-acrfw33-xi7y5a--0000005'",
+      "Reason_s": "RevisionReady",
+      "ReplicaName_s": "",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:15.7662306Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Replica 'ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz' has been scheduled to run on a node.",
+      "Reason_s": "AssigningReplica",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:15.7662306Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+      "Type_s": "Warning"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:38.5372308Z",
+      "Type_s": "Warning"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:41.5904904Z",
+      "Type_s": "Warning"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:50:41.5904904Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Pulling image 'acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken'",
+      "Reason_s": "PullingImage",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:51:01.3478195Z",
+      "Type_s": "Normal"
+    },
+    {
+      "ContainerAppName_s": "ca-acrfw33-xi7y5a",
+      "Log_s": "Container 'app' was terminated with exit code '' and reason 'ImagePullFailure'. Image acracrfw33xi7y5a.azurecr.io/firewall-allowlist-lab:v-broken not found in registry. ErrorMessage=Image not found or access denied. Error: {\"errors\":[{\"code\":\"DENIED\",\"message\":\"client with IP '20.200.208.116' is not allowed access, refer https://aka.ms/acr/firewall to grant access\"}]}\n, GenevaTraceId=c84a15ba5d838323cd23ece78e1b76b0.",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "ca-acrfw33-xi7y5a--0000005-6648666b47-d98dz",
+      "RevisionName_s": "ca-acrfw33-xi7y5a--0000005",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T08:51:01.3478195Z",
+      "Type_s": "Warning"
+    }
+  ],
+  "counts": {
+    "TableName": "PrimaryResult",
+    "container_terminated_count": "4",
+    "denied_count": "4",
+    "imagepull_failed_count": "4",
+    "imagepull_unauthorized_count": "0"
+  },
+  "zero_successful_pulls_for_v_broken": true
+}
