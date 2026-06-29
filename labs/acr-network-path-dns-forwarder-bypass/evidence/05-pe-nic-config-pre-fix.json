@@ -1,0 +1,77 @@
+{
+  "auxiliaryMode": "None",
+  "auxiliarySku": "None",
+  "disableTcpStateTracking": false,
+  "dnsSettings": {
+    "appliedDnsServers": [],
+    "dnsServers": [],
+    "internalDomainNameSuffix": "a4aw1vdj0ngevibbnmrbjix5vd.syx.internal.cloudapp.net"
+  },
+  "enableAcceleratedNetworking": false,
+  "enableIPForwarding": false,
+  "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+  "hostedWorkloads": [],
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000",
+  "ipConfigurations": [
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": true,
+      "privateIPAddress": "10.60.4.4",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry_data_koreacentral"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/virtualNetworks/vnet-acrdnsfwdbyp-y4qtor/subnets/snet-pe",
+        "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    },
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/networkInterfaces/pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": false,
+      "privateIPAddress": "10.60.4.5",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrdnsfwdbypy4qtor.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/virtualNetworks/vnet-acrdnsfwdbyp-y4qtor/subnets/snet-pe",
+        "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    }
+  ],
+  "location": "koreacentral",
+  "macAddress": "",
+  "name": "pe-acracrdnsfwdbypy4qtor.nic.00000000-0000-0000-0000-000000000000",
+  "nicType": "Standard",
+  "privateEndpoint": {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.Network/privateEndpoints/pe-acracrdnsfwdbypy4qtor",
+    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905"
+  },
+  "provisioningState": "Succeeded",
+  "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+  "resourceGuid": "00000000-0000-0000-0000-000000000000",
+  "tapConfigurations": [],
+  "type": "Microsoft.Network/networkInterfaces",
+  "vnetEncryptionSupported": false
+}

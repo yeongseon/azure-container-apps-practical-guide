@@ -1,0 +1,219 @@
+{
+  "claim": "The H1 trigger produced the documented workload-path failure surface on ca-acrdnsfwdbyp-y4qtor: dnsmasq points at 8.8.8.8, the /probe endpoint returns first_class=public with explicit retry disclosure, the already-running revision stays Healthy, and the captured H1+H2 failure-event KQL window stays empty. This is the silent workload-path failure mode for DNS-forwarder bypass.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms that swapping dnsmasq to public DNS flips only the workload probe surface while the already-running revision stays healthy.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "dnsmasq_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json",
+    "dns_records_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+    "acr_public_access_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/06-acr-public-access-pre-fix.json",
+    "system_logs_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json",
+    "probe_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/08-probe-response-pre-fix.json",
+    "revision_list_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json"
+  },
+  "acr_network_path_dns_forwarder_bypass_h1_trigger_produces_failure_all_subgates_pass": true,
+  "acr_network_path_dns_forwarder_bypass_h1_trigger_produces_failure_sub_gates": {
+    "a_dnsmasq_upstream_is_public_dns": true,
+    "b_probe_reports_public_resolution_with_retry_disclosure": true,
+    "c_already_running_revision_stays_healthy": true,
+    "d_h1_h2_window_contains_no_failure_events": true,
+    "e_acr_and_private_dns_surfaces_stay_constant": true
+  },
+  "scenario": "acr_network_path_dns_forwarder_bypass",
+  "sub_gates": [
+    {
+      "claim": "The broken-window dnsmasq config reports server=8.8.8.8 and the dnsmasq service is active.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json"
+      ],
+      "observed_values": {
+        "resolved_upstream": "8.8.8.8",
+        "service_state": "active",
+        "listen_address": "10.60.5.4",
+        "server_lines": [
+          "15:server=8.8.8.8"
+        ]
+      },
+      "predicate": "03.resolved_upstream == '8.8.8.8' AND 03.service_state == 'active'.",
+      "result": "pass",
+      "sub_gate": "a_dnsmasq_upstream_is_public_dns"
+    },
+    {
+      "claim": "The broken-window /probe response reports first_class=public and explicitly discloses how many retries were needed before that final selected response.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/08-probe-response-pre-fix.json"
+      ],
+      "observed_values": {
+        "expected_first_class": "public",
+        "selected_attempt": 1,
+        "attempt_count": 1,
+        "attempts": [
+          {
+            "attempt": 1,
+            "first_class": "public",
+            "first_ip": "20.41.69.128"
+          }
+        ],
+        "final_response": {
+          "fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "addresses": [
+            {
+              "ip": "20.41.69.128",
+              "class": "public"
+            }
+          ],
+          "first_class": "public"
+        },
+        "expected_registry_ip": "10.60.4.5"
+      },
+      "predicate": "08.response.first_class == 'public' AND 08.response.addresses[0].ip != the PE registry IP AND 08.selected_attempt >= 1 AND len(08.attempts) >= 08.selected_attempt.",
+      "result": "pass",
+      "sub_gate": "b_probe_reports_public_resolution_with_retry_disclosure"
+    },
+    {
+      "claim": "The already-running revision stays Healthy throughout the broken window.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json"
+      ],
+      "observed_values": {
+        "pre_live_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
+          "name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T00:08:55+00:00",
+            "fqdn": "ca-acrdnsfwdbyp-y4qtor--0000001.purplebeach-f1e87cc8.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "env": [
+                    {
+                      "name": "ACR_FQDN",
+                      "value": "acracrdnsfwdbypy4qtor.azurecr.io"
+                    },
+                    {
+                      "name": "BUILD_TAG",
+                      "value": "v1"
+                    }
+                  ],
+                  "image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.5,
+                    "memory": "1Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "all_pre_revision_healthy": true
+      },
+      "predicate": "The live revision selected from 02 has healthState == 'Healthy' and active == true, and every revision captured in 02 has healthState == 'Healthy'.",
+      "result": "pass",
+      "sub_gate": "c_already_running_revision_stays_healthy"
+    },
+    {
+      "claim": "The captured H1+H2 failure-event query stays empty, proving that the failure is silent at the revision-health and pull-failure observability layer.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json"
+      ],
+      "observed_values": {
+        "query": "ContainerAppSystemLogs_CL | where ContainerAppName_s == 'ca-acrdnsfwdbyp-y4qtor' | where TimeGenerated between (todatetime('2026-06-29T00:11:45Z') .. todatetime('2026-06-29T00:18:31Z')) | where Reason_s in ('ImagePullFailed','ImagePullUnauthorized','BackOff','RevisionFailed','ReplicaFailed') | order by TimeGenerated asc | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s",
+        "window_start_utc": "2026-06-29T00:11:45Z",
+        "window_end_utc": "2026-06-29T00:18:31Z",
+        "row_count": 0,
+        "rows": []
+      },
+      "predicate": "len(07.rows) == 0.",
+      "result": "pass",
+      "sub_gate": "d_h1_h2_window_contains_no_failure_events"
+    },
+    {
+      "claim": "ACR publicNetworkAccess and the private DNS record surfaces stay constant during the broken window, so the H1 outcome is not explained by an ACR or zone-content toggle.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/06-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/10-private-dns-record-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_public_network_access": "Disabled",
+        "post_public_network_access": "Disabled",
+        "pre_registry_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor",
+            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.5"
+            ]
+          }
+        ],
+        "post_registry_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor",
+            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.5"
+            ]
+          }
+        ],
+        "pre_data_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
+            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.4"
+            ]
+          }
+        ],
+        "post_data_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
+            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.4"
+            ]
+          }
+        ]
+      },
+      "predicate": "06.publicNetworkAccess == 12.acr.publicNetworkAccess AND the normalized registry/data record summaries captured in 04 and 10 compare equal.",
+      "result": "pass",
+      "sub_gate": "e_acr_and_private_dns_surfaces_stay_constant"
+    }
+  ],
+  "thresholds": {
+    "expected_failure_event_rows": 0
+  },
+  "utc_captured": "2026-06-29T00:18:50Z"
+}

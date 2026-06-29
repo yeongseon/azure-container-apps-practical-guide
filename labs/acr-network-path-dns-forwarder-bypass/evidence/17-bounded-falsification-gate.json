@@ -1,0 +1,441 @@
+{
+  "claim": "This evidence pack falsifies the ACR DNS-forwarder-bypass hypothesis within a bounded scope. Gate 17 demonstrates that dnsmasq_upstream is the mechanically observable trigger field for this cohort: the container-app lineage stays constant, the same revision stays Healthy on both sides, the private DNS and PE NIC surfaces stay constant, dnsmasq transitions from 8.8.8.8 to 168.63.129.16, the workload probe transitions from first_class=public to first_class=private, and the H1+H2 failure-event query stays empty. The pack does not claim exact DNS timing, exact retry counts, control-plane fresh-pull behavior, or byte-identical backend payloads.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that this single koreacentral cohort proves a workload-path DNS-forwarder-bypass failure: swapping dnsmasq from Azure DNS to 8.8.8.8 makes the in-replica /probe surface move from private to public while the already-running revision stays Healthy, and restoring that same upstream back to 168.63.129.16 moves the probe back to private without deploying a new revision. The pack does NOT prove broken-window control-plane fresh-pull behavior, exact resolver latency, exact retry counts, byte-identical backend bodies, cache-layer inventory, system-log ingestion latency, or negotiated TLS cipher suites.",
+    "explicit_drops": [
+      {
+        "id": "acr_control_plane_fresh_pull",
+        "note": "The pack intentionally does not prove broken-window control-plane fresh-pull behavior because this workload-path lab keeps the already-running revision in place."
+      },
+      {
+        "id": "dns_resolution_timing",
+        "note": "The pack proves DNS-class transitions, not the exact resolver-latency delta for each lookup."
+      },
+      {
+        "id": "exact_http_body_bytes",
+        "note": "The probe records address lists and classes, not a byte-identical backend body."
+      },
+      {
+        "id": "image_layer_cache_state",
+        "note": "The already-running revision remains healthy, but the raw cohort does not enumerate every cached OCI layer."
+      },
+      {
+        "id": "probe_retry_attempt_count",
+        "note": "Retry disclosure is preserved explicitly, but the causal claim is about the final selected topology transition, not an exact retry count contract."
+      },
+      {
+        "id": "resource_provider_poll_latency",
+        "note": "Azure control-plane poll timing is outside the causal field under test."
+      },
+      {
+        "id": "system_log_ingestion_latency",
+        "note": "The zero-row failure-event query proves absence in the captured window, not the exact ingestion delay of every platform event."
+      },
+      {
+        "id": "tls_cipher_suite",
+        "note": "The pack proves DNS-path change, not the negotiated TLS cipher suite bytes."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the dnsmasq upstream as the trigger while explicitly listing the unproven confounders and ceilings.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "app_spec_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/01-app-spec-pre-fix.json",
+    "revision_list_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json",
+    "dnsmasq_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json",
+    "dns_records_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+    "pe_nic_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/05-pe-nic-config-pre-fix.json",
+    "system_logs_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json",
+    "probe_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/08-probe-response-pre-fix.json",
+    "dnsmasq_post": "labs/acr-network-path-dns-forwarder-bypass/evidence/09-dnsmasq-config-post-fix.json",
+    "dns_records_post": "labs/acr-network-path-dns-forwarder-bypass/evidence/10-private-dns-record-list-post-fix.json",
+    "revision_list_post": "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json",
+    "composite_post": "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+  },
+  "acr_network_path_dns_forwarder_bypass_h3_bounded_falsification_all_subgates_pass": true,
+  "acr_network_path_dns_forwarder_bypass_h3_bounded_falsification_sub_gates": {
+    "a_held_constant_fields_and_lineage_stay_equal": true,
+    "b_full_overlapping_h1_h2_diff_matches_the_dnsmasq_trigger_story": true,
+    "c_explicit_drops_match_the_documented_ceiling": true,
+    "d_workload_path_silence_invariant_is_checked": true
+  },
+  "scenario": "acr_network_path_dns_forwarder_bypass",
+  "sub_gates": [
+    {
+      "claim": "The held-constant fields, private DNS/PE topology, lineage, and live revision identity stay equal across H1 and H2.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/05-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+      ],
+      "observed_values": {
+        "held_constant_checks": {
+          "acr_public_network_access": {
+            "pre_value": "Disabled",
+            "post_value": "Disabled",
+            "equal": true
+          },
+          "dns_vm_name": {
+            "pre_value": "vm-dns-y4qtor",
+            "post_value": "vm-dns-y4qtor",
+            "equal": true
+          },
+          "dns_vm_private_ip": {
+            "pre_value": "10.60.5.4",
+            "post_value": "10.60.5.4",
+            "equal": true
+          },
+          "container_app_name": {
+            "pre_value": "ca-acrdnsfwdbyp-y4qtor",
+            "post_value": "ca-acrdnsfwdbyp-y4qtor",
+            "equal": true
+          },
+          "resource_group": {
+            "pre_value": "rg-lab-dns-forwarder-bypass-202606290905",
+            "post_value": "rg-lab-dns-forwarder-bypass-202606290905",
+            "equal": true
+          },
+          "identity_type": {
+            "pre_value": "SystemAssigned",
+            "post_value": "SystemAssigned",
+            "equal": true
+          },
+          "container_name": {
+            "pre_value": "app",
+            "post_value": "app",
+            "equal": true
+          },
+          "container_image": {
+            "pre_value": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+            "post_value": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+            "equal": true
+          },
+          "build_tag": {
+            "pre_value": "v1",
+            "post_value": "v1",
+            "equal": true
+          },
+          "acr_fqdn_env": {
+            "pre_value": "acracrdnsfwdbypy4qtor.azurecr.io",
+            "post_value": "acracrdnsfwdbypy4qtor.azurecr.io",
+            "equal": true
+          },
+          "ingress_target_port": {
+            "pre_value": 80,
+            "post_value": 80,
+            "equal": true
+          },
+          "min_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "max_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "registry_record_name": {
+            "pre_value": "acracrdnsfwdbypy4qtor",
+            "post_value": "acracrdnsfwdbypy4qtor",
+            "equal": true
+          },
+          "data_record_name": {
+            "pre_value": "acracrdnsfwdbypy4qtor.koreacentral.data",
+            "post_value": "acracrdnsfwdbypy4qtor.koreacentral.data",
+            "equal": true
+          },
+          "pe_nic_ip_map": {
+            "pre_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.60.4.4",
+                "fqdns": [
+                  "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.60.4.5",
+                "fqdns": [
+                  "acracrdnsfwdbypy4qtor.azurecr.io"
+                ]
+              }
+            ],
+            "post_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.60.4.4",
+                "fqdns": [
+                  "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.60.4.5",
+                "fqdns": [
+                  "acracrdnsfwdbypy4qtor.azurecr.io"
+                ]
+              }
+            ],
+            "equal": true
+          },
+          "private_dns_records_registry": {
+            "pre_value": [
+              {
+                "name": "acracrdnsfwdbypy4qtor",
+                "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+                "ttl": 10,
+                "a_records": [
+                  "10.60.4.5"
+                ]
+              }
+            ],
+            "post_value": [
+              {
+                "name": "acracrdnsfwdbypy4qtor",
+                "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+                "ttl": 10,
+                "a_records": [
+                  "10.60.4.5"
+                ]
+              }
+            ],
+            "equal": true
+          },
+          "private_dns_records_data": {
+            "pre_value": [
+              {
+                "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
+                "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+                "ttl": 10,
+                "a_records": [
+                  "10.60.4.4"
+                ]
+              }
+            ],
+            "post_value": [
+              {
+                "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
+                "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+                "ttl": 10,
+                "a_records": [
+                  "10.60.4.4"
+                ]
+              }
+            ],
+            "equal": true
+          },
+          "live_revision_name": {
+            "pre_value": "ca-acrdnsfwdbyp-y4qtor--0000001",
+            "post_value": "ca-acrdnsfwdbyp-y4qtor--0000001",
+            "equal": true
+          }
+        },
+        "pre_post_lineage_equal": true,
+        "pre_post_revision_equal": true
+      },
+      "predicate": "Every held_constant_checks entry has equal == true, the normalized PE NIC ipConfigurations compare equal, the normalized private DNS record summaries compare equal, and the parsed pre/post live revision IDs compare equal on resourceGroup + containerApp + revision when both parses succeed.",
+      "result": "pass",
+      "sub_gate": "a_held_constant_fields_and_lineage_stay_equal"
+    },
+    {
+      "claim": "The full overlapping H1\u2194H2 diff matches the bounded dnsmasq-trigger story and no overlapping field outside the documented dnsmasq/probe outputs changes.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/08-probe-response-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/09-dnsmasq-config-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+      ],
+      "observed_values": {
+        "allowed_expected_diff_paths": [
+          "dnsmasq.upstream",
+          "probe.addresses[0].class",
+          "probe.addresses[0].ip",
+          "probe.first_class",
+          "probe.first_ip"
+        ],
+        "required_expected_diff_paths": [
+          "dnsmasq.upstream",
+          "probe.first_class",
+          "probe.first_ip"
+        ],
+        "full_overlap_diff": {
+          "dnsmasq.upstream": {
+            "pre_value": "8.8.8.8",
+            "post_value": "168.63.129.16"
+          },
+          "probe.addresses[0].class": {
+            "pre_value": "public",
+            "post_value": "private"
+          },
+          "probe.addresses[0].ip": {
+            "pre_value": "20.41.69.128",
+            "post_value": "10.60.4.5"
+          },
+          "probe.first_class": {
+            "pre_value": "public",
+            "post_value": "private"
+          },
+          "probe.first_ip": {
+            "pre_value": "20.41.69.128",
+            "post_value": "10.60.4.5"
+          }
+        },
+        "full_overlap_equal": {
+          "acr.defaultAction": "Deny",
+          "acr.publicNetworkAccess": "Disabled",
+          "container_app.container.acr_fqdn": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "container_app.container.build_tag": "v1",
+          "container_app.container.cpu": 0.5,
+          "container_app.container.image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+          "container_app.container.memory": "1Gi",
+          "container_app.container.name": "app",
+          "container_app.identity_type": "SystemAssigned",
+          "container_app.ingress.external": true,
+          "container_app.ingress.target_port": 80,
+          "container_app.name": "ca-acrdnsfwdbyp-y4qtor",
+          "container_app.resource_group": "rg-lab-dns-forwarder-bypass-202606290905",
+          "container_app.revision.latest_ready_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "container_app.revision.latest_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "container_app.revision.live_revision_active": true,
+          "container_app.revision.live_revision_health_state": "Healthy",
+          "container_app.revision.live_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+          "container_app.revision.live_revision_provisioning_state": "Provisioned",
+          "container_app.revision.live_revision_running_state": "RunningAtMaxScale",
+          "container_app.scale.max_replicas": 1,
+          "container_app.scale.min_replicas": 1,
+          "dns_records.data_record_ips[0]": "10.60.4.4",
+          "dns_records.data_record_present": true,
+          "dns_records.record_count": 2,
+          "dns_records.registry_record_ips[0]": "10.60.4.5",
+          "dns_records.registry_record_present": true,
+          "dnsmasq.listen_address": "10.60.5.4",
+          "dnsmasq.service_state": "active",
+          "pe_nic[0].fqdns[0]": "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io",
+          "pe_nic[0].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+          "pe_nic[0].private_ip": "10.60.4.4",
+          "pe_nic[1].fqdns[0]": "acracrdnsfwdbypy4qtor.azurecr.io",
+          "pe_nic[1].name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+          "pe_nic[1].private_ip": "10.60.4.5",
+          "probe.address_count": 1,
+          "system_logs.failure_event_row_count": 0
+        },
+        "overlap_paths": [
+          "acr.defaultAction",
+          "acr.publicNetworkAccess",
+          "container_app.container.acr_fqdn",
+          "container_app.container.build_tag",
+          "container_app.container.cpu",
+          "container_app.container.image",
+          "container_app.container.memory",
+          "container_app.container.name",
+          "container_app.identity_type",
+          "container_app.ingress.external",
+          "container_app.ingress.target_port",
+          "container_app.name",
+          "container_app.resource_group",
+          "container_app.revision.latest_ready_revision_name",
+          "container_app.revision.latest_revision_name",
+          "container_app.revision.live_revision_active",
+          "container_app.revision.live_revision_health_state",
+          "container_app.revision.live_revision_name",
+          "container_app.revision.live_revision_provisioning_state",
+          "container_app.revision.live_revision_running_state",
+          "container_app.scale.max_replicas",
+          "container_app.scale.min_replicas",
+          "dns_records.data_record_ips[0]",
+          "dns_records.data_record_present",
+          "dns_records.record_count",
+          "dns_records.registry_record_ips[0]",
+          "dns_records.registry_record_present",
+          "dnsmasq.listen_address",
+          "dnsmasq.service_state",
+          "dnsmasq.upstream",
+          "pe_nic[0].fqdns[0]",
+          "pe_nic[0].name",
+          "pe_nic[0].private_ip",
+          "pe_nic[1].fqdns[0]",
+          "pe_nic[1].name",
+          "pe_nic[1].private_ip",
+          "probe.address_count",
+          "probe.addresses[0].class",
+          "probe.addresses[0].ip",
+          "probe.first_class",
+          "probe.first_ip",
+          "system_logs.failure_event_row_count"
+        ],
+        "unexpected_overlap_diffs": {},
+        "missing_required_diff_paths": []
+      },
+      "predicate": "Across the full normalized overlapping H1/H2 surface, the only differing overlap paths are dnsmasq.upstream plus the documented first-address/first-class probe output fields; no other overlapping path may differ, and the required paths {dnsmasq.upstream, probe.first_class, probe.first_ip} must all differ.",
+      "result": "pass",
+      "sub_gate": "b_full_overlapping_h1_h2_diff_matches_the_dnsmasq_trigger_story"
+    },
+    {
+      "claim": "The bounded-falsification gate explicitly lists the documented ceilings and unsupported inferences.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/17-bounded-falsification-gate.json"
+      ],
+      "observed_values": {
+        "documented_ceiling_ids": [
+          "acr_control_plane_fresh_pull",
+          "dns_resolution_timing",
+          "exact_http_body_bytes",
+          "image_layer_cache_state",
+          "probe_retry_attempt_count",
+          "resource_provider_poll_latency",
+          "system_log_ingestion_latency",
+          "tls_cipher_suite"
+        ],
+        "observed_drop_ids": [
+          "acr_control_plane_fresh_pull",
+          "dns_resolution_timing",
+          "exact_http_body_bytes",
+          "image_layer_cache_state",
+          "probe_retry_attempt_count",
+          "resource_provider_poll_latency",
+          "system_log_ingestion_latency",
+          "tls_cipher_suite"
+        ]
+      },
+      "predicate": "cohort_binding_note.explicit_drops ids equal the static documented ceiling {acr_control_plane_fresh_pull, dns_resolution_timing, exact_http_body_bytes, image_layer_cache_state, probe_retry_attempt_count, resource_provider_poll_latency, system_log_ingestion_latency, tls_cipher_suite} with no additions and no omissions.",
+      "result": "pass",
+      "sub_gate": "c_explicit_drops_match_the_documented_ceiling"
+    },
+    {
+      "claim": "The workload-path silence invariant is checked actively: the same revision stays Healthy on both sides, H1 shows first_class=public, H2 shows first_class=private, and the H1+H2 failure-event query stays empty.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_live_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+        "post_live_revision_name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+        "pre_health_state": "Healthy",
+        "post_health_state": "Healthy",
+        "pre_first_class": "public",
+        "post_first_class": "private",
+        "failure_event_row_count": 0
+      },
+      "predicate": "02.selected live revision name == 11.selected live revision name AND both selected live revisions have healthState == 'Healthy' AND 08.response.first_class == 'public' AND 12.probe_capture.response.first_class == 'private' AND len(07.rows) == 0.",
+      "result": "pass",
+      "sub_gate": "d_workload_path_silence_invariant_is_checked"
+    }
+  ],
+  "thresholds": {
+    "held_constant_field_count": 19,
+    "expected_failure_event_rows": 0
+  },
+  "utc_captured": "2026-06-29T00:18:50Z"
+}

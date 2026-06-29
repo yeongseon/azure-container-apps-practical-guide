@@ -1,0 +1,21 @@
+{
+  "phase": "recovered",
+  "vm_name": "vm-dns-y4qtor",
+  "resolved_upstream": "168.63.129.16",
+  "service_state": "active",
+  "listen_address": "10.60.5.4",
+  "config_path": "/etc/dnsmasq.d/acr-lab.conf",
+  "server_lines": [
+    "15:server=168.63.129.16"
+  ],
+  "run_command": {
+    "value": [
+      {
+        "code": "ProvisioningState/succeeded",
+        "displayStatus": "Provisioning succeeded",
+        "level": "Info",
+        "message": "Enable succeeded: \n[stdout]\nconfig_path=/etc/dnsmasq.d/acr-lab.conf\n15:server=168.63.129.16\nresolved_upstream=168.63.129.16\nservice_state=active\nlisten_address=10.60.5.4\n\n[stderr]\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,749 @@
+{
+  "claim": "The 12-file acr-network-path-dns-forwarder-bypass raw cohort is internally consistent: every canonical file is present and parseable, every per-file UTC anchor falls within one bounded capture window, the pre/post live revision IDs parse to the same rg-lab-dns-forwarder-bypass-202606290905 / ca-acrdnsfwdbyp-y4qtor lineage, and the PE NIC plus private-DNS surfaces stay unchanged across H1 and H2.",
+  "claim_level": "Observed",
+  "gate_classification": "Cohort integrity gate: structural pre-condition for the bounded-falsification pack.",
+  "hypothesis": "H_cohort_integrity",
+  "path_used": "strong",
+  "predicate_inputs": {
+    "app_spec_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/01-app-spec-pre-fix.json",
+    "revision_list_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json",
+    "dnsmasq_pre": "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json",
+    "dnsmasq_post": "labs/acr-network-path-dns-forwarder-bypass/evidence/09-dnsmasq-config-post-fix.json",
+    "revision_list_post": "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json",
+    "composite_post": "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json",
+    "evidence_readme": "labs/acr-network-path-dns-forwarder-bypass/evidence/README.md"
+  },
+  "acr_network_path_dns_forwarder_bypass_h_cohort_integrity_all_subgates_pass": true,
+  "acr_network_path_dns_forwarder_bypass_h_cohort_integrity_sub_gates": {
+    "a_canonical_raw_files_present_and_parse": true,
+    "b_every_per_file_utc_anchor_falls_within_one_bounded_window": true,
+    "c_revision_id_lineage_parses_and_compares_equal": true,
+    "d_pe_nic_private_dns_and_readme_xrefs_stay_constant": true,
+    "e_utc_reference_and_span_math_stay_consistent": true
+  },
+  "scenario": "acr_network_path_dns_forwarder_bypass",
+  "sub_gates": [
+    {
+      "claim": "All 12 canonical raw evidence files exist and parse as JSON.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/05-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/06-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/08-probe-response-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/09-dnsmasq-config-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/10-private-dns-record-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+      ],
+      "observed_values": {
+        "observed_missing": [],
+        "observed_present_count": 12,
+        "parse_errors": [],
+        "strong": {
+          "expected_count": 12,
+          "holds": true
+        },
+        "fallback": {
+          "expected_count": 12,
+          "holds": true
+        }
+      },
+      "predicate": "Strong and fallback both require the full 12-file raw cohort to exist and parse as JSON.",
+      "result": "pass",
+      "sub_gate": "a_canonical_raw_files_present_and_parse"
+    },
+    {
+      "claim": "Every per-file UTC anchor stays inside one coherent capture window and every post-fix anchor is later than every pre-fix anchor.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/05-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/06-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/08-probe-response-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/09-dnsmasq-config-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/10-private-dns-record-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+      ],
+      "observed_values": {
+        "utc_window_start": "2026-06-29T00:11:45.087211+00:00",
+        "utc_window_end": "2026-06-29T00:18:48.647566+00:00",
+        "utc_window_span_seconds": 423.560355,
+        "monotonic_ordering_holds": true,
+        "pre_anchor_timestamps": {
+          "01-app-spec-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692135.9358613
+          },
+          "02-revision-list-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692135.941402
+          },
+          "03-dnsmasq-config-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692130.3201208
+          },
+          "04-private-dns-record-list-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692138.4902158
+          },
+          "05-pe-nic-config-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692141.4710135
+          },
+          "06-acr-public-access-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692144.107378
+          },
+          "07-system-logs-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782691905.0872111
+          },
+          "08-probe-response-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692131.2707121
+          }
+        },
+        "post_anchor_timestamps": {
+          "09-dnsmasq-config-post-fix.json": {
+            "timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692302.3494365
+          },
+          "10-private-dns-record-list-post-fix.json": {
+            "timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692311.9318633
+          },
+          "11-revision-list-post-fix.json": {
+            "timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692314.5330007
+          },
+          "12-recovery-surface-post-fix.json": {
+            "timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692328.6475663
+          }
+        },
+        "sorted_anchor_sequence": [
+          {
+            "file": "07-system-logs-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "03-dnsmasq-config-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "08-probe-response-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "01-app-spec-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "02-revision-list-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "04-private-dns-record-list-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "05-pe-nic-config-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "06-acr-public-access-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "09-dnsmasq-config-post-fix.json",
+            "timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "10-private-dns-record-list-post-fix.json",
+            "timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "11-revision-list-post-fix.json",
+            "timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "12-recovery-surface-post-fix.json",
+            "timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "post"
+          }
+        ],
+        "strict_pairwise_order_checks": [
+          {
+            "pre_file": "01-app-spec-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 166.413576,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "01-app-spec-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 175.996002,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "01-app-spec-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 178.59714,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "01-app-spec-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 192.711705,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.935861+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 166.408035,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 175.990461,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 178.591599,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 192.706164,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:35.941402+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "03-dnsmasq-config-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 172.029316,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "03-dnsmasq-config-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 181.611742,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "03-dnsmasq-config-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 184.21288,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "03-dnsmasq-config-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 198.327445,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:30.320121+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "04-private-dns-record-list-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 163.859221,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "04-private-dns-record-list-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 173.441647,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "04-private-dns-record-list-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 176.042785,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "04-private-dns-record-list-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 190.15735,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:38.490216+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "05-pe-nic-config-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 160.878423,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "05-pe-nic-config-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 170.460849,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "05-pe-nic-config-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 173.061987,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "05-pe-nic-config-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 187.176552,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:41.471014+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "06-acr-public-access-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 158.242059,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "06-acr-public-access-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 167.824485,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "06-acr-public-access-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 170.425623,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "06-acr-public-access-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 184.540188,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:44.107378+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "07-system-logs-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 397.262226,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "07-system-logs-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 406.844652,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "07-system-logs-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 409.44579,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "07-system-logs-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 423.560355,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:11:45.087211+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "08-probe-response-pre-fix.json",
+            "post_file": "09-dnsmasq-config-post-fix.json",
+            "delta_seconds": 171.078725,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:22.349437+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "08-probe-response-pre-fix.json",
+            "post_file": "10-private-dns-record-list-post-fix.json",
+            "delta_seconds": 180.661151,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:31.931863+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "08-probe-response-pre-fix.json",
+            "post_file": "11-revision-list-post-fix.json",
+            "delta_seconds": 183.262289,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:34.533001+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          },
+          {
+            "pre_file": "08-probe-response-pre-fix.json",
+            "post_file": "12-recovery-surface-post-fix.json",
+            "delta_seconds": 197.376854,
+            "holds": true,
+            "pre_timestamp_utc": "2026-06-29T00:15:31.270712+00:00",
+            "post_timestamp_utc": "2026-06-29T00:18:48.647566+00:00",
+            "pre_time_source": "birthtime",
+            "post_time_source": "birthtime"
+          }
+        ],
+        "strong": {
+          "holds": true,
+          "max_span_seconds": 1800
+        },
+        "fallback": {
+          "holds": true,
+          "max_span_seconds": 5400
+        },
+        "time_source_summary": {
+          "birthtime_count": 12,
+          "mtime_count": 0,
+          "fallback_used": false
+        }
+      },
+      "predicate": "All configured post-fix file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix file anchors, and the total window is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+      "result": "pass",
+      "sub_gate": "b_every_per_file_utc_anchor_falls_within_one_bounded_window"
+    },
+    {
+      "claim": "The pre-fix and post-fix live revision IDs parse to the same resource-group/container-app lineage.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
+        "post_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
+        "pre_parse_ok": true,
+        "post_parse_ok": true,
+        "both_parse_ok": true,
+        "pre_resource_group": "rg-lab-dns-forwarder-bypass-202606290905",
+        "post_resource_group": "rg-lab-dns-forwarder-bypass-202606290905",
+        "pre_container_app": "ca-acrdnsfwdbyp-y4qtor",
+        "post_container_app": "ca-acrdnsfwdbyp-y4qtor",
+        "pre_post_rg_equal": true,
+        "pre_post_app_equal": true,
+        "pre_post_lineage_equal": true,
+        "pre_post_revision_equal": true
+      },
+      "predicate": "The live revision ID selected from 02 and the live revision ID selected from 11 both match the /subscriptions/.../resourceGroups/.../containerApps/.../revisions/... regex, and the parsed resourceGroup + containerApp + revision components compare equal only when both parses succeed.",
+      "result": "pass",
+      "sub_gate": "c_revision_id_lineage_parses_and_compares_equal"
+    },
+    {
+      "claim": "The PE NIC IP map and private DNS records are unchanged across H1 and H2, no unexpected non-junk extras exist, and evidence/README.md literally names all four Phase B outputs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/05-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/10-private-dns-record-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/README.md"
+      ],
+      "observed_values": {
+        "expected_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "ignored_junk": [
+          ".DS_Store"
+        ],
+        "observed_files_on_disk": [
+          "01-app-spec-pre-fix.json",
+          "02-revision-list-pre-fix.json",
+          "03-dnsmasq-config-pre-fix.json",
+          "04-private-dns-record-list-pre-fix.json",
+          "05-pe-nic-config-pre-fix.json",
+          "06-acr-public-access-pre-fix.json",
+          "07-system-logs-pre-fix.json",
+          "08-probe-response-pre-fix.json",
+          "09-dnsmasq-config-post-fix.json",
+          "10-private-dns-record-list-post-fix.json",
+          "11-revision-list-post-fix.json",
+          "12-recovery-surface-post-fix.json",
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json",
+          "README.md"
+        ],
+        "observed_non_junk_extras": [],
+        "observed_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "pre_nic_map": [
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.60.4.4",
+            "fqdns": [
+              "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+            ]
+          },
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.60.4.5",
+            "fqdns": [
+              "acracrdnsfwdbypy4qtor.azurecr.io"
+            ]
+          }
+        ],
+        "post_nic_map": [
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.60.4.4",
+            "fqdns": [
+              "acracrdnsfwdbypy4qtor.koreacentral.data.azurecr.io"
+            ]
+          },
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.60.4.5",
+            "fqdns": [
+              "acracrdnsfwdbypy4qtor.azurecr.io"
+            ]
+          }
+        ],
+        "pre_registry_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor",
+            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.5"
+            ]
+          }
+        ],
+        "post_registry_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor",
+            "fqdn": "acracrdnsfwdbypy4qtor.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.5"
+            ]
+          }
+        ],
+        "pre_data_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
+            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.4"
+            ]
+          }
+        ],
+        "post_data_records": [
+          {
+            "name": "acracrdnsfwdbypy4qtor.koreacentral.data",
+            "fqdn": "acracrdnsfwdbypy4qtor.koreacentral.data.privatelink.azurecr.io.",
+            "ttl": 10,
+            "a_records": [
+              "10.60.4.4"
+            ]
+          }
+        ],
+        "pe_nic_unchanged": true
+      },
+      "predicate": "The normalized PE NIC ipConfigurations captured in 05 and 12.pe_nic compare equal, the normalized private DNS record summaries captured in 04 and 10 compare equal, extras == [], and evidence/README.md contains the four gate filenames literally.",
+      "result": "pass",
+      "sub_gate": "d_pe_nic_private_dns_and_readme_xrefs_stay_constant"
+    },
+    {
+      "claim": "The cohort records one consistent UTC reference window and the span math is computed from that same anchor set.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/03-dnsmasq-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/04-private-dns-record-list-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/05-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/06-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/07-system-logs-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/08-probe-response-pre-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/09-dnsmasq-config-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/10-private-dns-record-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/11-revision-list-post-fix.json",
+        "labs/acr-network-path-dns-forwarder-bypass/evidence/12-recovery-surface-post-fix.json"
+      ],
+      "observed_values": {
+        "utc_window_start": "2026-06-29T00:11:45.087211+00:00",
+        "utc_window_end": "2026-06-29T00:18:48.647566+00:00",
+        "utc_window_span_seconds": 423.560355,
+        "time_source_summary": {
+          "birthtime_count": 12,
+          "mtime_count": 0,
+          "fallback_used": false
+        }
+      },
+      "predicate": "utc_window_start <= utc_window_end AND utc_window_span_seconds is computed from the same anchor set disclosed in pre_anchor_timestamps + post_anchor_timestamps.",
+      "result": "pass",
+      "sub_gate": "e_utc_reference_and_span_math_stay_consistent"
+    }
+  ],
+  "thresholds": {
+    "canonical_count_strong": 12,
+    "canonical_count_fallback_floor": 12,
+    "utc_window_span_strong_seconds_max": 1800,
+    "utc_window_span_fallback_seconds_max": 5400
+  },
+  "utc_captured": "2026-06-29T00:18:50Z"
+}

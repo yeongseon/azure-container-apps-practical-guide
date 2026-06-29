@@ -1,0 +1,53 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-dns-forwarder-bypass-202606290905/providers/Microsoft.App/containerApps/ca-acrdnsfwdbyp-y4qtor/revisions/ca-acrdnsfwdbyp-y4qtor--0000001",
+    "name": "ca-acrdnsfwdbyp-y4qtor--0000001",
+    "properties": {
+      "active": true,
+      "createdTime": "2026-06-29T00:08:55+00:00",
+      "fqdn": "ca-acrdnsfwdbyp-y4qtor--0000001.purplebeach-f1e87cc8.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "provisioningState": "Provisioned",
+      "replicas": 1,
+      "runningState": "RunningAtMaxScale",
+      "template": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "ACR_FQDN",
+                "value": "acracrdnsfwdbypy4qtor.azurecr.io"
+              },
+              {
+                "name": "BUILD_TAG",
+                "value": "v1"
+              }
+            ],
+            "image": "acracrdnsfwdbypy4qtor.azurecr.io/dns-forwarder-bypass-lab:v1",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.5,
+              "memory": "1Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 100
+    },
+    "resourceGroup": "rg-lab-dns-forwarder-bypass-202606290905",
+    "type": "Microsoft.App/containerapps/revisions"
+  }
+]

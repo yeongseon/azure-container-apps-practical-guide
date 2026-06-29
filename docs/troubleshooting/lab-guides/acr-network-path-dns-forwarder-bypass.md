@@ -9,37 +9,6 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-content_validation:
-  status: verified
-  last_reviewed: '2026-06-05'
-  reviewer: agent
-  lab_validation:
-    status: reproduced
-    tested_date: '2026-06-05'
-    az_cli_version: 2.79.0
-    notes: |
-      End-to-end reproduction in koreacentral confirmed Scenario E at the
-      workload layer: swapping the dnsmasq upstream from Azure DNS
-      (168.63.129.16) to public DNS (8.8.8.8) flipped the workload-side
-      socket.getaddrinfo() result for the ACR FQDN from the PE NIC IP
-      (10.60.4.5, RFC1918) to a public registry IP (20.41.69.142), while
-      the revision stayed Healthy and PulledImage events kept appearing
-      in ContainerAppSystemLogs_CL. Restoring the upstream flipped the
-      workload-side resolution back to the PE NIC. See "Observed Evidence
-      (Live Azure Test - 2026-06-05)".
-  core_claims:
-    - claim: Azure DNS at 168.63.129.16 is the only resolver that consults Private DNS Zones linked to the VNet, so custom DNS forwarders must send privatelink.azurecr.io queries to 168.63.129.16 for the PE NIC IP to be returned.
-      source: https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16
-      verified: true
-    - claim: Azure Private DNS Zones perform IP substitution for Private Endpoint FQDNs only when queried through Azure DNS by a VNet that is linked to the zone.
-      source: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
-      verified: true
-    - claim: ACR's Private Endpoint exposes one 'registry' sub-resource whose NIC holds private IPs for the global login endpoint and the per-region data endpoint, both of which must resolve inside privatelink.azurecr.io for an end-to-end private pull.
-      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
-      verified: true
-    - claim: Azure Container Apps environments can be configured to use a custom DNS server defined on the linked VNet, and workload DNS resolution from inside replicas follows that custom DNS server.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-      verified: true
 validation:
   az_cli:
     last_tested: '2026-06-05'
@@ -520,6 +489,15 @@ A live reproduction on **2026-06-06** captured the full Scenario E topology and 
 ![Container App Revisions blade showing revision --0000002 Running at max with 100% traffic and 1 replica](../../assets/troubleshooting/acr-network-path-dns-forwarder-bypass/06-revisions-healthy.png)
 
 [Inferred] The six captures, taken in time order from the Portal, document Scenario E's required topology (Container Apps environment with custom VNet DNS, VNet's only DNS server being the forwarder VM, ACR with `publicNetworkAccess=Disabled` + approved PE, private DNS zone with PE NIC IP records), and prove the lab's central finding (revision `--0000002` stays `Running (at max)` / `Healthy` even during the broken window when workload DNS resolution is already flipping public). The Portal captures complement the CLI evidence above — together they show that the operator-facing revision-health surface is silent for Scenario E in this ACA reproduction, which is exactly why the workload-path `/probe` instrumentation is necessary to catch the failure mode early.
+
+## Phase B Evidence Pack
+
+The committed Phase B cohort lives under `labs/acr-network-path-dns-forwarder-bypass/evidence/` in the repository.
+
+- The pack captures one live `koreacentral` reproduction where dnsmasq flips from `168.63.129.16` to `8.8.8.8` and then back again, while the already-running revision stays `Healthy` for the full H1+H2 window.
+- Gate 15 proves the H1 discriminator directly: `dnsmasq_upstream=8.8.8.8` plus `/probe first_class=public`.
+- Gate 16 proves the H2 recovery directly: `dnsmasq_upstream=168.63.129.16` plus `/probe first_class=private` with the PE registry IP restored.
+- Gate 17 enforces the workload-path silence invariant required by this lab family: the same revision name is selected on both sides and the H1+H2 failure-event query stays empty (`ImagePullFailed`, `ImagePullUnauthorized`, `BackOff`, `RevisionFailed`, `ReplicaFailed` all absent).
 
 ## Clean Up
 
