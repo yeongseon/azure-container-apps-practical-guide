@@ -1,0 +1,365 @@
+{
+  "claim": "The H2 fix restored recovery on ca-acrpefci-d6pdtg: the exact PE /32 UDR routes were re-added, the latest active v-recover revision is Healthy, the H2 window contains new firewall ACR rows again, and ACR public access still reads Disabled while the bounded terminal-failure-silence invariant remains intact (zero ImagePullFailed and zero RevisionFailed, with any non-terminal ImagePullUnauthorized rows disclosed separately).",
+  "claim_level": "Observed",
+  "gate_classification": "H2 gate: confirms that re-adding the PE /32 UDR routes restores firewall visibility without changing pull success semantics.",
+  "hypothesis": "H2_fix_restores_recovery",
+  "path_used": "single",
+  "predicate_inputs": {
+    "route_table_post": "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json",
+    "revision_list_post": "labs/acr-network-path-pe-forced-inspection/evidence/10-revision-list-post-fix.json",
+    "app_spec_post": "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
+    "h2_recovery_window": "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+  },
+  "acr_network_path_pe_forced_inspection_h2_fix_restores_recovery_all_subgates_pass": true,
+  "acr_network_path_pe_forced_inspection_h2_fix_restores_recovery_sub_gates": {
+    "a_exact_pe_32_routes_are_restored": true,
+    "b_latest_active_v_recover_revision_is_healthy": true,
+    "c_h2_window_contains_new_acr_firewall_rows_and_v_recover_response": true,
+    "d_acr_stays_pe_only_and_workload_silence_remains_intact": true
+  },
+  "scenario": "acr_network_path_pe_forced_inspection",
+  "sub_gates": [
+    {
+      "claim": "The post-fix route table restored the exact PE /32 UDR routes with the firewall private IP as next hop.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json"
+      ],
+      "observed_values": {
+        "default_route": {
+          "name": "default-via-afw",
+          "addressPrefix": "0.0.0.0/0",
+          "nextHopType": "VirtualAppliance",
+          "nextHopIpAddress": "10.90.3.4"
+        },
+        "pe_route_present_details": [
+          {
+            "private_ip": "10.90.2.4",
+            "route": {
+              "name": "pe-10-90-2-4",
+              "addressPrefix": "10.90.2.4/32",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "10.90.3.4"
+            },
+            "holds": true
+          },
+          {
+            "private_ip": "10.90.2.5",
+            "route": {
+              "name": "pe-10-90-2-5",
+              "addressPrefix": "10.90.2.5/32",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "10.90.3.4"
+            },
+            "holds": true
+          }
+        ],
+        "route_rows": [
+          {
+            "name": "default-via-afw",
+            "addressPrefix": "0.0.0.0/0",
+            "nextHopType": "VirtualAppliance",
+            "nextHopIpAddress": "10.90.3.4"
+          },
+          {
+            "name": "pe-10-90-2-4",
+            "addressPrefix": "10.90.2.4/32",
+            "nextHopType": "VirtualAppliance",
+            "nextHopIpAddress": "10.90.3.4"
+          },
+          {
+            "name": "pe-10-90-2-5",
+            "addressPrefix": "10.90.2.5/32",
+            "nextHopType": "VirtualAppliance",
+            "nextHopIpAddress": "10.90.3.4"
+          }
+        ]
+      },
+      "predicate": "default-via-afw remains present and every PE IP from 01.capture_metadata.pe_ip_map has an exact /32 VirtualAppliance route pointing to the captured firewall private IP.",
+      "result": "pass",
+      "sub_gate": "a_exact_pe_32_routes_are_restored"
+    },
+    {
+      "claim": "The latest active v-recover revision is Healthy.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/10-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "post_latest_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.App/containerApps/ca-acrpefci-d6pdtg/revisions/ca-acrpefci-d6pdtg--0000003",
+          "name": "ca-acrpefci-d6pdtg--0000003",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T00:35:41+00:00",
+            "fqdn": "ca-acrpefci-d6pdtg--0000003.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab:v-recover",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "post_recover_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.App/containerApps/ca-acrpefci-d6pdtg/revisions/ca-acrpefci-d6pdtg--0000003",
+          "name": "ca-acrpefci-d6pdtg--0000003",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T00:35:41+00:00",
+            "fqdn": "ca-acrpefci-d6pdtg--0000003.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab:v-recover",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+          "type": "Microsoft.App/containerapps/revisions"
+        }
+      },
+      "predicate": "A revision whose image tag is v-recover exists in 10, healthState == 'Healthy', active == true, and it is the latest revision in the list.",
+      "result": "pass",
+      "sub_gate": "b_latest_active_v_recover_revision_is_healthy"
+    },
+    {
+      "claim": "The H2 window contains new firewall ACR rows again and the workload serves v-recover.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "h2_recovery_ts_utc": "2026-06-29T00:35:22Z",
+        "h2_window_acr_fw_log_count": 18,
+        "h2_fqdns": [
+          "acracrpefcid6pdtg.azurecr.io",
+          "acracrpefcid6pdtg.koreacentral.data.azurecr.io"
+        ],
+        "h2_sources": [
+          "AZFWApplicationRule"
+        ],
+        "rows_preview": [
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.371307Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.369766Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.343046Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.342726Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.336051Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.329112Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.219009Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.218673Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.21805Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.217881Z"
+          }
+        ],
+        "http_response": {
+          "request_url": "https://ca-acrpefci-d6pdtg.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io/",
+          "status_code": 200,
+          "headers": [
+            "HTTP/2 200 ",
+            "server: gunicorn",
+            "date: Mon, 29 Jun 2026 00:39:19 GMT",
+            "content-type: application/json",
+            "content-length: 76",
+            ""
+          ],
+          "body": "{\"build_tag\":\"v-recover\",\"message\":\"ACR PE forced inspection lab workload\"}\n",
+          "body_json": {
+            "build_tag": "v-recover",
+            "message": "ACR PE forced inspection lab workload"
+          }
+        }
+      },
+      "predicate": "h2_window_acr_fw_log_count > 0 after h2_recovery_ts_utc and the H2 / response reports build_tag=v-recover.",
+      "result": "pass",
+      "sub_gate": "c_h2_window_contains_new_acr_firewall_rows_and_v_recover_response"
+    },
+    {
+      "claim": "ACR stays PE-only and the bounded terminal-failure-silence invariant still holds after recovery.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "publicNetworkAccess": "Disabled",
+        "all_revisions_healthy_post": true,
+        "h2_counts": {
+          "imagepull_failed_count": 0,
+          "revision_failed_count": 0,
+          "imagepull_unauthorized_count": 5,
+          "zero_imagepull_failures": true,
+          "zero_revision_failures": true,
+          "all_revisions_healthy": true
+        }
+      },
+      "predicate": "11.acr.publicNetworkAccess == 'Disabled' and 12 records all_revisions_healthy plus zero ImagePullFailed and zero RevisionFailed while separately disclosing any ImagePullUnauthorized counts and 10 shows all revisions Healthy.",
+      "result": "pass",
+      "sub_gate": "d_acr_stays_pe_only_and_workload_silence_remains_intact"
+    }
+  ],
+  "thresholds": {
+    "h2_firewall_row_count_expected_min": 1,
+    "expected_acr_public_network_access": "Disabled"
+  },
+  "utc_captured": "2026-06-29T00:42:44Z"
+}

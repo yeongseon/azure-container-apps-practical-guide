@@ -1,0 +1,257 @@
+{
+  "claim": "The H1 trigger produced the Path C silence-gate surface on ca-acrpefci-d6pdtg: the baseline pull window already proved the firewall saw ACR traffic, the PE /32 UDR routes were removed while the default route stayed in place, ACR public access stayed Disabled, the v-bypass pull still succeeded to a Healthy revision, and the broken H1 window contains zero new Azure Firewall ACR rows.",
+  "claim_level": "Observed",
+  "gate_classification": "H1 gate: confirms that removing the PE /32 UDR routes silently bypassed the firewall without breaking the pull.",
+  "hypothesis": "H1_trigger_produces_failure",
+  "path_used": "single",
+  "predicate_inputs": {
+    "baseline_firewall_log": "labs/acr-network-path-pe-forced-inspection/evidence/06-firewall-log-baseline.json",
+    "route_table_pre": "labs/acr-network-path-pe-forced-inspection/evidence/03-route-table-pre-fix.json",
+    "acr_public_access_pre": "labs/acr-network-path-pe-forced-inspection/evidence/05-acr-public-access-pre-fix.json",
+    "h1_silence_window": "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json",
+    "revision_list_pre": "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json"
+  },
+  "acr_network_path_pe_forced_inspection_h1_trigger_produces_failure_all_subgates_pass": true,
+  "acr_network_path_pe_forced_inspection_h1_trigger_produces_failure_sub_gates": {
+    "a_baseline_presence_proves_the_firewall_would_see_acr_when_routes_are_intact": true,
+    "b_pe_32_routes_are_removed_while_the_default_route_stays": true,
+    "c_bypass_pull_succeeds_while_acr_stays_pe_only": true,
+    "d_h1_window_contains_zero_new_acr_firewall_rows": true,
+    "e_workload_silence_holds_during_h1": true
+  },
+  "scenario": "acr_network_path_pe_forced_inspection",
+  "sub_gates": [
+    {
+      "claim": "The baseline pull window proves the firewall would emit ACR rows when the /32 routes are intact.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/06-firewall-log-baseline.json"
+      ],
+      "observed_values": {
+        "baseline_acr_fw_log_count": 1,
+        "baseline_fqdns": [
+          "acracrpefcid6pdtg.azurecr.io"
+        ],
+        "baseline_sources": [
+          "AZFWApplicationRule"
+        ],
+        "baseline_window_start_utc": "2026-06-29T00:05:14Z",
+        "baseline_window_end_utc": "2026-06-29T00:25:14Z",
+        "rows_preview": [
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.1.166",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:23:59.295365Z"
+          }
+        ]
+      },
+      "predicate": "baseline_acr_fw_log_count > 0.",
+      "result": "pass",
+      "sub_gate": "a_baseline_presence_proves_the_firewall_would_see_acr_when_routes_are_intact"
+    },
+    {
+      "claim": "The pre-fix route table removed the PE /32 UDR routes while preserving the default firewall route.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/03-route-table-pre-fix.json"
+      ],
+      "observed_values": {
+        "default_route": {
+          "name": "default-via-afw",
+          "addressPrefix": "0.0.0.0/0",
+          "nextHopType": "VirtualAppliance",
+          "nextHopIpAddress": "10.90.3.4"
+        },
+        "pe_route_absence_details": [
+          {
+            "private_ip": "10.90.2.4",
+            "holds": true
+          },
+          {
+            "private_ip": "10.90.2.5",
+            "holds": true
+          }
+        ],
+        "route_rows": [
+          {
+            "name": "default-via-afw",
+            "addressPrefix": "0.0.0.0/0",
+            "nextHopType": "VirtualAppliance",
+            "nextHopIpAddress": "10.90.3.4"
+          }
+        ]
+      },
+      "predicate": "default-via-afw remains present with 0.0.0.0/0, and no ${ip}/32 entry exists for any PE IP captured in 01.capture_metadata.pe_ip_map.",
+      "result": "pass",
+      "sub_gate": "b_pe_32_routes_are_removed_while_the_default_route_stays"
+    },
+    {
+      "claim": "The v-bypass pull succeeded while ACR stayed PE-only.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/05-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json"
+      ],
+      "observed_values": {
+        "publicNetworkAccess": "Disabled",
+        "v_bypass_revision": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.App/containerApps/ca-acrpefci-d6pdtg/revisions/ca-acrpefci-d6pdtg--0000002",
+          "name": "ca-acrpefci-d6pdtg--0000002",
+          "properties": {
+            "active": true,
+            "createdTime": "2026-06-29T00:27:28+00:00",
+            "fqdn": "ca-acrpefci-d6pdtg--0000002.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io",
+            "healthState": "Healthy",
+            "provisioningState": "Provisioned",
+            "replicas": 1,
+            "runningState": "RunningAtMaxScale",
+            "template": {
+              "containers": [
+                {
+                  "image": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab:v-bypass",
+                  "name": "app",
+                  "probes": [],
+                  "resources": {
+                    "cpu": 0.25,
+                    "memory": "0.5Gi"
+                  }
+                }
+              ],
+              "initContainers": null,
+              "revisionSuffix": null,
+              "scale": {
+                "cooldownPeriod": null,
+                "maxReplicas": 1,
+                "minReplicas": 1,
+                "pollingInterval": null,
+                "rules": null
+              },
+              "serviceBinds": null,
+              "terminationGracePeriodSeconds": null,
+              "volumes": null
+            },
+            "trafficWeight": 100
+          },
+          "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+          "type": "Microsoft.App/containerapps/revisions"
+        },
+        "http_response": {
+          "request_url": "https://ca-acrpefci-d6pdtg.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io/",
+          "status_code": 200,
+          "headers": [
+            "HTTP/2 200 ",
+            "server: gunicorn",
+            "date: Mon, 29 Jun 2026 00:28:31 GMT",
+            "content-type: application/json",
+            "content-length: 75",
+            ""
+          ],
+          "body": "{\"build_tag\":\"v-bypass\",\"message\":\"ACR PE forced inspection lab workload\"}\n",
+          "body_json": {
+            "build_tag": "v-bypass",
+            "message": "ACR PE forced inspection lab workload"
+          }
+        }
+      },
+      "predicate": "05.publicNetworkAccess == 'Disabled' AND the H1 revision/image tag is v-bypass AND the H1 / response reports build_tag=v-bypass while the revision healthState is Healthy.",
+      "result": "pass",
+      "sub_gate": "c_bypass_pull_succeeds_while_acr_stays_pe_only"
+    },
+    {
+      "claim": "The H1 broken window contains zero new Azure Firewall ACR rows.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json"
+      ],
+      "observed_values": {
+        "h1_trigger_ts_utc": "2026-06-29T00:27:13Z",
+        "h1_window_acr_fw_log_count": 0,
+        "h1_fqdns": [],
+        "h1_sources": [],
+        "rows_preview": []
+      },
+      "predicate": "h1_window_acr_fw_log_count == 0 for the firewall query anchored after h1_trigger_ts_utc.",
+      "result": "pass",
+      "sub_gate": "d_h1_window_contains_zero_new_acr_firewall_rows"
+    },
+    {
+      "claim": "The H1 window is silent at the workload surface: all revisions stayed Healthy and no ImagePullFailed or RevisionFailed events were recorded.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json"
+      ],
+      "observed_values": {
+        "all_revisions_healthy_pre": true,
+        "h1_counts": {
+          "imagepull_failed_count": 0,
+          "revision_failed_count": 0,
+          "imagepull_unauthorized_count": 0,
+          "zero_imagepull_failures": true,
+          "zero_revision_failures": true,
+          "all_revisions_healthy": true
+        },
+        "revision_rows": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.App/containerApps/ca-acrpefci-d6pdtg/revisions/ca-acrpefci-d6pdtg--0000002",
+            "name": "ca-acrpefci-d6pdtg--0000002",
+            "properties": {
+              "active": true,
+              "createdTime": "2026-06-29T00:27:28+00:00",
+              "fqdn": "ca-acrpefci-d6pdtg--0000002.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io",
+              "healthState": "Healthy",
+              "provisioningState": "Provisioned",
+              "replicas": 1,
+              "runningState": "RunningAtMaxScale",
+              "template": {
+                "containers": [
+                  {
+                    "image": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab:v-bypass",
+                    "name": "app",
+                    "probes": [],
+                    "resources": {
+                      "cpu": 0.25,
+                      "memory": "0.5Gi"
+                    }
+                  }
+                ],
+                "initContainers": null,
+                "revisionSuffix": null,
+                "scale": {
+                  "cooldownPeriod": null,
+                  "maxReplicas": 1,
+                  "minReplicas": 1,
+                  "pollingInterval": null,
+                  "rules": null
+                },
+                "serviceBinds": null,
+                "terminationGracePeriodSeconds": null,
+                "volumes": null
+              },
+              "trafficWeight": 100
+            },
+            "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+            "type": "Microsoft.App/containerapps/revisions"
+          }
+        ]
+      },
+      "predicate": "all revisions in 02 are Healthy and the H1 payload records zero ImagePullFailed plus zero RevisionFailed while explicitly asserting all_revisions_healthy.",
+      "result": "pass",
+      "sub_gate": "e_workload_silence_holds_during_h1"
+    }
+  ],
+  "thresholds": {
+    "baseline_presence_expected_min": 1,
+    "h1_firewall_row_count_expected": 0,
+    "expected_acr_public_network_access": "Disabled"
+  },
+  "utc_captured": "2026-06-29T00:42:44Z"
+}

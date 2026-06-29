@@ -1,0 +1,52 @@
+{
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.Network/networkInterfaces/pe-acracrpefcid6pdtg.nic.00000000-0000-0000-0000-000000000000",
+  "name": "pe-acracrpefcid6pdtg.nic.00000000-0000-0000-0000-000000000000",
+  "ipConfigurations": [
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.Network/networkInterfaces/pe-acracrpefcid6pdtg.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": true,
+      "privateIPAddress": "10.90.2.4",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrpefcid6pdtg.koreacentral.data.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry_data_koreacentral"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.Network/virtualNetworks/vnet-acrpefci-d6pdtg/subnets/snet-pe",
+        "resourceGroup": "rg-lab-pe-forced-inspection-202606290915"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    },
+    {
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.Network/networkInterfaces/pe-acracrpefcid6pdtg.nic.00000000-0000-0000-0000-000000000000/ipConfigurations/privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+      "primary": false,
+      "privateIPAddress": "10.90.2.5",
+      "privateIPAddressVersion": "IPv4",
+      "privateIPAllocationMethod": "Dynamic",
+      "privateLinkConnectionProperties": {
+        "fqdns": [
+          "acracrpefcid6pdtg.azurecr.io"
+        ],
+        "groupId": "registry",
+        "requiredMemberName": "registry"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+      "subnet": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.Network/virtualNetworks/vnet-acrpefci-d6pdtg/subnets/snet-pe",
+        "resourceGroup": "rg-lab-pe-forced-inspection-202606290915"
+      },
+      "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+    }
+  ]
+}

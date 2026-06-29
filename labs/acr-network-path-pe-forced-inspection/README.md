@@ -93,10 +93,12 @@ labs/acr-network-path-pe-forced-inspection/
 ├── workload/
 │   ├── app.py                  # minimal Flask, / and /health report BUILD_TAG
 │   └── Dockerfile              # BUILD_TAG baked as build-arg -> different digest per tag
+├── fix-and-capture.sh          # Phase B live reproduction: deploy, capture 12 raw files, verify, and delete RG fast
 ├── trigger.sh                  # build 3 tags -> ACR PE-only -> discover PE IPs -> add /32 UDRs -> deploy v1
 ├── verify.sh                   # assert revision Healthy + build_tag=v1 + ACR PE-only + /32 routes for each PE IP
 ├── falsify.sh                  # remove /32 UDRs -> v-bypass Healthy + firewall sees 0 ACR rows -> re-add -> v-recover Healthy + firewall sees rows again
 ├── cleanup.sh                  # az group delete --no-wait
+├── evidence/                   # 12 raw files + 4 derived gate JSONs + evidence README
 └── README.md                   # this file
 ```
 
@@ -165,6 +167,40 @@ strongest falsification signal available for the silent-bypass
 failure mode. It is the only scenario in the 5-lab ACR network path
 series where the failure mode is "successful pull, silent
 inspection"; the other four labs all produce visibly failed pulls.
+
+## Phase B Evidence Pack
+
+The committed Phase B cohort lives in [`evidence/`](evidence/README.md).
+
+- It captures one live `koreacentral` reproduction of the **silence-gate** pattern: baseline firewall presence, H1 bypass absence, H2 recovery presence, with pulls succeeding throughout.
+- The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
+- Gate 15 carries the lab-specific **baseline-presence proof** so the H1 `count == 0` silence claim is not vacuously true.
+- Gate 17 carries the three required silence-gate subproofs together: `baseline_presence + bypass_absence + recovery_presence + bounded_terminal_failure_silence`.
+- The bounded claim is intentionally narrow: explicit `/32` UDR routes for the captured PE NIC IPs are the mechanically observable trigger field for Azure Firewall visibility in this Path C topology. The pack does **not** overclaim exact pull timing, OCI digests, cache internals, or pod continuity.
+
+For offline reruns:
+
+| Command | Why it is used |
+|---|---|
+| `cd labs/acr-network-path-pe-forced-inspection/` | Enters the lab directory so relative evidence paths resolve correctly. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. |
+
+```bash
+cd labs/acr-network-path-pe-forced-inspection/
+bash verify.sh
+```
+
+For future live reproductions:
+
+| Command | Why it is used |
+|---|---|
+| `cd labs/acr-network-path-pe-forced-inspection/` | Enters the lab directory for the live capture workflow. |
+| `bash fix-and-capture.sh` | Provisions the lab, captures the baseline/H1/H2 evidence pack, runs the hermetic verifier, and starts RG cleanup immediately to minimize Firewall Basic cost while disclosing any non-terminal `ImagePullUnauthorized` rows separately from the zero terminal-failure claim. |
+
+```bash
+cd labs/acr-network-path-pe-forced-inspection/
+bash fix-and-capture.sh
+```
 
 ## Estimated Cost
 

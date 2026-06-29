@@ -1,0 +1,19 @@
+{
+  "capture_state": "h1_pre_fix",
+  "route_table_name": "rt-acrpefci-d6pdtg",
+  "firewall_private_ip": "10.90.3.4",
+  "routes": [
+    {
+      "addressPrefix": "0.0.0.0/0",
+      "etag": "W/\"00000000-0000-0000-0000-000000000000\"",
+      "hasBgpOverride": false,
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.Network/routeTables/rt-acrpefci-d6pdtg/routes/default-via-afw",
+      "name": "default-via-afw",
+      "nextHopIpAddress": "10.90.3.4",
+      "nextHopType": "VirtualAppliance",
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+      "type": "Microsoft.Network/routeTables/routes"
+    }
+  ]
+}

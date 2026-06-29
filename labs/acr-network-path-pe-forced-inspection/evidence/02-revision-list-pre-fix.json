@@ -1,0 +1,43 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.App/containerApps/ca-acrpefci-d6pdtg/revisions/ca-acrpefci-d6pdtg--0000002",
+    "name": "ca-acrpefci-d6pdtg--0000002",
+    "properties": {
+      "active": true,
+      "createdTime": "2026-06-29T00:27:28+00:00",
+      "fqdn": "ca-acrpefci-d6pdtg--0000002.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io",
+      "healthState": "Healthy",
+      "provisioningState": "Provisioned",
+      "replicas": 1,
+      "runningState": "RunningAtMaxScale",
+      "template": {
+        "containers": [
+          {
+            "image": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab:v-bypass",
+            "name": "app",
+            "probes": [],
+            "resources": {
+              "cpu": 0.25,
+              "memory": "0.5Gi"
+            }
+          }
+        ],
+        "initContainers": null,
+        "revisionSuffix": null,
+        "scale": {
+          "cooldownPeriod": null,
+          "maxReplicas": 1,
+          "minReplicas": 1,
+          "pollingInterval": null,
+          "rules": null
+        },
+        "serviceBinds": null,
+        "terminationGracePeriodSeconds": null,
+        "volumes": null
+      },
+      "trafficWeight": 100
+    },
+    "resourceGroup": "rg-lab-pe-forced-inspection-202606290915",
+    "type": "Microsoft.App/containerapps/revisions"
+  }
+]

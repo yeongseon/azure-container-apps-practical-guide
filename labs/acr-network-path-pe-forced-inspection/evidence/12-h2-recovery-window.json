@@ -1,0 +1,417 @@
+{
+  "h2_recovery_ts_utc": "2026-06-29T00:35:22Z",
+  "firewall_query": "2026-06-29T00:35:22Z -> 2026-06-29T00:42:17Z",
+  "firewall_row_count": 18,
+  "firewall_rows": [
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.371307Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.369766Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.343046Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.342726Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.336051Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.329112Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.219009Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.218673Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.21805Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.217881Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:23.216999Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:22.59011Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:22.376317Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:38:22.307821Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.202",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:35:44.695837Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.0.5",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:35:44.655516Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-data",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.1.166",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:35:41.05531Z"
+    },
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.1.166",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:35:40.792933Z"
+    }
+  ],
+  "system_query": "ContainerAppSystemLogs_CL summary for H1+H2 window",
+  "system_rows": [
+    {
+      "EventCount": "1",
+      "Reason": "RevisionDeactivating",
+      "RevisionName": "",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "2",
+      "Reason": "RevisionUpdate",
+      "RevisionName": "",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "25",
+      "Reason": "RollingRevisionCompleted",
+      "RevisionName": "",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerTerminated",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "KEDAScalersStopped",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "RevisionCreation",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ScaledObjectDeleted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "AssigningReplica",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerCreated",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerStarted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerTerminated",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "3",
+      "Reason": "KEDAScalersStarted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "KEDAScalersStopped",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "PulledImage",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "PullingImage",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "RevisionCreation",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "RevisionReady",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ScaledObjectDeleted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "AssigningReplica",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerCreated",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerStarted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "5",
+      "Reason": "ContainerTerminated",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "5",
+      "Reason": "ImagePullUnauthorized",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "3",
+      "Reason": "KEDAScalersStarted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "PulledImage",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "6",
+      "Reason": "PullingImage",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "RevisionUpdate",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "6",
+      "Reason": "ScaledObjectCheckFailed",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000003",
+      "TableName": "PrimaryResult"
+    }
+  ],
+  "http_response": {
+    "request_url": "https://ca-acrpefci-d6pdtg.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io/",
+    "status_code": 200,
+    "headers": [
+      "HTTP/2 200 ",
+      "server: gunicorn",
+      "date: Mon, 29 Jun 2026 00:39:19 GMT",
+      "content-type: application/json",
+      "content-length: 76",
+      ""
+    ],
+    "body": "{\"build_tag\":\"v-recover\",\"message\":\"ACR PE forced inspection lab workload\"}\n",
+    "body_json": {
+      "build_tag": "v-recover",
+      "message": "ACR PE forced inspection lab workload"
+    }
+  },
+  "all_revisions_healthy": true,
+  "imagepull_failed_count": 0,
+  "revision_failed_count": 0,
+  "imagepull_unauthorized_count": 5,
+  "zero_imagepull_failures": true,
+  "zero_revision_failures": true
+}

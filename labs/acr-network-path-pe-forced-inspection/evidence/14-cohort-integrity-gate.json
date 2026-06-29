@@ -1,0 +1,449 @@
+{
+  "claim": "The 12-file acr-network-path-pe-forced-inspection raw cohort is internally consistent: every canonical file is present and parseable, every per-file UTC anchor falls within one bounded capture window, the H1 and H2 revision IDs parse to the same rg-lab-pe-forced-inspection-202606290915 / ca-acrpefci-d6pdtg lineage, and the PE NIC IP map stays unchanged across the silence-gate arc.",
+  "claim_level": "Observed",
+  "gate_classification": "Cohort integrity gate: structural pre-condition for the bounded-falsification pack.",
+  "hypothesis": "H_cohort_integrity",
+  "path_used": "strong",
+  "predicate_inputs": {
+    "app_spec_pre": "labs/acr-network-path-pe-forced-inspection/evidence/01-app-spec-pre-fix.json",
+    "revision_list_pre": "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+    "pe_nic_pre": "labs/acr-network-path-pe-forced-inspection/evidence/04-pe-nic-config-pre-fix.json",
+    "route_table_post": "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json",
+    "app_spec_post": "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
+    "evidence_readme": "labs/acr-network-path-pe-forced-inspection/evidence/README.md"
+  },
+  "acr_network_path_pe_forced_inspection_h_cohort_integrity_all_subgates_pass": true,
+  "acr_network_path_pe_forced_inspection_h_cohort_integrity_sub_gates": {
+    "a_canonical_raw_files_present_and_parse": true,
+    "b_every_per_file_utc_anchor_falls_within_one_bounded_window": true,
+    "c_revision_id_lineage_parses_and_compares_equal": true,
+    "d_pe_nic_ip_map_is_unchanged_and_readme_xrefs_exist": true,
+    "e_utc_reference_and_span_math_stay_consistent": true
+  },
+  "scenario": "acr_network_path_pe_forced_inspection",
+  "sub_gates": [
+    {
+      "claim": "All 12 canonical raw evidence files exist and parse as JSON or YAML.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/03-route-table-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/04-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/05-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/06-firewall-log-baseline.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "observed_missing": [],
+        "observed_present_count": 12,
+        "parse_errors": [],
+        "strong": {
+          "expected_count": 12,
+          "holds": true
+        },
+        "fallback": {
+          "expected_count": 12,
+          "holds": true
+        }
+      },
+      "predicate": "Strong and fallback both require the full 12-file raw cohort to exist; 01,02,03,04,05,06,08,09,10,11,12 parse as JSON; 07 parses as YAML.",
+      "result": "pass",
+      "sub_gate": "a_canonical_raw_files_present_and_parse"
+    },
+    {
+      "claim": "Every per-file UTC anchor stays inside one coherent capture window and every post-fix anchor is later than every pre-fix anchor.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/03-route-table-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/04-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/05-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/06-firewall-log-baseline.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "utc_window_start": "2026-06-29T00:25:14+00:00",
+        "utc_window_end": "2026-06-29T00:35:41+00:00",
+        "utc_window_span_seconds": 627.0,
+        "monotonic_ordering_holds": true,
+        "pre_anchor_timestamps": {
+          "02-revision-list-pre-fix.json": {
+            "timestamp_utc": "2026-06-29T00:27:28+00:00",
+            "time_source": "revision.createdTime",
+            "raw_epoch": "2026-06-29T00:27:28+00:00"
+          },
+          "06-firewall-log-baseline.json": {
+            "timestamp_utc": "2026-06-29T00:25:14+00:00",
+            "time_source": "payload.window_end_utc",
+            "raw_epoch": "2026-06-29T00:25:14Z"
+          },
+          "07-containerapp-spec-pre-fix.yaml": {
+            "timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
+            "time_source": "birthtime",
+            "raw_epoch": 1782692731.381567
+          },
+          "08-h1-silence-window.json": {
+            "timestamp_utc": "2026-06-29T00:27:13+00:00",
+            "time_source": "payload.h1_trigger_ts_utc",
+            "raw_epoch": "2026-06-29T00:27:13Z"
+          }
+        },
+        "post_anchor_timestamps": {
+          "09-route-table-post-fix.json": {
+            "timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "time_source": "payload.h2_recovery_ts_utc",
+            "raw_epoch": "2026-06-29T00:35:22Z"
+          },
+          "10-revision-list-post-fix.json": {
+            "timestamp_utc": "2026-06-29T00:35:41+00:00",
+            "time_source": "revision.createdTime",
+            "raw_epoch": "2026-06-29T00:35:41+00:00"
+          },
+          "12-h2-recovery-window.json": {
+            "timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "time_source": "payload.h2_recovery_ts_utc",
+            "raw_epoch": "2026-06-29T00:35:22Z"
+          }
+        },
+        "sorted_anchor_sequence": [
+          {
+            "file": "06-firewall-log-baseline.json",
+            "timestamp_utc": "2026-06-29T00:25:14+00:00",
+            "time_source": "payload.window_end_utc",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "07-containerapp-spec-pre-fix.yaml",
+            "timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
+            "time_source": "birthtime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "08-h1-silence-window.json",
+            "timestamp_utc": "2026-06-29T00:27:13+00:00",
+            "time_source": "payload.h1_trigger_ts_utc",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "02-revision-list-pre-fix.json",
+            "timestamp_utc": "2026-06-29T00:27:28+00:00",
+            "time_source": "revision.createdTime",
+            "anchor_class": "pre"
+          },
+          {
+            "file": "09-route-table-post-fix.json",
+            "timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "time_source": "payload.h2_recovery_ts_utc",
+            "anchor_class": "post"
+          },
+          {
+            "file": "12-h2-recovery-window.json",
+            "timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "time_source": "payload.h2_recovery_ts_utc",
+            "anchor_class": "post"
+          },
+          {
+            "file": "10-revision-list-post-fix.json",
+            "timestamp_utc": "2026-06-29T00:35:41+00:00",
+            "time_source": "revision.createdTime",
+            "anchor_class": "post"
+          }
+        ],
+        "strict_pairwise_order_checks": [
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-29T00:27:28+00:00",
+            "pre_time_source": "revision.createdTime",
+            "post_file": "09-route-table-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 474.0,
+            "holds": true
+          },
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-29T00:27:28+00:00",
+            "pre_time_source": "revision.createdTime",
+            "post_file": "10-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:41+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 493.0,
+            "holds": true
+          },
+          {
+            "pre_file": "02-revision-list-pre-fix.json",
+            "pre_timestamp_utc": "2026-06-29T00:27:28+00:00",
+            "pre_time_source": "revision.createdTime",
+            "post_file": "12-h2-recovery-window.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 474.0,
+            "holds": true
+          },
+          {
+            "pre_file": "06-firewall-log-baseline.json",
+            "pre_timestamp_utc": "2026-06-29T00:25:14+00:00",
+            "pre_time_source": "payload.window_end_utc",
+            "post_file": "09-route-table-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 608.0,
+            "holds": true
+          },
+          {
+            "pre_file": "06-firewall-log-baseline.json",
+            "pre_timestamp_utc": "2026-06-29T00:25:14+00:00",
+            "pre_time_source": "payload.window_end_utc",
+            "post_file": "10-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:41+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 627.0,
+            "holds": true
+          },
+          {
+            "pre_file": "06-firewall-log-baseline.json",
+            "pre_timestamp_utc": "2026-06-29T00:25:14+00:00",
+            "pre_time_source": "payload.window_end_utc",
+            "post_file": "12-h2-recovery-window.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 608.0,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "09-route-table-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 590.618433,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "10-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:41+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 609.618433,
+            "holds": true
+          },
+          {
+            "pre_file": "07-containerapp-spec-pre-fix.yaml",
+            "pre_timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
+            "pre_time_source": "birthtime",
+            "post_file": "12-h2-recovery-window.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 590.618433,
+            "holds": true
+          },
+          {
+            "pre_file": "08-h1-silence-window.json",
+            "pre_timestamp_utc": "2026-06-29T00:27:13+00:00",
+            "pre_time_source": "payload.h1_trigger_ts_utc",
+            "post_file": "09-route-table-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 489.0,
+            "holds": true
+          },
+          {
+            "pre_file": "08-h1-silence-window.json",
+            "pre_timestamp_utc": "2026-06-29T00:27:13+00:00",
+            "pre_time_source": "payload.h1_trigger_ts_utc",
+            "post_file": "10-revision-list-post-fix.json",
+            "post_timestamp_utc": "2026-06-29T00:35:41+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 508.0,
+            "holds": true
+          },
+          {
+            "pre_file": "08-h1-silence-window.json",
+            "pre_timestamp_utc": "2026-06-29T00:27:13+00:00",
+            "pre_time_source": "payload.h1_trigger_ts_utc",
+            "post_file": "12-h2-recovery-window.json",
+            "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
+            "post_time_source": "payload.h2_recovery_ts_utc",
+            "delta_seconds": 489.0,
+            "holds": true
+          }
+        ],
+        "strong": {
+          "holds": true,
+          "max_span_seconds": 1800
+        },
+        "fallback": {
+          "holds": true,
+          "max_span_seconds": 5400
+        },
+        "time_source_summary": {
+          "birthtime_count": 1,
+          "mtime_count": 0,
+          "fallback_used": false
+        }
+      },
+      "predicate": "All configured post-fix file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix file anchors, and the total window is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+      "result": "pass",
+      "sub_gate": "b_every_per_file_utc_anchor_falls_within_one_bounded_window"
+    },
+    {
+      "claim": "The H1 bypass revision and H2 recovery revision parse to the same resource-group/container-app lineage.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/10-revision-list-post-fix.json"
+      ],
+      "observed_values": {
+        "pre_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.App/containerApps/ca-acrpefci-d6pdtg/revisions/ca-acrpefci-d6pdtg--0000002",
+        "post_revision_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lab-pe-forced-inspection-202606290915/providers/Microsoft.App/containerApps/ca-acrpefci-d6pdtg/revisions/ca-acrpefci-d6pdtg--0000003",
+        "pre_parse_ok": true,
+        "post_parse_ok": true,
+        "pre_resource_group": "rg-lab-pe-forced-inspection-202606290915",
+        "post_resource_group": "rg-lab-pe-forced-inspection-202606290915",
+        "pre_container_app": "ca-acrpefci-d6pdtg",
+        "post_container_app": "ca-acrpefci-d6pdtg",
+        "pre_post_rg_equal": true,
+        "pre_post_app_equal": true,
+        "pre_post_lineage_equal": true
+      },
+      "predicate": "The v-bypass revision ID in 02 and the v-recover revision ID in 10 both match the /subscriptions/.../resourceGroups/.../containerApps/.../revisions/... regex, and the parsed resourceGroup + containerApp components compare equal only when both parses succeed.",
+      "result": "pass",
+      "sub_gate": "c_revision_id_lineage_parses_and_compares_equal"
+    },
+    {
+      "claim": "The PE NIC IP map is unchanged across H1 and H2, no unexpected non-junk extras exist, and evidence/README.md literally names all four Phase B outputs.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/04-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/README.md"
+      ],
+      "observed_values": {
+        "expected_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "ignored_junk": [
+          ".DS_Store"
+        ],
+        "observed_files_on_disk": [
+          "01-app-spec-pre-fix.json",
+          "02-revision-list-pre-fix.json",
+          "03-route-table-pre-fix.json",
+          "04-pe-nic-config-pre-fix.json",
+          "05-acr-public-access-pre-fix.json",
+          "06-firewall-log-baseline.json",
+          "07-containerapp-spec-pre-fix.yaml",
+          "08-h1-silence-window.json",
+          "09-route-table-post-fix.json",
+          "10-revision-list-post-fix.json",
+          "11-app-spec-post-fix.json",
+          "12-h2-recovery-window.json",
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json",
+          "README.md"
+        ],
+        "observed_non_junk_extras": [],
+        "observed_xrefs": [
+          "14-cohort-integrity-gate.json",
+          "15-h1-trigger-produces-failure-gate.json",
+          "16-h2-fix-restores-recovery-gate.json",
+          "17-bounded-falsification-gate.json"
+        ],
+        "pre_nic_map": [
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.90.2.4",
+            "fqdns": [
+              "acracrpefcid6pdtg.koreacentral.data.azurecr.io"
+            ]
+          },
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.90.2.5",
+            "fqdns": [
+              "acracrpefcid6pdtg.azurecr.io"
+            ]
+          }
+        ],
+        "post_nic_map": [
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.90.2.4",
+            "fqdns": [
+              "acracrpefcid6pdtg.koreacentral.data.azurecr.io"
+            ]
+          },
+          {
+            "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+            "private_ip": "10.90.2.5",
+            "fqdns": [
+              "acracrpefcid6pdtg.azurecr.io"
+            ]
+          }
+        ],
+        "pe_nic_unchanged": true
+      },
+      "predicate": "The normalized PE NIC ipConfigurations captured in 04 and 11.pe_nic compare equal, extras == [], and evidence/README.md contains the four gate filenames literally.",
+      "result": "pass",
+      "sub_gate": "d_pe_nic_ip_map_is_unchanged_and_readme_xrefs_exist"
+    },
+    {
+      "claim": "UTC references and span math are internally consistent.",
+      "claim_level": "Measured",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/01-app-spec-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/03-route-table-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/04-pe-nic-config-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/05-acr-public-access-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/06-firewall-log-baseline.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/07-containerapp-spec-pre-fix.yaml",
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "utc_window_start": "2026-06-29T00:25:14+00:00",
+        "utc_window_end": "2026-06-29T00:35:41+00:00",
+        "utc_window_span_seconds": 627.0,
+        "time_source_summary": {
+          "birthtime_count": 1,
+          "mtime_count": 0,
+          "fallback_used": false
+        }
+      },
+      "predicate": "utc_window_start <= utc_window_end and every anchor has an explicit time_source disclosure.",
+      "result": "pass",
+      "sub_gate": "e_utc_reference_and_span_math_stay_consistent"
+    }
+  ],
+  "thresholds": {
+    "canonical_count_strong": 12,
+    "canonical_count_fallback_floor": 12,
+    "utc_window_span_strong_seconds_max": 1800,
+    "utc_window_span_fallback_seconds_max": 5400
+  },
+  "utc_captured": "2026-06-29T00:42:44Z"
+}

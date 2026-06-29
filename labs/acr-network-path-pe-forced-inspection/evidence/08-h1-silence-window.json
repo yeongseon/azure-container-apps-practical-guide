@@ -1,0 +1,104 @@
+{
+  "h1_trigger_ts_utc": "2026-06-29T00:27:13Z",
+  "firewall_query": "2026-06-29T00:27:13Z -> 2026-06-29T00:33:29Z",
+  "firewall_row_count": 0,
+  "firewall_rows": [],
+  "system_query": "ContainerAppSystemLogs_CL summary for H1 window",
+  "system_rows": [
+    {
+      "EventCount": "23",
+      "Reason": "RollingRevisionCompleted",
+      "RevisionName": "",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerTerminated",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "KEDAScalersStopped",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "RevisionCreation",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ScaledObjectDeleted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000001",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "AssigningReplica",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerCreated",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "ContainerStarted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "3",
+      "Reason": "KEDAScalersStarted",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "PulledImage",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "PullingImage",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "EventCount": "1",
+      "Reason": "RevisionReady",
+      "RevisionName": "ca-acrpefci-d6pdtg--0000002",
+      "TableName": "PrimaryResult"
+    }
+  ],
+  "http_response": {
+    "request_url": "https://ca-acrpefci-d6pdtg.yellowpond-bee5aae2.koreacentral.azurecontainerapps.io/",
+    "status_code": 200,
+    "headers": [
+      "HTTP/2 200 ",
+      "server: gunicorn",
+      "date: Mon, 29 Jun 2026 00:28:31 GMT",
+      "content-type: application/json",
+      "content-length: 75",
+      ""
+    ],
+    "body": "{\"build_tag\":\"v-bypass\",\"message\":\"ACR PE forced inspection lab workload\"}\n",
+    "body_json": {
+      "build_tag": "v-bypass",
+      "message": "ACR PE forced inspection lab workload"
+    }
+  },
+  "all_revisions_healthy": true,
+  "imagepull_failed_count": 0,
+  "revision_failed_count": 0,
+  "imagepull_unauthorized_count": 0,
+  "zero_imagepull_failures": true,
+  "zero_revision_failures": true
+}
