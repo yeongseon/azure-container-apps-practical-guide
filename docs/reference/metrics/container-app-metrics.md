@@ -375,9 +375,9 @@ A non-zero value in production typically means the upstream replica died and the
 
 #### Captures
 
-Baseline view of `ResiliencyConnectTimeouts` on `ca-res-503` — no split, `Total` aggregation. The chart is **flat at zero** throughout the test window because the test target accepts TCP handshakes (see explanation under Sample observed). A non-zero value here would mean SYN packets are being silently dropped at L3 before reaching the destination.
+Baseline view of `ResiliencyConnectTimeouts` on `ca-res-blackhole` — no split, `Total` aggregation. The chart is **flat at zero** throughout the test window because the test target accepts TCP handshakes (see explanation under Sample observed). A non-zero value here would mean SYN packets are being silently dropped at L3 before reaching the destination.
 
-![Portal Metrics blade showing Resiliency Connection Timeouts on ca-res-503, Total aggregation, flat at zero](../../assets/reference/metrics-resiliency-connect-timeouts-baseline.png)
+![Portal Metrics blade showing Resiliency Connection Timeouts on ca-res-blackhole, Total aggregation, flat at zero](../../assets/reference/metrics-resiliency-connect-timeouts-baseline.png)
 
 This metric has a `revisionName` split dimension, but with the value pinned at zero across all revisions the split would render an identical empty chart — omitted here.
 
