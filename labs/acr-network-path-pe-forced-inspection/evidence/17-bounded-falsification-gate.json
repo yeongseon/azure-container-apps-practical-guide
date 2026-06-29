@@ -1,0 +1,433 @@
+{
+  "claim": "This evidence pack falsifies the Path C inspection assumption within a bounded scope. Silence-gate proof requires three non-vacuous observations together: baseline-presence (the firewall did see ACR when the /32 routes were intact), bypass-absence (the firewall saw zero ACR rows after the /32 routes were removed), and workload-silence (pulls still succeeded and revisions stayed Healthy throughout). Recovery-presence then closes the loop by showing the firewall sees ACR again once the /32 routes return.",
+  "claim_level": "Observed",
+  "cohort_binding_note": {
+    "claim_ceiling": "The bounded claim is that explicit /32 UDR routes for the captured PE NIC IPs are the mechanically observable trigger field controlling Azure Firewall visibility into this ACR Private Endpoint pull path. The pack does NOT prove exact pull durations, OCI layer digests, cache internals, pod continuity, replica suffix continuity, precise route-propagation timing, or the internal identity of the ACA workload-subnet component that emitted the pull.",
+    "explicit_drops": [
+      {
+        "id": "acr_firewall_log_ingestion_latency",
+        "note": "The pack proves presence-versus-absence after bounded waits, not the exact second that every Azure Firewall log row landed in Log Analytics."
+      },
+      {
+        "id": "exact_pull_duration_milliseconds",
+        "note": "The pack proves the pull succeeded and whether the firewall saw it, not the exact transfer duration of each image layer."
+      },
+      {
+        "id": "image_layer_sha",
+        "note": "The pack proves tag-level fresh-pull identity through build_tag and image references, not immutable OCI layer digests."
+      },
+      {
+        "id": "node_image_cache_internals",
+        "note": "The pack does not inspect the hidden node cache implementation beyond the observed fresh-pull markers carried by the new tags and responses."
+      },
+      {
+        "id": "pod_uid_continuity",
+        "note": "The pack reasons at the revision and workload-response layer, not at the Kubernetes pod UID layer."
+      },
+      {
+        "id": "replica_suffix_continuity",
+        "note": "Replica suffixes are scheduler-generated and are not the causal field under test for the silence-gate claim."
+      },
+      {
+        "id": "route_propagation_subsecond_timing",
+        "note": "The pack documents bounded route-propagation waits but does not claim the exact subsecond convergence time of the UDR updates."
+      },
+      {
+        "id": "workload_source_ip_component_identity",
+        "note": "The firewall sees an ACA workload-subnet source IP, but the pack does not overclaim which internal ACA component emitted that exact connection."
+      }
+    ]
+  },
+  "gate_classification": "Bounded falsification gate: isolates the PE /32 UDR routes as the trigger field while explicitly listing the silence-gate preconditions and unsupported inferences.",
+  "hypothesis": "H3_bounded_falsification",
+  "path_used": "bounded",
+  "predicate_inputs": {
+    "baseline_firewall_log": "labs/acr-network-path-pe-forced-inspection/evidence/06-firewall-log-baseline.json",
+    "h1_silence_window": "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json",
+    "route_table_pre": "labs/acr-network-path-pe-forced-inspection/evidence/03-route-table-pre-fix.json",
+    "route_table_post": "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json",
+    "h2_recovery_window": "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+  },
+  "acr_network_path_pe_forced_inspection_h3_bounded_falsification_all_subgates_pass": true,
+  "acr_network_path_pe_forced_inspection_h3_bounded_falsification_sub_gates": {
+    "a_bypass_absence_is_real_only_because_baseline_presence_was_proven": true,
+    "b_recovery_presence_restores_firewall_visibility": true,
+    "c_workload_silence_holds_throughout_with_zero_pull_failures": true,
+    "d_only_the_documented_route_field_changes_and_the_claim_ceiling_is_static": true
+  },
+  "scenario": "acr_network_path_pe_forced_inspection",
+  "sub_gates": [
+    {
+      "claim": "The H1 bypass-absence claim is non-vacuous only because the baseline window already proved the firewall would see ACR traffic when the /32 routes were intact.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/06-firewall-log-baseline.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json"
+      ],
+      "observed_values": {
+        "baseline_acr_fw_log_count": 1,
+        "h1_window_acr_fw_log_count": 0,
+        "baseline_window": {
+          "start": "2026-06-29T00:05:14Z",
+          "end": "2026-06-29T00:25:14Z"
+        },
+        "h1_trigger_ts_utc": "2026-06-29T00:27:13Z"
+      },
+      "predicate": "baseline_acr_fw_log_count > 0 AND h1_window_acr_fw_log_count == 0.",
+      "result": "pass",
+      "sub_gate": "a_bypass_absence_is_real_only_because_baseline_presence_was_proven"
+    },
+    {
+      "claim": "The H2 recovery window restores firewall visibility into ACR traffic.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "h2_window_acr_fw_log_count": 18,
+        "h2_recovery_ts_utc": "2026-06-29T00:35:22Z",
+        "rows_preview": [
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.371307Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.369766Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.343046Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.342726Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.336051Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.koreacentral.data.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-data",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.329112Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.219009Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.218673Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.202",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.21805Z"
+          },
+          {
+            "Action": "Allow",
+            "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+            "Policy": "afwp-acrpefci-d6pdtg",
+            "Rule": "allow-acr-login",
+            "RuleCollection": "allow-acr-and-platform",
+            "RuleCollectionGroup": "acr-and-platform-allow",
+            "Source": "AZFWApplicationRule",
+            "SourceIp": "10.90.0.5",
+            "TableName": "PrimaryResult",
+            "TimeGenerated": "2026-06-29T00:38:23.217881Z"
+          }
+        ]
+      },
+      "predicate": "h2_window_acr_fw_log_count > 0.",
+      "result": "pass",
+      "sub_gate": "b_recovery_presence_restores_firewall_visibility"
+    },
+    {
+      "claim": "The lab is truly silent at the workload surface: all revisions stayed Healthy throughout and zero ImagePullFailed / RevisionFailed events were recorded.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/02-revision-list-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/10-revision-list-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
+      ],
+      "observed_values": {
+        "all_revisions_healthy_throughout": true,
+        "overall_zero_imagepull_failures": true,
+        "overall_zero_revision_failures": true,
+        "h1_counts": {
+          "imagepull_failed_count": 0,
+          "revision_failed_count": 0,
+          "imagepull_unauthorized_count": 0,
+          "zero_imagepull_failures": true,
+          "zero_revision_failures": true,
+          "all_revisions_healthy": true
+        },
+        "h2_counts": {
+          "imagepull_failed_count": 0,
+          "revision_failed_count": 0,
+          "imagepull_unauthorized_count": 5,
+          "zero_imagepull_failures": true,
+          "zero_revision_failures": true,
+          "all_revisions_healthy": true
+        }
+      },
+      "predicate": "all_revisions_healthy_throughout == true AND overall_zero_imagepull_failures == true AND overall_zero_revision_failures == true.",
+      "result": "pass",
+      "sub_gate": "c_workload_silence_holds_throughout_with_zero_pull_failures"
+    },
+    {
+      "claim": "Only the documented route-field overlap changes across H1 and H2, and the explicit claim ceiling stays static.",
+      "claim_level": "Observed",
+      "evidence_files": [
+        "labs/acr-network-path-pe-forced-inspection/evidence/03-route-table-pre-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/09-route-table-post-fix.json",
+        "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json"
+      ],
+      "observed_values": {
+        "held_constant_checks": {
+          "acr_public_network_access_disabled": {
+            "pre_value": "Disabled",
+            "post_value": "Disabled",
+            "equal": true
+          },
+          "acr_login_server": {
+            "pre_value": "acracrpefcid6pdtg.azurecr.io",
+            "post_value": "acracrpefcid6pdtg.azurecr.io",
+            "equal": true
+          },
+          "container_app_name": {
+            "pre_value": "ca-acrpefci-d6pdtg",
+            "post_value": "ca-acrpefci-d6pdtg",
+            "equal": true
+          },
+          "resource_group": {
+            "pre_value": "rg-lab-pe-forced-inspection-202606290915",
+            "post_value": "rg-lab-pe-forced-inspection-202606290915",
+            "equal": true
+          },
+          "container_name": {
+            "pre_value": "app",
+            "post_value": "app",
+            "equal": true
+          },
+          "image_repository": {
+            "pre_value": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab",
+            "post_value": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab",
+            "equal": true
+          },
+          "cpu": {
+            "pre_value": 0.25,
+            "post_value": 0.25,
+            "equal": true
+          },
+          "memory": {
+            "pre_value": "0.5Gi",
+            "post_value": "0.5Gi",
+            "equal": true
+          },
+          "ingress_target_port": {
+            "pre_value": 8080,
+            "post_value": 8080,
+            "equal": true
+          },
+          "min_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "max_replicas": {
+            "pre_value": 1,
+            "post_value": 1,
+            "equal": true
+          },
+          "default_route": {
+            "pre_value": {
+              "name": "default-via-afw",
+              "addressPrefix": "0.0.0.0/0",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "10.90.3.4"
+            },
+            "post_value": {
+              "name": "default-via-afw",
+              "addressPrefix": "0.0.0.0/0",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "10.90.3.4"
+            },
+            "equal": true
+          },
+          "pe_nic_ip_map": {
+            "pre_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.90.2.4",
+                "fqdns": [
+                  "acracrpefcid6pdtg.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.90.2.5",
+                "fqdns": [
+                  "acracrpefcid6pdtg.azurecr.io"
+                ]
+              }
+            ],
+            "post_value": [
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.90.2.4",
+                "fqdns": [
+                  "acracrpefcid6pdtg.koreacentral.data.azurecr.io"
+                ]
+              },
+              {
+                "name": "privateEndpointIpConfig.00000000-0000-0000-0000-000000000000",
+                "private_ip": "10.90.2.5",
+                "fqdns": [
+                  "acracrpefcid6pdtg.azurecr.io"
+                ]
+              }
+            ],
+            "equal": true
+          }
+        },
+        "allowed_expected_diff_paths": [
+          "container_app.revision.latest_ready_revision_name",
+          "container_app.revision.latest_revision_name",
+          "container_app.revision.target_image",
+          "container_app.revision.target_revision_name",
+          "route_table.pe32_present",
+          "workload.build_tag"
+        ],
+        "overlap_diff_map": {
+          "container_app.revision.latest_ready_revision_name": {
+            "pre_value": "ca-acrpefci-d6pdtg--0000001",
+            "post_value": "ca-acrpefci-d6pdtg--0000003"
+          },
+          "container_app.revision.latest_revision_name": {
+            "pre_value": "ca-acrpefci-d6pdtg--0000001",
+            "post_value": "ca-acrpefci-d6pdtg--0000003"
+          },
+          "container_app.revision.target_image": {
+            "pre_value": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab:v-bypass",
+            "post_value": "acracrpefcid6pdtg.azurecr.io/pe-forced-inspection-lab:v-recover"
+          },
+          "container_app.revision.target_revision_name": {
+            "pre_value": "ca-acrpefci-d6pdtg--0000002",
+            "post_value": "ca-acrpefci-d6pdtg--0000003"
+          },
+          "route_table.pe32_present": {
+            "pre_value": false,
+            "post_value": true
+          },
+          "workload.build_tag": {
+            "pre_value": "v-bypass",
+            "post_value": "v-recover"
+          }
+        },
+        "unexpected_overlap_diffs": {},
+        "runtime_drop_ids": [
+          "acr_firewall_log_ingestion_latency",
+          "exact_pull_duration_milliseconds",
+          "image_layer_sha",
+          "node_image_cache_internals",
+          "pod_uid_continuity",
+          "replica_suffix_continuity",
+          "route_propagation_subsecond_timing",
+          "workload_source_ip_component_identity"
+        ],
+        "documented_drop_ids": [
+          "acr_firewall_log_ingestion_latency",
+          "exact_pull_duration_milliseconds",
+          "image_layer_sha",
+          "node_image_cache_internals",
+          "pod_uid_continuity",
+          "replica_suffix_continuity",
+          "route_propagation_subsecond_timing",
+          "workload_source_ip_component_identity"
+        ]
+      },
+      "predicate": "All held_constant_checks compare equal, overlap diffs are limited to the documented route/revision/build-tag fields, and explicit_drops exactly match the documented static ceiling.",
+      "result": "pass",
+      "sub_gate": "d_only_the_documented_route_field_changes_and_the_claim_ceiling_is_static"
+    }
+  ],
+  "thresholds": {
+    "baseline_presence_expected_min": 1,
+    "h1_firewall_row_count_expected": 0,
+    "h2_firewall_row_count_expected_min": 1
+  },
+  "utc_captured": "2026-06-29T00:42:44Z"
+}

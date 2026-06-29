@@ -1,0 +1,20 @@
+{
+  "query": "2026-06-29T00:05:14Z -> 2026-06-29T00:25:14Z",
+  "window_start_utc": "2026-06-29T00:05:14Z",
+  "window_end_utc": "2026-06-29T00:25:14Z",
+  "row_count": 1,
+  "rows": [
+    {
+      "Action": "Allow",
+      "Fqdn": "acracrpefcid6pdtg.azurecr.io",
+      "Policy": "afwp-acrpefci-d6pdtg",
+      "Rule": "allow-acr-login",
+      "RuleCollection": "allow-acr-and-platform",
+      "RuleCollectionGroup": "acr-and-platform-allow",
+      "Source": "AZFWApplicationRule",
+      "SourceIp": "10.90.1.166",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-06-29T00:23:59.295365Z"
+    }
+  ]
+}

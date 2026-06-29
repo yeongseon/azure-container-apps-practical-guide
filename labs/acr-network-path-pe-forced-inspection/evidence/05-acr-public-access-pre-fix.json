@@ -1,0 +1,6 @@
+{
+  "loginServer": "acracrpefcid6pdtg.azurecr.io",
+  "publicNetworkAccess": "Disabled",
+  "networkRuleBypassOptions": "AzureServices",
+  "dataEndpointEnabled": true
+}
