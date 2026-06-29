@@ -11,19 +11,20 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules
 content_validation:
   status: verified
-  last_reviewed: '2026-06-06'
+  last_reviewed: '2026-06-29'
   reviewer: agent
   lab_validation:
     status: reproduced
-    tested_date: '2026-06-06'
+    tested_date: '2026-06-29'
     az_cli_version: 2.79.0
     notes: |
-      End-to-end reproduction completed in koreacentral on 2026-06-06.
-      All ten falsification steps passed with a clean baseline → broken →
-      recovery cycle. The live evidence captured the gold-plated DENIED
-      message from ACR's firewall layer naming the firewall's public IP
-      (`client with IP '20.196.208.15' is not allowed access`) directly
-      in `ContainerAppSystemLogs_CL` during the broken window. This is
+      End-to-end reproduction completed in koreacentral on 2026-06-29.
+      The canonical Phase B evidence pack was refreshed on 2026-06-29
+      after fixing the capture-script sequencing bugs and preserving the
+      explicit post-deactivation snapshot for `v-broken`. The live
+      evidence captured the gold-plated DENIED message from ACR's
+      firewall layer naming the firewall's public IP directly in
+      `ContainerAppSystemLogs_CL` during the broken window. This is
       the first lab in the 5-lab ACR network path series that cleanly
       proves fresh-pull behavior with a single controlled variable
       (the firewall PIP entry in ACR's `networkRuleSet.ipRules`),
@@ -62,11 +63,11 @@ content_validation:
       verified: true
 validation:
   az_cli:
-    last_tested: '2026-06-06'
+    last_tested: '2026-06-29'
     cli_version: 2.79.0
     result: pass
   bicep:
-    last_tested: '2026-06-06'
+    last_tested: '2026-06-29'
     result: pass
 ---
 # ACR Network Path A — Firewall Allowlist Lab
@@ -105,7 +106,7 @@ This lab is part of the **5-lab ACR network path series** that reproduces the fi
 | Fresh-pull behavior cleanly proven | Yes — single controlled variable (firewall PIP entry in ACR `ipRules`); admin credentials remove the managed-identity control-plane token-exchange confound that Labs B/D/E call out as `[Not Proven]` |
 
 !!! note "Observed in this lab"
-    This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (Azure Firewall Basic, ACR Premium with `defaultAction=Deny` + `networkRuleBypassOptions=None`, Container Apps Consumption profile, ACR admin-credential auth via `az containerapp registry set --username --password`). Treat it as **validated for this lab's specific topology, auth mode, and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. Different ACR SKUs (Basic/Standard lack `networkRuleSet`), different auth modes (managed identity adds a control-plane token-exchange step on a different network path), different egress designs (NAT Gateway, App Gateway, no firewall at all), and different Container Apps platform versions can change the observed behavior. The phrases below (e.g. "the firewall public IP is the only relevant source IP") refer to *this specific topology*, not to every deployment that uses Container Apps with ACR.
+This behavior was reproduced in **Korea Central on 2026-06-29** for the canonical Phase B evidence pack with the specific topology described above (Azure Firewall Basic, ACR Premium with `defaultAction=Deny` + `networkRuleBypassOptions=None`, Container Apps Consumption profile, ACR admin-credential auth via `az containerapp registry set --username --password`). Treat it as **validated for this lab's specific topology, auth mode, and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. Different ACR SKUs (Basic/Standard lack `networkRuleSet`), different auth modes (managed identity adds a control-plane token-exchange step on a different network path), different egress designs (NAT Gateway, App Gateway, no firewall at all), and different Container Apps platform versions can change the observed behavior. The phrases below (e.g. "the firewall public IP is the only relevant source IP") refer to *this specific topology*, not to every deployment that uses Container Apps with ACR.
 
 ## 1) Background
 
@@ -366,7 +367,23 @@ In the live run on 2026-06-06, this query returned `Reason_s=ContainerTerminated
 
 ## 4) Experiment Log
 
-> **Status: Reproduced live in koreacentral on 2026-06-06 with Azure CLI 2.79.0.** All ten falsification steps PASSED. The actual values from the live run are below.
+### Pre-fix evidence (H1 confirmed)
+
+- [Observed] `labs/acr-network-path-firewall-allowlist/evidence/03-acr-network-rules-pre-fix.json` shows `publicNetworkAccess=Enabled`, `networkRuleBypassOptions=None`, `networkRuleSet.defaultAction=Deny`, and an empty `ipRules` list after the firewall public IP was removed.
+- [Observed] `labs/acr-network-path-firewall-allowlist/evidence/06-system-logs-pre-fix.json` and `labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json` capture the broken `v-broken` pull window, including the DENIED/403 payload that names the rejected firewall public IP directly in the ACR error message.
+- [Observed] `labs/acr-network-path-firewall-allowlist/evidence/02-revision-list-pre-fix.json` records the failed `v-broken` revision state while the cached `v1` revision remains present.
+- [Measured] `labs/acr-network-path-firewall-allowlist/evidence/05-baseline-success-window.json` proves the baseline path was non-vacuous by showing successful `PullingImage` and `PulledImage` markers before the H1 toggle.
+- [Inferred] Taken together, these files isolate the ACR allowlist entry as the broken-window trigger: the registry stayed public-but-locked-down, the firewall IP was absent from `ipRules`, and the next fresh pull failed with the firewall IP named in the DENIED response.
+
+### Post-fix evidence (H2 confirmed — falsification step)
+
+- [Observed] `labs/acr-network-path-firewall-allowlist/evidence/09-acr-network-rules-post-fix.json` shows the firewall public IP restored as the sole ACR allowlist entry while `defaultAction=Deny` and `networkRuleBypassOptions=None` stay constant.
+- [Observed] `labs/acr-network-path-firewall-allowlist/evidence/10-revision-list-post-fix.json` records a healthy `v-recover` revision and preserves the cached `v1` continuity anchor needed for the workload-silence proof.
+- [Measured] `labs/acr-network-path-firewall-allowlist/evidence/12-h2-recovery-window.json` contains both `PullingImage` and `PulledImage` for `v-recover` and the post-fix `/` response reports `build_tag=v-recover`.
+- [Observed] `labs/acr-network-path-firewall-allowlist/evidence/11-app-spec-post-fix.json` captures the explicit post-deactivation `v-broken` snapshot. After deactivation, Azure can normalize the old broken revision to an inactive control-plane object (`active=false`, `replicas=0`, `runningState=Stopped`, sometimes `healthState=Healthy`, `provisioningState=Provisioned`) or omit it from later revision listings. That is expected and does not indicate retroactive repair. The non-retroactive-repair proof is that H2 success markers belong only to `v-recover` and no H2 `PulledImage` row references `v-broken`.
+- [Inferred] This closes the falsification loop required by the 16-concept lab methodology: removing one allowlist entry caused the H1 failure, re-adding the same entry restored H2 recovery, and the cached healthy revision stayed silent throughout the broken window.
+
+> **Status: Canonical Phase B evidence pack refreshed live in koreacentral on 2026-06-29 with Azure CLI 2.79.0.** The committed evidence pack and gate JSONs reflect this 2026-06-29 run. The detailed step table below remains a historical 2026-06-06 narrative reference.
 
 | Step | Action | Expected | Actual (2026-06-06, koreacentral, Azure CLI 2.79.0) | Pass/Fail |
 |---|---|---|---|---|
@@ -394,7 +411,7 @@ In the live run on 2026-06-06, this query returned `Reason_s=ContainerTerminated
 | `ContainerAppSystemLogs_CL \| where ContainerAppName_s == "$APP_NAME" \| where Reason_s == "ContainerTerminated" \| where Log_s contains "DENIED"` | One or more rows during the broken window, each with `Log_s` containing the literal string `client with IP '<fw-pip>' is not allowed access, refer https://aka.ms/acr/firewall to grant access`. The `<fw-pip>` value in the message must match the firewall's public IP. **This is the smoking gun.** |
 | `AzureDiagnostics \| where Category == "AZFWApplicationRule"` (Azure Firewall application-rule logs in Log Analytics) | Allow rows for HTTPS to the ACR login FQDN and ACR data FQDN, sourced from `snet-aca` (`10.80.0.0/23`). For runs *after* the firewall diagnostic settings have been applied at deploy time, this table will be populated; runs that pre-date the diagnostic-settings deployment will show this table empty (this lab's first live run captured the broken-window evidence from `ContainerAppSystemLogs_CL` only because the firewall diagnostic settings were added to the Bicep mid-run; subsequent runs will populate `AZFWApplicationRule`). |
 
-### Observed Evidence (Live Azure Test)
+### Observed Evidence (Live Azure Test — historical 2026-06-06 narrative)
 
 Live reproduction in `koreacentral` on 2026-06-06 with Azure CLI `2.79.0`. RG `rg-acr-firewall-allowlist-lab`, ACR `acracrfwallowt2itdu` (`publicNetworkAccess=Enabled`, `defaultAction=Deny`, `networkRuleBypassOptions=None`), Container App `ca-acrfwallow-t2itdu`, firewall public IP `20.196.208.15`, firewall private IP `10.80.2.4`, image tags `firewall-allowlist-lab:v1`, `:v-broken`, `:v-recover` (each with a distinct `BUILD_TAG` build-arg producing distinct digests). All three states below were captured by `verify.sh` and `falsify.sh` in a single uninterrupted run.
 
@@ -512,7 +529,7 @@ The Container App is running revision `--0000003` on the freshly pulled `v-recov
 
 The `v-recover` image is a *different* image (different `BUILD_TAG` build-arg → different content → different digest) that the platform had never pulled before. A fresh pull of it succeeded, with ACR's `ipRules` containing the firewall PIP again. The bidirectional falsification is closed: removing the firewall PIP breaks fresh pulls; re-adding it restores them.
 
-### Observed Evidence (Portal Captures — 2026-06-06)
+### Observed Evidence (Portal Captures — historical 2026-06-06)
 
 A live reproduction on **2026-06-06** captured the full Scenario A topology and the workload-path falsification surface from the Azure Portal.
 
