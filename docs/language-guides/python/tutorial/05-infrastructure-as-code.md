@@ -275,7 +275,7 @@ Use these commands when you need an imperative deployment path without Bicep.
 RG="rg-flask-containerapp"
 APP_NAME="ca-flask-demo"
 BASE_NAME="flask-app"
-ENVIRONMENT_NAME="cae-flask-demo"
+ACA_ENV_NAME="cae-flask-demo"
 ACR_NAME="crflaskdemo"
 LOG_NAME="log-flask-demo"
 LOCATION="koreacentral"
@@ -315,7 +315,7 @@ LOG_ID=$(az monitor log-analytics workspace show --resource-group "$RG" --worksp
 ```bash
 az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic
 
-az containerapp env create --resource-group "$RG" --name "$ENVIRONMENT_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
+az containerapp env create --resource-group "$RG" --name "$ACA_ENV_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
 
 az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/python
 ```
@@ -334,7 +334,7 @@ az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/python
 ### Step 4: Create Container App with environment variables
 
 ```bash
-az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ENVIRONMENT_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --env-vars FLASK_ENV=production --query "properties.configuration.ingress.fqdn"
+az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ACA_ENV_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --env-vars FLASK_ENV=production --query "properties.configuration.ingress.fqdn"
 ```
 
 | Command | Why it is used |

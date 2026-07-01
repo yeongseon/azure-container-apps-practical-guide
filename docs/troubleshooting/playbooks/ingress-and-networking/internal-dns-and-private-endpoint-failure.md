@@ -82,7 +82,7 @@ ContainerAppConsoleLogs_CL
 ### Platform Signals
 
 ```bash
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 az network private-dns link vnet list --resource-group "$RG" --zone-name "privatelink.azurecr.io" --output table
 ```
 
@@ -92,7 +92,7 @@ az network private-dns link vnet list --resource-group "$RG" --zone-name "privat
 
 | Evidence | Command/Query | Purpose |
 |---|---|---|
-| Environment VNet config | `az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Confirm the environment network context |
+| Environment VNet config | `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Confirm the environment network context |
 | Private DNS VNet links | `az network private-dns link vnet list --resource-group "$RG" --zone-name "privatelink.azurecr.io" --output table` | Check whether required private DNS zones are linked |
 | In-container resolution test | `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"` | Observe actual name resolution from the running app context |
 | Private endpoint inventory | `az network private-endpoint list --resource-group "$RG" --output table` | Confirm the dependency exposes private endpoints |
@@ -167,7 +167,7 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 **What to verify:**
 
 ```bash
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"
 ```
 
@@ -203,7 +203,7 @@ ContainerAppConsoleLogs_CL
 **What to verify:**
 
 ```bash
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 az network private-endpoint list --resource-group "$RG" --output table
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"
 ```

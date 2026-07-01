@@ -129,7 +129,7 @@ export APP_NAME="$(az deployment group show \
     --query "properties.outputs.containerAppName.value" \
     --output tsv)"
 
-export ENVIRONMENT_NAME="$(az deployment group show \
+export ACA_ENV_NAME="$(az deployment group show \
     --resource-group "$RG" \
     --name "lab-revprov" \
     --query "properties.outputs.environmentName.value" \

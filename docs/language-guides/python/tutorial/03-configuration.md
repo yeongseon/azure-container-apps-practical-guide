@@ -102,7 +102,7 @@ graph TD
      --query "properties.outputs.containerAppName.value" \
      --output tsv)
 
-   ENVIRONMENT_NAME=$(az deployment group show \
+   ACA_ENV_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
      --resource-group "$RG" \
      --query "properties.outputs.containerAppEnvName.value" \
@@ -120,13 +120,13 @@ graph TD
 
        ```bash
        echo "APP_NAME=$APP_NAME"
-       echo "ENVIRONMENT_NAME=$ENVIRONMENT_NAME"
+       echo "ACA_ENV_NAME=$ACA_ENV_NAME"
        echo "ACR_NAME=$ACR_NAME"
        ```
 
        ```text
        APP_NAME=<your-app-name>
-       ENVIRONMENT_NAME=<your-env-name>
+       ACA_ENV_NAME=<your-env-name>
        ACR_NAME=<acr-name>
        ```
 

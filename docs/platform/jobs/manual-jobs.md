@@ -32,14 +32,14 @@ Create the job once, then start executions on demand:
 
 ```bash
 export RG="rg-aca-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 export JOB_NAME="job-orders-backfill"
 export IMAGE_NAME="acrsharedprod.azurecr.io/jobs/orders-backfill:v1.0.0"
 
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --parallelism 2 \
   --replica-completion-count 2 \

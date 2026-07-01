@@ -35,7 +35,7 @@ Use shell variables in examples:
 ```bash
 RG="rg-myapp"
 APP_NAME="ca-myapp"
-ENVIRONMENT_NAME="cae-myapp"
+ACA_ENV_NAME="cae-myapp"
 ACR_NAME="acrmyapp"
 IMAGE_TAG="v1"
 ```
@@ -93,7 +93,7 @@ az acr build \
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "${ACR_NAME}.azurecr.io/aca-python-app:${IMAGE_TAG}" \
   --target-port 8000 \
   --ingress external \

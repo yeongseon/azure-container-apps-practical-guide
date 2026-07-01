@@ -279,7 +279,7 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
 az acr show --name "$ACR_NAME" --query "publicNetworkAccess" --output tsv
 
 # Check environment VNet integration
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" \
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" \
   --query "properties.vnetConfiguration" --output json
 
 # Check ACR private endpoint (if applicable)
@@ -363,7 +363,7 @@ ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query "id" --ou
 az role assignment list --scope "$ACR_ID" --assignee "$PRINCIPAL_ID" --output table
 
 # Check whether the environment subnet is attached to an NSG or route table
-INFRA_SUBNET_ID=$(az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" \
+INFRA_SUBNET_ID=$(az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" \
   --query "properties.vnetConfiguration.infrastructureSubnetId" --output tsv)
 az network vnet subnet show --ids "$INFRA_SUBNET_ID" \
   --query "{routeTableId:routeTable.id,nsgId:networkSecurityGroup.id}" --output json

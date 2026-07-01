@@ -308,7 +308,7 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -
 4. If a component is failing, temporarily remove or disable the broken component so the rest of the app can recover.
 
     ```bash
-    az containerapp env dapr-component list --name "$ENVIRONMENT_NAME" --resource-group "$RG" --output table
+    az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table
     ```
 
     | Command | Why it is used |

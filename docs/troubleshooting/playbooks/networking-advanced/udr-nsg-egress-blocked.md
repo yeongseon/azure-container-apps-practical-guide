@@ -67,7 +67,7 @@ Common log and platform patterns:
 
 ```bash
 az containerapp env show \
-  --name "$CONTAINER_ENV" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.vnetConfiguration" \
   --output json

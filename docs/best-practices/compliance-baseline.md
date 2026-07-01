@@ -103,7 +103,7 @@ Validation examples:
 
 ```bash
 az containerapp env show \
-  --name "$CONTAINER_ENV" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.vnetConfiguration.internal" \
   --output tsv
@@ -190,7 +190,7 @@ Validation examples:
 
 ```bash
 az monitor diagnostic-settings list \
-  --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$CONTAINER_ENV" \
+  --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$ACA_ENV_NAME" \
   --output json
 ```
 

@@ -72,12 +72,12 @@ az containerapp show \
     --output json
 
 az containerapp env dapr-component list \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --output table
 
 az containerapp env dapr-component show \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --dapr-component-name "statestore" \
     --output yaml
@@ -86,8 +86,8 @@ az containerapp env dapr-component show \
 | Command | Why it is used |
 |---|---|
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr" --output json` | Verifies that the container app is configured to use Dapr and exposes the app ID context. |
-| `az containerapp env dapr-component list --name "$CONTAINER_ENV" --resource-group "$RG" --output table` | Shows which components exist in the environment and whether the expected state store is present. |
-| `az containerapp env dapr-component show --name "$CONTAINER_ENV" --resource-group "$RG" --dapr-component-name "statestore" --output yaml` | Lets you inspect component type, metadata, secret references, and scopes. |
+| `az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Shows which components exist in the environment and whether the expected state store is present. |
+| `az containerapp env dapr-component show --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "statestore" --output yaml` | Lets you inspect component type, metadata, secret references, and scopes. |
 
 KQL for Dapr-oriented log review:
 
@@ -110,7 +110,7 @@ ContainerAppConsoleLogs_CL
 
 ```bash
 az containerapp env dapr-component set \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --dapr-component-name "statestore" \
     --yaml "./statestore.yaml"
@@ -118,7 +118,7 @@ az containerapp env dapr-component set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env dapr-component set --name "$CONTAINER_ENV" --resource-group "$RG" --dapr-component-name "statestore" --yaml "./statestore.yaml"` | Reapplies the corrected Dapr component definition in a controlled, source-backed way. |
+| `az containerapp env dapr-component set --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "statestore" --yaml "./statestore.yaml"` | Reapplies the corrected Dapr component definition in a controlled, source-backed way. |
 
 ## Prevention
 

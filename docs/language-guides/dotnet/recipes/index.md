@@ -15,7 +15,7 @@ Use these practical recipes to implement common production patterns for .NET app
 ## Prerequisites
 
 - Azure CLI 2.57+ with the Container Apps extension
-- Existing Azure Container Apps environment (`$ENVIRONMENT_NAME`) and app (`$APP_NAME`)
+- Existing Azure Container Apps environment (`$ACA_ENV_NAME`) and app (`$APP_NAME`)
 - Resource group (`$RG`) and region (`$LOCATION`) variables set
 
 ```bash
@@ -68,7 +68,7 @@ flowchart TD
 ```
 
 !!! warning "Apply prerequisites before recipe commands"
-    Most recipe failures come from missing baseline resources or missing role assignments. Confirm `$RG`, `$APP_NAME`, `$ENVIRONMENT_NAME`, and (when needed) `$ACR_NAME` are already set and valid in your current subscription context before you run recipe commands.
+    Most recipe failures come from missing baseline resources or missing role assignments. Confirm `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, and (when needed) `$ACR_NAME` are already set and valid in your current subscription context before you run recipe commands.
 
 ### Container & Runtime
 

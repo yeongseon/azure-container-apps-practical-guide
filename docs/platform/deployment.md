@@ -90,7 +90,7 @@ Deploy directly from application source code without pre-building a container im
 az containerapp up \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --environment "$ENVIRONMENT_NAME" \
+    --environment "$ACA_ENV_NAME" \
     --source "./apps/python"
 ```
 
@@ -116,7 +116,7 @@ Deploy Java applications (JAR or WAR) without writing a Dockerfile. The platform
 az containerapp up \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --environment "$ENVIRONMENT_NAME" \
+    --environment "$ACA_ENV_NAME" \
     --artifact ./target/app.jar \
     --ingress external \
     --target-port 8080

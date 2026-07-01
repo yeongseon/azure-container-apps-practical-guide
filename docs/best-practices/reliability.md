@@ -62,7 +62,7 @@ Set common variables:
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="ca-api-prod"
-export ENVIRONMENT_NAME="cae-prod"
+export ACA_ENV_NAME="cae-prod"
 export ACR_NAME="acrprodshared"
 export LOCATION="koreacentral"
 ```
@@ -211,7 +211,7 @@ Check environment profile:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --output json
 ```

@@ -21,7 +21,7 @@ content_validation:
 | `EnvCoresQuotaUtilization` | Percentage Cores Used Out Of Limit (Deprecated) | Percent | None |
 
 !!! warning "`EnvCoresQuotaLimit` and `EnvCoresQuotaUtilization` are deprecated"
-    Microsoft Learn flags both of the env-cores-quota metrics with the **(Deprecated)** suffix in the Portal Metrics blade and they emit no values in current environments. **[Observed]** In `cae-wp-d38538`, opening either metric in the Portal returns `--` in the Avg value pill and a flat empty chart. Use `az containerapp env list-usages --resource-group $RG --name $CONTAINER_ENV` instead — that returns the `ManagedEnvironmentConsumptionCores` / `ManagedEnvironmentGeneralPurposeCores` counters Azure's enforcement actually checks against. See [Subscription quota exceeded playbook](../../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md).
+    Microsoft Learn flags both of the env-cores-quota metrics with the **(Deprecated)** suffix in the Portal Metrics blade and they emit no values in current environments. **[Observed]** In `cae-wp-d38538`, opening either metric in the Portal returns `--` in the Avg value pill and a flat empty chart. Use `az containerapp env list-usages --resource-group $RG --name $ACA_ENV_NAME` instead — that returns the `ManagedEnvironmentConsumptionCores` / `ManagedEnvironmentGeneralPurposeCores` counters Azure's enforcement actually checks against. See [Subscription quota exceeded playbook](../../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md).
 
 !!! info "Ingress metrics are env-wide, not per-app"
     The four `Ingress*` metrics measure the resource consumption of the **Container Apps environment-level ingress proxy** (the public Envoy gateway shared by all apps with external ingress), not the per-replica sidecar inside each app. The `podName` / `nodeName` dimensions refer to ingress-controller pods, not application replicas. To attribute ingress traffic to a specific app, use the per-app `Requests` and `ResponseTime` metrics instead.
@@ -140,7 +140,7 @@ The two env-scope cores-quota metrics — `EnvCoresQuotaLimit` (the configured c
 | Recommended aggregation | N/A (no values emitted) |
 | Useful splits | None — neither metric exposes dimensions |
 | What you see in Portal | `--` in the Avg value pill, empty flat chart |
-| Replacement | `az containerapp env list-usages --resource-group $RG --name $CONTAINER_ENV` returns the `ManagedEnvironmentConsumptionCores` and `ManagedEnvironmentGeneralPurposeCores` counters that Azure's enforcement actually checks against |
+| Replacement | `az containerapp env list-usages --resource-group $RG --name $ACA_ENV_NAME` returns the `ManagedEnvironmentConsumptionCores` and `ManagedEnvironmentGeneralPurposeCores` counters that Azure's enforcement actually checks against |
 
 ### Captures
 

@@ -103,7 +103,7 @@ graph TD
      --query "properties.outputs.containerAppName.value" \
      --output tsv)
 
-   ENVIRONMENT_NAME=$(az deployment group show \
+   ACA_ENV_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
      --resource-group "$RG" \
      --query "properties.outputs.containerAppEnvName.value" \

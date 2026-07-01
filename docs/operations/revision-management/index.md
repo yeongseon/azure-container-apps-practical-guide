@@ -20,7 +20,7 @@ This guide focuses on operating revisions in production: activating/deactivating
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 ```
 
 ## Revision Mode Management

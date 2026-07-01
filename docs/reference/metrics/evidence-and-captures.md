@@ -107,7 +107,7 @@ az monitor metrics list \
 ```bash
 # Environment-level node count
 az monitor metrics list \
-    --resource "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$CONTAINER_ENV" \
+    --resource "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$ACA_ENV_NAME" \
     --metric NodeCount \
     --aggregation Average \
     --interval PT5M \

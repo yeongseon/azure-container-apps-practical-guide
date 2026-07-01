@@ -31,7 +31,7 @@ Use your own certificate when managed certificates do not fit your hostname, CA,
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 export HOSTNAME="api.contoso.com"
 export CERTIFICATE_FILE="./certs/api-contoso-com.pfx"
 ```
@@ -48,7 +48,7 @@ Upload the certificate to the environment:
 
 ```bash
 az containerapp env certificate upload \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --certificate-file "$CERTIFICATE_FILE" \
   --certificate-password "$CERTIFICATE_PASSWORD"

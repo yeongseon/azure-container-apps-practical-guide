@@ -16,14 +16,14 @@ Use this recipe to package a Python script as a manual Job, adapt it to a one-me
 
 ## Prerequisites
 
-- Azure Container Apps environment (`$ENVIRONMENT_NAME`)
+- Azure Container Apps environment (`$ACA_ENV_NAME`)
 - Azure Container Registry (`$ACR_NAME`)
 - Azure Service Bus namespace and queue for the event-driven example
 - Python 3.11+, Docker, and Azure CLI
 
 ```bash
 export RG="rg-aca-python-prod"
-export ENVIRONMENT_NAME="aca-env-python-prod"
+export ACA_ENV_NAME="aca-env-python-prod"
 export ACR_NAME="acrpythonprod"
 export JOB_NAME="job-python-manual"
 export EVENT_JOB_NAME="job-python-servicebus"
@@ -110,7 +110,7 @@ az acr build \
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --image "$ACR_NAME.azurecr.io/python-jobs/manual:v1" \
   --parallelism 1 \
@@ -169,7 +169,7 @@ az acr build \
 az containerapp job create \
   --name "$EVENT_JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --image "$ACR_NAME.azurecr.io/python-jobs/servicebus:v1" \
   --scale-rule-name "orders-queue" \

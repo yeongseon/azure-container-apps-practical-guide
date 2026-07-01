@@ -28,7 +28,7 @@ flowchart TD
 ## Prerequisites
 
 - Existing Container App: `$APP_NAME` in `$RG`
-- Existing Container Apps environment: `$ENVIRONMENT_NAME`
+- Existing Container Apps environment: `$ACA_ENV_NAME`
 - Public DNS zone you control for the target domain
 - Azure CLI with the Container Apps extension
 
@@ -44,7 +44,7 @@ az extension add --name containerapp --upgrade
 
 ```bash
 export ENV_STATIC_IP=$(az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.staticIp" \
   --output tsv)
@@ -102,7 +102,7 @@ az containerapp hostname bind \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --hostname "www.contoso.com" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --validation-method CNAME
 ```
 
@@ -142,7 +142,7 @@ az containerapp hostname list \
   --output table
 
 az containerapp env certificate list \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --output table
 

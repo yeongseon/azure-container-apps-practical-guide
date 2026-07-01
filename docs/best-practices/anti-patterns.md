@@ -47,7 +47,7 @@ Production Container Apps behavior depends on explicit platform choices for ingr
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="ca-orders-api"
-export ENVIRONMENT_NAME="cae-prod-shared"
+export ACA_ENV_NAME="cae-prod-shared"
 export ACR_NAME="acrsharedprod"
 export LOCATION="koreacentral"
 
@@ -297,7 +297,7 @@ Set ingress explicitly during create:
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "$ACR_NAME.azurecr.io/orders-api:v1.9.4" \
   --ingress external \
   --target-port 8000
@@ -398,7 +398,7 @@ Example migration as job:
 az containerapp job create \
   --name "job-db-migrate" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --replica-timeout 1800 \
   --replica-retry-limit 0 \

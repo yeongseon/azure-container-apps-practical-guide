@@ -66,7 +66,7 @@ Does github actions oidc failure reproduce when the documented trigger condition
 
 
 
-Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ACA_ENV_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
 
 ## 3. Hypothesis
 

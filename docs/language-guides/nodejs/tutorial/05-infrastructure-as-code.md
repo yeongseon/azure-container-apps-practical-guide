@@ -285,7 +285,7 @@ Use these commands when you need an imperative deployment path without Bicep.
 RG="rg-express-containerapp"
 APP_NAME="ca-express-demo"
 BASE_NAME="express-app"
-ENVIRONMENT_NAME="cae-express-demo"
+ACA_ENV_NAME="cae-express-demo"
 ACR_NAME="crexpressdemo"
 LOG_NAME="log-express-demo"
 LOCATION="koreacentral"
@@ -325,7 +325,7 @@ LOG_ID=$(az monitor log-analytics workspace show --resource-group "$RG" --worksp
 ```bash
 az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic
 
-az containerapp env create --resource-group "$RG" --name "$ENVIRONMENT_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
+az containerapp env create --resource-group "$RG" --name "$ACA_ENV_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
 
 az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/nodejs
 ```
@@ -344,7 +344,7 @@ az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/nodejs
 ### Step 4: Create Container App with environment variables
 
 ```bash
-az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ENVIRONMENT_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --env-vars NODE_ENV=production --query "properties.configuration.ingress.fqdn"
+az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ACA_ENV_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --env-vars NODE_ENV=production --query "properties.configuration.ingress.fqdn"
 ```
 
 | Command | Why it is used |

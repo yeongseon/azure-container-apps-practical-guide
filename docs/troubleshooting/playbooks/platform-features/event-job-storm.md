@@ -77,7 +77,7 @@ az containerapp job execution list \
 
 az containerapp job list \
     --resource-group "$RG" \
-    --environment "$CONTAINER_ENV" \
+    --environment "$ACA_ENV_NAME" \
     --output table
 ```
 
@@ -85,7 +85,7 @@ az containerapp job list \
 |---|---|
 | `az containerapp job show --name "$JOB_NAME" --resource-group "$RG" --output json` | Confirms the job trigger model and lets you inspect queue-related metadata in the applied definition. |
 | `az containerapp job execution list --name "$JOB_NAME" --resource-group "$RG" --output table` | Shows how many executions were launched and whether they cluster in short time windows. |
-| `az containerapp job list --resource-group "$RG" --environment "$CONTAINER_ENV" --output table` | Verifies you are looking at the correct job in the intended Container Apps environment. |
+| `az containerapp job list --resource-group "$RG" --environment "$ACA_ENV_NAME" --output table` | Verifies you are looking at the correct job in the intended Container Apps environment. |
 
 KQL to correlate burst timing:
 

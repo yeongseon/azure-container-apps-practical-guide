@@ -74,7 +74,7 @@ flowchart TD
 
    ```bash
    az containerapp env show \
-       --name "$CONTAINER_ENV" \
+       --name "$ACA_ENV_NAME" \
        --resource-group "$RG" \
        --query "properties.appLogsConfiguration.destination" \
        --output tsv
@@ -155,7 +155,7 @@ flowchart TD
 | Command | Why it is used |
 |---|---|
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 30` | Confirms that the platform recently emitted a signal before you blame ingestion. |
-| `az containerapp env show --name "$CONTAINER_ENV" --resource-group "$RG" --query "properties.appLogsConfiguration.destination" --output tsv` | Verifies whether the environment is configured for Log Analytics. |
+| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.appLogsConfiguration.destination" --output tsv` | Verifies whether the environment is configured for Log Analytics. |
 | `az monitor log-analytics workspace show --resource-group "$RG" --workspace-name "$WORKSPACE_NAME" --query "{customerId:customerId,id:id}" --output json` | Confirms the exact workspace identity used for queries and routing checks. |
 | `az monitor log-analytics query --workspace "$WORKSPACE_CUSTOMER_ID" ...` | Removes portal blade scope issues and tests the query directly against the workspace. |
 

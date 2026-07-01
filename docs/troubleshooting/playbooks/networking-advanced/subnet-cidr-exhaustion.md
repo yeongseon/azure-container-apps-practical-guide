@@ -70,7 +70,7 @@ az network vnet subnet show \
   --output json
 
 az containerapp env show \
-  --name "$CONTAINER_ENV" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "{vnetConfiguration:properties.vnetConfiguration, staticIp:properties.staticIp}" \
   --output json
@@ -103,7 +103,7 @@ az network vnet subnet create \
   --delegations "Microsoft.App/environments"
 
 az containerapp env create \
-  --name "$CONTAINER_ENV" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --location "$LOCATION" \
   --infrastructure-subnet-resource-id "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.Network/virtualNetworks/vnet-myapp/subnets/snet-aca-large"

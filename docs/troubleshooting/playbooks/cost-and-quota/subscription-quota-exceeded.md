@@ -57,7 +57,7 @@ flowchart TD
 
 ```bash
 az containerapp env show \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --query "properties.provisioningState" \
     --output tsv
@@ -67,7 +67,7 @@ az containerapp env show \
 
 ```bash
 az containerapp env list-usages \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG"
 ```
 

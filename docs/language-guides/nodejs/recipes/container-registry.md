@@ -23,7 +23,7 @@ flowchart TD
 
 ## Prerequisites
 
-- Container Apps environment (`$ENVIRONMENT_NAME`) and app name (`$APP_NAME`)
+- Container Apps environment (`$ACA_ENV_NAME`) and app name (`$APP_NAME`)
 - Resource group (`$RG`) and region (`$LOCATION`)
 - ACR name (`$ACR_NAME`) and image tag (`$IMAGE_TAG`)
 - Azure CLI with Container Apps extension and Docker
@@ -90,7 +90,7 @@ docker push "$ACR_NAME.azurecr.io/node-api:$IMAGE_TAG"
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "$ACR_NAME.azurecr.io/node-api:$IMAGE_TAG" \
   --registry-server "$ACR_NAME.azurecr.io" \
   --registry-identity "$UAMI_ID" \

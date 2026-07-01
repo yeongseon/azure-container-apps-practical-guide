@@ -40,7 +40,7 @@ This guide covers daily and periodic security operations: managed identity lifec
 ```bash
 export RG="rg-myapp"
 export APP_NAME="ca-myapp"
-export ENVIRONMENT_NAME="cae-myapp"
+export ACA_ENV_NAME="cae-myapp"
 ```
 
 ## Managed Identity Operations

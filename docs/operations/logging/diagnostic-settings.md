@@ -31,8 +31,8 @@ Use diagnostic settings when the default workspace path is not enough and you ne
 
 ```bash
 export RG="rg-aca-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
-export ENVIRONMENT_ID="/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$ENVIRONMENT_NAME"
+export ACA_ENV_NAME="aca-env-prod"
+export ENVIRONMENT_ID="/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$ACA_ENV_NAME"
 ```
 
 ## When to Use

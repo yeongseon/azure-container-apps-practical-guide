@@ -66,7 +66,7 @@ az containerapp show \
 
 ```bash
 az containerapp env workload-profile list \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG"
 ```
 
@@ -74,7 +74,7 @@ az containerapp env workload-profile list \
 
 ```bash
 az containerapp env workload-profile show \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --workload-profile-name "general-purpose"
 ```
@@ -94,7 +94,7 @@ az containerapp env workload-profile show \
 
 ```bash
 az containerapp env workload-profile update \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --workload-profile-name "general-purpose" \
     --min-nodes 1 \

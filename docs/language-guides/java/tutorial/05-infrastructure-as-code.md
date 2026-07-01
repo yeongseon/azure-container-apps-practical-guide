@@ -248,7 +248,7 @@ RG="rg-springboot-containerapp"
 LOCATION="koreacentral"
 APP_NAME="ca-springboot-demo"
 BASE_NAME="springboot-app"
-ENVIRONMENT_NAME="cae-springboot-demo"
+ACA_ENV_NAME="cae-springboot-demo"
 ACR_NAME="crspringbootdemo"
 LOG_NAME="log-springboot-demo"
 ```
@@ -290,7 +290,7 @@ az monitor log-analytics workspace create --resource-group $RG --workspace-name 
 az acr create --resource-group $RG --name $ACR_NAME --sku Basic
 LOG_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_NAME --query customerId --output tsv)
 LOG_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_NAME --query primarySharedKey --output tsv)
-az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
+az containerapp env create --resource-group $RG --name $ACA_ENV_NAME --location $LOCATION --logs-workspace-id $LOG_ID --logs-workspace-key $LOG_KEY
 ```
 
 | Command | Why it is used |
@@ -314,7 +314,7 @@ az containerapp env create --resource-group $RG --name $ENVIRONMENT_NAME --locat
 ### Step 4: Create Container App with environment variables
 
 ```bash
-az containerapp create --resource-group $RG --name $APP_NAME --environment $ENVIRONMENT_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --env-vars SPRING_PROFILES_ACTIVE=prod --query "properties.configuration.ingress.fqdn"
+az containerapp create --resource-group $RG --name $APP_NAME --environment $ACA_ENV_NAME --image $ACR_NAME.azurecr.io/$BASE_NAME:v1 --target-port 8000 --ingress external --env-vars SPRING_PROFILES_ACTIVE=prod --query "properties.configuration.ingress.fqdn"
 ```
 
 | Command | Why it is used |

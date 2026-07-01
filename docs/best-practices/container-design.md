@@ -44,14 +44,14 @@ Production Container Apps behavior depends on explicit platform choices for ingr
 
 - Azure CLI 2.57+ with Container Apps extension
 - Docker 24+ or compatible OCI image builder
-- Existing resource group (`$RG`), Container Apps environment (`$ENVIRONMENT_NAME`), and Container Registry (`$ACR_NAME`)
+- Existing resource group (`$RG`), Container Apps environment (`$ACA_ENV_NAME`), and Container Registry (`$ACR_NAME`)
 - A containerized app with a health endpoint and graceful shutdown support
 
 ```bash
 az extension add --name containerapp --upgrade
 az account show --output table
 az acr show --name "$ACR_NAME" --resource-group "$RG" --output table
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --output table
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --output table
 ```
 
 | Command | Why it is used |
@@ -239,7 +239,7 @@ properties:
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "$ACR_NAME.azurecr.io/$APP_NAME:20260404-1" \
   --target-port 8000 \
   --ingress external \

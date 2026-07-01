@@ -32,7 +32,7 @@ flowchart TD
     ```bash
     RG="rg-myapp"
     APP_NAME="ca-myapp"
-    ENVIRONMENT_NAME="cae-myapp"
+    ACA_ENV_NAME="cae-myapp"
     ACR_NAME="acrmyapp"
     ```
 
@@ -297,7 +297,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 ## 9) Environment and Network
 
 ```bash
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --output json
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --output json
 az network private-endpoint list --resource-group "$RG" --output table
 ```
 

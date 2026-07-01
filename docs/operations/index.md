@@ -32,7 +32,7 @@ This section covers production operations for Azure Container Apps. It is langua
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 
 az extension add --name containerapp --upgrade
 az account show --output table

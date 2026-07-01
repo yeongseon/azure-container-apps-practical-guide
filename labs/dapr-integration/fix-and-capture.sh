@@ -71,7 +71,7 @@ ACR_LOGIN_SERVER="$(az deployment group show \
     --name lab-dapr-infra \
     --query 'properties.outputs.containerRegistryLoginServer.value' \
     --output tsv)"
-ENVIRONMENT_NAME="$(az deployment group show \
+ACA_ENV_NAME="$(az deployment group show \
     --subscription "${AZ_SUBSCRIPTION}" \
     --resource-group "${RG}" \
     --name lab-dapr-infra \

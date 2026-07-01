@@ -78,7 +78,7 @@ Run this once when provisioning a fresh environment, then continue tutorial modu
 az group create --name "$RG" --location "$LOCATION"
 
 az containerapp env create \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --location "$LOCATION"
 
@@ -90,7 +90,7 @@ az acr create \
 ```
 
 !!! info "Use reusable variables from day one"
-    Keep command examples consistent with this guide's variables: `$RG`, `$APP_NAME`, `$ENVIRONMENT_NAME`, `$ACR_NAME`, and `$LOCATION`.
+    Keep command examples consistent with this guide's variables: `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, `$ACR_NAME`, and `$LOCATION`.
 
 ## Suggested 2-Week Learning Plan
 

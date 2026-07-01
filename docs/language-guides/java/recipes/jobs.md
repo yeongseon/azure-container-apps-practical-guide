@@ -22,7 +22,7 @@ Use this recipe to build a Spring Boot CLI runner for manual Jobs, adapt it to p
 
 ```bash
 export RG="rg-aca-java-prod"
-export ENVIRONMENT_NAME="aca-env-java-prod"
+export ACA_ENV_NAME="aca-env-java-prod"
 export ACR_NAME="acrjavaprod"
 export JOB_NAME="job-java-manual"
 export EVENT_JOB_NAME="job-java-servicebus"
@@ -158,7 +158,7 @@ az acr build \
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --image "$ACR_NAME.azurecr.io/java-jobs/manual:v1" \
   --replica-timeout 600 \
@@ -209,7 +209,7 @@ az acr build \
 az containerapp job create \
   --name "$EVENT_JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --image "$ACR_NAME.azurecr.io/java-jobs/servicebus:v1" \
   --scale-rule-name "orders-queue" \

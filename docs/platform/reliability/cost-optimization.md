@@ -40,7 +40,7 @@ This guide describes production cost operations for Azure Container Apps, includ
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 ```
 
 ## Choose the Right Runtime Profile
@@ -87,7 +87,7 @@ Inspect environment profile configuration:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.workloadProfiles" \
   --output json

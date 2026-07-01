@@ -106,7 +106,7 @@ export APP_NAME="$(az deployment group show \
     --query "properties.outputs.containerAppName.value" \
     --output tsv)"
 
-export ENVIRONMENT_NAME="$(az deployment group show \
+export ACA_ENV_NAME="$(az deployment group show \
     --name "$DEPLOYMENT_NAME" \
     --resource-group "$RESOURCE_GROUP" \
     --query "properties.outputs.environmentName.value" \

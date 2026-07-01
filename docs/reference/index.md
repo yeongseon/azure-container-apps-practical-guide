@@ -82,13 +82,13 @@ flowchart TD
 |----------|-------------|---------|
 | `$RG` | Resource group name | `rg-myapp` |
 | `$APP_NAME` | Container App name | `ca-myapp` |
-| `$ENVIRONMENT_NAME` | Container Apps Environment name | `cae-myapp` |
+| `$ACA_ENV_NAME` | Container Apps Environment name | `cae-myapp` |
 | `$ENVIRONMENT_DEFAULT_DOMAIN` | Environment's default domain suffix | `<hash>.<region>.azurecontainerapps.io` |
 | `$ACR_NAME` | Azure Container Registry name | `acrmyapp` |
 | `$LOCATION` | Azure region | `koreacentral` |
 
 ```bash
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.defaultDomain" --output tsv
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.defaultDomain" --output tsv
 ```
 
 ## Fast verification checklist

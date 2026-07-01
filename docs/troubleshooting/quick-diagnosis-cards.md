@@ -129,7 +129,7 @@ az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{
 
 ```bash
 # Check environment VNet configuration
-az containerapp env show --resource-group $RG --name $ENVIRONMENT_NAME --query "properties.vnetConfiguration"
+az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "properties.vnetConfiguration"
 ```
 
 ---

@@ -39,7 +39,7 @@ Set reusable variables:
 ```bash
 export RG="rg-aca-security"
 export APP_NAME="ca-api-mtls"
-export ENVIRONMENT_NAME="cae-security"
+export ACA_ENV_NAME="cae-security"
 export LOCATION="koreacentral"
 ```
 

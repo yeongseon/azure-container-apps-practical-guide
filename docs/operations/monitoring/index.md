@@ -43,7 +43,7 @@ flowchart TD
 ```bash
 export RG="rg-myapp"
 export APP_NAME="ca-myapp"
-export ENVIRONMENT_NAME="cae-myapp"
+export ACA_ENV_NAME="cae-myapp"
 ```
 
 ## Log Analytics Operations
@@ -52,7 +52,7 @@ Identify workspace connected to the environment:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.appLogsConfiguration" \
   --output json

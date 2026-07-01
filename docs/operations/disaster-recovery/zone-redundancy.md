@@ -46,7 +46,7 @@ Zone redundancy improves resilience within a single region, but it is not a subs
 
 ```bash
 export RG="rg-aca-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 export LOCATION="eastus"
 ```
 

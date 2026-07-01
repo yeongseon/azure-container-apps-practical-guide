@@ -58,7 +58,7 @@ Set standard variables:
 ```bash
 export RG="rg-myapp"
 export APP_NAME="ca-myapp"
-export ENVIRONMENT_NAME="cae-myapp"
+export ACA_ENV_NAME="cae-myapp"
 export ACR_NAME="<acr-name>"
 export LOCATION="koreacentral"
 ```

@@ -96,7 +96,7 @@ graph TD
 ## Prerequisites
 
 - Existing Container App: `$APP_NAME` in `$RG`
-- Existing Container Apps environment: `$ENVIRONMENT_NAME`
+- Existing Container Apps environment: `$ACA_ENV_NAME`
 - Existing Storage account: `$STORAGE_ACCOUNT`
 - Azure CLI with Container Apps extension: `az extension add --name containerapp`
 
@@ -251,7 +251,7 @@ export STORAGE_KEY=$(az storage account keys list \
   --output tsv)
 
 az containerapp env storage set \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --storage-name "appfiles" \
   --azure-file-account-name "$STORAGE_ACCOUNT" \
@@ -268,7 +268,7 @@ Verify the environment storage was registered:
 
 ```bash
 az containerapp env storage show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --storage-name "appfiles"
 ```
@@ -576,7 +576,7 @@ See [Key Vault Secrets Management](../../../platform/identity-and-secrets/key-va
 | `Transport endpoint is not connected` | SMB connection dropped (transient) | Retry; check storage account firewall — ensure Container Apps environment subnet is allowed |
 | Files written on one replica not visible on another | Writing to container local disk, not the mount | Confirm `mountPath` in YAML matches path used in code; use `os.environ.get("FILES_MOUNT_PATH")` |
 | `AccountIsDisabled` or `AuthenticationFailed` | Storage key rotated or incorrect | Retrieve new key and re-run `az containerapp env storage set` |
-| `az containerapp env storage set` fails | Environment name or resource group mismatch | Verify `$ENVIRONMENT_NAME` matches the environment your app is in |
+| `az containerapp env storage set` fails | Environment name or resource group mismatch | Verify `$ACA_ENV_NAME` matches the environment your app is in |
 | Slow file I/O on mount | Azure Files SMB latency | Use EmptyDir for hot temporary files; only persist final results to the mount |
 | Mount missing after scale-out | New replica starting up before mount is ready | Add retry logic on startup; mount reconnects within seconds |
 

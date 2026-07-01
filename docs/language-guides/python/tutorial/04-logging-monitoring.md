@@ -133,7 +133,7 @@ sequenceDiagram
      --query "properties.outputs.containerAppName.value" \
      --output tsv)
 
-   ENVIRONMENT_NAME=$(az deployment group show \
+   ACA_ENV_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
      --resource-group "$RG" \
      --query "properties.outputs.containerAppEnvName.value" \
@@ -149,7 +149,7 @@ sequenceDiagram
    ???+ example "Expected output"
        ```text
        APP_NAME=<your-app-name>
-       ENVIRONMENT_NAME=<your-env-name>
+       ACA_ENV_NAME=<your-env-name>
        ACR_NAME=<acr-name>
        ```
 
@@ -203,7 +203,7 @@ sequenceDiagram
 
    ```bash
    WORKSPACE_ID=$(az containerapp env show \
-     --name "$ENVIRONMENT_NAME" \
+     --name "$ACA_ENV_NAME" \
      --resource-group "$RG" \
      --query "properties.appLogsConfiguration.logAnalyticsConfiguration.customerId" \
      --output tsv)

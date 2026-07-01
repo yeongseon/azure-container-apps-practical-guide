@@ -36,7 +36,7 @@ Azure Container Apps logging operations start with separating application consol
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 
 az extension add --name containerapp --upgrade
 ```
@@ -93,7 +93,7 @@ Check the environment logging configuration:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.appLogsConfiguration" \
   --output json
