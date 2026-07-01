@@ -78,7 +78,7 @@ az containerapp show \
   --output tsv
 
 az containerapp env show \
-  --name "$CONTAINER_ENV" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.vnetConfiguration.internal" \
   --output tsv
@@ -112,7 +112,7 @@ az containerapp hostname bind \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --hostname "app.example.com" \
-  --environment "$CONTAINER_ENV" \
+  --environment "$ACA_ENV_NAME" \
   --validation-method CNAME
 ```
 

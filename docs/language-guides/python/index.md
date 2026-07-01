@@ -169,7 +169,7 @@ By completing this guide, you will gain the following capabilities:
 - Managing the full application lifecycle through infrastructure-as-code and automated CI/CD.
 
 !!! note "Use standard variables consistently"
-    For command consistency across tutorials and recipes, use `$RG`, `$APP_NAME`, `$ENVIRONMENT_NAME`, `$ACR_NAME`, and `$LOCATION` in your shell session before running commands.
+    For command consistency across tutorials and recipes, use `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, `$ACR_NAME`, and `$LOCATION` in your shell session before running commands.
 
 !!! info "Architecture Best Practices"
     The patterns shown in this guide follow the Azure Well-Architected Framework. We prioritize security via Managed Identity, reliability via Health Probes, and operational excellence via automated deployments.

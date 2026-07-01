@@ -10,7 +10,7 @@
 #   AZURE_CLIENT_ID    User-assigned managed identity client ID
 #   SUBSCRIPTION_ID    Subscription containing the lab RG
 #   RESOURCE_GROUP     Resource group containing the subject apps
-#   ENVIRONMENT_NAME   Container Apps environment name (informational)
+#   ACA_ENV_NAME   Container Apps environment name (informational)
 #   SUBJECT_APPS       Comma-separated list of app names
 #   API_VERSION        ARM API version for Microsoft.App resources
 

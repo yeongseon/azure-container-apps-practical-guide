@@ -49,7 +49,7 @@ This guide covers networking operations for Container Apps: ingress updates, VNe
 ```bash
 export RG="rg-myapp"
 export APP_NAME="ca-myapp"
-export ENVIRONMENT_NAME="cae-myapp"
+export ACA_ENV_NAME="cae-myapp"
 ```
 
 ## Ingress Configuration Operations
@@ -201,7 +201,7 @@ Inspect managed environment network profile:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --output json
 ```
@@ -230,7 +230,7 @@ az network vnet subnet show \
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "{vnetConfig: properties.vnetConfiguration, staticIp: properties.staticIp}" \
   --output json

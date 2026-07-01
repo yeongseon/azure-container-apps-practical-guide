@@ -69,7 +69,7 @@ az containerapp show \
     --output yaml
 
 az containerapp env storage list \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --output table
 ```
@@ -77,7 +77,7 @@ az containerapp env storage list \
 | Command | Why it is used |
 |---|---|
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --output yaml` | Exports the live revision template so you can verify `volumes`, `storageName`, and `volumeMounts`. |
-| `az containerapp env storage list --name "$CONTAINER_ENV" --resource-group "$RG" --output table` | Lists all storage definitions on the environment to confirm whether the expected entry exists and has the correct share name. |
+| `az containerapp env storage list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Lists all storage definitions on the environment to confirm whether the expected entry exists and has the correct share name. |
 
 If you need to compare and correct the YAML, capture it first and then review the storage section:
 

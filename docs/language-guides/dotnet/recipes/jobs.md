@@ -22,7 +22,7 @@ Use this recipe to build a .NET console Job, adapt it to process one Service Bus
 
 ```bash
 export RG="rg-aca-dotnet-prod"
-export ENVIRONMENT_NAME="aca-env-dotnet-prod"
+export ACA_ENV_NAME="aca-env-dotnet-prod"
 export ACR_NAME="acrdotnetprod"
 export JOB_NAME="job-dotnet-manual"
 export EVENT_JOB_NAME="job-dotnet-servicebus"
@@ -106,7 +106,7 @@ az acr build \
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --image "$ACR_NAME.azurecr.io/dotnet-jobs/manual:v1" \
   --replica-timeout 600 \
@@ -158,7 +158,7 @@ az acr build \
 az containerapp job create \
   --name "$EVENT_JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --image "$ACR_NAME.azurecr.io/dotnet-jobs/servicebus:v1" \
   --scale-rule-name "orders-queue" \

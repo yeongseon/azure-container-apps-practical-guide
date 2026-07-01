@@ -172,7 +172,7 @@ az containerapp hostname bind \
     --name $APP_NAME \
     --hostname app.nhinvest.local \
     --certificate $CERT_ID \
-    --environment $CONTAINER_ENV
+    --environment $ACA_ENV_NAME
 ```
 
 | Command/Parameter | Purpose |

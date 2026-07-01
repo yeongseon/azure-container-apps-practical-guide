@@ -146,7 +146,7 @@ nslookup $(az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.configuration.ingress.fqdn" --output tsv)
 
 # Check environment domain
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" \
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" \
   --query "properties.defaultDomain" --output tsv
 ```
 

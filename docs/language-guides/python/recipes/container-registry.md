@@ -104,7 +104,7 @@ graph TD
 ```bash
 export RG="rg-myapp"
 export LOCATION="koreacentral"
-export ENVIRONMENT_NAME="cae-myapp"
+export ACA_ENV_NAME="cae-myapp"
 export APP_NAME="ca-myapp"
 export ACR_NAME="acrmyapp"          # Globally unique, alphanumeric only
 export VNET_NAME="vnet-myapp"
@@ -372,7 +372,7 @@ Attach the user-assigned MI to the app and configure it as the registry pull ide
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "${ACR_NAME}.azurecr.io/myapp:latest" \
   --registry-server "${ACR_NAME}.azurecr.io" \
   --registry-identity "$UAMI_ID" \

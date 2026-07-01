@@ -70,7 +70,7 @@ flowchart TD
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "$ACR_NAME.azurecr.io/$APP_NAME:v1.0.0" \
   --target-port 8000 \
   --ingress external \
@@ -356,12 +356,12 @@ Example output:
 
 ```bash
 az containerapp env create \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --location "$LOCATION"
 
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --output json
 
@@ -401,7 +401,7 @@ cae-myapp  rg-myapp       koreacentral  Succeeded
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type Schedule \
   --cron-expression "*/15 * * * *" \
   --image "$ACR_NAME.azurecr.io/$JOB_NAME:v1.0.0" \

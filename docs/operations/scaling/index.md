@@ -20,7 +20,7 @@ This guide explains how to operate scaling in production, including manual repli
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 ```
 
 ## Manual Scaling for Controlled Events

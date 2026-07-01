@@ -41,7 +41,7 @@ This guide summarizes practical deployment workflows for Azure Container Apps ac
 ## Prerequisites
 
 - Azure CLI with `containerapp` extension installed
-- An existing Container Apps environment (`$ENVIRONMENT_NAME`)
+- An existing Container Apps environment (`$ACA_ENV_NAME`)
 - An Azure Container Registry (`$ACR_NAME`) for image-based deployments
 
 ## When to Use
@@ -84,7 +84,7 @@ az containerapp up \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --location "$LOCATION" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --source "./apps/python"
 ```
 
@@ -104,7 +104,7 @@ az containerapp up \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --location "$LOCATION" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --artifact "./target/myapp.jar"
 ```
 

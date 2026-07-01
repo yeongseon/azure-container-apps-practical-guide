@@ -123,7 +123,7 @@ export APP_NAME="$(az deployment group show \
     --query "properties.outputs.containerAppName.value" \
     --output tsv)"
 
-export ENVIRONMENT_NAME="$(az deployment group show \
+export ACA_ENV_NAME="$(az deployment group show \
     --resource-group "$RG" \
     --name "lab-dapr" \
     --query "properties.outputs.containerAppsEnvironmentName.value" \
@@ -276,7 +276,7 @@ Useful debugging commands:
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 100
-az containerapp env dapr-component list --name "$ENVIRONMENT_NAME" --resource-group "$RG" --output table
+az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table
 ```
 
 Expected output:

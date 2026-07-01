@@ -53,7 +53,7 @@ Production Container Apps behavior depends on explicit platform choices for ingr
 
 ```bash
 export RG="rg-aca-prod"
-export ENVIRONMENT_NAME="cae-prod-shared"
+export ACA_ENV_NAME="cae-prod-shared"
 export APP_NAME="ca-orders-api"
 export ACR_NAME="acrsharedprod"
 export LOCATION="koreacentral"
@@ -109,7 +109,7 @@ Create a manual job:
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --replica-timeout 1800 \
   --replica-retry-limit 1 \
@@ -148,7 +148,7 @@ Create a scheduled job:
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Schedule" \
   --cron-expression "0 */2 * * *" \
   --replica-timeout 1200 \
@@ -173,7 +173,7 @@ Create an event-driven job with Service Bus scaler metadata:
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --scale-rule-name "orders-queue" \
   --scale-rule-type "azure-servicebus" \
@@ -240,7 +240,7 @@ Create a parallelized job execution model:
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --parallelism 4 \
   --replica-completion-count 4 \

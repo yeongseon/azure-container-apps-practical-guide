@@ -49,7 +49,7 @@ Production Container Apps behavior depends on explicit platform choices for ingr
 ## Prerequisites
 
 - Azure CLI 2.57+ with Container Apps extension
-- Existing app (`$APP_NAME`) deployed in resource group (`$RG`) and environment (`$ENVIRONMENT_NAME`)
+- Existing app (`$APP_NAME`) deployed in resource group (`$RG`) and environment (`$ACA_ENV_NAME`)
 - Log Analytics connected to the Container Apps environment
 - Baseline load profile for your service (steady and peak)
 

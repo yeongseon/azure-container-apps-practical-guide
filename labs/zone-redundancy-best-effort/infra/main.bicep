@@ -427,7 +427,7 @@ resource auditJob 'Microsoft.App/jobs@2024-03-01' = {
               value: resourceGroup().name
             }
             {
-              name: 'ENVIRONMENT_NAME'
+              name: 'ACA_ENV_NAME'
               value: env.name
             }
             {

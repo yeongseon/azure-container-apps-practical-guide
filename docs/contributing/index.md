@@ -164,7 +164,7 @@ Brief introduction
 
 ```bash
 # ALWAYS use long flags for readability
-az containerapp create --resource-group $RG --name $APP_NAME --environment $CONTAINER_ENV --image myregistry.azurecr.io/myapp:latest
+az containerapp create --resource-group $RG --name $APP_NAME --environment $ACA_ENV_NAME --image myregistry.azurecr.io/myapp:latest
 
 # NEVER use short flags in documentation
 az containerapp create --resource-group $RG --name $APP_NAME  # ❌ Don't do this
@@ -176,7 +176,7 @@ az containerapp create --resource-group $RG --name $APP_NAME  # ❌ Don't do thi
 |----------|-------------|---------|
 | `$RG` | Resource group name | `rg-containerapps-demo` |
 | `$APP_NAME` | Container app name | `ca-demo-app` |
-| `$CONTAINER_ENV` | Container Apps environment | `cae-demo-env` |
+| `$ACA_ENV_NAME` | Container Apps environment | `cae-demo-env` |
 | `$LOCATION` | Azure region | `koreacentral` |
 | `$SUBSCRIPTION_ID` | Subscription identifier placeholder | `<subscription-id>` |
 

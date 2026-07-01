@@ -141,7 +141,7 @@ flowchart TD
     Treat each lab as an on-call simulation. Time-box your investigation and record which signal (revision state, system log, console log, metrics) gave you the fastest root-cause clue.
 
 !!! tip "Reuse one naming convention across all labs"
-    Keep variable names consistent between labs (`$RG`, `$APP_NAME`, `$ENVIRONMENT_NAME`, `$ACR_NAME`, `$LOCATION`) so your troubleshooting muscle memory transfers cleanly.
+    Keep variable names consistent between labs (`$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, `$ACR_NAME`, `$LOCATION`) so your troubleshooting muscle memory transfers cleanly.
 
 ## Lab Selection Matrix
 
@@ -166,7 +166,7 @@ flowchart TD
     ```bash
     export RG="rg-aca-lab-shared"
     export LOCATION="koreacentral"
-    export ENVIRONMENT_NAME="cae-myapp"
+    export ACA_ENV_NAME="cae-myapp"
     export APP_NAME="ca-myapp"
     export ACR_NAME="acrmyapp"
     ```

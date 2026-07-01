@@ -126,7 +126,7 @@ export ACR_NAME="$(az deployment group show \
     --query "properties.outputs.containerRegistryName.value" \
     --output tsv)"
 
-export ENVIRONMENT_NAME="$(az deployment group show \
+export ACA_ENV_NAME="$(az deployment group show \
     --resource-group "$RG" \
     --name "lab-kv" \
     --query "properties.outputs.environmentName.value" \

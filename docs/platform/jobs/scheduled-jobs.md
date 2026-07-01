@@ -30,14 +30,14 @@ Scheduled Jobs run at recurring times and are a good fit for nightly cleanup, ho
 
 ```bash
 export RG="rg-aca-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 export JOB_NAME="job-nightly-reconcile"
 export IMAGE_NAME="acrsharedprod.azurecr.io/jobs/nightly-reconcile:v1.0.0"
 
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Schedule" \
   --cron-expression "0 2 * * *" \
   --replica-timeout 3600 \

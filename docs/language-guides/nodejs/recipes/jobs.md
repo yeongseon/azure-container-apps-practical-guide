@@ -22,7 +22,7 @@ Use this recipe to build a Node.js console Job, turn it into a one-message Servi
 
 ```bash
 export RG="rg-aca-node-prod"
-export ENVIRONMENT_NAME="aca-env-node-prod"
+export ACA_ENV_NAME="aca-env-node-prod"
 export ACR_NAME="acrnodeprod"
 export JOB_NAME="job-node-manual"
 export EVENT_JOB_NAME="job-node-servicebus"
@@ -104,7 +104,7 @@ az acr build \
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --image "$ACR_NAME.azurecr.io/node-jobs/manual:v1" \
   --replica-timeout 600 \
@@ -161,7 +161,7 @@ az acr build \
 az containerapp job create \
   --name "$EVENT_JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --image "$ACR_NAME.azurecr.io/node-jobs/servicebus:v1" \
   --scale-rule-name "orders-queue" \

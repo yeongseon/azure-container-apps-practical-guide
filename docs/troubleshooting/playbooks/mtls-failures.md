@@ -133,7 +133,7 @@ Review the managed environment:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.peerTrafficConfiguration" \
   --output json

@@ -25,7 +25,7 @@ flowchart TD
 ## Prerequisites
 
 - Existing Storage account (`$STORAGE_ACCOUNT`) in `$RG`
-- Existing Container Apps environment (`$ENVIRONMENT_NAME`)
+- Existing Container Apps environment (`$ACA_ENV_NAME`)
 - Existing app (`$APP_NAME`) in the same environment
 - Azure CLI with Container Apps extension
 
@@ -62,7 +62,7 @@ Register the Azure Files share at the environment level.
 
 ```bash
 az containerapp env storage set \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --storage-name "sharedfiles" \
   --azure-file-account-name "$STORAGE_ACCOUNT" \

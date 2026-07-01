@@ -83,7 +83,7 @@ ContainerAppConsoleLogs_CL
 
 ```bash
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 ```
 
 ## 5. Evidence to Collect
@@ -93,7 +93,7 @@ az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --que
 | Evidence | Command/Query | Purpose |
 |---|---|---|
 | Caller ingress config | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json` | Confirm intended service boundary and endpoint exposure |
-| Environment VNet config | `az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Check network attachment and routing context |
+| Environment VNet config | `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Check network attachment and routing context |
 | In-container DNS test | `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.gethostbyname(\"target-service.internal\"))'"` | Verify the caller resolves the target |
 | In-container HTTPS test | `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"` | Verify application-layer connectivity from the caller context |
 | Console logs | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Capture caller-side network, TLS, and auth errors |
@@ -161,7 +161,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 **What to verify:**
 
 ```bash
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```

@@ -40,7 +40,7 @@ This guide covers production health checks and recovery operations: probe tuning
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 ```
 
 ## Health Probe Configuration
@@ -76,7 +76,7 @@ Validate environment and platform-level status:
 az resource show \
   --resource-group "$RG" \
   --resource-type "Microsoft.App/managedEnvironments" \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --output json
 ```
 

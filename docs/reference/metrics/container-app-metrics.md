@@ -326,7 +326,7 @@ Total cores currently reserved for **this container app**, summed across all of 
 | Sample observed | **[Observed]** `Maximum=2.5` for `ca-loadtest-d38538` while it held 5 replicas at `cpu=0.5` each |
 
 !!! info "This metric is not the subscription-level quota counter"
-    Container Apps does not publish a subscription-wide "cores used" platform metric. To see environment-level core consumption against the per-environment quota (default 100 cores in most regions), use `az containerapp env list-usages --resource-group $RG --name $CONTAINER_ENV` — it returns the `ManagedEnvironmentConsumptionCores` and `ManagedEnvironmentGeneralPurposeCores` counters that Azure's enforcement actually compares against. See [Subscription quota exceeded playbook](../../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md) for raising those quotas.
+    Container Apps does not publish a subscription-wide "cores used" platform metric. To see environment-level core consumption against the per-environment quota (default 100 cores in most regions), use `az containerapp env list-usages --resource-group $RG --name $ACA_ENV_NAME` — it returns the `ManagedEnvironmentConsumptionCores` and `ManagedEnvironmentGeneralPurposeCores` counters that Azure's enforcement actually compares against. See [Subscription quota exceeded playbook](../../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md) for raising those quotas.
 
 #### Captures
 

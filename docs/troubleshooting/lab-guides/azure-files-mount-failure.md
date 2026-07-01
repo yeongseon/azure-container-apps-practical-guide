@@ -66,7 +66,7 @@ Does azure files mount failure reproduce when the documented trigger condition i
 
 
 
-Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ENVIRONMENT_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
+Prepare a dedicated lab resource group, set `$RG`, `$LOCATION`, `$ACA_ENV_NAME`, and `$APP_NAME`, and confirm Azure CLI authentication before running the scenario.
 
 ## 3. Hypothesis
 
@@ -175,7 +175,7 @@ az containerapp update \
     --output table
 
 az containerapp env storage remove \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --storage-name "azurefilesdocs"
 ```
@@ -183,7 +183,7 @@ az containerapp env storage remove \
 | Command | Why it is used |
 |---|---|
 | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml app.yaml --output table` | Restores the app to its non-lab volume configuration. |
-| `az containerapp env storage remove --name "$CONTAINER_ENV" --resource-group "$RG" --storage-name "azurefilesdocs"` | Removes the temporary environment storage object created for the lab scenario. |
+| `az containerapp env storage remove --name "$ACA_ENV_NAME" --resource-group "$RG" --storage-name "azurefilesdocs"` | Removes the temporary environment storage object created for the lab scenario. |
 
 ## Related Playbook
 

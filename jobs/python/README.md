@@ -64,7 +64,7 @@ Set deployment variables:
 ```bash
 export RG="rg-myapp"
 export LOCATION="koreacentral"
-export ENVIRONMENT_NAME="cae-myapp"
+export ACA_ENV_NAME="cae-myapp"
 export JOB_NAME="job-python-blob-reader"
 export ACR_NAME="acrmyapp"
 export IDENTITY_NAME="id-job-reader"
@@ -86,7 +86,7 @@ Create a manual-trigger job:
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --replica-timeout 1800 \
   --replica-retry-limit 2 \

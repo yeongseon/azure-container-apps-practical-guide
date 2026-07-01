@@ -89,7 +89,7 @@ Split node count by workload profile (environment-level metric):
 
 ```bash
 az monitor metrics list \
-    --resource "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$CONTAINER_ENV" \
+    --resource "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$ACA_ENV_NAME" \
     --metric NodeCount \
     --aggregation Maximum \
     --interval PT5M \

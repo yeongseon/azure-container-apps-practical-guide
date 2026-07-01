@@ -32,14 +32,14 @@ Event-driven Jobs combine a job definition with KEDA-style scale metadata. Inste
 
 ```bash
 export RG="rg-aca-prod"
-export ENVIRONMENT_NAME="aca-env-prod"
+export ACA_ENV_NAME="aca-env-prod"
 export JOB_NAME="job-orders-queue"
 export IMAGE_NAME="acrsharedprod.azurecr.io/jobs/orders-consumer:v1.0.0"
 
 az containerapp job create \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --scale-rule-name "orders-queue" \
   --scale-rule-type "azure-servicebus" \

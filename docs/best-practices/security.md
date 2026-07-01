@@ -76,7 +76,7 @@ Set reusable variables:
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="ca-api-prod"
-export ENVIRONMENT_NAME="cae-prod"
+export ACA_ENV_NAME="cae-prod"
 export ACR_NAME="acrprodshared"
 export LOCATION="koreacentral"
 ```
@@ -136,7 +136,7 @@ Verify environment is internal:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.vnetConfiguration.internal" \
   --output tsv
@@ -502,7 +502,7 @@ az monitor diagnostic-settings create \
 ```bash
 az monitor diagnostic-settings create \
   --name "cae-security-logs" \
-  --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$ENVIRONMENT_NAME" \
+  --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/managedEnvironments/$ACA_ENV_NAME" \
   --workspace "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>" \
   --logs '[{"category":"ContainerAppSystemLogs","enabled":true},{"category":"ContainerAppConsoleLogs","enabled":true}]'
 ```

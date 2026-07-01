@@ -73,7 +73,7 @@ Set reusable variables:
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="ca-api-prod"
-export ENVIRONMENT_NAME="cae-prod"
+export ACA_ENV_NAME="cae-prod"
 export ACR_NAME="acrprodshared"
 export LOCATION="koreacentral"
 ```
@@ -122,7 +122,7 @@ Create or update with explicit ingress controls:
 az containerapp create \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "$ACR_NAME.azurecr.io/api:2026-04-04" \
   --target-port 8000 \
   --ingress external \
@@ -148,7 +148,7 @@ Use internal ingress for service-to-service APIs that should not be internet-add
 az containerapp create \
   --name "ca-orders-internal" \
   --resource-group "$RG" \
-  --environment "$ENVIRONMENT_NAME" \
+  --environment "$ACA_ENV_NAME" \
   --image "$ACR_NAME.azurecr.io/orders:2026-04-04" \
   --target-port 8080 \
   --ingress internal \
@@ -260,7 +260,7 @@ Reference check command:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.vnetConfiguration.internal" \
   --output tsv
@@ -417,7 +417,7 @@ Create and bind managed certificate:
 ```bash
 az containerapp env certificate create \
   --resource-group "$RG" \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --hostname "api.contoso.com" \
   --validation-method "CNAME"
 ```

@@ -70,7 +70,7 @@ flowchart TD
     az containerapp env show \
         --subscription "$SUBSCRIPTION_ID" \
         --resource-group "$RG" \
-        --name "$CONTAINER_ENV" \
+        --name "$ACA_ENV_NAME" \
         --query "properties.appLogsConfiguration" \
         --output json
     ```
@@ -100,7 +100,7 @@ flowchart TD
     ENV_RESOURCE_ID=$(az containerapp env show \
         --subscription "$SUBSCRIPTION_ID" \
         --resource-group "$RG" \
-        --name "$CONTAINER_ENV" \
+        --name "$ACA_ENV_NAME" \
         --query "id" \
         --output tsv)
     az monitor diagnostic-settings list \
@@ -157,7 +157,7 @@ flowchart TD
     az containerapp env update \
         --subscription "$SUBSCRIPTION_ID" \
         --resource-group "$RG" \
-        --name "$CONTAINER_ENV" \
+        --name "$ACA_ENV_NAME" \
         --logs-destination log-analytics \
         --logs-workspace-id "$WORKSPACE_CUSTOMER_ID" \
         --logs-workspace-key "$WORKSPACE_SHARED_KEY"

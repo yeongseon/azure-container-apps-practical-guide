@@ -72,12 +72,12 @@ az containerapp show \
     --output json
 
 az containerapp env dapr-component list \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --output table
 
 az containerapp env dapr-component show \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --dapr-component-name "pubsub" \
     --output yaml
@@ -86,8 +86,8 @@ az containerapp env dapr-component show \
 | Command | Why it is used |
 |---|---|
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr" --output json` | Confirms that the app is using Dapr and exposes the app ID context for pub/sub routing checks. |
-| `az containerapp env dapr-component list --name "$CONTAINER_ENV" --resource-group "$RG" --output table` | Verifies that the intended pub/sub component exists in the environment. |
-| `az containerapp env dapr-component show --name "$CONTAINER_ENV" --resource-group "$RG" --dapr-component-name "pubsub" --output yaml` | Shows the component type, metadata, secret references, and scopes that control message flow. |
+| `az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Verifies that the intended pub/sub component exists in the environment. |
+| `az containerapp env dapr-component show --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "pubsub" --output yaml` | Shows the component type, metadata, secret references, and scopes that control message flow. |
 
 KQL for symptom capture:
 
@@ -110,7 +110,7 @@ ContainerAppConsoleLogs_CL
 
 ```bash
 az containerapp env dapr-component set \
-    --name "$CONTAINER_ENV" \
+    --name "$ACA_ENV_NAME" \
     --resource-group "$RG" \
     --dapr-component-name "pubsub" \
     --yaml "./pubsub.yaml"
@@ -118,7 +118,7 @@ az containerapp env dapr-component set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env dapr-component set --name "$CONTAINER_ENV" --resource-group "$RG" --dapr-component-name "pubsub" --yaml "./pubsub.yaml"` | Reapplies the corrected pub/sub component definition after fixing name, metadata, scopes, or credentials. |
+| `az containerapp env dapr-component set --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "pubsub" --yaml "./pubsub.yaml"` | Reapplies the corrected pub/sub component definition after fixing name, metadata, scopes, or credentials. |
 
 ## Prevention
 

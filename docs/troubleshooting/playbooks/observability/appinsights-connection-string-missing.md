@@ -61,7 +61,7 @@ flowchart TD
 
    ```bash
    az containerapp env telemetry app-insights show \
-       --name "$CONTAINER_ENV" \
+       --name "$ACA_ENV_NAME" \
        --resource-group "$RG" \
        --output json
    ```
@@ -132,7 +132,7 @@ flowchart TD
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env telemetry app-insights show --name "$CONTAINER_ENV" --resource-group "$RG" --output json` | Shows whether the environment has Application Insights telemetry configured at all. |
+| `az containerapp env telemetry app-insights show --name "$ACA_ENV_NAME" --resource-group "$RG" --output json` | Shows whether the environment has Application Insights telemetry configured at all. |
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env[].{name:name,secretRef:secretRef}" --output json` | Confirms whether the app references the expected telemetry variable or secret without dumping raw environment variable values. |
 | `az monitor app-insights component show --app "$APPINSIGHTS_NAME" --resource-group "$RG" --query "{appId:appId,name:name,location:location}" --output json` | Confirms that the operator is inspecting the intended Application Insights resource without printing the full connection string. |
 | `curl --silent --show-error "$APP_URL"` | Creates fresh traffic so telemetry queries are based on new evidence rather than stale assumptions. |
@@ -144,7 +144,7 @@ flowchart TD
 
    ```bash
    az containerapp env telemetry app-insights set \
-       --name "$CONTAINER_ENV" \
+       --name "$ACA_ENV_NAME" \
        --resource-group "$RG" \
        --connection-string "$APPLICATIONINSIGHTS_CONNECTION_STRING" \
        --enable-open-telemetry-traces true \
@@ -157,7 +157,7 @@ flowchart TD
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env telemetry app-insights set --name "$CONTAINER_ENV" --resource-group "$RG" --connection-string "$APPLICATIONINSIGHTS_CONNECTION_STRING" --enable-open-telemetry-traces true --enable-open-telemetry-logs true` | Restores environment-level Application Insights telemetry routing for OpenTelemetry-based scenarios. |
+| `az containerapp env telemetry app-insights set --name "$ACA_ENV_NAME" --resource-group "$RG" --connection-string "$APPLICATIONINSIGHTS_CONNECTION_STRING" --enable-open-telemetry-traces true --enable-open-telemetry-logs true` | Restores environment-level Application Insights telemetry routing for OpenTelemetry-based scenarios. |
 
 ## Prevention
 

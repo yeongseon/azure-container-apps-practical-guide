@@ -141,7 +141,7 @@ Trace path end-to-end: DNS resolution → ingress routing → healthy replica �
 
 ```bash
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 ```
 
 | Command | Why it is used |

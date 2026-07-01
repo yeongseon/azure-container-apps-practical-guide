@@ -163,7 +163,7 @@ graph TD
      --query "properties.outputs.containerAppName.value" \
      --output tsv)
 
-   ENVIRONMENT_NAME=$(az deployment group show \
+   ACA_ENV_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
      --resource-group "$RG" \
      --query "properties.outputs.containerAppEnvName.value" \
@@ -193,7 +193,7 @@ graph TD
 
        ```bash
        echo "APP_NAME=$APP_NAME"
-       echo "ENVIRONMENT_NAME=$ENVIRONMENT_NAME"
+       echo "ACA_ENV_NAME=$ACA_ENV_NAME"
        echo "ACR_NAME=$ACR_NAME"
        echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER"
        echo "APP_URL=$APP_URL"
@@ -202,7 +202,7 @@ graph TD
        Output:
         ```text
         APP_NAME=ca-myapp-<unique-suffix>
-        ENVIRONMENT_NAME=cae-myapp-<unique-suffix>
+        ACA_ENV_NAME=cae-myapp-<unique-suffix>
         ACR_NAME=<acr-name>
         ACR_LOGIN_SERVER=<acr-name>.azurecr.io
         APP_URL=https://ca-myapp-<unique-suffix>.<hash>.<region>.azurecontainerapps.io
@@ -390,7 +390,7 @@ Use these commands to deploy without Bicep templates. This creates the same reso
 RG="rg-flask-containerapp"
 APP_NAME="ca-flask-demo"
 BASE_NAME="flask-app"
-ENVIRONMENT_NAME="cae-flask-demo"
+ACA_ENV_NAME="cae-flask-demo"
 ACR_NAME="crflaskdemo"
 LOG_NAME="log-flask-demo"
 LOCATION="koreacentral"
@@ -475,7 +475,7 @@ az acr create --resource-group "$RG" --name "$ACR_NAME" --sku Basic
 ### Step 5: Create Container Apps environment
 
 ```bash
-az containerapp env create --resource-group "$RG" --name "$ENVIRONMENT_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
+az containerapp env create --resource-group "$RG" --name "$ACA_ENV_NAME" --location "$LOCATION" --logs-workspace-id "$LOG_ID"
 ```
 
 | Command | Why it is used |
@@ -514,7 +514,7 @@ az acr build --registry "$ACR_NAME" --image "$BASE_NAME:v1" ./apps/python
 ### Step 7: Create Container App
 
 ```bash
-az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ENVIRONMENT_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
+az containerapp create --resource-group "$RG" --name "$APP_NAME" --environment "$ACA_ENV_NAME" --image "$ACR_NAME.azurecr.io/$BASE_NAME:v1" --target-port 8000 --ingress external --query "properties.configuration.ingress.fqdn"
 ```
 
 | Command | Why it is used |
@@ -560,7 +560,7 @@ curl "https://$APP_FQDN/health"
 
 **[Observed]** `ca-sample-d38538`. `Container App`. `Overview`. `Stop`. `Refresh`. `Delete`. `Essentials`. `Resource group`. `Status`. `Running`. `Location`. `Korea Central`. `Subscription`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `Aspire Dashboard`. `Not yet active`. `Tags`. `Add tags`. `Application Url`. `Container Apps Environme...`. `Environment type`. `Workload profiles`. `Log Analytics`. `Development stack`. `Generic`. `View Cost`. `JSON View`. `Get started`. `Properties`. `Monitoring`. `Application`. `Revisions and replicas`. `Containers`. `Scale`. `Volumes`. `Networking`. `Ingress`. `Custom domains`. `CORS`. `Security`. `Settings`. `Monitoring`. `Log stream`. `Logs`. `Console`. `Alerts`. `Metrics`.
 
-**[Inferred]** The `Status` field value of `Running` appears consistent with the `state:properties.provisioningState` of `Succeeded` returned by the CLI verification in [Step 8: Verify deployment](#step-8-verify-deployment). The `Application Url` field appears to surface the same `properties.configuration.ingress.fqdn` value queried in [Step 7: Create Container App](#step-7-create-container-app). The `Container Apps Environme...` link appears to map to the `$ENVIRONMENT_NAME` value supplied to `--environment` in [Step 7: Create Container App](#step-7-create-container-app). The left-navigation entries `Containers`, `Scale`, `Ingress`, and `Logs` are consistent with the artifacts created across [Step 5: Create Container Apps environment](#step-5-create-container-apps-environment) and [Step 7: Create Container App](#step-7-create-container-app).
+**[Inferred]** The `Status` field value of `Running` appears consistent with the `state:properties.provisioningState` of `Succeeded` returned by the CLI verification in [Step 8: Verify deployment](#step-8-verify-deployment). The `Application Url` field appears to surface the same `properties.configuration.ingress.fqdn` value queried in [Step 7: Create Container App](#step-7-create-container-app). The `Container Apps Environme...` link appears to map to the `$ACA_ENV_NAME` value supplied to `--environment` in [Step 7: Create Container App](#step-7-create-container-app). The left-navigation entries `Containers`, `Scale`, `Ingress`, and `Logs` are consistent with the artifacts created across [Step 5: Create Container Apps environment](#step-5-create-container-apps-environment) and [Step 7: Create Container App](#step-7-create-container-app).
 
 **[Not Proven]** Additional deployment detail and runtime health detail are not visible on this blade.
 

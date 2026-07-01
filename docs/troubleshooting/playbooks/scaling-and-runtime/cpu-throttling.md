@@ -71,7 +71,7 @@ flowchart TD
     az containerapp env list-usages \
         --subscription "<subscription-id>" \
         --resource-group "$RG" \
-        --name "$CONTAINER_ENV"
+        --name "$ACA_ENV_NAME"
     ```
 
     | Command | Why it is used |

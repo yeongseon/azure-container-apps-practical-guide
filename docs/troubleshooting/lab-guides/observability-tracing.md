@@ -132,7 +132,7 @@ export APP_NAME="$(az deployment group show \
     --query "properties.outputs.containerAppName.value" \
     --output tsv)"
 
-export ENVIRONMENT_NAME="$(az deployment group show \
+export ACA_ENV_NAME="$(az deployment group show \
     --resource-group "$RG" \
     --name "lab-obs" \
     --query "properties.outputs.containerAppsEnvironmentName.value" \
@@ -232,7 +232,7 @@ Expected output:
 Useful debugging commands:
 
 ```bash
-az containerapp env show --name "$ENVIRONMENT_NAME" --resource-group "$RG" --query "properties.daprAIConnectionString"
+az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.daprAIConnectionString"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --tail 50
 
 WORKSPACE_ID=$(az monitor log-analytics workspace show \

@@ -51,7 +51,7 @@ Production Container Apps behavior depends on explicit platform choices for ingr
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-orders-api"
-export ENVIRONMENT_NAME="cae-prod-shared"
+export ACA_ENV_NAME="cae-prod-shared"
 export ACR_NAME="acrsharedprod"
 export LOCATION="koreacentral"
 
@@ -133,7 +133,7 @@ Inspect current environment profile configuration:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.workloadProfiles" \
   --output json
@@ -321,7 +321,7 @@ Inspect workspace linkage:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "properties.appLogsConfiguration" \
   --output json
@@ -363,7 +363,7 @@ List apps in an environment to evaluate consolidation:
 ```bash
 az containerapp list \
   --resource-group "$RG" \
-  --query "[?contains(properties.managedEnvironmentId, '$ENVIRONMENT_NAME')].{name:name,ingress:properties.configuration.ingress.external,minReplicas:properties.template.scale.minReplicas}" \
+  --query "[?contains(properties.managedEnvironmentId, '$ACA_ENV_NAME')].{name:name,ingress:properties.configuration.ingress.external,minReplicas:properties.template.scale.minReplicas}" \
   --output table
 ```
 
@@ -385,7 +385,7 @@ Review environment state regularly:
 
 ```bash
 az containerapp env show \
-  --name "$ENVIRONMENT_NAME" \
+  --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --query "{name:name,location:location,provisioningState:properties.provisioningState,zoneRedundant:properties.zoneRedundant}" \
   --output json

@@ -76,7 +76,7 @@ ENVIRONMENT_ID=$(az containerapp show \
     --query "properties.managedEnvironmentId" \
     --output tsv)
 
-ENVIRONMENT_NAME=$(basename "$ENVIRONMENT_ID")
+ACA_ENV_NAME=$(basename "$ENVIRONMENT_ID")
 
 BASELINE_REVISION_NAME=$(az containerapp show \
     --subscription "$AZ_SUBSCRIPTION" \
@@ -93,7 +93,7 @@ print(json.dumps({
     "rg": "$RG",
     "app_name": "$APP_NAME",
     "app_fqdn": "$APP_FQDN",
-    "environment_name": "$ENVIRONMENT_NAME",
+    "environment_name": "$ACA_ENV_NAME",
     "appinsights_name": "$APPINSIGHTS_NAME",
     "baseline_revision_name_resolved_from_latestRevisionName": "$BASELINE_REVISION_NAME"
 }, indent=2))
