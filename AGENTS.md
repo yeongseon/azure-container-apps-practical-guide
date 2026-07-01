@@ -245,11 +245,13 @@ Canonical form:
 https://learn.microsoft.com/en-us/azure/container-apps/...
 ```
 
-Avoid locale-less URLs:
+Avoid locale-less URLs (URLs missing the `/en-us/` segment immediately after the hostname):
 
 ```text
-https://learn.microsoft.com/azure/container-apps/...
+https://learn.microsoft.com/<missing-locale>/azure/container-apps/...
 ```
+
+The `<missing-locale>` placeholder marks the position where `/en-us/` must appear. A real locale-less URL would omit that segment entirely; the placeholder is used here only so this anti-pattern example does not trip the `scripts/normalize_mslearn_locale.py` CI gate.
 
 Reason:
 
