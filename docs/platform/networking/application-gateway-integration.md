@@ -1,5 +1,5 @@
 ---
-description: How Azure Application Gateway reaches an internal Container Apps environment, why the environment staticIp is only a DNS target, and how workload-profile NSG rules must be scoped to the container app's subnet.
+description: How Azure Application Gateway reaches an internal Container Apps environment, why the environment staticIp is the internal load balancer frontend IP (used in private DNS A records and as the resolution target for the container app FQDN, but never as an Application Gateway backend pool target directly and never as an NSG Destination), and how workload-profile NSG rules must be scoped to the container app's subnet.
 content_sources:
   diagrams:
     - id: appgw-to-internal-aca-architecture
@@ -94,7 +94,7 @@ az containerapp env show \
 |---|---|
 | `az containerapp env show ...` | Retrieves the environment properties, including `staticIp`, `defaultDomain`, and `vnetConfiguration`. |
 
-For the purpose of Application Gateway backend pool and Private DNS Zone configuration, `staticIp` is the correct destination — it is the address Application Gateway sends packets to. **But `staticIp` is not the address an NSG evaluates against on the Container Apps subnet.** That distinction is covered next.
+For the purpose of Application Gateway backend pool configuration, do not target `staticIp` directly — target the container app FQDN and let Application Gateway resolve it to `staticIp` through the linked Private DNS Zone. `staticIp` is what appears on the wire as the packet destination (after DNS resolution), and it is the value written into the Private DNS A record for the environment default domain, but it is **not** the address an NSG evaluates against on the Container Apps subnet. That distinction is covered next.
 
 ## How workload-profile NSG rules are evaluated
 
@@ -131,7 +131,7 @@ The Microsoft Learn [firewall-integration reference for workload profiles](https
 |---|---|---|---|---|---|---|
 | Client HTTPS | TCP | Client subnet or CIDR (for AppGW: the Application Gateway subnet) | `*` | Container app's subnet | `443`, `31443` | `31443` is the port on which the Container Apps environment edge proxy responds to HTTPS traffic behind the internal load balancer. |
 | Client HTTP | TCP | Client subnet or CIDR | `*` | Container app's subnet | `80`, `31080` | `31080` is the port on which the Container Apps environment edge proxy responds to HTTP traffic behind the internal load balancer. |
-| Load balancer health probes | TCP | `AzureLoadBalancer` service tag | `*` | Container app's subnet | `30000-32767` | Allows Azure Load Balancer to probe backend pools. Required for the environment ILB itself to consider edge proxies healthy. |
+| Load balancer health probes | TCP | `AzureLoadBalancer` service tag | `*` | Container app's subnet | `30000-32767` | Allows Azure Load Balancer to probe backend pools. Azure NSG has a default `AllowAzureLoadBalancerInBound` rule at priority 65001 that already permits this path, but a restrictive custom NSG can shadow it with higher-priority Deny rules; adding this rule at a lower priority (200-500) guarantees the probe path stays open regardless of custom rule ordering. |
 | TCP apps (only if used) | TCP | Client subnet or CIDR | `*` | Container app's subnet | Exposed TCP ports and `30000-32767` | Applies only to TCP ingress apps. Not required for HTTP-only workloads. |
 
 The workload-profile NSG table in Microsoft Learn explicitly notes: "You need the full range when creating your container apps as a port within the range is dynamically allocated. After you create the container apps, the required ports are two immutable, static values, and you can update your NSG rules." In practice, most operators keep the `30000-32767` range in place because the two static values are not documented as stable across every deployment path.
@@ -256,11 +256,11 @@ The Microsoft Learn walkthrough also documents an [Application Gateway Private L
 | Pitfall | Symptom | Fix |
 |---|---|---|
 | NSG inbound rule uses Destination = `staticIp` only | Application Gateway backend shows `Unhealthy`, `curl` from Application Gateway subnet times out | Change Destination to the container app's subnet CIDR; keep Source scoped to the Application Gateway subnet. See the [playbook](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md). |
-| NSG allows `443` but not `31443` | Intermittent probe failures depending on which edge proxy instance the ILB picks | Add `31443` (and `31080` for HTTP) to the Destination ports list. |
-| Missing `AzureLoadBalancer` inbound rule on `30000-32767` | Every backend is marked `Unhealthy` regardless of application state | Add the `AzureLoadBalancer` → subnet rule per the workload profile NSG table. |
+| NSG allows `443` but not `31443` | Application Gateway health probes and client traffic through Application Gateway fail because the edge proxy behind the internal load balancer receives HTTPS on `31443` (or HTTP on `31080`), which the NSG must also allow. Symptom is consistent, not intermittent. | Add `31443` (and `31080` for HTTP) to the Destination ports list. |
+| Restrictive custom NSG shadows the default `AllowAzureLoadBalancerInBound` rule (priority 65001) with higher-priority Deny rules, or the environment ILB probe path is otherwise blocked | Every backend is marked `Unhealthy` regardless of application state | Add an explicit Allow rule with Source = `AzureLoadBalancer`, Destination = the container app's subnet CIDR, Destination ports = `30000-32767`, at a priority lower than any custom Deny rule (typically 200-500). |
 | Application Gateway backend targets an IP address rather than the FQDN | Edge proxy returns `404` (`Container App does not exist`) because the SNI / Host header does not match a bound app | Target the container app FQDN in the backend pool and enable `Pick host name from backend target`. |
 | Private DNS Zone not linked to the VNet Application Gateway is in | Application Gateway resolves the FQDN to a public IP, or fails to resolve at all | Create a VNet link on the Private DNS Zone for the VNet that hosts Application Gateway. |
-| Reusing a Consumption-only NSG on a new workload-profiles environment | Rules that named `staticIp` as Destination silently stop matching traffic | Rewrite the client-IP rules to use the container app's subnet as Destination; keep `staticIp` only in DNS records and Application Gateway backend health probe host header. |
+| Reusing a Consumption-only NSG on a new workload-profiles environment | Rules that named `staticIp` as Destination silently stop matching traffic | Rewrite the client-IP rules to use the container app's subnet as Destination; keep `staticIp` only in the Private DNS A record for the environment default domain (the Application Gateway backend pool should target the container app FQDN, and the backend HTTP setting or probe host header should be the FQDN — not `staticIp`). |
 
 ## See Also
 

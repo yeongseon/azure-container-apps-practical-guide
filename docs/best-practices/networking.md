@@ -274,7 +274,7 @@ az containerapp env show \
 
 When an internal Container Apps environment is fronted by Application Gateway, the NSG on the workload profile subnet is a frequent cause of "backend Unhealthy" symptoms that surface at the gateway with no matching Container Apps ingress or system log entry.
 
-The mistake to avoid: pinning the NSG rule **Destination** to the environment's `staticIp`. That value is the internal load balancer VIP — it is a valid DNS target for the AppGW backend pool, but it is not a valid Destination match for an NSG rule on the workload profile subnet. Replicas run in the subnet CIDR, not on the VIP, so an NSG rule pinned to `staticIp` never matches replica-bound traffic.
+The mistake to avoid: pinning the NSG rule **Destination** to the environment's `staticIp`. That value is the internal load balancer frontend VIP — it is the address written into the private DNS A records for the environment default domain, and the address to which the container app FQDN resolves through the linked Private DNS Zone. It is not a valid Destination match for an NSG rule on the workload profile subnet (replicas run on subnet NICs, not on the VIP, so an NSG rule pinned to `staticIp` never matches replica-bound traffic), and it is not what Application Gateway targets in its backend pool directly — Application Gateway targets the container app FQDN and lets DNS resolve to `staticIp` at request time, which preserves SNI handling and Host-header rewriting.
 
 Correct destination pattern:
 
@@ -283,7 +283,7 @@ Correct destination pattern:
 - **Destination ports = 443 and 31443** for HTTPS ingress, or **80 and 31080** for HTTP. The `31443` and `31080` ports are the edge proxy ports behind the internal load balancer and must be reachable from the AppGW subnet.
 - **Separate rule for Azure LB health probes**: Source = service tag `AzureLoadBalancer`, Destination ports = `30000-32767`.
 
-Reference check for the environment's static IP (which is used as the AppGW backend target, not as an NSG Destination):
+Reference check for the environment's static IP (which is the value in the private DNS A record and the address the container app FQDN resolves to — the AppGW backend pool should target the FQDN, not `staticIp` directly):
 
 ```bash
 az containerapp env show \
@@ -295,7 +295,7 @@ az containerapp env show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show ... --query "properties.staticIp"` | Returns the environment's internal load balancer VIP. Use this value only as the AppGW backend target — never as an NSG Destination on the workload profile subnet. |
+| `az containerapp env show ... --query "properties.staticIp"` | Returns the environment's internal load balancer frontend VIP. Use this value in the private DNS A records that back the environment default domain — never as an NSG Destination on the workload profile subnet, and never as an Application Gateway backend pool target directly (target the container app FQDN, which resolves to this value through the linked Private DNS Zone). |
 
 See [Application Gateway Integration](../platform/networking/application-gateway-integration.md) for the full VNet layout and NSG rule set, and the [AppGW to Internal ACA NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) for the diagnosis and fix flow.
 

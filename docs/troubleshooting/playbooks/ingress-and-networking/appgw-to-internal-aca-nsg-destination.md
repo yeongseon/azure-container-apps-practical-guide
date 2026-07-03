@@ -40,9 +40,9 @@ The Container Apps subnet has an inbound NSG rule that logically looks correct: 
 
 ### Why this scenario is confusing
 
-The environment `staticIp` is the address Application Gateway is *sending traffic to*, and it is also the address written into the Private DNS Zone A record. It looks like the natural Destination value for an NSG rule that should "allow AppGW to reach the environment." However, NSGs behind a load-balanced pool do not evaluate destination against the load balancer frontend — they evaluate against the destination NIC. The `staticIp` is the frontend IP of the environment's internal load balancer, and the packet is only that address on the wire briefly; the NSG on the container app subnet sees the destination address of the selected edge-proxy backend NIC, which is inside the container app's subnet CIDR — not `staticIp`.
+The environment `staticIp` is the on-wire packet destination that Application Gateway ends up sending traffic to (after resolving the container app FQDN through the linked Private DNS Zone — Application Gateway's backend pool targets the FQDN, not `staticIp` directly), and it is the address written into the Private DNS Zone A record. It looks like the natural Destination value for an NSG rule that should "allow AppGW to reach the environment." However, NSGs behind a load-balanced pool do not evaluate destination against the load balancer frontend — they evaluate against the destination NIC. The `staticIp` is the frontend IP of the environment's internal load balancer, and the packet is only that address on the wire briefly; the NSG on the container app subnet sees the destination address of the selected edge-proxy backend NIC, which is inside the container app's subnet CIDR — not `staticIp`.
 
-Also confusing: the edge proxy listens on `31443` (HTTPS) and `31080` (HTTP) behind the ILB. An NSG that allows `443` but not `31443` may pass some traffic and fail health probes in ways that look intermittent. See the [Application Gateway integration concept page](../../../platform/networking/application-gateway-integration.md) for the underlying platform behavior.
+Also confusing: the edge proxy listens on `31443` (HTTPS) and `31080` (HTTP) behind the ILB. Missing `31443` (or `31080`) on the subnet NSG causes the Application Gateway to container app HTTPS (or HTTP) path to fail consistently, because the subnet NSG does not allow the documented backend edge-proxy ports that the ILB actually forwards traffic to inside the subnet. The failure is not intermittent — it is a consistent block against every packet that lands on the edge-proxy NIC on `31443`/`31080`. See the [Application Gateway integration concept page](../../../platform/networking/application-gateway-integration.md) for the underlying platform behavior.
 
 ### Troubleshooting decision flow
 
@@ -73,8 +73,8 @@ flowchart TD
 | Hypothesis | Typical Evidence For | Typical Evidence Against |
 |---|---|---|
 | **H1: NSG Destination pinned to `staticIp`** | Inbound rule shows Destination = `staticIp` or a `/32`; `curl` from AppGW subnet to `https://<staticIp>` times out; changing Destination to the container app's subnet CIDR fixes the issue | Rule already scoped to the container app's subnet CIDR |
-| **H2: Missing edge proxy ports (`31443`, `31080`)** | Inbound rule allows `443` but not `31443`; AppGW health probe reports Unhealthy while some direct requests to `443` from other allowed sources appear to work; probe stability changes when `31443` is added | Rule already includes `443, 31443` (and `80, 31080` for HTTP) |
-| **H3: Missing `AzureLoadBalancer` inbound rule on `30000-32767`** | Every backend is marked Unhealthy by the environment ILB itself, independent of Application Gateway; no inbound rule from Source = `AzureLoadBalancer` exists on the container app's subnet | Rule from Source = `AzureLoadBalancer` on Destination ports `30000-32767` is present |
+| **H2: Missing edge proxy ports (`31443`, `31080`)** | Inbound rule allows `443` but not `31443`; AppGW health probe reports Unhealthy consistently while the container app itself has running healthy replicas; backend transitions to Healthy immediately after `31443` (and `31080` for HTTP) is added to the rule's Destination ports | Rule already includes `443, 31443` (and `80, 31080` for HTTP) |
+| **H3: Effective NSG blocks the `AzureLoadBalancer` probe path on `30000-32767`** | Every backend is marked Unhealthy by the environment ILB itself, independent of Application Gateway; the container app subnet NSG has a higher-priority custom Deny rule that shadows the default `AllowAzureLoadBalancerInBound` rule (priority 65001), or there is no explicit low-priority allow rule and a custom Deny blocks the probe path | An inbound Allow with Source = `AzureLoadBalancer`, Destination = the container app's subnet CIDR, Destination ports `30000-32767` exists at a lower priority than any custom Deny, AND no custom Deny rule matches the `AzureLoadBalancer` source or the `30000-32767` port range at a higher priority |
 | **H4: AppGW backend or health probe misconfigured** | AppGW backend targets an IP address rather than the container app FQDN; `Pick host name from backend target` is unchecked; edge proxy returns 404 with `Container App does not exist`; health probe uses default `/` with 200-399 match on an app that returns non-2xx on `/` | AppGW backend targets FQDN, probe uses a real path that returns 2xx or 3xx, and `Pick host name from backend target` is enabled |
 
 ## 4. What to Check First
@@ -197,8 +197,8 @@ Expected values in a working configuration for the AppGW-facing rule: Source = A
 **Signals that support:**
 
 - The AppGW-facing inbound rule allows only `443` (and possibly `80`), with no `31443` or `31080`.
-- Application Gateway health probe alternates between Healthy and Unhealthy across probe intervals — behavior varies with which edge-proxy instance the ILB selects.
-- Directly hitting `https://<staticIp>:31443/` from an allowed source succeeds while the same source's request to port `443` succeeds intermittently.
+- Application Gateway health probe reports Unhealthy consistently while the container app itself is running with healthy replicas.
+- Adding `31443` (and `31080` for HTTP) to the rule's Destination ports transitions the Application Gateway backend from Unhealthy to Healthy on the next probe interval.
 
 **Signals that weaken:**
 
@@ -221,33 +221,35 @@ az network nsg rule show \
 
 Compare `destinationPortRanges` against the required set. If `31443` is missing on an HTTPS-serving app, this hypothesis is the cause.
 
-### H3: Missing `AzureLoadBalancer` inbound rule on `30000-32767`
+### H3: Effective NSG blocks the `AzureLoadBalancer` probe path on `30000-32767`
 
 **Signals that support:**
 
-- No inbound rule on the container app subnet's NSG has Source = `AzureLoadBalancer`.
+- The container app subnet NSG has a higher-priority custom Deny rule that shadows the default `AllowAzureLoadBalancerInBound` rule (priority 65001) — for example, a Deny rule at priority 100-500 that matches `AzureLoadBalancer` source or the `30000-32767` port range on the container app subnet.
 - Application Gateway backend is Unhealthy even after H1 and H2 are addressed.
 - Every container app in the environment shows probe-failure symptoms simultaneously, not just the one behind Application Gateway.
 
 **Signals that weaken:**
 
-- An inbound Allow rule exists with Source = `AzureLoadBalancer`, Destination = container app subnet, Destination ports = `30000-32767`.
+- An inbound Allow rule exists with Source = `AzureLoadBalancer`, Destination = the container app's subnet CIDR, Destination ports = `30000-32767`, at a priority lower than any custom Deny rule.
+- No custom Deny rule on the container app subnet's NSG matches the `AzureLoadBalancer` source or the `30000-32767` port range at any priority.
 
 **What to verify:**
 
 ```bash
+# List all inbound rules sorted by priority so the effective evaluation order is visible.
 az network nsg rule list \
   --resource-group "$RG" \
   --nsg-name "$ACA_SUBNET_NSG_NAME" \
-  --query "[?direction=='Inbound' && (sourceAddressPrefix=='AzureLoadBalancer' || contains(sourceAddressPrefixes, 'AzureLoadBalancer'))]" \
+  --query "sort_by([?direction=='Inbound'], &priority)[].{prio:priority,name:name,access:access,src:sourceAddressPrefix,srcs:sourceAddressPrefixes,dst:destinationAddressPrefix,dsts:destinationAddressPrefixes,ports:destinationPortRanges}" \
   --output table
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az network nsg rule list ...` (filtered) | Confirms whether the required `Source = AzureLoadBalancer` allow rule exists on the container app subnet's NSG. Without it, the environment ILB cannot probe edge-proxy backends. |
+| `az network nsg rule list ... sort_by(..., &priority)` | Lists inbound NSG rules sorted by priority so you can see whether any custom Deny rule matches `AzureLoadBalancer` source or the `30000-32767` port range at a higher priority than the default `AllowAzureLoadBalancerInBound` rule (priority 65001) or any explicit low-priority Allow rule. |
 
-Expected: at least one Allow rule with Source = `AzureLoadBalancer` service tag, Destination = the container app's subnet CIDR, Destination ports = `30000-32767`.
+Expected in a properly locked-down workload profiles NSG: an explicit Allow rule with Source = `AzureLoadBalancer` service tag, Destination = the container app's subnet CIDR, Destination ports = `30000-32767`, at a priority lower than any custom Deny rule (typically 200-500). If no explicit rule exists, verify the default `AllowAzureLoadBalancerInBound` rule (priority 65001) is not shadowed by any higher-priority custom Deny — sort the rules by priority and look for any Deny that matches `AzureLoadBalancer` source or the `30000-32767` destination port range.
 
 ### H4: AppGW backend or health probe misconfigured
 
@@ -311,8 +313,8 @@ az network application-gateway show-backend-health \
 | Pattern | Frequency | First Signal | Typical Resolution |
 |---|---|---|---|
 | Destination pinned to `staticIp` | Very common (especially after Consumption-only migration or copy-paste from unrelated tutorials) | AppGW backend Unhealthy; NSG rule shows Destination = `staticIp` or `/32` | Change Destination to the container app's subnet CIDR |
-| Missing `31443` (HTTPS) or `31080` (HTTP) | Common | Intermittent AppGW probe results; direct `curl` to port `31443` works while port `443` results vary | Add `31443` (and `31080` if HTTP is used) to the Destination ports list |
-| Missing `AzureLoadBalancer` allow on `30000-32767` | Occasional | Every app in the environment shows probe failures | Add inbound rule Source = `AzureLoadBalancer`, Destination = container app subnet, ports = `30000-32767` |
+| Missing `31443` (HTTPS) or `31080` (HTTP) | Common | AppGW backend Unhealthy consistently while the container app itself has running healthy replicas; adding `31443` (and `31080` for HTTP) to the NSG rule transitions the backend to Healthy on the next probe interval | Add `31443` (and `31080` if HTTP is used) to the Destination ports list |
+| Custom Deny rule shadows the default `AllowAzureLoadBalancerInBound` (priority 65001), or effective NSG blocks `AzureLoadBalancer` → `30000-32767` | Occasional | Every app in the environment shows probe failures | Add explicit inbound Allow rule Source = `AzureLoadBalancer`, Destination = container app subnet, ports = `30000-32767`, at a priority lower than any custom Deny (typically 200-500) |
 | AppGW backend targets IP not FQDN | Common in early prototypes | Edge proxy returns 404 with `Container App does not exist` | Target the container app FQDN in the backend pool; enable `Pick host name from backend target` |
 | AppGW probe default `/` on an app returning non-2xx | Common | Backend Unhealthy immediately after deployment, even when app is fully healthy | Configure a custom probe path (for example `/healthz`) with an accurate `Match` block |
 | Private DNS Zone not linked to AppGW's VNet | Occasional | Application Gateway fails to resolve the container app FQDN, or resolves it to a public IP | Create a VNet link on the Private DNS Zone for the VNet that hosts Application Gateway |
@@ -353,7 +355,7 @@ az network application-gateway show-backend-health \
     |---|---|
     | `az network nsg rule update ...` | Adds the edge-proxy port `31443` alongside `443`. If the app uses HTTP, add `80` and `31080` on the same rule (or a sibling rule). |
 
-3. **If the `AzureLoadBalancer` allow rule is missing (H3):** create it.
+3. **If the effective `AzureLoadBalancer` probe path is blocked (H3), either because a restrictive custom Deny rule shadows the default `AllowAzureLoadBalancerInBound` rule (priority 65001) or because you want an explicit low-priority Allow for auditability:** add or restore the explicit rule.
 
     ```bash
     ACA_SUBNET_CIDR="10.0.2.0/23"
@@ -374,7 +376,7 @@ az network application-gateway show-backend-health \
 
     | Command | Why it is used |
     |---|---|
-    | `az network nsg rule create ... allow-azure-lb-probes-to-aca` | Allows the environment's internal load balancer to probe edge-proxy backends. Required for the ILB to consider any backend Healthy, independent of Application Gateway. |
+    | `az network nsg rule create ... allow-azure-lb-probes-to-aca` | Guarantees the environment's internal load balancer can probe edge-proxy backends. Azure NSG has a default `AllowAzureLoadBalancerInBound` rule at priority 65001; adding this explicit rule at a low priority (200-500) prevents higher-priority custom Deny rules from shadowing the probe path. |
 
 4. **If AppGW backend or probe is misconfigured (H4):** switch the backend to the container app FQDN and enable Host-header pick-up.
 
@@ -419,7 +421,7 @@ az network application-gateway show-backend-health \
 
 - Encode the NSG rules in infrastructure-as-code (Bicep or Terraform) and reference the container app's subnet CIDR as the Destination — never `staticIp`. Store the rule definitions next to the environment definition so they cannot drift independently.
 - Include `31443` (HTTPS) and, if HTTP is used, `31080` alongside `443` and `80` in the Destination ports list of the client-IP inbound rule.
-- Include an `AzureLoadBalancer`-source inbound rule on `30000-32767` in every workload profiles environment NSG template.
+- In every workload profiles environment NSG template that includes custom Deny rules, include an explicit `AzureLoadBalancer`-source inbound Allow rule on `30000-32767` at a lower priority (200-500) than any custom Deny. This makes the probe allow path independent of the default `AllowAzureLoadBalancerInBound` rule (priority 65001) and prevents accidental shadowing.
 - On the Application Gateway side, always target the container app FQDN in the backend pool (not `staticIp`) and enable `Pick host name from backend target` on the HTTP setting.
 - Always configure a custom probe with an explicit health path and an explicit match range. The default probe (path `/`, match `200-399`) hides failure modes.
 - After any environment migration from Consumption-only to workload profiles, review every inbound rule on the container app subnet's NSG and confirm no rule has Destination = `staticIp`.
