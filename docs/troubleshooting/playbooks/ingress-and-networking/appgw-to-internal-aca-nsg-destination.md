@@ -1,5 +1,5 @@
 ---
-description: Application Gateway backend health goes Unhealthy against an internal Container Apps environment because the container app subnet NSG uses Destination = staticIp instead of the container app's subnet, or because the edge-proxy ports 31443/31080 and the AzureLoadBalancer probe range are missing.
+description: Application Gateway backend health goes Unhealthy against an internal Container Apps environment because the container app subnet NSG uses Destination = staticIp instead of the container app's subnet, because the edge-proxy ports 31443/31080 are missing on the subnet NSG, or because higher-priority custom NSG Deny rules shadow the default AllowAzureLoadBalancerInBound rule (priority 65001) that permits the ILB probe path.
 content_sources:
   diagrams:
     - id: appgw-nsg-decision-flow
@@ -53,8 +53,8 @@ flowchart TD
     B -->|No, Destination = staticIp only| H1[H1: NSG Destination pinned to staticIp]
     B -->|Yes| C{NSG allows both 443 and 31443<br/>and both 80 and 31080?}
     C -->|No| H2[H2: Missing edge proxy ports]
-    C -->|Yes| D{NSG allows Source = AzureLoadBalancer<br/>Destination ports 30000-32767?}
-    D -->|No| H3[H3: Missing ILB probe allow]
+    C -->|Yes| D{Effective NSG permits AzureLoadBalancer<br/>to 30000-32767, i.e., default rule<br/>at priority 65001 not shadowed?}
+    D -->|No| H3[H3: Custom Deny shadows ILB probe path]
     D -->|Yes| E{AppGW backend targets FQDN<br/>and probe path returns 2xx or 3xx?}
     E -->|No| H4[H4: AppGW backend or probe misconfigured]
     E -->|Yes| F[Investigate app-level issues<br/>see ingress-not-reachable playbook]
@@ -430,6 +430,7 @@ az network application-gateway show-backend-health \
 ## See Also
 
 - [Application Gateway Integration with an Internal Container Apps Environment](../../../platform/networking/application-gateway-integration.md)
+- [AppGW to Internal ACA NSG Mismatch Lab](../../lab-guides/appgw-to-internal-aca-nsg-mismatch.md)
 - [Ingress Not Reachable](ingress-not-reachable.md)
 - [Internal DNS and Private Endpoint Failure](internal-dns-and-private-endpoint-failure.md)
 - [Service-to-Service Connectivity Failure](service-to-service-connectivity-failure.md)

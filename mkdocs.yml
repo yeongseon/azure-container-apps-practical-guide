@@ -469,6 +469,7 @@ nav:
       - CD Reconnect RBAC Conflict: troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md
       - Subnet CIDR Exhaustion Lab: troubleshooting/lab-guides/subnet-cidr-exhaustion.md
       - UDR and NSG Egress Blocked Lab: troubleshooting/lab-guides/udr-nsg-egress-blocked.md
+      - AppGW to Internal ACA NSG Mismatch Lab: troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md
       - Private Endpoint DNS Failure Lab: troubleshooting/lab-guides/private-endpoint-dns-failure.md
       - ACR Network Path A - Firewall Allowlist: troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md
       - ACR Network Path B - PE Direct: troubleshooting/lab-guides/acr-network-path-pe-direct.md

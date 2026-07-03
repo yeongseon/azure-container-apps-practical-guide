@@ -15,7 +15,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 452 | 452 | 0 | 0 | 0 |
+| Mermaid Diagrams | 453 | 453 | 0 | 0 | 0 |
 | In-Scope Factual-Claim Documents | 156 | 107 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"

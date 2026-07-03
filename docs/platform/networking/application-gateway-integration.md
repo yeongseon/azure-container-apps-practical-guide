@@ -175,7 +175,7 @@ az network nsg rule create \
 | Command | Why it is used |
 |---|---|
 | `az network nsg rule create ... allow-appgw-to-aca-https` | Allows HTTPS from the Application Gateway subnet to reach the edge proxy on the two ports the Container Apps platform documents (`443`, `31443`). |
-| `az network nsg rule create ... allow-azure-lb-probes-to-aca` | Allows the environment's internal load balancer to probe edge-proxy backends. Required for the ILB to consider any backend healthy. |
+| `az network nsg rule create ... allow-azure-lb-probes-to-aca` | Allows the environment's internal load balancer to probe edge-proxy backends. The default `AllowAzureLoadBalancerInBound` rule at priority 65001 already permits this path; this explicit low-priority rule is a defense-in-depth measure so the probe still succeeds even if a higher-priority custom Deny rule is later introduced. |
 
 If you need the HTTP path as well (for redirects or health checks), add a third rule using `80` and `31080`. Do not use `staticIp` as the Destination.
 
