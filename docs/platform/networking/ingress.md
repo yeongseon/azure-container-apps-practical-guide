@@ -292,8 +292,10 @@ Microsoft Learn explicitly documents these ingress-forwarded headers for HTTP in
 - [VNet Integration](vnet-integration.md)
 - [Private Endpoints](private-endpoints.md)
 - [Service-to-Service Communication](service-to-service.md)
+- [Application Gateway Integration with an Internal Container Apps Environment](application-gateway-integration.md)
 - [Revision Lifecycle in Azure Container Apps](../revisions/index.md)
 - [Azure Container Apps Networking Best Practices](../../best-practices/networking.md)
+- [AppGW to Internal ACA NSG Destination (Troubleshooting)](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 
 ## Sources
 

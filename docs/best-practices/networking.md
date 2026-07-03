@@ -270,6 +270,35 @@ az containerapp env show \
 |---|---|
 | `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
+### AppGW to Internal CAE NSG design pattern
+
+When an internal Container Apps environment is fronted by Application Gateway, the NSG on the workload profile subnet is a frequent cause of "backend Unhealthy" symptoms that surface at the gateway with no matching Container Apps ingress or system log entry.
+
+The mistake to avoid: pinning the NSG rule **Destination** to the environment's `staticIp`. That value is the internal load balancer VIP — it is a valid DNS target for the AppGW backend pool, but it is not a valid Destination match for an NSG rule on the workload profile subnet. Replicas run in the subnet CIDR, not on the VIP, so an NSG rule pinned to `staticIp` never matches replica-bound traffic.
+
+Correct destination pattern:
+
+- **Destination = workload profile subnet CIDR** (for example `10.0.2.0/23`), not the environment `staticIp`.
+- **Source = AppGW subnet CIDR** (for example `10.0.1.0/24`).
+- **Destination ports = 443 and 31443** for HTTPS ingress, or **80 and 31080** for HTTP. The `31443` and `31080` ports are the edge proxy ports behind the internal load balancer and must be reachable from the AppGW subnet.
+- **Separate rule for Azure LB health probes**: Source = service tag `AzureLoadBalancer`, Destination ports = `30000-32767`.
+
+Reference check for the environment's static IP (which is used as the AppGW backend target, not as an NSG Destination):
+
+```bash
+az containerapp env show \
+  --name "$ACA_ENV_NAME" \
+  --resource-group "$RG" \
+  --query "properties.staticIp" \
+  --output tsv
+```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env show ... --query "properties.staticIp"` | Returns the environment's internal load balancer VIP. Use this value only as the AppGW backend target — never as an NSG Destination on the workload profile subnet. |
+
+See [Application Gateway Integration](../platform/networking/application-gateway-integration.md) for the full VNet layout and NSG rule set, and the [AppGW to Internal ACA NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) for the diagnosis and fix flow.
+
 ### Egress control with UDR and firewall patterns
 
 A common enterprise pattern is controlled outbound internet access through Azure Firewall or NVA.
@@ -552,9 +581,11 @@ az containerapp revision list \
 - [Platform Networking Overview](../platform/networking/index.md)
 - [VNet Integration](../platform/networking/vnet-integration.md)
 - [Private Endpoints](../platform/networking/private-endpoints.md)
+- [Application Gateway Integration](../platform/networking/application-gateway-integration.md)
 - [Managed Identity](../platform/identity-and-secrets/managed-identity.md)
 - [Health and Recovery](../platform/reliability/health-recovery.md)
 - [Operations Monitoring](../operations/monitoring/index.md)
+- [AppGW to Internal ACA NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 
 ## Sources
 

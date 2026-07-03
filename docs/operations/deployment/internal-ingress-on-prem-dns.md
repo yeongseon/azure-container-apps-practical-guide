@@ -531,10 +531,12 @@ nslookup app.<default-domain>.koreacentral.azurecontainerapps.io
 
 - [Private Endpoints](../../platform/networking/private-endpoints.md)
 - [VNet Integration](../../platform/networking/vnet-integration.md)
+- [Application Gateway Integration with an Internal Container Apps Environment](../../platform/networking/application-gateway-integration.md)
 - [Custom Domains — Managed Certificates](../custom-domains/managed-certificates.md)
 - [Custom Domains — BYO Certificates](../custom-domains/byo-certificates.md)
 - [Networking Best Practices](../../best-practices/networking.md)
 - [Internal DNS and Private Endpoint Failure (Troubleshooting)](../../troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md)
+- [AppGW to Internal ACA NSG Destination (Troubleshooting)](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 
 ## Sources
 

@@ -341,6 +341,8 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
 - [Container Start Failure](../startup-and-provisioning/container-start-failure.md)
 - [Probe Failure and Slow Start](../startup-and-provisioning/probe-failure-and-slow-start.md)
 - [Service-to-Service Connectivity Failure](service-to-service-connectivity-failure.md)
+- [AppGW to Internal ACA NSG Destination](appgw-to-internal-aca-nsg-destination.md) — use this playbook when Application Gateway fronts an internal environment and the container app subnet NSG has Destination = `staticIp` or is missing `31443` / `31080` / `AzureLoadBalancer`
+- [Application Gateway Integration with an Internal Container Apps Environment](../../../platform/networking/application-gateway-integration.md)
 - [Ingress Error Analysis KQL](../../kql/ingress-and-networking/ingress-error-analysis.md)
 - [Target Port Mismatch Detection KQL](../../kql/system-and-revisions/target-port-mismatch-detection.md) — directly resolves H4 ("Target port mismatch") in the decision flow above with the verbatim `Reason_s: TargetPortMismatch` system log
 - [HTTP Query Pack](../../kql/http/index.md)

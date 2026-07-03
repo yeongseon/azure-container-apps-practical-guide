@@ -456,7 +456,7 @@ az network watcher test-connectivity \
 
 ## Advanced Topics
 
-- Use internal ingress plus Application Gateway for centralized WAF.
+- Use internal ingress plus Application Gateway for centralized WAF — see [Application Gateway Integration](../../platform/networking/application-gateway-integration.md) for VNet layout, workload profile subnet NSG design, and the AppGW-to-internal-CAE destination pattern.
 - Define egress allow-list controls with Azure Firewall or NVA.
 - Standardize DNS and naming for service-to-service resilience.
 
@@ -477,6 +477,8 @@ Confirm the target app, revision, job, logs, or metric state matches the expecte
 If verification fails, revert only the last configuration change, capture the failing output, and use the linked troubleshooting guide before retrying.
 
 ## See Also
+- [Application Gateway Integration](../../platform/networking/application-gateway-integration.md)
+- [AppGW to Internal ACA NSG Destination playbook](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 - [Security](../../platform/identity-and-secrets/security-operations.md)
 - [Health and Recovery](../../platform/reliability/health-recovery.md)
 

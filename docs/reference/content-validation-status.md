@@ -11,12 +11,12 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-06-25*
+*Generated: 2026-07-03*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 449 | 449 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 154 | 105 | 39 | 0 | 10 |
+| Mermaid Diagrams | 452 | 452 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 156 | 107 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 105
+    "Verified" : 107
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -36,6 +36,7 @@ pie title In-Scope Document Validation Status
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
 | [Acr Network Path Selection](../platform/networking/acr-network-path-selection.md) | ✅ | ✅ Verified | 4/4 | 2026-06-05 |
+| [Application Gateway Integration](../platform/networking/application-gateway-integration.md) | ✅ | ✅ Verified | 6/6 | 2026-07-03 |
 | [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Cpu Memory Scaler](../platform/scaling/cpu-memory-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
@@ -143,6 +144,7 @@ pie title In-Scope Document Validation Status
 
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
+| [Appgw To Internal Aca Nsg Destination](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) | ✅ | ✅ Verified | 4/4 | 2026-07-03 |
 | [Appinsights Connection String Missing](../troubleshooting/playbooks/observability/appinsights-connection-string-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Architecture Overview](../troubleshooting/architecture-overview.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Azure Files Mount Failure](../troubleshooting/playbooks/storage-and-volumes/azure-files-mount-failure.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |

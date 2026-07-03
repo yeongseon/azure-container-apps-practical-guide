@@ -131,6 +131,7 @@ nav:
       - Private Endpoints: platform/networking/private-endpoints.md
       - Egress Control: platform/networking/egress-control.md
       - ACR Network Path Selection: platform/networking/acr-network-path-selection.md
+      - Application Gateway Integration: platform/networking/application-gateway-integration.md
       - Service-to-Service: platform/networking/service-to-service.md
     - Storage:
       - Overview: platform/storage/index.md
@@ -345,6 +346,7 @@ nav:
         - Ingress Not Reachable: troubleshooting/playbooks/ingress-and-networking/ingress-not-reachable.md
         - Internal DNS and Private Endpoint Failure: troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md
         - Service-to-Service Connectivity Failure: troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md
+        - AppGW to Internal ACA NSG Destination: troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md
       - Scaling and Runtime:
         - HTTP Scaling Not Triggering: troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md
         - Event Scaler Mismatch: troubleshooting/playbooks/scaling-and-runtime/event-scaler-mismatch.md
