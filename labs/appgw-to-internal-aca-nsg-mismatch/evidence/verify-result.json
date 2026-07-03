@@ -1,0 +1,13 @@
+{
+  "gates": {
+    "A_baseline_backend_healthy": true,
+    "B_broken_backend_unhealthy": true,
+    "C_broken_rule100_dst_equals_staticIp32": true,
+    "D_fixed_backend_healthy": true,
+    "E_fixed_rule100_dst_equals_cae_cidr": true,
+    "F_broken_rule100_ports_intact_h2_excluded": true,
+    "G_broken_rule200_azlb_allow_present_h3_excluded": true
+  },
+  "verdict": "HYPOTHESIS_CONFIRMED",
+  "falsification": "FIX_VERIFIED"
+}

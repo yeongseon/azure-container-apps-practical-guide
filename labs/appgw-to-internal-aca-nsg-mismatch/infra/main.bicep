@@ -197,7 +197,21 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       activeRevisionsMode: 'Single'
       ingress: {
-        external: false
+        // external: true is REQUIRED even on internal CAE environments for
+        // the AppGW-via-ILB path to work. When external=false on an internal
+        // env, the app FQDN gets `.internal.` prefix and is only reachable
+        // via the internal service mesh (100.100.x.x range), NOT via the
+        // ILB frontend (staticIp). AppGW hitting staticIp:443 with the
+        // .internal. FQDN as Host header would get a 404 "Container App is
+        // stopped or does not exist" from CAE edge-proxy — the app is not
+        // registered in the external-facing envoy routing table.
+        //
+        // With external=true on an internal env, the app FQDN is
+        // <app>.<defaultDomain> (no .internal.), the app IS registered in
+        // envoy at the ILB, and reachability from the VNet is still gated
+        // by NSG rules on snet-cae — which is exactly the scenario this
+        // lab reproduces.
+        external: true
         targetPort: 80
         transport: 'auto'
         allowInsecure: false

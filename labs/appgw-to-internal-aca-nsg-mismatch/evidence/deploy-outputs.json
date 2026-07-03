@@ -1,0 +1,74 @@
+{
+  "appFqdn": {
+    "type": "String",
+    "value": "ca-appgwnsg-kl4kt7.internal.purplepebble-571badde.koreacentral.azurecontainerapps.io"
+  },
+  "appName": {
+    "type": "String",
+    "value": "ca-appgwnsg-kl4kt7"
+  },
+  "appgwName": {
+    "type": "String",
+    "value": "agw-appgwnsg-kl4kt7"
+  },
+  "appgwPublicIpAddress": {
+    "type": "String",
+    "value": "20.196.198.89"
+  },
+  "appgwPublicIpName": {
+    "type": "String",
+    "value": "pip-agw-appgwnsg-kl4kt7"
+  },
+  "appgwSubnetName": {
+    "type": "String",
+    "value": "snet-appgw"
+  },
+  "appgwSubnetPrefix": {
+    "type": "String",
+    "value": "10.0.1.0/24"
+  },
+  "caeNsgName": {
+    "type": "String",
+    "value": "nsg-snet-cae-kl4kt7"
+  },
+  "caeSubnetName": {
+    "type": "String",
+    "value": "snet-cae"
+  },
+  "caeSubnetPrefix": {
+    "type": "String",
+    "value": "10.0.2.0/23"
+  },
+  "environmentDefaultDomain": {
+    "type": "String",
+    "value": "purplepebble-571badde.koreacentral.azurecontainerapps.io"
+  },
+  "environmentName": {
+    "type": "String",
+    "value": "cae-appgwnsg-kl4kt7"
+  },
+  "environmentStaticIp": {
+    "type": "String",
+    "value": "10.0.3.95"
+  },
+  "logAnalyticsCustomerId": {
+    "type": "String",
+    "value": "00000000-0000-0000-0000-000000000003"
+  },
+  "logAnalyticsName": {
+    "type": "String",
+    "value": "log-appgwnsg-kl4kt7"
+  },
+  "privateDnsZoneName": {
+    "type": "String",
+    "value": "purplepebble-571badde.koreacentral.azurecontainerapps.io"
+  },
+  "resourceGroupName": {
+    "type": "String",
+    "value": "rg-appgw-aca-nsg-lab"
+  },
+  "vnetName": {
+    "type": "String",
+    "value": "vnet-appgwnsg-kl4kt7"
+  }
+}

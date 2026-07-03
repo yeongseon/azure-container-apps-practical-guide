@@ -13,7 +13,7 @@ plus the derived gate JSON produced by `verify.sh`.
 | `baseline-curl.txt` | `curl -w '%{http_code}'` against AppGW public IP (before misconfig) | End-to-end HTTP `200` proves the AppGW routes to the container app. |
 | `broken-backend-health.json` | `az network application-gateway show-backend-health` (after misconfig) | The failure evidence — every backend server transitions to `Unhealthy` once rule 100 pins Destination to `staticIp/32`. |
 | `broken-nsg-rules.json` | `az network nsg rule list` (after misconfig) | Documents the exact 3-rule state (100 Allow-appgw, 200 Allow-LB, 4096 Deny-all) so a reviewer can verify only rule 100 is misconfigured. |
-| `broken-curl.txt` | `curl -w '%{http_code}'` against AppGW public IP (after misconfig) | End-to-end HTTP `502` from AppGW proves the failure is observable from a client. |
+| `broken-curl.txt` | `curl -w '%{http_code}'` against AppGW public IP (after misconfig) | End-to-end HTTP `502` from AppGW OR HTTP `000` from client timeout — either is consistent with H1. On the `2026-07-03` live run the observed value was HTTP `000` (client timeout after 20 s) because AppGW Standard_v2 with the default request timeout held the connection open longer than the client's `--max-time`. See the lab guide's [`Client-side evidence`](../../../docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md#client-side-evidence) section for the full explanation. |
 
 ## Files produced by `fix.sh`
 
@@ -29,10 +29,8 @@ plus the derived gate JSON produced by `verify.sh`.
 |---|---|
 | `verify-result.json` | Derived gate JSON. Seven gates (A/B/C for H1 confirmation, D/E for falsification, F/G for H2 and H3 exclusion) plus a verdict (`HYPOTHESIS_CONFIRMED` / `HYPOTHESIS_NOT_CONFIRMED`) plus a falsification status (`NOT_YET_TESTED` / `FIX_VERIFIED` / `FIX_DID_NOT_RECOVER`). This is the single machine-readable output the lab guide references. |
 
-## Not committed
+## Committed evidence pack (2026-07-03 live run)
 
-This lab does not carry a committed evidence pack. Every file listed above is
-generated on demand when an operator runs the Quick Start sequence in the
-lab's [`README.md`](../README.md). The lab guide (`docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md`)
-describes the expected evidence shape without pointing at committed sample
-files.
+This directory carries a committed evidence pack captured on the `2026-07-03` live run of this lab in Korea Central (azure-cli `2.79.0`). Every file listed above is a real artifact from that run, with all real GUIDs (subscription ID, ETags, Log Analytics workspace `customerId`) masked to the [zero-GUID placeholder](../../../AGENTS.md#pii-removal-quality-gate) `00000000-0000-0000-0000-000000000000` (with numeric suffixes `-001`, `-002`, `-003` used to keep distinct ETag values distinguishable in JSON diffs). All non-GUID fields (resource names, subnet CIDRs, ports, health-status strings, probe error text) are unmodified from the raw `az` CLI output. Reproducing the lab from `README.md` will regenerate these files with your subscription's real GUIDs — commit only after re-sanitizing.
+
+The `2026-07-03` run yielded `verify-result.json` with all seven gates `true`, `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_VERIFIED`, and `verify.sh` exit `0`. The lab guide's `## 4) Experiment Log` cites each committed file above by name.

@@ -7,7 +7,7 @@ content_sources:
       justification: Auto-generated from tutorial and lab validation frontmatter in this repository.
 content_validation:
   status: verified
-  last_reviewed: "2026-06-24"
+  last_reviewed: "2026-07-03"
   reviewer: ai-agent
   core_claims:
     - claim: "The dashboard is generated from validation frontmatter in repository Markdown files."
@@ -21,12 +21,12 @@ This page tracks which tutorials have been validated against real Azure deployme
 
 ## Summary
 
-*Generated: 2026-06-24*
+*Generated: 2026-07-03*
 
 | Metric | Count |
 |---|---:|
-| Total tutorials | 81 |
-| ✅ Validated | 53 |
+| Total tutorials | 82 |
+| ✅ Validated | 54 |
 | ⚠️ Stale (>90 days) | 0 |
 | ❌ Failed | 0 |
 | ➖ Not tested | 28 |
@@ -34,7 +34,7 @@ This page tracks which tutorials have been validated against real Azure deployme
 <!-- diagram-id: tutorial-validation-status-pie -->
 ```mermaid
 pie title Tutorial Validation Status
-    "Validated" : 53
+    "Validated" : 54
     "Not Tested" : 28
 ```
 
@@ -93,11 +93,12 @@ pie title Tutorial Validation Status
 | Page | az-cli | Bicep | Last Tested | Status |
 |---|---|---|---|---|
 | [Acr Network Path Dns Forwarder Bypass](../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md) | ✅ Pass | ✅ Pass | 2026-06-05 | ✅ Pass |
-| [Acr Network Path Firewall Allowlist](../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
+| [Acr Network Path Firewall Allowlist](../troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md) | ✅ Pass | ✅ Pass | 2026-06-29 | ✅ Pass |
 | [Acr Network Path Pe Direct](../troubleshooting/lab-guides/acr-network-path-pe-direct.md) | ✅ Pass | ✅ Pass | 2026-06-05 | ✅ Pass |
 | [Acr Network Path Pe Forced Inspection](../troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
 | [Acr Network Path Record Split Brain](../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) | ✅ Pass | ✅ Pass | 2026-06-06 | ✅ Pass |
 | [Acr Pull Failure](../troubleshooting/lab-guides/acr-pull-failure.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
+| [Appgw To Internal Aca Nsg Mismatch](../troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md) | ✅ Pass | ✅ Pass | 2026-07-03 | ✅ Pass |
 | [Appinsights Connection String Missing](../troubleshooting/lab-guides/appinsights-connection-string-missing.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Azure Files Mount Failure](../troubleshooting/lab-guides/azure-files-mount-failure.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
 | [Bicep Deployment Timeout](../troubleshooting/lab-guides/bicep-deployment-timeout.md) | ✅ Pass | ➖ Not Tested | 2026-05-01 | ✅ Pass |
@@ -105,7 +106,7 @@ pie title Tutorial Validation Status
 | [Cold Start Scale To Zero](../troubleshooting/lab-guides/cold-start-scale-to-zero.md) | ✅ Pass | ✅ Pass | 2026-05-01 | ✅ Pass |
 | [Cpu Throttling](../troubleshooting/lab-guides/cpu-throttling.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |
 | [Custom Domain Tls Renewal](../troubleshooting/lab-guides/custom-domain-tls-renewal.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
-| [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ✅ Pass | ✅ Pass | 2026-06-03 | ✅ Pass |
+| [Dapr Integration](../troubleshooting/lab-guides/dapr-integration.md) | ✅ Pass | ✅ Pass | 2026-06-26 | ✅ Pass |
 | [Dapr Pubsub Failure](../troubleshooting/lab-guides/dapr-pubsub-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Dapr State Store Failure](../troubleshooting/lab-guides/dapr-state-store-failure.md) | ✅ Pass | ➖ Not Tested | 2026-04-29 | ✅ Pass |
 | [Diagnostic Settings Missing](../troubleshooting/lab-guides/diagnostic-settings-missing.md) | ✅ Pass | ✅ Pass | 2026-06-22 | ✅ Pass |

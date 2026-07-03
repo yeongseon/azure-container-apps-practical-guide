@@ -1,0 +1,25 @@
+{
+  "backendAddressPools": [
+    {
+      "backendAddressPool": {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-appgw-aca-nsg-lab/providers/Microsoft.Network/applicationGateways/agw-appgwnsg-kl4kt7/backendAddressPools/aca-backend-pool",
+        "resourceGroup": "rg-appgw-aca-nsg-lab"
+      },
+      "backendHttpSettingsCollection": [
+        {
+          "backendHttpSettings": {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-appgw-aca-nsg-lab/providers/Microsoft.Network/applicationGateways/agw-appgwnsg-kl4kt7/backendHttpSettingsCollection/aca-https-setting",
+            "resourceGroup": "rg-appgw-aca-nsg-lab"
+          },
+          "servers": [
+            {
+              "address": "ca-appgwnsg-kl4kt7.purplepebble-571badde.koreacentral.azurecontainerapps.io",
+              "health": "Unhealthy",
+              "healthProbeLog": "Cannot connect to backend server. Check whether any NSG/UDR/Firewall is blocking access to the server. Check if application is running on correct port. To learn more visit - https://aka.ms/servernotreachable."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
