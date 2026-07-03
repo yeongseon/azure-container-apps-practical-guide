@@ -96,9 +96,16 @@ The lab is reproduced when `verify.sh` reports:
 | C | Broken rule 100 Destination = `<staticIp>/32` | `true` |
 | D | Fixed backend health = `Healthy` (after `fix.sh`) | `true` |
 | E | Fixed rule 100 Destination = `10.0.2.0/23` (CAE CIDR) | `true` |
+| F | Broken rule 100 ports include `443` and `31443` (H2 exclusion) | `true` |
+| G | Broken rules include `AzureLoadBalancer → snet-cae` allow at priority < 4096 (H3 exclusion) | `true` |
 
 Verdict transitions: `HYPOTHESIS_NOT_CONFIRMED` (before `trigger.sh` completes)
-→ `HYPOTHESIS_CONFIRMED` (after `trigger.sh`) → `HYPOTHESIS_CONFIRMED` + `falsification = FIX_VERIFIED` (after `fix.sh`).
+→ `HYPOTHESIS_CONFIRMED` (after `trigger.sh`, gates A/B/C true, gates F/G required
+to hold on the broken snapshot) → `HYPOTHESIS_CONFIRMED` + `falsification = FIX_VERIFIED`
+(after `fix.sh`, gates D/E true, gates F/G still true on the broken snapshot).
+`verify.sh` exits non-zero if the verdict is not `HYPOTHESIS_CONFIRMED`, if gate F or
+G is false on the broken snapshot, or if the fixed snapshot exists but `falsification`
+is not `FIX_VERIFIED`.
 
 ## Estimated Cost
 

@@ -27,7 +27,7 @@ plus the derived gate JSON produced by `verify.sh`.
 
 | File | Purpose |
 |---|---|
-| `verify-result.json` | Derived gate JSON. Five gates plus a verdict (`HYPOTHESIS_CONFIRMED` / `HYPOTHESIS_NOT_CONFIRMED`) plus a falsification status (`NOT_YET_TESTED` / `FIX_VERIFIED` / `FIX_DID_NOT_RECOVER`). This is the single machine-readable output the lab guide references. |
+| `verify-result.json` | Derived gate JSON. Seven gates (A/B/C for H1 confirmation, D/E for falsification, F/G for H2 and H3 exclusion) plus a verdict (`HYPOTHESIS_CONFIRMED` / `HYPOTHESIS_NOT_CONFIRMED`) plus a falsification status (`NOT_YET_TESTED` / `FIX_VERIFIED` / `FIX_DID_NOT_RECOVER`). This is the single machine-readable output the lab guide references. |
 
 ## Not committed
 

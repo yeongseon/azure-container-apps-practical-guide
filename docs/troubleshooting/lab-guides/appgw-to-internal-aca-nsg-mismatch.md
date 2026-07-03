@@ -10,30 +10,6 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
         - https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway
         - https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview
-content_validation:
-  status: pending_review
-  last_reviewed: '2026-07-03'
-  reviewer: agent
-  core_claims:
-    - claim: For a workload profiles Container Apps environment, the inbound NSG rule for HTTPS from client IPs uses Destination = the container app's subnet CIDR and Destination ports 443 and 31443.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
-      verified: true
-    - claim: The Container Apps environment property staticIp is the frontend IP of the environment's internal load balancer when the environment is internal, and is the address written into the Private DNS Zone A record.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway
-      verified: true
-    - claim: For workloads behind a load-balanced pool, Azure NSGs evaluate destination against the destination computer (the backend NIC), not the load balancer frontend.
-      source: https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview
-      verified: true
-    - claim: Application Gateway backend health check status can be inspected via `az network application-gateway show-backend-health` and is the authoritative signal for whether AppGW considers each backend server Healthy or Unhealthy.
-      source: https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-backend-health-troubleshooting
-      verified: true
-validation:
-  az_cli:
-    last_tested:
-    result: not_tested
-  bicep:
-    last_tested: '2026-07-03'
-    result: pass
 ---
 # AppGW to Internal ACA NSG Mismatch Reproduction Lab
 
@@ -62,11 +38,11 @@ destination is by-design broken on workload profiles environments.
     - `infra/main.bicep` + `infra/dns-and-appgw.bicep` provision one VNet with two subnets (`snet-appgw` `/24`, `snet-cae` `/23` delegated to `Microsoft.App/environments`), one Log Analytics workspace, one internal Container Apps environment (`vnetConfiguration.internal = true`, Consumption workload profile), one sample Container App running `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`, a linked Private DNS Zone matching `env.defaultDomain` with wildcard and apex A records pointing to `env.staticIp`, and one Application Gateway Standard_v2 with a backend pool targeting the container app FQDN and an HTTPS custom probe (`pickHostNameFromBackendHttpSettings = true`, match `200-399`). The DNS and AppGW resources are in a nested module so `env.defaultDomain` and `env.staticIp` are resolvable when the Private DNS Zone name is evaluated (workaround for [BCP120](https://aka.ms/bicep/core-diagnostics#BCP120)).
     - `trigger.sh` reads the deployment outputs, waits 120 s for the baseline backend to converge, captures baseline evidence, then applies a **3-rule NSG misconfiguration** on the container app subnet: rule 100 Allow (`Source = snet-appgw CIDR`, `Destination = <staticIp>/32` — the H1 misconfig, ports `443`+`31443`), rule 200 Allow (`Source = AzureLoadBalancer`, `Destination = snet-cae CIDR`, ports `30000-32767`), rule 4096 Deny (all). Rules 200 and 4096 make the NSG a realistically locked-down production shape so that the default `AllowVnetInBound` (priority 65000) does not mask rule 100's Destination misconfiguration. Waits 150 s and captures broken evidence.
     - `fix.sh` rewrites rule 100 Destination from `<staticIp>/32` to the CAE subnet CIDR (all other rule properties unchanged), waits 150 s, and captures fixed evidence. This preserves the "single controlled variable" property of the experiment: only rule 100's Destination address ever differs between broken and fixed states.
-    - `verify.sh` is a **pure file processor** — it reads baseline / broken / fixed JSON blobs in `evidence/` and emits `verify-result.json` with five gates plus a verdict (`HYPOTHESIS_CONFIRMED` / `HYPOTHESIS_NOT_CONFIRMED`) and a falsification status (`NOT_YET_TESTED` / `FIX_VERIFIED` / `FIX_DID_NOT_RECOVER`). It does not call Azure and does not depend on `$RG`.
+    - `verify.sh` is a **pure file processor** — it reads baseline / broken / fixed JSON blobs in `evidence/` and emits `verify-result.json` with seven gates (A/B/C for H1 confirmation, D/E for falsification, F/G for H2 and H3 exclusion) plus a verdict (`HYPOTHESIS_CONFIRMED` / `HYPOTHESIS_NOT_CONFIRMED`) and a falsification status (`NOT_YET_TESTED` / `FIX_VERIFIED` / `FIX_DID_NOT_RECOVER`). It does not call Azure and does not depend on `$RG`.
     - `evidence/` intentionally does not carry a committed evidence pack. Every artifact listed in [`labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md) is generated on demand by `trigger.sh` and `fix.sh`.
 
 !!! warning "Not yet live-executed"
-    As of `2026-07-03` the Bicep templates compile clean (`az bicep build` exit 0 on both `main.bicep` and `dns-and-appgw.bicep`) but the full end-to-end lab has not been executed against a live Azure subscription. The gate predictions in `## 4) Expected Evidence` are derived from the playbook hypothesis and the documented NSG evaluation semantics, not from a captured evidence pack. When the lab is next executed, add `lab_validation` under `content_validation` and set `validation.az_cli.result = pass` alongside a captured `evidence/verify-result.json`.
+    As of `2026-07-03` the Bicep templates compile clean (`az bicep build` exit 0 on both `main.bicep` and `dns-and-appgw.bicep`) but the full end-to-end lab has not been executed against a live Azure subscription. The gate predictions in `## Expected Evidence` are derived from the playbook hypothesis and the documented NSG evaluation semantics, not from a captured evidence pack. When the lab is next executed, populate `## 4) Experiment Log` with the observed per-scenario evidence and commit the captured `evidence/verify-result.json` alongside the KQL and Portal artifacts.
 
 ## 1) Background
 
@@ -149,7 +125,7 @@ bash labs/appgw-to-internal-aca-nsg-mismatch/verify.sh
 | Command | Why it is used |
 |---|---|
 | `trigger.sh` | Reads deployment outputs, waits 120 s for AppGW backend to converge to `Healthy` (baseline), captures baseline evidence (backend health, NSG rules, `curl`), then adds the 3-rule NSG misconfiguration (rule 100 Allow with `Destination = <staticIp>/32`, rule 200 Allow for `AzureLoadBalancer`, rule 4096 Deny all), waits 150 s for probe re-convergence, and captures broken evidence. |
-| `verify.sh` | Reads the baseline and broken JSON blobs in `evidence/` and emits `evidence/verify-result.json` with gates A, B, C evaluated. Exits non-zero if the verdict is not `HYPOTHESIS_CONFIRMED`. |
+| `verify.sh` | Reads the baseline and broken JSON blobs in `evidence/` and emits `evidence/verify-result.json` with gates A, B, C (H1 confirmation), F, and G (H2 and H3 exclusion) evaluated. Exits non-zero if the verdict is not `HYPOTHESIS_CONFIRMED` or if gate F or G is false on the broken snapshot. |
 
 ### Apply the fix
 
@@ -161,7 +137,7 @@ bash labs/appgw-to-internal-aca-nsg-mismatch/verify.sh
 | Command | Why it is used |
 |---|---|
 | `fix.sh` | Rewrites NSG rule 100 Destination from `<staticIp>/32` to the CAE subnet CIDR (all other rule properties preserved), waits 150 s for probe re-convergence, captures fixed evidence. |
-| `verify.sh` | Re-reads the evidence directory (now including fixed blobs) and re-emits `verify-result.json` with gates D and E evaluated and `falsification = FIX_VERIFIED` if the backend returns to `Healthy` and rule 100 Destination is now the CAE CIDR. |
+| `verify.sh` | Re-reads the evidence directory (now including fixed blobs) and re-emits `verify-result.json` with gates D and E evaluated and `falsification = FIX_VERIFIED` if the backend returns to `Healthy`, rule 100 Destination is now the CAE CIDR, and gates F and G were true on the broken snapshot. Exits non-zero if `falsification` is not `FIX_VERIFIED`. |
 
 ### Clean up
 
@@ -173,9 +149,38 @@ bash labs/appgw-to-internal-aca-nsg-mismatch/cleanup.sh
 |---|---|
 | `cleanup.sh` | Deletes the resource group and all child resources (async). Application Gateway Standard_v2 dominates the hourly cost of this lab, so always run `cleanup.sh` immediately after capturing evidence. |
 
-## 4) Expected Evidence
+## 4) Experiment Log
 
-`verify.sh` emits `evidence/verify-result.json` with the following five gates. The hypothesis is confirmed when gates A, B, and C are all true. Falsification of the hypothesis is closed when gates D and E are also true after `fix.sh`.
+The per-scenario observation log for a live run. Populate each subsection with `[Observed]` evidence tags citing the raw artifacts under `labs/appgw-to-internal-aca-nsg-mismatch/evidence/`. As of `2026-07-03` this section is a template — the falsification gates in `## Expected Evidence` describe what a live run is predicted to produce.
+
+### Baseline scenario (before `trigger.sh`)
+
+- **[Observed]** Backend health for `aca-backend-pool` in `evidence/baseline-backend-health.json`: expected every `.health` value under `backendAddressPools[].backendHttpSettingsCollection[].servers[]` to equal `Healthy`.
+- **[Observed]** `evidence/baseline-nsg-rules.json`: expected only Azure default rules (`AllowVnetInBound` priority 65000, `AllowAzureLoadBalancerInBound` priority 65001, `DenyAllInBound` priority 65500) — no custom rule 100 exists yet.
+- **[Observed]** `evidence/baseline-curl.txt`: expected `HTTP 200`.
+
+### Broken scenario (after `trigger.sh`)
+
+- **[Observed]** `evidence/broken-backend-health.json`: expected at least one `.health` value to equal `Unhealthy`; probe error typically reads `Backend server timed out` or `Connect Error`.
+- **[Observed]** `evidence/broken-nsg-rules.json`: expected rule 100 (`allow-appgw-inbound-broken`) with `destinationAddressPrefix = <env.staticIp>/32`, `destinationPortRanges = ["443","31443"]`; rule 200 (`allow-azure-lb-probes`) with `sourceAddressPrefix = "AzureLoadBalancer"`, `destinationAddressPrefix = 10.0.2.0/23`, `destinationPortRange = "30000-32767"`; rule 4096 (`deny-all-inbound`) with all `*`.
+- **[Observed]** `evidence/broken-curl.txt`: expected `HTTP 502`.
+- **[Correlated]** The transition from `Healthy` (baseline) to `Unhealthy` (broken) is observed within one AppGW probe re-convergence window (~90 s) after `trigger.sh` applies rule 100, and no other variable changes between the two scenarios.
+
+### Fixed scenario (after `fix.sh`)
+
+- **[Observed]** `evidence/fixed-backend-health.json`: expected every `.health` value to return to `Healthy`.
+- **[Observed]** `evidence/fixed-nsg-rules.json`: expected rule 100 with `destinationAddressPrefix = 10.0.2.0/23` (the CAE subnet CIDR); all other rule properties (Source, ports, protocol, priority) unchanged from the broken scenario.
+- **[Observed]** `evidence/fixed-curl.txt`: expected `HTTP 200`.
+- **[Correlated]** Falsification (post-fix evidence): the fix restored `Healthy` **without changing any other variable**. Ports (`443`+`31443`) were left correct in both broken and fixed states (gate F), and rule 200 kept the `AzureLoadBalancer → snet-cae, 30000-32767` allow path present in both states (gate G). These two invariants exclude H2 (missing edge-proxy ports) and H3 (`AllowAzureLoadBalancerInBound` shadowed by a higher-priority Deny) as compounding causes.
+
+### Summary
+
+- **[Inferred]** If gates A + B + C are all `true` at post-`trigger.sh` verification, and gates D + E + F + G are all `true` at post-`fix.sh` verification, then H1 (NSG rule 100 Destination pinned to `staticIp/32`) is the sole cause of the AppGW backend `Unhealthy` state. Both `verdict = HYPOTHESIS_CONFIRMED` and `falsification = FIX_VERIFIED` should appear in `evidence/verify-result.json`.
+- **[Not Proven]** As of `2026-07-03` the lab has not been executed live; the above bullets are the observation template, not captured evidence.
+
+## Expected Evidence
+
+`verify.sh` emits `evidence/verify-result.json` with the following seven gates. The hypothesis is confirmed when gates A, B, and C are all true. Falsification of the hypothesis is closed when gates D and E are also true after `fix.sh`. Gates F and G actively exclude H2 (missing edge-proxy ports) and H3 (`AllowAzureLoadBalancerInBound` shadowed by a higher-priority Deny) as compounding causes; if F or G is false, the H1-only attribution weakens even if D and E are true.
 
 | Gate | Evidence file | Confirmation rule | Falsification |
 |---|---|---|---|
@@ -184,13 +189,15 @@ bash labs/appgw-to-internal-aca-nsg-mismatch/cleanup.sh
 | C: broken rule 100 Destination = `<staticIp>/32` | `evidence/broken-nsg-rules.json` | The rule with `priority = 100` has `destinationAddressPrefix` or `destinationAddressPrefixes[0]` equal to `<env.staticIp>/32` (or the bare address) | Rule 100 Destination is anything else — the misconfig was not applied |
 | D: fixed backend `Healthy` | `evidence/fixed-backend-health.json` | Every `.health` value equals `Healthy` after `fix.sh` | Any server still reports `Unhealthy` — the fix did not recover, so H1 is not the sole cause |
 | E: fixed rule 100 Destination = CAE subnet CIDR | `evidence/fixed-nsg-rules.json` | Rule 100 Destination equals the value in `deploy-outputs.json .caeSubnetPrefix.value` (e.g. `10.0.2.0/23`) | Rule 100 Destination is not the CAE CIDR — the fix was not applied |
+| F: broken rule 100 ports intact (H2 exclusion) | `evidence/broken-nsg-rules.json` | Rule 100's port list (`destinationPortRange` or `destinationPortRanges[]`) contains both `443` and `31443` | Ports missing — H2 (missing edge-proxy ports) becomes a compounding failure driver and the single-variable claim collapses |
+| G: broken rule 200 shape intact (H3 exclusion) | `evidence/broken-nsg-rules.json` | A rule with `sourceAddressPrefix == "AzureLoadBalancer"`, `destinationAddressPrefix` or `destinationAddressPrefixes[0]` equal to the CAE subnet CIDR, and priority strictly less than 4096 exists | Rule missing or ordered after the deny — H3 (ILB probe path shadowed by higher-priority Deny) becomes a compounding failure driver |
 
 Verdict transitions:
 
 - Before `trigger.sh` completes: `verdict = HYPOTHESIS_NOT_CONFIRMED`, `falsification = NOT_YET_TESTED`.
-- After `trigger.sh` (gates A, B, C all true): `verdict = HYPOTHESIS_CONFIRMED`, `falsification = NOT_YET_TESTED`.
-- After `fix.sh` (gates D, E also true): `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_VERIFIED`.
-- If `fix.sh` runs but backend does not recover: `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_DID_NOT_RECOVER` — this outcome would invalidate the single-variable claim and require investigating H2 (missing edge-proxy ports) or H3 (Deny rule shadowing `AllowAzureLoadBalancerInBound`) as compounding causes.
+- After `trigger.sh` (gates A, B, C all true): `verdict = HYPOTHESIS_CONFIRMED`, `falsification = NOT_YET_TESTED`. Gates F and G also evaluate at this point and MUST be true — if either is false, `verify.sh` exits non-zero because the H1-only attribution is compromised by an H2/H3 compounding cause.
+- After `fix.sh` (gates D, E also true, F and G still true): `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_VERIFIED`.
+- If `fix.sh` runs but backend does not recover: `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_DID_NOT_RECOVER`, and `verify.sh` exits non-zero — this outcome would invalidate the single-variable claim and require investigating H2 (missing edge-proxy ports, ruled out by gate F on the broken snapshot) or H3 (Deny rule shadowing `AllowAzureLoadBalancerInBound`, ruled out by gate G on the broken snapshot) as compounding causes.
 
 ### Client-side evidence
 
@@ -208,8 +215,13 @@ The lab does not require KQL because the primary signals are AppGW control-plane
 
 ### KQL: AppGW access log 502 traces during the broken window
 
+Replace the two `datetime()` placeholders with the wall-clock window between `trigger.sh` completing step 6 (broken evidence captured) and `fix.sh` starting step 1. `trigger.sh` prints its step-6 completion line to stdout; the operator can capture the start and end timestamps manually or from the deployment activity log. The `TimeGenerated` filter is required — without it, a shared Log Analytics workspace would return 502 rows from unrelated AppGW deployments and rows from a previous run of this lab, which would contradict the "zero such rows before `trigger.sh` and after `fix.sh`" claim below.
+
 ```kusto
+let brokenStart = datetime(2026-07-03T10:30:00Z);
+let brokenEnd   = datetime(2026-07-03T10:35:00Z);
 AzureDiagnostics
+| where TimeGenerated between (brokenStart .. brokenEnd)
 | where ResourceType == "APPLICATIONGATEWAYS"
 | where Category == "ApplicationGatewayAccessLog"
 | where httpStatus_d == 502
@@ -217,7 +229,7 @@ AzureDiagnostics
 | order by TimeGenerated desc
 ```
 
-Expected during the broken window: rows where `httpStatus_d = 502`, `backendPoolName_s = aca-backend-pool`, and `serverStatus_s` indicates the backend was unreachable. Zero such rows before `trigger.sh` and after `fix.sh`.
+Expected during the broken window: rows where `httpStatus_d = 502`, `backendPoolName_s = aca-backend-pool`, and `serverStatus_s` indicates the backend was unreachable. Re-run the same query with `brokenStart` and `brokenEnd` bracketing the baseline window (before `trigger.sh`) and the fixed window (after `fix.sh`) and expect zero rows in both.
 
 ### KQL: AppGW backend health transitions
 
