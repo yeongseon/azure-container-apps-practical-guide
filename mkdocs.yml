@@ -94,6 +94,7 @@ nav:
   - Start Here:
     - start-here/overview.md
     - Learning Paths: start-here/learning-paths.md
+    - Scenario Router: start-here/scenario-router.md
     - When to Use Container Apps: start-here/when-to-use-container-apps.md
     - Repository Map: start-here/repository-map.md
   - Platform:
