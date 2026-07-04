@@ -436,7 +436,7 @@ az network application-gateway show-backend-health \
 - [Service-to-Service Connectivity Failure](service-to-service-connectivity-failure.md)
 - [UDR and NSG Egress Blocked](../networking-advanced/udr-nsg-egress-blocked.md)
 - [Private Endpoint DNS Failure](../networking-advanced/private-endpoint-dns-failure.md)
-- [On-Premises DNS to Internal ACA](../../../operations/deployment/internal-ingress-on-prem-dns.md)
+- [On-Premises DNS to Azure Container Apps Internal Environment](../../../operations/deployment/internal-ingress-on-prem-dns.md)
 - [Networking Best Practices](../../../best-practices/networking.md)
 - [Ingress Error Analysis KQL](../../kql/ingress-and-networking/ingress-error-analysis.md)
 - [DNS and Connectivity Failures KQL](../../kql/ingress-and-networking/dns-and-connectivity-failures.md)

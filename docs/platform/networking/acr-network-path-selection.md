@@ -164,7 +164,7 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 - Step-by-step CLI commands to create an ACR Private Endpoint, Private DNS Zone, or VNet link. See the runbook in [Image Pull and Registry](../../operations/image-pull-and-registry/index.md) and the Microsoft Learn sources below.
 - Firewall rule cookbooks for specific third-party NVAs. The Azure Firewall integration page on Microsoft Learn covers Azure Firewall directly; third-party NVAs follow the same destination and SNAT model but vary in rule syntax.
 - Inbound Private Endpoints on the Container Apps environment itself. That is a different topic; see [Private Endpoints](private-endpoints.md).
-- DNS forwarder design for Private DNS Resolver in detail. See [On-Premises DNS to Internal ACA](../../operations/deployment/internal-ingress-on-prem-dns.md) for a validated hub-spoke pattern.
+- DNS forwarder design for Private DNS Resolver in detail. See [On-Premises DNS to Azure Container Apps Internal Environment](../../operations/deployment/internal-ingress-on-prem-dns.md) for a validated hub-spoke pattern.
 
 ## See Also
 
@@ -172,7 +172,7 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 - [Egress Control](egress-control.md)
 - [VNet Integration](vnet-integration.md)
 - [Image Pull and Registry](../../operations/image-pull-and-registry/index.md)
-- [On-Premises DNS to Internal ACA](../../operations/deployment/internal-ingress-on-prem-dns.md)
+- [On-Premises DNS to Azure Container Apps Internal Environment](../../operations/deployment/internal-ingress-on-prem-dns.md)
 - [UDR and NSG Egress Blocked](../../troubleshooting/playbooks/networking-advanced/udr-nsg-egress-blocked.md)
 - [Private Endpoint DNS Failure](../../troubleshooting/playbooks/networking-advanced/private-endpoint-dns-failure.md)
 - [ACR Pull Failure Lab](../../troubleshooting/lab-guides/acr-pull-failure.md)
