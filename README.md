@@ -18,7 +18,13 @@ Evidence-driven, operator-focused guide for running containerized applications o
 | [Troubleshooting](https://yeongseon.github.io/azure-container-apps-practical-guide/troubleshooting/) | Playbooks, hands-on labs, KQL query packs, decision tree, evidence map | Lab-validated |
 | [Reference](https://yeongseon.github.io/azure-container-apps-practical-guide/reference/) | CLI reference, environment variables, platform limits | Comprehensive |
 
-**Status legend**: **Lab-validated** = Comprehensive + reproducible labs prove the guidance · **Comprehensive** = Full section, MSLearn-verified, production-ready · **Published** = Core content in place, still expanding · **In progress** = Partial content, active development · **Planned** = Placeholder, content not yet started
+**Status legend**:
+
+- **Lab-validated** — Comprehensive + reproducible labs prove the guidance
+- **Comprehensive** — Full section, MSLearn-verified, production-ready
+- **Published** — Core content in place, still expanding
+- **In progress** — Partial content, active development
+- **Planned** — Placeholder, content not yet started
 
 ## What Makes This Different
 
