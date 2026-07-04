@@ -8,15 +8,17 @@ Evidence-driven, operator-focused guide for running containerized applications o
 
 ## What's Inside
 
-| Section | Description |
-|---------|-------------|
-| [Start Here](https://yeongseon.github.io/azure-container-apps-practical-guide/) | Overview, learning paths, and repository map |
-| [Platform](https://yeongseon.github.io/azure-container-apps-practical-guide/platform/) | Architecture, environments, revisions, scaling, networking, jobs, identity |
-| [Best Practices](https://yeongseon.github.io/azure-container-apps-practical-guide/best-practices/) | Container design, revision strategy, scaling, networking, identity, reliability, cost |
-| [Language Guides](https://yeongseon.github.io/azure-container-apps-practical-guide/language-guides/) | Step-by-step tutorials for Python, Node.js, Java, and .NET |
-| [Operations](https://yeongseon.github.io/azure-container-apps-practical-guide/operations/) | Deployment, monitoring, scaling, alerts, secret rotation, recovery |
-| [Troubleshooting](https://yeongseon.github.io/azure-container-apps-practical-guide/troubleshooting/) | Playbooks, hands-on labs, KQL query packs, decision tree, evidence map |
-| [Reference](https://yeongseon.github.io/azure-container-apps-practical-guide/reference/) | CLI reference, environment variables, platform limits |
+| Section | Description | Status |
+|---------|-------------|--------|
+| [Start Here](https://yeongseon.github.io/azure-container-apps-practical-guide/) | Overview, learning paths, and repository map | Comprehensive |
+| [Platform](https://yeongseon.github.io/azure-container-apps-practical-guide/platform/) | Architecture, environments, revisions, scaling, networking, jobs, identity | Comprehensive |
+| [Best Practices](https://yeongseon.github.io/azure-container-apps-practical-guide/best-practices/) | Container design, revision strategy, scaling, networking, identity, reliability, cost | Comprehensive |
+| [Language Guides](https://yeongseon.github.io/azure-container-apps-practical-guide/language-guides/) | Step-by-step tutorials for Python, Node.js, Java, and .NET | Comprehensive |
+| [Operations](https://yeongseon.github.io/azure-container-apps-practical-guide/operations/) | Deployment, monitoring, scaling, alerts, secret rotation, recovery | Comprehensive |
+| [Troubleshooting](https://yeongseon.github.io/azure-container-apps-practical-guide/troubleshooting/) | Playbooks, hands-on labs, KQL query packs, decision tree, evidence map | Lab-validated |
+| [Reference](https://yeongseon.github.io/azure-container-apps-practical-guide/reference/) | CLI reference, environment variables, platform limits | Comprehensive |
+
+**Status legend**: **Lab-validated** = Comprehensive + reproducible labs prove the guidance · **Comprehensive** = Full section, MSLearn-verified, production-ready · **Published** = Core content in place, still expanding · **In progress** = Partial content, active development · **Planned** = Placeholder, content not yet started
 
 ## What Makes This Different
 
