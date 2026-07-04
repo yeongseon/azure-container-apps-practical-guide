@@ -912,6 +912,39 @@ content_validation:
 3. **Evidence Integrity**: Ensure every troubleshooting lab has a "Falsification" step that proves the hypothesis.
 4. **Content Source Validation**: All diagrams and platform content must have documented MSLearn sources.
 
+## Pre-Work State Verification (AI Agent Rule)
+
+**Every AI agent starting a continuation session in this repository MUST run the following checklist BEFORE proposing or executing any action.** Session summaries — including summaries produced by prior turns of the same agent — may be stale, out of order, or partially reflect uncommitted intent. Never trust a summary without verifying against the actual repository state.
+
+### Pre-Work Checklist
+
+1. **`git status`** — Is the working tree clean? Are there untracked files or directories?
+2. **`git log --oneline -5`** — Has HEAD moved since the last summary claimed? What is the actual latest commit SHA?
+3. **`git rev-parse HEAD origin/main`** — Is the local branch ahead of, behind, or diverged from the remote?
+4. **`git diff --stat`** — If modified files exist, what is the scope? Which files? How many lines?
+5. **For each modified file**: Read the actual diff before deciding what to do with it. Do not assume prior context described it correctly.
+6. **For each untracked directory or file**: List its contents and understand the intent before deleting, ignoring, or acting on it.
+7. **Report the observed state to the user** BEFORE proposing next steps. State what you found — do not paraphrase what a prior summary claimed.
+8. **NEVER start mass changes** (rename sweeps, refactors touching 10+ files, cross-cutting formatting fixes) without first confirming there are zero uncommitted conflicts in the touched paths.
+
+### Anti-Patterns Prevented
+
+- **Trusting a stale summary**: A prior session summary said `HEAD = X` but a later commit was made outside the agent's visibility. Acting on the stale SHA can overwrite or contradict the newer commit.
+- **Losing untracked evidence**: Untracked files (Portal screenshots, evidence pack captures, in-progress artifacts) can be silently destroyed by `git checkout`, `git clean`, or scripted resets triggered by a "let's start fresh" instinct.
+- **Silently rebasing over an unpushed commit**: An unpushed local commit is invisible on the remote but not lost — a mass-refactor commit built on the wrong parent creates painful merge conflicts later.
+- **Amending someone else's commit**: The HEAD commit may have been created by the user directly (not by the agent), in which case amending violates the amend-safety rules. Verify commit authorship via `git log -1 --format='%an %ae'` before considering any amend.
+
+### When to Repeat
+
+Re-run the checklist at the start of every continuation session, and again whenever any of these happens mid-session:
+
+- A `<system-reminder>` fires (background task completes, todo continuation triggers).
+- The user provides a new instruction that changes scope.
+- Any `git` operation was performed by a subagent or external tool between agent turns.
+- Before starting a commit, rebase, reset, or any mass file mutation.
+
+**Violation of this checklist that results in destructive action against uncommitted work is a P0 mistake and MUST be reported to the user immediately.**
+
 ## Mandatory Oracle Review (AI Agent Rule)
 
 **ALL work performed by AI agents MUST undergo Oracle quality review before completion.**
