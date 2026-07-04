@@ -1,2 +1,1 @@
-curl: (28) Operation timed out after 20004 milliseconds with 0 bytes received
-HTTP 000 in 20.004727s
+HTTP 502 in 0.325699s

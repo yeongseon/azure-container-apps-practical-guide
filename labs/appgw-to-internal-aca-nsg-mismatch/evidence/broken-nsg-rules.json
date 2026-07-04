@@ -1,7 +1,7 @@
 [
   {
     "access": "Allow",
-    "destinationAddressPrefix": "10.0.3.95/32",
+    "destinationAddressPrefix": "10.0.2.243/32",
     "destinationAddressPrefixes": [],
     "destinationPortRanges": [
       "443",

@@ -49,8 +49,8 @@ destination is by-design broken on workload profiles environments.
     - `verify.sh` is a **pure file processor** — it reads baseline / broken / fixed JSON blobs in `evidence/` and emits `verify-result.json` with seven gates (A/B/C for H1 confirmation, D/E for falsification, F/G for H2 and H3 exclusion) plus a verdict (`HYPOTHESIS_CONFIRMED` / `HYPOTHESIS_NOT_CONFIRMED`) and a falsification status (`NOT_YET_TESTED` / `FIX_VERIFIED` / `FIX_DID_NOT_RECOVER`). It does not call Azure and does not depend on `$RG`.
     - `evidence/` intentionally does not carry a committed evidence pack. Every artifact listed in [`labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md) is generated on demand by `trigger.sh` and `fix.sh`.
 
-!!! success "Live-executed 2026-07-03 (az CLI evidence pack complete; Portal screenshots deferred)"
-    On `2026-07-03` the full lab was executed end-to-end against a live Azure subscription in Korea Central (`azure-cli 2.79.0`). `verify.sh` emitted `evidence/verify-result.json` with all seven gates true, `verdict = HYPOTHESIS_CONFIRMED`, and `falsification = FIX_VERIFIED` (exit 0). Baseline / broken / fixed evidence files under `labs/appgw-to-internal-aca-nsg-mismatch/evidence/` are the captured artifacts from this run. Note: during this run the initial deployment surfaced a **CAE FQDN routing quirk** — with `external: false` on an internal environment, the app FQDN is emitted as `<app>.internal.<env>.<region>.azurecontainerapps.io` and is reachable ONLY through the internal service mesh (100.100.x.x), NOT through the ILB staticIp; AppGW backend probes therefore got HTTP 404 "This Container App is stopped or does not exist" from the CAE edge-proxy. The fix (`infra/main.bicep` line ~200) is to set `external: true` on the ingress even for internal environments — this preserves the internal-ILB-only exposure at the network layer while surfacing the app FQDN in the ILB-reachable form. The Bicep template in this repository carries the fix; if you deploy an earlier commit you will hit this trap. **Portal screenshots (`docs/assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/`) were not captured on this run** because no Playwright MCP was available in the execution environment — they are deferred to a follow-up PR. Every reference to a `.png` under `## 6) Portal Evidence` is therefore a capture instruction for the next live run, not a live artifact.
+!!! success "Live-executed 2026-07-03 (az CLI) and 2026-07-04 (Portal screenshots)"
+    On `2026-07-03` the full lab was executed end-to-end against a live Azure subscription in Korea Central (`azure-cli 2.79.0`). `verify.sh` emitted `evidence/verify-result.json` with all seven gates true, `verdict = HYPOTHESIS_CONFIRMED`, and `falsification = FIX_VERIFIED` (exit 0). Baseline / broken / fixed evidence files under `labs/appgw-to-internal-aca-nsg-mismatch/evidence/` are the captured artifacts from this run. Note: during this run the initial deployment surfaced a **CAE FQDN routing quirk** — with `external: false` on an internal environment, the app FQDN is emitted as `<app>.internal.<env>.<region>.azurecontainerapps.io` and is reachable ONLY through the internal service mesh (100.100.x.x), NOT through the ILB staticIp; AppGW backend probes therefore got HTTP 404 "This Container App is stopped or does not exist" from the CAE edge-proxy. The fix (`infra/main.bicep` line ~200) is to set `external: true` on the ingress even for internal environments — this preserves the internal-ILB-only exposure at the network layer while surfacing the app FQDN in the ILB-reachable form. The Bicep template in this repository carries the fix; if you deploy an earlier commit you will hit this trap. On `2026-07-04` the lab was re-executed in the same Korea Central subscription with a Playwright MCP browser session against `ms.portal.azure.com`, and the **five Portal screenshots** referenced under `## 6) Portal Evidence` were captured live from the running deployment (`agw-appgwnsg-kl4kt7`, `nsg-snet-cae-kl4kt7`). Each PNG was sanitized per the AGENTS.md PII rules (GUID → all-zero placeholder, `MCAPS-*` → `Visual Studio Enterprise Subscription`, `Microsoft Non-Production` → `Contoso`, employee alias/email/display-name replaced, avatar masked with Portal-blue `#0078d4`) and visually verified via `look_at`/`Read` before commit.
 
 ## 1) Background
 
@@ -250,64 +250,76 @@ Application Gateway backend health transitions are not written to `AzureDiagnost
 
 ## 6) Portal Evidence
 
-Azure Portal screenshots for the five key states of this lab. Save to `docs/assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/`. **As of `2026-07-03` no PNG captures exist yet** — the `2026-07-03` live run was performed in an execution environment without a Playwright MCP server configured, so the CLI/JSON evidence pack is complete but the Portal screenshots are deferred to a follow-up PR. Every `## 6) Portal Evidence` sub-section below is a **capture instruction** for the next live run that has Portal access, not a live artifact. The az CLI JSON files under `evidence/` (`baseline-backend-health.json`, `broken-backend-health.json`, `fixed-backend-health.json`, `broken-nsg-rules.json`, `fixed-nsg-rules.json`) are the current authoritative evidence for gates A-G and are what `verify.sh` reads.
+Azure Portal screenshots for the five key states of this lab. Saved under `docs/assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/`. **Captured `2026-07-04`** against a live re-deployment in Korea Central (`agw-appgwnsg-kl4kt7`, `nsg-snet-cae-kl4kt7`) via a Playwright MCP session on `ms.portal.azure.com`. Each PNG was sanitized per the AGENTS.md PII rules and visually verified before commit; the az CLI JSON files under `evidence/` (`baseline-backend-health.json`, `broken-backend-health.json`, `fixed-backend-health.json`, `broken-nsg-rules.json`, `fixed-nsg-rules.json`) remain the authoritative machine-readable evidence for gates A-G and are what `verify.sh` reads. The Portal screenshots below are the operator-facing complement — they show the same failure and recovery in the shape a support engineer would see when triaging the incident from the Portal.
 
 ### Baseline — Application Gateway Backend health
 
-!!! note "Portal evidence to capture — Application Gateway → Backend health"
-    Every backend server in `aca-backend-pool` reports `Healthy`. The status column value is `Healthy` and there is no probe error message. This is the positive-control screenshot that proves the deployment is in a working state before `trigger.sh` applies the misconfig.
+![Application Gateway Backend health blade showing every backend server in aca-backend-pool as Healthy with HTTP 200](../../assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/01-appgw-backend-health-baseline.png)
 
-    Capture path: `Application Gateway → Backend health → aca-backend-pool`.
+!!! note "Portal evidence captured — Application Gateway → Backend health (baseline, before trigger.sh)"
+    Every backend server in `aca-backend-pool` reports `Healthy` (green check, `Healthy: 1 out of 1`). The details column shows `Success. Received 200 status code`, confirming the AppGW custom probe against the ACA edge-proxy is returning HTTP 200. This is the positive-control screenshot that proves the deployment is in a working state before `trigger.sh` applies the misconfig.
 
-    Filename: `01-appgw-backend-health-baseline.png`.
+    Look for: green `Healthy` status, `1 out of 1` count, `Received 200 status code` in the details cell.
+
+    Capture path: `Application Gateway (agw-appgwnsg-kl4kt7) → Backend health → aca-backend-pool`.
 
 ### Broken — Application Gateway Backend health
 
-!!! note "Portal evidence to capture — Application Gateway → Backend health (after trigger.sh)"
-    Every backend server transitions to `Unhealthy`. The probe error column typically reads `Backend server timed out` or `Connect Error`. This is the H1 failure screenshot.
+![Application Gateway Backend health blade showing every backend server in aca-backend-pool as Unhealthy with the NSG-blocked probe error](../../assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/02-appgw-backend-health-broken.png)
 
-    Capture path: `Application Gateway → Backend health → aca-backend-pool`.
+!!! note "Portal evidence captured — Application Gateway → Backend health (after trigger.sh)"
+    Every backend server has transitioned to `Unhealthy` (red X, `Unhealthy: 1 out of 1`). The details column reports `Cannot connect to backend server. Check whether any NSG/UDR/Firewall is blocking access...` — this is the exact error string the AppGW surface for an NSG-blocked probe, and is the H1 failure signature.
 
-    Filename: `02-appgw-backend-health-broken.png`.
+    Look for: red `Unhealthy` status, `1 out of 1` count, `Cannot connect to backend server` + `NSG/UDR/Firewall` in the details cell.
+
+    Capture path: `Application Gateway (agw-appgwnsg-kl4kt7) → Backend health → aca-backend-pool`.
 
 ### Broken — NSG rule 100 Destination
 
-!!! note "Portal evidence to capture — NSG → Inbound security rules (after trigger.sh)"
-    Rule `allow-appgw-inbound-broken` at priority 100 shows `Destination = <staticIp>/32` (or the bare `staticIp` address, depending on the Portal's rendering of a single-address prefix). Rule 200 (`AzureLoadBalancer` → CAE subnet, ports `30000-32767`) and rule 4096 (Deny all) are also visible, proving the NSG shape is realistically locked down and the failure cannot be attributed to a missing ILB probe allow or an incidental default-rule bypass.
+![NSG blade showing inbound security rules with rule 100 allow-appgw-inbound-broken Destination = 10.0.2.243/32 (the environment staticIp), rule 200 allow-azure-lb-probes Destination = 10.0.2.0/23, and rule 4096 deny-all-inbound](../../assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/03-nsg-rule100-broken.png)
 
-    Capture path: `NSG (nsg-snet-cae-<suffix>) → Inbound security rules`.
+!!! note "Portal evidence captured — NSG → Overview (inbound security rules table, after trigger.sh)"
+    Rule `allow-appgw-inbound-broken` at priority 100 shows `Destination = 10.0.2.243/32` — the environment's `staticIp` rendered as a single-address prefix — instead of the CAE subnet CIDR `10.0.2.0/23`. Rule 200 (`allow-azure-lb-probes`: source `AzureLoadBalancer`, dst `10.0.2.0/23`, ports `30000-32767`) and rule 4096 (`deny-all-inbound`: any/any Deny) are also visible, proving the NSG shape is realistically locked down and the failure cannot be attributed to a missing ILB probe allow or an incidental default-rule bypass.
 
-    Filename: `03-nsg-rule100-broken.png`.
+    Look for: rule 100 `Destination` cell reads `10.0.2.243/32` (or the bare staticIp), rule 200 destination reads `10.0.2.0/23`, rule 4096 Action = Deny (with warning triangle icon).
+
+    Capture path: `Network security group (nsg-snet-cae-kl4kt7) → Overview`.
 
 ### Fixed — Application Gateway Backend health
 
-!!! note "Portal evidence to capture — Application Gateway → Backend health (after fix.sh)"
-    Every backend server returns to `Healthy`. This is the falsification screenshot — it proves the ONLY change between broken and fixed states was rule 100's Destination address.
+![Application Gateway Backend health blade showing every backend server in aca-backend-pool back to Healthy after fix.sh rewrote rule 100 destination to the CAE subnet CIDR](../../assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/04-appgw-backend-health-fixed.png)
 
-    Capture path: `Application Gateway → Backend health → aca-backend-pool`.
+!!! note "Portal evidence captured — Application Gateway → Backend health (after fix.sh)"
+    Every backend server returns to `Healthy` (green check, `Healthy: 1 out of 1`, `Received 200 status code`). This is the falsification screenshot — the ONLY change between the broken and fixed captures was rule 100's Destination address (`10.0.2.243/32` → `10.0.2.0/23`), so the recovery is directly attributable to the NSG-shape fix and not to any AppGW, DNS, ILB, or ingress-side change.
 
-    Filename: `04-appgw-backend-health-fixed.png`.
+    Look for: green `Healthy` status, `1 out of 1` count, `Received 200 status code` in the details cell — matching the baseline capture exactly.
+
+    Capture path: `Application Gateway (agw-appgwnsg-kl4kt7) → Backend health → aca-backend-pool`.
 
 ### Fixed — NSG rule 100 Destination
 
-!!! note "Portal evidence to capture — NSG → Inbound security rules (after fix.sh)"
-    Rule `allow-appgw-inbound-broken` at priority 100 now shows `Destination = 10.0.2.0/23` (the CAE subnet CIDR). Source, ports, protocol, and priority are unchanged. The rule name is intentionally left as `allow-appgw-inbound-broken` to preserve the audit trail — a real operator's fix would also rename the rule, but the lab prefers name stability so a reviewer can trivially confirm that only the Destination address changed.
+![NSG blade showing rule 100 allow-appgw-inbound-broken Destination = 10.0.2.0/23 after fix.sh, with rule 200 and rule 4096 unchanged](../../assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/05-nsg-rule100-fixed.png)
 
-    Capture path: `NSG (nsg-snet-cae-<suffix>) → Inbound security rules`.
+!!! note "Portal evidence captured — NSG → Overview (inbound security rules table, after fix.sh)"
+    Rule `allow-appgw-inbound-broken` at priority 100 now shows `Destination = 10.0.2.0/23` (the CAE subnet CIDR). Source (`10.0.1.0/24` = AppGW subnet), ports (`443, 31443`), protocol (`Tcp`), priority (`100`), and Action (`Allow`) are unchanged. Rules 200 and 4096 are identical to the broken-state capture. The rule name is intentionally left as `allow-appgw-inbound-broken` to preserve the audit trail — a real operator's fix would also rename the rule, but the lab prefers name stability so a reviewer can trivially confirm that only the Destination address changed.
 
-    Filename: `05-nsg-rule100-fixed.png`.
+    Look for: rule 100 `Destination` cell now reads `10.0.2.0/23` (matching rule 200's destination), all other rule properties unchanged from the broken capture.
 
-### Screenshot capture checklist
+    Capture path: `Network security group (nsg-snet-cae-kl4kt7) → Overview`.
+
+### Recapture reference (for future re-runs)
+
+If the lab is re-deployed and the Portal screenshots need to be re-captured (for example after a Portal UX change that alters the blade layout), use the table below. The five PNGs above were captured against these exact blades on `2026-07-04`.
 
 | Screenshot | File name | Blade selector |
 |---|---|---|
 | Baseline: AppGW backend health | `01-appgw-backend-health-baseline.png` | Application Gateway → Backend health → aca-backend-pool |
 | Broken: AppGW backend health | `02-appgw-backend-health-broken.png` | Application Gateway → Backend health → aca-backend-pool |
-| Broken: NSG rule 100 Destination | `03-nsg-rule100-broken.png` | NSG → Inbound security rules → `allow-appgw-inbound-broken` |
+| Broken: NSG rule 100 Destination | `03-nsg-rule100-broken.png` | Network security group → Overview (inbound rules table) |
 | Fixed: AppGW backend health | `04-appgw-backend-health-fixed.png` | Application Gateway → Backend health → aca-backend-pool |
-| Fixed: NSG rule 100 Destination | `05-nsg-rule100-fixed.png` | NSG → Inbound security rules → `allow-appgw-inbound-broken` |
+| Fixed: NSG rule 100 Destination | `05-nsg-rule100-fixed.png` | Network security group → Overview (inbound rules table) |
 
-Follow the Portal Screenshot Capture (PII Replacement Rules) documented in `AGENTS.md` when capturing: use the reusable PII helper, verify each PNG with the Read tool, and confirm no `MICROSOFT NON-PRODUCTION` badge, no real subscription IDs, and no employee emails or aliases are visible before referencing the PNG from this file.
+Follow the Portal Screenshot Capture (PII Replacement Rules) documented in `AGENTS.md` when re-capturing: use the reusable PII helper, verify each PNG with the Read/`look_at` tool, and confirm no `MICROSOFT NON-PRODUCTION` badge, no real subscription IDs, and no employee emails or aliases are visible before referencing the PNG from this file.
 
 ## Clean Up
 

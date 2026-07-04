@@ -13,7 +13,7 @@
           },
           "servers": [
             {
-              "address": "ca-appgwnsg-kl4kt7.purplepebble-571badde.koreacentral.azurecontainerapps.io",
+              "address": "ca-appgwnsg-kl4kt7.calmmoss-dde24b1e.koreacentral.azurecontainerapps.io",
               "health": "Healthy",
               "healthProbeLog": "Success. Received 200 status code"
             }
