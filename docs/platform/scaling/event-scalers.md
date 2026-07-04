@@ -62,8 +62,8 @@ flowchart TD
 |---|---|---|---|
 | Azure Service Bus | `azure-servicebus` | `queueName`, `namespace`, `messageCount`, auth mapping for `connection` | Learn provides explicit examples |
 | Azure Queue Storage | `azure-queue` | `accountName`, `queueName`, `queueLength`, secret or managed identity examples | Covers Azure Storage Queue workloads |
-| Azure Event Hubs | Event Hubs via KEDA custom rule | Source family is documented, but current Learn page does not include a full ACA metadata example | Validate exact metadata before production |
-| Apache Kafka | Kafka via KEDA custom rule | Source family is documented, but current Learn page does not include a full ACA metadata example | Validate exact metadata before production |
+| Azure Event Hubs | Event Hubs via KEDA custom rule | Source family is documented, but current Learn page does not include a full Azure Container Apps metadata example | Validate exact metadata before production |
+| Apache Kafka | Kafka via KEDA custom rule | Source family is documented, but current Learn page does not include a full Container Apps metadata example | Validate exact metadata before production |
 
 ## Service Bus example
 
@@ -120,7 +120,7 @@ Example managed identity shape from Learn:
 
 ## Conservative guidance for Event Hubs and Kafka
 
-!!! warning "Full ACA-specific metadata examples for Event Hubs and Kafka are not currently enumerated in Microsoft Learn"
+!!! warning "Full Container Apps-specific metadata examples for Event Hubs and Kafka are not currently enumerated in Microsoft Learn"
     Microsoft Learn confirms these event-source families are supported through KEDA-backed scaling, but the current page does not provide the complete metadata key sets in the way it does for Service Bus and Azure Queue. Validate exact metadata against the current scaler contract before production rollout.
 
 ### Portal view: Scale blade (revision without the event-scaler scale-to-zero pattern)

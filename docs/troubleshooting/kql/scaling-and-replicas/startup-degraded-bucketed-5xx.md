@@ -28,7 +28,7 @@ content_validation:
 ---
 # Startup-Degraded Bucketed 5xx KQL Pack
 
-**Scenario**: Investigate whether ACA's rolling-revision rollout fully masks transient client-visible 5xx errors when the subject app has a deterministic 25-second startup delay. Test the falsification rule: ANY sustained window of ≥3 consecutive 10-second buckets above 0.5% `err_pct` during a perturbation event is sufficient to falsify the "ACA masks all transients" claim.
+**Scenario**: Investigate whether Azure Container Apps' rolling-revision rollout fully masks transient client-visible 5xx errors when the subject app has a deterministic 25-second startup delay. Test the falsification rule: ANY sustained window of ≥3 consecutive 10-second buckets above 0.5% `err_pct` during a perturbation event is sufficient to falsify the "Container Apps masks all transients" claim.
 
 **Data sources**:
 
@@ -73,7 +73,7 @@ The k6 script uses `constant-arrival-rate` with 50 VUs and emits buckets via a p
 
 ## Why `extract` + `replace_string` precede `parse_json`
 
-The ACA log shipper wraps container stdout into the Logrus structured format:
+The Container Apps log shipper wraps container stdout into the Logrus structured format:
 
 ```text
 time="2026-06-12T13:30:00Z" level=info msg="{\"kind\":\"req\",\"run_id\":\"...\"}" source=console
@@ -208,14 +208,14 @@ ContainerAppConsoleLogs_CL
 
 **Interpretation**: The sequence of `(revision, active, traffic_weight, replicas, provisioning_state)` rows captures the exact moment of revision transition. Healthy rollout: old revision goes `active=false, traffic_weight=0` while new revision goes `active=true, traffic_weight=100` and `replicas` ramps to 3. Look for the duration between `PerturbationWindowMarker(phase=start)` and the new revision's first `provisioning_state=Succeeded` sample — that bracket is where Q2 5xx spikes are causally attributable to the rollout.
 
-The perturbation-sampler is unlike the slow audit Job — it does not emit `event` (which `parse_json` parses cleanly out of raw stdout) but emits `kind` directly. The shell script writes JSON to stdout via `jq --null-input`, so the ACA log shipper records the raw JSON in `Log_s` without the Logrus wrapper. That is why this query uses `parse_json(Log_s)` directly, while Q1/Q2 use the `extract`+`replace_string`+`parse_json` chain.
+The perturbation-sampler is unlike the slow audit Job — it does not emit `event` (which `parse_json` parses cleanly out of raw stdout) but emits `kind` directly. The shell script writes JSON to stdout via `jq --null-input`, so the Container Apps log shipper records the raw JSON in `Log_s` without the Logrus wrapper. That is why this query uses `parse_json(Log_s)` directly, while Q1/Q2 use the `extract`+`replace_string`+`parse_json` chain.
 
 ## Q4 — Replica Inventory Snapshot (Continuous Daemon Sampling)
 
 `[Correlated]` evidence — continuous-cadence baseline running from the audit-sampler Job (the `audit` container samples replica inventory every 30 seconds for the duration of each execution). Use to establish that subject-app replicas are reliably 3-of-3 Running OUTSIDE perturbation windows, and to detect any drift that would invalidate the lab's pre-perturbation steady-state assumption.
 
 !!! warning "Audit-sampler job executions appear `Failed` in the Portal"
-    The audit-sampler is a cron-triggered job (`*/5 * * * *`) with `replicaTimeout=240`s, but the `audit` container runs as a long-lived sampler daemon. The platform sends SIGTERM at 240s, the container exits non-zero, and ACA marks the execution as `Failed`. **Data ingestion is unaffected** — every audit container's first ~240 seconds of `ReplicaInventorySample` rows are present in `ContainerAppConsoleLogs_CL`. Operators must NOT alert on audit-sampler execution failure count. See the companion lab guide's "audit-sampler 'Failed' executions are benign" subsection.
+    The audit-sampler is a cron-triggered job (`*/5 * * * *`) with `replicaTimeout=240`s, but the `audit` container runs as a long-lived sampler daemon. The platform sends SIGTERM at 240s, the container exits non-zero, and Container Apps marks the execution as `Failed`. **Data ingestion is unaffected** — every audit container's first ~240 seconds of `ReplicaInventorySample` rows are present in `ContainerAppConsoleLogs_CL`. Operators must NOT alert on audit-sampler execution failure count. See the companion lab guide's "audit-sampler 'Failed' executions are benign" subsection.
 
 ```kusto
 ContainerAppConsoleLogs_CL
@@ -293,7 +293,7 @@ buckets
 
 **Interpretation**:
 
-- `falsified == true` with `falsification_windows >= 1` → the "ACA masks all transients" claim is `[Measured]` falsified for this `run_id`.
+- `falsified == true` with `falsification_windows >= 1` → the "Container Apps masks all transients" claim is `[Measured]` falsified for this `run_id`.
 - Empty result (no row for the `run_id`) → no 3-bucket window exceeds the threshold; the claim is **not falsified** by this run. Note this is weaker than "claim is confirmed" — see the lab guide's Conclusion section for the asymmetry.
 - The `prev()` window-function approach requires `serialize` and `order by` to be deterministic. The `run_id == prev_run` guards prevent a falsification window from spanning two different runs.
 

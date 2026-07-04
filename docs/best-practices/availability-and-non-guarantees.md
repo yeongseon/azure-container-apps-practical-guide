@@ -34,7 +34,7 @@ content_validation:
 ---
 # Availability and Non-Guarantees
 
-Use this page to align operator expectations with what Azure Container Apps **explicitly does not promise**. Most production incidents traced to "ACA outage" are actually operator assumptions that exceed the platform's documented best-effort contracts. This page enumerates the five most-commonly-violated assumptions, cites the Microsoft Learn statement that disclaims each, and points to a falsifiable lab when one exists.
+Use this page to align operator expectations with what Azure Container Apps **explicitly does not promise**. Most production incidents traced to "Azure Container Apps outage" are actually operator assumptions that exceed the platform's documented best-effort contracts. This page enumerates the five most-commonly-violated assumptions, cites the Microsoft Learn statement that disclaims each, and points to a falsifiable lab when one exists.
 
 ## Why This Matters
 
@@ -42,7 +42,7 @@ Container Apps is a managed platform that abstracts away node placement, zone di
 
 When an operator's mental model assumes a hard guarantee where the platform offers best-effort, the failure mode is predictable:
 
-- "My zone-redundant app went down during an AZ fault — ACA must be broken." (Claim 2: zone redundancy is best-effort.)
+- "My zone-redundant app went down during an AZ fault — Container Apps must be broken." (Claim 2: zone redundancy is best-effort.)
 - "I set `minReplicas=3` so I should always have 3 replicas running across 3 nodes." (Claim 1: node spread is not guaranteed.)
 - "All my replicas restarted at the same time — that can't be normal." (Claim 3: planned maintenance can cluster restarts.)
 - "I have probes configured, so my rolling rollout should produce zero 5xx." (Claim 4: probe correctness gates transients, not the rollout mechanism alone.)
@@ -129,7 +129,7 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 3. Test the rollout with a constant-arrival-rate load harness (k6 or equivalent), at a target RPS that consumes nontrivial headroom on the replica. A single-shot `curl` after deploy does not exercise the load path; the rollout could produce a 5-second 5xx burst that the single-shot check misses entirely.
 4. Bucket alerting on `err_pct` at 10-second granularity. Default platform alerting is at minute granularity; sub-minute rollout transients are invisible at that resolution. The KQL pack's falsification query (Q5 in the [Startup-Degraded Bucketed 5xx KQL Pack](../troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md)) is the canonical bucket-level alerting pattern.
 
-**Lab evidence**: [Startup-Degraded Transient Failure Lab](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) reproduces the failure-mode envelope using a deterministic 25-second cold-start subject app, a constant-arrival-rate k6 loadgen at 200 RPS, an ACA-managed rolling-rollout perturbation, and a 5-second-cadence revision-state sampler. The falsification rule (any sustained 3-consecutive-10s-bucket window above 0.5% err_pct during a rollout) is binding. The companion KQL pack lists the seven queries used to reach the verdict.
+**Lab evidence**: [Startup-Degraded Transient Failure Lab](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) reproduces the failure-mode envelope using a deterministic 25-second cold-start subject app, a constant-arrival-rate k6 loadgen at 200 RPS, a Container Apps-managed rolling-rollout perturbation, and a 5-second-cadence revision-state sampler. The falsification rule (any sustained 3-consecutive-10s-bucket window above 0.5% err_pct during a rollout) is binding. The companion KQL pack lists the seven queries used to reach the verdict.
 
 ### Claim 5: Single-region availability target exceeded — promote to multi-region
 
@@ -184,7 +184,7 @@ Each anti-pattern below maps to one of the five claims above. The pattern is **a
 
 ### Mistake 5: Assuming a single-region zone-redundant deployment hits four-nines availability
 
-**Assumption**: ACA zone redundancy delivers the same availability target as a multi-region Front Door topology.
+**Assumption**: Container Apps zone redundancy delivers the same availability target as a multi-region Front Door topology.
 
 **Consequence**: The application's published SLO exceeds what the platform can deliver; an SLO breach is treated as a platform failure rather than as a topology design failure.
 

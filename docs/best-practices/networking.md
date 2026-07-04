@@ -297,7 +297,7 @@ az containerapp env show \
 |---|---|
 | `az containerapp env show ... --query "properties.staticIp"` | Returns the environment's internal load balancer frontend VIP. Use this value in the private DNS A records that back the environment default domain — never as an NSG Destination on the workload profile subnet, and never as an Application Gateway backend pool target directly (target the container app FQDN, which resolves to this value through the linked Private DNS Zone). |
 
-See [Application Gateway Integration](../platform/networking/application-gateway-integration.md) for the full VNet layout and NSG rule set, and the [AppGW to Internal ACA NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) for the diagnosis and fix flow.
+See [Application Gateway Integration](../platform/networking/application-gateway-integration.md) for the full VNet layout and NSG rule set, and the [AppGW to Internal Azure Container Apps NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) for the diagnosis and fix flow.
 
 ### Egress control with UDR and firewall patterns
 
@@ -553,15 +553,15 @@ az containerapp revision list \
 | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 !!! tip "Pattern: Use Custom Internal Domains for On-Premises DNS Integration"
-    When on-premises DNS policy prohibits Conditional Forwarders for external domains (e.g., `*.azurecontainerapps.io`), bind a custom internal domain (e.g., `app.nhinvest.local`) to your ACA app and create the corresponding Private DNS Zone A record pointing to the ACA environment's static IP. This lets on-prem DNS forward only internal domains to Azure Private DNS Resolver.
+    When on-premises DNS policy prohibits Conditional Forwarders for external domains (e.g., `*.azurecontainerapps.io`), bind a custom internal domain (e.g., `app.nhinvest.local`) to your Container Apps app and create the corresponding Private DNS Zone A record pointing to the Container Apps environment's static IP. This lets on-prem DNS forward only internal domains to Azure Private DNS Resolver.
 
     **Requirements:**
 
-    - ACA ingress must be `external: true` (in Internal Environment, this means VNet-accessible, not internet-exposed)
+    - Container Apps ingress must be `external: true` (in Internal Environment, this means VNet-accessible, not internet-exposed)
     - Private DNS Resolver Inbound Endpoint reachable from on-prem via VPN/ExpressRoute
     - BYO certificate for HTTPS (managed certificates require public DNS validation)
 
-    See: [On-Premises DNS to ACA Internal Environment](../operations/deployment/internal-ingress-on-prem-dns.md)
+    See: [On-Premises DNS to Container Apps Internal Environment](../operations/deployment/internal-ingress-on-prem-dns.md)
 
 ## Common Mistakes / Anti-Patterns
 
@@ -585,7 +585,7 @@ az containerapp revision list \
 - [Managed Identity](../platform/identity-and-secrets/managed-identity.md)
 - [Health and Recovery](../platform/reliability/health-recovery.md)
 - [Operations Monitoring](../operations/monitoring/index.md)
-- [AppGW to Internal ACA NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
+- [AppGW to Internal Container Apps NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 
 ## Sources
 

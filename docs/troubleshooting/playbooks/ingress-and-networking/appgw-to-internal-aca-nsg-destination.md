@@ -28,7 +28,7 @@ content_validation:
       source: https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview
       verified: true
 ---
-# AppGW to Internal ACA: NSG Destination Pinned to staticIp Fails
+# AppGW to Internal Azure Container Apps: NSG Destination Pinned to staticIp Fails
 
 ## 1. Summary
 
@@ -430,7 +430,7 @@ az network application-gateway show-backend-health \
 ## See Also
 
 - [Application Gateway Integration with an Internal Container Apps Environment](../../../platform/networking/application-gateway-integration.md)
-- [AppGW to Internal ACA NSG Mismatch Lab](../../lab-guides/appgw-to-internal-aca-nsg-mismatch.md)
+- [AppGW to Internal Container Apps NSG Mismatch Lab](../../lab-guides/appgw-to-internal-aca-nsg-mismatch.md)
 - [Ingress Not Reachable](ingress-not-reachable.md)
 - [Internal DNS and Private Endpoint Failure](internal-dns-and-private-endpoint-failure.md)
 - [Service-to-Service Connectivity Failure](service-to-service-connectivity-failure.md)

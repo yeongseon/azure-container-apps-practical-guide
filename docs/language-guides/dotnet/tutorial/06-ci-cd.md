@@ -113,7 +113,7 @@ graph TD
    Save this as `.github/workflows/deploy.yml`:
 
    ```yaml
-   name: Deploy .NET App to ACA
+   name: Deploy .NET App to Azure Container Apps
 
    on:
      push:

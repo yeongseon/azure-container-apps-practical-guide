@@ -228,7 +228,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
 
 ## Infrastructure Checklist
 
-- [x] ACA Environment is defined with Log Analytics
+- [x] Azure Container Apps Environment is defined with Log Analytics
 - [x] Container App specifies `targetPort: 8000`
 - [x] Liveness and readiness probes point to `/health`
 - [x] System-assigned managed identity is enabled for Key Vault or ACR access

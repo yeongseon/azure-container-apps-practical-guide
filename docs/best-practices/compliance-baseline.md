@@ -127,7 +127,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**, **DP-6**, **DP-7**
 - Use **Key Vault-backed secrets** for centralized lifecycle and auditability.
 - Use **Key Vault certificate integration** where certificate lifecycle must be governed centrally.
 
-!!! warning "Do not assume ACA environment CMK support"
+!!! warning "Do not assume Azure Container Apps environment CMK support"
     Microsoft Learn currently documents Key Vault-backed secrets and certificate integration, but not customer-managed keys for Container Apps environment encryption at rest. If your control framework requires environment-level CMK, record this as a gap or platform selection constraint.
 
 Validation examples:
@@ -232,7 +232,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 | Secrets stored directly in environment variables without lifecycle control | Weak secret governance | Key Vault references |
 | Registry passwords used where MI is available | Credential management risk | Managed identity + AcrPull |
 | No diagnostic settings on environments | Weak investigation trail | Log Analytics + retention policy |
-| Assuming CMK is available for ACA environment encryption | Incorrect compliance assertion | Record as unsupported/not documented |
+| Assuming CMK is available for Container Apps environment encryption | Incorrect compliance assertion | Record as unsupported/not documented |
 
 ## Validation Checklist
 
@@ -247,7 +247,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 - [ ] Defender for Containers enabled for ACR image scanning.
 - [ ] Diagnostic settings stream logs to Log Analytics.
 - [ ] Azure Policy coverage reviewed for Container Apps.
-- [ ] CMK requirement assessed explicitly and documented as unsupported/not documented for ACA environment encryption at rest.
+- [ ] CMK requirement assessed explicitly and documented as unsupported/not documented for Container Apps environment encryption at rest.
 
 ## See Also
 

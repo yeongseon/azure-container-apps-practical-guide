@@ -65,7 +65,7 @@ gunicorn \
 
 | Check | Expected |
 | --- | --- |
-| ACA `targetPort` | `8000` |
+| Azure Container Apps `targetPort` | `8000` |
 | Gunicorn bind | `0.0.0.0:8000` |
 | Health endpoint | `GET /health` returns 200 |
 | Logs | stdout/stderr only (no file-only logs) |
@@ -96,7 +96,7 @@ ps aux
 
 | Symptom | Root cause | Action |
 | --- | --- | --- |
-| Container healthy locally, failing in ACA | Port/ingress mismatch | Align Gunicorn bind and ACA `targetPort` |
+| Container healthy locally, failing in Container Apps | Port/ingress mismatch | Align Gunicorn bind and Container Apps `targetPort` |
 | Intermittent worker timeouts | Long request handlers | Optimize handler or raise Gunicorn timeout |
 | High memory usage, restarts | Too many workers for memory size | Reduce workers or increase memory |
 | Missing traces in App Insights | `TELEMETRY_MODE` or connection string not set | Set `TELEMETRY_MODE=advanced` and `APPLICATIONINSIGHTS_CONNECTION_STRING` |

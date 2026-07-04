@@ -141,7 +141,7 @@ invalid: The subnet or its addressPrefix could not be found, or it has multiple 
 
 [Observed] Creating non-overlapping subnet `10.7.1.0/24` (256 IPs) returned `name: subnet-aca-good` — `provisioningState: Succeeded`.
 
-[Inferred] Azure Container Apps Consumption environments require a minimum `/27` subnet (30 IPs). Dedicated workload profile environments require `/27` per node pool. CIDR overlap is detected at the ARM VNet layer before any ACA provisioning begins.
+[Inferred] Azure Container Apps Consumption environments require a minimum `/27` subnet (30 IPs). Dedicated workload profile environments require `/27` per node pool. CIDR overlap is detected at the ARM VNet layer before any Azure Container Apps provisioning begins.
 
 Environment: `rg-aca-lab-test7`, `koreacentral`, `az network vnet subnet create`.
 

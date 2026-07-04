@@ -116,7 +116,7 @@ flowchart TD
     I --> J
 ```
 
-For the full decision tree, the four-layer mitigation matrix (in-ACA inputs, app-layer resilience, topology escalation, observability), and a falsifiable lab that quantifies best-effort behavior under load, see the [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) and the [Zone Redundancy Best-Effort lab](../../troubleshooting/lab-guides/zone-redundancy-best-effort.md).
+For the full decision tree, the four-layer mitigation matrix (in-Azure Container Apps inputs, app-layer resilience, topology escalation, observability), and a falsifiable lab that quantifies best-effort behavior under load, see the [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) and the [Zone Redundancy Best-Effort lab](../../troubleshooting/lab-guides/zone-redundancy-best-effort.md).
 
 ## Verification
 

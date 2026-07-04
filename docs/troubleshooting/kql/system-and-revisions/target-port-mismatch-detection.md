@@ -92,7 +92,7 @@ The transition from `portmismatch_rows=25` to `portmismatch_rows=0` for the same
 
 - A `Reason_s == "Pending:PortMismatch"` row (or any row whose `Log_s contains "TargetPort"`) is **direct platform attribution** of the mismatch — you do not need to infer it from probe failures alone.
 - Repeated `ProbeFailed` rows without an accompanying mismatch-attribution row usually point at probe configuration (timeouts, path, port) rather than ingress target port.
-- The mismatch-attribution row often appears alongside `ProbeFailed` rows for the same replica because, with ingress enabled and no custom probes, ACA's default TCP probes target the ingress `targetPort` — so the same mismatch that breaks edge routing also breaks probes.
+- The mismatch-attribution row often appears alongside `ProbeFailed` rows for the same replica because, with ingress enabled and no custom probes, Azure Container Apps' default TCP probes target the ingress `targetPort` — so the same mismatch that breaks edge routing also breaks probes.
 - This query intentionally widens `Reason_s == "ProbeFailed"` so you can verify both signals co-occur on the same replica.
 
 ## Limitations

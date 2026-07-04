@@ -114,7 +114,7 @@ graph TD
     Create a file at `.github/workflows/deploy.yml` in your repository:
 
     ```yaml
-    name: Deploy Node.js App to ACA
+    name: Deploy Node.js App to Azure Container Apps
 
     on:
       push:

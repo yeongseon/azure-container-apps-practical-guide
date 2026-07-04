@@ -135,7 +135,7 @@ az containerapp show \
 | Lever | What to do | Why it helps |
 |---|---|---|
 | Active-passive multi-region with Azure Front Door | Deploy the app in a second region; let Front Door probe both and shift traffic. | Survives **regional** incidents that no single zone-redundant environment can. See the [Multi-Region Failover Playbook](./multi-region-failover.md) and [Lab](../../lab-guides/multi-region-failover.md). |
-| **Escalate to AKS** when zone placement must be operator-controlled | Move the workload to Azure Kubernetes Service with `topologySpreadConstraints`. | ACA does not surface per-replica zone placement to operators. If your reliability requirements demand explicit zone placement guarantees, you have outgrown what ACA's best-effort scheduler can offer. |
+| **Escalate to AKS** when zone placement must be operator-controlled | Move the workload to Azure Kubernetes Service with `topologySpreadConstraints`. | Azure Container Apps does not surface per-replica zone placement to operators. If your reliability requirements demand explicit zone placement guarantees, you have outgrown what Container Apps' best-effort scheduler can offer. |
 
 ### L4 — Observability and SLO honesty
 

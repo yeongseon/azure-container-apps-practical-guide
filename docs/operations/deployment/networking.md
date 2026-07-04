@@ -478,7 +478,7 @@ If verification fails, revert only the last configuration change, capture the fa
 
 ## See Also
 - [Application Gateway Integration](../../platform/networking/application-gateway-integration.md)
-- [AppGW to Internal ACA NSG Destination playbook](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
+- [AppGW to Internal Azure Container Apps NSG Destination playbook](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 - [Security](../../platform/identity-and-secrets/security-operations.md)
 - [Health and Recovery](../../platform/reliability/health-recovery.md)
 

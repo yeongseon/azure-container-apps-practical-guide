@@ -47,7 +47,7 @@ Fronting an internal Container Apps environment with Azure Application Gateway i
 1. What role does the environment `staticIp` actually play?
 2. What does the inbound NSG on the Container Apps subnet need to allow, and against which destination?
 
-This page answers both. If you already have Application Gateway configured and the health probe is failing with the backend showing `Unhealthy`, jump to the [AppGW to Internal ACA NSG Destination playbook](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md).
+This page answers both. If you already have Application Gateway configured and the health probe is failing with the backend showing `Unhealthy`, jump to the [AppGW to Internal Azure Container Apps NSG Destination playbook](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md).
 
 ## Overview
 
@@ -269,8 +269,8 @@ The Microsoft Learn walkthrough also documents an [Application Gateway Private L
 - [Private Endpoints](private-endpoints.md)
 - [Egress Control](egress-control.md)
 - [Environment Networking and CIDR](../environments/networking-and-cidr.md)
-- [On-Premises DNS to ACA Internal Environment via Custom Domain](../../operations/deployment/internal-ingress-on-prem-dns.md)
-- [AppGW to Internal ACA: NSG Destination Pinned to staticIp Fails (Playbook)](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
+- [On-Premises DNS to Container Apps Internal Environment via Custom Domain](../../operations/deployment/internal-ingress-on-prem-dns.md)
+- [AppGW to Internal Container Apps: NSG Destination Pinned to staticIp Fails (Playbook)](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 - [Networking Best Practices](../../best-practices/networking.md)
 
 ## Sources

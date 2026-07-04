@@ -77,7 +77,7 @@ flowchart TD
 | `ImagePullBackOff`, `unauthorized: authentication required` | ACR auth/identity not configured | Grant `AcrPull` to Container App managed identity and verify `--registry-server` |
 | `CrashLoopBackOff` | App exits on startup | Check console logs, missing package/env var, verify startup command |
 | `ModuleNotFoundError: <module>` | Dependency missing from image | Add package to `requirements.txt`, rebuild image, redeploy |
-| `Address already in use` or bind failure | Port mismatch | Ensure container listens on `0.0.0.0:8000` and ACA `--target-port 8000` |
+| `Address already in use` or bind failure | Port mismatch | Ensure container listens on `0.0.0.0:8000` and Azure Container Apps `--target-port 8000` |
 | Health probe failures | Probe path/port invalid or app slow to start | Align probe port/path with app endpoint; increase startup tolerance |
 | 502/504 from ingress | No healthy replica, startup timeout, app not listening | Validate revision health, startup logs, and target port |
 | URL not reachable | Ingress set to internal | Set `--ingress external` or test from inside VNet/environment |

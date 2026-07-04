@@ -19,9 +19,9 @@ validation:
     last_tested: '2026-07-04'
     result: pass
 ---
-# AppGW to Internal ACA NSG Mismatch Reproduction Lab
+# AppGW to Internal Azure Container Apps NSG Mismatch Reproduction Lab
 
-Reproduce **H1** from the [AppGW to Internal ACA: NSG Destination Pinned to
+Reproduce **H1** from the [AppGW to Internal Container Apps: NSG Destination Pinned to
 staticIp Fails](../playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 playbook: an Application Gateway backend health goes `Unhealthy` against an
 internal Container Apps environment because the container app subnet NSG
@@ -257,7 +257,7 @@ Azure Portal screenshots for the five key states of this lab. Saved under `docs/
 ![Application Gateway Backend health blade showing every backend server in aca-backend-pool as Healthy with HTTP 200](../../assets/troubleshooting/appgw-to-internal-aca-nsg-mismatch/01-appgw-backend-health-baseline.png)
 
 !!! note "Portal evidence captured — Application Gateway → Backend health (baseline, before trigger.sh)"
-    Every backend server in `aca-backend-pool` reports `Healthy` (green check, `Healthy: 1 out of 1`). The details column shows `Success. Received 200 status code`, confirming the AppGW custom probe against the ACA edge-proxy is returning HTTP 200. This is the positive-control screenshot that proves the deployment is in a working state before `trigger.sh` applies the misconfig.
+    Every backend server in `aca-backend-pool` reports `Healthy` (green check, `Healthy: 1 out of 1`). The details column shows `Success. Received 200 status code`, confirming the AppGW custom probe against the Container Apps edge-proxy is returning HTTP 200. This is the positive-control screenshot that proves the deployment is in a working state before `trigger.sh` applies the misconfig.
 
     Look for: green `Healthy` status, `1 out of 1` count, `Received 200 status code` in the details cell.
 
@@ -333,7 +333,7 @@ bash labs/appgw-to-internal-aca-nsg-mismatch/cleanup.sh
 
 ## Related Playbook
 
-- [AppGW to Internal ACA: NSG Destination Pinned to staticIp Fails](../playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
+- [AppGW to Internal Container Apps: NSG Destination Pinned to staticIp Fails](../playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 
 ## See Also
 

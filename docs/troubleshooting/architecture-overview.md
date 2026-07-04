@@ -104,7 +104,7 @@ flowchart TD
 
 | Failure Point | Typical Symptom | First Evidence | Playbook |
 |---|---|---|---|
-| FP-REQ-00 Front door (AppGW / APIM / Front Door) | Gateway backend "Unhealthy" or 502 at the gateway with no matching Container Apps ingress or system log entry | AppGW backend health blade, workload profile subnet NSG rules, NSG flow logs | [AppGW to Internal ACA NSG Destination](playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) |
+| FP-REQ-00 Front door (AppGW / APIM / Front Door) | Gateway backend "Unhealthy" or 502 at the gateway with no matching Container Apps ingress or system log entry | AppGW backend health blade, workload profile subnet NSG rules, NSG flow logs | [AppGW to Internal Azure Container Apps NSG Destination](playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) |
 | FP-REQ-01 Ingress | 502/503 bursts, routing issues | `ContainerAppSystemLogs_CL` + HTTP status trend | [Ingress Not Reachable](playbooks/ingress-and-networking/ingress-not-reachable.md) |
 | FP-REQ-02 No healthy replicas | Intermittent 5xx during scaling | Replica count, KEDA events | [HTTP Scaling Not Triggering](playbooks/scaling-and-runtime/http-scaling-not-triggering.md) |
 | FP-REQ-03 Probe failure | App marked unhealthy, startup failures | Console startup logs + probe messages | [Probe Failure and Slow Start](playbooks/startup-and-provisioning/probe-failure-and-slow-start.md) |

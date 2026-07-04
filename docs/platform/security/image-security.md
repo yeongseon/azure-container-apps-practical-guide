@@ -107,7 +107,7 @@ Security implications:
 |---|---|---|---|
 | Public registry | Usually anonymous pull | Lowest control | Acceptable for experimentation, not ideal for production |
 | Private registry with username/password | Stored credential | Medium to low | Use only when managed identity is not available |
-| Azure Container Registry with managed identity | RBAC + managed identity | Strongest documented ACA-native option | Preferred production default |
+| Azure Container Registry with managed identity | RBAC + managed identity | Strongest documented Azure Container Apps-native option | Preferred production default |
 
 ## Trusted or allowed registries
 
@@ -115,7 +115,7 @@ This is a common architecture review question: does Azure Container Apps nativel
 
 ### Conservative answer
 
-Container Apps documentation describes **how to configure registries for an app**, but it does **not** document an ACA-native feature called allowed registries or trusted registries that enforces image source allow-listing by itself.
+Container Apps documentation describes **how to configure registries for an app**, but it does **not** document a Container Apps-native feature called allowed registries or trusted registries that enforces image source allow-listing by itself.
 
 Use these controls instead:
 
@@ -123,7 +123,7 @@ Use these controls instead:
 - **Azure Container Registry policy and network controls** for the registry surface.
 - **Platform review standards** that require ACR or other approved registries in CI/CD.
 
-!!! warning "Do not describe allowed registries as an ACA-native enforcement feature"
+!!! warning "Do not describe allowed registries as a Container Apps-native enforcement feature"
     Microsoft Learn documents registry configuration and governance options around Azure resources, but not a built-in Container Apps-only allow-list switch for image sources. Treat allow-listing as a policy and supply-chain governance control.
 
 ## Vulnerability scanning and image assessment
@@ -138,16 +138,16 @@ That means the security control is primarily:
 
 - **Registry-side**: scan the image in ACR.
 - **Governance-side**: review or gate promotion based on findings.
-- **ACA-side**: deploy only approved image references.
+- **Container Apps-side**: deploy only approved image references.
 
-### What lives on ACA vs ACR
+### What lives on Container Apps vs ACR
 
-| Control | ACA-native surface | ACR / governance surface |
+| Control | Container Apps-native surface | ACR / governance surface |
 |---|---|---|
 | Registry authentication | Yes | N/A |
 | Managed identity for ACR pull | Yes | Requires AcrPull on ACR |
-| Vulnerability scanning | No documented native ACA scanner | Yes, via Defender for Containers on ACR |
-| Source allow-listing | No documented ACA-native allow-list feature | Policy / governance pattern |
+| Vulnerability scanning | No documented native Container Apps scanner | Yes, via Defender for Containers on ACR |
+| Source allow-listing | No documented Container Apps-native allow-list feature | Policy / governance pattern |
 | Private network path to registry | Indirectly, through environment networking | ACR private endpoints and DNS |
 
 ## Recommended image security posture

@@ -183,7 +183,7 @@ ContainerAppConsoleLogs_CL
 | Revision `Failed` before traffic | Invalid config or missing secret | Revision Analysis, Secret references |
 | 502/504 from ingress | No healthy replica or wrong target port | Replica Deep Dive, Network Path |
 | Intermittent timeout under load | Scale rule mismatch or throttling | Replica Deep Dive, scaling logs |
-| Works locally, fails in ACA | Identity/network/environment mismatch | Identity Chain, Network Path |
+| Works locally, fails in Azure Container Apps | Identity/network/environment mismatch | Identity Chain, Network Path |
 
 ## Anti-Patterns (Don't Do This)
 

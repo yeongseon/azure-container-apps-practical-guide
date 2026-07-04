@@ -88,7 +88,7 @@ graph TD
 
 - Existing Azure Container App (created in [02 - First Deploy](02-first-deploy.md))
 - Azure CLI 2.57+
-- Azure Monitor Workspace (created automatically with ACA environment)
+- Azure Monitor Workspace (created automatically with Azure Container Apps environment)
 
 ## Structured Logging
 

@@ -132,10 +132,10 @@ Key points:
 - Dapr App ID is the service identity other apps use to invoke the target service.
 - If you do not set an explicit App ID, Dapr defaults to the container app name.
 - App IDs must be unique within the environment.
-- Dapr on ACA enables mTLS by default for service invocation.
+- Dapr on Azure Container Apps enables mTLS by default for service invocation.
 
 !!! note "Document certificate rotation conservatively"
-    Microsoft Learn is clear that ACA Dapr service invocation uses built-in mTLS, but it does not publish a Container Apps-specific rotation cadence on the ACA pages cited here. Treat the implementation as Sentry-issued, automatically managed Dapr certificates and refer to the Dapr security documentation for current certificate TTL and rotation behavior.
+    Microsoft Learn is clear that Container Apps Dapr service invocation uses built-in mTLS, but it does not publish a Container Apps-specific rotation cadence on the Container Apps pages cited here. Treat the implementation as Sentry-issued, automatically managed Dapr certificates and refer to the Dapr security documentation for current certificate TTL and rotation behavior.
 
 ## Comparison of the Three Planes
 

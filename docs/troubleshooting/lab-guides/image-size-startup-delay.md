@@ -149,7 +149,7 @@ Reproduced end-to-end in `koreacentral`. All raw evidence is committed under [`l
 | `04-containerapp-summary.json` | Container App essentials (FQDN, location, latest revision) |
 | `05-revisions-all.json` | All revisions including the inactive off-script `containerapps-helloworld` diagnostic |
 | `06-kql-pull-events.json` | KQL `Successfully pulled image` events across all revisions (cold + warm) |
-| `07-containerapp-full-config.json` | Full ACA resource configuration (~7 KB) |
+| `07-containerapp-full-config.json` | Full Azure Container Apps resource configuration (~7 KB) |
 | `08-environment-logs-config.json` | Container Apps Environment `appLogsConfiguration` proving Log Analytics wiring |
 | `09-kql-event-summary.json` | Full revision lifecycle grouped by `Reason_s` (KEDAScalersStarted → PullingImage → PulledImage → ContainerCreated → ContainerStarted → ContainerTerminated → KEDAScalersStopped → ScaledObjectDeleted) |
 | `10-h1-a-large-cold-pull-gate.json` | `verify.sh` Phase 10 — Scenario A cold pull (3 sub-gates: pull event, image size, revision healthy) — Strong path PASS |

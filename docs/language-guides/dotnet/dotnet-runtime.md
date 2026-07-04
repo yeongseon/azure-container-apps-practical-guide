@@ -70,7 +70,7 @@ app.Lifetime.ApplicationStopping.Register(() =>
 
 | Check | Expected |
 | --- | --- |
-| ACA `targetPort` | `8000` |
+| Azure Container Apps `targetPort` | `8000` |
 | Kestrel bind | `0.0.0.0:8000` or `http://+:8000` |
 | Health endpoint | `GET /health` returns 200 JSON |
 | Logs | stdout/stderr (Microsoft.Extensions.Logging) |
@@ -111,7 +111,7 @@ ps aux
 
 | Symptom | Root cause | Action |
 | --- | --- | --- |
-| Container healthy locally, failing in ACA | Port/ingress mismatch | Align `ASPNETCORE_URLS` and ACA `targetPort` |
+| Container healthy locally, failing in Container Apps | Port/ingress mismatch | Align `ASPNETCORE_URLS` and Container Apps `targetPort` |
 | Revision stuck in "Provisioning" | Startup exception | Check console logs for DI or DB connection errors |
 | High memory usage, restarts | .NET GC behavior in containers | Set `DOTNET_GCHeapHardLimit` for small containers |
 | Missing traces in App Insights | Missing connection string | Verify `APPLICATIONINSIGHTS_CONNECTION_STRING` env var |

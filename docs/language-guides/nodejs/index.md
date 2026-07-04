@@ -10,7 +10,7 @@ content_sources:
 ---
 # Node.js on Azure Container Apps
 
-This guide provides a comprehensive reference implementation for running Node.js applications on Azure Container Apps (ACA). We use a production-ready Express application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.
+This guide provides a comprehensive reference implementation for running Node.js applications on Azure Container Apps. We use a production-ready Express application to demonstrate best practices for cloud-native deployment, security, and observability on the Azure platform.
 
 ## Reference Application
 
@@ -116,7 +116,7 @@ By completing this guide, you will gain the following capabilities:
 
 ## See Also
 
-- [Platform Architecture](../../platform/index.md) — Understand the underlying ACA infrastructure.
+- [Platform Architecture](../../platform/index.md) — Understand the underlying Container Apps infrastructure.
 - [Operations Guide](../../operations/index.md) — Production operations.
 - [Troubleshooting Methodology](../../troubleshooting/index.md) — Systematic approach to debugging issues.
 - [CLI Reference](../../troubleshooting/first-10-minutes/cli-reference.md) — Quick lookup for CLI commands and limits.

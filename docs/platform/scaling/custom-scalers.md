@@ -87,7 +87,7 @@ Use these patterns when the scaler needs credentials:
 ## Example: cron or Prometheus-style bring-your-own scaler
 
 !!! warning "Cron and Prometheus metadata examples are not currently documented in Azure Container Apps Microsoft Learn pages"
-    Microsoft Learn confirms the custom-scaler extension path through KEDA, but it does not provide a first-party ACA example for every scaler family. Treat any cron- or Prometheus-specific metadata as scaler-contract validation work, not as a service default.
+    Microsoft Learn confirms the custom-scaler extension path through KEDA, but it does not provide a first-party Azure Container Apps example for every scaler family. Treat any cron- or Prometheus-specific metadata as scaler-contract validation work, not as a service default.
 
 A safe operating pattern is:
 

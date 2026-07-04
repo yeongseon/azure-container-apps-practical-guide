@@ -10,7 +10,7 @@ content_sources:
 ---
 # Dapr Integration (Distributed Application Runtime)
 
-Azure Container Apps (ACA) provides native Dapr integration, allowing your Python application to easily interact with other services and manage state, publish/subscribe messaging, and secrets.
+Azure Container Apps provides native Dapr integration, allowing your Python application to easily interact with other services and manage state, publish/subscribe messaging, and secrets.
 
 <!-- diagram-id: azure-container-apps-aca-provides-native -->
 ```mermaid
@@ -78,7 +78,7 @@ with DaprClient() as d:
 
 ## Dapr Components
 
-Configure Dapr components (like state stores or pub/sub brokers) as separate resources in your Bicep/ARM templates. ACA then maps these components to your application at runtime.
+Configure Dapr components (like state stores or pub/sub brokers) as separate resources in your Bicep/ARM templates. Container Apps then maps these components to your application at runtime.
 
 ## Why use Dapr?
 

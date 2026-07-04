@@ -52,14 +52,14 @@ content_validation:
       verified: true
       note: 'Verified: without UDR on ACA subnet, HTTPS fails due to asymmetric routing. Firewall logs showed DNS return denied without UDR.'
 ---
-# On-Premises DNS to ACA Internal Environment via Custom Domain
+# On-Premises DNS to Azure Container Apps Internal Environment via Custom Domain
 
-Configure on-premises name resolution to reach Azure Container Apps (ACA) running in an Internal Environment using a custom internal domain, when corporate DNS policy prohibits forwarding Azure-managed domains. The ACA Internal Environment exposes apps via a static private IP on the environment's internal load balancer.
+Configure on-premises name resolution to reach Azure Container Apps running in an Internal Environment using a custom internal domain, when corporate DNS policy prohibits forwarding Azure-managed domains. The Container Apps Internal Environment exposes apps via a static private IP on the environment's internal load balancer.
 
 ## Prerequisites
 
 - Hub-Spoke VNet topology with Site-to-Site VPN or ExpressRoute
-- ACA Internal Environment deployed in Spoke VNet (apps accessible via environment static IP)
+- Container Apps Internal Environment deployed in Spoke VNet (apps accessible via environment static IP)
 - Azure Firewall in Hub VNet (or equivalent NVA)
 - On-premises DNS server with Conditional Forwarder capability
 - Custom internal domain controlled by your organization (e.g., `nhinvest.local`)
@@ -71,8 +71,8 @@ Configure on-premises name resolution to reach Azure Container Apps (ACA) runnin
 
 Use this procedure when **all** of the following are true:
 
-1. ACA is deployed as an Internal Environment (apps accessible via environment static IP, not public internet)
-2. On-premises users/systems must reach ACA apps via private IP (not public)
+1. Container Apps is deployed as an Internal Environment (apps accessible via environment static IP, not public internet)
+2. On-premises users/systems must reach Container Apps apps via private IP (not public)
 3. On-premises DNS policy **cannot** add Conditional Forwarders for external domains like `*.azurecontainerapps.io`
 4. Hub VNet lacks address space for a Private DNS Resolver subnet (`/28`)
 
@@ -140,13 +140,13 @@ flowchart LR
     | Command/Parameter | Purpose |
     |---|---|
     | `az containerapp ingress update` | Updates ingress configuration for the container app |
-    | `--type external` | Makes the app accessible from within the VNet (not just within the ACA environment) |
+    | `--type external` | Makes the app accessible from within the VNet (not just within the Container Apps environment) |
 
-    [Observed] With `external: false`, VNet-internal clients receive HTTP 404 ("Container App does not exist") from the ACA Envoy proxy.
+    [Observed] With `external: false`, VNet-internal clients receive HTTP 404 ("Container App does not exist") from the Container Apps Envoy proxy.
 
-### Step 1: Bind Custom Domain to ACA App
+### Step 1: Bind Custom Domain to Container Apps App
 
-Configure a custom domain on the ACA app so it accepts traffic on the internal domain name.
+Configure a custom domain on the Container Apps app so it accepts traffic on the internal domain name.
 
 ```bash
 az containerapp hostname add \
@@ -182,7 +182,7 @@ az containerapp hostname bind \
 
 ### Step 2: Create Private DNS Zone for Custom Domain
 
-Create a Private DNS Zone for your internal domain and add an A record pointing to the ACA Internal Environment's static IP.
+Create a Private DNS Zone for your internal domain and add an A record pointing to the Container Apps Internal Environment's static IP.
 
 ```bash
 # Create the Private DNS Zone
@@ -204,7 +204,7 @@ az network private-dns record-set a add-record \
 | `--name nhinvest.local` | The internal domain zone |
 | `az network private-dns record-set a add-record` | Adds an A record to the zone |
 | `--record-set-name app` | Creates `app.nhinvest.local` |
-| `--ipv4-address <aca-static-ip>` | ACA Internal Environment static IP address |
+| `--ipv4-address <aca-static-ip>` | Container Apps Internal Environment static IP address |
 
 ### Step 3: Link Private DNS Zone to Spoke VNet
 
@@ -282,7 +282,7 @@ az dns-resolver inbound-endpoint create \
 
 ### Step 5: Configure Azure Firewall Rules (Hub)
 
-Allow DNS traffic from on-premises to the resolver, and HTTPS traffic to the ACA Internal Environment's static IP.
+Allow DNS traffic from on-premises to the resolver, and HTTPS traffic to the Container Apps Internal Environment's static IP.
 
 !!! info "Evidence Level"
     [Observed] Firewall network rules were provisioned and verified with firewall diagnostic logs:
@@ -293,7 +293,7 @@ Allow DNS traffic from on-premises to the resolver, and HTTPS traffic to the ACA
 | Rule | Source | Destination | Protocol/Port |
 |---|---|---|---|
 | DNS to Resolver | On-prem DNS server IP | Resolver Inbound Endpoint IP | TCP/UDP 53 |
-| HTTPS to ACA | On-prem user network (e.g., <on-prem-cidr>) | <aca-static-ip> | TCP 443 |
+| HTTPS to Container Apps | On-prem user network (e.g., <on-prem-cidr>) | <aca-static-ip> | TCP 443 |
 
 ### Step 6: Configure UDR for Forward Traffic (Hub → Firewall)
 
@@ -348,7 +348,7 @@ Ensure response traffic from the Spoke routes back through Hub Firewall to reach
     - **Spoke → on-prem**: Firewall diagnostic logs showed DNS return traffic from resolver was **denied** without this UDR (asymmetric routing). After applying the UDR to all Spoke subnets, both DNS and HTTPS traffic flowed successfully through the firewall.
 
 !!! warning "Asymmetric Routing"
-    You **must** associate the return-path route table with **all** Spoke subnets that serve on-premises traffic — including the ACA infrastructure subnet, not just the resolver subnet. Without this, the firewall sees only one direction of the connection and drops return traffic, resulting in timeouts.
+    You **must** associate the return-path route table with **all** Spoke subnets that serve on-premises traffic — including the Container Apps infrastructure subnet, not just the resolver subnet. Without this, the firewall sees only one direction of the connection and drops return traffic, resulting in timeouts.
 
 ```bash
 # Create route table
@@ -475,7 +475,7 @@ nslookup app.<default-domain>.koreacentral.azurecontainerapps.io
 | Command/Parameter | Purpose |
 |---|---|
 | `nslookup app.nhinvest.local` | Verifies custom domain resolves via Private DNS Zone |
-| `nslookup app.<default-domain>...` | Verifies ACA default domain still resolves internally |
+| `nslookup app.<default-domain>...` | Verifies Container Apps default domain still resolves internally |
 
 ## Rollback / Troubleshooting
 
@@ -488,14 +488,14 @@ nslookup app.<default-domain>.koreacentral.azurecontainerapps.io
 | Certificate error on HTTPS | Missing or mismatched TLS cert on custom domain | Bind correct certificate (Step 1) |
 | HTTP 404 "Container App does not exist" | Ingress set to `external: false` | Set ingress to `external: true` (VNet-accessible in Internal Env) |
 | `.local` domain SERVFAIL on Linux clients | systemd-resolved treats `.local` as mDNS | Use `dig @<resolver-ip>` or configure systemd-resolved to exclude `.local` from mDNS. Consider `.internal` or `.corp` suffixes instead. |
-| HTTPS times out but DNS works | Asymmetric routing — return UDR missing on ACA subnet | Associate the Spoke→Hub route table with the ACA infrastructure subnet (Step 7) |
+| HTTPS times out but DNS works | Asymmetric routing — return UDR missing on Container Apps subnet | Associate the Spoke→Hub route table with the Container Apps infrastructure subnet (Step 7) |
 | bind9 returns SERVFAIL for `.local` zone | DNSSEC validation fails on `.local` forwarded queries | Set `dnssec-validation no;` in bind9 `named.conf.options` |
 
 ## Validated Results
 
 !!! success "Lab Validation: 2026-05-18, az CLI, Korea Central"
 
-    **Test Environment**: Hub-Spoke VNet Peering, Azure Firewall, On-prem DNS (bind9) simulation using a Hub VNet VM (not a real S2S VPN), ACA Internal Environment with Custom Domain + BYO self-signed certificate.
+    **Test Environment**: Hub-Spoke VNet Peering, Azure Firewall, On-prem DNS (bind9) simulation using a Hub VNet VM (not a real S2S VPN), Container Apps Internal Environment with Custom Domain + BYO self-signed certificate.
 
     Specific IP addresses have been replaced with placeholders. Results will differ in your deployment.
 
@@ -504,23 +504,23 @@ nslookup app.<default-domain>.koreacentral.azurecontainerapps.io
     | 1 | Custom Domain binding (`.local`) | `az containerapp hostname add --hostname app.nhinvest.local` | ✅ Accepted |
     | 2 | BYO cert HTTPS binding | `az containerapp hostname bind` with self-signed PFX | ✅ `bindingType: SniEnabled` |
     | 3 | Private DNS Resolver in Spoke | `az dns-resolver create` + inbound endpoint | ✅ IP assigned dynamically |
-    | 4 | DNS via Resolver | `dig app.nhinvest.local @<resolver-inbound-ip>` | ✅ Resolved to ACA static IP |
-    | 5 | DNS via bind9 Conditional Forwarder | `dig app.nhinvest.local @127.0.0.1` (on-prem VM) | ✅ Resolved to ACA static IP |
-    | 6 | E2E HTTP (on-prem → ACA) | `curl http://app.nhinvest.local` | ✅ HTTP 200 |
-    | 7 | E2E HTTPS (on-prem → ACA) | `curl --silent --insecure https://app.nhinvest.local` | ✅ HTTPS 200 |
+    | 4 | DNS via Resolver | `dig app.nhinvest.local @<resolver-inbound-ip>` | ✅ Resolved to Container Apps static IP |
+    | 5 | DNS via bind9 Conditional Forwarder | `dig app.nhinvest.local @127.0.0.1` (on-prem VM) | ✅ Resolved to Container Apps static IP |
+    | 6 | E2E HTTP (on-prem → Container Apps) | `curl http://app.nhinvest.local` | ✅ HTTP 200 |
+    | 7 | E2E HTTPS (on-prem → Container Apps) | `curl --silent --insecure https://app.nhinvest.local` | ✅ HTTPS 200 |
     | 8 | TLS Certificate CN | `openssl s_client -servername app.nhinvest.local` | ✅ `CN=app.nhinvest.local` |
     | 9 | Firewall DNS flow | Firewall diagnostic logs (AZFWNetworkRule) | ✅ `Action: Allow, Rule: allow-dns` |
     | 10 | Firewall HTTPS flow | Firewall diagnostic logs (AZFWNetworkRule) | ✅ `TCP to <aca-static-ip>:443. Action: Allow, Rule: allow-https` |
     | 11 | UDR effective routes | `az network nic show-effective-route-table` | ✅ `<spoke-cidr> → VirtualAppliance` |
-    | 12 | Asymmetric routing detection | HTTPS timeout without ACA subnet UDR | ✅ Resolved by adding UDR to ACA subnet |
+    | 12 | Asymmetric routing detection | HTTPS timeout without Container Apps subnet UDR | ✅ Resolved by adding UDR to Container Apps subnet |
 
     **Key Findings:**
 
-    - [Observed] ACA ingress must be `external: true` for VNet-internal clients. With `external: false`, Envoy returns 404.
+    - [Observed] Container Apps ingress must be `external: true` for VNet-internal clients. With `external: false`, Envoy returns 404.
     - [Observed] `.local` domains trigger Azure warning but work correctly for Private DNS Zone resolution. bind9 requires `dnssec-validation no` to forward `.local` queries.
     - [Observed] Both DNS (UDP 53) and HTTPS (TCP 443) traffic from on-prem VM traverse Azure Firewall. Confirmed by firewall diagnostic logs showing `Action: Allow` for both rules.
     - [Observed] Bidirectional UDR routing verified: on-prem→Spoke UDR confirmed by effective routes; Spoke→on-prem UDR verified by observing that DNS return traffic was **denied** by the firewall without it (asymmetric routing), and succeeded after applying it.
-    - [Observed] The return-path UDR must be applied to **all** Spoke subnets (resolver + ACA infrastructure). Without the UDR on the ACA subnet, HTTPS times out due to asymmetric routing — the firewall drops the return traffic.
+    - [Observed] The return-path UDR must be applied to **all** Spoke subnets (resolver + Container Apps infrastructure). Without the UDR on the Container Apps subnet, HTTPS times out due to asymmetric routing — the firewall drops the return traffic.
     - [Observed] Self-signed certificates work with `bindingType: SniEnabled`. Managed certificates require public DNS validation and cannot be used with `.local` domains.
 
     **Lab Limitations:**
@@ -536,7 +536,7 @@ nslookup app.<default-domain>.koreacentral.azurecontainerapps.io
 - [Custom Domains — BYO Certificates](../custom-domains/byo-certificates.md)
 - [Networking Best Practices](../../best-practices/networking.md)
 - [Internal DNS and Private Endpoint Failure (Troubleshooting)](../../troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md)
-- [AppGW to Internal ACA NSG Destination (Troubleshooting)](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
+- [AppGW to Internal Container Apps NSG Destination (Troubleshooting)](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 
 ## Sources
 

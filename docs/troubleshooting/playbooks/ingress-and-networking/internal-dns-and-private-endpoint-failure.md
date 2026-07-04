@@ -237,14 +237,14 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 
 When on-premises DNS policy cannot forward Azure-managed domains (`*.azurecontainerapps.io`), a common workaround is:
 
-1. Bind a custom internal domain (e.g., `app.nhinvest.local`) to the ACA app
-2. Create a Private DNS Zone with an A record pointing to the ACA environment static IP
+1. Bind a custom internal domain (e.g., `app.nhinvest.local`) to the Azure Container Apps app
+2. Create a Private DNS Zone with an A record pointing to the Container Apps environment static IP
 3. Deploy a Private DNS Resolver (in Hub or Spoke VNet) with an Inbound Endpoint
 4. Configure on-premises Conditional Forwarder for the internal domain only
 
-**Common pitfall**: ACA ingress set to `external: false` causes VNet-internal clients to receive 404 from Envoy. In Internal Environments, `external: true` means "VNet-accessible" — not internet-exposed.
+**Common pitfall**: Container Apps ingress set to `external: false` causes VNet-internal clients to receive 404 from Envoy. In Internal Environments, `external: true` means "VNet-accessible" — not internet-exposed.
 
-For the full validated procedure, see: [On-Premises DNS to ACA Internal Environment](../../../operations/deployment/internal-ingress-on-prem-dns.md)
+For the full validated procedure, see: [On-Premises DNS to Container Apps Internal Environment](../../../operations/deployment/internal-ingress-on-prem-dns.md)
 
 ## See Also
 

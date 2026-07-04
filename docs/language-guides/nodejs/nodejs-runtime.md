@@ -58,7 +58,7 @@ CMD ["node", "--max-old-space-size=1536", "src/app.js"]
 
 | Check | Expected |
 | --- | --- |
-| ACA `targetPort` | `8000` |
+| Azure Container Apps `targetPort` | `8000` |
 | Express bind | `0.0.0.0:8000` |
 | Health endpoint | `GET /health` returns 200 |
 | Logs | stdout/stderr JSON format |
@@ -100,7 +100,7 @@ ps aux
 
 | Symptom | Root cause | Action |
 | --- | --- | --- |
-| Container healthy locally, failing in ACA | Port/ingress mismatch | Align Express bind and ACA `targetPort` |
+| Container healthy locally, failing in Container Apps | Port/ingress mismatch | Align Express bind and Container Apps `targetPort` |
 | Memory leaks or OOM kills | V8 heap exceeds container limit | Set `--max-old-space-size` and check for leaks |
 | Requests dropped during rollout | Missing `SIGTERM` handler | Implement graceful shutdown in `src/app.js` |
 | Missing logs in Log Analytics | Console output not captured | Ensure logs are written to stdout/stderr, not files |

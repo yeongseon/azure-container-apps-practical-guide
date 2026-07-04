@@ -61,7 +61,7 @@ flowchart TD
 |---|---|---|
 | Target Port | 80 (matches app) | 8081 (mismatch) |
 | Replica state | Running | Running (replicas stay up; the process keeps listening on 80) |
-| Revision health (default probes) | Healthy | Unhealthy / Failed (this lab defines no custom probes; with ingress enabled, ACA's default TCP probes use the ingress `targetPort`, so probes against `8081` fail) |
+| Revision health (default probes) | Healthy | Unhealthy / Failed (this lab defines no custom probes; with ingress enabled, Azure Container Apps' default TCP probes use the ingress `targetPort`, so probes against `8081` fail) |
 | External Access | HTTP 200 | HTTP 503 or timeout |
 
 ## 3) Runbook
@@ -307,7 +307,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/
 - `[Observed]` Baseline: targetPort=80 → HTTP 200.
 - `[Observed]` After `--target-port 9999`: HTTP 503 immediately (app listens on 80, ingress routes to 9999).
 - `[Observed]` After `--target-port 80` (fix): HTTP 200 within 10 seconds.
-- `[Inferred]` ACA ingress proxy cannot connect to the container on the wrong port; returns 503 to all clients.
+- `[Inferred]` Container Apps ingress proxy cannot connect to the container on the wrong port; returns 503 to all clients.
 
 Environment: `koreacentral`, rg-aca-lab-test4, `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest`.
 

@@ -219,7 +219,7 @@ az containerapp create \
 - [x] `/health` returns HTTP 200
 
 !!! note "Managed Identity for ACR Pull"
-    In this first deployment, the CLI handles authentication between ACR and ACA. For production-ready templates, use a User-Assigned Managed Identity for the container app to pull images from the registry.
+    In this first deployment, the CLI handles authentication between ACR and Azure Container Apps. For production-ready templates, use a User-Assigned Managed Identity for the container app to pull images from the registry.
 
 ## CLI Alternative (No Bicep)
 

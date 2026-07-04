@@ -55,7 +55,7 @@ validation:
 ---
 # Startup-Degraded Transient Failure Lab
 
-Test the operator assumption that ACA's rolling-revision rollout mechanism, combined with correctly-configured startup/readiness/liveness probes, fully masks client-visible transient 5xx errors when the subject application has a deterministic 25-second startup delay. Statistically falsify or confirm the claim using a constant-arrival-rate k6 loadgen, an ACA-managed rollout perturbation, and a 5-second-cadence revision-state sampler.
+Test the operator assumption that Azure Container Apps' rolling-revision rollout mechanism, combined with correctly-configured startup/readiness/liveness probes, fully masks client-visible transient 5xx errors when the subject application has a deterministic 25-second startup delay. Statistically falsify or confirm the claim using a constant-arrival-rate k6 loadgen, a Container Apps-managed rollout perturbation, and a 5-second-cadence revision-state sampler.
 
 ## Lab Metadata
 
@@ -101,7 +101,7 @@ The question is framed as a falsifiable hypothesis (Section 3) so the verdict is
 This lab follows the same design standard as `labs/zone-redundancy-best-effort/`. The lab adopts the following design constraints:
 
 1. **Subject app** is a deterministic custom Python image with `STARTUP_DELAY_SECONDS=25` and a dedicated `/healthz` endpoint. All three probes (startup, readiness, liveness) target `/healthz`, not `/`. The workload endpoint `/` is the heavy path that surfaces 5xx if the platform is incorrectly routing traffic to a not-yet-warm replica.
-2. **Primary perturbation** is an ACA-managed new revision rollout, triggered by changing a `ROLLOUT_GENERATION` env var (which forces ACA to create a new revision). `az containerapp revision restart` is a **supplemental** perturbation only, captured under its own run prefix and reported separately.
+2. **Primary perturbation** is a Container Apps-managed new revision rollout, triggered by changing a `ROLLOUT_GENERATION` env var (which forces Container Apps to create a new revision). `az containerapp revision restart` is a **supplemental** perturbation only, captured under its own run prefix and reported separately.
 3. **k6 loadgen** runs as a manual Container Apps Job in the same environment, targets the **public FQDN**, uses constant-arrival-rate 200 RPS with 50 VUs, **disables connection reuse** (`http.options: {responseTimeout: "10s", reuseConnection: false}`), and emits structured 10s buckets with **embedded client-side timestamps**.
 4. **High-frequency perturbation sampler** at 5-second cadence is mandatory. The 5-minute audit cron is supplemental only — a 5-minute interval is too coarse for a 10-second-bucket transition lab.
 5. **12 perturbation events over 2 hours** (not 6 events over 60 minutes). Higher event count tightens the confidence interval on `worst_bucket_err_pct` and exposes any cross-event correlation.
@@ -167,7 +167,7 @@ export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 
 ### H0 (null hypothesis under test)
 
-> **H0**: Across 12 ACA-managed rollout events at 200 RPS, no single perturbation produces a sustained window of ≥3 consecutive 10-second buckets above 0.5% `err_pct`. The platform's rolling-rollout mechanism, combined with correctly-configured `/healthz` probes, fully masks client-visible 5xx.
+> **H0**: Across 12 Container Apps-managed rollout events at 200 RPS, no single perturbation produces a sustained window of ≥3 consecutive 10-second buckets above 0.5% `err_pct`. The platform's rolling-rollout mechanism, combined with correctly-configured `/healthz` probes, fully masks client-visible 5xx.
 
 ### Falsification rule (binding)
 
@@ -197,7 +197,7 @@ If H0 is **false** (claim does not hold):
 - `worst_bucket_err_pct` over the perturbation phase exceeds 0.5% on at least one bucket.
 - `q5-falsification-3-consecutive-bad-buckets` returns at least one `falsified=true` row.
 
-The supplemental `revision restart` phase tests whether a non-rolling perturbation (which ACA performs without graceful drain) produces a materially different failure profile.
+The supplemental `revision restart` phase tests whether a non-rolling perturbation (which Container Apps performs without graceful drain) produces a materially different failure profile.
 
 ## 5. Experiment
 
@@ -207,7 +207,7 @@ The supplemental `revision restart` phase tests whether a non-rolling perturbati
 |---|---:|---:|---|---|
 | Preflight staircase | ~5 min | 100, 200, 400 | `preflight-` | Validate the Section 3 preflight nontrivial-headroom rule (200 RPS consumes nontrivial headroom). |
 | Baseline | 30 min | 200 | `baseline-` | Validate zero-5xx under steady load before any perturbation. |
-| Perturbation | ~2 hours | 200 | `perturbation-` | 12 ACA-managed new-revision rollouts, 10-min interval, ~5 min sampler window each. |
+| Perturbation | ~2 hours | 200 | `perturbation-` | 12 Container Apps-managed new-revision rollouts, 10-min interval, ~5 min sampler window each. |
 | Supplemental restart | ~30 min | 200 | `supplemental-` | 3 `az containerapp revision restart` events for contrast. |
 
 ### Per-event procedure (perturbation phase)
@@ -485,20 +485,20 @@ The error fired ~18 seconds after `vb7wl`'s container start, which is BEFORE the
 
 ### Causal attribution constraint
 
-Per Section 2 constraint #6, the "platform-initiated cause" of any observed behavior is capped at `[Strongly Suggested]`. Because this lab observed **no** client-visible 5xx during the perturbation phase, there is nothing in this run that requires causal attribution — the "H0 held under tested conditions" outcome only requires `[Measured]` evidence of absence, which Q2/Q5 provide directly. The attribution cap binds the **negative** verdict equally: this lab does NOT prove that ACA's rolling-rollout mechanism is internally responsible for the absence of 5xx; alternative explanations (the subject app's deterministic startup path completing before traffic shifts, the load balancer's connection-reuse strategy holding requests to still-warm replicas) are not ruled out by the available instrumentation.
+Per Section 2 constraint #6, the "platform-initiated cause" of any observed behavior is capped at `[Strongly Suggested]`. Because this lab observed **no** client-visible 5xx during the perturbation phase, there is nothing in this run that requires causal attribution — the "H0 held under tested conditions" outcome only requires `[Measured]` evidence of absence, which Q2/Q5 provide directly. The attribution cap binds the **negative** verdict equally: this lab does NOT prove that Container Apps' rolling-rollout mechanism is internally responsible for the absence of 5xx; alternative explanations (the subject app's deterministic startup path completing before traffic shifts, the load balancer's connection-reuse strategy holding requests to still-warm replicas) are not ruled out by the available instrumentation.
 
 ## 10. Conclusion
 
 **Perturbation-phase verdict** (`perturbation-20260612150126`, 12 events, 200 RPS, 2 hours):
 
-Under the tested conditions, ACA's rolling-rollout mechanism with correctly-configured dedicated `/healthz` probes did not produce any client-visible 5xx burst above the 0.5% / 3-consecutive-bucket threshold at 200 RPS sustained load over 12 new-revision rollout events. This is a `[Measured]` null result. The conservative interpretation is binding: this verdict does **not** generalize to other configurations.
+Under the tested conditions, Container Apps' rolling-rollout mechanism with correctly-configured dedicated `/healthz` probes did not produce any client-visible 5xx burst above the 0.5% / 3-consecutive-bucket threshold at 200 RPS sustained load over 12 new-revision rollout events. This is a `[Measured]` null result. The conservative interpretation is binding: this verdict does **not** generalize to other configurations.
 
 The bounds of this conclusion are deliberate and tight:
 
 - **Tested**: deterministic Python subject (`STARTUP_DELAY_SECONDS=25`), three correctly-configured `/healthz` probes (startup, readiness, liveness), 200 RPS constant-arrival-rate, 50 VUs with connection reuse OFF, 12 rolling rollouts triggered by `ROLLOUT_GENERATION` env-var changes (no traffic-split tuning, no `revisionWeight` ramps, no `terminationGracePeriodSeconds` overrides), public FQDN, single region (Korea Central), single Container Apps environment.
 - **NOT tested**: misconfigured probes (e.g., `/` as both workload and health path), longer startup delays (>25 s), higher RPS (>200), non-rolling perturbations (image pull failures, registry outages), revision restart (see supplemental-phase verdict), partial-revision-weight ramps, custom termination grace, multi-region failover, VNet-injected environments.
 
-The integration page at [`docs/best-practices/availability-and-non-guarantees.md`](../../best-practices/availability-and-non-guarantees.md) MUST NOT generalize this result to "ACA always masks all transients during rollout". The honest framing is: "ACA's rolling-rollout masks client-visible 5xx in **this specific configuration** with **these specific probes** at **this specific load** over **this specific event count**."
+The integration page at [`docs/best-practices/availability-and-non-guarantees.md`](../../best-practices/availability-and-non-guarantees.md) MUST NOT generalize this result to "Container Apps always masks all transients during rollout". The honest framing is: "Container Apps' rolling-rollout masks client-visible 5xx in **this specific configuration** with **these specific probes** at **this specific load** over **this specific event count**."
 
 **Supplemental-phase verdict** (`supplemental-restart-20260613054632`, 3 events, 200 RPS, ~33 minutes):
 
@@ -521,7 +521,7 @@ The falsification step is the binding rule in Section 3: ANY sustained window of
 The asymmetry of the verdict is intentional and binding:
 
 - **H0 held under tested conditions (this run's outcome)** is **weak / conservative**: 12 events at 200 RPS with these specific probes did not produce a single bucket above 0.5%, but a 13th event or a different configuration could.
-- **H0-falsified** would have been **decisive**: even one sustained 3-bucket window above 0.5% across the 12 events would have universally refuted the claim "ACA always masks all transients during rollout".
+- **H0-falsified** would have been **decisive**: even one sustained 3-bucket window above 0.5% across the 12 events would have universally refuted the claim "Container Apps always masks all transients during rollout".
 
 The lab is designed so that the falsification rule, not operator judgment, decides the verdict. Q5's empty result is the durable, mechanical evidence required by the falsification step.
 
@@ -542,7 +542,7 @@ The 2026-06-20 canonical repro adds a Phase B evidence-pack overlay under `labs/
 |---|---|---:|---|---|---|
 | `10-canonical-evidence-integrity-gate.json` | `canonical_evidence_pack_internally_consistent` | 3 | `qA`, `qB`, `qC`, `qD`, `qE`, `qF`, `qG` | PASS | Preconditions gate. Confirms the canonical qA-qG cohort exists, the filename timestamps stay inside the 2026-06-20 capture window, and `qF` explicitly maps one `baseline-*` plus one `perturbation-*` run. |
 | `11-failure-degraded-state-gate.json` | `rolling_rollout_produced_observable_degraded_state_signatures` | 3 | `qA`, `qD`, `qE` | PASS | Anti-fake-fix gate. Confirms three perturbation start markers, real `ProbeFailed` warnings (including 35 on `subject-app--0000003`), and revision demotion/promotion evidence during rollout. This proves the platform entered a degraded internal state even though the client never saw sustained errors. |
-| `12-recovery-fix-gate.json` | `aca_rolling_rollout_masked_transients_to_clients` | 3 | `qA`, `qB`, `qF` | PASS | H0-held gate. Confirms the perturbation run's `err_pct` is zero, the D6 falsification rule did not trigger, and the latest healthy snapshots still show the newest revision Running with the active qA record reporting 3 replicas. Gate 12 must be read with Gate 11: the rollout was real, but ACA masked the transient state from the client. |
+| `12-recovery-fix-gate.json` | `aca_rolling_rollout_masked_transients_to_clients` | 3 | `qA`, `qB`, `qF` | PASS | H0-held gate. Confirms the perturbation run's `err_pct` is zero, the D6 falsification rule did not trigger, and the latest healthy snapshots still show the newest revision Running with the active qA record reporting 3 replicas. Gate 12 must be read with Gate 11: the rollout was real, but Container Apps masked the transient state from the client. |
 | `13-cross-artifact-consistency-gate.json` | `evidence_artifacts_cohere_across_canonical_window` | 2 | `qA`, `qE`, qA-qG filename timestamps | PASS | Cross-artifact integrity gate. Confirms the canonical filenames belong to one window and that perturbation identifiers overlap across qA and qE, preventing cross-table timestamp mixing. |
 
 ## 12. Evidence
@@ -774,7 +774,7 @@ The `sampler` and `audit` containers emit plain JSON (no logfmt wrapper) so `par
 
 [Observed] Capture 42 shows the audit-sampler Execution history blade: 15 prior executions all marked `Failed` (one every 5 minutes from 21:30:25Z to 22:40:00Z), with the current 22:45:00Z execution still `Running`. The `endTime` for the most-recent Failed execution is `null` (verified via `az containerapp job execution show`).
 
-[Inferred] The audit-sampler job spec has `replicaTimeout=240` (4 minutes), but the audit container runs as a long-lived sampler daemon that emits a `ReplicaInventorySample` every 30 seconds. The platform sends SIGTERM at the 240-second mark, the container exits with a non-zero code, and ACA marks the execution as `Failed`. Data ingestion is **unaffected**: the audit container's first ~240 seconds always succeed, and the next execution at the next 5-minute cron mark continues sampling.
+[Inferred] The audit-sampler job spec has `replicaTimeout=240` (4 minutes), but the audit container runs as a long-lived sampler daemon that emits a `ReplicaInventorySample` every 30 seconds. The platform sends SIGTERM at the 240-second mark, the container exits with a non-zero code, and Container Apps marks the execution as `Failed`. Data ingestion is **unaffected**: the audit container's first ~240 seconds always succeed, and the next execution at the next 5-minute cron mark continues sampling.
 
 [Strongly Suggested] Evidence that this is benign:
 
@@ -788,7 +788,7 @@ The `sampler` and `audit` containers emit plain JSON (no logfmt wrapper) so `par
 2. **Trap SIGTERM in the container script and exit 0** — would mask the "Failed" badge but also mask any real (non-timeout) container failures. Not recommended.
 3. **Change job semantics from cron-daemon to one-shot snapshot** — would lose the continuous sampling cadence that the lab's analysis depends on. Not recommended.
 
-This is **NOT** a finding about ACA's reliability — it is a documented interaction between long-running container daemons and ACA's job replicaTimeout semantics, and it does not affect the lab's H0 verdict.
+This is **NOT** a finding about Container Apps' reliability — it is a documented interaction between long-running container daemons and Container Apps' job replicaTimeout semantics, and it does not affect the lab's H0 verdict.
 
 ## 13. Solution
 
@@ -796,17 +796,17 @@ For the perturbation phase (12 rolling-rollout events at 200 RPS), the lab found
 
 1. Increase `revisionWeight` ramp duration in the traffic configuration to give the new revision more warm-up time.
 2. Configure `terminationGracePeriodSeconds` and verify the subject app's SIGTERM handler drains in-flight requests cleanly before exiting.
-3. Prefer ACA-managed rolling rollouts over `az containerapp revision restart` when zero errors are required. The supplemental phase measured one error per ~290,000 requests for explicit restart vs exactly zero for rolling rollout under identical load — both clear the falsification bar, but the restart path produced a non-zero error rate. The binding caps the "platform-initiated cause" of the single supplemental error at `[Strongly Suggested]`.
+3. Prefer Container Apps-managed rolling rollouts over `az containerapp revision restart` when zero errors are required. The supplemental phase measured one error per ~290,000 requests for explicit restart vs exactly zero for rolling rollout under identical load — both clear the falsification bar, but the restart path produced a non-zero error rate. The binding caps the "platform-initiated cause" of the single supplemental error at `[Strongly Suggested]`.
 4. Add an external retry-with-jitter layer (CDN, API gateway, client SDK) for any client whose SLO does not tolerate the measured `worst_bucket_err_pct` of either phase.
 
-The choice between ACA-managed rollout and `az containerapp revision restart` is therefore SLO-driven: rolling rollout is the safer default; restart is acceptable when the SLO tolerates ~10^-5 errors during the restart window. If the SLO requires strict zero, restart should be restricted to planned maintenance windows with traffic drained at the ingress layer.
+The choice between Container Apps-managed rollout and `az containerapp revision restart` is therefore SLO-driven: rolling rollout is the safer default; restart is acceptable when the SLO tolerates ~10^-5 errors during the restart window. If the SLO requires strict zero, restart should be restricted to planned maintenance windows with traffic drained at the ingress layer.
 
 ## 14. Prevention
 
 To prevent this failure mode in production:
 
 1. **Validate probe configuration before depending on rolling-rollout**. The `/` workload endpoint MUST NOT be the same as the health endpoint. Use a dedicated `/healthz` (or equivalent) and verify all three probes (startup, readiness, liveness) target it. See `docs/best-practices/reliability.md` for the canonical pattern.
-2. **Prefer ACA-managed rollouts over `revision restart` when the SLO requires strict zero errors**. This lab's supplemental phase measured 1 error per ~290,000 requests for explicit restart vs exactly 0 errors for rolling rollout under identical load — both clear the falsification rule, but the operational asymmetry is real. Use `revision restart` for operations where the SLO tolerates ~10^-5 errors during the restart window; otherwise, restrict it to planned maintenance windows with traffic drained.
+2. **Prefer Container Apps-managed rollouts over `revision restart` when the SLO requires strict zero errors**. This lab's supplemental phase measured 1 error per ~290,000 requests for explicit restart vs exactly 0 errors for rolling rollout under identical load — both clear the falsification rule, but the operational asymmetry is real. Use `revision restart` for operations where the SLO tolerates ~10^-5 errors during the restart window; otherwise, restrict it to planned maintenance windows with traffic drained.
 
 ## 15. Takeaway
 

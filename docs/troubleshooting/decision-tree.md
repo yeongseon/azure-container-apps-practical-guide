@@ -122,7 +122,7 @@ flowchart TD
 - [Ingress Not Reachable](playbooks/ingress-and-networking/ingress-not-reachable.md)
 - [Internal DNS and Private Endpoint Failure](playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md)
 - [Service-to-Service Connectivity Failure](playbooks/ingress-and-networking/service-to-service-connectivity-failure.md)
-- [AppGW to Internal ACA NSG Destination](playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
+- [AppGW to Internal Azure Container Apps NSG Destination](playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
 
 ### Scaling and Runtime
 
@@ -151,7 +151,7 @@ flowchart TD
 | Container runs but no responses | Port binding mismatch or app not listening | [Container Start Failure](playbooks/startup-and-provisioning/container-start-failure.md) |
 | Image pull errors in system logs | ACR authentication or image tag issue | [Image Pull Failure](playbooks/startup-and-provisioning/image-pull-failure.md) |
 | Ingress unreachable externally | Ingress configuration or external access disabled | [Ingress Not Reachable](playbooks/ingress-and-networking/ingress-not-reachable.md) |
-| Application Gateway backend Unhealthy against an internal Container Apps environment | Workload profile subnet NSG has Destination pinned to environment `staticIp` instead of the container app subnet CIDR, or is missing edge proxy ports (31443/31080), or has a custom Deny rule that shadows the default `AllowAzureLoadBalancerInBound` rule at priority 65001 | [AppGW to Internal ACA NSG Destination](playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) |
+| Application Gateway backend Unhealthy against an internal Container Apps environment | Workload profile subnet NSG has Destination pinned to environment `staticIp` instead of the container app subnet CIDR, or is missing edge proxy ports (31443/31080), or has a custom Deny rule that shadows the default `AllowAzureLoadBalancerInBound` rule at priority 65001 | [AppGW to Internal Container Apps NSG Destination](playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) |
 | High latency with restarts | Memory growth and OOM kills | [CrashLoop OOM and Resource Pressure](playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) |
 | Event-driven scaler not firing | KEDA configuration mismatch | [Event Scaler Mismatch](playbooks/scaling-and-runtime/event-scaler-mismatch.md) |
 | Private endpoint dependency unreachable | DNS/private zone configuration | [Internal DNS and Private Endpoint Failure](playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md) |
