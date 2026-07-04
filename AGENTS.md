@@ -914,7 +914,7 @@ content_validation:
 
 ## Pre-Work State Verification (AI Agent Rule)
 
-**Every AI agent starting a continuation session in this repository MUST run the following checklist BEFORE proposing or executing any action.** Session summaries — including summaries produced by prior turns of the same agent — may be stale, out of order, or partially reflect uncommitted intent. Never trust a summary without verifying against the actual repository state.
+**Every AI agent starting work in this repository MUST run the following checklist BEFORE proposing or executing any action.** Session summaries — including summaries produced by prior turns of the same agent — may be stale, out of order, or partially reflect uncommitted intent. Never trust a summary without verifying against the actual repository state. This applies both to brand-new sessions (where the agent has zero prior context and must establish baseline state) and to continuation sessions (where the agent inherits a summary that may not match the current repository state).
 
 ### Pre-Work Checklist
 
