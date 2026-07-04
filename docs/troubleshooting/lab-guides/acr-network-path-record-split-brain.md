@@ -505,7 +505,7 @@ ACR Premium is the dominant cost (~$1.67/day), so do not leave the lab running b
 
 ## Related Playbook
 
-- [Private Endpoint DNS Failure](../playbooks/networking-advanced/private-endpoint-dns-failure.md) — covers the broader Private Endpoint DNS failure family; this lab is the Scenario D (record-level split-brain) reproduction inside that family, with the Container Apps-specific workload-vs-pull-path distinction.
+- [Private Endpoint DNS Failure](../playbooks/networking-advanced/private-endpoint-dns-failure.md) — covers the broader Private Endpoint DNS failure family; this lab is the Scenario D (record-level split-brain) reproduction inside that family, featuring the workload-vs-pull-path distinction specific to Container Apps.
 
 ## See Also
 

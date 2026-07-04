@@ -104,7 +104,7 @@ The 10 captures committed under `docs/assets/troubleshooting/acr-network-path-pe
 | 10 | After load applied | Log Analytics → Logs (Azure Firewall workspace) | KQL against `AZFWApplicationRule` returning 15 rows of `acracrpefcinhh4rw.azurecr.io` and data-endpoint FQDN matches sourced from `snet-aca` IP `10.90.1.160` — proves the firewall is silently inspecting PE-bound traffic that should be taking the direct PE path | `10-law-azfw-kql.png` |
 
 !!! warning "Capture 07 is the smoking gun"
-    The two `/32` UDR entries (`pe-10-90-2-4`, `pe-10-90-2-5`) pinned to the firewall private IP are the structural defect for this lab. Without those `/32` routes, Azure Container Apps-to-ACR traffic would take the direct PE path; with them, the firewall silently inspects every PE-bound request, surfacing as a class of "ACR is private but throughput is wrong" symptoms. Capture 10's LAW KQL is the firewall-log proof.
+    The two `/32` UDR entries (`pe-10-90-2-4`, `pe-10-90-2-5`) pinned to the firewall private IP are the structural defect for this lab. Without those `/32` routes, traffic from Azure Container Apps to ACR would take the direct PE path; with them, the firewall silently inspects every PE-bound request, surfacing as a class of "ACR is private but throughput is wrong" symptoms. Capture 10's LAW KQL is the firewall-log proof.
 
 ### acr-network-path-record-split-brain
 

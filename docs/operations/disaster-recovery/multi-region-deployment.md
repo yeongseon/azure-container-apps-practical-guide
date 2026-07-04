@@ -64,7 +64,7 @@ param secondaryLocation string = 'centralus'
 
 !!! warning "Front Door probe-path conventions remain app-specific"
     Microsoft Learn verifies the multi-region pattern itself: Container Apps is single-region, and multi-region resiliency uses separate regional environments plus Azure Front Door or Azure Traffic Manager. Microsoft Learn also documents that Front Door origin groups use periodic HTTP/HTTPS health probes.
-    However, the cited Container Apps and Front Door pages do not prescribe one Container Apps-specific origin layout or canonical probe path, so keep those details app-specific and validate failover behavior before standardizing them.
+    However, the cited Container Apps and Front Door pages do not prescribe one origin layout specific to Container Apps or canonical probe path, so keep those details app-specific and validate failover behavior before standardizing them.
 
 <!-- diagram-id: multi-region-deployment-steps -->
 ```mermaid

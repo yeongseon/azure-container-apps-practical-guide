@@ -45,7 +45,7 @@ Do not create a new top-level section if the content can fit under one of the co
 
 ## Container Apps Specific Addendum
 
-This repository extends the series contract with the following Container Apps-specific content patterns:
+This repository extends the series contract with the following content patterns specific to Container Apps:
 
 - **Language Guides** — Per-runtime step-by-step tutorials for Python (Flask + Gunicorn), Node.js (Express), Java (Spring Boot), and .NET (ASP.NET Core), each covering local development through revisions and traffic splitting. Located under `docs/language-guides/*/tutorial/` with companion recipes under `docs/language-guides/*/recipes/`.
 - **Reference Applications** — Minimal working applications under `apps/*/` (Python, Node.js, Java, .NET) that back the language-guide tutorials.

@@ -120,7 +120,7 @@ Example managed identity shape from Learn:
 
 ## Conservative guidance for Event Hubs and Kafka
 
-!!! warning "Full Container Apps-specific metadata examples for Event Hubs and Kafka are not currently enumerated in Microsoft Learn"
+!!! warning "Full metadata examples specific to Container Apps for Event Hubs and Kafka are not currently enumerated in Microsoft Learn"
     Microsoft Learn confirms these event-source families are supported through KEDA-backed scaling, but the current page does not provide the complete metadata key sets in the way it does for Service Bus and Azure Queue. Validate exact metadata against the current scaler contract before production rollout.
 
 ### Portal view: Scale blade (revision without the event-scaler scale-to-zero pattern)

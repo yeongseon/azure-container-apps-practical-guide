@@ -55,7 +55,7 @@ validation:
 ---
 # Startup-Degraded Transient Failure Lab
 
-Test the operator assumption that Azure Container Apps' rolling-revision rollout mechanism, combined with correctly-configured startup/readiness/liveness probes, fully masks client-visible transient 5xx errors when the subject application has a deterministic 25-second startup delay. Statistically falsify or confirm the claim using a constant-arrival-rate k6 loadgen, a Container Apps-managed rollout perturbation, and a 5-second-cadence revision-state sampler.
+Test the operator assumption that Azure Container Apps' rolling-revision rollout mechanism, combined with correctly-configured startup/readiness/liveness probes, fully masks client-visible transient 5xx errors when the subject application has a deterministic 25-second startup delay. Statistically falsify or confirm the claim using a constant-arrival-rate k6 loadgen, a rollout perturbation managed by Container Apps, and a 5-second-cadence revision-state sampler.
 
 ## Lab Metadata
 
@@ -101,7 +101,7 @@ The question is framed as a falsifiable hypothesis (Section 3) so the verdict is
 This lab follows the same design standard as `labs/zone-redundancy-best-effort/`. The lab adopts the following design constraints:
 
 1. **Subject app** is a deterministic custom Python image with `STARTUP_DELAY_SECONDS=25` and a dedicated `/healthz` endpoint. All three probes (startup, readiness, liveness) target `/healthz`, not `/`. The workload endpoint `/` is the heavy path that surfaces 5xx if the platform is incorrectly routing traffic to a not-yet-warm replica.
-2. **Primary perturbation** is a Container Apps-managed new revision rollout, triggered by changing a `ROLLOUT_GENERATION` env var (which forces Container Apps to create a new revision). `az containerapp revision restart` is a **supplemental** perturbation only, captured under its own run prefix and reported separately.
+2. **Primary perturbation** is a new revision rollout managed by Container Apps, triggered by changing a `ROLLOUT_GENERATION` env var (which forces Container Apps to create a new revision). `az containerapp revision restart` is a **supplemental** perturbation only, captured under its own run prefix and reported separately.
 3. **k6 loadgen** runs as a manual Container Apps Job in the same environment, targets the **public FQDN**, uses constant-arrival-rate 200 RPS with 50 VUs, **disables connection reuse** (`http.options: {responseTimeout: "10s", reuseConnection: false}`), and emits structured 10s buckets with **embedded client-side timestamps**.
 4. **High-frequency perturbation sampler** at 5-second cadence is mandatory. The 5-minute audit cron is supplemental only — a 5-minute interval is too coarse for a 10-second-bucket transition lab.
 5. **12 perturbation events over 2 hours** (not 6 events over 60 minutes). Higher event count tightens the confidence interval on `worst_bucket_err_pct` and exposes any cross-event correlation.
@@ -167,7 +167,7 @@ export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 
 ### H0 (null hypothesis under test)
 
-> **H0**: Across 12 Container Apps-managed rollout events at 200 RPS, no single perturbation produces a sustained window of ≥3 consecutive 10-second buckets above 0.5% `err_pct`. The platform's rolling-rollout mechanism, combined with correctly-configured `/healthz` probes, fully masks client-visible 5xx.
+> **H0**: Across 12 rollout events managed by Container Apps at 200 RPS, no single perturbation produces a sustained window of ≥3 consecutive 10-second buckets above 0.5% `err_pct`. The platform's rolling-rollout mechanism, combined with correctly-configured `/healthz` probes, fully masks client-visible 5xx.
 
 ### Falsification rule (binding)
 
@@ -207,7 +207,7 @@ The supplemental `revision restart` phase tests whether a non-rolling perturbati
 |---|---:|---:|---|---|
 | Preflight staircase | ~5 min | 100, 200, 400 | `preflight-` | Validate the Section 3 preflight nontrivial-headroom rule (200 RPS consumes nontrivial headroom). |
 | Baseline | 30 min | 200 | `baseline-` | Validate zero-5xx under steady load before any perturbation. |
-| Perturbation | ~2 hours | 200 | `perturbation-` | 12 Container Apps-managed new-revision rollouts, 10-min interval, ~5 min sampler window each. |
+| Perturbation | ~2 hours | 200 | `perturbation-` | 12 new-revision rollouts managed by Container Apps, 10-min interval, ~5 min sampler window each. |
 | Supplemental restart | ~30 min | 200 | `supplemental-` | 3 `az containerapp revision restart` events for contrast. |
 
 ### Per-event procedure (perturbation phase)
@@ -796,17 +796,17 @@ For the perturbation phase (12 rolling-rollout events at 200 RPS), the lab found
 
 1. Increase `revisionWeight` ramp duration in the traffic configuration to give the new revision more warm-up time.
 2. Configure `terminationGracePeriodSeconds` and verify the subject app's SIGTERM handler drains in-flight requests cleanly before exiting.
-3. Prefer Container Apps-managed rolling rollouts over `az containerapp revision restart` when zero errors are required. The supplemental phase measured one error per ~290,000 requests for explicit restart vs exactly zero for rolling rollout under identical load — both clear the falsification bar, but the restart path produced a non-zero error rate. The binding caps the "platform-initiated cause" of the single supplemental error at `[Strongly Suggested]`.
+3. Prefer rolling rollouts managed by Container Apps over `az containerapp revision restart` when zero errors are required. The supplemental phase measured one error per ~290,000 requests for explicit restart vs exactly zero for rolling rollout under identical load — both clear the falsification bar, but the restart path produced a non-zero error rate. The binding caps the "platform-initiated cause" of the single supplemental error at `[Strongly Suggested]`.
 4. Add an external retry-with-jitter layer (CDN, API gateway, client SDK) for any client whose SLO does not tolerate the measured `worst_bucket_err_pct` of either phase.
 
-The choice between Container Apps-managed rollout and `az containerapp revision restart` is therefore SLO-driven: rolling rollout is the safer default; restart is acceptable when the SLO tolerates ~10^-5 errors during the restart window. If the SLO requires strict zero, restart should be restricted to planned maintenance windows with traffic drained at the ingress layer.
+The choice between a rollout managed by Container Apps and `az containerapp revision restart` is therefore SLO-driven: rolling rollout is the safer default; restart is acceptable when the SLO tolerates ~10^-5 errors during the restart window. If the SLO requires strict zero, restart should be restricted to planned maintenance windows with traffic drained at the ingress layer.
 
 ## 14. Prevention
 
 To prevent this failure mode in production:
 
 1. **Validate probe configuration before depending on rolling-rollout**. The `/` workload endpoint MUST NOT be the same as the health endpoint. Use a dedicated `/healthz` (or equivalent) and verify all three probes (startup, readiness, liveness) target it. See `docs/best-practices/reliability.md` for the canonical pattern.
-2. **Prefer Container Apps-managed rollouts over `revision restart` when the SLO requires strict zero errors**. This lab's supplemental phase measured 1 error per ~290,000 requests for explicit restart vs exactly 0 errors for rolling rollout under identical load — both clear the falsification rule, but the operational asymmetry is real. Use `revision restart` for operations where the SLO tolerates ~10^-5 errors during the restart window; otherwise, restrict it to planned maintenance windows with traffic drained.
+2. **Prefer rollouts managed by Container Apps over `revision restart` when the SLO requires strict zero errors**. This lab's supplemental phase measured 1 error per ~290,000 requests for explicit restart vs exactly 0 errors for rolling rollout under identical load — both clear the falsification rule, but the operational asymmetry is real. Use `revision restart` for operations where the SLO tolerates ~10^-5 errors during the restart window; otherwise, restrict it to planned maintenance windows with traffic drained.
 
 ## 15. Takeaway
 

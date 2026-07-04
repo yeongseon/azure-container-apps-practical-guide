@@ -97,7 +97,7 @@ flowchart TD
 
 - **HTTP 5xx is not one thing**.
 - A 5xx can originate at Ingress, Environment, Revision startup, or app code.
-- If the environment is internal and fronted by Application Gateway, APIM, or Azure Front Door, treat the front-door layer as its own hypothesis first — a gateway can report backend "Unhealthy" or return 502 without any Container Apps-side log entry when subnet NSGs block the workload profile subnet on the correct ports.
+- If the environment is internal and fronted by Application Gateway, APIM, or Azure Front Door, treat the front-door layer as its own hypothesis first — a gateway can report backend "Unhealthy" or return 502 without any log entry on the Container Apps side when subnet NSGs block the workload profile subnet on the correct ports.
 - Treat each layer as a competing hypothesis until logs disprove it.
 
 ### Request-path failure points and playbooks

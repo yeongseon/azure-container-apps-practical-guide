@@ -135,7 +135,7 @@ Key points:
 - Dapr on Azure Container Apps enables mTLS by default for service invocation.
 
 !!! note "Document certificate rotation conservatively"
-    Microsoft Learn is clear that Container Apps Dapr service invocation uses built-in mTLS, but it does not publish a Container Apps-specific rotation cadence on the Container Apps pages cited here. Treat the implementation as Sentry-issued, automatically managed Dapr certificates and refer to the Dapr security documentation for current certificate TTL and rotation behavior.
+    Microsoft Learn is clear that Container Apps Dapr service invocation uses built-in mTLS, but it does not publish a rotation cadence specific to Container Apps on the Container Apps pages cited here. Treat the implementation as Sentry-issued, automatically managed Dapr certificates and refer to the Dapr security documentation for current certificate TTL and rotation behavior.
 
 ## Comparison of the Three Planes
 

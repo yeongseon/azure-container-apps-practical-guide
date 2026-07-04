@@ -82,7 +82,7 @@ Use Azure Policy and internal platform rules to keep production deployments on a
 
 Conservative guidance:
 
-- Treat registry restriction as a **governance control**, not as an Azure Container Apps-native allow-list feature.
+- Treat registry restriction as a **governance control**, not as a native Azure Container Apps allow-list feature.
 - Standardize on approved registries such as ACR.
 - Review pipeline inputs so application teams cannot silently switch to unapproved public registries.
 

@@ -310,7 +310,7 @@ az acr repository show-tags \
 
 Log Analytics can become a dominant cost driver if you emit verbose logs at high request volume.
 
-Container Apps-specific tactics:
+Tactics specific to Container Apps:
 
 - Keep structured logs, but avoid duplicate payload dumps.
 - Log business events once, not at each internal layer.
