@@ -11,7 +11,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-07-03*
+*Generated: 2026-07-04*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
@@ -103,7 +103,7 @@ pie title In-Scope Document Validation Status
 | [Job Design](../best-practices/job-design.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Jobs](../best-practices/jobs.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Mtls](../best-practices/mtls.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
-| [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-07-04 |
 | [Reliability](../best-practices/reliability.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Revision Strategy](../best-practices/revision-strategy.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Scaling](../best-practices/scaling.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |

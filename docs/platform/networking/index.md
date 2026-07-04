@@ -191,6 +191,7 @@ This pattern reduces attack surface while keeping the public API straightforward
 - [Container Apps vs Others](../../start-here/when-to-use-container-apps.md)
 - [VNet Integration Recipe](vnet-integration.md)
 - [Private Endpoint Recipe](private-endpoints.md)
+- [Application Gateway Integration](application-gateway-integration.md)
 
 ## Sources
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)

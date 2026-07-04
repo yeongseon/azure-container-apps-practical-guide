@@ -31,7 +31,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: '2026-07-04'
   reviewer: ai-agent
   core_claims:
     - claim: The network type of a Container Apps environment can't be changed after the environment is created.

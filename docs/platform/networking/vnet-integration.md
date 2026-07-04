@@ -230,6 +230,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
 ## See Also
 - [Ingress in Azure Container Apps](ingress.md)
 - [Private Endpoints](private-endpoints.md)
+- [Application Gateway Integration](application-gateway-integration.md)
 - [Egress Control](egress-control.md)
 - [Service-to-Service Communication](service-to-service.md)
 - [Environment Networking and CIDR](../environments/networking-and-cidr.md)
