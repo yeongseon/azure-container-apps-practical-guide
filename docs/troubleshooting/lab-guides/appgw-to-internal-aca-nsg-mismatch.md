@@ -12,11 +12,11 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview
 validation:
   az_cli:
-    last_tested: '2026-07-03'
+    last_tested: '2026-07-04'
     cli_version: '2.79.0'
     result: pass
   bicep:
-    last_tested: '2026-07-03'
+    last_tested: '2026-07-04'
     result: pass
 ---
 # AppGW to Internal ACA NSG Mismatch Reproduction Lab
@@ -37,7 +37,7 @@ destination is by-design broken on workload profiles environments.
 | Difficulty | Intermediate |
 | Estimated Duration | 20-30 minutes (8-12 min for the initial Bicep deploy, 5 min for `trigger.sh`, 3 min for `fix.sh`) |
 | Tier | Workload profiles (Consumption) |
-| Failure Mode | Application Gateway backend `Unhealthy`; client requests return HTTP 502 or time out at the client (HTTP 000) — see [`Client-side evidence`](#client-side-evidence) for the manifestation observed on the `2026-07-03` live run |
+| Failure Mode | Application Gateway backend `Unhealthy`; client requests return HTTP 502 (or HTTP 000 client timeout if AppGW's request timeout exceeds the client `--max-time`) — see [`Client-side evidence`](#client-side-evidence) for the manifestation observed on the current committed evidence pack |
 | Skills Practiced | Application Gateway backend health, NSG rule inspection, Private DNS Zone linkage, single-variable failure isolation |
 
 !!! note "Evidence depth"
@@ -49,8 +49,8 @@ destination is by-design broken on workload profiles environments.
     - `verify.sh` is a **pure file processor** — it reads baseline / broken / fixed JSON blobs in `evidence/` and emits `verify-result.json` with seven gates (A/B/C for H1 confirmation, D/E for falsification, F/G for H2 and H3 exclusion) plus a verdict (`HYPOTHESIS_CONFIRMED` / `HYPOTHESIS_NOT_CONFIRMED`) and a falsification status (`NOT_YET_TESTED` / `FIX_VERIFIED` / `FIX_DID_NOT_RECOVER`). It does not call Azure and does not depend on `$RG`.
     - `evidence/` intentionally does not carry a committed evidence pack. Every artifact listed in [`labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md) is generated on demand by `trigger.sh` and `fix.sh`.
 
-!!! success "Live-executed 2026-07-03 (az CLI) and 2026-07-04 (Portal screenshots)"
-    On `2026-07-03` the full lab was executed end-to-end against a live Azure subscription in Korea Central (`azure-cli 2.79.0`). `verify.sh` emitted `evidence/verify-result.json` with all seven gates true, `verdict = HYPOTHESIS_CONFIRMED`, and `falsification = FIX_VERIFIED` (exit 0). Baseline / broken / fixed evidence files under `labs/appgw-to-internal-aca-nsg-mismatch/evidence/` are the captured artifacts from this run. Note: during this run the initial deployment surfaced a **CAE FQDN routing quirk** — with `external: false` on an internal environment, the app FQDN is emitted as `<app>.internal.<env>.<region>.azurecontainerapps.io` and is reachable ONLY through the internal service mesh (100.100.x.x), NOT through the ILB staticIp; AppGW backend probes therefore got HTTP 404 "This Container App is stopped or does not exist" from the CAE edge-proxy. The fix (`infra/main.bicep` line ~200) is to set `external: true` on the ingress even for internal environments — this preserves the internal-ILB-only exposure at the network layer while surfacing the app FQDN in the ILB-reachable form. The Bicep template in this repository carries the fix; if you deploy an earlier commit you will hit this trap. On `2026-07-04` the lab was re-executed in the same Korea Central subscription with a Playwright MCP browser session against `ms.portal.azure.com`, and the **five Portal screenshots** referenced under `## 6) Portal Evidence` were captured live from the running deployment (`agw-appgwnsg-kl4kt7`, `nsg-snet-cae-kl4kt7`). Each PNG was sanitized per the AGENTS.md PII rules (GUID → all-zero placeholder, `MCAPS-*` → `Visual Studio Enterprise Subscription`, `Microsoft Non-Production` → `Contoso`, employee alias/email/display-name replaced, avatar masked with Portal-blue `#0078d4`) and visually verified via `look_at`/`Read` before commit.
+!!! success "Live-executed on 2026-07-03 (initial validation) and 2026-07-04 (re-execution + Portal screenshots)"
+    On `2026-07-03` the full lab was first executed end-to-end against a live Azure subscription in Korea Central (`azure-cli 2.79.0`). This initial validation surfaced a **CAE FQDN routing quirk**: with `external: false` on an internal environment, the app FQDN is emitted as `<app>.internal.<env>.<region>.azurecontainerapps.io` and is reachable ONLY through the internal service mesh (100.100.x.x), NOT through the ILB staticIp; AppGW backend probes therefore got HTTP 404 "This Container App is stopped or does not exist" from the CAE edge-proxy. The fix (`infra/main.bicep` line ~200) is to set `external: true` on the ingress even for internal environments — this preserves the internal-ILB-only exposure at the network layer while surfacing the app FQDN in the ILB-reachable form. The Bicep template in this repository carries the fix; if you deploy an earlier commit you will hit this trap. On `2026-07-04` the lab was **re-executed** in the same Korea Central subscription against a fresh deployment (`agw-appgwnsg-kl4kt7`, `nsg-snet-cae-kl4kt7`), and the **baseline / broken / fixed evidence files** under `labs/appgw-to-internal-aca-nsg-mismatch/evidence/` are the captured artifacts from this re-execution. `verify.sh` emitted `evidence/verify-result.json` with all seven gates true, `verdict = HYPOTHESIS_CONFIRMED`, and `falsification = FIX_VERIFIED` (exit 0). During the same `2026-07-04` re-execution, a Playwright MCP browser session against `ms.portal.azure.com` captured the **five Portal screenshots** referenced under `## 6) Portal Evidence` live from the running deployment. Each PNG was sanitized per the AGENTS.md PII rules (GUID → all-zero placeholder, `MCAPS-*` → `Visual Studio Enterprise Subscription`, `Microsoft Non-Production` → `Contoso`, employee alias/email/display-name replaced, avatar masked with Portal-blue `#0078d4`) and visually verified via `look_at`/`Read` before commit.
 
 ## 1) Background
 
@@ -159,32 +159,32 @@ bash labs/appgw-to-internal-aca-nsg-mismatch/cleanup.sh
 
 ## 4) Experiment Log
 
-The per-scenario observation log from the `2026-07-03` live run in Korea Central. Every `[Observed]` bullet cites the raw artifact under `labs/appgw-to-internal-aca-nsg-mismatch/evidence/` captured during that run.
+The per-scenario observation log from the `2026-07-04` re-executed live run in Korea Central (the currently committed evidence pack). The initial `2026-07-03` live run surfaced the CAE FQDN routing quirk documented in the success admonition above; the `2026-07-04` re-execution captured the artifact set now in-tree. Every `[Observed]` bullet cites the raw artifact under `labs/appgw-to-internal-aca-nsg-mismatch/evidence/` captured during the `2026-07-04` re-execution.
 
 ### Baseline scenario (before `trigger.sh`)
 
 - **[Observed]** `evidence/baseline-backend-health.json`: `.backendAddressPools[0].backendHttpSettingsCollection[0].servers[0].health = "Healthy"`.
 - **[Observed]** `evidence/baseline-nsg-rules.json`: empty custom rule set (only Azure default rules are in effect — `AllowVnetInBound` priority 65000, `AllowAzureLoadBalancerInBound` priority 65001, `DenyAllInBound` priority 65500 — implicit and not enumerated in `az network nsg rule list` output).
-- **[Observed]** `evidence/baseline-curl.txt`: `HTTP 200 in 0.335568s`.
+- **[Observed]** `evidence/baseline-curl.txt`: `HTTP 200 in 0.275887s`.
 
 ### Broken scenario (after `trigger.sh`)
 
 - **[Observed]** `evidence/broken-backend-health.json`: `.backendAddressPools[0].backendHttpSettingsCollection[0].servers[0].health = "Unhealthy"` with probe error text `Cannot connect to backend server. Check whether any NSG/UDR/Firewall is blocking access to the server. Check if application is running on correct port. To learn more visit - https://aka.ms/servernotreachable.` This is the strongest single-string signal that the failure is at the NSG/UDR/Firewall layer, not at the container-app-runtime layer.
-- **[Observed]** `evidence/broken-nsg-rules.json`: rule 100 (`allow-appgw-inbound-broken`) with `sourceAddressPrefix = "10.0.1.0/24"`, `destinationAddressPrefix = "10.0.3.95/32"` (the `staticIp`/32 misconfig), `destinationPortRanges = ["443","31443"]`; rule 200 (`allow-azure-lb-probes`) with `sourceAddressPrefix = "AzureLoadBalancer"`, `destinationAddressPrefix = "10.0.2.0/23"`, `destinationPortRange = "30000-32767"`; rule 4096 (`deny-all-inbound`) with all `*`.
-- **[Observed]** `evidence/broken-curl.txt`: `curl: (28) Operation timed out after 20004 milliseconds with 0 bytes received` — HTTP status code `000` (no HTTP response received within the client's 20 s `--max-time`). Note: this differs from the original hypothesis prediction of HTTP 502. On this Application Gateway Standard_v2 shape, when every backend server in the pool is `Unhealthy`, AppGW does not return HTTP 502 within the client window — it holds the connection open while waiting for its own upstream backend timeout, and the client times out first. **HTTP 000 (client timeout) is a stronger operator signal than HTTP 502** because it means the request never completed end-to-end, and it should be treated as an equivalent-or-worse manifestation of the same underlying failure. If a real production deployment configures a shorter AppGW request timeout, this manifestation can shift back to HTTP 502; either outcome is consistent with the H1 root cause.
+- **[Observed]** `evidence/broken-nsg-rules.json`: rule 100 (`allow-appgw-inbound-broken`) with `sourceAddressPrefix = "10.0.1.0/24"`, `destinationAddressPrefix = "10.0.2.243/32"` (the `staticIp`/32 misconfig — `10.0.2.243` is the `environmentStaticIp` from `deploy-outputs.json`, inside the CAE subnet CIDR `10.0.2.0/23`), `destinationPortRanges = ["443","31443"]`; rule 200 (`allow-azure-lb-probes`) with `sourceAddressPrefix = "AzureLoadBalancer"`, `destinationAddressPrefix = "10.0.2.0/23"`, `destinationPortRange = "30000-32767"`; rule 4096 (`deny-all-inbound`) with all `*`.
+- **[Observed]** `evidence/broken-curl.txt`: `HTTP 502 in 0.325699s` — AppGW returned HTTP 502 within ~0.3 s of the client request, matching the original hypothesis prediction. AppGW Standard_v2 short-circuited to a `Cannot connect to backend server` response because its backend health had already transitioned to `Unhealthy` before this request arrived (rule 100 misconfig had been applied 150 s earlier by `trigger.sh` and probe re-convergence had already flipped every backend server to `Unhealthy`). In an alternative shape — for example if AppGW's request timeout exceeded the client's `--max-time`, or if backend health had not yet re-converged at the moment of the request — the manifestation could shift to HTTP 000 (client timeout with `curl: (28) Operation timed out`); both HTTP 502 and HTTP 000 are consistent with the same underlying H1 root cause because both mean the client did not receive a valid successful HTTP response.
 - **[Correlated]** The transition from `Healthy` (baseline) to `Unhealthy` (broken) was observed within one AppGW probe re-convergence window after `trigger.sh` applied rule 100 (the `trigger.sh` script waits 150 s for probe reconvergence and then captures evidence, and the health-status flip was already stable at that capture point). No other variable changed between the two scenarios.
 
 ### Fixed scenario (after `fix.sh`)
 
 - **[Observed]** `evidence/fixed-backend-health.json`: `.backendAddressPools[0].backendHttpSettingsCollection[0].servers[0].health = "Healthy"`.
 - **[Observed]** `evidence/fixed-nsg-rules.json`: rule 100 with `destinationAddressPrefix = "10.0.2.0/23"` (the CAE subnet CIDR from `deploy-outputs.json .caeSubnetPrefix.value`); all other rule 100 properties (`sourceAddressPrefix = "10.0.1.0/24"`, `destinationPortRanges = ["443","31443"]`, `priority = 100`, `access = Allow`, protocol) unchanged from the broken scenario.
-- **[Observed]** `evidence/fixed-curl.txt`: `HTTP 200 in 0.303228s` — restored to the same latency band as baseline (~0.3 s).
+- **[Observed]** `evidence/fixed-curl.txt`: `HTTP 200 in 0.376139s` — restored to the same latency band as baseline (~0.3-0.4 s).
 - **[Correlated]** Falsification (post-fix evidence): the fix restored `Healthy` **without changing any other variable**. Ports (`443`+`31443`) were left correct in both broken and fixed states (gate F), and rule 200 kept the `AzureLoadBalancer → snet-cae, 30000-32767` allow path present in both states (gate G). These two invariants exclude H2 (missing edge-proxy ports) and H3 (`AllowAzureLoadBalancerInBound` shadowed by a higher-priority Deny) as compounding causes.
 
 ### Summary
 
 - **[Inferred]** If gates A + B + C are all `true` at post-`trigger.sh` verification, and gates D + E + F + G are all `true` at post-`fix.sh` verification, then H1 (NSG rule 100 Destination pinned to `staticIp/32`) is the sole cause of the AppGW backend `Unhealthy` state. Both `verdict = HYPOTHESIS_CONFIRMED` and `falsification = FIX_VERIFIED` should appear in `evidence/verify-result.json`.
-- **[Observed]** On the `2026-07-03` live run all seven gates evaluated `true` (`evidence/verify-result.json`): `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_VERIFIED`, `verify.sh` exit 0. H1 (NSG rule 100 Destination pinned to `staticIp/32`) is confirmed as the sole cause of the AppGW backend `Unhealthy` state on this deployment shape.
+- **[Observed]** On the `2026-07-04` re-executed live run all seven gates evaluated `true` in the currently committed `evidence/verify-result.json`: `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_VERIFIED`, `verify.sh` exit 0. H1 (NSG rule 100 Destination pinned to `staticIp/32`) is confirmed as the sole cause of the AppGW backend `Unhealthy` state on this deployment shape. The `2026-07-03` initial run also had all seven gates true after the CAE FQDN routing quirk fix was applied; the `2026-07-04` re-execution reproduces the same result against a fresh deployment.
 
 ## Expected Evidence
 
@@ -209,13 +209,13 @@ Verdict transitions:
 
 ### Client-side evidence
 
-`trigger.sh` and `fix.sh` also capture `curl -w '%{http_code}'` results against the AppGW public IP into `baseline-curl.txt`, `broken-curl.txt`, and `fixed-curl.txt`. Observed on the `2026-07-03` live run:
+`trigger.sh` and `fix.sh` also capture `curl -w '%{http_code}'` results against the AppGW public IP into `baseline-curl.txt`, `broken-curl.txt`, and `fixed-curl.txt`. Observed on the `2026-07-04` re-executed live run (the currently committed `evidence/*-curl.txt`):
 
-- `baseline-curl.txt`: `HTTP 200 in 0.335568s`
-- `broken-curl.txt`: `HTTP 000` — client timeout (`curl: (28) Operation timed out after 20004 milliseconds with 0 bytes received`)
-- `fixed-curl.txt`: `HTTP 200 in 0.303228s`
+- `baseline-curl.txt`: `HTTP 200 in 0.275887s`
+- `broken-curl.txt`: `HTTP 502 in 0.325699s`
+- `fixed-curl.txt`: `HTTP 200 in 0.376139s`
 
-The observed broken-state manifestation is **HTTP 000 (client timeout)**, not HTTP 502, on Application Gateway Standard_v2 with the default request timeout. The lab treats HTTP 000 and HTTP 502 as equivalent evidence of the same underlying H1 failure (`Cannot connect to backend server` from AppGW backend health), because both mean the client did not receive a valid HTTP response. The exact status code depends on AppGW's request-timeout configuration relative to the client's `--max-time`; if you shorten AppGW's request timeout below the client timeout, the manifestation shifts to HTTP 502, and both are consistent with H1.
+The observed broken-state manifestation on the currently committed run is **HTTP 502 in ~0.3 s**, matching the original hypothesis prediction. The lab treats HTTP 502 and HTTP 000 (client timeout) as equivalent evidence of the same underlying H1 failure (`Cannot connect to backend server` from AppGW backend health), because both mean the client did not receive a valid successful HTTP response. The exact status code depends on AppGW's request-timeout configuration relative to the client's `--max-time` and on the timing of the request relative to backend-health probe re-convergence; if AppGW's request timeout exceeds the client's `--max-time`, or if the request arrives before probe re-convergence has fully flipped every backend server to `Unhealthy`, the manifestation can shift to HTTP 000 (client timeout with `curl: (28) Operation timed out`), and both are consistent with H1.
 
 The `curl` evidence is redundant with the AppGW backend health gates but provides an operator-friendly end-to-end signal that the failure is observable from an unprivileged client.
 
@@ -228,8 +228,8 @@ The lab does not require KQL because the primary signals are AppGW control-plane
 Replace the two `datetime()` placeholders with the wall-clock window between `trigger.sh` completing step 6 (broken evidence captured) and `fix.sh` starting step 1. `trigger.sh` prints its step-6 completion line to stdout; the operator can capture the start and end timestamps manually or from the deployment activity log. The `TimeGenerated` filter is required — without it, a shared Log Analytics workspace would return 502 rows from unrelated AppGW deployments and rows from a previous run of this lab, which would contradict the "zero such rows before `trigger.sh` and after `fix.sh`" claim below.
 
 ```kusto
-let brokenStart = datetime(2026-07-03T10:30:00Z);
-let brokenEnd   = datetime(2026-07-03T10:35:00Z);
+let brokenStart = datetime(2026-07-04T10:30:00Z);
+let brokenEnd   = datetime(2026-07-04T10:35:00Z);
 AzureDiagnostics
 | where TimeGenerated between (brokenStart .. brokenEnd)
 | where ResourceType == "APPLICATIONGATEWAYS"
@@ -242,7 +242,7 @@ AzureDiagnostics
 Expected during the broken window: rows where `httpStatus_d = 502`, `backendPoolName_s = aca-backend-pool`, and `serverStatus_s` indicates the backend was unreachable. Re-run the same query with `brokenStart` and `brokenEnd` bracketing the baseline window (before `trigger.sh`) and the fixed window (after `fix.sh`) and expect zero rows in both.
 
 !!! note "KQL row count depends on the client-timeout manifestation"
-    On the `2026-07-03` live run the client-side manifestation was HTTP 000 (client timeout) rather than HTTP 502 (see [`Client-side evidence`](#client-side-evidence) for the explanation). When the client times out before AppGW writes an `httpStatus_d = 502` response, this KQL will return zero rows for that request even though the backend was `Unhealthy` throughout the window. To catch both manifestations, either drop the `where httpStatus_d == 502` filter (and add `| where httpStatus_d in (502, 0) or isnull(httpStatus_d)`), or fall back to the `BackendPoolName` + `HealthState` fields in the Application Gateway Backend Health metric (via `az monitor metrics list`) which capture the `Unhealthy` state independent of whether any client request produced an access-log row.
+    On the `2026-07-04` re-executed live run the client-side manifestation was HTTP 502 in ~0.3 s (see [`Client-side evidence`](#client-side-evidence)), so this KQL would return `httpStatus_d = 502` rows during the broken window. In alternative shapes where AppGW's request timeout exceeds the client's `--max-time` and the client sees HTTP 000 (client timeout) instead, AppGW may not write an `httpStatus_d = 502` access-log row for that request even though the backend was `Unhealthy` throughout the window. To catch both manifestations, either drop the `where httpStatus_d == 502` filter (and add `| where httpStatus_d in (502, 0) or isnull(httpStatus_d)`), or fall back to the `BackendPoolName` + `HealthState` fields in the Application Gateway Backend Health metric (via `az monitor metrics list`) which capture the `Unhealthy` state independent of whether any client request produced an access-log row.
 
 ### KQL: AppGW backend health transitions
 
