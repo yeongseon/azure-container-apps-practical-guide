@@ -54,6 +54,7 @@ Every playbook uses this 6-step flow: observe symptoms, enumerate likely causes,
 | First incident, no idea where to start | [First 10 Minutes](first-10-minutes/index.md) |
 | Need to identify the failure category | [Detector Map](methodology/detector-map.md) |
 | Already know the symptom category | Jump to [Playbooks](#topics) below |
+| Know the error string or exit code | [Lab Finder](lab-finder.md) — symptom-first index of all 54 labs |
 | Want a systematic diagnosis framework | [Methodology](methodology/index.md) |
 | Need KQL queries to investigate | [KQL Query Library](kql/index.md) |
 | Want hands-on practice | [Labs](#hands-on-labs) below |

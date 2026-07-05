@@ -41,6 +41,9 @@ Hands-on troubleshooting labs for Azure Container Apps with deployable infrastru
 
 All sample outputs in lab guides are PII-scrubbed and use `ca-myapp`, `cae-myapp`, and `job-myapp` naming.
 
+!!! tip "Looking for a specific symptom or error string?"
+    This page is a **browse-oriented catalog** — labs listed by importance with difficulty and duration. If you already know the error string, exit code, or symptom keyword (for example `ImagePullBackOff`, `AADSTS70021`, exit code 137), use the [Lab Finder](../lab-finder.md) instead. The finder groups all 54 labs by symptom cluster with the first-evidence signal per row.
+
 ## Available Labs
 
 | Lab | Description | Difficulty | Duration | Guide | Lab Files |

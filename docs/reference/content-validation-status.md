@@ -11,12 +11,12 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-07-04*
+*Generated: 2026-07-05*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 453 | 453 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 156 | 107 | 39 | 0 | 10 |
+| Mermaid Diagrams | 459 | 459 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 157 | 108 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 107
+    "Verified" : 108
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -179,6 +179,7 @@ pie title In-Scope Document Validation Status
 | [Ingress Not Reachable](../troubleshooting/playbooks/ingress-and-networking/ingress-not-reachable.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Internal Dns And Private Endpoint Failure](../troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Keda No Metrics Returned](../troubleshooting/playbooks/scaling-and-runtime/keda-no-metrics-returned.md) | ✅ | ✅ Verified | 3/3 | 2026-06-05 |
+| [Lab Finder](../troubleshooting/lab-finder.md) | ✅ | ✅ Verified | 3/3 | 2026-07-05 |
 | [Log Analytics Ingestion Gap](../troubleshooting/playbooks/observability/log-analytics-ingestion-gap.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Managed Identity Auth Failure](../troubleshooting/playbooks/identity-and-configuration/managed-identity-auth-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Memory Leak Oomkilled](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
