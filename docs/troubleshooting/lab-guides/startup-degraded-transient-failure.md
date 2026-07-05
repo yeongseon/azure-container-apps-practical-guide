@@ -831,6 +831,23 @@ For support engineers handling tickets about "5xx during deploy":
 4. **The platform's masking depends on probe gating, not on rolling-rollout magic**. If a customer's probes return 200 before the app is actually ready to serve traffic, the platform will route traffic to a not-yet-warm replica regardless of rollout strategy. Probe semantics is the load-bearing piece.
 5. **Treat the verdict's evidence ceiling as binding**. "Platform-initiated cause" of any 5xx during rollout is `[Strongly Suggested]`, not `[Measured]`. The smoking-gun evidence — Microsoft-internal traces of the load-balancer's exact routing decision during the transition — is not exposed through the management plane.
 
+## Clean Up
+
+!!! warning "Preserve evidence before cleanup"
+    `./cleanup.sh` deletes the resource group, which destroys the Log Analytics workspace and every `ReplicaInventorySample`, `RevisionStateSample`, and `PerturbationWindowMarker` row stored in it. Before running cleanup, complete **all** of the following:
+
+    - Export the required KQL queries (qA-qG from `verify.sh`, plus any additional queries used in Section 12) from the Logs editor as CSV via the **Export** button.
+    - Confirm the trigger and audit logs under `labs/startup-degraded-transient-failure/evidence/` are committed (they back the falsification verdict and survive `./cleanup.sh`).
+    - Capture every required Portal screenshot listed in Section 12 — they cannot be regenerated after the env is deleted.
+
+```bash
+./cleanup.sh
+```
+
+| Command | Why it is used |
+|---|---|
+| `./cleanup.sh` | Issues `az group delete --yes --no-wait` after an interactive confirmation. The 48-hour `expires-at` tag (from the Bicep template) is informational only — Azure may keep delete-pending resources for up to 24 hours after the delete call, but billing stops once the deletion completes. The Log Analytics workspace is destroyed too; already-ingested logs are retained per the workspace's 90-day retention policy only if the workspace survives, so export evidence to `evidence/` first if you need it beyond deletion. |
+
 ## See Also
 
 - [Startup-Degraded Bucketed 5xx KQL Pack](../kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md)
