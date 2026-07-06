@@ -19,6 +19,11 @@ This lab is a **reader-generated 17-gate Phase B falsification workflow**. You r
 
 Bounded-scope disclosure: the workflow does **not** prove exact `stderr` wording, log ingestion latency, retry cadence, component identity behind the OIDC EOF, response body shape, token caching behavior, SKU generality (Basic vs Standard/Premium firewall), or region generality. Those confounders are carried explicitly in Gate 17 `explicit_drops`, so readers can see exactly where the evidence ceiling stops.
 
+!!! info "Lab scope: H4a (base variant only)"
+    This lab reproduces **H4a only** — hub-spoke topology + UDR + Azure Firewall Basic/Standard + missing Application Rule + diagnostic logging enabled + `Deny` row visible in `AZFWApplicationRule`. The reproducer covers the smoking-gun evidence path for one specific network topology and one specific evidence signature.
+
+    Six additional topology variants (H4b diagnostic logging disabled, H4c NSG deny, H4d Virtual WAN + Routing Intent, H4e Private DNS override, H4f 3rd-party NVA, H4g TLS inspection with untrusted root cert) share the same customer-facing symptom (`Unable to get value using Managed identity` + `.well-known/openid-configuration: EOF`) but require different reproducers and produce different evidence signatures. If your customer environment differs from H4a's topology — for example, the customer uses Virtual WAN Hub + Routing Intent, or reports "no firewall block logs" despite having AzFW in path — consult the [Playbook H4 Variants table](../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md#h4-variants-when-base-h4-kql-returns-zero-rows) for the detection matrix and rule-out order. Follow-up reproducer labs for H4b through H4g are tracked in [issue #307](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/307).
+
 ## Lab Metadata
 
 | Attribute | Value |
