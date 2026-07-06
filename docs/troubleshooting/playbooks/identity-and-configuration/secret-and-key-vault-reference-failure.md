@@ -204,6 +204,10 @@ If the same identity can access the vault, the secret is enabled, and role assig
 
 **What to verify:**
 
+| Command | Why it is used |
+|---|---|
+| `az containerapp revision list ...` | Lists all revisions for the Container App so you can confirm whether a new revision became active after the secret change; if the same old revision is still `Active`, the running workload has not observed the updated secret yet. |
+
 ```bash
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
@@ -341,6 +345,10 @@ For a fully reproducible end-to-end proof of this hypothesis — including an of
 3. Rotate or set secret values and deploy a new revision.
 4. Validate app behavior with expected config value present.
 5. If the workload subnet routes egress through Azure Firewall (or another NVA), verify the firewall policy contains an Application Rule permitting outbound HTTPS to **both** `login.microsoftonline.com` and `login.microsoft.com` from the workload subnet, and confirm the firewall log shows an `Allow` row for **either** Entra authority FQDN in the failure window. If the rule is missing, add or restore it:
+
+    | Command | Why it is used |
+    |---|---|
+    | `az network firewall policy rule-collection-group collection add-filter-collection ...` | Adds an `ApplicationRule` collection to the existing firewall policy rule-collection group that permits outbound HTTPS to **both** `login.microsoftonline.com` and `login.microsoft.com` from the workload subnet CIDR. Both FQDNs are listed because the managed-identity OIDC discovery client picks one Entra authority host at runtime; a rule that names only one FQDN will silently drop discovery attempts that happen to pick the other host. |
 
     ```bash
     az network firewall policy rule-collection-group collection add-filter-collection \
