@@ -61,6 +61,9 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
+# Root-level debug/scratch screenshots (docs/assets/**/*.png stays legitimate)
+/*.png
+
 # MkDocs
 site/
 

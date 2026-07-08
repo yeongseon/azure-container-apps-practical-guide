@@ -463,6 +463,7 @@ nav:
       - Cold Start and Scale-to-Zero Lab: troubleshooting/lab-guides/cold-start-scale-to-zero.md
       - Probe and Port Mismatch: troubleshooting/lab-guides/probe-and-port-mismatch.md
       - Managed Identity Key Vault Failure: troubleshooting/lab-guides/managed-identity-key-vault-failure.md
+      - ACA Secret KV Ref MI Network Path Lab: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path.md
       - Revision Provisioning Failure: troubleshooting/lab-guides/revision-provisioning-failure.md
       - Ingress Target Port Mismatch Lab: troubleshooting/lab-guides/ingress-target-port-mismatch.md
       - Traffic Routing and Canary Failure Lab: troubleshooting/lab-guides/traffic-routing-canary.md

@@ -598,6 +598,8 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
 - [Image Pull and Auth Errors KQL](../../kql/system-and-revisions/image-pull-and-auth-errors.md)
 - [ACR Pull Failure Lab](../../lab-guides/acr-pull-failure.md)
 - [Egress Control — Required Outbound Dependencies](../../../platform/networking/egress-control.md#required-outbound-dependencies)
+- [ACA Secret Key Vault Reference — Managed Identity Network Path Lab](../../lab-guides/aca-secret-kv-ref-mi-network-path.md) — sibling pattern: same UDR → Azure Firewall egress path drops the OIDC discovery request for Key Vault reference control-plane operations, not just image pull
+- [Secret and Key Vault Reference Failure — H4](../identity-and-configuration/secret-and-key-vault-reference-failure.md#h4-managed-identity-oidc-discovery-blocked-by-egress-control-udr-azure-firewall) — the reproducible hypothesis that isolates the Entra authority egress requirement from Key Vault permissions and DNS
 
 ## Sources
 

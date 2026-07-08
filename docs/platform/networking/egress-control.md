@@ -278,6 +278,8 @@ Also keep DNS to `168.63.129.16:53` available; blocking platform DNS breaks name
 
 For the failure symptoms and validation steps, see [Image Pull Failure](../../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md).
 
+The same egress dependency applies to control-plane operations that authenticate with the app's managed identity — for example, `az containerapp secret set --identity ... --key-vault-url ...` performs OIDC discovery against `login.microsoftonline.com/<tenant>/.well-known/openid-configuration` before token acquisition. When a UDR routes the workload subnet through Azure Firewall and the firewall policy lacks an Application Rule for `login.microsoftonline.com` and `login.microsoft.com`, the discovery request fails with a transport-level `EOF` and the secret update returns `Unable to get value using Managed identity`. For the reproducible falsification proof, see [ACA Secret Key Vault Reference — Managed Identity Network Path Lab](../../troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path.md) and [Secret and Key Vault Reference Failure — H4](../../troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md#h4-managed-identity-oidc-discovery-blocked-by-egress-control-udr-azure-firewall).
+
 ## See Also
 - [VNet Integration](vnet-integration.md)
 - [Private Endpoints](private-endpoints.md)

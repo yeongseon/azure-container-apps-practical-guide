@@ -356,6 +356,9 @@ If this fails before token issuance, inspect container runtime constraints, netw
 - [Secret and Key Vault Reference Failure](secret-and-key-vault-reference-failure.md)
 - [Service-to-Service Connectivity Failure](../ingress-and-networking/service-to-service-connectivity-failure.md)
 - [Managed Identity Token Errors KQL](../../kql/identity-and-secrets/managed-identity-token-errors.md)
+- [ACA Secret Key Vault Reference — Managed Identity Network Path Lab](../../lab-guides/aca-secret-kv-ref-mi-network-path.md) — sibling failure surface: MI-authenticated secret update fails because OIDC discovery cannot reach the Entra authority through the UDR-forced Azure Firewall egress path
+- [Secret and Key Vault Reference Failure — H4](secret-and-key-vault-reference-failure.md#h4-managed-identity-oidc-discovery-blocked-by-egress-control-udr-azure-firewall) — the reproducible hypothesis that treats "MI token acquisition fails" as an *egress control* problem, not a Key Vault permissions problem
+- [Egress Control — Required Outbound Dependencies](../../../platform/networking/egress-control.md#required-outbound-dependencies)
 
 ## Sources
 
