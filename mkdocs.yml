@@ -519,7 +519,6 @@ nav:
     - CLI Reference: reference/cli-reference.md
     - Environment Variables: reference/environment-variables.md
     - Platform Limits: reference/platform-limits.md
-    - Metrics (Redirects): reference/metrics.md
     - Metrics:
       - reference/metrics/index.md
       - Container App Metrics: reference/metrics/container-app-metrics.md
@@ -528,6 +527,7 @@ nav:
       - Dimensions: reference/metrics/dimensions.md
       - KEDA Observability: reference/metrics/keda-observability.md
       - Evidence and Captures: reference/metrics/evidence-and-captures.md
+      - Legacy Anchors: reference/metrics.md
   - Contributing:
     - contributing/index.md
     - Playbook Template: contributing/playbook-template.md
