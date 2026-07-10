@@ -1,0 +1,26 @@
+name: Auto-request Copilot review
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  request-copilot-review:
+    # Skip drafts; Copilot cannot review drafts.
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request Copilot review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # `gh pr edit --add-reviewer Copilot` maps to the Copilot code-review bot.
+          # Fails softly (exit 0) if Copilot review is not enabled for the repo,
+          # so the workflow does not block PR creation.
+          gh pr edit "$PR_NUMBER" --repo "$REPO" --add-reviewer Copilot \
+            || echo "::warning::Could not request Copilot review. Ensure Copilot code review is enabled for this repository."
