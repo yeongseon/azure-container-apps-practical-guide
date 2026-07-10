@@ -89,6 +89,9 @@ validation:
     anchors: warn
     unrecognized_links: warn
 
+not_in_nav: |
+  /reference/metrics.md
+
 nav:
   - Home: index.md
   - Start Here:
@@ -527,7 +530,6 @@ nav:
       - Dimensions: reference/metrics/dimensions.md
       - KEDA Observability: reference/metrics/keda-observability.md
       - Evidence and Captures: reference/metrics/evidence-and-captures.md
-      - Legacy Anchors: reference/metrics.md
   - Contributing:
     - contributing/index.md
     - Playbook Template: contributing/playbook-template.md
