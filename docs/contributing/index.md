@@ -250,6 +250,10 @@ Allowed types: `feat`, `fix`, `docs`, `chore`, `refactor`
 2. Maintainer review for accuracy and completeness
 3. Merge to main triggers GitHub Pages deployment
 
+## Series Contracts
+
+- [Language Guide Baseline](https://yeongseon.github.io/azure-architecture-practical-guide/contributing/language-guide-baseline/) — series-wide structure and consistency contract for repos that publish language guides.
+
 ## Code of Conduct
 
 Please read our [Code of Conduct](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/CODE_OF_CONDUCT.md) before contributing.
