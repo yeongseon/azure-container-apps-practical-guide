@@ -329,6 +329,7 @@ nav:
   - Troubleshooting:
     - troubleshooting/index.md
     - Lab Finder: troubleshooting/lab-finder.md
+    - Evidence Pack Index: troubleshooting/evidence-pack-index.md
     - Quick Diagnosis Cards: troubleshooting/quick-diagnosis-cards.md
     - Architecture Overview: troubleshooting/architecture-overview.md
     - Decision Tree: troubleshooting/decision-tree.md
