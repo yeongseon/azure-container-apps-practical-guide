@@ -256,6 +256,7 @@ def validate_templates(findings: list[Finding], path: Path, text: str) -> None:
             "docs/troubleshooting/architecture-overview.md",
             "docs/troubleshooting/decision-tree.md",
             "docs/troubleshooting/evidence-map.md",
+            "docs/troubleshooting/evidence-pack-index.md",
             "docs/troubleshooting/mental-model.md",
             "docs/troubleshooting/quick-diagnosis-cards.md",
         }
