@@ -11,12 +11,12 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-07-05*
+*Generated: 2026-07-14*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 459 | 459 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 157 | 108 | 39 | 0 | 10 |
+| Mermaid Diagrams | 461 | 461 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 158 | 109 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 108
+    "Verified" : 109
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -171,6 +171,7 @@ pie title In-Scope Document Validation Status
 | [Event Job Storm](../troubleshooting/playbooks/platform-features/event-job-storm.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Event Scaler Mismatch](../troubleshooting/playbooks/scaling-and-runtime/event-scaler-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Evidence Map](../troubleshooting/evidence-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Evidence Pack Index](../troubleshooting/evidence-pack-index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-14 |
 | [Github Actions Oidc Failure](../troubleshooting/playbooks/deployment-and-cicd/github-actions-oidc-failure.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
 | [Http Scaling Not Triggering](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Image Pull Failure](../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
@@ -197,7 +198,7 @@ pie title In-Scope Document Validation Status
 | [Revision History Limit](../troubleshooting/playbooks/deployment-and-cicd/revision-history-limit.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
 | [Revision Provisioning Failure](../troubleshooting/playbooks/startup-and-provisioning/revision-provisioning-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Scheduled Job Missed](../troubleshooting/playbooks/platform-features/scheduled-job-missed.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
-| [Secret And Key Vault Reference Failure](../troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
+| [Secret And Key Vault Reference Failure](../troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
 | [Service To Service Connectivity Failure](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Session Affinity Failure](../troubleshooting/playbooks/networking-advanced/session-affinity-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Subnet Cidr Exhaustion](../troubleshooting/playbooks/networking-advanced/subnet-cidr-exhaustion.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
