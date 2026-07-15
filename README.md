@@ -4,6 +4,10 @@
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
+[![Docs](https://github.com/yeongseon/azure-container-apps-practical-guide/actions/workflows/docs.yml/badge.svg)](https://github.com/yeongseon/azure-container-apps-practical-guide/actions/workflows/docs.yml)
+[![CI](https://github.com/yeongseon/azure-container-apps-practical-guide/actions/workflows/app-tests.yml/badge.svg)](https://github.com/yeongseon/azure-container-apps-practical-guide/actions/workflows/app-tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Evidence-driven, operator-focused guide for running containerized applications on Azure Container Apps. Key operational guidance is supported by reproducible labs, metric captures, KQL examples, and Microsoft Learn references — from first deployment through production-grade monitoring, alerting, and incident response.
 
 ## What's Inside
