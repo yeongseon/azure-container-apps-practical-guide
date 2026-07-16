@@ -401,6 +401,26 @@ Use the reusable helper at [`scripts/portal-capture-helpers.js`](scripts/portal-
 
 The helper applies replacements to text nodes **and** `aria-label` attributes across the main frame and every nested iframe (Portal blades render inside iframes), then masks only the Account-menu avatar using Playwright's native `mask` option with Portal blue (`#0078d4`) so the masked region blends into the UI.
 
+#### Authenticating the capture browser (Conditional Access)
+
+The capture browser MUST reuse a **device-compliant, interactively signed-in** session. A fresh, isolated Chromium — whether launched by standalone Playwright or by the MCP browser tool — is **not** an Intune-enrolled / device-compliant browser, so it CANNOT pass Microsoft Entra Conditional Access for the MSIT (`ms.portal.azure.com`) tenant. It loops on the sign-in / `ConditionalAccess/Enrollment` ("install Company Portal") wall. **Do not** burn cycles trying to defeat this from automation — it is a device-level security control, not a cookie problem.
+
+Working pattern (attach to a real, human-authenticated Chrome over CDP):
+
+1. **Launch the user's Chrome with a dedicated debug profile and a remote-debugging port.** A dedicated `--user-data-dir` avoids Chrome's block on debugging the default profile, and OS-level Platform SSO / Company Portal still satisfies device compliance:
+    ```bash
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --remote-debugging-port=9222 \
+      --user-data-dir="$HOME/.chrome-portal-capture" \
+      --no-first-run --no-default-browser-check \
+      "https://ms.portal.azure.com/"
+    ```
+2. **The human signs in interactively (including MFA) and navigates to the target blade.** The agent CANNOT complete MFA — hand this step to the user explicitly and wait.
+3. **Verify the port is bound before attaching:** `curl -s http://localhost:9222/json/version`, and poll `http://localhost:9222/json` to detect when the target blade URL has loaded.
+4. **Attach Playwright over CDP** with `chromium.connectOverCDP('http://localhost:9222')`, pick the page whose URL contains `portal.azure.com`, apply the PII helper, then screenshot. `browser.close()` on a CDP-attached browser only detaches the debugger; it does NOT close the user's Chrome.
+
+Common failure: relaunching the Chrome binary while Chrome is already running just opens a tab in the existing (non-debug) process and silently ignores `--remote-debugging-port`. Always confirm the port with `curl`/`nc` before assuming the debug instance is up.
+
 #### PII Replacement Rules
 
 | Pattern | Replacement | Rationale |
