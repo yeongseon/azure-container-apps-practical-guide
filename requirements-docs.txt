@@ -4,3 +4,4 @@ mkdocs-macros-plugin
 Pygments<2.20
 PyYAML
 pymdown-extensions==10.21
+azure-guide-capture-toolkit @ git+https://github.com/yeongseon/azure-guide-capture-toolkit@v0.1.0
