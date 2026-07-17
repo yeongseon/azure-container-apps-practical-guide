@@ -405,7 +405,7 @@ The helper applies replacements to text nodes **and** `aria-label` attributes ac
 
 The capture browser MUST reuse a **device-compliant, interactively signed-in** session. A fresh, isolated Chromium — whether launched by standalone Playwright or by the MCP browser tool — is **not** an Intune-enrolled / device-compliant browser, so it CANNOT pass Microsoft Entra Conditional Access for the MSIT (`ms.portal.azure.com`) tenant. It loops on the sign-in / `ConditionalAccess/Enrollment` ("install Company Portal") wall. **Do not** burn cycles trying to defeat this from automation — it is a device-level security control, not a cookie problem.
 
-Working pattern (attach to a real, human-authenticated Chrome over CDP):
+Working pattern (attach to a real, human-authenticated Chrome over CDP — Chrome is the tested path for this repo; the same flow works for Edge/Chromium by substituting the binary path and `--user-data-dir`):
 
 1. **Launch the user's Chrome with a dedicated debug profile and a remote-debugging port.** A dedicated `--user-data-dir` avoids Chrome's block on debugging the default profile, and OS-level Platform SSO / Company Portal still satisfies device compliance:
     ```bash
@@ -419,7 +419,9 @@ Working pattern (attach to a real, human-authenticated Chrome over CDP):
 3. **Verify the port is bound before attaching:** `curl -s http://localhost:9222/json/version`, and poll `http://localhost:9222/json` to detect when the target blade URL has loaded.
 4. **Attach Playwright over CDP** with `chromium.connectOverCDP('http://localhost:9222')`, pick the page whose URL contains `portal.azure.com`, apply the PII helper, then screenshot. `browser.close()` on a CDP-attached browser only detaches the debugger; it does NOT close the user's Chrome.
 
-Common failure: relaunching the Chrome binary while Chrome is already running just opens a tab in the existing (non-debug) process and silently ignores `--remote-debugging-port`. Always confirm the port with `curl`/`nc` before assuming the debug instance is up.
+Security: the remote-debugging port grants full local control over an authenticated Portal session. Bind it only for the duration of the capture, never expose it beyond `localhost`, and close the debug-profile Chrome when finished.
+
+Common failure: relaunching the Chrome binary while Chrome is already running (without a distinct `--user-data-dir`, via `open`, or against an already-locked profile) just opens a tab in the existing (non-debug) process and silently ignores `--remote-debugging-port`. With the dedicated debug profile shown above a separate instance usually starts correctly, but always confirm the port with `curl`/`nc` before assuming the debug instance is up.
 
 #### PII Replacement Rules
 
