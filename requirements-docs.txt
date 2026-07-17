@@ -1,3 +1,6 @@
 mkdocs-material==9.7.5
 mkdocs-minify-plugin==0.8.0
+mkdocs-macros-plugin
+Pygments<2.20
+PyYAML
 pymdown-extensions==10.21
