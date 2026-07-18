@@ -22,6 +22,8 @@ labs/observability-tracing/
 
 ## Quick Start
 
+The trigger and verify scripts require `AZ_SUBSCRIPTION`, `RG`, `APP_NAME`, and `APPINSIGHTS_NAME` in the environment; the last two come from the Bicep deployment outputs.
+
 ```bash
 export AZ_SUBSCRIPTION="$(az account show --query "id" --output tsv)"
 export RG="rg-aca-lab-observability2"
@@ -35,8 +37,22 @@ az group create \
 az deployment group create \
     --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
+    --name main \
     --template-file labs/observability-tracing/infra/main.bicep \
     --parameters baseName=labobs
+
+export APP_NAME=$(az deployment group show \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --resource-group "$RG" \
+    --name main \
+    --query "properties.outputs.containerAppName.value" \
+    --output tsv)
+export APPINSIGHTS_NAME=$(az deployment group show \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --resource-group "$RG" \
+    --name main \
+    --query "properties.outputs.appInsightsName.value" \
+    --output tsv)
 
 bash labs/observability-tracing/trigger.sh   # H1 — emits 01-* through 12-h1-gate.json
 bash labs/observability-tracing/verify.sh    # H2 — emits 13-* through 24-h2-gate.json

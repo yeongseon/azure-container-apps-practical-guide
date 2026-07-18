@@ -1,11 +1,11 @@
 # Python Reference App (Flask + Gunicorn)
 
-Minimal Flask application that backs the [Python language guide](https://yeongseon.github.io/azure-container-apps-practical-guide/language-guides/python/). It demonstrates the Container Apps runtime contract for a Python workload: listen on `$PORT` (default `8000`), emit structured JSON logs to stdout, handle `SIGTERM` for graceful shutdown, and export telemetry to Application Insights when a connection string is present.
+Minimal Flask application that backs the [Python language guide](https://yeongseon.github.io/azure-container-apps-practical-guide/language-guides/python/). It demonstrates the Container Apps runtime contract for a Python workload: listen on `$PORT` (default `8000`), emit structured JSON logs to stdout, handle `SIGTERM` for graceful shutdown, and export telemetry to Application Insights when telemetry is enabled.
 
 ## Stack
 
 - **Flask 3** served by **Gunicorn** (`gthread` worker class, config in `gunicorn.conf.py`).
-- **azure-monitor-opentelemetry** for Application Insights export (activated only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set — see `src/config/telemetry.py`).
+- **azure-monitor-opentelemetry** for Application Insights export (activated only when `TELEMETRY_MODE=advanced` **and** `APPLICATIONINSIGHTS_CONNECTION_STRING` are both set — see `src/config/telemetry.py`).
 - Base image `python:3.11-slim` (see `Dockerfile`).
 
 ## Layout
@@ -73,7 +73,8 @@ docker run --rm --publish 8000:8000 aca-python-guide:local
 | `WEB_CONCURRENCY` | `cpu*2+1` | Gunicorn worker count |
 | `GUNICORN_THREADS` | `4` | Threads per worker |
 | `GUNICORN_GRACEFUL_TIMEOUT` | `30` | Graceful shutdown window (seconds) |
-| `APPLICATIONINSIGHTS_CONNECTION_STRING` | *(unset)* | Enables Application Insights export when present |
+| `TELEMETRY_MODE` | `basic` | Set to `advanced` (with a connection string) to enable Application Insights export |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | *(unset)* | Application Insights connection string, used when `TELEMETRY_MODE=advanced` |
 
 ## See Also
 

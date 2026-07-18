@@ -36,7 +36,8 @@ az deployment group create \
     --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
     --name main \
-    --template-file labs/traffic-routing-canary/infra/main.bicep
+    --template-file labs/traffic-routing-canary/infra/main.bicep \
+    --parameters baseName=labtraffic
 
 export APP_NAME=$(az deployment group show \
     --subscription "$AZ_SUBSCRIPTION" \

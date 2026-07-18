@@ -37,7 +37,8 @@ az deployment group create \
     --subscription "$AZ_SUBSCRIPTION" \
     --resource-group "$RG" \
     --name main \
-    --template-file labs/probe-and-port-mismatch/infra/main.bicep
+    --template-file labs/probe-and-port-mismatch/infra/main.bicep \
+    --parameters baseName=labport
 
 export APP_NAME=$(az deployment group show \
     --subscription "$AZ_SUBSCRIPTION" \

@@ -5,7 +5,7 @@ Minimal Express application that backs the [Node.js language guide](https://yeon
 ## Stack
 
 - **Express 4** (Node.js `>=20`).
-- **applicationinsights** SDK, initialized before other imports and activated only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set (`src/app.js`).
+- **applicationinsights** SDK, initialized during app startup and activated only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set (`src/app.js`).
 - JSON request-logging middleware (`src/middleware/logging.js`).
 - Base image `node:20-slim`, runs as the non-root `node` user (see `Dockerfile`).
 
