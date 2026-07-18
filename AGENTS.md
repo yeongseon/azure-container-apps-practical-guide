@@ -333,6 +333,21 @@ The 16 methodology concepts (with the canonical section that typically carries e
 >
 > Why two evidence-section variants: most labs (~27) use the legacy single `## Expected Evidence` section. Newer labs (memory-leak-oomkilled, keda-no-metrics-returned) split evidence into `## 5) Verification Queries` (KQL packs) and `## 6) Portal Evidence` (annotated screenshots) for richer reader UX. New labs SHOULD prefer the richer variant; existing labs MAY stay on the legacy variant.
 
+#### Heading Convention Policy (Decision)
+
+Two H2 heading conventions currently coexist across the lab corpus:
+
+- **Convention A (authoritative)** — the Lab Guides template headings (`## 1) Background`, `## 2) Hypothesis`, `## 3) Runbook`, `## 4) Experiment Log`, plus the evidence-section variant), where the 16 methodology concepts are carried *conceptually* within those sections.
+- **Convention B (deprecated)** — the 16 methodology concepts used as literal H2 headings (`## 1. Question`, `## 2. Setup`, … `## 16. Support Takeaway`).
+
+**Decision: Convention A is authoritative.** Using the 16 methodology concepts as literal H2 headings (Convention B) is deprecated because it contradicts the "conceptual elements, not literal Markdown headings" rule above and breaks the established navigation pattern that the Lab Guides template protects.
+
+Rules:
+
+- **New labs MUST use Convention A.** Do not introduce new labs with the 16 concepts as literal H2 headings.
+- **Existing Convention B labs are refactored to Convention A opportunistically**, one lab per PR — never in a single bulk sweep, to keep diffs reviewable and avoid destabilizing the corpus.
+- The methodology gate is unchanged: reviewers verify each of the 16 concepts is *present*, not that a matching H2 heading exists.
+
 ### Evidence Levels
 
 When documenting troubleshooting steps or analysis, use these tags to specify the strength of the evidence:
