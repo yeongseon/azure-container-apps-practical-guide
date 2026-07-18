@@ -29,7 +29,7 @@ content_validation:
 ---
 # Container Apps on Azure Arc (Connected Environments)
 
-Azure Container Apps normally runs in a fully managed Azure environment. With **Azure Arc**, you can instead run Container Apps on your own **Azure Arc-enabled AKS or AKS on Azure Local** cluster — bringing the Container Apps developer experience to on-premises or non-Azure Kubernetes while keeping Azure-based management. This page explains connected environments, how they are set up, and how they differ from managed environments.
+Azure Container Apps normally runs in a fully managed Azure environment. With **Azure Arc**, you can instead run Container Apps on your own **Azure Arc-enabled AKS or AKS on Azure Local** cluster — bringing the Container Apps developer experience to on-premises and edge locations while keeping Azure-based management. This page explains connected environments, how they are set up, and how they differ from managed environments.
 
 ## Why Connected Environments
 
@@ -38,7 +38,7 @@ Running Container Apps on an Arc-enabled Kubernetes cluster lets:
 - **Developers** keep using Container Apps concepts (apps, revisions, ingress, scaling, jobs) unchanged.
 - **IT administrators** maintain corporate compliance by hosting apps on internal infrastructure they control.
 
-This is the option to evaluate when data residency, regulatory, or existing on-premises Kubernetes investments prevent using the managed Azure environment.
+This is the option to evaluate when data residency, regulatory, or existing **AKS on Azure Local** investments prevent using the managed Azure environment.
 
 ## How a Connected Environment Is Assembled
 
@@ -86,7 +86,7 @@ flowchart TD
 
 ### Supported Features on Arc
 
-Labels, metrics, Easy Auth, log stream, resilience, custom domains, Container Apps jobs, revision management, and the app container console are supported. Managed identities and managed-identity-based ACR pulls are the primary omissions. Always check the portal for the current feature list — unsupported features are grayed out.
+Labels, metrics, Easy Auth, log stream, resilience, custom domains, Container Apps jobs, revision management, and the app container console are supported. Managed identities and managed-identity-based ACR pulls are notably unavailable, and other constraints apply to regions, node OS/architecture, networking, Azure Files SMB, and logging scope (see the comparison table above). Always check the portal for the current feature list — unsupported features are grayed out.
 
 ## Prerequisites and Setup Considerations
 
