@@ -88,6 +88,10 @@ az containerapp show \
     --output yaml > app.yaml
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --output yaml > app.yaml` | Reads the current Container App resource so the operator can inspect live configuration instead of relying on deployment assumptions. |
+
 Verify that the template contains matching values similar to the following pattern:
 
 ```yaml

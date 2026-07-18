@@ -113,6 +113,12 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].image" --output tsv` | Reads the Container App resource and extracts the exact image reference the revision is trying to pull as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,health:properties.healthState,created:properties.createdTime}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -301,6 +307,11 @@ az network private-dns zone list --resource-group "$RG" --output table
 az acr network-rule add --name "$ACR_NAME" --subnet "<subnet-id>"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az network private-dns zone list --resource-group "$RG" --output table` | Lists the private DNS zones in scope so you can verify that the expected zone exists before blaming forwarding or client DNS caches. |
+| `az acr network-rule add --name "$ACR_NAME" --subnet "<subnet-id>"` | Adds the environment subnet to the registry allow-list so image pulls from that network path are no longer blocked by the ACR firewall. |
+
 | Command | Why it is used |
 |---|---|
 | `az network private-dns zone ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
@@ -333,6 +344,11 @@ echo "Configured image: $IMAGE"
 # ❌ myapp:v1.0.0 (missing registry)
 # ❌ myacr.azurecr.io/myapp (missing tag)
 ```
+
+| Command | Purpose |
+|---|---|
+| `IMAGE=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].image" --output tsv)` | Captures the exact image reference from the live app so you can validate its registry/repository/tag format instead of guessing what the failed revision tried to pull. |
+| `echo "Configured image: $IMAGE"` | Prints the captured image string so the operator can compare it directly with the valid and invalid reference patterns listed below. |
 
 ### H5: Auth-looking `unauthorized` that can indicate restricted egress blocking managed identity token acquisition
 
@@ -524,6 +540,50 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
 
 | Command | Purpose |
 |---|---|
+| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
+| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
+
+| Command | Purpose |
+|---|---|
+| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
+| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
+
+| Command | Purpose |
+|---|---|
+| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
+| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
+
+| Command | Purpose |
+|---|---|
+| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
+| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
+
+| Command | Purpose |
+|---|---|
 | `az network firewall policy rule-collection-group collection add-filter-collection ...` | Create a new application rule collection in the firewall policy for Container Apps egress dependencies |
 | `az network firewall policy rule-collection-group collection rule add ... --target-fqdns ...` | Allow outbound HTTPS to Entra ID, MCR, ACR, and storage FQDNs required for managed identity image pulls |
 | `az network nsg rule create ... AzureActiveDirectory` | Allow the NSG to pass outbound traffic to Microsoft Entra ID for managed identity token acquisition |
@@ -551,16 +611,28 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
    az role assignment create --assignee "$PRINCIPAL_ID" --role "AcrPull" --scope "$ACR_ID"
    ```
 
+   | Command | Purpose |
+   |---|---|
+   | `az role assignment create --assignee "$PRINCIPAL_ID" --role "AcrPull" --scope "$ACR_ID"` | Grants the workload identity the registry pull permission at the exact ACR scope so image downloads can succeed without changing the auth model. |
+
 2. **If tag missing:** Use known good tag
    ```bash
    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
      --image "$ACR_NAME.azurecr.io/myapp:known-good-tag"
    ```
 
+   | Command | Purpose |
+   |---|---|
+   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "$ACR_NAME.azurecr.io/myapp:known-good-tag"` | Repoints the app to a tag that is known to exist so the next revision can prove the incident was caused by a missing or mistyped image reference. |
+
 3. **If private ACR issues:** Temporarily enable public access (for debugging only)
    ```bash
    az acr update --name "$ACR_NAME" --public-network-enabled true
    ```
+
+   | Command | Purpose |
+   |---|---|
+   | `az acr update --name "$ACR_NAME" --public-network-enabled true` | Temporarily relaxes ACR network restrictions so you can isolate whether private-endpoint or firewall routing is the real blocker before making permanent network changes. |
 
 4. **If `unauthorized` persists after RBAC checks:** Temporarily allow required managed identity egress dependencies
    ```bash
@@ -579,6 +651,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
       --revision-suffix "fix-$(date +%s)"
    ```
+
+   | Command | Purpose |
+   |---|---|
+   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "fix-$(date +%s)"` | Forces a fresh revision creation so the platform retries the image pull after you have corrected RBAC, tag, or egress dependencies. |
 
 ## 9. Prevention
 

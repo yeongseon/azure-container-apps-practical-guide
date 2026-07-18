@@ -226,6 +226,10 @@ flowchart TD
     az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
+
     Expected output pattern: at least one `Healthy` revision with intended traffic weight.
 
 6. **Clean up resources**

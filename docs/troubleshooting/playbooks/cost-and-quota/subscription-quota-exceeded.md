@@ -63,6 +63,10 @@ az containerapp env show \
     --output tsv
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.provisioningState" --output tsv` | Reads the managed environment and extracts the field selected by `properties.provisioningState`, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+
 3. Inspect current environment usage:
 
 ```bash
@@ -70,6 +74,10 @@ az containerapp env list-usages \
     --name "$ACA_ENV_NAME" \
     --resource-group "$RG"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp env list-usages --name "$ACA_ENV_NAME" --resource-group "$RG"` | Lists current environment capacity consumption and limits so you can see whether the failure is caused by exhausted Container Apps environment quota before requesting a regional increase. |
 
 4. Inspect subscription quota for the target region:
 

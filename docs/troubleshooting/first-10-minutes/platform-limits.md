@@ -72,6 +72,11 @@ az containerapp show \
   --query "properties.template.scale"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp env list --resource-group "$RG"` | Lists Container Apps environments in the resource group so you can verify which environment exists before checking quota, capacity, or scale bounds. |
+| `az containerapp show \ --name "$APP_NAME" \ --resource-group "$RG" \ --query "properties.template.scale"` | Reads the Container App resource and extracts the full scale configuration, which is the specific surface this troubleshooting step needs to confirm. |
+
 Observed baseline before limit testing:
 
 ```text

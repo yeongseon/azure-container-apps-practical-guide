@@ -147,6 +147,13 @@ cd labs/appinsights-connection-string-missing/
     export IMAGE_TAG="hellotelemetry:v3"
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `export APP_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.containerAppName.value" --output tsv)` | Captures `APP_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export ACR_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.acrName.value" --output tsv)` | Captures `ACR_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export ACR_LOGIN_SERVER=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.acrLoginServer.value" --output tsv)` | Captures `ACR_LOGIN_SERVER` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export APP_INSIGHTS_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.appInsightsName.value" --output tsv)` | Captures `APP_INSIGHTS_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+
 3. Build the instrumented Python image inside the lab's ACR:
 
     ```bash
@@ -253,6 +260,16 @@ az containerapp update \
     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}"
 ```
 
+| Command | Purpose |
+|---|---|
+| `APPLICATIONINSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show --subscription "$AZ_SUBSCRIPTION" --app "$APP_INSIGHTS_NAME" --resource-group "$RG" --query "connectionString" --output tsv)` | Captures `APPLICATIONINSIGHTS_CONNECTION_STRING` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp update --subscription "$AZ_SUBSCRIPTION" --name "$APP_NAME" --resource-group "$RG" --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
+
+| Command | Purpose |
+|---|---|
+| `APPLICATIONINSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show --subscription "$AZ_SUBSCRIPTION" --app "$APP_INSIGHTS_NAME" --resource-group "$RG" --query "connectionString" --output tsv)` | Captures `APPLICATIONINSIGHTS_CONNECTION_STRING` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp update --subscription "$AZ_SUBSCRIPTION" --name "$APP_NAME" --resource-group "$RG" --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
+
 | Command | Why it is used |
 |---|---|
 | `az monitor app-insights component show` | Reads the connection string directly from the deployed Application Insights resource so the binding is deterministic and never depends on a hardcoded literal. |
@@ -325,6 +342,10 @@ When escalating an "Application Insights is empty but the app is up" case on Azu
         --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp show --subscription "$AZ_SUBSCRIPTION" --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"` | Extracts only the Application Insights connection-string env var from the live revision template so support can prove whether telemetry silence starts with missing configuration rather than with ingestion. |
+
 2. Look for the startup log line `Azure Monitor configured: telemetry export enabled` (or your app's equivalent) to confirm the SDK actually ran `configure_azure_monitor()`. Its absence usually means the env var was never read by the worker:
 
     ```bash
@@ -335,6 +356,10 @@ When escalating an "Application Insights is empty but the app is up" case on Azu
         --container app \
         --tail 100
     ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp logs show --subscription "$AZ_SUBSCRIPTION" --name "$APP_NAME" --resource-group "$RG" --container app --tail 100` | Pulls recent application logs from the app container so you can confirm whether the SDK emitted its startup line and actually initialized telemetry export. |
 
 3. If the env var IS present and the SDK startup log IS visible but `AppRequests` is still empty: check whether you are using `from flask import Flask` before `configure_azure_monitor()`, which in this lab's development experience silently broke Flask auto-instrumentation even with a valid connection string. The `:v2` source variant is documented in this lab only as a lab-development observation — the `:v2` source file was not committed to the repo, and no per-revision `AppRequests`/`AppTraces` capture file is committed for it (the canonical falsification pair in this lab is the `:v3` before/after run, not a `:v2`/`:v3` comparison).
 4. If the env var IS present and `AppTraces` is populating but `AppRequests` is not: the SDK is exporting, but the web-framework auto-instrumentation is not wrapped. Cross-check Flask import order, gunicorn worker class (sync vs gevent), and whether any other middleware is re-wrapping the `Flask` app after SDK init.

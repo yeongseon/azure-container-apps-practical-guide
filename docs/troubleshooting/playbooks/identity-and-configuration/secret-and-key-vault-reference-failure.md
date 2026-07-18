@@ -89,6 +89,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json` | Reads the Container App resource and extracts the container environment-variable mapping in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the Container App resource and extracts the ARM resource ID needed for later scoped checks in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -172,6 +178,12 @@ az keyvault secret show --vault-name "my-kv" --name "my-secret" --query "attribu
 az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the Container App resource and extracts the ARM resource ID needed for later scoped checks in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az keyvault secret show --vault-name "my-kv" --name "my-secret" --query "attributes.enabled" --output tsv` | Reads the Key Vault secret metadata so you can confirm the referenced secret exists and is enabled before troubleshooting app-side mapping. |
+| `az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table` | Lists RBAC grants for one principal at one exact scope, which is the quickest way to verify whether the workload has the right permission on the dependency that is failing. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
@@ -211,6 +223,10 @@ If the same identity can access the vault, the secret is enabled, and role assig
 ```bash
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists all revisions after the secret change so you can confirm whether the app ever switched to a fresh revision that could read the updated secret. |
 
 **Disproof logic:**
 
@@ -278,6 +294,16 @@ az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RG" \
     --query "{networkAcls:properties.networkAcls, publicNetworkAccess:properties.publicNetworkAccess}" \
     --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp secret set --name "$APP_NAME" --resource-group "$RG" --secrets "kvref-diag=keyvaultref:https://<vault>.vault.azure.net/secrets/<name>,identityref:system" 2> /tmp/secret-set-stderr.txt || true` | Writes or updates the Container Apps secret definition so you can reproduce or fix secret-resolution behavior without exposing the underlying value in plain text. |
+| `grep -E "Failed to update secrets|Unable to get value using Managed identity|openid-configuration" /tmp/secret-set-stderr.txt` | Filters the captured output down to the marker strings that confirm whether the expected failure signature actually occurred. |
+| `az network route-table route list --route-table-name "$(basename "$ROUTE_TABLE_ID")" --resource-group "$RG" --output table` | Lists effective route entries on the route table so you can confirm whether default egress is being forced through a firewall or other appliance. |
+| `az network firewall policy rule-collection-group collection list --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$FIREWALL_POLICY_RCG_NAME" --query "[?ruleCollectionType=='FirewallPolicyFilterRuleCollection'].{name:name, rules:rules[?ruleType=='ApplicationRule'].{name:name, targetFqdns:targetFqdns}}" --output json` | Lists the firewall collections and application rules so you can see whether the required FQDN allow-list is already present. |
+| `echo "Managed identity principalId: $APP_MI_PRINCIPAL_ID"` | Prints the captured value so you can confirm the lookup or calculation before using it in later troubleshooting commands. |
+| `az role assignment list --assignee "$APP_MI_PRINCIPAL_ID" --scope "$KEY_VAULT_ID" --query "[].{roleDefinitionName:roleDefinitionName, scope:scope}" --output table` | Lists RBAC grants for one principal at one exact scope, which is the quickest way to verify whether the workload has the right permission on the dependency that is failing. |
+| `az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RG" --query "{networkAcls:properties.networkAcls, publicNetworkAccess:properties.publicNetworkAccess}" --output json` | Reads Key Vault configuration so you can verify its resource ID, firewall posture, and network ACLs for the failing secret path. |
 
 | Command | Why it is used |
 |---|---|
@@ -420,6 +446,10 @@ For a fully reproducible end-to-end proof of this hypothesis — including an of
         --protocols Https=443 \
         --target-fqdns "login.microsoftonline.com" "login.microsoft.com"
     ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az network firewall policy rule-collection-group collection add-filter-collection --resource-group "$RG" --policy-name "$FIREWALL_POLICY_NAME" --rule-collection-group-name "$FIREWALL_POLICY_RCG_NAME" --name "aca-entra-authority-allow" --collection-priority 200 --action Allow --rule-type ApplicationRule --rule-name "allow-entra-authority" --source-addresses "$ACA_WORKLOAD_SUBNET_CIDR" --protocols Https=443 --target-fqdns "login.microsoftonline.com" "login.microsoft.com"` | Adds the firewall application rule that permits both Entra authority FQDNs from the workload subnet, which is the direct mitigation when OIDC discovery is being dropped on the egress path. |
 
 6. If Step 5 confirms the firewall Application Rule for both Entra authority FQDNs is already present AND the base H4 KQL returns zero rows in the failure window, work through the [H4 Variants table](#h4-variants-when-base-h4-kql-returns-zero-rows) in rule-out order. Cheapest verification first: check AzFW diagnostic settings enabled at the Firewall resource (H4b, one CLI call), then verify DNS resolution of the Entra authority hosts from the workload path (H4e, one `az containerapp exec` call for `nslookup` plus a check of the workload VNet's `dhcpOptions.dnsServers`), then inspect the outbound NSG rules on the workload subnet for a Deny on 443/tcp to `AzureActiveDirectory` or Entra IP ranges (H4c), then verify Virtual WAN Hub Routing Intent and effective routes if the customer environment uses Virtual WAN (H4d), then verify whether outbound TLS to the Entra authority is being intercepted by running `openssl s_client` from a workload replica and inspecting the returned certificate chain (H4g — if intercepted, exempt the Entra authority FQDNs from TLS inspection at the intercepting device rather than modifying the workload image), and finally 3rd-party NVA policy if the customer environment has a vendor NVA in path (H4f). The customer scenario "Virtual WAN Hub + Firewall + Routing Intent + no firewall block logs" typically resolves as H4d combined with H4b — verify Routing Intent state and Firewall diagnostic settings in parallel, and if effective routes look correct but the base H4 KQL is still empty, re-check the effective routes after the routing policy's provisioning state reaches `Succeeded` before concluding the route topology is not the controlling variable.
 

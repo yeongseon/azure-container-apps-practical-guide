@@ -85,6 +85,12 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | Reads the Container App resource and extracts the ingress target port as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -180,6 +186,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import os; print(os.environ.get(\"CONTAINER_APP_PORT\", \"8000\"))'"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | Reads the Container App resource and extracts the ingress target port as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the Container App resource and extracts the configured probe definitions in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import os; print(os.environ.get(\"CONTAINER_APP_PORT\","8000\"))'"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
@@ -207,6 +219,11 @@ If the app is listening on the expected port and ingress plus probe settings mat
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Streams startup logs live so you can see whether the container stalls on dependency calls before it exits or fails readiness. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the probe configuration so you can compare the app's real boot behavior with the readiness/startup timing currently enforced by the platform. |
 
 **Disproof logic:**
 

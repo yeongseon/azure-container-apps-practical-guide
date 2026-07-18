@@ -163,6 +163,13 @@ export SUBSCRIPTION_ID="$(az account show --query id --output tsv)"
 export ACR_ID="$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed Container App name from the successful ARM deployment outputs so later role-assignment and CD commands target the exact lab app instead of a guessed name. |
+| `export ACR_NAME="$(az deployment group show ... --query "properties.outputs.containerRegistryName.value" --output tsv)"` | Captures the registry resource name created by the lab deployment, which is the scope where the reconnect conflict is reproduced. |
+| `export SUBSCRIPTION_ID="$(az account show --query id --output tsv)"` | Records the active subscription ID so later ARM resource IDs and scope strings are built against the same subscription the lab is running in. |
+| `export ACR_ID="$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)"` | Resolves the full ACR resource ID, which is the exact RBAC scope used by the conflicting `AcrPush` role assignment. |
+
 Expected output: no output; variables are populated.
 
 ### Trigger the conflict
@@ -269,6 +276,15 @@ az deployment group create \
     --parameters principalObjectId="$SP_OBJECT_ID" registryName="$ACR_NAME" \
                  roleAssignmentName="$NEW_NAME"
 ```
+
+| Command | Purpose |
+|---|---|
+| `NEW_NAME=$(cat /proc/sys/kernel/random/uuid)` | Captures `NEW_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Captures the value needed for the next troubleshooting step. |
+| `az deployment group create --resource-group "$RG" --name "lab-ra-verify-conflict" --template-file "./labs/cd-reconnect-rbac-conflict/infra/role-assignment.bicep" --parameters principalObjectId="$SP_OBJECT_ID" registryName="$ACR_NAME" roleAssignmentName="$NEW_NAME" 2>&1 | tee /tmp/cd-rbac-verify.log` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `grep -qE "RoleAssignmentExists|already exists" /tmp/cd-rbac-verify.log` | Filters the captured output down to the marker strings that confirm whether the expected failure signature actually occurred. |
+| `ASSIGNMENT_ID=$(az role assignment list --assignee "$SP_APP_ID" --scope "$ACR_ID" --query "[0].name" --output tsv)` | Captures `ASSIGNMENT_ID` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Lists RBAC grants for one principal at one exact scope, which is the quickest way to verify whether the workload has the right permission on the dependency that is failing. |
+| `az role assignment delete --ids "${ACR_ID}/providers/Microsoft.Authorization/roleAssignments/$ASSIGNMENT_ID"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az deployment group create --resource-group "$RG" --name "lab-ra-verify-recovery" --template-file "./labs/cd-reconnect-rbac-conflict/infra/role-assignment.bicep" --parameters principalObjectId="$SP_OBJECT_ID" registryName="$ACR_NAME" roleAssignmentName="$NEW_NAME"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
 
 Expected result: the second deployment fails with `RoleAssignmentExists`, the delete removes the existing assignment, and the retry succeeds. The script ends with `PASS: recovery successful - 1 active AcrPush assignment`.
 

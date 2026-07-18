@@ -113,6 +113,10 @@ flowchart TD
         --tail 200
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --tail 200` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
+
 4. Verify whether scale configuration forces too much work into each replica.
 
     ```bash

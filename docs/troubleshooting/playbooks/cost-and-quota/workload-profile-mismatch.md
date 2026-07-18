@@ -62,6 +62,10 @@ az containerapp show \
     --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "{workloadProfile:properties.workloadProfileName,cpu:properties.template.containers[0].resources.cpu,memory:properties.template.containers[0].resources.memory,minReplicas:properties.template.scale.minReplicas,maxReplicas:properties.template.scale.maxReplicas}" --output json` | Reads the Container App resource and extracts the per-container CPU and memory allocation in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+
 2. List workload profiles on the environment:
 
 ```bash
@@ -69,6 +73,10 @@ az containerapp env workload-profile list \
     --name "$ACA_ENV_NAME" \
     --resource-group "$RG"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp env workload-profile list --name "$ACA_ENV_NAME" --resource-group "$RG"` | Lists every workload profile available in the environment so you can compare the app's requested shape with the profiles that can actually host it. |
 
 3. Inspect the specific profile that should host the app:
 
@@ -78,6 +86,10 @@ az containerapp env workload-profile show \
     --resource-group "$RG" \
     --workload-profile-name "general-purpose"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp env workload-profile show --name "$ACA_ENV_NAME" --resource-group "$RG" --workload-profile-name "general-purpose"` | Reads one workload profile in detail so you can verify its node type and capacity range against the app's requested CPU, memory, and replica count. |
 
 | Command | Why it is used |
 |---|---|
@@ -100,6 +112,10 @@ az containerapp env workload-profile update \
     --min-nodes 1 \
     --max-nodes 5
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp env workload-profile update --name "$ACA_ENV_NAME" --resource-group "$RG" --workload-profile-name "general-purpose" --min-nodes 1 --max-nodes 5` | Expands the selected workload profile's node range so the environment has enough dedicated capacity to place the app's requested replicas. |
 
 2. **Reduce app demand** if the profile should stay small:
 

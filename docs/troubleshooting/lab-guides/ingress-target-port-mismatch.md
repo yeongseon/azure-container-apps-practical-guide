@@ -107,6 +107,12 @@ export APP_FQDN="$(az containerapp show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the Container App name emitted by the lab deployment so subsequent ingress and revision checks hit the correct app resource. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"` | Captures the environment name used by the lab so any later environment-scoped networking checks reference the right Container Apps environment. |
+| `export APP_FQDN="$(az containerapp show ... --query "properties.configuration.ingress.fqdn" --output tsv)"` | Reads the current ingress FQDN from the deployed app so the reachability checks exercise the same hostname that clients actually use during the port-mismatch failure. |
+
 ### Verify Baseline (Before Trigger)
 
 ```bash

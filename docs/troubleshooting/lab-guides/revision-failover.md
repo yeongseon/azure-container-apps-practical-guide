@@ -129,6 +129,12 @@ export ACA_ENV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed Container App name so the failover commands inspect and reroute traffic for the correct app. |
+| `export ACR_NAME="$(az deployment group show ... --query "properties.outputs.containerRegistryName.value" --output tsv)"` | Captures the registry name used to build the bad rollout image that reproduces the revision failover scenario. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.environmentName.value" --output tsv)"` | Captures the environment name for any environment-scoped diagnostics or cleanup steps that follow. |
+
 Expected output: no output; variables are set.
 
 ### Confirm baseline healthy revision
@@ -234,6 +240,12 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 8
 sleep 40
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"` | Changes revision traffic weights immediately, which is how you roll back to a healthy revision or promote a tested one during mitigation. |
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 8000` | Changes the live container app configuration, which is the corrective action this step is validating or applying. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
 
 Expected output pattern:
 

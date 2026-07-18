@@ -298,6 +298,10 @@ az containerapp logs show \
     --tail 50
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show \ --name "$APP_NAME" \ --resource-group "$RG" \ --type system \ --tail 50` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+
 In the post-break window the system logs should keep showing `PulledImage` for the most recent image tag — this is the surprising signal:
 
 ```text

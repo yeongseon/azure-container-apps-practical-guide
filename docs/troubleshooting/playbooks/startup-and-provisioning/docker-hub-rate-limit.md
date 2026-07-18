@@ -72,6 +72,11 @@ flowchart TD
         --type system
     ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].image" --output tsv` | Reads the Container App resource and extracts the exact image reference the revision is trying to pull as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+
 2. Review registry configuration for the app.
 
     ```bash
@@ -81,6 +86,10 @@ flowchart TD
         --query "properties.configuration.registries" \
         --output json
     ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.registries" --output json` | Reads the app's registry configuration so you can tell whether the Docker Hub image is being pulled anonymously or through an alternate registry/auth configuration before blaming rate limiting. |
 
 3. Search for repeated rate-limit errors during deployment or scale-out windows.
 

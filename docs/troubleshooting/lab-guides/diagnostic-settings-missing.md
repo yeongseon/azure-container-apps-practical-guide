@@ -178,6 +178,14 @@ cd labs/diagnostic-settings-missing/
         --output tsv)
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `export APP_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.containerAppName.value" --output tsv)` | Captures `APP_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export APP_FQDN=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.containerAppFqdn.value" --output tsv)` | Captures `APP_FQDN` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export ENV_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.environmentName.value" --output tsv)` | Captures `ENV_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export WORKSPACE_CUSTOMER_ID=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.logAnalyticsCustomerId.value" --output tsv)` | Captures `WORKSPACE_CUSTOMER_ID` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export WORKSPACE_RESOURCE_ID=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.logAnalyticsWorkspaceId.value" --output tsv)` | Captures `WORKSPACE_RESOURCE_ID` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+
 ### Trigger the baseline (run trigger.sh)
 
 Run `trigger.sh`, which:
@@ -238,6 +246,11 @@ az containerapp update \
     --name "$APP_NAME" \
     --set-env-vars "FIXAPPLIED=$(date -u +%Y%m%dT%H%M%SZ)"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp env update --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$ENV_NAME" --logs-destination log-analytics --logs-workspace-id "$WORKSPACE_CUSTOMER_ID" --logs-workspace-key "$WS_SHARED_KEY"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp update --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --set-env-vars "FIXAPPLIED=$(date -u +%Y%m%dT%H%M%SZ)"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
 
 | Command | Why it is used |
 |---|---|
@@ -326,6 +339,10 @@ When escalating an "apps are running but Log Analytics is empty" case on Contain
         --query "properties.appLogsConfiguration"
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp env show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$ENV_NAME" --query "properties.appLogsConfiguration"` | Reads the managed environment and extracts the field selected by `properties.appLogsConfiguration`, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+
     If this returns `{"destination": null, "logAnalyticsConfiguration": null}`, the case is closed: the environment was provisioned without a destination, and the fix is at the environment scope.
 
 2. If `destination: log-analytics` is set but `customerId` does not match the workspace the operator expects (multi-workspace tenancy, post-migration drift), the routing is set but pointing at the wrong workspace. Re-run `az containerapp env update --logs-destination log-analytics --logs-workspace-id <correct-customerId> --logs-workspace-key <correct-sharedKey>`.
@@ -338,6 +355,10 @@ When escalating an "apps are running but Log Analytics is empty" case on Contain
         --workspace "$WORKSPACE_CUSTOMER_ID" \
         --analytics-query "ContainerAppSystemLogs_CL | where TimeGenerated > ago(15m) | summarize rows=count() by ContainerAppName_s | order by rows desc"
     ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az monitor log-analytics query --subscription "$AZ_SUBSCRIPTION" --workspace "$WORKSPACE_CUSTOMER_ID" --analytics-query "ContainerAppSystemLogs_CL | where TimeGenerated > ago(15m) | summarize rows=count() by ContainerAppName_s | order by rows desc"` | Checks the target workspace directly so you can distinguish between “Container Apps has never written here” and “the workspace is healthy but this environment is silent.” |
 
     A `BadArgumentError: SEM0100 'where' operator: Failed to resolve table` response means no Container Apps environment has EVER ingested to this workspace; the configuration may have been mutated by a subsequent `az deployment group create` reverting the live state to the IaC's omitted property. A successful response with an empty result set means the table exists (some other env writes to this workspace) but the specific app or environment under investigation is silent — investigate that environment's `appLogsConfiguration` next.
 

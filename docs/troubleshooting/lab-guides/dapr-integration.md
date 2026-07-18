@@ -130,6 +130,11 @@ export ACA_ENV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed app name from ARM outputs so every later Dapr inspection and update command points at the exact lab workload. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"` | Captures the environment name created by the lab deployment so Dapr component and environment-level checks use the correct Container Apps environment. |
+
 Expected output:
 
 - Commands return no console output.
@@ -278,6 +283,13 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 100
 az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr"` | Reads the Container App resource and extracts the field selected by `properties.configuration.dapr`, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort"` | Reads the Container App resource and extracts the ingress target port, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 100` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+| `az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
 
 Expected output:
 

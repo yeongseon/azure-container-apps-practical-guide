@@ -124,6 +124,12 @@ export ACA_ENV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the Container App name emitted by the lab deployment so later replica, scale-rule, and log queries target the exact workload under load. |
+| `export ACR_NAME="$(az deployment group show ... --query "properties.outputs.containerRegistryName.value" --output tsv)"` | Captures the registry name required to build and push the workload image before applying the mismatched HTTP scale rule. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.environmentName.value" --output tsv)"` | Captures the environment name for any environment-scoped diagnostics that accompany the scale-rule investigation. |
+
 Expected output: no output.
 
 ### Record the baseline replica count
@@ -223,6 +229,10 @@ az containerapp update \
     --scale-rule-metadata "concurrentRequests=10"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 1 --max-replicas 10 --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-metadata "concurrentRequests=10"` | Adjusts replica bounds and updates autoscale rules, which is the corrective action this step is validating or applying. |
+
 Expected output: update succeeds and a new healthy revision is created.
 
 ### Verify post-fix scaling behavior
@@ -236,6 +246,10 @@ The verify script replays the load test before and after the fix, checks replica
 ```bash
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "length(@)" --output tsv
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "length(@)" --output tsv` | Counts the current replicas as a single number so the verifier can compare pre-fix and post-fix scale behavior without manual table parsing. |
 
 Expected result: replica count stays at or below 1 before the fix and increases above 1 after the fix.
 

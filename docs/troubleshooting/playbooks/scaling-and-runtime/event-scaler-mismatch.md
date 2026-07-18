@@ -84,6 +84,16 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the configured event-scaler rules so you can verify whether rule metadata and thresholds match the backlog pattern under investigation. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists the current replicas so you can correlate the rule configuration with how quickly the app actually scaled during the burst. |
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the Container App resource and extracts the scale rules array in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -171,6 +181,12 @@ az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the Container App resource and extracts the ARM resource ID needed for later scoped checks in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
@@ -198,6 +214,11 @@ If system logs do not show auth failures and both secrets and identity are corre
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the configured event-scaler rules so you can verify whether metadata and thresholds match the backlog pattern under investigation. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists current replicas so you can correlate the rule configuration with how quickly the app actually scaled during the burst. |
 
 **Disproof logic:**
 

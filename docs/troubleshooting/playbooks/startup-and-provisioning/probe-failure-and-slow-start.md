@@ -97,6 +97,12 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output 
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the Container App resource and extracts the configured probe definitions in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -353,6 +359,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers | length(@)" --output tsv
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].resources" --output json` | Reads the Container App resource and extracts the per-container CPU and memory allocation in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers | length(@)" --output tsv` | Reads the Container App resource and extracts how many containers share the revision template as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
+
 **Fix:**
 
 ```bash
@@ -363,6 +374,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
 # Or increase probe timeout
 # timeoutSeconds: 10  (instead of default 1)
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --cpu 1.0 --memory 2.0Gi` | Raises per-replica CPU and memory so you can test whether slow probes are really caused by resource starvation rather than by path or timing mistakes. |
 
 ## 7. Likely Root Cause Patterns
 
@@ -383,6 +398,10 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
      --yaml no-probes.yaml
    ```
 
+   | Command | Purpose |
+   |---|---|
+   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml no-probes.yaml` | Applies a full yaml configuration patch, which is the corrective action this step is validating or applying. |
+
    | Command | Why it is used |
    |---|---|
    | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
@@ -393,18 +412,27 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
    # initialDelaySeconds=30 + (periodSeconds=10 × failureThreshold=27) = 300s
    ```
 
-3. **Roll back to previous revision:**
+   3. **Roll back to previous revision:**
    ```bash
    az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" \
      --revision-weight "<previous-healthy-revision>=100"
    ```
 
-4. **Scale to 0 and back (force fresh start):**
+   | Command | Purpose |
+   |---|---|
+   | `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "<previous-healthy-revision>=100"` | Sends all traffic back to the last healthy revision so service can recover while you investigate the broken probe configuration offline. |
+
+   4. **Scale to 0 and back (force fresh start):**
    ```bash
    az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 0
    # Wait, then:
    az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 1
    ```
+
+   | Command | Purpose |
+   |---|---|
+   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 0` | Drops the app to zero warm replicas so the next start uses a clean process state instead of a possibly hung or cached replica. |
+   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 1` | Restores one warm replica after the reset so you can observe whether a fresh start clears the probe failure pattern. |
 
 ## 9. Prevention
 

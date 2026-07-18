@@ -116,6 +116,13 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr" --output json` | Reads the Container App resource and extracts the field selected by `properties.configuration.dapr` in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers" --output json` | Reads the Container App resource and extracts the field selected by `properties.template.containers` in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -231,6 +238,11 @@ az containerapp secret list --name "$APP_NAME" --resource-group "$RG" --output t
 az containerapp identity show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
+| `az containerapp identity show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the app's managed identity assignment so you can confirm whether the workload actually has an identity to present downstream. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
@@ -262,6 +274,10 @@ ContainerAppConsoleLogs_CL
 ```bash
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -vk https://backend.example.internal/health"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "curl -vk https://backend.example.internal/health"` | Calls the backend directly from inside the app replica so you can tell whether the Dapr issue is really a backend DNS/TLS/network failure rather than a sidecar-only problem. |
 
 ## 7. Likely Root Cause Patterns
 

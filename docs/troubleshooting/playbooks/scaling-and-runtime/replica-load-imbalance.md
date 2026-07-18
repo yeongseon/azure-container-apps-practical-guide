@@ -96,6 +96,10 @@ flowchart TD
         --timespan PT1H
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `az monitor metrics list --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" --metric Requests --aggregation Total --timespan PT1H` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+
     ```kusto
     let AppName = "ca-myapp";
     ContainerAppSystemLogs_CL

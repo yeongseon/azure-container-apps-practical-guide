@@ -100,6 +100,11 @@ az account set --subscription "$SUBSCRIPTION_ID"
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Purpose |
+|---|---|
+| `az account set --subscription "$SUBSCRIPTION_ID"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az extension add --name containerapp --upgrade` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+
 ### Deploy the lab
 
 ```bash

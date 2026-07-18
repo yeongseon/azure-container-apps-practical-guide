@@ -139,6 +139,13 @@ export KV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed Container App name so later identity, logs, and role-assignment checks all point at the exact workload under test. |
+| `export ACR_NAME="$(az deployment group show ... --query "properties.outputs.containerRegistryName.value" --output tsv)"` | Captures the registry name the lab uses for the runtime image, which is needed before the two-step `registry set` + `update --image` flow can run. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.environmentName.value" --output tsv)"` | Captures the Container Apps environment name for any environment-scoped follow-up diagnostics. |
+| `export KV_NAME="$(az deployment group show ... --query "properties.outputs.keyVaultName.value" --output tsv)"` | Captures the Key Vault name from ARM outputs so the RBAC and secret-reference checks target the correct vault created by the lab. |
+
 Expected output:
 
 - Commands return no console output.
@@ -304,6 +311,10 @@ az role assignment list \
     --scope "$KV_ID" \
     --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az role assignment list --assignee "$PRINCIPAL_ID" --scope "$KV_ID" --output table` | Lists RBAC grants for one principal at one exact scope, which is the quickest way to verify whether the workload has the right permission on the dependency that is failing. |
 
 Expected output:
 

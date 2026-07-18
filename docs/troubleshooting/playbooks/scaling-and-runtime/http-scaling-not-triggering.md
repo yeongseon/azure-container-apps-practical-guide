@@ -113,6 +113,18 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output 
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale" --output json` | Reads the Container App resource and extracts the full scale configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale" --output json` | Reads the Container App resource and extracts the full scale configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -159,6 +171,13 @@ CURRENT=$(az containerapp replica list --name "$APP_NAME" --resource-group "$RG"
 MAX=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.maxReplicas" --output tsv)
 echo "Current: $CURRENT, Max: $MAX"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.{min:minReplicas,max:maxReplicas}" --output json` | Reads the configured minimum and maximum replica bounds together so you can see whether scale-out is capped by configuration before blaming KEDA behavior. |
+| `CURRENT=$(az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "length(@)" --output tsv)` | Captures the live replica count as a number so it can be compared directly with the configured maximum. |
+| `MAX=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.maxReplicas" --output tsv)` | Captures the current `maxReplicas` value from the app resource so the comparison uses the live setting, not an assumed one. |
+| `echo "Current: $CURRENT, Max: $MAX"` | Prints the measured replica count beside the configured maximum so you can confirm immediately whether the app is pinned at its cap. |
 
 ```kusto
 // Check replica count over time
@@ -228,6 +247,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 # ]
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the raw scale-rules array so you can prove whether an HTTP rule exists at all before investigating thresholds or request routing. |
+
 ```kusto
 // Check for KEDA scaler activity
 let AppName = "ca-myapp";
@@ -268,6 +291,11 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --scale-rule-http-concurrency 10
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Updates autoscale rules, which is the corrective action this step is validating or applying. |
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 1 --max-replicas 10 --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Adjusts replica bounds and updates autoscale rules, which is the corrective action this step is validating or applying. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
@@ -299,6 +327,13 @@ curl -s -o /dev/null -w "%{http_code}" "https://${APP_FQDN}/health"
 # Check DNS resolution
 nslookup "$APP_FQDN"
 ```
+
+| Command | Purpose |
+|---|---|
+| `APP_FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Captures the live ingress hostname so the connectivity test and DNS lookup hit the same endpoint the load generator should be targeting. |
+| `echo "Correct FQDN: $APP_FQDN"` | Prints the resolved hostname so you can compare the test target with the expected app endpoint before rerunning load. |
+| `curl -s -o /dev/null -w "%{http_code}" "https://${APP_FQDN}/health"` | Sends a lightweight health request to prove the chosen FQDN is reachable before you conclude that missing scale-out is caused by KEDA. |
+| `nslookup "$APP_FQDN"` | Resolves the FQDN from the client path so you can detect DNS drift or a wrong endpoint target during the load test. |
 
 ```kusto
 // Check if requests are hitting the app
@@ -449,6 +484,10 @@ This is expected behavior, not a bug.
      --scale-rule-http-concurrency 5
    ```
 
+   | Command | Purpose |
+   |---|---|
+   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 5` | Updates autoscale rules, which is the corrective action this step is validating or applying. |
+
    | Command | Why it is used |
    |---|---|
    | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
@@ -470,6 +509,10 @@ This is expected behavior, not a bug.
      --scale-rule-type "http" \
      --scale-rule-http-concurrency 10
    ```
+
+   | Command | Purpose |
+   |---|---|
+   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Adds the missing HTTP scale rule with a concrete concurrency threshold so the app can finally scale on incoming request pressure instead of staying at its floor. |
 
 ## 9. Prevention
 

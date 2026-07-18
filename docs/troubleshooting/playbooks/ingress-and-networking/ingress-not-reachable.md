@@ -104,6 +104,12 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json` | Reads the Container App resource and extracts the effective ingress configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,replicas:properties.replicas,health:properties.healthState,traffic:properties.trafficWeight}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -249,6 +255,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | Reads the Container App resource and extracts the ingress target port as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env[?name=='PORT' || name=='CONTAINER_APP_PORT']" --output table` | Reads the Container App resource and extracts the container environment-variable mapping, which is the specific surface this troubleshooting step needs to confirm. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
@@ -275,6 +286,11 @@ az network nsg rule list --resource-group "$RG" --nsg-name "$NSG_NAME" --output 
 # Test from different network locations
 curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az network nsg rule list --resource-group "$RG" --nsg-name "$NSG_NAME" --output table` | Lists the NSG rules on the ingress path so you can confirm whether a network policy block explains why only certain caller networks time out. |
+| `curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"` | Tests the app endpoint from the current client path and shows connection, TLS, and HTTP details, which helps separate network blocking from application failures. |
 
 ## 7. Likely Root Cause Patterns
 
