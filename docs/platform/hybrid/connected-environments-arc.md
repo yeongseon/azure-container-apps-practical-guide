@@ -109,7 +109,7 @@ System component and application logs are written to **standard output** and can
 Choose a connected environment when:
 
 - Workloads must stay **on-premises or in a specific data center** for compliance or residency.
-- You already operate **Arc-enabled Kubernetes** and want the Container Apps developer model on it.
+- You already operate **Arc-enabled AKS or AKS on Azure Local** and want the Container Apps developer model on it.
 
 Prefer a **managed environment** when you need managed identities, managed-identity ACR pulls, the broadest region and feature availability, and no cluster to operate yourself.
 
