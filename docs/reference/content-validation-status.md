@@ -16,7 +16,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 468 | 468 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 121 | 33 | 0 | 10 |
+| In-Scope Factual-Claim Documents | 164 | 122 | 32 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,8 +24,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 121
-    "Pending Review" : 33
+    "Verified" : 122
+    "Pending Review" : 32
     "No Metadata" : 10
 ```
 
@@ -135,7 +135,7 @@ pie title In-Scope Document Validation Status
 | [Index](../operations/logging/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Internal Ingress On Prem Dns](../operations/deployment/internal-ingress-on-prem-dns.md) | ✅ | ✅ Verified | 5/5 | 2026-05-18 |
 | [Log Analytics Queries](../operations/logging/log-analytics-queries.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
-| [Log Streaming](../operations/logging/log-streaming.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
+| [Log Streaming](../operations/logging/log-streaming.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Metric Alerts By Incident Question](../operations/alerts/metric-alerts-by-incident-question.md) | ❌ | ✅ Verified | 3/3 | 2026-06-05 |
 | [Min Replica Change Impact](../operations/scaling/min-replica-change-impact.md) | ✅ | ✅ Verified | 3/3 | 2026-05-18 |
