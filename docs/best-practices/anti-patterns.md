@@ -55,6 +55,12 @@ az extension add --name "containerapp" --upgrade
 az account show --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `export RG=...`, `APP_NAME=...`, `ACA_ENV_NAME=...`, `ACR_NAME=...`, `LOCATION=...` | Defines the resource group, app, environment, registry, and region variables reused by the anti-pattern examples so each later command points at the same production-like deployment context. |
+| `az extension add --name "containerapp" --upgrade` | Ensures the Container Apps CLI extension is installed and current before you validate revision, scale, ingress, identity, or job settings from this checklist. |
+| `az account show --output table` | Confirms which subscription and tenant the audit commands will run against so you do not review the wrong environment. |
+
 ## Recommended Practices
 
 ### Anti-pattern quick reference table
@@ -434,6 +440,12 @@ az containerapp show \
   --query "properties.template.scale" \
   --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --query "properties.template.scale"` | Pulls the app's full scale block so you can review min/max replicas and every configured scaler together instead of diagnosing scale-rule conflicts from memory. |
+| `--name "$APP_NAME"` / `--resource-group "$RG"` | Reuses the app and resource group variables defined at the top of the page so the inspection targets the same production candidate discussed in the anti-pattern checklist. |
+| `--output json` | Preserves the nested scale configuration, which is easier to inspect than a flattened table when multiple rules may be interacting. |
 
 ### Anti-pattern severity and impact matrix
 

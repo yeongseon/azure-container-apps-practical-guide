@@ -93,6 +93,12 @@ az containerapp env show \
   --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp env show --query "properties.workloadProfiles"` | Inspects the managed environment's workload-profile configuration so you can see which profile options are available before making a cost/performance sizing decision. |
+| `--name "$ACA_ENV_NAME"` / `--resource-group "$RG"` | Points the check at the exact Container Apps environment that hosts the workload, because profile availability is environment-scoped. |
+| `--output json` | Returns the full profile objects, which is more useful than a table when you need to compare names, types, and sizing fields. |
+
 Review current app resource allocation:
 
 ```bash

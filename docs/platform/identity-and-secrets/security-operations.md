@@ -104,6 +104,13 @@ az role assignment create \
   --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/<key-vault-name>"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az role assignment create` | Grants the app identity the Azure RBAC permission required to read secrets from Key Vault during runtime or rotation workflows. |
+| `--assignee-object-id "<object-id>"` | Targets the managed identity object directly so access is bound to the workload, not to an operator account. |
+| `--role "Key Vault Secrets User"` | Chooses the least-privilege read role needed for secret retrieval rather than a broader vault management role. |
+| `--scope "/subscriptions/.../vaults/<key-vault-name>"` | Restricts access to one vault, which contains blast radius if other vaults exist in the same resource group. |
+
 ## Secret Operations
 
 Set or rotate secret values in Container Apps configuration:
@@ -114,6 +121,12 @@ az containerapp secret set \
   --resource-group "$RG" \
   --secrets "db-connection=<redacted-secret>"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp secret set` | Adds or rotates an app-level secret in the Container Apps secret store without hardcoding it in the revision template. |
+| `--name "$APP_NAME"` / `--resource-group "$RG"` | Applies the change to the intended workload so later revision updates can reference the new secret value safely. |
+| `--secrets "db-connection=<redacted-secret>"` | Defines the secret by name, which is the identifier your environment variables or scale-rule auth mappings will reference later. |
 
 Reference the secret as an environment variable in app template updates.
 

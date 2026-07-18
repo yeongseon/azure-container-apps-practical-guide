@@ -349,6 +349,12 @@ az network private-dns record-set a list \
   --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az network private-dns record-set a list` | Lists the A records in the Private DNS zone so you can confirm that private-endpoint name resolution exists before blaming Container Apps networking. |
+| `--zone-name "privatelink.database.windows.net"` | Focuses the check on the SQL private-link zone used by the example, which is the DNS surface most likely to break outbound private connectivity. |
+| `--output table` | Produces an operator-friendly view for quick workstation validation of record names and private IP targets. |
+
 ### Service-to-service communication: Dapr vs direct HTTP
 
 Use this rule:
@@ -371,6 +377,11 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars "ORDERS_BASE_URL=http://ca-orders-internal"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp update --set-env-vars "ORDERS_BASE_URL=http://ca-orders-internal"` | Shows the direct-call pattern: inject the peer service endpoint into app config so the workload can call another internal Container App without adding Dapr sidecars. |
+| `ORDERS_BASE_URL=http://ca-orders-internal` | Makes the destination URL explicit in configuration, which keeps service-to-service routing simple but also leaves retries, discovery behavior, and resilience in application code. |
 
 Dapr-enabled app update pattern:
 

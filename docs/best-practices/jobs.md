@@ -63,6 +63,12 @@ az extension add --name "containerapp" --upgrade
 az account show --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `export RG=...`, `ACA_ENV_NAME=...`, `APP_NAME=...`, `ACR_NAME=...`, `LOCATION=...`, `JOB_NAME=...` | Defines the shared environment, registry, and job variables used by the examples so every job command points at the same operational context. |
+| `az extension add --name "containerapp" --upgrade` | Makes sure the jobs subcommands and latest flags are available before you create, update, or start Container Apps jobs. |
+| `az account show --output table` | Confirms the active Azure account context so you do not create or inspect jobs in the wrong subscription. |
+
 ## Recommended Practices
 
 ### Decide correctly: Job vs App
@@ -248,6 +254,13 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp job create` | Defines a manual job template that fans work out across multiple replicas instead of serializing the entire batch on one execution path. |
+| `--parallelism 4` | Allows four replicas to run at once, which is appropriate only when the workload can be partitioned safely. |
+| `--replica-completion-count 4` | Requires all four shard replicas to succeed before the execution is marked complete, matching the "all partitions are mandatory" guidance in this section. |
+| `--replica-timeout 1800` | Caps how long each shard can run before the platform treats it as stuck, which prevents runaway executions from consuming unbounded spend. |
+
 <!-- diagram-id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0 -->
 ```mermaid
 flowchart TD
@@ -325,6 +338,11 @@ az containerapp job identity assign \
   --system-assigned
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp job identity assign` | Enables a managed identity on the job so each execution can authenticate to Azure dependencies without embedded credentials. |
+| `--system-assigned` | Uses a lifecycle-bound identity that is created and deleted with the job, which is a simple default for single-job ownership. |
+
 Inspect principal ID for role assignment workflows:
 
 ```bash
@@ -334,6 +352,11 @@ az containerapp job show \
   --query "identity.principalId" \
   --output tsv
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp job show --query "identity.principalId" --output tsv` | Extracts the job identity's principal ID so you can apply least-privilege RBAC on Storage, Service Bus, or Key Vault for this job workflow. |
+| `--name "$JOB_NAME"` / `--resource-group "$RG"` | Ensures the role-assignment lookup uses the exact job definition you just enabled for identity-based access. |
 
 Identity patterns:
 

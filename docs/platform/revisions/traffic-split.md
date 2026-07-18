@@ -114,6 +114,11 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--stable=95" "$APP_NAME--canary=5"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp ingress traffic set` | Applies a weighted rollout so a small portion of live requests can validate the canary revision before full promotion. |
+| `--revision-weight "$APP_NAME--stable=95" "$APP_NAME--canary=5"` | Keeps 95 percent of traffic on the stable revision while exposing only 5 percent to the candidate, which is the core canary safety control. |
+
 ### Route traffic by label
 
 ```bash
@@ -122,6 +127,11 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --label-weight "blue=100"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp ingress traffic set --label-weight "blue=100"` | Sends all production traffic to the revision currently holding the `blue` label, which is a clean fit for blue/green swaps where labels represent release roles. |
+| `--label-weight` | Routes by movable label instead of by raw revision name, allowing you to repoint the role later without changing client-facing terminology. |
 
 ### Send all traffic to the latest stable revision
 

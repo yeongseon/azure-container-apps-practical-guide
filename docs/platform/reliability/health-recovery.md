@@ -66,6 +66,11 @@ az containerapp update \
   --yaml "./infra/containerapp-health.yaml"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update --yaml "./infra/containerapp-health.yaml"` | Applies a full health-related configuration payload in one operation, which is safer than piecemeal flag edits when you are changing multiple probes or related settings together. |
+| `--yaml "./infra/containerapp-health.yaml"` | Uses a declarative file as the source of truth for probe settings so recovery changes are reviewable and repeatable. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
@@ -79,6 +84,12 @@ az resource show \
   --name "$ACA_ENV_NAME" \
   --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az resource show` | Reads the managed environment resource directly so you can verify platform-level state before assuming the problem is isolated to one app revision. |
+| `--resource-type "Microsoft.App/managedEnvironments"` | Forces the query to the Container Apps environment resource, which is the right scope for environment-wide health or provisioning checks. |
+| `--name "$ACA_ENV_NAME"` | Uses the environment variable referenced throughout the page so app-level recovery and environment-level validation stay aligned. |
 
 ## Portal View: Revision State Before Recovery Actions
 
@@ -102,6 +113,11 @@ az containerapp revision restart \
   --resource-group "$RG" \
   --revision "${APP_NAME}--stable"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision restart` | Restarts one specific revision when the failure appears transient, allowing you to recover replicas without changing traffic assignments or redeploying the app. |
+| `--revision "${APP_NAME}--stable"` | Limits the action to the affected revision so you do not unnecessarily disrupt other active revisions in multiple-revision mode. |
 
 For persistent failures, roll traffic back to a healthy revision (see revisions guide).
 
