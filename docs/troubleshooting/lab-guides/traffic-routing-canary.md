@@ -308,7 +308,7 @@ az containerapp revision deactivate \
 | Command | Purpose |
 |---|---|
 | `BAD_REVISION=$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name" --output tsv)` | Captures `BAD_REVISION` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp revision deactivate --name "$APP_NAME" --resource-group "$RG" --revision "$BAD_REVISION"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp revision deactivate --name "$APP_NAME" --resource-group "$RG" --revision "$BAD_REVISION"` | Deactivates the broken canary revision after rollback so it can no longer re-enter traffic or confuse later revision-health checks. |
 
 ### Verify the Fix
 

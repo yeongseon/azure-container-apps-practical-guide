@@ -102,8 +102,8 @@ az extension add --name containerapp --upgrade
 
 | Command | Purpose |
 |---|---|
-| `az account set --subscription "$SUBSCRIPTION_ID"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
-| `az extension add --name containerapp --upgrade` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az account set --subscription "$SUBSCRIPTION_ID"` | Switches the CLI context to the subscription that owns the lab resources so every subsequent environment, revision, and metrics command runs against the intended zone-redundancy scenario. |
+| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you run the environment and revision commands used by this zone-redundancy lab. |
 
 ### Deploy the lab
 

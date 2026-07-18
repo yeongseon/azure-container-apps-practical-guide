@@ -112,7 +112,7 @@ az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --
 
 | Command | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the Container App resource and extracts the ARM resource ID needed for later scoped checks in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can inspect whether the revision has a system-assigned identity, user-assigned identities, and the expected `principalId`/`clientId` values before troubleshooting RBAC. |
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.identity" --output json` | Reads the Container App resource and extracts the revision template identity settings in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
 | `az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --all --output table` | Lists every RBAC grant for the selected principal so you can see whether the expected role exists and whether it was assigned at the wrong scope. |
 

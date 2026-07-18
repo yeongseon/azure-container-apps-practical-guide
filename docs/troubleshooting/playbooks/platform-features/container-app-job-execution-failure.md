@@ -88,8 +88,8 @@ az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 
 | Command | Purpose |
 |---|---|
-| `az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --output table` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
-| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists recent job executions so you can see whether failures are isolated to one execution, repeating across retries, or never starting at all. |
+| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the job definition so trigger type, timeout, parallelism, and template configuration can be compared with the failing execution pattern. |
 
 ## 5. Evidence to Collect
 
@@ -177,8 +177,8 @@ az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 
 | Command | Purpose |
 |---|---|
-| `az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --job-execution-name "<execution-name>" --output json` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
-| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --job-execution-name "<execution-name>" --output json` | Reads one failed execution in detail so you can inspect its status, start/finish timing, and container outcomes instead of relying on the summary list. |
+| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the current job configuration so you can compare the failed execution against the timeout, retry, env, and trigger settings that produced it. |
 
 | Command | Why it is used |
 |---|---|

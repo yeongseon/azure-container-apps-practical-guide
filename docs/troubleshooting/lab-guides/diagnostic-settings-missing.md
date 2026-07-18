@@ -249,7 +249,7 @@ az containerapp update \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp env update --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$ENV_NAME" --logs-destination log-analytics --logs-workspace-id "$WORKSPACE_CUSTOMER_ID" --logs-workspace-key "$WS_SHARED_KEY"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp env update --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$ENV_NAME" --logs-destination log-analytics --logs-workspace-id "$WORKSPACE_CUSTOMER_ID" --logs-workspace-key "$WS_SHARED_KEY"` | Reconfigures the managed environment to send logs to the intended Log Analytics workspace, which is the exact fix when `appLogsConfiguration` is null or pointed at the wrong destination. |
 | `az containerapp update --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --set-env-vars "FIXAPPLIED=$(date -u +%Y%m%dT%H%M%SZ)"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
 
 | Command | Why it is used |

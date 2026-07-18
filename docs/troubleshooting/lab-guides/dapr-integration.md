@@ -289,7 +289,7 @@ az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group 
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr"` | Reads the Container App resource and extracts the field selected by `properties.configuration.dapr`, which is the specific surface this troubleshooting step needs to confirm. |
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort"` | Reads the Container App resource and extracts the ingress target port, which is the specific surface this troubleshooting step needs to confirm. |
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 100` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
-| `az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Lists the Dapr components registered in the environment so you can verify whether the sidecar failure is caused by missing or mis-scoped component configuration rather than by the app port mismatch alone. |
 
 Expected output:
 

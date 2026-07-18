@@ -260,16 +260,6 @@ az containerapp update \
     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}"
 ```
 
-| Command | Purpose |
-|---|---|
-| `APPLICATIONINSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show --subscription "$AZ_SUBSCRIPTION" --app "$APP_INSIGHTS_NAME" --resource-group "$RG" --query "connectionString" --output tsv)` | Captures `APPLICATIONINSIGHTS_CONNECTION_STRING` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
-| `az containerapp update --subscription "$AZ_SUBSCRIPTION" --name "$APP_NAME" --resource-group "$RG" --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
-
-| Command | Purpose |
-|---|---|
-| `APPLICATIONINSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show --subscription "$AZ_SUBSCRIPTION" --app "$APP_INSIGHTS_NAME" --resource-group "$RG" --query "connectionString" --output tsv)` | Captures `APPLICATIONINSIGHTS_CONNECTION_STRING` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
-| `az containerapp update --subscription "$AZ_SUBSCRIPTION" --name "$APP_NAME" --resource-group "$RG" --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
-
 | Command | Why it is used |
 |---|---|
 | `az monitor app-insights component show` | Reads the connection string directly from the deployed Application Insights resource so the binding is deterministic and never depends on a hardcoded literal. |

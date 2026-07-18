@@ -183,7 +183,7 @@ az containerapp revision deactivate \
 | Command | Purpose |
 |---|---|
 | `az containerapp revision list --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --all --query "[?properties.active==\`false\`].name" --output tsv` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp revision deactivate --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --revision "ca-revhist-<suffix>--<revsuffix>"` | Runs the specific Azure control-plane query or update needed for this troubleshooting branch, using the exact scope and fields referenced by the surrounding step. |
+| `az containerapp revision deactivate --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --revision "ca-revhist-<suffix>--<revsuffix>"` | Deactivates a specific inactive revision immediately, which gives operators a deterministic cleanup path when the asynchronous `maxInactiveRevisions` reconciler is too slow. |
 
 | Command | Why it is used |
 |---|---|
