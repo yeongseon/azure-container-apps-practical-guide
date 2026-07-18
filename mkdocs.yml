@@ -114,6 +114,7 @@ nav:
     - Architecture:
       - Overview: platform/architecture/index.md
       - Resource Relationships: platform/architecture/resource-relationships.md
+      - Sidecars and Init Containers: platform/architecture/sidecars-and-init-containers.md
     - Deployment Scenarios: platform/deployment-scenarios.md
     - Deployment: platform/deployment.md
     - Environments:

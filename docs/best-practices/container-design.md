@@ -518,6 +518,7 @@ Treat log schema as a versioned contract. Breaking schema changes should go thro
 
 ## See Also
 
+- [Platform: Sidecars and Init Containers](../platform/architecture/sidecars-and-init-containers.md)
 - [Platform: Revisions](../platform/revisions/index.md)
 - [Platform: Scaling](../platform/scaling/index.md)
 - [Operations: Deployment](../operations/deployment/index.md)
