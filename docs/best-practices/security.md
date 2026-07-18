@@ -582,6 +582,7 @@ Use this checklist before promoting to production:
 - [Security Operations](../platform/identity-and-secrets/security-operations.md)
 - [Image Security Best Practices](image-security.md)
 - [Compliance Baseline](compliance-baseline.md)
+- [Landing Zone Accelerator](landing-zone-accelerator.md)
 - [Image Security (Platform)](../platform/security/image-security.md)
 - [Secrets (Platform)](../platform/security/secrets.md)
 - [Network Isolation (Platform)](../platform/security/network-isolation.md)

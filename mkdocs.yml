@@ -191,6 +191,7 @@ nav:
     - mTLS: best-practices/mtls.md
     - Image Security: best-practices/image-security.md
     - Compliance Baseline: best-practices/compliance-baseline.md
+    - Landing Zone Accelerator: best-practices/landing-zone-accelerator.md
     - Reliability: best-practices/reliability.md
     - Availability and Non-Guarantees: best-practices/availability-and-non-guarantees.md
     - Cost Optimization: best-practices/cost.md
