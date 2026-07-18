@@ -9,19 +9,19 @@ content_sources:
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps requires environment storage definitions before a revision can mount an Azure file share.
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-      verified: false
+      verified: true
     - claim: Azure Container Apps does not support identity-based access to Azure file shares for storage mounts.
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-      verified: false
+      verified: true
     - claim: The Azure portal Diagnose and solve problems experience includes storage mount diagnostics for Container Apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
-      verified: false
+      verified: true
 ---
 # Azure Files Mount Failure
 

@@ -9,19 +9,19 @@ content_sources:
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps supports mount options on Azure Files volume definitions.
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
-      verified: false
+      verified: true
     - claim: Linux CIFS mount options such as `dir_mode`, `file_mode`, `uid`, and `gid` control file-access behavior for Azure Files SMB mounts.
       source: https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
-      verified: false
+      verified: true
     - claim: Azure Container Apps storage troubleshooting includes Azure Files mount-failure workflows.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
-      verified: false
+      verified: true
 ---
 # Volume Permission Denied
 
