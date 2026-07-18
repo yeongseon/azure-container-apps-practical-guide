@@ -12,19 +12,19 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Revision-scope changes create a new revision in Azure Container Apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
+      verified: true
     - claim: Azure Container Apps uses revision lifecycle behavior during deployments and cutovers.
       source: https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
-      verified: false
+      verified: true
     - claim: Troubleshooting guidance for Container Apps includes checking provisioning, configuration, and runtime signals when deployments do not complete successfully.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-      verified: false
+      verified: true
 ---
 # Bicep Deployment Timeout
 
