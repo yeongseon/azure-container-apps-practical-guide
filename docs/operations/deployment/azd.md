@@ -33,7 +33,6 @@ This page explains when to use `azd` for Azure Container Apps, how it relates to
 
 ## Prerequisites
 
-- Azure CLI installed and signed in (`az login`).
 - Azure Developer CLI installed:
 
     ```bash
@@ -49,6 +48,9 @@ This page explains when to use `azd` for Azure Container Apps, how it relates to
 
 - An Azure subscription with permission to create resource groups and Container Apps resources.
 - Docker (optional) — only needed for local container builds. `azd` can also build container images remotely via Azure Container Registry.
+
+!!! note "Authentication"
+    `azd` uses its own credential flow — run `azd auth login` before `azd up`. The Azure CLI (`az login`) is used separately for the verification commands below. Install the [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) if you plan to run those `az containerapp` checks.
 
 ## When to Use
 
