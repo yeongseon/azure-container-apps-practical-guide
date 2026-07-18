@@ -11,16 +11,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps jobs support manual, schedule-based, and event-driven trigger types.
       source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
+      verified: true
     - claim: Scheduled jobs use cron expressions evaluated in UTC.
       source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
+      verified: true
 ---
 # Scheduled Job Missed
 

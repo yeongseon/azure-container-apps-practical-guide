@@ -11,16 +11,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
         - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure reliability guidance for Container Apps recommends multi-region planning for higher resilience requirements.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
-      verified: false
+      verified: true
     - claim: Azure Front Door can use health probes and origin groups to steer traffic.
       source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
-      verified: false
+      verified: true
 ---
 # Multi-Region Failover
 

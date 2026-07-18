@@ -12,16 +12,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
         - https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps supports built-in authentication and authorization configuration.
       source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
-      verified: false
+      verified: true
     - claim: A redirect URI mismatch in Microsoft Entra ID can surface as AADSTS50011.
       source: https://learn.microsoft.com/en-us/troubleshoot/azure/entra/entra-id/app-integration/error-code-AADSTS50011-redirect-uri-mismatch
-      verified: false
+      verified: true
 ---
 # EasyAuth Entra ID Failure
 

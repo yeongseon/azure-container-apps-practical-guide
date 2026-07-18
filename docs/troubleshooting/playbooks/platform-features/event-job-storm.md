@@ -11,16 +11,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps jobs support event-driven execution patterns.
       source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
-      verified: false
+      verified: true
     - claim: Job execution history can be reviewed with Azure CLI commands for Container Apps jobs.
       source: https://learn.microsoft.com/en-us/cli/azure/containerapp/job
-      verified: false
+      verified: true
 ---
 # Event Job Storm
 
