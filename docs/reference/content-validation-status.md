@@ -15,8 +15,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 466 | 466 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 162 | 113 | 39 | 0 | 10 |
+| Mermaid Diagrams | 467 | 467 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 163 | 114 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 113
+    "Verified" : 114
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -117,6 +117,7 @@ pie title In-Scope Document Validation Status
 
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
+| [Azd](../operations/deployment/azd.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
 | [Byo Certificates](../operations/custom-domains/byo-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Diagnostic Settings](../operations/logging/diagnostic-settings.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
 | [Index](../operations/health-probes/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |

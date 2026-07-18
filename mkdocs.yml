@@ -314,6 +314,7 @@ nav:
       - Bring Your Own Certificates: operations/custom-domains/byo-certificates.md
     - Deployment:
       - operations/deployment/index.md
+      - Azure Developer CLI (azd): operations/deployment/azd.md
       - Networking: operations/deployment/networking.md
       - On-Premises DNS to Internal ACA: operations/deployment/internal-ingress-on-prem-dns.md
     - Disaster Recovery:
