@@ -210,6 +210,13 @@ az monitor app-insights component show \
   --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az monitor app-insights component show` | Verifies that the Application Insights component itself exists and is provisioned successfully before you interpret missing traces as an app-side telemetry problem. |
+| `--app "<app-insights-name>"` | Targets the exact App Insights component backing this Container App's observability pipeline, which is important when a resource group contains multiple telemetry components. |
+| `--resource-group "$RG"` | Keeps the verification scoped to the same operational environment as the app you are monitoring. |
+| `--output json` | Returns the component metadata in a form that is easy to inspect for IDs and provisioning state during verification. |
+
 Example output (PII masked):
 
 ```json

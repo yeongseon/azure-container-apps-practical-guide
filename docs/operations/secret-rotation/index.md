@@ -135,6 +135,12 @@ az containerapp update \
   --set-env-vars "DB_CONNECTION=secretref:db-conn"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp secret set ... "db-conn=keyvaultref:...,identityref:system"` | Registers a Key Vault-backed secret reference in Container Apps so the platform resolves the credential at runtime instead of embedding a static value in the revision. |
+| `identityref:system` | Tells Container Apps to use the app's system-assigned identity when reading the secret from Key Vault, which is the critical auth path for this rotation pattern. |
+| `az containerapp update ... --set-env-vars "DB_CONNECTION=secretref:db-conn"` | Creates the new revision that binds the application setting to the rotated secret reference, giving you a safe validation and rollback point. |
+
 ### Post-Rotation Verification Checklist
 
 | Check | Command | Expected Result |
@@ -157,6 +163,12 @@ az containerapp revision list \
   --resource-group "$RG" \
   --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG" --output table` | Confirms that the expected secret name is present in Container Apps before you verify traffic or retire the previous credential version. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Shows whether the secret update produced a new revision and whether that revision is healthy, which is the core post-rotation checkpoint in this runbook. |
+| `--output table` | Keeps both checks easy to scan during a live rotation window when operators need fast human-readable confirmation. |
 
 ## Portal Walkthrough
 

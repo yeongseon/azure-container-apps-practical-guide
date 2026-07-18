@@ -74,6 +74,12 @@ az containerapp replica list \
     --output table
 ```
 
+| Command/Parameter | Purpose |
+|---|---|
+| `az containerapp replica list` | Lists the replicas currently backing the app so you can observe how quickly the platform converges after lowering or raising `minReplicas`. |
+| `--resource-group $RG` / `--name $APP_NAME` | Scopes the check to the workload whose minimum replica setting was just changed, avoiding confusion with other apps in the environment. |
+| `--output table` | Produces an operator-friendly view for checking replica count and instance identity during the post-change observation window. |
+
 ## Behavior Summary
 
 <!-- diagram-id: min-replica-change-flow -->

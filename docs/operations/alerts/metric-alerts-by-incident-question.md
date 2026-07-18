@@ -105,6 +105,14 @@ Before you commit a new metric-alert rule to production, confirm the metric is a
       --offset 2h
     ```
 
+    | Flag | Purpose |
+    |---|---|
+    | `--resource` | Targets the exact Container App resource whose metric stream you plan to alert on, so the dry run reflects the same scope the future alert rule will evaluate. |
+    | `--metric "CpuPercentage"` | Chooses the specific metric signal under review, which lets the operator confirm that this incident question maps to a real Container Apps metric instead of a guessed name. |
+    | `--aggregation Average` | Tests the same rollup style an alert would use, which matters because averages can look healthy even when single spikes would have triggered a `Maximum`-based rule. |
+    | `--interval PT5M` | Buckets the series into 5-minute windows so you can judge whether the alerting granularity is too coarse or too noisy for incident response. |
+    | `--offset 2h` | Pulls a recent two-hour sample window, which is long enough to confirm the metric is emitting and to estimate a realistic threshold before you create the alert. |
+
 3. After creating the rule, confirm it is firing as expected against historical data by reviewing the rule's **Fired alerts** tab in the Portal, per [Alerting for Container Apps → Portal view](index.md#portal-view-container-app-alerts-blade).
 
 ## Rollback / Troubleshooting

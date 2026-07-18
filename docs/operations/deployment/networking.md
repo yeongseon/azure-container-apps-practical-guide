@@ -168,6 +168,12 @@ FQDN=$(az containerapp show \
 curl --silent --output /dev/null --write-out "%{http_code}" "https://$FQDN/health"
 ```
 
+| Command | Purpose |
+|---|---|
+| `FQDN=$(az containerapp show ...)` | Reads the deployed ingress hostname from the Container App so the data-plane test uses the actual current endpoint instead of a copied URL that may be stale after redeployments. |
+| `--query "properties.configuration.ingress.fqdn" --output tsv` | Extracts only the FQDN string from the app configuration, which is the minimum value needed for the health probe and avoids manual JSON parsing during an incident. |
+| `curl --silent --output /dev/null --write-out "%{http_code}" "https://$FQDN/health"` | Issues a lightweight HTTPS request and returns only the status code, letting the operator quickly separate ingress reachability failures from healthy application responses. |
+
 Expected result: `200`
 
 Example health payload:
@@ -403,6 +409,12 @@ az containerapp exec \
   --name "$APP_NAME" \
   --command "/bin/sh"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp exec` | Opens an interactive shell inside a running replica so you can validate DNS, routing, and endpoint reachability from the same network context as the workload itself. |
+| `--resource-group "$RG"` / `--name "$APP_NAME"` | Selects the specific app that is experiencing the networking issue, which matters when multiple apps share the same environment or VNet. |
+| `--command "/bin/sh"` | Starts a minimal shell suitable for ad-hoc probes such as `nslookup`, `nc`, and `curl`, which are the next troubleshooting steps listed in this runbook. |
 
 Inside the container, use:
 - `nslookup <hostname>`
