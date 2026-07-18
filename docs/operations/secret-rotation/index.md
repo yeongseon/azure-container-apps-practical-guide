@@ -75,12 +75,6 @@ az containerapp update \
   --set-env-vars "DB_CONNECTION=secretref:db-conn"
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp secret set ... "db-conn=keyvaultref:...,identityref:system"` | Registers a Key Vault-backed secret reference in Container Apps so the platform resolves the credential at runtime instead of embedding a static value in the revision. |
-| `identityref:system` | Tells Container Apps to use the app's system-assigned identity when reading the secret from Key Vault, which is the critical auth path for this rotation pattern. |
-| `az containerapp update ... --set-env-vars "DB_CONNECTION=secretref:db-conn"` | Creates the new revision that binds the application setting to the rotated secret reference, giving you a safe validation and rollback point. |
-
 | Command | Why it is used |
 |---|---|
 | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
