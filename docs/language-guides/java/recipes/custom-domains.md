@@ -62,6 +62,12 @@ export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Purpose |
+|---|---|
+| `export ENV_STATIC_IP=$(az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.staticIp" --output tsv)` | Captures the environment static IP used for the apex-domain `A` record when binding a custom domain to Container Apps. |
+| `export APP_FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Captures the app's current ingress hostname so you can create the matching `CNAME` or verify the current endpoint before DNS cutover. |
+| `export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.customDomainVerificationId" --output tsv)` | Extracts the verification token that must be published in DNS before Container Apps will accept the custom domain binding. |
+
 ## Step 2: Create DNS records
 
 ```bash

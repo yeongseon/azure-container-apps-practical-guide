@@ -65,6 +65,10 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Purpose |
+|---|---|
+| `export PRINCIPAL_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity.principalId" --output tsv)` | Captures the app's managed identity principal ID so the next RBAC assignment can grant Cosmos DB access to the actual runtime identity. |
+
 ## Step 2: Grant Cosmos DB data-plane access
 
 ```bash

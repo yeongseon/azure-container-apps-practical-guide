@@ -106,6 +106,10 @@ flowchart TD
      --output tsv)
    ```
 
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the deployed app name from the Bicep outputs so the logging commands query the correct .NET app. |
+
 2. **Stream console logs**
 
    ASP.NET Core logs to `stdout` by default. You can stream these directly to your terminal.
@@ -167,6 +171,11 @@ flowchart TD
      --output table
    ```
 
+    | Command | Purpose |
+    |---|---|
+    | `WORKSPACE_ID=$(az monitor log-analytics workspace list --resource-group "$RG" --query "[0].customerId" --output tsv)` | Captures the Log Analytics workspace customer ID so KQL queries can be run directly from the CLI against the same workspace backing the environment. |
+    | `az monitor log-analytics query --workspace $WORKSPACE_ID --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" --output table` | Runs a KQL query for recent console logs so you can verify log ingestion from the deployed .NET app in an automation-friendly way. |
+
    ???+ example "Expected output"
        ```text
        ContainerAppName_s    Log_s                                                                                           TimeGenerated
@@ -184,6 +193,10 @@ flowchart TD
      --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s has 'Exception' or Log_s has 'Error' | project TimeGenerated, Log_s | take 10" \
      --output table
    ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az monitor log-analytics query --workspace $WORKSPACE_ID --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | where Log_s has 'Exception' or Log_s has 'Error' | project TimeGenerated, Log_s | take 10" --output table` | Filters the Log Analytics stream to exception and error entries so you can quickly inspect .NET failure signatures without opening the portal. |
 
    ???+ example "Expected output"
        | TimeGenerated | Log_s |

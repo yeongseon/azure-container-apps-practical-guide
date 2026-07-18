@@ -170,6 +170,11 @@ az containerapp create --resource-group $RG --name $APP_NAME --environment $ACA_
 az containerapp create --resource-group $RG --name $APP_NAME  # ❌ Don't do this
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp create --resource-group $RG --name $APP_NAME --environment $ACA_ENV_NAME --image myregistry.azurecr.io/myapp:latest` | Demonstrates the repository's preferred long-flag style on a real Container Apps create command, including the resource group, app name, environment, and image fields contributors should spell out in docs. |
+| `az containerapp create --resource-group $RG --name $APP_NAME` | Serves as the counterexample for incomplete CLI examples: even with long flags, omitting required context such as `--environment` and `--image` is not acceptable documentation. |
+
 ### Variables
 
 | Variable | Description | Example |

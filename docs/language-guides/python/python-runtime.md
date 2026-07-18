@@ -92,6 +92,11 @@ python --version
 ps aux
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Streams Python app console logs so you can inspect Gunicorn startup, worker activity, and request handling in real time. |
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "/bin/bash"` | Opens a shell in the running container so you can verify the Python runtime and inspect the live process state from inside the replica. |
+
 ## Frequent Runtime Failures
 
 | Symptom | Root cause | Action |

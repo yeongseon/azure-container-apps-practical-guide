@@ -115,6 +115,12 @@ graph TD
      --output tsv)
    ```
 
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the existing Container App name from the deployment outputs so configuration changes apply to the correct Python app. |
+    | `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the environment name from the same deployment so later config and secret examples stay aligned with the deployed environment. |
+    | `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name used by the app image so subsequent configuration and deployment examples reference the same registry. |
+
    ???+ example "Expected output"
        The commands above set shell variables silently. Verify them with:
 

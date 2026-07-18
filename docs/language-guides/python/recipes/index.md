@@ -23,6 +23,11 @@ az extension add --name containerapp --upgrade
 az login
 ```
 
+| Command | Purpose |
+|---|---|
+| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you run any Python recipe commands. |
+| `az login` | Starts an authenticated Azure CLI session so the recipe commands can read and update your Azure resources. |
+
 ## Recipe Catalog
 
 These recipes are intentionally task-oriented: each page solves a specific production integration problem without changing the core tutorial sequence.
