@@ -171,7 +171,8 @@ def get_data():
 
 ## See Also
 - [Ingress in Azure Container Apps](ingress.md)
-- [Dapr Integration](../../language-guides/python/recipes/dapr-integration.md)
+- [Dapr Integration in Azure Container Apps](../dapr/index.md)
+- [Dapr Integration (Python recipe)](../../language-guides/python/recipes/dapr-integration.md)
 - [VNet Integration](vnet-integration.md)
 - [Egress Control](egress-control.md)
 
