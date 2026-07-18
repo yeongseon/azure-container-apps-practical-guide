@@ -125,7 +125,7 @@ jobs:
           PORT: '8000'
           WEB_CONCURRENCY: '2'
         run: |
-          gunicorn --config gunicorn.conf.py --chdir src "app:app" &
+          gunicorn --config gunicorn.conf.py --chdir src "app:app" >/tmp/server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "${SERVER_PID}" 2>/dev/null || true' EXIT
 
@@ -139,6 +139,8 @@ jobs:
           done
 
           echo "Health check failed: /health did not return 200 within 30s." >&2
+          echo "----- server log -----" >&2
+          cat /tmp/server.log >&2 || true
           exit 1
 
   nodejs:
@@ -163,7 +165,7 @@ jobs:
         env:
           PORT: '8000'
         run: |
-          npm start &
+          npm start >/tmp/server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "${SERVER_PID}" 2>/dev/null || true' EXIT
 
@@ -177,6 +179,8 @@ jobs:
           done
 
           echo "Health check failed: /health did not return 200 within 30s." >&2
+          echo "----- server log -----" >&2
+          cat /tmp/server.log >&2 || true
           exit 1
 
   dotnet:
@@ -201,7 +205,7 @@ jobs:
         env:
           PORT: '8000'
         run: |
-          dotnet run --configuration Release --no-build &
+          dotnet run --configuration Release --no-build >/tmp/server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "${SERVER_PID}" 2>/dev/null || true' EXIT
 
@@ -215,4 +219,6 @@ jobs:
           done
 
           echo "Health check failed: /health did not return 200 within 30s." >&2
+          echo "----- server log -----" >&2
+          cat /tmp/server.log >&2 || true
           exit 1
