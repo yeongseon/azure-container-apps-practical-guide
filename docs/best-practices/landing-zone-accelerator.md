@@ -81,7 +81,7 @@ The LZA structures every decision into four design areas. Map each to the corres
 | Identity and access management | Managed identities for workload and registry access, RBAC, secretless auth | [Identity and Secrets](identity-and-secrets.md), [mTLS](mtls.md) |
 | Network topology and connectivity | Custom VNet, hub-spoke, private ingress, egress firewall, private endpoints | [Networking](networking.md), [Environment Design](environment-design.md) |
 | Security, governance, and compliance | WAF, Azure Policy, Key Vault, image scanning | [Security](security.md), [Image Security](image-security.md), [Compliance Baseline](compliance-baseline.md) |
-| Management and monitoring | Centralized Log Analytics, Application Insights, alerting | [Reliability](reliability.md), [Operations - Monitoring](../operations/index.md) |
+| Management and monitoring | Centralized Log Analytics, Application Insights, alerting | [Reliability](reliability.md), [Operations - Monitoring](../operations/monitoring/index.md) |
 
 ### Deploy into a custom virtual network
 
