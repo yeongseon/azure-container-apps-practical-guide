@@ -128,13 +128,19 @@ Before moving from one phase to the next, validate these checkpoints:
 
 ### Verify in Azure Portal
 
-![Resource group|rg-aca-basics-d38538|Status|Succeeded|Location|Korea Central|Subscription|Visual Studio Enterprise Subscription|Subscription ID|00000000-0000-0000-0000-000000000000|Environment type|Workload profiles|Static IP|4.230.156.3|Applications|7|KEDA version|2.18.1|Dapr version|1.16.4-msft.7](../../../assets/language-guides/python/tutorial/index-environment-overview-blade.png)
+![Container Apps environment overview blade for cae-basics-d38538 showing status Succeeded and the applications tab](../../../assets/language-guides/python/tutorial/index-environment-overview-blade.png)
 
-**[Observed]** `Microsoft Azure (Preview)`. `Report a bug`. `Search resources, services, and docs (G+/)`. `Copilot`. `Home`. `Search`. `cae-basics-d38538`. `Container Apps Environment`. `Refresh`. `Delete`. `Essentials`. `Resource group (move)`. `rg-aca-basics-d38538`. `Status`. `Succeeded`. `Location (move)`. `Korea Central`. `Subscription (move)`. `Visual Studio Enterprise Subscription`. `Subscription ID`. `00000000-0000-0000-0000-000000000000`. `Aspire Dashboard`. `Not yet active (set up)`. `Tags (edit)`. `Add tags`. `Environment type`. `Workload profiles`. `Static IP`. `4.230.156.3`. `Applications`. `7`. `KEDA version`. `2.18.1`. `Dapr version`. `1.16.4-msft.7`. `View Cost`. `JSON View`. `Applications`. `Monitoring`. `Tutorials`. `Name`. `App Type`. `Resource Group`. `ca-dotnet-d38538`. `Container App`. `ca-sample-d38538`. `ca-nodejs-d38538`. `ca-java-d38538`. `cj-event-d38538`. `Container App Job`. `cj-scheduled-d38538`. `cj-sample-d38538`. `Overview`. `Activity log`. `Access control (IAM)`. `Tags`. `Diagnose and solve problems`. `Resource visualizer`. `Settings`. `Dapr components`. `Certificates`. `Quota`. `Workload profiles`. `Networking`. `Volume mounts`. `Identity`. `Planned Maintenance`. `Locks`. `Apps`. `Services`. `Monitoring`. `Automation`. `Help`.
+Purpose: Confirm the environment provisioned in Step `05-infrastructure-as-code` is healthy and hosts the app you deployed in Step `02-first-deploy`.
+Look for: `Status` = `Succeeded`, `Environment type` = `Workload profiles`, and your Container App (`ca-sample-d38538`) listed in the `Applications` tab.
+Expected result: The environment reports `Succeeded` and your Container App appears in the applications list.
+Next step: If `Status` is not `Succeeded`, re-run and verify Step `05-infrastructure-as-code` before continuing.
 
-**[Inferred]** The `Container App` row `ca-sample-d38538` in the `Applications` tab appears consistent with the Container App created by [Steps](#steps) Step `02-first-deploy`, whose Purpose column states "Publish the container image and create the first Container App". The `Environment type` value `Workload profiles` appears consistent with the environment that [Steps](#steps) Step `05-infrastructure-as-code` provisions, whose Purpose column states "Provision the environment with Bicep". The `Resource group` value `rg-aca-basics-d38538` appears consistent with the resource group that hosts the environment provisioned in [Steps](#steps) Step `05-infrastructure-as-code`, whose Purpose column states "Provision the environment with Bicep". The `Status` value `Succeeded` appears consistent with the healthy provisioning end-state targeted by the Bicep run in [Steps](#steps) Step `05-infrastructure-as-code`.
+??? note "Evidence notes"
+    **[Observed]** Environment `cae-basics-d38538` reports `Status` `Succeeded`, `Environment type` `Workload profiles`, and lists `ca-sample-d38538` in the `Applications` tab.
 
-**[Not Proven]** Additional tutorial step output and CLI command output from earlier steps are not visible on this view.
+    **[Inferred]** `ca-sample-d38538` corresponds to the Container App created in Step `02-first-deploy`, and the environment matches the one provisioned by the Bicep run in Step `05-infrastructure-as-code`.
+
+    **[Not Proven]** This blade does not show the per-step CLI output from earlier tutorial steps.
 
 ## Related Guides
 
