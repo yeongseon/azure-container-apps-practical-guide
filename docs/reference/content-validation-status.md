@@ -11,12 +11,12 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-07-14*
+*Generated: 2026-07-18*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 461 | 461 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 158 | 109 | 39 | 0 | 10 |
+| Mermaid Diagrams | 465 | 465 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 161 | 112 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 109
+    "Verified" : 112
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -37,6 +37,7 @@ pie title In-Scope Document Validation Status
 |---|---|---|---|---|
 | [Acr Network Path Selection](../platform/networking/acr-network-path-selection.md) | ✅ | ✅ Verified | 4/4 | 2026-06-05 |
 | [Application Gateway Integration](../platform/networking/application-gateway-integration.md) | ✅ | ✅ Verified | 6/6 | 2026-07-03 |
+| [Components State Pubsub](../platform/dapr/components-state-pubsub.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
 | [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Cpu Memory Scaler](../platform/scaling/cpu-memory-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
@@ -59,6 +60,7 @@ pie title In-Scope Document Validation Status
 | [Index](../platform/storage/index.md) | ✅ | ✅ Verified | 5/5 | 2026-05-01 |
 | [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-04-27 |
 | [Index](../platform/scaling/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
+| [Index](../platform/dapr/index.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
 | [Index](../platform/revisions/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Index](../platform/jobs/index.md) | ✅ | ⚠️ Pending Review | 3/3 | 2026-04-26 |
 | [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-04-25 |
@@ -82,6 +84,7 @@ pie title In-Scope Document Validation Status
 | [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Service To Service](../platform/networking/service-to-service.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
+| [Sidecars And Init Containers](../platform/architecture/sidecars-and-init-containers.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
 | [Traffic Split](../platform/revisions/traffic-split.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Vnet Integration](../platform/networking/vnet-integration.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Workload Profiles](../platform/environments/workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |

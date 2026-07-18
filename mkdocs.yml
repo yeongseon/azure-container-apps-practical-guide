@@ -149,6 +149,9 @@ nav:
       - Service-to-Service: platform/networking/service-to-service.md
     - Storage:
       - Overview: platform/storage/index.md
+    - Dapr:
+      - Integration Overview: platform/dapr/index.md
+      - Components, State & Pub/Sub: platform/dapr/components-state-pubsub.md
     - Jobs:
       - platform/jobs/index.md
       - Manual Jobs: platform/jobs/manual-jobs.md
