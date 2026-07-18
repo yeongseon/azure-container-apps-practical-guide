@@ -12,16 +12,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Registry supports publishing multi-architecture images by using manifest lists.
       source: https://learn.microsoft.com/en-us/azure/container-registry/push-multi-architecture-images
-      verified: false
+      verified: true
     - claim: Azure Container Apps uses the configured container image reference when creating revisions.
       source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      verified: false
+      verified: true
 ---
 # Multi-Arch Image Mismatch
 

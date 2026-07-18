@@ -12,16 +12,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/containers
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: A revision can fail or start slowly when container startup conditions are not met in Azure Container Apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      verified: false
+      verified: true
     - claim: Azure Container Apps revisions run the container image configured in the app template.
       source: https://learn.microsoft.com/en-us/azure/container-apps/containers
-      verified: false
+      verified: true
 ---
 # Image Size Startup Delay
 

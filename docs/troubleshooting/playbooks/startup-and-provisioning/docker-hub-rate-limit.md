@@ -12,16 +12,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps can pull images from public and private container registries.
       source: https://learn.microsoft.com/en-us/azure/container-apps/containers#container-registries
-      verified: false
+      verified: true
     - claim: Registry authentication configuration is part of troubleshooting container start failures in Azure Container Apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      verified: false
+      verified: true
 ---
 # Docker Hub Rate Limit
 
