@@ -8,9 +8,9 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/log-streaming
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 content_validation:
-  status: pending_review
-  last_reviewed: '2026-04-25'
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps supports live log streaming with az containerapp logs show.
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-streaming
