@@ -532,6 +532,7 @@ nav:
     - CLI Reference: reference/cli-reference.md
     - Environment Variables: reference/environment-variables.md
     - Platform Limits: reference/platform-limits.md
+    - Configuration Scope Matrix: reference/configuration-scope-matrix.md
     - Metrics:
       - reference/metrics/index.md
       - Container App Metrics: reference/metrics/container-app-metrics.md

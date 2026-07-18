@@ -42,6 +42,7 @@ flowchart TD
 | [Environment Variables](environment-variables.md) | Validate runtime injection and app config behavior | Application developer, SRE | Startup validation, config debugging | Confirmed variable names, defaults, and examples |
 | [Platform Limits](platform-limits.md) | Check design boundaries and quota-sensitive architecture decisions | Architect, platform owner, SRE | Load planning, scaling strategy, pre-production review | Limit/constraint table for design and operations |
 | [Metrics](metrics.md) | Look up Azure Monitor metric IDs, dimensions, and percentage denominators for Container Apps | SRE, platform engineer, developer | Building alerts, dashboards, autoscale rules, KQL queries | Metric ID, aggregation, dimension, and CLI query template |
+| [Configuration Scope Matrix](configuration-scope-matrix.md) | Determine whether a setting is environment-, application-, or revision-scoped before changing it | Platform engineer, SRE, developer | Config changes, revision planning, change-impact review | Scope classification and revision-impact for each setting |
 
 ## Quick navigation by task
 
@@ -55,6 +56,7 @@ flowchart TD
 | Validate job runtime metadata variables | [Environment Variables](environment-variables.md#platform-injected-variables) | Includes job-specific variable names |
 | Look up the exact metric ID, aggregation, or dimension for an alert | [Metrics](metrics.md) | Catalog of every Azure Monitor metric Container Apps publishes, with denominators and CLI query templates |
 | Find out which KEDA scaler caused a replica change | [Metrics → KEDA scaler observability](metrics.md#keda-scaler-observability) | Explains the two-pipeline split (KEDA scaler decisions vs Azure Monitor `Replicas` metric) and the KQL pack used to attribute replica changes to a scaler |
+| Decide whether a config change forces a new revision | [Configuration Scope Matrix](configuration-scope-matrix.md) | Classifies each setting as environment-, application-, or revision-scoped and shows revision impact |
 
 ## Main Content
 
@@ -66,6 +68,7 @@ flowchart TD
 | [Environment Variables](environment-variables.md) | Platform-injected variables and recommended app/runtime variables |
 | [Platform Limits](platform-limits.md) | Platform quotas, request/timeout constraints, storage behavior, and scale boundaries |
 | [Metrics](metrics.md) | Azure Monitor metric reference for Container Apps including percentage metric denominators and CLI query examples |
+| [Configuration Scope Matrix](configuration-scope-matrix.md) | Classifies each Container Apps setting as environment-, application-, or revision-scoped, with revision impact |
 
 ## Quick Links
 
