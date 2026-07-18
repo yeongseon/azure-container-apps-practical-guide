@@ -13,16 +13,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/metrics
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps can terminate a container that exceeds its memory limit.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
-      verified: false
+      verified: true
     - claim: Azure Monitor exposes memory-related metrics for Azure Container Apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      verified: false
+      verified: true
 ---
 # Memory Leak OOMKilled
 
