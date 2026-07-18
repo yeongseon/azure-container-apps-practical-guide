@@ -11,16 +11,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps can use Dapr building blocks, including pub/sub components.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
-      verified: false
+      verified: true
     - claim: Dapr components are applied at the environment scope and can be constrained with scopes.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-      verified: false
+      verified: true
 ---
 # Dapr Pub/Sub Failure
 

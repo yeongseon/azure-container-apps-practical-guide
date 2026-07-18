@@ -11,16 +11,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connection
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Dapr components in Azure Container Apps are defined at the environment scope.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-      verified: false
+      verified: true
     - claim: Dapr component scopes can limit which apps load a component.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
-      verified: false
+      verified: true
 ---
 # Dapr State Store Failure
 
