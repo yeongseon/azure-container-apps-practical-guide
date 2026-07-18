@@ -66,12 +66,12 @@ Common uses:
 - A log-forwarding agent that reads logs the primary container writes to a [replica-scoped shared volume](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts?pivots=aca-cli#replica-scoped-storage).
 - A background process that refreshes a cache the primary container consumes from a shared volume.
 
-Because containers in a replica share network resources, the primary and sidecar containers reach each other over `localhost`. To share files, mount a common replica-scoped volume in each container.
+Because containers in a replica share network resources, sidecars are commonly reached over `localhost`/loopback within that replica. To share files, mount a common replica-scoped volume in each container.
 
 | Behavior | Detail |
 |---|---|
 | Lifecycle | Sidecars share the replica lifecycle — they scale, start, and stop with the app |
-| Networking | Containers in the same replica communicate over `localhost` |
+| Networking | Containers in the same replica share network resources; sidecars are commonly reached over `localhost`/loopback |
 | Shared storage | Use a replica-scoped volume (for example `EmptyDir`) mounted into each container |
 | Probes | Health probes are defined **per container** in the `probes` array of that container |
 | Resources | Each container has its own `resources.cpu` / `resources.memory` request |
@@ -126,5 +126,6 @@ Plan the split deliberately: a sidecar consuming `0.25` vCPU leaves less for the
 
 - [Microsoft Learn: Containers in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/containers)
 - [Microsoft Learn: Azure Container Apps ARM and YAML template specifications](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec)
+- [Microsoft Learn: Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Microsoft Learn: Sidecar pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/sidecar)
 </content>
