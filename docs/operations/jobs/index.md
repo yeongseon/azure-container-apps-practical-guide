@@ -9,8 +9,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 content_validation:
-  status: pending_review
-  last_reviewed: '2026-04-26'
+  status: verified
+  last_reviewed: '2026-07-18'
   reviewer: ai-agent
   core_claims:
     - claim: Job executions can be listed and inspected after they run.

@@ -16,7 +16,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 468 | 468 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 120 | 34 | 0 | 10 |
+| In-Scope Factual-Claim Documents | 164 | 121 | 33 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,8 +24,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 120
-    "Pending Review" : 34
+    "Verified" : 121
+    "Pending Review" : 33
     "No Metadata" : 10
 ```
 
@@ -128,7 +128,7 @@ pie title In-Scope Document Validation Status
 | [Index](../operations/disaster-recovery/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Index](../operations/alerts/index.md) | ✅ | ❓ No Metadata | — | — |
 | [Index](../operations/scaling/index.md) | ✅ | ❓ No Metadata | — | — |
-| [Index](../operations/jobs/index.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Index](../operations/jobs/index.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Index](../operations/monitoring/index.md) | ✅ | ❓ No Metadata | — | — |
 | [Index](../operations/image-pull-and-registry/index.md) | ✅ | ❓ No Metadata | — | — |
 | [Index](../operations/revision-management/index.md) | ✅ | ❓ No Metadata | — | — |
