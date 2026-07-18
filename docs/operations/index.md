@@ -8,12 +8,12 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/
 content_validation:
-  status: pending_review
-  last_reviewed: '2026-04-26'
+  status: verified
+  last_reviewed: '2026-07-18'
   reviewer: ai-agent
   core_claims:
-    - claim: Azure Container Apps operations include monitoring, scaling, deployment, and recovery tasks.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/
+    - claim: Azure Container Apps supports monitoring logs, autoscaling, and multiple revisions for application lifecycle management.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/overview
       verified: true
 ---
 # Operations

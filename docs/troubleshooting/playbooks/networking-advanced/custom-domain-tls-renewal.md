@@ -9,16 +9,16 @@ content_sources:
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
-    - claim: Azure Container Apps managed certificates are supported for custom domains when the app continues to meet the documented requirements.
+    - claim: Azure Container Apps managed certificates are automatically renewed without action from you as long as the app continues to meet the documented requirements.
       source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-      verified: false
-    - claim: Managed certificates are not supported for internal Container Apps environments.
+      verified: true
+    - claim: Managed certificates require the container app to be publicly accessible from the DigiCert IP addresses.
       source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-      verified: false
+      verified: true
 ---
 # Custom Domain TLS Renewal
 
@@ -56,14 +56,14 @@ Typical evidence:
 |---|---|
 | Missing or stale `asuid` TXT record | Domain ownership validation fails. |
 | Missing or incorrect CNAME/A record | The hostname no longer meets managed certificate requirements. |
-| Internal environment used with managed certificate expectations | Managed certificates are not supported for internal-only environments. |
+| App is not publicly accessible from the DigiCert IP addresses | Managed certificate issuance and renewal requirements are not met. |
 | CAA or registrar-side policy blocks issuance | Validation reaches DNS, but certificate issuance still cannot proceed. |
 
 ## Diagnosis Steps
 
 1. List current hostname bindings.
 2. Retrieve the app verification ID used for the `asuid` record.
-3. Confirm whether the environment is internal-only before pursuing managed certificate remediation.
+3. Confirm whether the app still meets the managed-certificate accessibility requirements before pursuing renewal remediation.
 
 ```bash
 az containerapp hostname list \
@@ -92,7 +92,7 @@ az containerapp env show \
 
 Interpretation:
 
-- [Observed] If the environment is internal, stop troubleshooting managed certificates and switch to a customer-managed certificate path.
+- [Observed] If the app is not publicly accessible from the DigiCert IP addresses, the documented managed-certificate requirements are not met.
 - [Observed] If the verification ID does not match the DNS TXT value, validation failure is expected.
 - [Strongly Suggested] If DNS was recently changed and the issue is limited to one hostname, treat stale DNS as the primary suspect.
 
@@ -100,7 +100,7 @@ Interpretation:
 
 1. Restore the required DNS records for the hostname.
 2. Re-run hostname add or bind after DNS is correct and propagated.
-3. For internal environments or unsupported hostname patterns, use a customer-managed certificate instead of managed issuance.
+3. If the hostname cannot meet the managed-certificate requirements, use a customer-managed certificate instead of managed issuance.
 
 ```bash
 az containerapp hostname add \

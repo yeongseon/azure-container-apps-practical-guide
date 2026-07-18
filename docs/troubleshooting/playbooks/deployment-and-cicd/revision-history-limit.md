@@ -12,19 +12,19 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
         - https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps keeps up to 100 inactive revisions by default.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
-    - claim: The maxInactiveRevisions property controls inactive revision retention.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: false
+      verified: true
+    - claim: The `maxInactiveRevisions` property in `properties.configuration` controls inactive revision retention for a container app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
+      verified: true
     - claim: Azure Container Apps supports manual revision activation and deactivation.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
-      verified: false
+      verified: true
 ---
 # Revision History Limit
 

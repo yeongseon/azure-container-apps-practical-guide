@@ -9,11 +9,11 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
-  status: pending_review
-  last_reviewed: '2026-04-26'
+  status: verified
+  last_reviewed: '2026-07-18'
   reviewer: ai-agent
   core_claims:
-    - claim: Job executions can fail because of startup, configuration, runtime, or timeout problems.
+    - claim: Container Apps jobs support advanced configuration options such as container settings, retries, timeouts, and parallelism.
       source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
       verified: true
     - claim: Container Apps troubleshooting relies on execution inspection and log analysis.

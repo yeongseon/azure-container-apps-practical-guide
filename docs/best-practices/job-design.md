@@ -11,15 +11,15 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
-  status: pending_review
-  last_reviewed: '2026-04-26'
+  status: verified
+  last_reviewed: '2026-07-18'
   reviewer: ai-agent
   core_claims:
     - claim: Jobs are intended for finite background execution.
       source: https://learn.microsoft.com/en-us/azure/container-apps/jobs
       verified: true
-    - claim: Container Apps supports log monitoring and OpenTelemetry-based observability patterns.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+    - claim: Azure Container Apps provides built-in observability features such as log streaming, metrics, application logging, and Log Analytics.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
       verified: true
 ---
 # Job Design

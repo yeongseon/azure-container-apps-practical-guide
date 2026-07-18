@@ -13,12 +13,12 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
-    - claim: Azure Container Apps provides built-in troubleshooting tools including log streaming and console access.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+    - claim: Azure Container Apps provides built-in observability features including log streaming and container console access.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
       verified: true
     - claim: Container Apps revisions are immutable snapshots that enable traffic splitting and rollback.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions

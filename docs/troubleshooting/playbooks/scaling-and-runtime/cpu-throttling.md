@@ -13,16 +13,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/metrics
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps exposes CPU-related metrics that can be queried from Azure Monitor.
       source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      verified: false
-    - claim: Workload profile selection and environment quotas affect the CPU capacity available to Container Apps workloads.
+      verified: true
+    - claim: A workload profile determines the type and amount of compute and memory resources available to container apps deployed in an Azure Container Apps environment.
       source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-      verified: false
+      verified: true
 ---
 # CPU Throttling
 
