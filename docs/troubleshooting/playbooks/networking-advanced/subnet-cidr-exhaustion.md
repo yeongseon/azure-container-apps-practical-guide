@@ -9,16 +9,16 @@ content_sources:
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Workload profiles environments require a minimum subnet size of /27 and Consumption-only environments require a minimum subnet size of /23.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-      verified: false
+      verified: true
     - claim: A custom virtual network deployment requires a subnet dedicated exclusively to the Container Apps environment.
       source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
-      verified: false
+      verified: true
 ---
 # Subnet CIDR Exhaustion
 

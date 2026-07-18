@@ -9,16 +9,16 @@ content_sources:
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-      verified: false
+      verified: true
     - claim: Restrictive egress for Container Apps must continue to allow required Microsoft dependencies such as registry, identity, and monitoring endpoints.
       source: https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
-      verified: false
+      verified: true
 ---
 # UDR and NSG Egress Blocked
 
