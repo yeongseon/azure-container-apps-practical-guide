@@ -150,6 +150,12 @@ az containerapp show \
   --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --query "properties.configuration.ingress"` | Pulls the full ingress configuration so you can confirm that ingress is enabled and correctly configured before diagnosing why a healthy revision gets no traffic. |
+| `--name "$APP_NAME"` / `--resource-group "$RG"` | Ensures the ingress check is run against the exact app whose revision weights you are troubleshooting. |
+| `--output json` | Keeps nested ingress details such as FQDN, transport, and traffic-related configuration visible for operational triage. |
+
 ## Revision Promotion Workflow
 
 <!-- diagram-id: revision-promotion-workflow -->

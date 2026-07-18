@@ -38,6 +38,12 @@ az extension add --name containerapp --upgrade
 az account show --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `export RG=...`, `APP_NAME=...`, `ACA_ENV_NAME=...` | Defines the production-style resource group, app, and environment variables reused throughout the operations runbooks so later commands target one consistent operational scope. |
+| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension and its newer operations subcommands are available before you follow any deployment, monitoring, or recovery procedure in this section. |
+| `az account show --output table` | Confirms the active subscription and tenant before you inspect or change production resources, which is a basic but critical guardrail for operations work. |
+
 ## Main Content
 
 ### Operations Documents
@@ -144,6 +150,12 @@ az containerapp ingress traffic show \
   --resource-group "$RG" \
   --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --query "{name:name,latestRevision:...,provisioningState:...,runningStatus:...}"` | Captures the app's current identity, latest revision, provisioning state, and runtime state in one JSON snapshot so you have a pre-change baseline to diff after an operational update. |
+| `az containerapp ingress traffic show --output json` | Records the exact revision traffic weights before any rollout or rollback action, which is essential for restoring the previous state if the change needs to be undone. |
+| `--output json` | Preserves the full structured snapshot for incident notes, automation, or post-change comparison instead of flattening away details. |
 
 ### Operational Ownership Checklist
 

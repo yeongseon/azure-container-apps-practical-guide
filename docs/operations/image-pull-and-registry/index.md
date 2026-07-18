@@ -105,6 +105,12 @@ az containerapp logs show \
   --type system
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show` | Pulls platform-generated system logs, which are where image-pull failures, registry auth errors, and revision provisioning errors are surfaced. |
+| `--name "$APP_NAME"` / `--resource-group "$RG"` | Scopes the log collection to the app whose rollout failed so the investigation is tied to the correct revision history. |
+| `--type system` | Chooses system logs instead of console logs because image download and registry authentication failures happen before the container process starts. |
+
 ## Image Pull Workflow
 
 <!-- diagram-id: image-pull-workflow -->
@@ -147,6 +153,13 @@ az containerapp show \
   --query "properties.template.containers[].image" \
   --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az acr repository show-tags ...` | Lists the tags that actually exist in ACR for `$APP_NAME`, which lets the operator confirm the referenced image tag was published before blaming identity or networking. |
+| `--repository "$APP_NAME"` | Checks the repository that matches the deployed app image naming convention in this guide, which is the most direct way to catch tag drift or missing pushes. |
+| `az containerapp show --query "properties.template.containers[].image"` | Reads the image reference stored in the current app template so you can compare what the app is trying to pull against the tags that ACR currently exposes. |
+| `--output table` | Formats both checks for quick side-by-side operational review during triage. |
 
 ### Pull Failure Triage Table
 
