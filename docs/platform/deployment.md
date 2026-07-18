@@ -272,6 +272,7 @@ Inactive revisions:
 
 - [Platform - Revisions Overview](revisions/index.md)
 - [Operations - Deployment Workflows](../operations/deployment/index.md)
+- [Operations - Deploy with the Azure Developer CLI (azd)](../operations/deployment/azd.md)
 - [Best Practices - Revision Strategy](../best-practices/revision-strategy.md)
 - [Platform - Scaling](scaling/index.md)
 

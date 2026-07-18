@@ -383,6 +383,7 @@ az containerapp ingress traffic show \
 
 ## See Also
 
+- [Deploy with the Azure Developer CLI (azd)](azd.md)
 - [Deployment (Platform)](../../platform/deployment.md)
 - [Revision Strategy (Best Practices)](../../best-practices/revision-strategy.md)
 - [Revisions (Platform)](../../platform/revisions/index.md)
