@@ -10,8 +10,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/overview
 content_validation:
-  status: pending_review
-  last_reviewed: '2026-04-26'
+  status: verified
+  last_reviewed: '2026-07-18'
   reviewer: ai-agent
   core_claims:
     - claim: Jobs are designed for finite execution while Container Apps are designed for continuously running services and workers.

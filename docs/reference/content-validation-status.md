@@ -16,7 +16,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 468 | 468 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 115 | 39 | 0 | 10 |
+| In-Scope Factual-Claim Documents | 164 | 120 | 34 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,8 +24,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 115
-    "Pending Review" : 39
+    "Verified" : 120
+    "Pending Review" : 34
     "No Metadata" : 10
 ```
 
@@ -49,9 +49,9 @@ pie title In-Scope Document Validation Status
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
-| [Event Driven Jobs](../platform/jobs/event-driven-jobs.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Event Driven Jobs](../platform/jobs/event-driven-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Event Scalers](../platform/scaling/event-scalers.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
-| [Execution Lifecycle](../platform/jobs/execution-lifecycle.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Execution Lifecycle](../platform/jobs/execution-lifecycle.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Health Recovery](../platform/reliability/health-recovery.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Http Scaler](../platform/scaling/http-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Image Security](../platform/security/image-security.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
@@ -63,15 +63,15 @@ pie title In-Scope Document Validation Status
 | [Index](../platform/scaling/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Index](../platform/dapr/index.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
 | [Index](../platform/revisions/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
-| [Index](../platform/jobs/index.md) | ✅ | ⚠️ Pending Review | 3/3 | 2026-04-26 |
+| [Index](../platform/jobs/index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-04-25 |
 | [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
-| [Jobs Vs Apps](../platform/jobs/jobs-vs-apps.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Jobs Vs Apps](../platform/jobs/jobs-vs-apps.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Lifecycle](../platform/revisions/lifecycle.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Limits And Quotas](../platform/environments/limits-and-quotas.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
-| [Manual Jobs](../platform/jobs/manual-jobs.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Manual Jobs](../platform/jobs/manual-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Migration](../platform/environments/migration.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Network Isolation](../platform/security/network-isolation.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
