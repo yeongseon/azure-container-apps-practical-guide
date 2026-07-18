@@ -27,6 +27,12 @@ content_validation:
     - claim: Container Apps environment-level properties such as vnetConfiguration, appLogsConfiguration, workloadProfiles, and zoneRedundant are defined on the managed environment resource.
       source: https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
       verified: true
+    - claim: Zone redundancy must be enabled during environment creation and cannot be changed or disabled after the environment is created.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
+    - claim: The virtual network used by a Container Apps environment is configured at environment creation and cannot be changed afterward.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+      verified: true
 ---
 # Configuration Scope Matrix
 
@@ -64,12 +70,12 @@ Microsoft documents two categories of change to a container app:
 
 ## Environment-scope settings
 
-These settings are defined on the **managed environment** resource, not on individual apps. They affect every app in the environment. Several are immutable after the environment is created.
+These settings are defined on the **managed environment** resource (the `Microsoft.App/managedEnvironments` resource), not on individual apps — this is a separate resource scope, not a `properties.configuration` section of an app. They affect every app in the environment. Several are immutable after the environment is created.
 
 | Setting | ARM property | Change effect | Notes |
 |---|---|---|---|
-| VNet integration | `vnetConfiguration.infrastructureSubnetId` | Immutable after creation | Requires recreating the environment to change |
-| Zone redundancy | `zoneRedundant` | Immutable after creation | Must be set at environment creation |
+| VNet integration | `vnetConfiguration.infrastructureSubnetId` | Immutable after creation | Set at creation; changing the network requires recreating the environment ([networking](https://learn.microsoft.com/en-us/azure/container-apps/networking)) |
+| Zone redundancy | `zoneRedundant` | Immutable after creation | Must be enabled at environment creation and can't be changed or disabled afterward ([reliability](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)) |
 | Log destination | `appLogsConfiguration` | Environment-wide | Log Analytics workspace / logging configuration |
 | Workload profiles | `workloadProfiles` | Environment-wide | Add/scale profiles; apps select a profile by name |
 | mTLS (peer authentication) | `peerAuthentication` | Environment-wide | Enables environment-level mTLS encryption |
@@ -128,7 +134,7 @@ Container settings live inside `template.containers[]` (and `template.initContai
 
 ## Jobs: a different lifecycle
 
-Container Apps **jobs** do not use the revision model. For jobs, `properties.configuration` holds `triggerType`, `replicaTimeout`, and `replicaRetryLimit`, while `properties.template` holds `containers` and `scale`. Updating a job changes the job definition used by subsequent executions rather than creating a revision.
+Container Apps **jobs** do not use the revision model. For jobs, `properties.configuration` holds `triggerType`, `replicaTimeout`, and `replicaRetryLimit`, while `properties.template` holds `containers` (and optionally `initContainers` and `volumes`) and `scale`. Updating a job changes the job definition used by subsequent executions rather than creating a revision.
 
 ## Usage Notes
 
@@ -150,3 +156,5 @@ Container Apps **jobs** do not use the revision model. For jobs, `properties.con
 - [Microsoft Learn: Update and deploy changes in Azure Container Apps (revisions)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Microsoft Learn: Azure Container Apps ARM and YAML template specifications](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec)
 - [Microsoft Learn: Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Microsoft Learn: Reliability in Azure Container Apps (zone redundancy)](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
+- [Microsoft Learn: Networking in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/networking)
