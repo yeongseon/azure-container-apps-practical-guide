@@ -20,6 +20,7 @@ on:
       - 'SECURITY.md'
       - 'CODE_OF_CONDUCT.md'
       - 'mkdocs.yml'
+      - 'requirements-docs.txt'
       - '.github/workflows/**'
   push:
     branches:
@@ -37,6 +38,7 @@ on:
       - 'SECURITY.md'
       - 'CODE_OF_CONDUCT.md'
       - 'mkdocs.yml'
+      - 'requirements-docs.txt'
       - '.github/workflows/**'
 
 jobs:
