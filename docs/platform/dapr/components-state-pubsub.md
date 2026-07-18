@@ -5,8 +5,8 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services
 content_validation:
   status: verified
   last_reviewed: '2026-07-18'
@@ -18,11 +18,11 @@ content_validation:
     - claim: By default a Dapr component is loaded by every Dapr-enabled app in the environment, and the scopes property restricts a component to only the apps whose Dapr application IDs are listed.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
       verified: true
-    - claim: A Dapr component can reference secrets from a configured Dapr secret store component or from Container Apps secrets instead of embedding secret values in metadata.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - claim: For the most secure connection, Dapr components should use managed identity of the scoped container apps when supported, and use an Azure Key Vault secret store only when managed identity authentication isn't supported.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services
       verified: true
     - claim: Azure Container Apps supports Dapr state store, pub/sub, bindings, and secret store component types backed by Azure services such as Azure Cosmos DB, Azure Service Bus, Azure Event Hubs, and Azure Key Vault.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
       verified: true
 ---
 # Dapr Components, State, and Pub/Sub
@@ -65,23 +65,28 @@ Azure Container Apps uses a simplified Dapr component schema:
 | `ignoreErrors` | Whether the sidecar continues if the component fails to load |
 | `metadata` | Key/value configuration for the backing service |
 | `scopes` | Dapr `appId`s allowed to load the component |
-| `secrets` / `secretStoreComponent` | Secret material referenced by metadata |
+| `secretStoreComponent` / `secrets` | Reference to a Dapr secret store, or component-local secret parameters |
 
-## Referencing Secrets Safely
+## Authenticating Components Safely
 
-Never place connection strings or keys directly in component `metadata`. Instead, reference them:
+Never place connection strings or keys directly in component `metadata`. Azure Container Apps offers two authentication paths, in order of preference:
 
-- **Dapr secret store component** — set `secretStoreComponent` on the component and use a `secretRef` in metadata that resolves through the secret store (for example, `secretstores.azure.keyvault`).
-- **Container Apps secrets** — reference a secret defined on the environment/app.
+1. **Managed identity (recommended).** For Azure-hosted backends that support it, Dapr authenticates using the [managed identity of the scoped container apps](../identity-and-secrets/managed-identity.md). No secret material is stored in the component manifest. For a user-assigned identity, set the `azureClientId` metadata field.
+2. **Azure Key Vault secret store.** Use this **only when managed identity authentication isn't supported**. Create a `secretstores.azure.keyvault` component, then reference it from other components via `secretStoreComponent` and resolve sensitive fields with `secretRef`.
 
 ```yaml
-# Example: Service Bus pub/sub component referencing a Key Vault secret
-componentType: pubsub.azure.servicebus
+# Example: Service Bus queue pub/sub component that authenticates
+# through a Key Vault secret store component
+componentType: pubsub.azure.servicebus.queue
 version: v1
 secretStoreComponent: keyvault-secretstore
 metadata:
-  - name: connectionString
-    secretRef: sb-connection-string
+  - name: namespaceName
+    value: "mynamespace.servicebus.windows.net"
+  - name: azureClientId
+    value: "[your_client_id]"
+  - name: azureClientSecret
+    secretRef: sb-client-secret
 scopes:
   - order-service
   - shipping-service
@@ -117,9 +122,9 @@ Pub/sub decouples publishers from subscribers using the competing-consumer patte
 - **Ordering**: use Service Bus sessions or Event Hubs partitions when strict ordering matters; plain topics do not guarantee global order.
 - **Scale-to-zero**: an app scaled to zero replicas is not consuming. Use a Dapr/KEDA-aware scale rule so queued messages wake the app.
 
-## Component Resiliency
+## Component Resiliency (Preview)
 
-Dapr supports resiliency policies (timeouts, retries, and circuit breakers) applied to component interactions, letting you tune how the sidecar handles transient backend failures without changing application code.
+Dapr supports resiliency policies (timeouts, retries, and circuit breakers) applied to component interactions, letting you tune how the sidecar handles transient backend failures without changing application code. On Azure Container Apps, Dapr component resiliency is a **preview** feature — confirm current availability before relying on it in production.
 
 ## Limitations
 
@@ -130,6 +135,7 @@ Dapr supports resiliency policies (timeouts, retries, and circuit breakers) appl
 ## See Also
 
 - [Dapr Integration in Azure Container Apps](index.md)
+- [Managed Identity](../identity-and-secrets/managed-identity.md)
 - [Key Vault Integration](../identity-and-secrets/key-vault.md)
 - [Secrets](../security/secrets.md)
 - [Event-Driven Jobs](../jobs/event-driven-jobs.md)
@@ -137,5 +143,6 @@ Dapr supports resiliency policies (timeouts, retries, and circuit breakers) appl
 ## Sources
 
 - [Dapr integration with Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
-- [Dapr component resiliency](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency)
+- [Connect to other Azure or partner services via Dapr components](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services)
+- [Dapr component resiliency (preview)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency)
 - [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)

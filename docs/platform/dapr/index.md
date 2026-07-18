@@ -153,5 +153,5 @@ Service invocation between Dapr-enabled apps in the same environment is **automa
 ## Sources
 
 - [Dapr integration with Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
+- [Configure Dapr on an existing container app](https://learn.microsoft.com/en-us/azure/container-apps/enable-dapr)
 - [Microservices with Dapr using the Azure Developer CLI](https://learn.microsoft.com/en-us/azure/container-apps/microservices-dapr)
-- [Enable Dapr in your container app](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview#dapr-enablement)
