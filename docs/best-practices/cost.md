@@ -253,6 +253,12 @@ az containerapp show \
   --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --query "properties.template.containers[0].resources"` | Reads the current CPU and memory limits on the deployed container so you can compare configured size against observed utilization before making cost cuts. |
+| `--name "$APP_NAME"` / `--resource-group "$RG"` | Targets the exact workload whose right-sizing decision you are about to make, rather than a different app in the same subscription. |
+| `--output json` | Keeps both CPU and memory fields intact for review and scripting, which is more useful than a formatted table when tuning replica resources. |
+
 Apply a smaller footprint safely:
 
 ```bash
@@ -262,6 +268,12 @@ az containerapp update \
   --cpu 0.5 \
   --memory "1Gi"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp update` | Applies a deliberate resource reduction to the running app so you can lower steady-state cost without rebuilding the image. |
+| `--cpu 0.5` | Cuts the per-replica CPU reservation to a smaller baseline, which directly reduces spend if telemetry shows the app is over-provisioned. |
+| `--memory "1Gi"` | Reduces reserved memory to a measured target instead of carrying a larger idle buffer that continuously costs money. |
 
 Then validate health and throughput before further reduction.
 
@@ -284,6 +296,12 @@ az acr show \
   --query "{name:name,sku:sku.name,loginServer:loginServer}" \
   --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az acr show --query "{name:name,sku:sku.name,loginServer:loginServer}"` | Summarizes the registry identity, SKU tier, and login server so you can verify whether current ACR throughput and feature cost match this workload's pull pattern. |
+| `--name "$ACR_NAME"` | Uses the registry variable shared across the cost examples so the SKU review stays tied to the images this guide deploys. |
+| `--output json` | Returns structured fields that are easy to compare across environments when deciding whether Basic, Standard, or Premium is justified. |
 
 Operational implications:
 
@@ -411,6 +429,11 @@ az consumption usage list \
   --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az consumption usage list --top 50 --output table` | Gives a quick recent usage sample so you can spot which billed services are currently driving spend before you build more formal budgets and dashboards. |
+| `--top 50` | Limits the first look to a manageable set of records, which is useful for a fast operator review instead of dumping the full usage history. |
+
 Export cost data regularly and tag resources for cost allocation:
 
 ```bash
@@ -418,6 +441,12 @@ az group update \
   --name "$RG" \
   --set "tags.CostCenter=platform" "tags.Environment=prod"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az group update` | Applies cost-allocation metadata at the resource-group boundary so downstream cost reports can attribute shared Container Apps resources correctly. |
+| `--name "$RG"` | Tags the same resource group used throughout the page, which is usually the cheapest place to stamp consistent ownership metadata across related ACA resources. |
+| `--set "tags.CostCenter=platform" "tags.Environment=prod"` | Adds governance tags that let finance and engineering split spend by owner and lifecycle stage when reviewing Container Apps bills. |
 
 !!! tip "Governance pattern"
     Pair technical guardrails (`--max-replicas`, right-sized resources, log controls) with financial guardrails (budgets, alerts, owner review cadence). Either one without the other is incomplete.

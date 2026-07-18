@@ -45,6 +45,13 @@ az containerapp job create \
   --image "$IMAGE_NAME"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export RG=...`, `ACA_ENV_NAME=...`, `JOB_NAME=...`, `IMAGE_NAME=...` | Defines the environment, recurring job name, and image reference used by the scheduled-job example. |
+| `az containerapp job create --trigger-type "Schedule"` | Creates a job whose executions are driven by a cron schedule instead of human action or event backlog. |
+| `--cron-expression "0 2 * * *"` | Schedules the run for 02:00 UTC every day, which matches the nightly reconciliation scenario discussed in the surrounding text. |
+| `--replica-timeout 3600` / `--replica-retry-limit 1` | Keeps long-running batch work bounded while still allowing a single retry for transient failures. |
+
 ### Cron expression examples
 
 Use readable schedules and document them in the runbook:

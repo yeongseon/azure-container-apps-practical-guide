@@ -150,6 +150,12 @@ az containerapp update \
   --revision-suffix "20260404-1"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update` | Creates a new revision from a specifically versioned image so rollout history can be tied to a distinct release artifact. |
+| `--image "$ACR_NAME.azurecr.io/$APP_NAME:20260404-1"` | Pins the revision to an immutable image tag rather than a moving target, which is essential for rollback and forensic traceability. |
+| `--revision-suffix "20260404-1"` | Makes the Azure-generated revision name human-meaningful and machine-sortable so operators can quickly map portal/CLI revision lists back to release chronology. |
+
 Naming policy recommendations:
 
 1. Keep suffix length short enough for readability in dashboards.
@@ -176,6 +182,12 @@ az containerapp revision label add \
   --revision "$APP_NAME--20260404-1" \
   --label "candidate"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision label add` | Binds a stable label URL to one specific revision so you can run smoke tests and partner validation without affecting production traffic weights. |
+| `--revision "$APP_NAME--20260404-1"` | Targets the exact candidate revision you want to validate, which avoids ambiguity when multiple active revisions exist. |
+| `--label "candidate"` | Creates a memorable endpoint role name that can move later, separating validation routing from raw revision IDs. |
 
 Traffic weighting example:
 

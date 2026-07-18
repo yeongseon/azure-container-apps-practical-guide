@@ -104,6 +104,11 @@ az containerapp revision set-mode \
   --mode multiple
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp revision set-mode` | Switches the app into multiple revision mode so old and new revisions can stay active side by side during promotion. |
+| `--mode multiple` | Enables the operational model where you manage traffic weights, labels, and deactivation explicitly instead of letting the platform auto-promote one revision. |
+
 ## Deployment, rollback, and traffic implications
 
 | Concern | Single mode | Multiple mode |

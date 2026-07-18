@@ -79,6 +79,13 @@ az containerapp update \
   --scale-rule-auth "connection=servicebus-connection"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update` | Adds an event-driven scale rule to the app so replica count responds to Service Bus backlog instead of fixed manual scaling. |
+| `--min-replicas 0` / `--max-replicas 30` | Defines the lower and upper scale bounds, allowing scale-to-zero savings while capping burst expansion. |
+| `--scale-rule-type azure-servicebus` with `--scale-rule-metadata ...` | Selects the Service Bus scaler and specifies the queue, namespace, and backlog threshold that should trigger more replicas. |
+| `--scale-rule-auth "connection=servicebus-connection"` | Tells the scaler which secret-backed connection setting to use when authenticating to the queue. |
+
 ## Azure Queue Storage example
 
 ```bash

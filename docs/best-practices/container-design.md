@@ -395,6 +395,12 @@ az containerapp update \
   --replace-env-vars "DB_PASSWORD=secretref:db-password" "API_KEY=secretref:api-key"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp secret set ...` | Creates two platform-managed secrets so credentials are stored outside the revision template and can be rotated without rebuilding the image. |
+| `az containerapp update ... --set-env-vars ... --replace-env-vars ...` | Applies non-sensitive settings as plain environment variables while remapping the sensitive ones to `secretref:` values, which is the separation pattern this section recommends. |
+| `--replace-env-vars "DB_PASSWORD=secretref:db-password" "API_KEY=secretref:api-key"` | Replaces any existing plain-text definitions for those variables so the container reads secrets from the Container Apps secret store instead of stale revision config. |
+
 Separation policy:
 
 1. Non-secret configuration can be revision-scoped and visible in deployment manifests.
@@ -430,6 +436,13 @@ az containerapp update \
   --resource-group "$RG" \
   --image "$IMAGE_NAME"
 ```
+
+| Command | Purpose |
+|---|---|
+| `export IMAGE_TAG=...` / `export IMAGE_NAME=...` | Derives an immutable image reference from the current Git commit so the deployed revision can be traced back to a specific source version. |
+| `docker build --tag "$IMAGE_NAME" .` | Produces the exact runtime image that the later Container Apps revision will reference, keeping local build output aligned with the immutable tag policy. |
+| `docker push "$IMAGE_NAME"` | Publishes that tagged image to ACR before the app update, which avoids pointing a revision at an image that does not exist in the registry yet. |
+| `az containerapp update --image "$IMAGE_NAME"` | Tells Container Apps to create a new revision from the immutable image you just built and pushed, instead of relying on a mutable tag such as `latest`. |
 
 ### Validate container behavior before revision promotion
 

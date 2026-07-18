@@ -507,6 +507,12 @@ az monitor diagnostic-settings create \
   --logs '[{"category":"ContainerAppSystemLogs","enabled":true},{"category":"ContainerAppConsoleLogs","enabled":true}]'
 ```
 
+| Command | Purpose |
+|---|---|
+| `az monitor diagnostic-settings create` | Streams managed environment system and console logs into Log Analytics so security investigations have a retained audit trail outside ephemeral container output. |
+| `--resource "/subscriptions/.../managedEnvironments/$ACA_ENV_NAME"` | Attaches diagnostics to the Container Apps environment layer, which is where platform-generated security-relevant events are emitted. |
+| `--logs '[{"category":"ContainerAppSystemLogs"...}]'` | Explicitly enables both system and console log categories so you capture control-plane/runtime signals together during incident response. |
+
 #### Monitor authentication failures
 
 Query Easy Auth rejection events in Log Analytics:
@@ -517,6 +523,12 @@ az monitor log-analytics query \
   --analytics-query "ContainerAppSystemLogs_CL | where Reason_s == 'AuthFailure' | summarize count() by bin(TimeGenerated, 1h)" \
   --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az monitor log-analytics query` | Runs a targeted investigation query against the workspace so you can measure authentication failures without opening the portal. |
+| `--analytics-query "...Reason_s == 'AuthFailure'..."` | Filters Container Apps system logs to hourly auth rejection counts, which helps distinguish sporadic user mistakes from sustained access-control issues. |
+| `--output table` | Formats the result for quick incident review and handoff in operational runbooks. |
 
 ### Verify security hardening surfaces in Azure Portal
 

@@ -79,6 +79,13 @@ az containerapp create \
   --dapr-app-protocol http
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp create ... --enable-dapr` | Creates the app with the Dapr sidecar turned on from the first deployment so service invocation, pub/sub, and other Dapr building blocks are available immediately. |
+| `--environment $ENVIRONMENT` | Places the app in the target Container Apps environment, which is where the managed Dapr runtime version and networking context are defined. |
+| `--dapr-app-id order-service` | Sets the logical Dapr identity other services will use for service invocation, which is distinct from the Container App resource name. |
+| `--dapr-app-port 8080` / `--dapr-app-protocol http` | Tells the sidecar how to call back into your app so Dapr-delivered requests reach the correct port and protocol. |
+
 ### Core Dapr Settings
 
 | Setting | Meaning | Default |

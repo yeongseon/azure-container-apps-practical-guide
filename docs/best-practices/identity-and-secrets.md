@@ -165,6 +165,11 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Purpose |
+|---|---|
+| `export PRINCIPAL_ID=$(az containerapp show ...)` | Captures the managed identity's Microsoft Entra object ID so later RBAC commands grant pull access to the app identity instead of to a human account or shared secret. |
+| `--query "identity.principalId" --output tsv` | Extracts only the principal ID value, which is the exact input `az role assignment create` expects for the `--assignee-object-id` parameter. |
+
 Get ACR resource ID:
 
 ```bash
@@ -174,6 +179,11 @@ export ACR_ID=$(az acr show \
   --query "id" \
   --output tsv)
 ```
+
+| Command | Purpose |
+|---|---|
+| `export ACR_ID=$(az acr show ...)` | Stores the registry resource ID that Azure RBAC uses as the scope for `AcrPull`, keeping the permission narrowly bound to the target ACR. |
+| `--query "id" --output tsv` | Returns the full ARM resource ID as a plain string so it can be passed directly into the role assignment command without manual editing. |
 
 Assign pull role:
 
@@ -199,6 +209,12 @@ az containerapp registry set \
   --identity "system"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp registry set` | Switches the app's image-pull configuration from secret-based registry auth to managed identity-based auth. |
+| `--server "$ACR_NAME.azurecr.io"` | Points the setting at the specific ACR login server the app pulls from, which matters when a workload uses more than one registry. |
+| `--identity "system"` | Tells Container Apps to present the app's system-assigned identity during image pulls, matching the RBAC setup from the previous step. |
+
 Validate repositories in the registry (PII scrubbed):
 
 ```bash
@@ -206,6 +222,11 @@ az acr repository list \
   --name "$ACR_NAME" \
   --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az acr repository list --name "$ACR_NAME" --output json` | Verifies that the registry is reachable and contains the expected repositories before you cut over image-pull authentication or troubleshoot missing images. |
+| `--output json` | Produces a machine-readable inventory that is easy to redact and compare during operational reviews. |
 
 ```json
 [
@@ -355,6 +376,11 @@ az containerapp update \
   --set-env-vars "SQL_PASSWORD=secretref:sql-password"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp secret set ...` | Updates the secret source to the new Key Vault version so the next revision can reference the rotated credential without embedding the value in the image or manifest. |
+| `az containerapp update ... --set-env-vars "SQL_PASSWORD=secretref:sql-password"` | Creates a new revision that binds the application variable to the refreshed secret reference, which gives you a safe rollout point for rotation validation. |
+
 Then route traffic:
 
 ```bash
@@ -363,6 +389,11 @@ az containerapp ingress traffic set \
   --resource-group "$RG" \
   --revision-weight "${APP_NAME}--new=20" "${APP_NAME}--old=80"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp ingress traffic set` | Shifts only a controlled percentage of requests to the revision using the rotated secret, which lowers blast radius while you validate the new credential. |
+| `--revision-weight "${APP_NAME}--new=20" "${APP_NAME}--old=80"` | Keeps most traffic on the last known-good revision during the soak period, making rollback immediate if the new secret or identity binding is wrong. |
 
 ### Apply Azure RBAC least privilege for managed identity
 
@@ -390,6 +421,13 @@ az role assignment create \
   --role "Key Vault Secrets User" \
   --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/<key-vault-name>"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az role assignment create` | Grants the Container App identity the minimum Azure RBAC permission it needs to read secrets from Key Vault. |
+| `--assignee-object-id "$PRINCIPAL_ID"` | Applies the role to the app's managed identity rather than to a broader group or user principal. |
+| `--role "Key Vault Secrets User"` | Chooses a read-only secret retrieval role instead of a broader vault management role, which aligns with least-privilege guidance. |
+| `--scope "/subscriptions/.../vaults/<key-vault-name>"` | Narrows the grant to one vault so other Key Vaults in the resource group do not inherit unnecessary access. |
 
 ### Cross-resource authentication patterns (SQL, Storage, Key Vault)
 

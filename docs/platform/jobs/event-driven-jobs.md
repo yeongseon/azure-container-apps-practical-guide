@@ -49,6 +49,13 @@ az containerapp job create \
   --image "$IMAGE_NAME"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export RG=...`, `ACA_ENV_NAME=...`, `JOB_NAME=...`, `IMAGE_NAME=...` | Defines the environment, job name, and immutable image used by the event-driven example so the creation command is repeatable. |
+| `az containerapp job create --trigger-type "Event"` | Creates a job that starts discrete executions only when the scaler sees available work, instead of running a worker continuously. |
+| `--scale-rule-type "azure-servicebus"` with `--scale-rule-metadata ...` | Configures Service Bus queue depth as the trigger signal, including which queue to watch and the backlog threshold that should start executions. |
+| `--replica-timeout 900` / `--replica-retry-limit 2` | Bounds execution length and retry behavior so transient failures can recover without letting a bad event source spin forever. |
+
 ### Event sources and scaler support
 
 The repository already uses Azure Service Bus as the clearest event-driven Jobs example. Broader scaler support should be treated carefully until you verify the current Jobs-specific support matrix.

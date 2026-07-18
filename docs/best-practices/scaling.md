@@ -164,6 +164,13 @@ az containerapp update \
   --scale-rule-auth "connection=servicebus-connection"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update` | Adds a Service Bus-based autoscale rule to the app so replica count follows queue pressure instead of fixed capacity assumptions. |
+| `--min-replicas 0` / `--max-replicas 30` | Defines the cost floor and scale ceiling, balancing scale-to-zero savings against a hard limit that protects downstream dependencies from unbounded fan-out. |
+| `--scale-rule-metadata "queueName=orders" "namespace=$SERVICEBUS_NAMESPACE" "messageCount=25"` | Tells the scaler which queue to watch and how much backlog one replica group should tolerate before scaling out. |
+| `--scale-rule-auth "connection=servicebus-connection"` | Maps the scaler to the secret containing Service Bus connection details so KEDA can inspect the queue securely. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
@@ -187,6 +194,13 @@ az containerapp update \
   --scale-rule-metadata "queueName=ingest" "queueLength=50" "accountName=$STORAGE_ACCOUNT" \
   --scale-rule-auth "connection=storage-connection"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp update` | Configures Storage Queue-driven autoscaling for batch workers so replica count grows only when queue backlog justifies more cost. |
+| `--min-replicas 0` / `--max-replicas 40` | Lets the worker scale to zero when idle while still setting a hard upper bound for burst processing and downstream protection. |
+| `--scale-rule-metadata "queueName=ingest" "queueLength=50" "accountName=$STORAGE_ACCOUNT"` | Identifies the queue to watch, the backlog target per scale decision, and the storage account that owns that queue. |
+| `--scale-rule-auth "connection=storage-connection"` | Connects the scaler to the secret containing Storage Queue credentials so the platform can inspect backlog securely. |
 
 Operational tuning tips:
 

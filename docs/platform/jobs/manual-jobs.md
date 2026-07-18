@@ -52,6 +52,13 @@ az containerapp job start \
   --resource-group "$RG"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export RG=...`, `ACA_ENV_NAME=...`, `JOB_NAME=...`, `IMAGE_NAME=...` | Establishes the resource group, environment, job name, and immutable image that the manual-run example uses. |
+| `az containerapp job create --trigger-type "Manual"` | Registers the reusable manual job definition that operators can invoke for backfills, repair work, or maintenance tasks. |
+| `--parallelism 2` / `--replica-completion-count 2` | Shows a fan-out pattern where both replicas must complete, which fits partitioned manual jobs rather than single-threaded repair scripts. |
+| `az containerapp job start --name "$JOB_NAME" --resource-group "$RG"` | Launches an execution on demand from the saved job template, which is the core operational difference between manual jobs and scheduled/event-driven ones. |
+
 ### Execution lifecycle for operator-driven runs
 
 Manual triggering creates a job execution, then the platform starts one or more replicas from the job template.

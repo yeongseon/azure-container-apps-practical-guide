@@ -221,6 +221,12 @@ curl --include \
   "https://${FQDN}/cert-info"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export FQDN=$(az containerapp show ...)` | Reads the app's ingress hostname from the deployed resource so the certificate test targets the real Container Apps endpoint instead of a hardcoded URL that may drift across environments. |
+| `--query "properties.configuration.ingress.fqdn" --output tsv` | Extracts only the public FQDN string, which makes it easy to reuse in the subsequent `curl` request without manual cleanup. |
+| `curl --include --cert "./client.pem" --key "./client.key" "https://${FQDN}/cert-info"` | Exercises the full client-certificate path end to end by presenting the client cert and key during TLS negotiation, then shows the HTTP response headers so you can distinguish ingress rejection from application-level authorization failure. |
+
 Expected outcomes:
 
 - `200 OK` when the client certificate is accepted and the app authorizes it.
