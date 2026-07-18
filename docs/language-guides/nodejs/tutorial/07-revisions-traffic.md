@@ -104,6 +104,10 @@ graph TD
       --output tsv)
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the deployed app name so revision-mode and traffic-splitting commands apply to the correct Node.js app. |
+
 2. **Switch to multiple revision mode**
 
     ```bash
@@ -115,7 +119,7 @@ graph TD
 
     | Command | Why it is used |
     |---|---|
-    | `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+    | `az containerapp revision set-mode --name "$APP_NAME" --resource-group "$RG" --mode multiple` | Switches the app into multiple revision mode so you can keep old and new Node.js revisions active at the same time for traffic splitting. |
 
     ???+ example "Expected output"
         ```text

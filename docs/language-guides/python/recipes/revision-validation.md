@@ -162,6 +162,10 @@ done
 echo "Revision validation passed"
 ```
 
+| Command | Purpose |
+|---|---|
+| `FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Reads the app's current ingress hostname so the validation script targets the live labeled revision endpoint instead of a hardcoded hostname. |
+
 ## Rollback patterns
 
 - **Fast rollback**: route 100% back to last stable revision.

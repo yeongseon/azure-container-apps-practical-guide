@@ -122,10 +122,10 @@ sequenceDiagram
 
 1. **Set standard variables (reuse Bicep outputs from Step 02)**
 
-   ```bash
+    ```bash
     RG="rg-myapp"
     BASE_NAME="myapp"
-   DEPLOYMENT_NAME="main"
+    DEPLOYMENT_NAME="main"
 
    APP_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
@@ -139,12 +139,18 @@ sequenceDiagram
      --query "properties.outputs.containerAppEnvName.value" \
      --output tsv)
 
-   ACR_NAME=$(az deployment group show \
-     --name "$DEPLOYMENT_NAME" \
-     --resource-group "$RG" \
-     --query "properties.outputs.containerRegistryName.value" \
-     --output tsv)
-   ```
+    ACR_NAME=$(az deployment group show \
+      --name "$DEPLOYMENT_NAME" \
+      --resource-group "$RG" \
+      --query "properties.outputs.containerRegistryName.value" \
+      --output tsv)
+    ```
+
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the deployed Python app name from the Bicep outputs so the logging commands query the correct app. |
+    | `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the environment name so workspace and system-log lookups stay tied to the same deployment. |
+    | `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name used by the deployed tutorial image, which is often useful context when debugging startup or logging issues. |
 
    ???+ example "Expected output"
        ```text
@@ -208,6 +214,10 @@ sequenceDiagram
      --query "properties.appLogsConfiguration.logAnalyticsConfiguration.customerId" \
      --output tsv)
    ```
+
+    | Command | Purpose |
+    |---|---|
+    | `WORKSPACE_ID=$(az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.appLogsConfiguration.logAnalyticsConfiguration.customerId" --output tsv)` | Extracts the Log Analytics workspace customer ID from the environment configuration so the next KQL queries run against the workspace actually receiving app logs. |
 
    Run a KQL query to fetch recent console logs:
 

@@ -72,6 +72,11 @@ export APP_FQDN=$(az containerapp show \
   --output tsv)
 ```
 
+| Command | Purpose |
+|---|---|
+| `export ENV_STATIC_IP=$(az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.staticIp" --output tsv)` | Captures the environment static IP used for the apex-domain `A` record when binding a Python app to a custom domain. |
+| `export APP_FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Captures the app's current ingress hostname so you can create the correct `CNAME` or validate the existing endpoint before cutover. |
+
 2. Get the domain verification value (`asuid`) from the app:
 
 ```bash
@@ -81,6 +86,10 @@ export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show \
   --query "properties.customDomainVerificationId" \
   --output tsv)
 ```
+
+| Command | Purpose |
+|---|---|
+| `export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.customDomainVerificationId" --output tsv)` | Extracts the verification token that must be published in DNS before Container Apps will allow the custom domain to be attached. |
 
 3. Create DNS records (example with Azure DNS):
 

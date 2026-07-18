@@ -186,6 +186,10 @@ WORKSPACE_ID=$(az monitor log-analytics workspace list \
   --output tsv)
 ```
 
+| Command | Purpose |
+|---|---|
+| `WORKSPACE_ID=$(az monitor log-analytics workspace list --resource-group $RG --query "[0].customerId" --output tsv)` | Captures the customer ID of the first Log Analytics workspace returned in the resource group, which is sufficient here because this tutorial provisions a single workspace and then queries it from the CLI. |
+
 ### Query Console Logs
 
 ```bash

@@ -34,6 +34,10 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
+| Command | Purpose |
+|---|---|
+| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and up to date before you enable managed identities or attach them to the app. |
+
 ## System-assigned vs user-assigned identity
 
 | Identity type | Scope | Lifecycle | Typical use |
@@ -51,6 +55,10 @@ az containerapp identity assign \
   --resource-group "$RG" \
   --system-assigned
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp identity assign --name "$APP_NAME" --resource-group "$RG" --system-assigned` | Enables a system-assigned managed identity on the Python app so it can authenticate to Azure services without embedded secrets. |
 
 User-assigned:
 

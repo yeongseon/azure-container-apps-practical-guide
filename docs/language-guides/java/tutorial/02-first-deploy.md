@@ -195,6 +195,11 @@ az containerapp create \
     curl https://$FQDN/health
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `FQDN=$(az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.ingress.fqdn" --output tsv)` | Reads the live ingress hostname from Azure so the verification request targets the actual deployed Java app endpoint. |
+    | `curl https://$FQDN/health` | Calls the health endpoint to confirm the deployed Spring Boot revision is reachable and healthy. |
+
     ???+ example "Expected output"
         ```json
         {"timestamp":"2026-04-04T16:12:58.973766483Z","status":"healthy"}
@@ -369,6 +374,11 @@ az containerapp create --resource-group $RG --name $APP_NAME --environment $ACA_
 FQDN=$(az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.ingress.fqdn" --output tsv)
 curl https://$FQDN/health
 ```
+
+| Command | Purpose |
+|---|---|
+| `FQDN=$(az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.ingress.fqdn" --output tsv)` | Reads the app's current ingress hostname from Azure so the final deployment check uses the live endpoint instead of a copied URL. |
+| `curl https://$FQDN/health` | Verifies the health endpoint on the deployed Java app before you move on to portal-based validation. |
 
 ???+ example "Expected output"
     ```json

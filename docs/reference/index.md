@@ -94,6 +94,10 @@ flowchart TD
 az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.defaultDomain" --output tsv
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.defaultDomain" --output tsv` | Extracts the environment's default DNS suffix as plain text so you can record the canonical `*.azurecontainerapps.io` domain used for ingress, verification, and troubleshooting. |
+
 ## Fast verification checklist
 
 Use this checklist before production deploys or incident handoff:

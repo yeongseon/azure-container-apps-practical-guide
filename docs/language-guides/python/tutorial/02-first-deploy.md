@@ -188,6 +188,14 @@ graph TD
       --output tsv)
    ```
 
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the generated Container App name from the deployment outputs so later tutorial steps target the exact Python app that was provisioned. |
+    | `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the generated Container Apps environment name so environment-scoped steps stay aligned with the deployment. |
+    | `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name used by the Python image build and push steps. |
+    | `ACR_LOGIN_SERVER=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryLoginServer.value" --output tsv)` | Captures the registry login server used to assemble the final image reference. |
+    | `APP_URL=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppUrl.value" --output tsv)` | Captures the app URL emitted by the deployment so it can be compared with later ingress verification. |
+
    ???+ example "Expected output"
        These commands capture the values silently. You can verify them by running:
 

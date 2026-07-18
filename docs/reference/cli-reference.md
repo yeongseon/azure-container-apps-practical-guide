@@ -548,6 +548,12 @@ az containerapp identity show \
   --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp identity assign --name "$APP_NAME" --resource-group "$RG" --system-assigned` | Enables a system-assigned managed identity on the app so the workload can authenticate to Azure resources with an identity bound to the app lifecycle. |
+| `az containerapp identity assign --name "$APP_NAME" --resource-group "$RG" --user-assigned "$UAMI_ID"` | Attaches an existing user-assigned managed identity to the app when you need to reuse one identity across multiple apps, jobs, or environments. |
+| `az containerapp identity show --name "$APP_NAME" --resource-group "$RG" --output json` | Returns the app's identity configuration object so you can inspect the assigned identity type and IDs after enabling or attaching identities. |
+
 Example output (PII scrubbed):
 
 ```json

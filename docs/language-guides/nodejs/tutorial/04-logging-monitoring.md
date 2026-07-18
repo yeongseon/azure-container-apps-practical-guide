@@ -99,6 +99,10 @@ flowchart TD
     APP_NAME=$(az containerapp list --resource-group "$RG" --query "[0].name" --output tsv)
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az containerapp list --resource-group "$RG" --query "[0].name" --output tsv)` | Captures the first app name in the tutorial resource group so the logging examples can be run without manually copying the Node.js app name. |
+
 2. **Stream console logs**
 
     ```bash

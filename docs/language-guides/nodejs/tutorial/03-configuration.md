@@ -103,6 +103,10 @@ graph TD
       --output tsv)
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the existing Container App name from the deployment outputs so configuration changes apply to the correct Node.js app. |
+
 2. **Set environment variables**
 
     ```bash

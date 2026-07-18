@@ -63,6 +63,10 @@ export OBJECT_ID=$(az ad sp show \
   --output tsv)
 ```
 
+| Command | Purpose |
+|---|---|
+| `export OBJECT_ID=$(az ad sp show --id "$PRINCIPAL_ID" --query "id" --output tsv)` | Resolves the service principal object ID used by Azure Managed Redis as the ACL username for managed-identity authentication. |
+
 Create an access policy assignment (for example, Data Owner):
 
 ```bash

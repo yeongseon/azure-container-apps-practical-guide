@@ -35,6 +35,11 @@ az extension add --name containerapp --upgrade
 az login
 ```
 
+| Command | Purpose |
+|---|---|
+| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you begin the Python tutorial sequence. |
+| `az login` | Starts an authenticated Azure CLI session so the tutorial commands can create and inspect Azure resources. |
+
 ### Prerequisite-to-Module Mapping
 
 | Prerequisite | Why It Matters | First Module That Uses It | Quick Validation |
@@ -88,6 +93,12 @@ az acr create \
   --location "$LOCATION" \
   --sku Basic
 ```
+
+| Command | Purpose |
+|---|---|
+| `az group create --name "$RG" --location "$LOCATION"` | Creates the resource group that will hold the tutorial environment, app, and registry resources. |
+| `az containerapp env create --name "$ACA_ENV_NAME" --resource-group "$RG" --location "$LOCATION"` | Creates the Container Apps environment that hosts your tutorial app revisions and ingress endpoint. |
+| `az acr create --name "$ACR_NAME" --resource-group "$RG" --location "$LOCATION" --sku Basic` | Creates the registry used to store tutorial images before deploying them into Container Apps. |
 
 !!! info "Use reusable variables from day one"
     Keep command examples consistent with this guide's variables: `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, `$ACR_NAME`, and `$LOCATION`.
