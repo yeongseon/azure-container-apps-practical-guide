@@ -13,16 +13,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
         - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: 2026-07-18
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps can send console and system logs to Log Analytics for query-based troubleshooting.
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      verified: false
+      verified: true
     - claim: Container app console logs are stored in the ContainerAppConsoleLogs table in Azure Monitor Logs.
       source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
-      verified: false
+      verified: true
 ---
 # Log Analytics Ingestion Gap
 
