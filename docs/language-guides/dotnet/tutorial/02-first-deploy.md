@@ -191,22 +191,6 @@ graph TD
      --output tsv)
    ```
 
-| Command | Purpose |
-|---|---|
-| `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the generated Container App resource name from the Bicep deployment so later CLI steps target the exact app that was provisioned. |
-| `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the generated Container Apps environment name so environment-scoped follow-up commands use the same deployment outputs. |
-| `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the ACR resource name that stores the tutorial image tags. |
-| `ACR_LOGIN_SERVER=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryLoginServer.value" --output tsv)` | Captures the ACR login server so later image references can be assembled without hardcoding the registry hostname. |
-| `APP_URL=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppUrl.value" --output tsv)` | Captures the app URL emitted by the deployment so you can compare it with later ingress verification results. |
-
-    | Command | Purpose |
-    |---|---|
-    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the generated Container App resource name from the Bicep deployment so later CLI steps target the exact app that was provisioned. |
-    | `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the generated Container Apps environment name so environment-scoped follow-up commands use the same deployment outputs. |
-    | `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the ACR resource name that stores the tutorial image tags. |
-    | `ACR_LOGIN_SERVER=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryLoginServer.value" --output tsv)` | Captures the ACR login server so later image references can be assembled without hardcoding the registry hostname. |
-    | `APP_URL=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppUrl.value" --output tsv)` | Captures the app URL emitted by the deployment so you can compare it with later ingress verification results. |
-
     | Command | Purpose |
     |---|---|
     | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the generated Container App resource name from the Bicep deployment so later CLI steps target the exact app that was provisioned. |

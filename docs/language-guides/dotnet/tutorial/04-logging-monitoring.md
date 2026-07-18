@@ -173,7 +173,7 @@ flowchart TD
 
     | Command | Purpose |
     |---|---|
-    | `WORKSPACE_ID=$(az monitor log-analytics workspace list --resource-group "$RG" --query "[0].customerId" --output tsv)` | Captures the Log Analytics workspace customer ID so KQL queries can be run directly from the CLI against the same workspace backing the environment. |
+    | `WORKSPACE_ID=$(az monitor log-analytics workspace list --resource-group "$RG" --query "[0].customerId" --output tsv)` | Captures the customer ID of the first Log Analytics workspace returned in the resource group, which is sufficient here because this tutorial provisions a single workspace and then queries it from the CLI. |
     | `az monitor log-analytics query --workspace $WORKSPACE_ID --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$APP_NAME' | project TimeGenerated, ContainerAppName_s, Log_s | take 5" --output table` | Runs a KQL query for recent console logs so you can verify log ingestion from the deployed .NET app in an automation-friendly way. |
 
    ???+ example "Expected output"

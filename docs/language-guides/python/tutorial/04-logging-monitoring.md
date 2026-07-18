@@ -146,11 +146,11 @@ sequenceDiagram
       --output tsv)
     ```
 
-| Command | Purpose |
-|---|---|
-| `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the deployed Python app name from the Bicep outputs so the logging commands query the correct app. |
-| `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the environment name so workspace and system-log lookups stay tied to the same deployment. |
-| `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name used by the deployed tutorial image, which is often useful context when debugging startup or logging issues. |
+    | Command | Purpose |
+    |---|---|
+    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the deployed Python app name from the Bicep outputs so the logging commands query the correct app. |
+    | `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the environment name so workspace and system-log lookups stay tied to the same deployment. |
+    | `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name used by the deployed tutorial image, which is often useful context when debugging startup or logging issues. |
 
    ???+ example "Expected output"
        ```text
