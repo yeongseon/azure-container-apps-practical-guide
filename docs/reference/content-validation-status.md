@@ -16,7 +16,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 468 | 468 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 143 | 11 | 0 | 10 |
+| In-Scope Factual-Claim Documents | 164 | 154 | 0 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,8 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 143
-    "Pending Review" : 11
+    "Verified" : 154
     "No Metadata" : 10
 ```
 
@@ -81,7 +80,7 @@ pie title In-Scope Document Validation Status
 | [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
-| [Scheduled Jobs](../platform/jobs/scheduled-jobs.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Scheduled Jobs](../platform/jobs/scheduled-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 4/4 | 2026-04-25 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Service To Service](../platform/networking/service-to-service.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
@@ -104,7 +103,7 @@ pie title In-Scope Document Validation Status
 | [Environment Design](../best-practices/environment-design.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Identity And Secrets](../best-practices/identity-and-secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Image Security](../best-practices/image-security.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
-| [Job Design](../best-practices/job-design.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Job Design](../best-practices/job-design.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Jobs](../best-practices/jobs.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Landing Zone Accelerator](../best-practices/landing-zone-accelerator.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
 | [Mtls](../best-practices/mtls.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
@@ -120,7 +119,7 @@ pie title In-Scope Document Validation Status
 |---|---|---|---|---|
 | [Azd](../operations/deployment/azd.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
 | [Byo Certificates](../operations/custom-domains/byo-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
-| [Diagnostic Settings](../operations/logging/diagnostic-settings.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-25 |
+| [Diagnostic Settings](../operations/logging/diagnostic-settings.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Index](../operations/health-probes/index.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Index](../operations/custom-domains/index.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Index](../operations/recovery/index.md) | ✅ | ❓ No Metadata | — | — |
@@ -142,7 +141,7 @@ pie title In-Scope Document Validation Status
 | [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
 | [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-04-25 |
-| [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
+| [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Use Uami For Acr And Reconnect Cd](../operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md) | ✅ | ✅ Verified | 3/3 | 2026-05-06 |
 | [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ✅ Verified | 4/4 | 2026-06-08 |
 
@@ -160,15 +159,15 @@ pie title In-Scope Document Validation Status
 | [Cli Reference](../troubleshooting/first-10-minutes/cli-reference.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Container App Job Execution Failure](../troubleshooting/playbooks/platform-features/container-app-job-execution-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Container Start Failure](../troubleshooting/playbooks/startup-and-provisioning/container-start-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Cpu Throttling](../troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Cpu Throttling](../troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Crashloop Oom And Resource Pressure](../troubleshooting/playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Custom Domain Tls Renewal](../troubleshooting/playbooks/networking-advanced/custom-domain-tls-renewal.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Custom Domain Tls Renewal](../troubleshooting/playbooks/networking-advanced/custom-domain-tls-renewal.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Dapr Pubsub Failure](../troubleshooting/playbooks/platform-features/dapr-pubsub-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Dapr Sidecar Or Component Failure](../troubleshooting/playbooks/platform-features/dapr-sidecar-or-component-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Dapr State Store Failure](../troubleshooting/playbooks/platform-features/dapr-state-store-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Decision Tree](../troubleshooting/decision-tree.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Detector Map](../troubleshooting/methodology/detector-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
-| [Diagnostic Settings Missing](../troubleshooting/playbooks/observability/diagnostic-settings-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-06-22 |
+| [Diagnostic Settings Missing](../troubleshooting/playbooks/observability/diagnostic-settings-missing.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Docker Hub Rate Limit](../troubleshooting/playbooks/startup-and-provisioning/docker-hub-rate-limit.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Easyauth Entra Id Failure](../troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Egress Ip Change](../troubleshooting/playbooks/networking-advanced/egress-ip-change.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
@@ -178,7 +177,7 @@ pie title In-Scope Document Validation Status
 | [Event Scaler Mismatch](../troubleshooting/playbooks/scaling-and-runtime/event-scaler-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Evidence Map](../troubleshooting/evidence-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Evidence Pack Index](../troubleshooting/evidence-pack-index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-14 |
-| [Github Actions Oidc Failure](../troubleshooting/playbooks/deployment-and-cicd/github-actions-oidc-failure.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
+| [Github Actions Oidc Failure](../troubleshooting/playbooks/deployment-and-cicd/github-actions-oidc-failure.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Http Scaling Not Triggering](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Image Pull Failure](../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Image Size Startup Delay](../troubleshooting/playbooks/startup-and-provisioning/image-size-startup-delay.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
@@ -201,17 +200,17 @@ pie title In-Scope Document Validation Status
 | [Probe Failure And Slow Start](../troubleshooting/playbooks/startup-and-provisioning/probe-failure-and-slow-start.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Quick Diagnosis Cards](../troubleshooting/quick-diagnosis-cards.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Replica Load Imbalance](../troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
-| [Revision History Limit](../troubleshooting/playbooks/deployment-and-cicd/revision-history-limit.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
+| [Revision History Limit](../troubleshooting/playbooks/deployment-and-cicd/revision-history-limit.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Revision Provisioning Failure](../troubleshooting/playbooks/startup-and-provisioning/revision-provisioning-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Scheduled Job Missed](../troubleshooting/playbooks/platform-features/scheduled-job-missed.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Secret And Key Vault Reference Failure](../troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
 | [Service To Service Connectivity Failure](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Session Affinity Failure](../troubleshooting/playbooks/networking-advanced/session-affinity-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Session Affinity Failure](../troubleshooting/playbooks/networking-advanced/session-affinity-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Subnet Cidr Exhaustion](../troubleshooting/playbooks/networking-advanced/subnet-cidr-exhaustion.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Subscription Quota Exceeded](../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md) | ✅ | ✅ Verified | 3/3 | 2026-04-29 |
 | [Udr Nsg Egress Blocked](../troubleshooting/playbooks/networking-advanced/udr-nsg-egress-blocked.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Volume Permission Denied](../troubleshooting/playbooks/storage-and-volumes/volume-permission-denied.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
-| [Websocket Grpc Ingress](../troubleshooting/playbooks/networking-advanced/websocket-grpc-ingress.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Websocket Grpc Ingress](../troubleshooting/playbooks/networking-advanced/websocket-grpc-ingress.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Workload Profile Mismatch](../troubleshooting/playbooks/cost-and-quota/workload-profile-mismatch.md) | ✅ | ✅ Verified | 3/3 | 2026-04-29 |
 | [Zone Redundancy Best Effort](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) | ✅ | ✅ Verified | 4/4 | 2026-06-08 |
 

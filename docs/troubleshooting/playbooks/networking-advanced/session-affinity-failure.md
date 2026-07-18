@@ -9,16 +9,16 @@ content_sources:
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
-    - claim: 'Azure Container Apps supports session affinity with `affinity: sticky` or `affinity: none`.'
-      source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
-      verified: false
+    - claim: 'Azure Container Apps supports session affinity with `stickySessions.affinity` values `none` and `sticky`.'
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
+      verified: true
     - claim: Session affinity is cookie-based for HTTP ingress.
       source: https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
-      verified: false
+      verified: true
 ---
 # Session Affinity Failure
 

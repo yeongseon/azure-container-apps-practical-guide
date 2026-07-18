@@ -13,20 +13,20 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/log-options
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-06-22
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
-    - claim: Container Apps log routing is configured at the environment scope via properties.appLogsConfiguration; every app inside an environment inherits the environment's log destination and there is no per-app override.
+    - claim: Azure Container Apps lets you configure logging options at the environment level, and when Azure Monitor is the logs destination you can configure diagnostic settings at both the environment level and the container app level.
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
-      verified: false
-    - claim: Setting the Container Apps environment's appLogsConfiguration to the log-analytics destination, with the target workspace's customerId and sharedKey, enables ContainerAppConsoleLogs_CL and ContainerAppSystemLogs_CL ingestion for all apps in the environment.
+      verified: true
+    - claim: When you use Log Analytics for log monitoring, the Container Apps environment includes a Log Analytics workspace that stores system and application log data from all container apps running in the environment.
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring?tabs=bash
-      verified: false
+      verified: true
 ---
 # Diagnostic Settings Missing
 
-Use this playbook when no `ContainerAppConsoleLogs_CL` or `ContainerAppSystemLogs_CL` rows appear in Log Analytics for any app in a Container Apps environment, and the environment was provisioned via IaC (Bicep, ARM, or Terraform) or via a Portal flow that did not configure the log destination. The primary scenario is an environment whose `properties.appLogsConfiguration` was omitted at provisioning time and now reads `destination: null` on the live resource — every app inside that environment is silent in Log Analytics, regardless of any per-app logging configuration. A variant scenario where the environment is configured for `destination: azure-monitor` but the downstream `Microsoft.Insights/diagnosticSettings` resource was never created is covered at the end.
+Use this playbook when no `ContainerAppConsoleLogs_CL` or `ContainerAppSystemLogs_CL` rows appear in Log Analytics for any app in a Container Apps environment, and the environment was provisioned via IaC (Bicep, ARM, or Terraform) or via a Portal flow that did not configure the log destination. The primary scenario is an environment whose `properties.appLogsConfiguration` was omitted at provisioning time and now reads `destination: null` on the live resource. In that state, environment-level log routing to Log Analytics is missing for every app in the environment. A variant scenario where the environment is configured for `destination: azure-monitor` but the downstream `Microsoft.Insights/diagnosticSettings` resource was never created is covered at the end.
 
 ## Symptom
 
@@ -236,7 +236,7 @@ If the environment is configured for `azure-monitor` routing, the environment it
 - After every new environment creation, run `az containerapp env show --query "properties.appLogsConfiguration"` as a smoke test. The expected response is `{"destination": "log-analytics", ...}` or `{"destination": "azure-monitor", ...}` — never `{"destination": null}`.
 - After every new environment creation, run the canonical KQL on both `*_CL` tables within 5-10 minutes of first traffic. If either table returns `Failed to resolve table`, the environment was provisioned without a log destination.
 - Keep the workspace customer ID and the workspace ARM resource ID in deployment outputs so post-deployment validation is a one-liner.
-- Document at the team level that environment scope owns log routing; per-app logging configuration cannot fix or override an environment that is configured for `destination: null`.
+- Document at the team level that the environment log destination must be configured correctly before environment-wide console and system log ingestion can work.
 
 ## See Also
 

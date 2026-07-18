@@ -8,15 +8,15 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
 content_validation:
-  status: pending_review
-  last_reviewed: '2026-04-25'
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
     - claim: Azure Monitor diagnostic settings can route platform logs to supported destinations such as Log Analytics workspaces and Event Hubs.
       source: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings
       verified: true
-    - claim: Container Apps log monitoring documentation should be checked before assuming exact category names for managed environments.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+    - claim: When Azure Monitor is the logs destination, Container Apps diagnostic settings can use the category group `allLogs` or the categories `ContainerAppConsoleLogs` and `ContainerAppSystemLogs`.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
       verified: true
 ---
 # Diagnostic Settings
@@ -104,9 +104,8 @@ resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
 }
 ```
 
-!!! warning "Confirm category names against current Container Apps documentation"
-    Azure Monitor diagnostic settings documentation confirms generic `categoryGroup` values such as `allLogs`, but the cited Container Apps pages don't publish a category list specific to Container Apps for managed environments.
-    Before using a production template, verify whether your environment exposes `category`, `categoryGroup`, or a more specific category set in the portal, template export, or current Microsoft Learn update.
+!!! note "Container Apps diagnostic-setting categories"
+    For Container Apps environments, the documented diagnostic-setting options are the category group `allLogs` and the categories `ContainerAppConsoleLogs` and `ContainerAppSystemLogs`.
 
 <!-- diagram-id: diagnostic-settings-routing-flow -->
 ```mermaid

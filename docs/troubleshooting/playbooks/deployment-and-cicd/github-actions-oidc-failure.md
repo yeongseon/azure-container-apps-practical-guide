@@ -12,19 +12,19 @@ content_sources:
         - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
         - https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations
 content_validation:
-  status: pending_review
-  last_reviewed: 2026-04-29
-  reviewer: agent
+  status: verified
+  last_reviewed: '2026-07-18'
+  reviewer: ai-agent
   core_claims:
-    - claim: GitHub Actions can use OpenID Connect to sign in to Azure without storing long-lived secrets.
+    - claim: GitHub Actions workflows can authenticate to Azure services by using the Azure Login action with OpenID Connect (OIDC).
       source: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect
-      verified: false
+      verified: true
     - claim: A federated identity credential must match the incoming issuer, audience, and subject claims for workload identity federation to succeed.
       source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
-      verified: false
+      verified: true
     - claim: Federated identity credential changes can be affected by propagation timing and configuration constraints.
       source: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations
-      verified: false
+      verified: true
 ---
 # GitHub Actions OIDC Failure
 
