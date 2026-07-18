@@ -7,7 +7,7 @@ For the full contributing guide, please visit our documentation site:
 ## Quick Start
 
 1. Clone the repository
-2. `pip install mkdocs-material mkdocs-minify-plugin`
+2. `pip install -r requirements-docs.txt` to install all documentation dependencies (Material theme, macros plugin, and the capture toolkit required by `mkdocs.yml`)
 3. `mkdocs serve` to preview locally
 4. `mkdocs build --strict` to validate
 5. Submit a Pull Request
