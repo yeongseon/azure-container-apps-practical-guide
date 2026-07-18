@@ -145,6 +145,11 @@ cd labs/cpu-throttling/
         --output tsv)
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `export APP_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.containerAppName.value" --output tsv)` | Captures `APP_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+    | `export APP_FQDN=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.containerAppFqdn.value" --output tsv)` | Captures `APP_FQDN` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+
 ### Trigger the baseline (run trigger.sh)
 
 Run `trigger.sh`, which:
@@ -186,6 +191,10 @@ az containerapp update \
     --cpu 1.0 \
     --memory 2.0Gi
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp update --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --cpu 1.0 --memory 2.0Gi` | Changes per-replica resource allocation, which is the corrective action this step is validating or applying. |
 
 | Command | Why it is used |
 |---|---|
@@ -271,6 +280,10 @@ When escalating a "latency is bad under load" case on Azure Container Apps, run 
         --query "{cpu: properties.template.containers[0].resources.cpu, memory: properties.template.containers[0].resources.memory, minReplicas: properties.template.scale.minReplicas, maxReplicas: properties.template.scale.maxReplicas}"
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --query "{cpu: properties.template.containers[0].resources.cpu, memory: properties.template.containers[0].resources.memory, minReplicas: properties.template.scale.minReplicas, maxReplicas: properties.template.scale.maxReplicas}"` | Reads the Container App resource and extracts the per-container CPU and memory allocation, which is the specific surface this troubleshooting step needs to confirm. |
+
 2. Capture `UsageNanoCores` for a window that covers the reported latency event:
 
     ```bash
@@ -281,6 +294,10 @@ When escalating a "latency is bad under load" case on Azure Container Apps, run 
         --aggregation Average Maximum \
         --interval PT1M
     ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az monitor metrics list --subscription "$AZ_SUBSCRIPTION" --resource "/subscriptions/$AZ_SUBSCRIPTION/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" --metric UsageNanoCores --aggregation Average Maximum --interval PT1M` | Queries one-minute CPU usage for the exact Container App resource so you can verify that the latency window aligns with sustained CPU saturation instead of another bottleneck. |
 
 3. Recommend the controlled before/after experiment in this lab (`trigger.sh` + `fix-and-capture.sh` pattern) on a non-production replica before raising CPU in production. The lab's H2 ratio (post-fix p95 / pre-fix p95) is the falsifiable signal that distinguishes "CPU was the bottleneck" from "raising CPU masked the real bottleneck temporarily."
 

@@ -125,6 +125,11 @@ export APP_FQDN="$(az containerapp show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed app name so every revision-list and traffic-split command in the canary lab points at the correct Container App. |
+| `export APP_FQDN="$(az containerapp show ... --query "properties.configuration.ingress.fqdn" --output tsv)"` | Reads the live ingress hostname so the request loop tests the same public endpoint that end users hit during the 50/50 canary split. |
+
 ### Verify Baseline (Before Trigger)
 
 ```bash
@@ -300,6 +305,11 @@ az containerapp revision deactivate \
     --revision "$BAD_REVISION"
 ```
 
+| Command | Purpose |
+|---|---|
+| `BAD_REVISION=$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name" --output tsv)` | Captures `BAD_REVISION` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp revision deactivate --name "$APP_NAME" --resource-group "$RG" --revision "$BAD_REVISION"` | Deactivates the broken canary revision after rollback so it can no longer re-enter traffic or confuse later revision-health checks. |
+
 ### Verify the Fix
 
 ```bash
@@ -314,6 +324,11 @@ for i in {1..10}; do
     echo "Request $i: HTTP $STATUS"
 done
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp ingress traffic show --name "$APP_NAME" --resource-group "$RG"` | Reads the live traffic weights after rollback so you can prove the bad revision is no longer receiving requests before retesting the endpoint. |
+| `for i in {1..10}; do STATUS=$(curl --silent --output /dev/null --write-out "%{http_code}" "https://${APP_FQDN}"); echo "Request $i: HTTP $STATUS"; done` | Replays end-user requests against the app FQDN after the rollback so you can verify the intermittent canary failure pattern has fully cleared. |
 
 Expected: All requests return HTTP 200.
 

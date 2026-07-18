@@ -256,6 +256,10 @@ az containerapp update \
     --scale-rule-http-concurrency 10
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --min-replicas 1 --max-replicas 3 --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Adjusts replica bounds and updates autoscale rules, which is the corrective action this step is validating or applying. |
+
 Wait at least the same idle interval, then repeat the request measurements:
 
 ```bash
@@ -293,6 +297,10 @@ az containerapp replica list \
     --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
@@ -317,6 +325,10 @@ az containerapp logs show \
     --resource-group "$RESOURCE_GROUP" \
     --type system
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --type system` | Pulls system events for the scaled-to-zero app so you can see the revision provisioning and cold-start activity that follows the first request. |
 
 Expected log pattern:
 

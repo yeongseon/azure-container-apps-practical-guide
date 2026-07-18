@@ -86,6 +86,11 @@ az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --o
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists recent job executions so you can see whether failures are isolated to one execution, repeating across retries, or never starting at all. |
+| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the job definition so trigger type, timeout, parallelism, and template configuration can be compared with the failing execution pattern. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -170,6 +175,11 @@ az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --j
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --job-execution-name "<execution-name>" --output json` | Reads one failed execution in detail so you can inspect its status, start/finish timing, and container outcomes instead of relying on the summary list. |
+| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the current job configuration so you can compare the failed execution against the timeout, retry, env, and trigger settings that produced it. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
@@ -206,6 +216,12 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls platform-side job execution events so you can see whether the failure happens before the container finishes starting. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls application stdout/stderr from the job container so missing secrets or configuration errors are visible in the workload's own logs. |
+| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the job definition so you can verify that the configured secrets, env values, retries, and trigger metadata still match the failing execution path. |
 
 **Disproof logic:** If secrets, environment values, and identity permissions are correct and the workload still fails only near the timeout boundary, focus on timeout or trigger behavior instead.
 

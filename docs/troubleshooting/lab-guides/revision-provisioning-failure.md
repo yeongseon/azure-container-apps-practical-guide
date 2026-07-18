@@ -136,6 +136,11 @@ export ACA_ENV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed app name from ARM outputs so the probe-misconfiguration trigger and recovery patch target the correct Container App. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.environmentName.value" --output tsv)"` | Captures the environment name created by the lab deployment for any later environment-scoped diagnostics or cleanup. |
+
 ### Verify baseline health
 
 ```bash
@@ -144,6 +149,10 @@ az containerapp revision list \
     --resource-group "$RG" \
     --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists the post-fix revisions so you can confirm that recovery created a new healthy revision instead of leaving the app stuck on the failed provisioning attempt. |
 
 | Command | Why it is used |
 |---|---|
@@ -288,6 +297,10 @@ az containerapp update \
     --yaml /tmp/probe-recovery.yaml
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml /tmp/probe-recovery.yaml` | Applies a full yaml configuration patch, which is the corrective action this step is validating or applying. |
+
 !!! note "Why not `--startup-probe-disabled`?"
     The `az containerapp update` command does **not** expose a `--startup-probe-disabled` flag. To remove a probe you must patch the `probes:` array via `--yaml` — either by replacing the bad probe (this lab's approach) or by submitting an empty `probes: []` list.
 
@@ -299,6 +312,10 @@ az containerapp revision list \
     --resource-group "$RG" \
     --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists the revisions after the recovery patch so you can confirm that a new healthy revision replaced the failed provisioning attempt. |
 
 Expected output:
 

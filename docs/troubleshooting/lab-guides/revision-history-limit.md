@@ -129,6 +129,10 @@ cd labs/revision-history-limit/
         --output tsv)
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `export APP_NAME=$(az deployment group show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name main --query "properties.outputs.containerAppName.value" --output tsv)` | Captures `APP_NAME` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the group deployment result directly so you can verify whether the top-level deployment failed before any healthy revision was created. |
+
 ### Trigger the burst (run trigger.sh)
 
 Run `trigger.sh`, which:
@@ -175,6 +179,11 @@ az containerapp revision deactivate \
     --name "$APP_NAME" \
     --revision "ca-revhist-<suffix>--<revsuffix>"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --all --query "[?properties.active==\`false\`].name" --output tsv` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp revision deactivate --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --revision "ca-revhist-<suffix>--<revsuffix>"` | Deactivates a specific inactive revision immediately, which gives operators a deterministic cleanup path when the asynchronous `maxInactiveRevisions` reconciler is too slow. |
 
 | Command | Why it is used |
 |---|---|
@@ -247,6 +256,10 @@ When escalating an "inactive revisions are not being pruned" case on Azure Conta
         --name "$APP_NAME" \
         --query "properties.configuration.maxInactiveRevisions"
     ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az containerapp show --subscription "$AZ_SUBSCRIPTION" --resource-group "$RG" --name "$APP_NAME" --query "properties.configuration.maxInactiveRevisions"` | Reads the persisted inactive-revision cap from the current app resource so you can verify that the platform is reconciling toward the configured value, not an outdated deployment state. |
 
 2. Capture two `az containerapp revision list --all` snapshots ≥ 60 minutes apart and compute the delta in inactive count. If the inactive count is monotonically decreasing across the two snapshots, the platform is reconciling — it is just slower than the reporter expected. If the count is flat across an hour+, escalate with both snapshots attached.
 3. Recommend `az containerapp revision deactivate` for any case where the customer needs cleanup within a bounded time (compliance, audit, billing). The preview setting was not designed as a real-time cap.

@@ -63,6 +63,10 @@ az containerapp show \
     --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale" --output json` | Reads the Container App resource and extracts the full scale configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+
 2. Check whether more than one active revision is holding replicas:
 
 ```bash
@@ -71,6 +75,10 @@ az containerapp revision list \
     --resource-group "$RG" \
     --query "[].{name:name,active:properties.active,replicas:properties.replicas}"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,replicas:properties.replicas}"` | Lists every revision with its active flag and replica count so you can see whether cost is coming from multiple active revisions staying warm. |
 
 3. Review the replica metric during an idle window:
 

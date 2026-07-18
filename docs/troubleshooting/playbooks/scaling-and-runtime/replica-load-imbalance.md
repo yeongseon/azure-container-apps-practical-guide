@@ -96,6 +96,10 @@ flowchart TD
         --timespan PT1H
     ```
 
+    | Command | Purpose |
+    |---|---|
+| `az monitor metrics list --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" --metric Requests --aggregation Total --timespan PT1H` | Pulls one hour of total request volume for the app resource so you can compare load shape with replica distribution and decide whether imbalance is happening under meaningful traffic. |
+
     ```kusto
     let AppName = "ca-myapp";
     ContainerAppSystemLogs_CL

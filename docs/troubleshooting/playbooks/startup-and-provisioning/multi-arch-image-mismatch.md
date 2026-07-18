@@ -90,6 +90,11 @@ flowchart TD
         --output json
     ```
 
+    | Command | Purpose |
+    |---|---|
+    | `az acr repository show-tags --name "$ACR_NAME" --repository "myapp" --output table` | Lists the tags that actually exist in the target repository so you can prove whether the image reference in the app points to a published tag. |
+| `az acr manifest list-metadata --name "myapp" --registry "$ACR_NAME" --output json` | Lists manifest metadata for the repository so you can confirm which platform variants were actually pushed and whether the failing tag is missing the architecture Container Apps needs. |
+
 3. Query logs for architecture-specific failure text.
 
     ```kusto

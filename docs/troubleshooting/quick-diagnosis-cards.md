@@ -58,6 +58,14 @@ graph TD
 az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}" --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+
 ---
 
 ## Card 2: Container Start Failure (CrashLoopBackOff)
@@ -76,6 +84,10 @@ az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].
 az containerapp logs show --resource-group $RG --name $APP_NAME --type console --tail 100
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --resource-group $RG --name $APP_NAME --type console --tail 100` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
+
 ---
 
 ## Card 3: Health Probe Failure / Slow Start
@@ -93,6 +105,10 @@ az containerapp logs show --resource-group $RG --name $APP_NAME --type console -
 ```bash
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].probes"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].probes"` | Reads the Container App resource and extracts the configured probe definitions, which is the specific surface this troubleshooting step needs to confirm. |
 
 ---
 
@@ -113,6 +129,16 @@ az containerapp ingress show --resource-group $RG --name $APP_NAME
 az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp ingress show --resource-group $RG --name $APP_NAME` | Reads the ingress resource view so you can verify how the app is exposed and whether ingress-level settings match the symptom. |
+| `az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}"` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+
+| Command | Purpose |
+|---|---|
+| `az containerapp ingress show --resource-group $RG --name $APP_NAME` | Reads the ingress resource view so you can verify how the app is exposed and whether ingress-level settings match the symptom. |
+| `az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}"` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+
 ---
 
 ## Card 5: DNS / Private Endpoint Resolution Failure
@@ -132,6 +158,10 @@ az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{
 az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "properties.vnetConfiguration"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "properties.vnetConfiguration"` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+
 ---
 
 ## Card 6: HTTP Scaling Not Triggering
@@ -149,6 +179,10 @@ az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "prop
 ```bash
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale"` | Reads the Container App resource and extracts the full scale configuration, which is the specific surface this troubleshooting step needs to confirm. |
 
 ---
 
@@ -168,6 +202,10 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale.rules"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale.rules"` | Reads the Container App resource and extracts the scale rules array, which is the specific surface this troubleshooting step needs to confirm. |
+
 ---
 
 ## Card 8: OOM / CrashLoop / Resource Pressure
@@ -186,6 +224,10 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].resources"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].resources"` | Reads the current CPU and memory limits for the crashing container so you can tell quickly whether the incident fits an OOM or resource-pressure pattern. |
+
 ---
 
 ## Card 9: Managed Identity Auth Failure
@@ -203,6 +245,10 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 ```bash
 az containerapp identity show --resource-group $RG --name $APP_NAME
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp identity show --resource-group $RG --name $APP_NAME` | Reads the app's managed identity assignment so the first triage step can confirm whether the workload even has an identity before chasing RBAC or token-audience issues. |
 
 ---
 

@@ -84,6 +84,11 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query 
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.traffic" --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,traffic:properties.trafficWeight,health:properties.healthState}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.traffic" --output json` | Reads the Container App resource and extracts the effective ingress configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -171,6 +176,11 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
@@ -198,6 +208,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "<stable-revision>=100"
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.traffic" --output json` | Reads the current traffic distribution so you can verify whether the incident is isolated to a partial canary split. |
+| `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "<stable-revision>=100"` | Rolls all live traffic back to the stable revision, which is the fastest way to test whether the new revision is actually the source of the outage. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revision health after the rollback so you can confirm the stable revision remains healthy while the canary is removed from service. |
 
 **Disproof logic:** If controlled rollback does not improve service or if failures are not isolated to canary traffic, canary analysis gaps are secondary, not primary.
 

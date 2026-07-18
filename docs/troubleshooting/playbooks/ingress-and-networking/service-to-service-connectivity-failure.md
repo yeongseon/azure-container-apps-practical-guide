@@ -86,6 +86,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json` | Reads the Container App resource and extracts the effective ingress configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -166,6 +171,17 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"` | Calls the downstream endpoint from inside the caller replica so you can prove whether the target service is reachable before focusing on downstream auth logic. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls caller-side console logs so you can see whether the request failed as a timeout, TLS problem, or 401/403 after the downstream service was reached. |
+
+| Command | Purpose |
+|---|---|
+| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
@@ -201,6 +217,11 @@ ContainerAppConsoleLogs_CL
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"` | Calls the downstream endpoint from inside the caller replica so you can prove whether the target service is reachable before focusing on downstream auth mismatches. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls caller-side console logs so you can see whether the request failed as a timeout, TLS problem, or 401/403 after the downstream service was reached. |
 
 **Disproof logic:** If the caller never reaches the target service and only times out or fails DNS resolution, fix connectivity first; auth mismatch is not yet validated.
 

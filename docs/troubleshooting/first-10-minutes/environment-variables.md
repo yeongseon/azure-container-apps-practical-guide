@@ -89,6 +89,11 @@ az containerapp exec \
 env | sort
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show \ --name "$APP_NAME" \ --resource-group "$RG" \ --query "properties.template.containers[0].env"` | Reads the Container App resource and extracts the container environment-variable mapping, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp exec \ --name "$APP_NAME" \ --resource-group "$RG" \ --command "/bin/bash"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
+
 Observed output pattern from a healthy replica:
 
 ```text

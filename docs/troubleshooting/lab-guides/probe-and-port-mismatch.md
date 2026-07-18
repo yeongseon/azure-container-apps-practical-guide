@@ -124,6 +124,12 @@ export ACA_ENV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the app name produced by the deployment so the trigger and verification steps target the correct Container App. |
+| `export ACR_NAME="$(az deployment group show ... --query "properties.outputs.containerRegistryName.value" --output tsv)"` | Captures the registry name used to build and push the mismatched workload image before the target-port change. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.environmentName.value" --output tsv)"` | Captures the environment name for any later environment-scoped troubleshooting or cleanup steps. |
+
 Expected output: no output.
 
 ### Trigger the mismatch
@@ -215,6 +221,10 @@ az containerapp update \
     --target-port 3000
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 3000` | Changes the live container app configuration, which is the corrective action this step is validating or applying. |
+
 Expected output: the update succeeds and creates a new revision.
 
 ### Verify recovery
@@ -230,6 +240,11 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 3
 sleep 40
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 3000` | Restores the ingress target port to the workload's real listening port so the next revision can pass startup and readiness checks. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv` | Extracts the newest revision's health state so the verifier can prove the port-alignment fix actually produced a healthy revision rather than only updating configuration. |
 
 Expected output: latest revision becomes `Healthy` and requests succeed consistently.
 

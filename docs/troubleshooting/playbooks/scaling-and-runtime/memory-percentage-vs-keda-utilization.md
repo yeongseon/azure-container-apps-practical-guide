@@ -152,6 +152,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" \
   --command "/bin/sh -c '(cat /sys/fs/cgroup/memory.stat 2>/dev/null || cat /sys/fs/cgroup/memory/memory.stat) | head -10'"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --replica "$REPLICA" --container "$APP_NAME" --command "/bin/sh -c '(cat /sys/fs/cgroup/memory.stat 2>/dev/null || cat /sys/fs/cgroup/memory/memory.stat) | head -10'"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
+
 The path varies by cgroup version: cgroup v2 exposes
 `/sys/fs/cgroup/memory.stat`; cgroup v1 exposes
 `/sys/fs/cgroup/memory/memory.stat`. The field names also differ — cgroup

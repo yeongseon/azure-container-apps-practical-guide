@@ -151,6 +151,13 @@ export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
+| Command | Purpose |
+|---|---|
+| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed app name so the telemetry misconfiguration and recovery steps apply to the exact Container App created by the lab. |
+| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"` | Captures the environment name for later checks against environment-level observability settings such as the Dapr AI connection string. |
+| `export APPINSIGHTS_NAME="$(az deployment group show ... --query "properties.outputs.appInsightsName.value" --output tsv)"` | Captures the Application Insights component name that should receive traces, which is required before querying or restoring its connection string. |
+| `export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show ... --query "properties.outputs.logAnalyticsWorkspaceName.value" --output tsv)"` | Captures the Log Analytics workspace name so later KQL checks query the exact workspace wired into the lab deployment. |
+
 Expected output:
 
 - Commands return no console output.
@@ -264,6 +271,10 @@ az containerapp update \
     --resource-group "$RG" \
     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
 
 Expected output:
 

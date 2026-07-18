@@ -110,6 +110,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --all --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can inspect whether the revision has a system-assigned identity, user-assigned identities, and the expected `principalId`/`clientId` values before troubleshooting RBAC. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.identity" --output json` | Reads the Container App resource and extracts the revision template identity settings in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --all --output table` | Lists every RBAC grant for the selected principal so you can see whether the expected role exists and whether it was assigned at the wrong scope. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -240,6 +246,11 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --revision "$REVISION_NAME" --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --revision "$REVISION_NAME" --output table` | Lists only the replicas for the specified revision so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
@@ -264,6 +275,10 @@ If you are using a user-assigned identity, confirm the app is not caching a toke
 ```bash
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'sh -c "python - <<\"PY\"\nfrom azure.identity import ManagedIdentityCredential\ntry:\n    token = ManagedIdentityCredential().get_token(\"https://management.azure.com/.default\")\n    print(token.expires_on)\nexcept Exception as exc:\n    print(type(exc).__name__, exc)\nPY"'
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'sh -c "python - <<\"PY\"...PY"'` | Executes a minimal managed-identity token request inside the live replica so you can verify whether IMDS/token acquisition itself fails before any downstream service authorization is attempted. |
 
 If this fails before token issuance, inspect container runtime constraints, network path, or platform-level identity availability for the revision.
 

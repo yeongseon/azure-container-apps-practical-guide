@@ -85,6 +85,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template" --output json` | Reads the Container App resource and extracts the field selected by `properties.template` in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -171,6 +177,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json` | Reads the Container App resource and extracts the container environment-variable mapping in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
@@ -198,6 +210,11 @@ If every `secretRef` maps cleanly to an existing secret and system logs do not m
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls revision provisioning and probe failures from the platform log stream so you can confirm the revision is failing before application readiness is reached. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the probe definitions attached to the revision template so you can compare the provisioning failure with the exact startup checks the platform is running. |
 
 ```kusto
 let AppName = "ca-myapp";

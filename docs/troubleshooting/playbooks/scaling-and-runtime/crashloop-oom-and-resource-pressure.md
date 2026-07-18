@@ -102,6 +102,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].resources" --output json` | Reads the Container App resource and extracts the per-container CPU and memory allocation in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the Container App resource and extracts the configured probe definitions in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+
 ## 5. Evidence to Collect
 
 ### Required Evidence
@@ -241,6 +247,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --output table
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env[?contains(name, 'MEMORY') || contains(name, 'HEAP')]" --output table` | Reads the Container App resource and extracts the container environment-variable mapping, which is the specific surface this troubleshooting step needs to confirm. |
+
 | Command | Why it is used |
 |---|---|
 | `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
@@ -266,6 +276,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" \
   --type console --tail 200
 ```
+
+| Command | Purpose |
+|---|---|
+| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --tail 200` | Pulls recent application stdout/stderr so you can see whether the crash is an immediate startup exception rather than an OOM or runtime resource-pressure symptom. |
 
 ```kusto
 // Find startup errors

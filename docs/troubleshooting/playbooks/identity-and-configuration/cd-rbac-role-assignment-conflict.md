@@ -332,6 +332,16 @@ az rest --method GET \
     --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01" 2>&1 | head -3
 ```
 
+| Command | Purpose |
+|---|---|
+| `az rest --method DELETE --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"` | Calls the ARM DELETE endpoint directly with the full resource ID, which bypasses higher-level CLI validation when a stale assignment or resource must be removed by raw ID. |
+| `az rest --method GET --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01" 2>&1 | head -3` | Calls the ARM GET endpoint directly so you can inspect a resource or role assignment by full ID even when convenience commands do not surface it correctly. |
+
+| Command | Purpose |
+|---|---|
+| `az rest --method DELETE --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01"` | Calls the ARM DELETE endpoint directly with the full resource ID, which bypasses higher-level CLI validation when a stale assignment or resource must be removed by raw ID. |
+| `az rest --method GET --url "https://management.azure.com${FULL_ID}?api-version=2022-04-01" 2>&1 | head -3` | Calls the ARM GET endpoint directly so you can inspect a resource or role assignment by full ID even when convenience commands do not surface it correctly. |
+
 A successful DELETE returns HTTP 200 with the deleted resource body; a follow-up GET returns 404. If the DELETE returns `AuthorizationFailed`, you do not have `Microsoft.Authorization/roleAssignments/write` at that scope (H8) — request the `User Access Administrator` role on the scope's parent or hand the request to someone who already holds it.
 
 !!! warning "Not all `(scope, principal, role)` triples are removable from your tenant"
@@ -376,6 +386,15 @@ gh api "repos/${GH_REPO}/contents/.github/workflows" --jq '.[] | {name, path}'
 gh secret list --repo "$GH_REPO"
 ```
 
+| Command | Purpose |
+|---|---|
+| `ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)` | Captures `ACR_ID` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads Azure Container Registry settings so the registry's network exposure or identity configuration can be checked directly. |
+| `APP_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query id --output tsv)` | Captures `APP_ID` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Reads the current Container App resource so the operator can inspect live configuration instead of relying on deployment assumptions. |
+| `az role assignment list --scope "$ACR_ID" --output table` | Lists all role assignments at the given scope so you can inspect stale or conflicting grants that block the current operation. |
+| `az role assignment list --scope "$APP_ID" --output table` | Lists all role assignments at the given scope so you can inspect stale or conflicting grants that block the current operation. |
+| `az role assignment list --scope "$RG_ID" --output table` | Lists all role assignments at the given scope so you can inspect stale or conflicting grants that block the current operation. |
+| `az ad sp list --filter "startswith(displayName,'sp-${RG}')" --query "[].{displayName:displayName, appId:appId, id:id}" --output table` | Lists service principals that match the suspected naming pattern so you can identify leftover identities from earlier deployment or CD setups. |
+
 !!! warning "If `az role assignment list --scope` returns `Bad Request`"
     Some recent `containerapp` CLI extension builds intercept the `az role assignment` command and fail with `Operation returned an invalid status 'Bad Request'` when scoped to a Container App resource ID. As a workaround, query the role assignments directly through ARM:
 
@@ -385,6 +404,10 @@ gh secret list --repo "$GH_REPO"
         --query "value[?properties.scope=='${APP_ID}'].{name:name, principalId:properties.principalId, role:properties.roleDefinitionId}" \
         --output json
     ```
+
+    | Command | Purpose |
+    |---|---|
+    | `az rest --method GET --url "https://management.azure.com${APP_ID}/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01&\$filter=atScope()" --query "value[?properties.scope=='${APP_ID}'].{name:name, principalId:properties.principalId, role:properties.roleDefinitionId}" --output json` | Calls the ARM role-assignment endpoint directly at the Container App scope so you can enumerate conflicting assignments even when the `containerapp` extension intercept breaks scoped `az role assignment list`. |
 
     This workaround is **specific to the Container App scope intercept by the `containerapp` extension**. It is not a generic substitute for ACR scope: [Observed 2026-04-23]: the equivalent ARM call against an ACR scope (`https://management.azure.com${ACR_ID}/providers/Microsoft.Authorization/roleAssignments?...`) returned an IIS-style `400 Bad Request - Invalid URL` from a CDN/Front Door layer rather than a JSON ARM error. For ACR-scope listing, prefer `az role assignment list --scope "$ACR_ID" --include-inherited` directly, or sweep via Resource Graph.
 
@@ -575,6 +598,12 @@ az ad sp show --id "$PRINCIPAL_ID" 2>&1 | head -3
 az ad user show --id "$PRINCIPAL_ID" 2>&1 | head -3
 ```
 
+| Command | Purpose |
+|---|---|
+| `PRINCIPAL_ID=$(az graph query --first 1 --graph-query " AuthorizationResources | where name == '$ROLE_ASSIGNMENT_ID' | project pid = tostring(properties.principalId)` | Captures `PRINCIPAL_ID` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Searches Azure Resource Graph across scopes, which is useful when the conflicting role assignment or resource is not visible from a single resource-group query. |
+| `az ad sp show --id "$PRINCIPAL_ID" 2>&1 | head -3` | Resolves one service principal object by ID so you can tell whether the principal still exists or has already been deleted from Microsoft Entra ID. |
+| `az ad user show --id "$PRINCIPAL_ID" 2>&1 | head -3` | Checks whether the principal ID belongs to a user object instead of a service principal, which helps distinguish stale app identities from manual user grants. |
+
 | Command | Why it is used |
 |---|---|
 | `az graph query ...` | Runs the Azure CLI operation required by the documented step. |
@@ -601,6 +630,11 @@ AuthorizationResources
 
 echo "Assignment lives at: $RG_SCOPE_FROM_GRAPH"
 ```
+
+| Command | Purpose |
+|---|---|
+| `RG_SCOPE_FROM_GRAPH=$(az graph query --first 1 --graph-query " AuthorizationResources | where name == '$ROLE_ASSIGNMENT_ID' | project s = tostring(properties.scope)` | Captures `RG_SCOPE_FROM_GRAPH` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Searches Azure Resource Graph across scopes, which is useful when the conflicting role assignment or resource is not visible from a single resource-group query. |
+| `echo "Assignment lives at: $RG_SCOPE_FROM_GRAPH"` | Prints the captured value so you can confirm the lookup or calculation before using it in later troubleshooting commands. |
 
 ### H8: You lack `Microsoft.Authorization/roleAssignments/read` at the scope where the assignment lives
 
@@ -650,6 +684,14 @@ if [ -n "$PRINCIPAL_ID" ]; then
 fi
 az account show --query "tenantId" --output tsv
 ```
+
+| Command | Purpose |
+|---|---|
+| `RG_ROW=$(az graph query --first 1 --graph-query "..." --output json)` | Captures the conflicting assignment's scope and principal metadata in one Resource Graph payload so you can decide whether the collision is cross-tenant or management-group scoped. |
+| `echo "$RG_ROW"` | Prints the captured Resource Graph row so the scope and principal fields can be reviewed before escalation. |
+| `PRINCIPAL_ID=$(echo "$RG_ROW" | jq -r '.data[0].principalId // empty')` | Extracts the principal ID from the Resource Graph payload so you can check who owns the blocking identity. |
+| `az ad sp show --id "$PRINCIPAL_ID" --query "appOwnerOrganizationId" --output tsv` | Returns the owning tenant for the service principal so you can determine whether the assignment belongs to another tenant. |
+| `az account show --query "tenantId" --output tsv` | Returns the current tenant ID so it can be compared directly with the principal's owner organization ID. |
 
 If the two tenant IDs differ, the assignment is cross-tenant. Coordinate with the owning tenant or, as a workaround, reconnect CD using a freshly created principal so the conflicting `(scope, principal, role)` triple cannot recur.
 
