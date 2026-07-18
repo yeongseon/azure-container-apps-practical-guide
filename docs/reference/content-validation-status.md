@@ -16,7 +16,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 468 | 468 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 126 | 28 | 0 | 10 |
+| In-Scope Factual-Claim Documents | 164 | 134 | 20 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,8 +24,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 126
-    "Pending Review" : 28
+    "Verified" : 134
+    "Pending Review" : 20
     "No Metadata" : 10
 ```
 
@@ -151,7 +151,7 @@ pie title In-Scope Document Validation Status
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
 | [Appgw To Internal Aca Nsg Destination](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) | ✅ | ✅ Verified | 4/4 | 2026-07-03 |
-| [Appinsights Connection String Missing](../troubleshooting/playbooks/observability/appinsights-connection-string-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Appinsights Connection String Missing](../troubleshooting/playbooks/observability/appinsights-connection-string-missing.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Architecture Overview](../troubleshooting/architecture-overview.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Azure Files Mount Failure](../troubleshooting/playbooks/storage-and-volumes/azure-files-mount-failure.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
 | [Bad Revision Rollout And Rollback](../troubleshooting/playbooks/platform-features/bad-revision-rollout-and-rollback.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -163,18 +163,18 @@ pie title In-Scope Document Validation Status
 | [Cpu Throttling](../troubleshooting/playbooks/scaling-and-runtime/cpu-throttling.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Crashloop Oom And Resource Pressure](../troubleshooting/playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Custom Domain Tls Renewal](../troubleshooting/playbooks/networking-advanced/custom-domain-tls-renewal.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
-| [Dapr Pubsub Failure](../troubleshooting/playbooks/platform-features/dapr-pubsub-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Dapr Pubsub Failure](../troubleshooting/playbooks/platform-features/dapr-pubsub-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Dapr Sidecar Or Component Failure](../troubleshooting/playbooks/platform-features/dapr-sidecar-or-component-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Dapr State Store Failure](../troubleshooting/playbooks/platform-features/dapr-state-store-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Dapr State Store Failure](../troubleshooting/playbooks/platform-features/dapr-state-store-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Decision Tree](../troubleshooting/decision-tree.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Detector Map](../troubleshooting/methodology/detector-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Diagnostic Settings Missing](../troubleshooting/playbooks/observability/diagnostic-settings-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-06-22 |
 | [Docker Hub Rate Limit](../troubleshooting/playbooks/startup-and-provisioning/docker-hub-rate-limit.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
-| [Easyauth Entra Id Failure](../troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Easyauth Entra Id Failure](../troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Egress Ip Change](../troubleshooting/playbooks/networking-advanced/egress-ip-change.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Emptydir Disk Full](../troubleshooting/playbooks/storage-and-volumes/emptydir-disk-full.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
 | [Environment Variables](../troubleshooting/first-10-minutes/environment-variables.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
-| [Event Job Storm](../troubleshooting/playbooks/platform-features/event-job-storm.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Event Job Storm](../troubleshooting/playbooks/platform-features/event-job-storm.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Event Scaler Mismatch](../troubleshooting/playbooks/scaling-and-runtime/event-scaler-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Evidence Map](../troubleshooting/evidence-map.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Evidence Pack Index](../troubleshooting/evidence-pack-index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-14 |
@@ -187,7 +187,7 @@ pie title In-Scope Document Validation Status
 | [Internal Dns And Private Endpoint Failure](../troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Keda No Metrics Returned](../troubleshooting/playbooks/scaling-and-runtime/keda-no-metrics-returned.md) | ✅ | ✅ Verified | 3/3 | 2026-06-05 |
 | [Lab Finder](../troubleshooting/lab-finder.md) | ✅ | ✅ Verified | 3/3 | 2026-07-05 |
-| [Log Analytics Ingestion Gap](../troubleshooting/playbooks/observability/log-analytics-ingestion-gap.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Log Analytics Ingestion Gap](../troubleshooting/playbooks/observability/log-analytics-ingestion-gap.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Managed Identity Auth Failure](../troubleshooting/playbooks/identity-and-configuration/managed-identity-auth-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Memory Leak Oomkilled](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Memory Percentage Vs Keda Utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) | ✅ | ✅ Verified | 4/4 | 2026-06-02 |
@@ -195,7 +195,7 @@ pie title In-Scope Document Validation Status
 | [Min Replicas Cost Surprise](../troubleshooting/playbooks/cost-and-quota/min-replicas-cost-surprise.md) | ✅ | ✅ Verified | 3/3 | 2026-04-29 |
 | [Mtls Failures](../troubleshooting/playbooks/mtls-failures.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Multi Arch Image Mismatch](../troubleshooting/playbooks/startup-and-provisioning/multi-arch-image-mismatch.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
-| [Multi Region Failover](../troubleshooting/playbooks/platform-features/multi-region-failover.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Multi Region Failover](../troubleshooting/playbooks/platform-features/multi-region-failover.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Platform Limits](../troubleshooting/first-10-minutes/platform-limits.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Private Endpoint Dns Failure](../troubleshooting/playbooks/networking-advanced/private-endpoint-dns-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Probe Failure And Slow Start](../troubleshooting/playbooks/startup-and-provisioning/probe-failure-and-slow-start.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
@@ -203,7 +203,7 @@ pie title In-Scope Document Validation Status
 | [Replica Load Imbalance](../troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Revision History Limit](../troubleshooting/playbooks/deployment-and-cicd/revision-history-limit.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
 | [Revision Provisioning Failure](../troubleshooting/playbooks/startup-and-provisioning/revision-provisioning-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Scheduled Job Missed](../troubleshooting/playbooks/platform-features/scheduled-job-missed.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Scheduled Job Missed](../troubleshooting/playbooks/platform-features/scheduled-job-missed.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Secret And Key Vault Reference Failure](../troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
 | [Service To Service Connectivity Failure](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Session Affinity Failure](../troubleshooting/playbooks/networking-advanced/session-affinity-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
