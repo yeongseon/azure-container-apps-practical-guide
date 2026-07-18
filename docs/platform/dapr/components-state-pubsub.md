@@ -59,7 +59,7 @@ Azure Container Apps uses a simplified Dapr component schema:
 
 | Field | Purpose |
 |---|---|
-| `componentType` | Dapr component type, e.g. `state.azure.cosmosdb`, `pubsub.azure.servicebus` |
+| `componentType` | Dapr component type, e.g. `state.azure.cosmosdb`, `pubsub.azure.servicebus.queue` |
 | `version` | Component API version, typically `v1` |
 | `initTimeout` | How long Dapr waits for the component to initialize |
 | `ignoreErrors` | Whether the sidecar continues if the component fails to load |
