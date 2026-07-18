@@ -185,7 +185,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 |---|---|
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
 | `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the Container App resource and extracts the ARM resource ID needed for later scoped checks in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can confirm whether a system-assigned or user-assigned managed identity is attached and inspect its `principalId`/`clientId`, which the event scaler relies on to authenticate to the event source. |
 
 | Command | Why it is used |
 |---|---|

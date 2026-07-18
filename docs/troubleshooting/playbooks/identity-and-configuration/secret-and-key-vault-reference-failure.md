@@ -93,7 +93,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 |---|---|
 | `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json` | Reads the Container App resource and extracts the container environment-variable mapping in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the Container App resource and extracts the ARM resource ID needed for later scoped checks in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can confirm whether a system-assigned or user-assigned managed identity is attached and inspect its `principalId`/`clientId` before checking the Key Vault reference's access. |
 
 ## 5. Evidence to Collect
 
@@ -180,7 +180,7 @@ az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-gr
 
 | Command | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the Container App resource and extracts the ARM resource ID needed for later scoped checks in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can confirm whether a system-assigned or user-assigned managed identity is attached and inspect its `principalId`/`clientId` before checking the Key Vault reference's access. |
 | `az keyvault secret show --vault-name "my-kv" --name "my-secret" --query "attributes.enabled" --output tsv` | Reads the Key Vault secret metadata so you can confirm the referenced secret exists and is enabled before troubleshooting app-side mapping. |
 | `az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table` | Lists RBAC grants for one principal at one exact scope, which is the quickest way to verify whether the workload has the right permission on the dependency that is failing. |
 
