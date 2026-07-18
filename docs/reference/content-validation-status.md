@@ -16,7 +16,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 468 | 468 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 122 | 32 | 0 | 10 |
+| In-Scope Factual-Claim Documents | 164 | 127 | 27 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,8 +24,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 122
-    "Pending Review" : 32
+    "Verified" : 127
+    "Pending Review" : 27
     "No Metadata" : 10
 ```
 
@@ -171,7 +171,7 @@ pie title In-Scope Document Validation Status
 | [Diagnostic Settings Missing](../troubleshooting/playbooks/observability/diagnostic-settings-missing.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-06-22 |
 | [Docker Hub Rate Limit](../troubleshooting/playbooks/startup-and-provisioning/docker-hub-rate-limit.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Easyauth Entra Id Failure](../troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
-| [Egress Ip Change](../troubleshooting/playbooks/networking-advanced/egress-ip-change.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Egress Ip Change](../troubleshooting/playbooks/networking-advanced/egress-ip-change.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Emptydir Disk Full](../troubleshooting/playbooks/storage-and-volumes/emptydir-disk-full.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
 | [Environment Variables](../troubleshooting/first-10-minutes/environment-variables.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
 | [Event Job Storm](../troubleshooting/playbooks/platform-features/event-job-storm.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
@@ -197,7 +197,7 @@ pie title In-Scope Document Validation Status
 | [Multi Arch Image Mismatch](../troubleshooting/playbooks/startup-and-provisioning/multi-arch-image-mismatch.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Multi Region Failover](../troubleshooting/playbooks/platform-features/multi-region-failover.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Platform Limits](../troubleshooting/first-10-minutes/platform-limits.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
-| [Private Endpoint Dns Failure](../troubleshooting/playbooks/networking-advanced/private-endpoint-dns-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Private Endpoint Dns Failure](../troubleshooting/playbooks/networking-advanced/private-endpoint-dns-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Probe Failure And Slow Start](../troubleshooting/playbooks/startup-and-provisioning/probe-failure-and-slow-start.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
 | [Quick Diagnosis Cards](../troubleshooting/quick-diagnosis-cards.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |
 | [Replica Load Imbalance](../troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
@@ -206,10 +206,10 @@ pie title In-Scope Document Validation Status
 | [Scheduled Job Missed](../troubleshooting/playbooks/platform-features/scheduled-job-missed.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Secret And Key Vault Reference Failure](../troubleshooting/playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) | ✅ | ✅ Verified | 3/3 | 2026-04-12 |
 | [Service To Service Connectivity Failure](../troubleshooting/playbooks/ingress-and-networking/service-to-service-connectivity-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-04-12 |
-| [Session Affinity Failure](../troubleshooting/playbooks/networking-advanced/session-affinity-failure.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
-| [Subnet Cidr Exhaustion](../troubleshooting/playbooks/networking-advanced/subnet-cidr-exhaustion.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Session Affinity Failure](../troubleshooting/playbooks/networking-advanced/session-affinity-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
+| [Subnet Cidr Exhaustion](../troubleshooting/playbooks/networking-advanced/subnet-cidr-exhaustion.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Subscription Quota Exceeded](../troubleshooting/playbooks/cost-and-quota/subscription-quota-exceeded.md) | ✅ | ✅ Verified | 3/3 | 2026-04-29 |
-| [Udr Nsg Egress Blocked](../troubleshooting/playbooks/networking-advanced/udr-nsg-egress-blocked.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
+| [Udr Nsg Egress Blocked](../troubleshooting/playbooks/networking-advanced/udr-nsg-egress-blocked.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Volume Permission Denied](../troubleshooting/playbooks/storage-and-volumes/volume-permission-denied.md) | ✅ | ⚠️ Pending Review | 0/3 | 2026-04-29 |
 | [Websocket Grpc Ingress](../troubleshooting/playbooks/networking-advanced/websocket-grpc-ingress.md) | ✅ | ⚠️ Pending Review | 0/2 | 2026-04-29 |
 | [Workload Profile Mismatch](../troubleshooting/playbooks/cost-and-quota/workload-profile-mismatch.md) | ✅ | ✅ Verified | 3/3 | 2026-04-29 |
