@@ -175,6 +175,8 @@ nav:
     - Reliability:
       - Cost Optimization: platform/reliability/cost-optimization.md
       - Health and Recovery: platform/reliability/health-recovery.md
+    - Hybrid:
+      - Connected Environments (Arc): platform/hybrid/connected-environments-arc.md
   - Best Practices:
     - best-practices/index.md
     - Container Design: best-practices/container-design.md

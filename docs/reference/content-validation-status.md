@@ -15,8 +15,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 465 | 465 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 161 | 112 | 39 | 0 | 10 |
+| Mermaid Diagrams | 466 | 466 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 162 | 113 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 112
+    "Verified" : 113
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -38,6 +38,7 @@ pie title In-Scope Document Validation Status
 | [Acr Network Path Selection](../platform/networking/acr-network-path-selection.md) | ✅ | ✅ Verified | 4/4 | 2026-06-05 |
 | [Application Gateway Integration](../platform/networking/application-gateway-integration.md) | ✅ | ✅ Verified | 6/6 | 2026-07-03 |
 | [Components State Pubsub](../platform/dapr/components-state-pubsub.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
+| [Connected Environments Arc](../platform/hybrid/connected-environments-arc.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
 | [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-04-26 |
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
 | [Cpu Memory Scaler](../platform/scaling/cpu-memory-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
