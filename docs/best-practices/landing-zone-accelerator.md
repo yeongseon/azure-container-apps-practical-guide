@@ -16,8 +16,8 @@ content_validation:
     - claim: "The Azure Container Apps landing zone accelerator organizes guidance across four design areas: identity and access management, network topology and connectivity, security/governance/compliance, and management and monitoring"
       source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/app-platform/container-apps/landing-zone-accelerator
       verified: true
-    - claim: "The LZA reference implementation deploys Container Apps into a custom virtual network with no public endpoint (internal environment secure baseline), fronted by Application Gateway with a Web Application Firewall"
-      source: https://github.com/Azure/aca-landing-zone-accelerator
+    - claim: "The recommended enterprise architecture deploys Container Apps into a custom virtual network with internal ingress and no public endpoint, fronted by Application Gateway with a Web Application Firewall"
+      source: https://learn.microsoft.com/en-us/azure/architecture/example-scenario/serverless/microservices-with-container-apps
       verified: true
     - claim: "A custom virtual network lets you apply network security groups and user-defined routing through Azure Firewall, which the automatically generated Microsoft-managed virtual network does not allow"
       source: https://learn.microsoft.com/en-us/azure/architecture/example-scenario/serverless/microservices-with-container-apps
@@ -103,7 +103,7 @@ Apply Azure Policy (built-in and custom) to the workload's resource group to enf
 
 Deploy zone-redundant resources (Container Apps environment, Application Gateway, Standard public IP) across availability zones. Set the minimum replica count for nontransient apps to at least one replica per availability zone so replicas distribute across zones under normal operation.
 
-## Anti-Patterns
+## Common Mistakes / Anti-Patterns
 
 - **Relying on the Microsoft-managed VNet for enterprise workloads.** It blocks NSGs and egress firewalling. Always supply a custom VNet for landing-zone deployments.
 - **Exposing apps through built-in public ingress without a WAF.** This leaves web-facing workloads unprotected from layer-7 attacks and outside DDoS Protection.
@@ -142,4 +142,6 @@ Deploy zone-redundant resources (Container Apps environment, Application Gateway
 - [Security, governance, and compliance design area (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/app-platform/container-apps/security)
 - [Management and monitoring design area (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/app-platform/container-apps/management)
 - [Deploy Microservices to Azure Container Apps (Azure Architecture Center)](https://learn.microsoft.com/en-us/azure/architecture/example-scenario/serverless/microservices-with-container-apps)
+- [Protect Azure Container Apps with Application Gateway and Web Application Firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway)
+- [Integrate Azure Container Apps with Azure Front Door (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-integrate-with-azure-front-door)
 - [Azure Container Apps landing zone accelerator reference implementation (GitHub)](https://github.com/Azure/aca-landing-zone-accelerator)
