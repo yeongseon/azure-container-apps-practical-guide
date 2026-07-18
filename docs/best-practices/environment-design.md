@@ -147,6 +147,7 @@ Suggested baseline tags:
 - [Plans and Workload Profiles](../platform/environments/plans-and-workload-profiles.md)
 - [Networking and CIDR](../platform/environments/networking-and-cidr.md)
 - [Azure Container Apps Networking Best Practices](networking.md)
+- [Landing Zone Accelerator](landing-zone-accelerator.md)
 - [Migration](../platform/environments/migration.md)
 
 ## Sources

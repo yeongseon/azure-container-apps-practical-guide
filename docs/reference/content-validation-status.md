@@ -15,8 +15,8 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
-| Mermaid Diagrams | 467 | 467 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 163 | 114 | 39 | 0 | 10 |
+| Mermaid Diagrams | 468 | 468 | 0 | 0 | 0 |
+| In-Scope Factual-Claim Documents | 164 | 115 | 39 | 0 | 10 |
 
 !!! warning "Validation In Progress"
     10 in-scope document(s) need `content_validation` metadata added.
@@ -24,7 +24,7 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 114
+    "Verified" : 115
     "Pending Review" : 39
     "No Metadata" : 10
 ```
@@ -106,6 +106,7 @@ pie title In-Scope Document Validation Status
 | [Image Security](../best-practices/image-security.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Job Design](../best-practices/job-design.md) | ✅ | ⚠️ Pending Review | 2/2 | 2026-04-26 |
 | [Jobs](../best-practices/jobs.md) | ✅ | ✅ Verified | 5/5 | 2026-04-12 |
+| [Landing Zone Accelerator](../best-practices/landing-zone-accelerator.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
 | [Mtls](../best-practices/mtls.md) | ✅ | ✅ Verified | 3/3 | 2026-04-25 |
 | [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-07-04 |
 | [Reliability](../best-practices/reliability.md) | ✅ | ✅ Verified | 4/4 | 2026-04-12 |

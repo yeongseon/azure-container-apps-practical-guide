@@ -257,6 +257,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 - [Network Isolation (Platform)](../platform/security/network-isolation.md)
 - [Customer-Managed Keys (Platform)](../platform/security/customer-managed-keys.md)
 - [Security Best Practices](security.md)
+- [Landing Zone Accelerator](landing-zone-accelerator.md)
 
 ## Sources
 
