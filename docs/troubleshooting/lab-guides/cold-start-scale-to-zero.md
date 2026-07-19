@@ -506,6 +506,7 @@ az group delete \
 | Command | Why it is used |
 |---|---|
 | `az group delete --name "$RESOURCE_GROUP" --yes --no-wait` | Removes all lab resources after evidence collection is complete. |
+
 ## See Also
 
 - [Repository map](../../start-here/repository-map.md)

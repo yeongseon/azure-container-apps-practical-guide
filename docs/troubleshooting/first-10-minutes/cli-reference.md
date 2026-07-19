@@ -239,6 +239,7 @@ az group delete --name "$RG" --yes --no-wait
 | Command | Why it is used |
 |---|---|
 | `az group delete ...` | Removes the lab resource group and its contained resources. |
+
 ## See Also
 
 - [Repository map](../../start-here/repository-map.md)

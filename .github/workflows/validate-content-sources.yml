@@ -82,11 +82,6 @@ jobs:
         run: |
           python scripts/validate_content_sources.py
       
-      - name: Validate CLI explanation tables
-        run: |
-          python scripts/validate_cli_explanations.py
-        continue-on-error: true  # Lenient: surfaces backlog without blocking PRs.
-      
       - name: Check frontmatter YAML style (canonical ruamel.yaml format)
         run: |
           python scripts/normalize_yaml_frontmatter.py --check
@@ -145,6 +140,27 @@ jobs:
           fi
           
           echo "All changed files with mermaid diagrams have content_sources metadata."
+
+  validate-cli-explanations:
+    name: Validate CLI Explanation Tables
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run CLI explanation doctests
+        run: |
+          python -m doctest scripts/validate_cli_explanations.py -v
+
+      - name: Validate CLI explanation tables
+        run: |
+          python scripts/validate_cli_explanations.py
 
   validate-mslearn-urls:
     name: Validate MSLearn URLs
