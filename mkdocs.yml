@@ -486,6 +486,7 @@ nav:
       - Managed Identity Key Vault Failure: troubleshooting/lab-guides/managed-identity-key-vault-failure.md
       - ACA Secret KV Ref MI Network Path Lab: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path.md
       - ACA Secret KV Ref MI Network Path — H4b Logging Gap: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path-h4b.md
+      - ACA Secret KV Ref MI Network Path — H4e DNS Override: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path-h4e.md
       - Revision Provisioning Failure: troubleshooting/lab-guides/revision-provisioning-failure.md
       - Ingress Target Port Mismatch Lab: troubleshooting/lab-guides/ingress-target-port-mismatch.md
       - Traffic Routing and Canary Failure Lab: troubleshooting/lab-guides/traffic-routing-canary.md
