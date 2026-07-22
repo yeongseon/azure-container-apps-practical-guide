@@ -490,6 +490,7 @@ nav:
       - ACA Secret KV Ref MI Network Path — H4d Virtual WAN Routing Intent: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path-h4d.md
       - ACA Secret KV Ref MI Network Path — H4c NSG Deny: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path-h4c.md
       - ACA Secret KV Ref MI Network Path — H4g Firewall Premium TLS Inspection: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path-h4g.md
+      - ACA Secret KV Ref MI Network Path — H4f Third-Party NVA Surrogate: troubleshooting/lab-guides/aca-secret-kv-ref-mi-network-path-h4f.md
       - Revision Provisioning Failure: troubleshooting/lab-guides/revision-provisioning-failure.md
       - Ingress Target Port Mismatch Lab: troubleshooting/lab-guides/ingress-target-port-mismatch.md
       - Traffic Routing and Canary Failure Lab: troubleshooting/lab-guides/traffic-routing-canary.md
