@@ -95,7 +95,7 @@ var keyVaultDataPlaneFqdn = '${keyVaultName}.vault.azure.net'
 
 // Built-in role definition IDs
 // Reference: https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
-var kvSecretsUserRoleId = '4633458b-17de-4321-be99-e39f9d67d7dd' // Key Vault Secrets User
+var kvSecretsUserRoleId = '4633458b-17de-408a-b874-0445c86b69e6' // Key Vault Secrets User
 var kvSecretsOfficerRoleId = 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7' // Key Vault Secrets Officer
 
 // -----------------------------------------------------------------------------
