@@ -3,4 +3,4 @@ mkdocs-minify-plugin==0.8.0
 mkdocs-macros-plugin
 PyYAML
 pymdown-extensions==10.21.3
-azure-guide-capture-toolkit @ git+https://github.com/yeongseon/azure-guide-capture-toolkit@v0.1.0
+azure-guide-capture-toolkit @ git+https://github.com/yeongseon/azure-guide-capture-toolkit@v0.1.1
