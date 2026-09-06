@@ -1,0 +1,48 @@
+# PII allowlist for scripts/validate_pii.py
+#
+# One confirmed-safe value per line. Lines starting with '#' and blank lines
+# are ignored. Allowlisted values are skipped for every PII check (UUIDs,
+# email addresses, and private IPs).
+#
+# Only add a value here after confirming it is a synthetic example and NOT a
+# real Azure subscription/tenant/object ID, real email address, or real host.
+#
+# Examples:
+#   00000000-0000-0000-0000-000000000000
+#   svc-account@acme.example
+#
+# NOTE: The detector heuristically labels any bare UUID as a "Potential
+# subscription ID". The entries below are lab-evidence GUIDs that are NOT
+# subscription/tenant/object identifiers. The lab guides explicitly replace
+# real subscription/tenant/principal IDs with the zero-GUID placeholder and
+# preserve only these non-identifying GUIDs as evidence.
+
+# Azure CorrelationId / request-id values echoed in ACR / EasyAuth error output
+# (docs/troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md,
+#  acr-pull-failure.md, easyauth-entra-id-failure.md, cd-reconnect-rbac-conflict.md).
+# Per-request diagnostic IDs, not account/tenant/subscription identifiers.
+0a3728f5-aee8-4ea1-9b84-4dc6e1aef664
+1d949f00-afa7-40d6-be62-343219b80cda
+42966e8e-22db-420d-8d30-a67080ab6548
+93fb0b48-c9ba-4e53-895a-ea47ed721dea
+431e3456-4db6-4838-9725-bbfaa31562bc
+
+# Azure-assigned / deterministic Bicep guid() role-assignment names in the
+# cd-reconnect-rbac-conflict lab (docs/troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md).
+# Role-assignment resource names, not subscription/tenant/object identifiers.
+47d5a904-80ad-53e1-aa11-828e33d16cef
+926c60b6-4250-4125-b9c3-8c822b8a535f
+8c1942d0-703c-4f5d-bcd3-ad361f140ed6
+e3df1205-6ca1-4b26-9468-2732121d6102
+f20aea00-20b1-586d-b8fb-747527f778c8
+3dff3c6b-d97c-4a23-a34d-107c9a0af29f
+
+# Linux kernel boot_id used as a per-replica placement proxy in the
+# replica-node-spread lab (docs/troubleshooting/lab-guides/replica-node-spread.md).
+# A kernel-generated UUID, not an Azure identifier.
+6c70d7c6-d797-4c74-8d6d-40bede5858ea
+
+# GUID suffix of a Container Apps CD GitHub workflow filename
+# (docs/troubleshooting/playbooks/identity-and-configuration/cd-rbac-role-assignment-conflict.md).
+# A generated workflow-file name component, not a subscription/tenant/object ID.
+0bc69788-ed5f-4e3b-a10a-6bd0feffbc9f
