@@ -43,9 +43,9 @@ from lib.content_scope import is_in_scope  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 
-MERMAID_FENCE_RE = re.compile(r"^\s*```mermaid\s*$", re.MULTILINE)
+MERMAID_FENCE_RE = re.compile(r"^\s*```mermaid\b", re.MULTILINE)
 SHOT_MACRO_RE = re.compile(r"\[\[\[\s*shot\(\s*[\"']")
-MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\(")
+MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\](?:\(|\[)")
 
 
 def strip_frontmatter(text: str) -> str:
@@ -70,7 +70,11 @@ def page_visual_assets(text: str) -> dict[str, int]:
     {'mermaid': 1, 'shots': 0, 'images': 0}
     >>> page_visual_assets('See [[[ shot("overview") ]]] for the blade.')
     {'mermaid': 0, 'shots': 1, 'images': 0}
+    >>> page_visual_assets("```mermaid title=\\"diagram\\"\\nflowchart TD\\n```")
+    {'mermaid': 1, 'shots': 0, 'images': 0}
     >>> page_visual_assets('![Alt text](../assets/example.webp)')
+    {'mermaid': 0, 'shots': 0, 'images': 1}
+    >>> page_visual_assets('![Alt text][ref]')
     {'mermaid': 0, 'shots': 0, 'images': 1}
     >>> page_visual_assets('Plain prose with a [link](page.md) only.')
     {'mermaid': 0, 'shots': 0, 'images': 0}
@@ -166,9 +170,13 @@ def main() -> int:
 
     if args.changed_only:
         pages = [
-            p for p in changed_files(args.base_ref) if p.exists() and DOCS in p.parents
+            p
+            for p in changed_files(args.base_ref)
+            if p.exists()
+            and DOCS in p.parents
+            and is_in_scope(p.relative_to(DOCS).as_posix())
         ]
-        return report(pages, f"changed files vs {args.base_ref}")
+        return report(pages, f"changed in-scope files vs {args.base_ref}")
     return report(in_scope_pages(), "full repo")
 
 
