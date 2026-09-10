@@ -115,29 +115,31 @@ nav:
       - Overview: platform/architecture/index.md
       - Resource Relationships: platform/architecture/resource-relationships.md
       - Sidecars and Init Containers: platform/architecture/sidecars-and-init-containers.md
-    - Deployment Scenarios: platform/deployment-scenarios.md
-    - Deployment: platform/deployment.md
-    - Environments:
-      - platform/environments/index.md
-      - Plans and Workload Profiles: platform/environments/plans-and-workload-profiles.md
-      - Consumption Plan: platform/environments/consumption-plan.md
-      - Workload Profiles: platform/environments/workload-profiles.md
-      - Dedicated GPU Profiles: platform/environments/dedicated-gpu-profiles.md
-      - Networking and CIDR: platform/environments/networking-and-cidr.md
-      - Limits and Quotas: platform/environments/limits-and-quotas.md
-      - Migration: platform/environments/migration.md
-    - Revisions:
-      - platform/revisions/index.md
-      - Revision Modes: platform/revisions/revision-modes.md
-      - Traffic Split: platform/revisions/traffic-split.md
-      - Revision Lifecycle: platform/revisions/lifecycle.md
-    - Scaling:
-      - platform/scaling/index.md
-      - HTTP Scaler: platform/scaling/http-scaler.md
-      - CPU & Memory Scalers: platform/scaling/cpu-memory-scaler.md
-      - Event Scalers: platform/scaling/event-scalers.md
-      - Custom Scalers: platform/scaling/custom-scalers.md
-      - Scaling Rules Reference: platform/scaling/scaling-rules-reference.md
+    - Deployment and Environments:
+      - Deployment Scenarios: platform/deployment-scenarios.md
+      - Deployment: platform/deployment.md
+      - Environments:
+        - platform/environments/index.md
+        - Plans and Workload Profiles: platform/environments/plans-and-workload-profiles.md
+        - Consumption Plan: platform/environments/consumption-plan.md
+        - Workload Profiles: platform/environments/workload-profiles.md
+        - Dedicated GPU Profiles: platform/environments/dedicated-gpu-profiles.md
+        - Networking and CIDR: platform/environments/networking-and-cidr.md
+        - Limits and Quotas: platform/environments/limits-and-quotas.md
+        - Migration: platform/environments/migration.md
+    - Runtime:
+      - Revisions:
+        - platform/revisions/index.md
+        - Revision Modes: platform/revisions/revision-modes.md
+        - Traffic Split: platform/revisions/traffic-split.md
+        - Revision Lifecycle: platform/revisions/lifecycle.md
+      - Scaling:
+        - platform/scaling/index.md
+        - HTTP Scaler: platform/scaling/http-scaler.md
+        - CPU & Memory Scalers: platform/scaling/cpu-memory-scaler.md
+        - Event Scalers: platform/scaling/event-scalers.md
+        - Custom Scalers: platform/scaling/custom-scalers.md
+        - Scaling Rules Reference: platform/scaling/scaling-rules-reference.md
     - Networking:
       - platform/networking/index.md
       - Ingress: platform/networking/ingress.md
@@ -147,56 +149,61 @@ nav:
       - ACR Network Path Selection: platform/networking/acr-network-path-selection.md
       - Application Gateway Integration: platform/networking/application-gateway-integration.md
       - Service-to-Service: platform/networking/service-to-service.md
-    - Storage:
-      - Overview: platform/storage/index.md
-    - Dapr:
-      - Integration Overview: platform/dapr/index.md
-      - Components, State & Pub/Sub: platform/dapr/components-state-pubsub.md
-    - Jobs:
-      - platform/jobs/index.md
-      - Manual Jobs: platform/jobs/manual-jobs.md
-      - Scheduled Jobs: platform/jobs/scheduled-jobs.md
-      - Event-Driven Jobs: platform/jobs/event-driven-jobs.md
-      - Execution Lifecycle: platform/jobs/execution-lifecycle.md
-      - Jobs vs Apps: platform/jobs/jobs-vs-apps.md
-    - Identity and Secrets:
-      - Managed Identity: platform/identity-and-secrets/managed-identity.md
-      - Key Vault: platform/identity-and-secrets/key-vault.md
-      - Easy Auth: platform/identity-and-secrets/easy-auth.md
-      - Security Operations: platform/identity-and-secrets/security-operations.md
-    - Security:
-      - platform/security/index.md
-      - mTLS Architecture: platform/security/mtls.md
-      - Ingress Client Certificates: platform/security/ingress-client-certificates.md
-      - Image Security: platform/security/image-security.md
-      - Secrets: platform/security/secrets.md
-      - Network Isolation: platform/security/network-isolation.md
-      - Customer-Managed Keys: platform/security/customer-managed-keys.md
-    - Reliability:
-      - Cost Optimization: platform/reliability/cost-optimization.md
-      - Health and Recovery: platform/reliability/health-recovery.md
-    - Hybrid:
+    - Security and Identity:
+      - Identity and Secrets:
+        - Managed Identity: platform/identity-and-secrets/managed-identity.md
+        - Key Vault: platform/identity-and-secrets/key-vault.md
+        - Easy Auth: platform/identity-and-secrets/easy-auth.md
+        - Security Operations: platform/identity-and-secrets/security-operations.md
+      - Security:
+        - platform/security/index.md
+        - mTLS Architecture: platform/security/mtls.md
+        - Ingress Client Certificates: platform/security/ingress-client-certificates.md
+        - Image Security: platform/security/image-security.md
+        - Secrets: platform/security/secrets.md
+        - Network Isolation: platform/security/network-isolation.md
+        - Customer-Managed Keys: platform/security/customer-managed-keys.md
+    - Workload Models:
+      - Jobs:
+        - platform/jobs/index.md
+        - Manual Jobs: platform/jobs/manual-jobs.md
+        - Scheduled Jobs: platform/jobs/scheduled-jobs.md
+        - Event-Driven Jobs: platform/jobs/event-driven-jobs.md
+        - Execution Lifecycle: platform/jobs/execution-lifecycle.md
+        - Jobs vs Apps: platform/jobs/jobs-vs-apps.md
+      - Dapr:
+        - Integration Overview: platform/dapr/index.md
+        - Components, State & Pub/Sub: platform/dapr/components-state-pubsub.md
       - Connected Environments (Arc): platform/hybrid/connected-environments-arc.md
+    - State and Resilience:
+      - Storage: platform/storage/index.md
+      - Reliability:
+        - Cost Optimization: platform/reliability/cost-optimization.md
+        - Health and Recovery: platform/reliability/health-recovery.md
   - Best Practices:
     - best-practices/index.md
-    - Container Design: best-practices/container-design.md
-    - Revision Strategy: best-practices/revision-strategy.md
-    - Blue/Green Deployment: best-practices/blue-green-deployment.md
-    - Canary Deployment: best-practices/canary-deployment.md
-    - Scaling: best-practices/scaling.md
+    - Design:
+      - Container Design: best-practices/container-design.md
+      - Environment Design: best-practices/environment-design.md
+      - Revision Strategy: best-practices/revision-strategy.md
+      - Jobs: best-practices/jobs.md
+      - Job Design: best-practices/job-design.md
+    - Deployment Strategies:
+      - Blue/Green Deployment: best-practices/blue-green-deployment.md
+      - Canary Deployment: best-practices/canary-deployment.md
+    - Runtime and Cost:
+      - Scaling: best-practices/scaling.md
+      - Reliability: best-practices/reliability.md
+      - Availability and Non-Guarantees: best-practices/availability-and-non-guarantees.md
+      - Cost Optimization: best-practices/cost.md
+    - Security and Compliance:
+      - Identity and Secrets: best-practices/identity-and-secrets.md
+      - Security: best-practices/security.md
+      - mTLS: best-practices/mtls.md
+      - Image Security: best-practices/image-security.md
+      - Compliance Baseline: best-practices/compliance-baseline.md
+      - Landing Zone Accelerator: best-practices/landing-zone-accelerator.md
     - Networking: best-practices/networking.md
-    - Environment Design: best-practices/environment-design.md
-    - Identity and Secrets: best-practices/identity-and-secrets.md
-    - Security: best-practices/security.md
-    - mTLS: best-practices/mtls.md
-    - Image Security: best-practices/image-security.md
-    - Compliance Baseline: best-practices/compliance-baseline.md
-    - Landing Zone Accelerator: best-practices/landing-zone-accelerator.md
-    - Reliability: best-practices/reliability.md
-    - Availability and Non-Guarantees: best-practices/availability-and-non-guarantees.md
-    - Cost Optimization: best-practices/cost.md
-    - Jobs: best-practices/jobs.md
-    - Job Design: best-practices/job-design.md
     - Common Anti-Patterns: best-practices/anti-patterns.md
   - Language Guides:
     - language-guides/index.md
@@ -307,51 +314,57 @@ nav:
         - Jobs: language-guides/dotnet/recipes/jobs.md
   - Operations:
     - operations/index.md
-    - Alerts: operations/alerts/index.md
-    - Metric alerts by incident question: operations/alerts/metric-alerts-by-incident-question.md
-    - Custom Domains:
-      - operations/custom-domains/index.md
-      - Managed Certificates: operations/custom-domains/managed-certificates.md
-      - Bring Your Own Certificates: operations/custom-domains/byo-certificates.md
-    - Deployment:
-      - operations/deployment/index.md
-      - Azure Developer CLI (azd): operations/deployment/azd.md
-      - Networking: operations/deployment/networking.md
-      - On-Premises DNS to Internal ACA: operations/deployment/internal-ingress-on-prem-dns.md
-    - Disaster Recovery:
-      - operations/disaster-recovery/index.md
-      - Multi-Region Deployment: operations/disaster-recovery/multi-region-deployment.md
-      - Zone Redundancy: operations/disaster-recovery/zone-redundancy.md
-    - Health Probes:
-      - operations/health-probes/index.md
-      - Probe Tuning: operations/health-probes/probe-tuning.md
-    - Image Pull and Registry:
-      - operations/image-pull-and-registry/index.md
-      - Use UAMI for ACR Pull: operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md
-    - Jobs:
-      - operations/jobs/index.md
-      - Troubleshooting: operations/jobs/troubleshooting.md
-    - Logging:
-      - operations/logging/index.md
-      - Log Streaming: operations/logging/log-streaming.md
-      - Log Analytics Queries: operations/logging/log-analytics-queries.md
-      - Diagnostic Settings: operations/logging/diagnostic-settings.md
-    - Revision Management: operations/revision-management/index.md
-    - Monitoring: operations/monitoring/index.md
-    - Recovery: operations/recovery/index.md
-    - Scaling:
-      - operations/scaling/index.md
-      - Min Replica Change Impact: operations/scaling/min-replica-change-impact.md
-    - Secret Rotation: operations/secret-rotation/index.md
+    - Observability:
+      - Alerts: operations/alerts/index.md
+      - Metric Alerts by Incident Question: operations/alerts/metric-alerts-by-incident-question.md
+      - Monitoring: operations/monitoring/index.md
+      - Logging:
+        - operations/logging/index.md
+        - Log Streaming: operations/logging/log-streaming.md
+        - Log Analytics Queries: operations/logging/log-analytics-queries.md
+        - Diagnostic Settings: operations/logging/diagnostic-settings.md
+    - Deployment and Revisions:
+      - Deployment:
+        - operations/deployment/index.md
+        - Azure Developer CLI (azd): operations/deployment/azd.md
+        - Networking: operations/deployment/networking.md
+        - On-Premises DNS to Internal ACA: operations/deployment/internal-ingress-on-prem-dns.md
+      - Revision Management: operations/revision-management/index.md
+    - Resilience:
+      - Disaster Recovery:
+        - operations/disaster-recovery/index.md
+        - Multi-Region Deployment: operations/disaster-recovery/multi-region-deployment.md
+        - Zone Redundancy: operations/disaster-recovery/zone-redundancy.md
+      - Recovery: operations/recovery/index.md
+      - Health Probes:
+        - operations/health-probes/index.md
+        - Probe Tuning: operations/health-probes/probe-tuning.md
+    - Runtime Operations:
+      - Scaling:
+        - operations/scaling/index.md
+        - Min Replica Change Impact: operations/scaling/min-replica-change-impact.md
+      - Jobs:
+        - operations/jobs/index.md
+        - Troubleshooting: operations/jobs/troubleshooting.md
+      - Secret Rotation: operations/secret-rotation/index.md
+    - Registry and Domains:
+      - Image Pull and Registry:
+        - operations/image-pull-and-registry/index.md
+        - Use UAMI for ACR Pull: operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md
+      - Custom Domains:
+        - operations/custom-domains/index.md
+        - Managed Certificates: operations/custom-domains/managed-certificates.md
+        - Bring Your Own Certificates: operations/custom-domains/byo-certificates.md
   - Troubleshooting:
     - troubleshooting/index.md
     - Lab Finder: troubleshooting/lab-finder.md
-    - Evidence Pack Index: troubleshooting/evidence-pack-index.md
-    - Quick Diagnosis Cards: troubleshooting/quick-diagnosis-cards.md
-    - Architecture Overview: troubleshooting/architecture-overview.md
-    - Decision Tree: troubleshooting/decision-tree.md
-    - Mental Model: troubleshooting/mental-model.md
-    - Evidence Map: troubleshooting/evidence-map.md
+    - Diagnosis:
+      - Architecture Overview: troubleshooting/architecture-overview.md
+      - Mental Model: troubleshooting/mental-model.md
+      - Quick Diagnosis Cards: troubleshooting/quick-diagnosis-cards.md
+      - Decision Tree: troubleshooting/decision-tree.md
+      - Evidence Map: troubleshooting/evidence-map.md
+      - Evidence Pack Index: troubleshooting/evidence-pack-index.md
     - First 10 Minutes:
       - troubleshooting/first-10-minutes/index.md
       - CLI Cheatsheet: troubleshooting/first-10-minutes/cli-reference.md
