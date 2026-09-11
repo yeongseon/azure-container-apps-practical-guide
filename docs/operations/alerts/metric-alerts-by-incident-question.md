@@ -1,4 +1,11 @@
 ---
+content_sources:
+  diagrams:
+    - id: ops-metric-alerts-by-question-flow
+      type: flowchart
+      source: mslearn-adapted
+      mslearn_url: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
+
 content_validation:
   status: verified
   last_reviewed: '2026-06-05'
@@ -17,6 +24,20 @@ content_validation:
 # Metric alerts by incident question
 
 When an on-call SRE asks "what's the right alert for incident X?", this page maps the question to the exact metric, aggregation, split dimension, and a starting threshold. The page is a **selection aid**, not an alert-rule tutorial — for CLI syntax, action groups, and Portal capture of alert blades, see [Alerting for Container Apps](index.md). For metric definitions, denominators, and dimensions, see the [Container Apps metrics reference](../../reference/metrics/index.md).
+
+Decision path for incident-question-driven metric alerts:
+
+<!-- diagram-id: ops-metric-alerts-by-question-flow -->
+```mermaid
+flowchart TD
+    Q["Incident question from on-call"] --> M{"Answerable by Container Apps metrics?"}
+    M -- yes --> MAP["Map question to metric: replicas, execution, http, resource usage"]
+    MAP --> ALERT["Create metric alert with action group"]
+    M -- "no — behavioral or trace data" --> LOGS["Use logs or App Insights instead"]
+    ALERT --> V["Verification: alert fires with threshold and dimensions as intended"]
+    LOGS --> V
+    V --> RB["Rollback / Troubleshooting if noisy or silent"]
+```
 
 ## Prerequisites
 
