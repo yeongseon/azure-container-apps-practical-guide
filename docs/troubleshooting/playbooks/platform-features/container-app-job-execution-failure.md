@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps jobs support manual, schedule, and event triggers.

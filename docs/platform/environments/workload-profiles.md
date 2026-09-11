@@ -11,7 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
 content_validation:
   status: verified
-  last_reviewed: '2026-04-26'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps supports Consumption, Dedicated, and Flex workload profile types, and each environment includes a default Consumption profile.

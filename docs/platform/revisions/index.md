@@ -15,7 +15,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: A revision is an immutable snapshot of a Container App version.

@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/observability
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps can send application console logs to a Log Analytics workspace for querying.

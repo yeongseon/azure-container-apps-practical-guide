@@ -13,7 +13,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
-  last_reviewed: 2026-04-29
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Azure Container Apps uses per-revision scale settings including minimum replica count.

@@ -1,7 +1,7 @@
 ---
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: The numeric samples in the metrics reference were produced from a deliberate load test environment with a specific app topology and load profile.

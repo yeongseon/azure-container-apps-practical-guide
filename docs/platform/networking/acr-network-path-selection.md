@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: When ACR is reached via a Private Endpoint, the AzureContainerRegistry service tag egress rule is not required for the image data path.

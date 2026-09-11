@@ -17,7 +17,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: 2026-04-21
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: "Revision-scope changes trigger a new revision; application-scope changes apply globally without creating a revision"

@@ -9,7 +9,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: A Container Apps environment can use either the default Azure network or an existing virtual network, and the network type cannot be changed after creation.

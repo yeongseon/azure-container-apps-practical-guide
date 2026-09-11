@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Ingress passes the client certificate to the container app if clientCertificateMode is set to require or accept.

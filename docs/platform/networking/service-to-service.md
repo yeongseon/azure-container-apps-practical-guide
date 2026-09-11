@@ -9,7 +9,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps supports internal ingress and service discovery for secure internal-only endpoints with built-in DNS-based service discovery.

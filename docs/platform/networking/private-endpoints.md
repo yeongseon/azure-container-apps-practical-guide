@@ -21,7 +21,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Workload profiles environments support creating private endpoints on the Container Apps environment.

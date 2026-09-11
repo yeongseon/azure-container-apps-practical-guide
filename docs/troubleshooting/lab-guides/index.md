@@ -17,7 +17,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: pending_review
-  last_reviewed: 2026-04-29
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Azure Container Apps supports log streaming and console access for live troubleshooting.

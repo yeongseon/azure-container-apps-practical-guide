@@ -19,7 +19,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
 content_validation:
   status: verified
-  last_reviewed: '2026-05-01'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: 'Container Apps supports three storage types: container-scoped ephemeral, replica-scoped EmptyDir, and persistent Azure Files.'

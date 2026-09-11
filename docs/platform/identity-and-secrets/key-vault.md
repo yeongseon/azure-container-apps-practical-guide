@@ -9,7 +9,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: A managed identity from Microsoft Entra ID allows a container app to access other Microsoft Entra protected resources.

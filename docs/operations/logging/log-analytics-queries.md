@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Container Apps logs can be queried in Log Analytics with KQL.

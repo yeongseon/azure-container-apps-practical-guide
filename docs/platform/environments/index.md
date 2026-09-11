@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: '2026-04-26'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: 'Azure Container Apps has two environment types: Workload profiles (v2) and Consumption-only (v1), with Workload profiles as the default.'

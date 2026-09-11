@@ -12,7 +12,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
   status: pending_review
-  last_reviewed: 2026-04-29
+  last_reviewed: 2026-09-11
   reviewer: agent
   lab_validation:
     status: reproduced

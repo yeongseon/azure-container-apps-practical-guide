@@ -24,7 +24,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: When you deploy a container app for the first time, an initial revision is automatically created.

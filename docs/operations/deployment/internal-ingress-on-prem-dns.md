@@ -25,7 +25,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-05-18'
+  last_reviewed: 2026-09-11
   reviewer: agent
   lab_validation:
     status: reproduced

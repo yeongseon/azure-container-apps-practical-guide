@@ -1,7 +1,7 @@
 ---
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Container Apps metrics support Replica and Revision dimensions for splitting and filtering.

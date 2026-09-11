@@ -12,7 +12,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/kusto/query/parse-json-function
 content_validation:
   status: verified
-  last_reviewed: '2026-06-08'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Container Apps ships container stdout to Log Analytics under ContainerAppConsoleLogs_CL, including output from Jobs.

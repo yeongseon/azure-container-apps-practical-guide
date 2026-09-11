@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-tutorial
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: For custom scale rules, Azure Container Apps uses default KEDA values of 30 seconds polling interval and 300 seconds cooldown.

@@ -19,7 +19,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps ingress supports external and internal exposure modes, where external accepts public internet traffic and internal limits reachability to the environment boundary described by Microsoft Learn.
