@@ -11,7 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps supports CPU and memory scale rules.

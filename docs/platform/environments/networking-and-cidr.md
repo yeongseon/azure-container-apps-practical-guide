@@ -11,7 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
 content_validation:
   status: verified
-  last_reviewed: '2026-04-26'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Workload profiles environments require a minimum subnet size of /27 and Consumption-only environments require a minimum subnet size of /23.

@@ -19,7 +19,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-06-08'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Container Apps zone redundancy is implemented by the platform scheduler and is described in Microsoft Learn as a best-effort distribution across physical hosts while meeting the minimum replica count.

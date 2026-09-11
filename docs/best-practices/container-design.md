@@ -13,7 +13,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/containers
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Changes to the template configuration section trigger a new container app revision.

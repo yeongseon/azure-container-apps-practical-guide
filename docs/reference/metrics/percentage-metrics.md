@@ -3,7 +3,7 @@ content_sources:
   diagrams: []
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: CPU Usage Percentage and Memory Percentage metrics report consumption as a percentage of the container's configured CPU and memory limits.

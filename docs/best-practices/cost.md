@@ -17,7 +17,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: You aren't billed usage charges if your container app scales to zero.

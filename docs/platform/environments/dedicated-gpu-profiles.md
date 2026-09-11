@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/quotas
 content_validation:
   status: verified
-  last_reviewed: '2026-04-26'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Current Dedicated GPU profile names are NC24-A100, NC48-A100, and NC96-A100.

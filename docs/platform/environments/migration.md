@@ -12,7 +12,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
 content_validation:
   status: verified
-  last_reviewed: '2026-04-26'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Workload profiles (v2) is the default environment type and is recommended for new Azure Container Apps environments.

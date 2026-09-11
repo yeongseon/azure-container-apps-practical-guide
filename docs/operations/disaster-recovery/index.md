@@ -9,7 +9,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Reliability guidance for Azure Container Apps should be used when planning zonal or regional resilience.

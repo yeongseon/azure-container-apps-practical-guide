@@ -1,7 +1,7 @@
 ---
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: KEDA scaler-level metrics are not surfaced as Azure Monitor platform metrics and are only reachable through system logs, source-side scaler metrics, or the KEDA OTel export preview.

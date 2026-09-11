@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 content_validation:
   status: verified
-  last_reviewed: '2026-04-12'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Each revision in Azure Container Apps represents an immutable snapshot of an app version and configuration.

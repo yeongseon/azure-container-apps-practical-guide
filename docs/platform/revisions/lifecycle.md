@@ -12,7 +12,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: A revision is an immutable snapshot, and revision-scope changes create a new revision.

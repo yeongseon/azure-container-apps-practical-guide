@@ -10,7 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Container Apps secrets are application-scoped, outside any specific revision, and changing a secret does not create a new revision.

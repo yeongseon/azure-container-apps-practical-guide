@@ -11,7 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Ingress forwards the client certificate in X-Forwarded-Client-Cert when clientCertificateMode is set to require or accept.

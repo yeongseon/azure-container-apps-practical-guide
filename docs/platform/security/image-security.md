@@ -12,7 +12,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-04-25'
+  last_reviewed: 2026-09-11
   reviewer: ai-agent
   core_claims:
     - claim: Azure Container Apps can pull images from a private Azure Container Registry by using a managed identity instead of registry credentials.

@@ -7,7 +7,7 @@ content_sources:
       mslearn_url: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
 content_validation:
   status: verified
-  last_reviewed: 2026-05-06
+  last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
     - claim: Container Apps can use a user-assigned managed identity to pull images from Azure Container Registry.
