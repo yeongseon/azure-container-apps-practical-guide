@@ -10,6 +10,8 @@ on:
       - 'apps/**/*.sh'
       - 'jobs/**/*.sh'
       - 'labs/**/*.sh'
+      - 'labs/**/*.py'
+      - 'labs/**/evidence/**'
       - 'infra/**/*.sh'
       - 'scripts/**/*.sh'
       - 'apps/**/*.bicep'
@@ -28,6 +30,8 @@ on:
       - 'apps/**/*.sh'
       - 'jobs/**/*.sh'
       - 'labs/**/*.sh'
+      - 'labs/**/*.py'
+      - 'labs/**/evidence/**'
       - 'infra/**/*.sh'
       - 'scripts/**/*.sh'
       - 'apps/**/*.bicep'
@@ -60,6 +64,37 @@ jobs:
         run: |
           find apps jobs labs infra scripts -type f -name '*.sh' -print0 | xargs -0 -r shellcheck
         continue-on-error: true  # Lenient: surfaces pre-existing warning/info/style backlog without blocking PRs.
+
+  lab-verifiers:
+    name: Lab Evidence Verifiers
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run replica-node-spread verifier regression suite
+        run: python3 labs/replica-node-spread/test_verify.py
+
+      - name: Confirm re-verification reproduces the committed gate JSONs
+        run: |
+          bash labs/replica-node-spread/verify.sh
+          drift=$(git diff -U0 -- labs/replica-node-spread/evidence/ \
+            | grep -E '^[+-]' \
+            | grep -vE '^(\+\+\+|---)' \
+            | grep -v 'evaluated_at_utc' \
+            || true)
+          if [ -n "${drift}" ]; then
+            echo "Re-running verify.sh changed the committed gate JSONs beyond the" >&2
+            echo "evaluation timestamp. The published evidence pack no longer matches" >&2
+            echo "what the current verifier produces:" >&2
+            echo "${drift}" >&2
+            exit 1
+          fi
 
   bicep:
     name: Bicep Templates

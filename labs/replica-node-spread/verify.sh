@@ -318,7 +318,13 @@ for required in "${CANONICAL_FILES[@]}"; do
     fi
 done
 
-CAPTURED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+# Phase B captures nothing: it is a pure offline re-evaluation of a cohort
+# that Phase A already captured. This timestamp is therefore the moment the
+# gates were RE-EVALUATED, which is not the moment the evidence was
+# captured (the cohort's capture window is DATE_PREFIX / ANCHOR_BASENAME)
+# and not the moment the docs were last edited. Conflating the three would
+# let a months-old cohort re-verified today look like a fresh Azure run.
+EVALUATED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 echo "=== Phase 10: emit Gate 1 (Cohort Integrity, 4 sub-gates) ==="
 # Sub-gate logic implemented in Python so the Strong/Fallback predicates,
@@ -327,7 +333,7 @@ echo "=== Phase 10: emit Gate 1 (Cohort Integrity, 4 sub-gates) ==="
 # writes the gate JSON to stdout.
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 DATE_PREFIX="$DATE_PREFIX" \
 ANCHOR_SAMPLES_MIN_STRONG="$ANCHOR_SAMPLES_MIN_STRONG" \
@@ -344,7 +350,7 @@ import os
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 DATE_PREFIX = os.environ["DATE_PREFIX"]
 ANCHOR_SAMPLES_MIN_STRONG = int(os.environ["ANCHOR_SAMPLES_MIN_STRONG"])
@@ -571,7 +577,7 @@ gate_1_cohort_integrity_sub_gates = {
 gate_1_cohort_integrity_pass = all(gate_1_cohort_integrity_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "cohort_integrity",
     "hypothesis": "H_cohort_integrity",
     "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -643,7 +649,7 @@ PY
 echo "=== Phase 11: emit Gate 2 (Matrix Coherence, 4 sub-gates) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 BOOT_TIME_CLUSTER_GAP_MS="$BOOT_TIME_CLUSTER_GAP_MS" \
 SUMMARY_RECONCILE_MIN_STRONG="$SUMMARY_RECONCILE_MIN_STRONG" \
@@ -658,7 +664,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 BOOT_TIME_CLUSTER_GAP_MS = int(os.environ["BOOT_TIME_CLUSTER_GAP_MS"])
 SUMMARY_RECONCILE_MIN_STRONG = int(os.environ["SUMMARY_RECONCILE_MIN_STRONG"])
@@ -1026,7 +1032,7 @@ gate_2_matrix_coherence_sub_gates = {
 gate_2_matrix_coherence_pass = all(gate_2_matrix_coherence_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "matrix_coherence",
     "hypothesis": "H_matrix_coherence",
     "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
@@ -1104,7 +1110,7 @@ PY
 echo "=== Phase 12: emit Gate 3 (Claim Eligibility, 5 sub-gates) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 BOOT_TIME_CLUSTER_GAP_MS="$BOOT_TIME_CLUSTER_GAP_MS" \
 SCALE_FILES_JSON="$(printf '%s\n' "${SCALE_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
@@ -1115,7 +1121,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 BOOT_TIME_CLUSTER_GAP_MS = int(os.environ["BOOT_TIME_CLUSTER_GAP_MS"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
@@ -1479,7 +1485,7 @@ gate_3_claim_eligibility_sub_gates = {
 gate_3_claim_eligibility_pass = all(gate_3_claim_eligibility_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "claim_eligibility",
     "hypothesis": "H_claim_eligibility",
     "claim": headline_claim,
@@ -1545,7 +1551,7 @@ PY
 echo "=== Phase 13: emit Gate 4 (Packaging, 3 sub-gates) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 CANONICAL_FILES_JSON="$(printf '%s\n' "${CANONICAL_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
 SCRIPT_PATH="$SCRIPT_PATH" \
@@ -1555,7 +1561,7 @@ import os
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 CANONICAL_FILES = json.loads(os.environ["CANONICAL_FILES_JSON"])
 SCRIPT_PATH = os.environ["SCRIPT_PATH"]
@@ -1658,7 +1664,7 @@ gate_4_packaging_sub_gates = {
 gate_4_packaging_pass = all(gate_4_packaging_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "packaging",
     "hypothesis": "H_packaging",
     "claim": "evidence_pack_is_self_contained_and_re_verifiable",
