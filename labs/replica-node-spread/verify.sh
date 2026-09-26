@@ -1048,37 +1048,59 @@ def evaluated(outcome, *, when_evaluable):
     return outcome if when_evaluable else None
 
 
+# The four claims falsify.sh actually writes into the verdict are
+# replica-consistent, boot-consistent, uptime-monotonic and
+# boot-nontrivial. Recomputing a DIFFERENT four cannot establish that the
+# verdict is explainable from raw however sound the predicate algebra is:
+# replica drift and a placeholder boot_id both used to pass unnoticed.
+# Sample count and boot-time stability are real requirements but the
+# verdict does not assert them, so they are named separately below rather
+# than folded into the parity set.
+#
 # An anchor that parsed to zero records is a missing-input problem owned
 # by Gate 1 sub-gate (a); branding it a contradiction here would both
 # double-count it and mislabel an unreadable file as refuting evidence.
-check_1_n_samples = evaluated(
-    anchor_record_count >= 4, when_evaluable=anchor_record_count > 0
-)
+have_records = anchor_record_count > 0
+
+TRIVIAL_BOOT_IDS = {"", "null", "none", "00000000-0000-0000-0000-000000000000"}
+
+
+def is_nontrivial_boot_id(value):
+    """Mirror falsify.sh H3b: reject empty, "null" and the all-zero sentinel."""
+    return str(value).strip().lower() not in TRIVIAL_BOOT_IDS
+
+
+replica_names = set(r.get("replica_name") for r in anchor_records)
+check_replica_consistent = evaluated(len(replica_names) == 1, when_evaluable=have_records)
 boot_ids = set(r["boot_id"] for r in anchor_records)
-check_2_boot_id_consistent = evaluated(
-    len(boot_ids) == 1, when_evaluable=anchor_record_count > 0
-)
+check_boot_id_consistent = evaluated(len(boot_ids) == 1, when_evaluable=have_records)
 # Monotonicity over fewer than 2 samples is vacuously true, which is
 # "cannot evaluate" rather than "verified".
 uptime_seq = [r["uptime_seconds"] for r in anchor_records]
-check_3_uptime_monotonic = evaluated(
+check_uptime_monotonic = evaluated(
     all(uptime_seq[i] < uptime_seq[i + 1] for i in range(len(uptime_seq) - 1)),
     when_evaluable=len(uptime_seq) >= 2,
 )
+check_boot_nontrivial = evaluated(
+    all(is_nontrivial_boot_id(b) for b in boot_ids), when_evaluable=have_records
+)
+
+# Additional requirements this verifier imposes beyond the verdict text.
 # 5000 ms is the same kernel-boot identity band H3 falsify.sh applies.
-# The span is undefined for fewer than 2 values.
 bte_values = [r.get("boot_time_estimate_ms") for r in anchor_records if r.get("boot_time_estimate_ms") is not None]
 bte_span_ms = max(bte_values) - min(bte_values) if len(bte_values) >= 2 else None
-check_4_bte_stable = evaluated(
-    bte_span_ms is not None and bte_span_ms <= 5000,
-    when_evaluable=len(bte_values) >= 2,
+additional_sample_count_sufficient = evaluated(anchor_record_count >= 4, when_evaluable=have_records)
+additional_bte_stable = evaluated(
+    bte_span_ms is not None and bte_span_ms <= 5000, when_evaluable=len(bte_values) >= 2
 )
 
 h3_checks = {
-    "check_1_n_samples_ge_4": check_1_n_samples,
-    "check_2_boot_id_consistent": check_2_boot_id_consistent,
-    "check_3_uptime_monotonic": check_3_uptime_monotonic,
-    "check_4_bte_stable": check_4_bte_stable,
+    "check_replica_consistent": check_replica_consistent,
+    "check_boot_id_consistent": check_boot_id_consistent,
+    "check_uptime_monotonic": check_uptime_monotonic,
+    "check_boot_nontrivial": check_boot_nontrivial,
+    "additional_sample_count_sufficient": additional_sample_count_sufficient,
+    "additional_bte_stable": additional_bte_stable,
 }
 refuted_checks = sorted(name for name, value in h3_checks.items() if value is False)
 inconclusive_checks = sorted(name for name, value in h3_checks.items() if value is None)
@@ -1181,13 +1203,17 @@ print(json.dumps({
         "verdict_text_excerpt": verdict_text[:200],
         "verdict_overall_pass": verdict_overall_pass,
         "anchor_record_count": len(anchor_records),
-        "check_1_n_samples_ge_4": check_1_n_samples,
-        "check_2_boot_id_consistent": check_2_boot_id_consistent,
-        "check_2_unique_boot_ids": len(boot_ids),
-        "check_3_uptime_monotonic": check_3_uptime_monotonic,
-        "check_3_uptime_sequence": uptime_seq,
-        "check_4_bte_stable": check_4_bte_stable,
-        "check_4_bte_span_ms": bte_span_ms,
+        "verdict_asserted_checks": ["check_replica_consistent", "check_boot_id_consistent", "check_uptime_monotonic", "check_boot_nontrivial"],
+        "check_replica_consistent": check_replica_consistent,
+        "check_unique_replica_names": len(replica_names),
+        "check_boot_id_consistent": check_boot_id_consistent,
+        "check_unique_boot_ids": len(boot_ids),
+        "check_uptime_monotonic": check_uptime_monotonic,
+        "check_uptime_sequence": uptime_seq,
+        "check_boot_nontrivial": check_boot_nontrivial,
+        "additional_sample_count_sufficient": additional_sample_count_sufficient,
+        "additional_bte_stable": additional_bte_stable,
+        "additional_bte_span_ms": bte_span_ms,
         "all_four_checks_recomputable": all_four_checks_recomputable,
         "refuted_checks": refuted_checks,
         "inconclusive_checks": inconclusive_checks,

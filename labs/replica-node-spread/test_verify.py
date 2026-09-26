@@ -35,9 +35,12 @@ MATRIX_GATE = "11-matrix-coherence-gate.json"
 CLAIM_GATE = "12-claim-eligibility-gate.json"
 PACKAGING_GATE = "13-packaging-gate.json"
 
-# A syntactically valid UUID that is not the anchor's boot_id, used to
-# introduce a second kernel context and thereby refute "boot_id consistent".
-FOREIGN_BOOT_ID = "00000000-0000-0000-0000-000000000000"
+# A syntactically valid, NON-TRIVIAL UUID that differs from the anchor's
+# boot_id. It must not be the all-zero sentinel: that value additionally
+# refutes the non-trivial-UUID check, so a fixture using it could no longer
+# isolate a single refuted check.
+FOREIGN_BOOT_ID = "9f3c1d52-7ab4-4e61-8c90-2d5e6f7a1b83"
+TRIVIAL_BOOT_ID = "00000000-0000-0000-0000-000000000000"
 
 GENERATED_GATES = (COHORT_GATE, MATRIX_GATE, CLAIM_GATE, PACKAGING_GATE)
 
@@ -129,6 +132,56 @@ class PristineCohortTests(unittest.TestCase):
             self.assertTrue(sub["all_four_checks_recomputable"])
 
 
+class VerdictAssertionParityTests(unittest.TestCase):
+    """The recomputed checks must be the ones the verdict actually asserts.
+
+    falsify.sh emits exactly four claims: H3a-replica-consistent,
+    H3a-boot-consistent, H3a-uptime-monotonic and H3b-boot-nontrivial. A
+    sub-gate that recomputes a different set cannot establish that the
+    verdict is explainable from raw, however sound its predicate algebra
+    is: replica consistency and the non-trivial-UUID guard were simply
+    never evaluated, so raw could contradict the verdict on either one and
+    still pass.
+    """
+
+    def _sub(self, lab: pathlib.Path) -> dict:
+        run_verify(lab)
+        return gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+    def test_replica_name_drift_refutes_the_verdict(self):
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            records[2] = {**records[2], "replica_name": "app-consumption--0000001-other"}
+            write_anchor(lab, records)
+            sub = self._sub(lab)
+
+            self.assertIs(sub["check_replica_consistent"], False)
+            self.assertIn("check_replica_consistent", sub["refuted_checks"])
+            self.assertIs(sub["d_pass"], False)
+            self.assertIs(sub["verdict_contradicts_raw"], True)
+
+    def test_trivial_boot_id_refutes_the_verdict(self):
+        with fixture_lab() as lab:
+            write_anchor(lab, [
+                {**record, "boot_id": TRIVIAL_BOOT_ID}
+                for record in read_anchor(lab)
+            ])
+            sub = self._sub(lab)
+
+            self.assertIs(sub["check_boot_nontrivial"], False)
+            self.assertIn("check_boot_nontrivial", sub["refuted_checks"])
+            self.assertIs(sub["d_pass"], False)
+
+    def test_pristine_cohort_satisfies_every_asserted_check(self):
+        with fixture_lab() as lab:
+            sub = self._sub(lab)
+            for name in ("check_replica_consistent", "check_boot_id_consistent",
+                         "check_uptime_monotonic", "check_boot_nontrivial"):
+                self.assertIs(sub[name], True, msg=f"{name} should hold on the pristine anchor")
+            self.assertEqual(sub["refuted_checks"], [])
+            self.assertIs(sub["d_pass"], True)
+
+
 class DisagreementAuditTests(unittest.TestCase):
     """Both directions of verdict/raw disagreement must be visible.
 
@@ -208,12 +261,12 @@ class RawPrimacyTests(unittest.TestCase):
             sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
 
             self.assertIs(
-                sub["check_2_boot_id_consistent"],
+                sub["check_boot_id_consistent"],
                 False,
                 msg="fixture did not actually refute boot_id consistency",
             )
             self.assertIs(
-                sub["check_3_uptime_monotonic"],
+                sub["check_uptime_monotonic"],
                 False,
                 msg="fixture did not actually refute uptime monotonicity",
             )
@@ -270,10 +323,12 @@ class InconclusiveEvidenceTests(unittest.TestCase):
             self.assertEqual(
                 sorted(sub["inconclusive_checks"]),
                 [
-                    "check_1_n_samples_ge_4",
-                    "check_2_boot_id_consistent",
-                    "check_3_uptime_monotonic",
-                    "check_4_bte_stable",
+                    "additional_bte_stable",
+                    "additional_sample_count_sufficient",
+                    "check_boot_id_consistent",
+                    "check_boot_nontrivial",
+                    "check_replica_consistent",
+                    "check_uptime_monotonic",
                 ],
             )
             self.assertFalse(sub["all_four_checks_recomputable"])
@@ -299,9 +354,9 @@ class InconclusiveEvidenceTests(unittest.TestCase):
 
             # One sample cannot establish monotonicity or a bte span, and
             # it refutes "samples >= 4" outright.
-            self.assertIs(sub["check_1_n_samples_ge_4"], False)
-            self.assertIn("check_3_uptime_monotonic", sub["inconclusive_checks"])
-            self.assertIn("check_4_bte_stable", sub["inconclusive_checks"])
+            self.assertIs(sub["additional_sample_count_sufficient"], False)
+            self.assertIn("check_uptime_monotonic", sub["inconclusive_checks"])
+            self.assertIn("additional_bte_stable", sub["inconclusive_checks"])
             self.assertIs(sub["d_pass"], False)
             self.assertEqual(sub["d_evidence_level"], "Refuted")
 
@@ -606,8 +661,8 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
             write_anchor(lab, records)
             sub = self._sub(lab, expected_returncode=1)
 
-            self.assertEqual(sub["refuted_checks"], ["check_2_boot_id_consistent"])
-            self.assertIs(sub["check_3_uptime_monotonic"], True)
+            self.assertEqual(sub["refuted_checks"], ["check_boot_id_consistent"])
+            self.assertIs(sub["check_uptime_monotonic"], True)
             self.assertIs(sub["d_pass"], False)
 
     def test_only_uptime_refuted(self):
@@ -617,8 +672,8 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
             write_anchor(lab, records)
             sub = self._sub(lab, expected_returncode=1)
 
-            self.assertEqual(sub["refuted_checks"], ["check_3_uptime_monotonic"])
-            self.assertIs(sub["check_2_boot_id_consistent"], True)
+            self.assertEqual(sub["refuted_checks"], ["check_uptime_monotonic"])
+            self.assertIs(sub["check_boot_id_consistent"], True)
             self.assertIs(sub["d_pass"], False)
 
     def test_only_bte_span_refuted(self):
@@ -631,7 +686,7 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
             write_anchor(lab, records)
             sub = self._sub(lab, expected_returncode=1)
 
-            self.assertEqual(sub["refuted_checks"], ["check_4_bte_stable"])
+            self.assertEqual(sub["refuted_checks"], ["additional_bte_stable"])
             self.assertIs(sub["d_pass"], False)
 
     def test_missing_bte_values_are_inconclusive_not_refuted(self):
@@ -646,7 +701,7 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
             sub = self._sub(lab, expected_returncode=0)
 
             self.assertEqual(sub["refuted_checks"], [])
-            self.assertEqual(sub["inconclusive_checks"], ["check_4_bte_stable"])
+            self.assertEqual(sub["inconclusive_checks"], ["additional_bte_stable"])
             self.assertIs(sub["d_pass"], True)
             self.assertEqual(sub["d_evidence_level"], "Inconclusive")
 

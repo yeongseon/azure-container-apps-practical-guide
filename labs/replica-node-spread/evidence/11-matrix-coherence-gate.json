@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-09-26T23:35:38Z",
+  "evaluated_at_utc": "2026-09-26T23:46:01Z",
   "scenario": "matrix_coherence",
   "hypothesis": "H_matrix_coherence",
   "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
@@ -477,19 +477,28 @@
     "verdict_text_excerpt": "H3 falsification verdict \u2014 run h3-20260614-143432\n----------------------------------------------------------------\nH3a-replica-consistent:  yes  (all 5 samples hit replica=app-consumption--0000001-65f",
     "verdict_overall_pass": true,
     "anchor_record_count": 5,
-    "check_1_n_samples_ge_4": true,
-    "check_2_boot_id_consistent": true,
-    "check_2_unique_boot_ids": 1,
-    "check_3_uptime_monotonic": true,
-    "check_3_uptime_sequence": [
+    "verdict_asserted_checks": [
+      "check_replica_consistent",
+      "check_boot_id_consistent",
+      "check_uptime_monotonic",
+      "check_boot_nontrivial"
+    ],
+    "check_replica_consistent": true,
+    "check_unique_replica_names": 1,
+    "check_boot_id_consistent": true,
+    "check_unique_boot_ids": 1,
+    "check_uptime_monotonic": true,
+    "check_uptime_sequence": [
       2054.0,
       2064.13,
       2074.24,
       2084.36,
       2094.48
     ],
-    "check_4_bte_stable": true,
-    "check_4_bte_span_ms": 7,
+    "check_boot_nontrivial": true,
+    "additional_sample_count_sufficient": true,
+    "additional_bte_stable": true,
+    "additional_bte_span_ms": 7,
     "all_four_checks_recomputable": true,
     "refuted_checks": [],
     "inconclusive_checks": [],

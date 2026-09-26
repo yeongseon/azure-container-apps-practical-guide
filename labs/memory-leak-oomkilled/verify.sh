@@ -247,8 +247,11 @@ for required in \
         exit 1
     fi
 done
+# Phase B captures nothing: it re-evaluates a cohort Phase A already
+# captured. This timestamp is when the gates were RE-EVALUATED, which is
+# neither the evidence capture time nor the docs edit time.
 
-CAPTURED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+EVALUATED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 echo "=== Phase 10: emit H1 gate for Scenario A (hard OOM, immediate burst) ==="
 # Sub-gate logic implemented in Python so the Strong/Fallback predicates,
@@ -257,7 +260,7 @@ echo "=== Phase 10: emit H1 gate for Scenario A (hard OOM, immediate burst) ==="
 # writes the gate JSON to stdout.
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 HARD_APP_NAME="$HARD_APP_NAME" \
 HARD_EVIDENCE_TS="$HARD_EVIDENCE_TS" \
 HARD_OOM_MIN_RECORDS="$HARD_OOM_MIN_RECORDS" \
@@ -269,7 +272,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 HARD_APP_NAME = os.environ["HARD_APP_NAME"]
 HARD_EVIDENCE_TS = os.environ["HARD_EVIDENCE_TS"]
 HARD_OOM_MIN_RECORDS = int(os.environ["HARD_OOM_MIN_RECORDS"])
@@ -518,7 +521,7 @@ h1_hard_sub_gates = {
 h1_hard_pass = all(h1_hard_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "A_hard",
     "hypothesis": "H1",
     "claim": "hard_oom_immediate_dense_burst_signature_distinct_from_leak",
@@ -565,7 +568,7 @@ PY
 echo "=== Phase 11: emit H1 gate for Scenario B (leak, delayed climb-then-kill) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 LEAK_APP_NAME="$LEAK_APP_NAME" \
 LEAK_EVIDENCE_TS="$LEAK_EVIDENCE_TS" \
 LEAK_TICKS_MIN_STRONG="$LEAK_TICKS_MIN_STRONG" \
@@ -578,7 +581,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 LEAK_APP_NAME = os.environ["LEAK_APP_NAME"]
 LEAK_EVIDENCE_TS = os.environ["LEAK_EVIDENCE_TS"]
 LEAK_TICKS_MIN_STRONG = int(os.environ["LEAK_TICKS_MIN_STRONG"])
@@ -824,7 +827,7 @@ h1_leak_sub_gates = {
 h1_leak_pass = all(h1_leak_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "B_leak",
     "hypothesis": "H1",
     "claim": "leak_delayed_runway_then_oom_signature_distinct_from_hard",
@@ -874,7 +877,7 @@ PY
 echo "=== Phase 12: emit H2 gate for Scenario C (healthy control, no OOM) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 HEALTHY_APP_NAME="$HEALTHY_APP_NAME" \
 HEALTHY_EVIDENCE_TS="$HEALTHY_EVIDENCE_TS" \
 HEALTHY_OOM_MAX_RECORDS="$HEALTHY_OOM_MAX_RECORDS" \
@@ -885,7 +888,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 HEALTHY_APP_NAME = os.environ["HEALTHY_APP_NAME"]
 HEALTHY_EVIDENCE_TS = os.environ["HEALTHY_EVIDENCE_TS"]
 HEALTHY_OOM_MAX_RECORDS = int(os.environ["HEALTHY_OOM_MAX_RECORDS"])
@@ -1091,7 +1094,7 @@ h2_healthy_sub_gates = {
 h2_healthy_pass = all(h2_healthy_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "C_healthy",
     "hypothesis": "H2",
     "claim": "healthy_control_zero_oom_falsifies_environmental_oom",
@@ -1140,7 +1143,7 @@ PY
 echo "=== Phase 13: emit H3 cross-scenario falsification gate ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 HARD_APP_NAME="$HARD_APP_NAME" \
 HARD_EVIDENCE_TS="$HARD_EVIDENCE_TS" \
 LEAK_APP_NAME="$LEAK_APP_NAME" \
@@ -1159,7 +1162,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 HARD_APP_NAME = os.environ["HARD_APP_NAME"]
 HARD_EVIDENCE_TS = os.environ["HARD_EVIDENCE_TS"]
 LEAK_APP_NAME = os.environ["LEAK_APP_NAME"]
@@ -1398,7 +1401,7 @@ h3_cross_sub_gates = {
 h3_cross_pass = all(h3_cross_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "cross_scenario_falsification",
     "hypothesis": "H3",
     "claim": "three_workload_patterns_produce_three_distinguishable_oom_signatures",
