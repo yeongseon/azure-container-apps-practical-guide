@@ -236,6 +236,71 @@ class VerdictLineConsistencyTests(unittest.TestCase):
             self.assertIs(sub["d_pass"], False)
 
 
+class VerdictLineParsingTests(unittest.TestCase):
+    """The verdict contract is exactly one correctly-named line per check."""
+
+    def _sub(self, lab: pathlib.Path) -> dict:
+        run_verify(lab)
+        return gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+    def _rewrite(self, lab: pathlib.Path, transform) -> None:
+        path = lab / "evidence" / ANCHOR_VERDICT
+        path.write_text(transform(path.read_text()))
+
+    def test_lookalike_key_does_not_satisfy_the_required_line(self):
+        with fixture_lab() as lab:
+            self._rewrite(lab, lambda s: s.replace(
+                "H3a-replica-consistent:", "H3a-replica-consistent-extra:"))
+            sub = self._sub(lab)
+
+            self.assertIn("H3a-replica-consistent", sub["verdict_line_missing"])
+            self.assertIs(sub["verdict_lines_consistent"], False)
+            self.assertIs(sub["d_pass"], False)
+
+    def test_duplicate_status_line_is_rejected(self):
+        with fixture_lab() as lab:
+            self._rewrite(lab, lambda s: s.replace(
+                "Overall: PASS",
+                "H3a-boot-consistent:     no  (duplicate)\nOverall: PASS"))
+            sub = self._sub(lab)
+
+            self.assertIn("H3a-boot-consistent", sub["verdict_line_duplicated"])
+            self.assertIs(sub["verdict_lines_consistent"], False)
+            self.assertIs(sub["d_pass"], False)
+
+    def test_overall_pass_requires_every_line_to_say_yes_even_when_raw_cannot_decide(self):
+        with fixture_lab() as lab:
+            write_anchor(lab, [])
+            self._rewrite(lab, lambda s: s.replace(
+                "H3a-replica-consistent:  yes", "H3a-replica-consistent:  no "))
+            sub = self._sub(lab)
+
+            self.assertTrue(sub["verdict_overall_pass"])
+            self.assertIs(sub["verdict_lines_consistent"], False)
+            self.assertIs(sub["d_pass"], False)
+
+
+class ContradictionAliasTests(unittest.TestCase):
+    def test_inconclusive_extra_does_not_suppress_a_real_disagreement(self):
+        """An unevaluable additional check must not hide a verdict disagreement."""
+        with fixture_lab() as lab:
+            write_anchor(lab, [
+                {k: v for k, v in r.items() if k != "boot_time_estimate_ms"}
+                for r in read_anchor(lab)
+            ])
+            path = lab / "evidence" / ANCHOR_VERDICT
+            path.write_text(path.read_text().replace("Overall: PASS", "Overall: FAIL"))
+            run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+            self.assertIs(sub["all_verdict_checks_verified"], True)
+            self.assertFalse(sub["verdict_overall_pass"])
+            self.assertIs(
+                sub["raw_contradicts_verdict"], True,
+                msg="a missing bte value must not suppress a genuine raw/verdict disagreement",
+            )
+
+
 class ContradictionScopeTests(unittest.TestCase):
     """Only checks the verdict asserts may set the contradiction flags."""
 

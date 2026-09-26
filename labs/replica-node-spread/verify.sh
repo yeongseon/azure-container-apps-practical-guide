@@ -1125,6 +1125,11 @@ additional_requirements_refuted = any(v is False for v in additional_checks.valu
 # Each asserted line in the verdict is compared against the recomputed
 # value. Reading only "Overall: PASS" accepts an internally contradictory
 # artifact whose own status lines disagree with it.
+verdict_lines = verdict_text.splitlines()
+verdict_overall_pass = any(
+    line.strip() == "Overall: PASS" for line in verdict_lines
+)
+
 VERDICT_LINE_KEYS = {
     "H3a-replica-consistent": "check_replica_consistent",
     "H3a-boot-consistent": "check_boot_id_consistent",
@@ -1133,41 +1138,60 @@ VERDICT_LINE_KEYS = {
 }
 
 
-def parse_verdict_line(text, key):
-    """Return True/False for a `<key>: yes|no ...` line, or None if absent."""
+def collect_verdict_lines(text, key):
+    """Return every `yes`/`no` token stated for an EXACT key.
+
+    The key is matched against the text before the colon, not as a prefix:
+    `startswith` would let a line named `<key>-extra` satisfy the required
+    `<key>`. Every occurrence is returned so duplicates can be rejected,
+    since the contract is exactly one correctly-named line per check.
+    """
+    tokens = []
     for line in text.splitlines():
-        if line.startswith(key):
-            _, _, rest = line.partition(":")
-            token = rest.strip().split()[0].strip().lower() if rest.strip() else ""
-            if token in ("yes", "no"):
-                return token == "yes"
-            return None
-    return None
+        name, sep, rest = line.partition(":")
+        if not sep or name.strip() != key:
+            continue
+        candidate = rest.strip().split()[0].strip().lower() if rest.strip() else ""
+        tokens.append(candidate if candidate in ("yes", "no") else None)
+    return tokens
 
 
 verdict_line_values = {}
 verdict_line_disagreements = []
 verdict_line_missing = []
+verdict_line_duplicated = []
 for line_key, check_name in VERDICT_LINE_KEYS.items():
-    stated = parse_verdict_line(verdict_text, line_key)
+    tokens = collect_verdict_lines(verdict_text, line_key)
+    if len(tokens) > 1:
+        verdict_line_duplicated.append(line_key)
+    stated = tokens[0] if len(tokens) == 1 else None
     verdict_line_values[line_key] = stated
     if stated is None:
         verdict_line_missing.append(line_key)
-    elif h3_checks[check_name] is not None and stated is not h3_checks[check_name]:
+    # Raw comparison only when raw can actually decide: an INCONCLUSIVE
+    # recomputation neither confirms nor contradicts a stated value.
+    elif h3_checks[check_name] is not None and (stated == "yes") is not h3_checks[check_name]:
         verdict_line_disagreements.append(check_name)
 verdict_line_disagreements = sorted(verdict_line_disagreements)
-verdict_line_missing = sorted(verdict_line_missing)
-verdict_lines_consistent = not verdict_line_disagreements and not verdict_line_missing
+verdict_line_missing = sorted(set(verdict_line_missing))
+verdict_line_duplicated = sorted(verdict_line_duplicated)
+
+# Verdict self-consistency is independent of raw. If the artifact declares
+# Overall: PASS then every asserted line must independently read `yes`,
+# whether or not the recomputation can evaluate that check.
+verdict_lines_all_yes = all(v == "yes" for v in verdict_line_values.values())
+verdict_self_consistent = (not verdict_overall_pass) or verdict_lines_all_yes
+verdict_lines_consistent = (
+    not verdict_line_disagreements
+    and not verdict_line_missing
+    and not verdict_line_duplicated
+    and verdict_self_consistent
+)
 
 # Line-scoped predicate: the verdict file MUST contain a line whose
 # stripped content is exactly "Overall: PASS" (the H3 falsification
 # verdict header). Whole-file substring matches are forbidden per the
 # record-scoped predicate rule.
-verdict_lines = verdict_text.splitlines()
-verdict_overall_pass = any(
-    line.strip() == "Overall: PASS" for line in verdict_lines
-)
-
 d_strong_path_recomputable = (
     all_requirements_verified and verdict_overall_pass and verdict_lines_consistent
 )
@@ -1186,7 +1210,7 @@ d_verdict_explainable = d_strong_path_recomputable or d_fallback_path_verdict_pa
 # `not all_four_checks_recomputable`, so raw that is merely INCONCLUSIVE
 # is not miscounted as contradicting the verdict.
 verdict_contradicts_raw = verdict_overall_pass and raw_refutes_verdict
-raw_contradicts_verdict = all_four_checks_recomputable and not verdict_overall_pass
+raw_contradicts_verdict = all_verdict_checks_verified and not verdict_overall_pass
 
 if d_strong_path_recomputable:
     d_evidence_level = "Observed"
@@ -1287,6 +1311,8 @@ print(json.dumps({
         "verdict_line_values": verdict_line_values,
         "verdict_line_disagreements": verdict_line_disagreements,
         "verdict_line_missing": verdict_line_missing,
+        "verdict_line_duplicated": verdict_line_duplicated,
+        "verdict_self_consistent": verdict_self_consistent,
         "verdict_lines_consistent": verdict_lines_consistent,
         "verdict_contradicts_raw": verdict_contradicts_raw,
         "raw_contradicts_verdict": raw_contradicts_verdict,
