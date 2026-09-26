@@ -174,5 +174,168 @@ class RawPrimacyTests(unittest.TestCase):
             )
 
 
+class InconclusiveEvidenceTests(unittest.TestCase):
+    """S3 - uncontradicted-but-unrecomputable evidence is kept, downgraded.
+
+    The governing rule is that a fallback may not launder a contradiction
+    into a PASS. It does NOT say every fallback must be deleted: evidence
+    that is merely too thin to recompute stays admissible, but has to be
+    reported at a lower evidence level so a reviewer can see the claim
+    rests on the verdict file.
+    """
+
+    def test_empty_anchor_is_inconclusive_not_refuted(self):
+        with fixture_lab() as lab:
+            write_anchor(lab, [])
+            self.assertTrue(verdict_says_pass(lab))
+
+            run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+            self.assertEqual(sub["refuted_checks"], [])
+            self.assertEqual(
+                sorted(sub["inconclusive_checks"]),
+                [
+                    "check_1_n_samples_ge_4",
+                    "check_2_boot_id_consistent",
+                    "check_3_uptime_monotonic",
+                    "check_4_bte_stable",
+                ],
+            )
+            self.assertFalse(sub["all_four_checks_recomputable"])
+            self.assertIs(sub["d_pass"], True)
+            self.assertEqual(sub["d_evidence_level"], "Inconclusive")
+
+    def test_empty_anchor_still_fails_cohort_integrity_and_exit_code(self):
+        with fixture_lab() as lab:
+            write_anchor(lab, [])
+            proc = run_verify(lab)
+
+            self.assertFalse(
+                gate(lab, COHORT_GATE)["sub_gate_a_anchor_exists"]["a_pass"],
+                msg="an unreadable anchor must still fail cohort integrity",
+            )
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_single_sample_anchor_does_not_claim_observed(self):
+        with fixture_lab() as lab:
+            write_anchor(lab, read_anchor(lab)[:1])
+            run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+            # One sample cannot establish monotonicity or a bte span, and
+            # it refutes "samples >= 4" outright.
+            self.assertIs(sub["check_1_n_samples_ge_4"], False)
+            self.assertIn("check_3_uptime_monotonic", sub["inconclusive_checks"])
+            self.assertIn("check_4_bte_stable", sub["inconclusive_checks"])
+            self.assertIs(sub["d_pass"], False)
+            self.assertEqual(sub["d_evidence_level"], "Refuted")
+
+
+class RequiredEvidenceTests(unittest.TestCase):
+    """S4 - a missing required input must hard-fail, never degrade to PASS."""
+
+    def test_missing_canonical_file_aborts_before_emitting_gates(self):
+        with fixture_lab() as lab:
+            (lab / "evidence" / "consumption-scale-1-run-1.jsonl").unlink()
+            proc = run_verify(lab)
+
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertIn("not found", proc.stderr)
+
+    def test_missing_anchor_verdict_aborts(self):
+        with fixture_lab() as lab:
+            (lab / "evidence" / ANCHOR_VERDICT).unlink()
+            proc = run_verify(lab)
+
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertIn("not found", proc.stderr)
+
+
+class CohortIsolationTests(unittest.TestCase):
+    """S5 - records from another capture window must not be admitted."""
+
+    def _contaminate(self, lab: pathlib.Path, filename: str, count: int) -> None:
+        path = lab / "evidence" / filename
+        records = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+        for index in range(min(count, len(records))):
+            records[index] = {**records[index], "run_id": "consumption-n1-r1-20991231-000000"}
+        path.write_text("".join(json.dumps(r) + "\n" for r in records))
+
+    def test_bulk_foreign_run_ids_fail_cohort_isolation(self):
+        with fixture_lab() as lab:
+            self._contaminate(lab, "consumption-scale-30-run-1.jsonl", 10_000)
+            proc = run_verify(lab)
+            sub = gate(lab, COHORT_GATE)["sub_gate_c_same_bundle"]
+
+            self.assertLess(sub["date_prefix_ratio"], 1.0)
+            self.assertFalse(
+                sub["c_pass"],
+                msg="records from a foreign capture window must fail same_bundle",
+            )
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_declared_stray_record_tolerance_is_pinned(self):
+        """Characterization test for the declared 99% fallback tolerance.
+
+        The cohort-isolation fallback deliberately admits up to 1% stray
+        records. That tolerance is a published threshold, not an accident,
+        so it is pinned here rather than silently tightened. If anyone
+        changes DATE_PREFIX_MIN_FALLBACK this test must be updated in the
+        same commit.
+        """
+        with fixture_lab() as lab:
+            self._contaminate(lab, "consumption-scale-1-run-1.jsonl", 1)
+            run_verify(lab)
+            gate_json = gate(lab, COHORT_GATE)
+            sub = gate_json["sub_gate_c_same_bundle"]
+
+            self.assertLess(sub["date_prefix_ratio"], 1.0)
+            self.assertFalse(sub["c_strong_path_all_records_dated"])
+            self.assertTrue(sub["c_fallback_path_most_records_dated"])
+            self.assertEqual(
+                gate_json["thresholds"]["date_prefix_min_fallback"], 0.99
+            )
+
+
+class AdjacentSurfaceRegressionTests(unittest.TestCase):
+    """S6 - the fix must not perturb any other gate on the pristine cohort."""
+
+    def test_untouched_subgates_keep_their_verdicts(self):
+        with fixture_lab() as lab:
+            run_verify(lab)
+
+            cohort = gate(lab, COHORT_GATE)
+            self.assertEqual(
+                cohort["gate_1_cohort_integrity_sub_gates"],
+                {
+                    "a_anchor_exists": True,
+                    "b_files_parseable": True,
+                    "c_same_bundle": True,
+                    "d_no_extras": True,
+                },
+            )
+            self.assertEqual(cohort["sub_gate_b_files_parseable"]["parse_success_ratio"], 1.0)
+            self.assertEqual(cohort["sub_gate_c_same_bundle"]["date_prefix_ratio"], 1.0)
+
+            matrix = gate(lab, MATRIX_GATE)
+            self.assertEqual(matrix["sub_gate_a_each_file_one_cell"]["cell_match_ratio"], 1.0)
+            self.assertEqual(matrix["sub_gate_b_no_duplicates"]["duplicate_count"], 0)
+            self.assertEqual(matrix["sub_gate_c_summary_reconciles"]["matches_count"], 11)
+
+            self.assertTrue(gate(lab, CLAIM_GATE)["gate_3_claim_eligibility_all_subgates_pass"])
+            self.assertTrue(gate(lab, PACKAGING_GATE)["gate_4_packaging_all_subgates_pass"])
+
+    def test_claim_ceiling_is_still_strongly_suggested(self):
+        with fixture_lab() as lab:
+            run_verify(lab)
+            claim = gate(lab, CLAIM_GATE)
+            self.assertNotEqual(
+                claim["claim_level"],
+                "Observed",
+                msg="node-placement claims must stay below [Observed]",
+            )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
