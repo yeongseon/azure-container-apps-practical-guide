@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-09-26T23:02:26Z",
+  "evaluated_at_utc": "2026-09-26T23:35:38Z",
   "scenario": "matrix_coherence",
   "hypothesis": "H_matrix_coherence",
   "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
@@ -494,6 +494,8 @@
     "refuted_checks": [],
     "inconclusive_checks": [],
     "raw_refutes_verdict": false,
+    "verdict_contradicts_raw": false,
+    "raw_contradicts_verdict": false,
     "d_evidence_level": "Observed",
     "d_strong_path_recomputable": true,
     "d_fallback_path_verdict_pass": true,

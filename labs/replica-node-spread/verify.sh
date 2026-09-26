@@ -1098,6 +1098,15 @@ d_strong_path_recomputable = all_four_checks_recomputable and verdict_overall_pa
 d_fallback_path_verdict_pass = verdict_overall_pass and not raw_refutes_verdict
 d_verdict_explainable = d_strong_path_recomputable or d_fallback_path_verdict_pass
 
+# Both directions of divergence are recorded. Reporting only the first
+# would leave a verdict that reads FAIL over clean raw invisible, since
+# it fails the sub-gate silently and produces no refuted check.
+# `verdict_contradicts_raw` keys off an active refutation rather than off
+# `not all_four_checks_recomputable`, so raw that is merely INCONCLUSIVE
+# is not miscounted as contradicting the verdict.
+verdict_contradicts_raw = verdict_overall_pass and raw_refutes_verdict
+raw_contradicts_verdict = all_four_checks_recomputable and not verdict_overall_pass
+
 if d_strong_path_recomputable:
     d_evidence_level = "Observed"
 elif d_fallback_path_verdict_pass:
@@ -1183,6 +1192,8 @@ print(json.dumps({
         "refuted_checks": refuted_checks,
         "inconclusive_checks": inconclusive_checks,
         "raw_refutes_verdict": raw_refutes_verdict,
+        "verdict_contradicts_raw": verdict_contradicts_raw,
+        "raw_contradicts_verdict": raw_contradicts_verdict,
         "d_evidence_level": d_evidence_level,
         "d_strong_path_recomputable": d_strong_path_recomputable,
         "d_fallback_path_verdict_pass": d_fallback_path_verdict_pass,

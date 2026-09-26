@@ -129,6 +129,58 @@ class PristineCohortTests(unittest.TestCase):
             self.assertTrue(sub["all_four_checks_recomputable"])
 
 
+class DisagreementAuditTests(unittest.TestCase):
+    """Both directions of verdict/raw disagreement must be visible.
+
+    The sub-gate decides pass/fail from raw, but a reviewer also needs to
+    see WHICH way the verdict and the raw records diverged. Recording only
+    the "verdict claims PASS while raw refutes it" direction leaves a
+    verdict that reads FAIL over clean raw completely invisible.
+    """
+
+    def _sub(self, lab: pathlib.Path) -> dict:
+        run_verify(lab)
+        return gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+    def test_pristine_records_no_disagreement(self):
+        with fixture_lab() as lab:
+            sub = self._sub(lab)
+            self.assertIs(sub["verdict_contradicts_raw"], False)
+            self.assertIs(sub["raw_contradicts_verdict"], False)
+
+    def test_verdict_claims_pass_while_raw_refutes_it(self):
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            records[1], records[2] = records[2], records[1]
+            write_anchor(lab, records)
+            sub = self._sub(lab)
+
+            self.assertTrue(sub["verdict_overall_pass"])
+            self.assertIs(sub["verdict_contradicts_raw"], True)
+            self.assertIs(sub["raw_contradicts_verdict"], False)
+            self.assertIs(sub["d_pass"], False)
+
+    def test_raw_is_clean_while_verdict_does_not_say_pass(self):
+        """A FAIL verdict over clean raw is an unexplained disagreement.
+
+        Raw primacy decides what the COHORT supports, so it is right that
+        raw governs pass/fail elsewhere. This sub-gate asks a narrower
+        question: is the verdict file explainable from the raw records? A
+        verdict reading FAIL while every recomputed check passes is not
+        explainable, so it does not pass, and the direction is recorded.
+        """
+        with fixture_lab() as lab:
+            path = lab / "evidence" / ANCHOR_VERDICT
+            path.write_text(path.read_text().replace("Overall: PASS", "Overall: FAIL"))
+            sub = self._sub(lab)
+
+            self.assertFalse(sub["verdict_overall_pass"])
+            self.assertEqual(sub["refuted_checks"], [])
+            self.assertIs(sub["raw_contradicts_verdict"], True)
+            self.assertIs(sub["verdict_contradicts_raw"], False)
+            self.assertIs(sub["d_pass"], False)
+
+
 class RawPrimacyTests(unittest.TestCase):
     """S2 - a verdict file must never overrule contradictory raw records.
 
