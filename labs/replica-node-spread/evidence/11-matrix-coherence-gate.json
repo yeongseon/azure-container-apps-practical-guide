@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-09-26T16:44:58Z",
+  "evaluated_at_utc": "2026-09-26T17:03:46Z",
   "scenario": "matrix_coherence",
   "hypothesis": "H_matrix_coherence",
   "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
@@ -146,6 +146,7 @@
     "all_records_total": 1112,
     "all_records_matching_cell": 1112,
     "cell_match_ratio": 1.0,
+    "per_file_cell_violations": [],
     "a_strong_path_all_records_match_cell": true,
     "a_fallback_path_most_records_match_cell": true,
     "a_pass": true
@@ -453,6 +454,8 @@
     "matches_count": 11,
     "total_summary_entries": 11,
     "total_scale_files": 11,
+    "summary_duplicate_file_keys": false,
+    "summary_entry_count_matches": true,
     "c_strong_path_all_reconcile": true,
     "c_fallback_path_most_reconcile": true,
     "c_pass": true

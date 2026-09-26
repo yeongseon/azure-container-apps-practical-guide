@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-09-26T16:44:58Z",
+  "evaluated_at_utc": "2026-09-26T17:03:46Z",
   "scenario": "packaging",
   "hypothesis": "H_packaging",
   "claim": "evidence_pack_is_self_contained_and_re_verifiable",

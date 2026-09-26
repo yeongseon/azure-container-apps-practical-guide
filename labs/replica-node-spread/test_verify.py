@@ -39,10 +39,18 @@ PACKAGING_GATE = "13-packaging-gate.json"
 # introduce a second kernel context and thereby refute "boot_id consistent".
 FOREIGN_BOOT_ID = "00000000-0000-0000-0000-000000000000"
 
+GENERATED_GATES = (COHORT_GATE, MATRIX_GATE, CLAIM_GATE, PACKAGING_GATE)
+
 
 @contextlib.contextmanager
 def fixture_lab():
-    """Yield an isolated copy of the lab directory, deleted on exit."""
+    """Yield an isolated copy of the lab directory, deleted on exit.
+
+    The committed gate JSONs are removed from the copy. Without that, a
+    test could read a gate file that the repository shipped rather than
+    one this run actually emitted, and would keep passing even if the
+    verifier stopped producing that gate entirely.
+    """
     with tempfile.TemporaryDirectory(prefix="rns-fixture-") as tmp:
         destination = pathlib.Path(tmp) / "replica-node-spread"
         shutil.copytree(
@@ -50,6 +58,8 @@ def fixture_lab():
             destination,
             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
         )
+        for name in GENERATED_GATES:
+            (destination / "evidence" / name).unlink()
         yield destination
 
 
@@ -64,7 +74,19 @@ def run_verify(lab: pathlib.Path) -> subprocess.CompletedProcess:
 
 
 def gate(lab: pathlib.Path, filename: str) -> dict:
-    return json.loads((lab / "evidence" / filename).read_text())
+    path = lab / "evidence" / filename
+    if not path.is_file():
+        raise AssertionError(
+            f"{filename} was not emitted by this verify.sh run; "
+            "the assertion that follows would otherwise have read a stale file"
+        )
+    return json.loads(path.read_text())
+
+
+def emitted_gates(lab: pathlib.Path) -> list[str]:
+    return sorted(
+        name for name in GENERATED_GATES if (lab / "evidence" / name).is_file()
+    )
 
 
 def read_anchor(lab: pathlib.Path) -> list[dict]:
@@ -242,6 +264,11 @@ class RequiredEvidenceTests(unittest.TestCase):
 
             self.assertNotEqual(proc.returncode, 0)
             self.assertIn("not found", proc.stderr)
+            self.assertEqual(
+                emitted_gates(lab),
+                [],
+                msg="no gate may be emitted once a required input is missing",
+            )
 
     def test_missing_anchor_verdict_aborts(self):
         with fixture_lab() as lab:
@@ -250,6 +277,7 @@ class RequiredEvidenceTests(unittest.TestCase):
 
             self.assertNotEqual(proc.returncode, 0)
             self.assertIn("not found", proc.stderr)
+            self.assertEqual(emitted_gates(lab), [])
 
 
 class CohortIsolationTests(unittest.TestCase):
@@ -335,6 +363,157 @@ class AdjacentSurfaceRegressionTests(unittest.TestCase):
                 "Observed",
                 msg="node-placement claims must stay below [Observed]",
             )
+
+
+class PerFileDamageTests(unittest.TestCase):
+    """Corpus-wide ratios alone let one whole file be destroyed.
+
+    Six bad records inside the smallest scale file are under 1% of the
+    813-record corpus, so a purely corpus-wide tolerance passed every
+    gate while an entire canonical matrix cell was invalid. Each case
+    below reproduces one such cohort and pins the per-file cap that now
+    rejects it.
+    """
+
+    def _scale_file(self, lab: pathlib.Path) -> pathlib.Path:
+        return lab / "evidence" / "consumption-scale-1-run-1.jsonl"
+
+    def _rewrite(self, path: pathlib.Path, mutate) -> None:
+        records = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+        path.write_text("".join(json.dumps(mutate(r)) + "\n" for r in records))
+
+    def test_entire_file_of_invalid_json_fails_cohort_integrity(self):
+        with fixture_lab() as lab:
+            self._scale_file(lab).write_text("NOT JSON AT ALL\n" * 6)
+            proc = run_verify(lab)
+            sub = gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+
+            self.assertIn("consumption-scale-1-run-1.jsonl", sub["per_file_parse_violations"])
+            self.assertFalse(sub["b_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_entire_file_of_foreign_run_ids_fails_cohort_isolation(self):
+        with fixture_lab() as lab:
+            self._rewrite(
+                self._scale_file(lab),
+                lambda r: {**r, "run_id": "consumption-n1-r1-20991231-000000"},
+            )
+            proc = run_verify(lab)
+            sub = gate(lab, COHORT_GATE)["sub_gate_c_same_bundle"]
+
+            self.assertIn("consumption-scale-1-run-1.jsonl", sub["per_file_date_prefix_violations"])
+            self.assertFalse(sub["c_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_entire_file_in_wrong_matrix_cell_fails_coherence(self):
+        with fixture_lab() as lab:
+            self._rewrite(
+                self._scale_file(lab),
+                lambda r: {**r, "profile": "Dedicated-D8", "scale_target": 999},
+            )
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_a_each_file_one_cell"]
+
+            self.assertIn("consumption-scale-1-run-1.jsonl", sub["per_file_cell_violations"])
+            self.assertFalse(sub["a_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_surplus_summary_entry_fails_reconciliation(self):
+        with fixture_lab() as lab:
+            path = lab / "evidence" / "analysis-summary.json"
+            entries = json.loads(path.read_text())
+            entries.append(dict(entries[0]))
+            path.write_text(json.dumps(entries, indent=2))
+
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
+
+            self.assertTrue(sub["summary_duplicate_file_keys"])
+            self.assertFalse(sub["summary_entry_count_matches"])
+            self.assertFalse(sub["c_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_single_truncated_line_stays_within_declared_tolerance(self):
+        with fixture_lab() as lab:
+            path = self._scale_file(lab)
+            path.write_text(path.read_text() + "{ truncated partial line\n")
+
+            proc = run_verify(lab)
+            sub = gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+
+            self.assertEqual(sub["per_file_parse_violations"], [])
+            self.assertTrue(sub["b_pass"])
+            self.assertEqual(proc.returncode, 0)
+
+
+class VerdictSubGateTruthTableTests(unittest.TestCase):
+    """Each H3 check must be independently able to fail the sub-gate."""
+
+    def _sub(self, lab: pathlib.Path) -> dict:
+        run_verify(lab)
+        return gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+    def test_only_boot_id_refuted(self):
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            records[-1] = {**records[-1], "boot_id": FOREIGN_BOOT_ID}
+            write_anchor(lab, records)
+            sub = self._sub(lab)
+
+            self.assertEqual(sub["refuted_checks"], ["check_2_boot_id_consistent"])
+            self.assertIs(sub["check_3_uptime_monotonic"], True)
+            self.assertIs(sub["d_pass"], False)
+
+    def test_only_uptime_refuted(self):
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            records[1], records[2] = records[2], records[1]
+            write_anchor(lab, records)
+            sub = self._sub(lab)
+
+            self.assertEqual(sub["refuted_checks"], ["check_3_uptime_monotonic"])
+            self.assertIs(sub["check_2_boot_id_consistent"], True)
+            self.assertIs(sub["d_pass"], False)
+
+    def test_only_bte_span_refuted(self):
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            records[-1] = {
+                **records[-1],
+                "boot_time_estimate_ms": records[0]["boot_time_estimate_ms"] + 90_000,
+            }
+            write_anchor(lab, records)
+            sub = self._sub(lab)
+
+            self.assertEqual(sub["refuted_checks"], ["check_4_bte_stable"])
+            self.assertIs(sub["d_pass"], False)
+
+    def test_missing_bte_values_are_inconclusive_not_refuted(self):
+        with fixture_lab() as lab:
+            write_anchor(
+                lab,
+                [
+                    {k: v for k, v in record.items() if k != "boot_time_estimate_ms"}
+                    for record in read_anchor(lab)
+                ],
+            )
+            sub = self._sub(lab)
+
+            self.assertEqual(sub["refuted_checks"], [])
+            self.assertEqual(sub["inconclusive_checks"], ["check_4_bte_stable"])
+            self.assertIs(sub["d_pass"], True)
+            self.assertEqual(sub["d_evidence_level"], "Inconclusive")
+
+    def test_verdict_not_pass_fails_even_with_clean_raw(self):
+        with fixture_lab() as lab:
+            path = lab / "evidence" / ANCHOR_VERDICT
+            path.write_text(path.read_text().replace("Overall: PASS", "Overall: FAIL"))
+            sub = self._sub(lab)
+
+            self.assertFalse(sub["verdict_overall_pass"])
+            self.assertEqual(sub["refuted_checks"], [])
+            self.assertIs(sub["d_pass"], False)
+            self.assertEqual(sub["d_evidence_level"], "Not Proven")
 
 
 if __name__ == "__main__":

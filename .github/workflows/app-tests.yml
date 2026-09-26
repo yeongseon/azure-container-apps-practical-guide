@@ -83,18 +83,63 @@ jobs:
       - name: Confirm re-verification reproduces the committed gate JSONs
         run: |
           bash labs/replica-node-spread/verify.sh
-          drift=$(git diff -U0 -- labs/replica-node-spread/evidence/ \
-            | grep -E '^[+-]' \
-            | grep -vE '^(\+\+\+|---)' \
-            | grep -v 'evaluated_at_utc' \
-            || true)
-          if [ -n "${drift}" ]; then
-            echo "Re-running verify.sh changed the committed gate JSONs beyond the" >&2
-            echo "evaluation timestamp. The published evidence pack no longer matches" >&2
-            echo "what the current verifier produces:" >&2
-            echo "${drift}" >&2
-            exit 1
-          fi
+          python3 - <<'PY'
+          import datetime
+          import json
+          import pathlib
+          import subprocess
+          import sys
+
+          GATES = (
+              "10-cohort-integrity-gate.json",
+              "11-matrix-coherence-gate.json",
+              "12-claim-eligibility-gate.json",
+              "13-packaging-gate.json",
+          )
+          STAMP = "evaluated_at_utc"
+          EVIDENCE = pathlib.Path("labs/replica-node-spread/evidence")
+          failures = []
+
+          for name in GATES:
+              path = EVIDENCE / name
+              current = json.loads(path.read_text())
+              show = subprocess.run(
+                  ["git", "show", f"HEAD:{path.as_posix()}"],
+                  capture_output=True,
+                  text=True,
+                  check=False,
+              )
+              if show.returncode != 0:
+                  failures.append(f"{name}: not committed at HEAD, so it cannot be compared")
+                  continue
+              committed = json.loads(show.stdout)
+
+              stamp = current.pop(STAMP, None)
+              committed.pop(STAMP, None)
+
+              if stamp is None:
+                  failures.append(f"{name}: missing top-level {STAMP}")
+              else:
+                  try:
+                      datetime.datetime.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ")
+                  except (TypeError, ValueError):
+                      failures.append(f"{name}: {STAMP}={stamp!r} is not an ISO-8601 UTC timestamp")
+
+              if current != committed:
+                  failures.append(f"{name}: re-verification changed the gate beyond {STAMP}")
+
+          if failures:
+              print(
+                  "The committed evidence pack no longer matches what the current "
+                  "verifier produces:",
+                  file=sys.stderr,
+              )
+              for failure in failures:
+                  print(f"  - {failure}", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"All {len(GATES)} gate JSONs reproduce exactly, modulo {STAMP}.")
+          PY
 
   bicep:
     name: Bicep Templates
