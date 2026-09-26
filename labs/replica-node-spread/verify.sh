@@ -56,13 +56,19 @@
 #          >= 95% of lines parse cleanly (Fallback — tolerance for
 #          one truncated/partial line at end of any file). The
 #          captured baseline has 100% parse success across 11 files
-#          totaling 813 records.
+#          totaling 1117 records. The fallback additionally caps
+#          unparseable lines at one PER FILE and requires every file to
+#          retain at least one usable record, because a corpus-wide
+#          ratio cannot detect the loss of one small file and an empty
+#          file would satisfy the Strong ratio vacuously.
 #       c) same_bundle: every record's run_id carries the date prefix
 #          "20260614" (Strong — every line of every file across the
 #          cohort traces back to the 2026-06-14 capture window);
 #          OR >= 99% of records carry that prefix (Fallback —
 #          allows for one stray test-run record). The captured baseline
-#          has 100% (all 813 records) date-prefixed 20260614.
+#          has 100% (all 1117 records) date-prefixed 20260614.
+#          The fallback additionally caps strays at one PER FILE and
+#          requires every file to retain at least one matching record.
 #       d) no_extras: the evidence directory contains EXACTLY the
 #          15 canonical files specified by the Oracle directive
 #          (analysis-summary.{json,md}, h3-20260614-143432.{jsonl,
@@ -80,9 +86,11 @@
 #          decomposes uniquely into (profile, scale, run) AND every
 #          record inside the file carries (profile == filename_profile
 #          AND scale_target == filename_scale) — Strong path;
-#          OR >= 95% of records match (Fallback — allows for one
-#          straggling record from a previous test run). The captured
-#          baseline has 100% match across all 11 scale files.
+#          OR >= 95% of records match corpus-wide, with at most ONE
+#          mismatching record PER FILE and no empty file (Fallback —
+#          "one straggling record from a previous test run" is a count,
+#          not a proportion, so the cap must not scale with file size).
+#          The captured baseline has 100% match across all 11 scale files.
 #       b) no_duplicates: across the 11 scale files, the
 #          {profile, scale, run} tuple-set has 11 unique entries
 #          (no two files map to the same cell) — Strong path;
@@ -304,13 +312,14 @@ SUMMARY_RECONCILE_MIN_FALLBACK=9
 
 # Per-file caps. The corpus-wide ratios above are necessary but NOT
 # sufficient: 6 bad records inside one small file are only 0.7% of the
-# 813-record corpus, so a purely corpus-wide tolerance lets an ENTIRE
+# 1117-record corpus, so a purely corpus-wide tolerance lets an ENTIRE
 # canonical file be destroyed while every gate still passes. These caps
 # pin the tolerance to what the gate documentation actually claims —
 # "one truncated/partial line at end of any file" and "one stray
 # test-run record" — by bounding damage per file instead of per corpus.
 PARSE_FAILED_LINES_MAX_PER_FILE=1
 DATE_PREFIX_STRAY_MAX_PER_FILE=1
+CELL_MISMATCH_MAX_PER_FILE=1
 
 # The boot-time cluster gap threshold the original analyze.py uses
 # (labs/replica-node-spread/analyze.py line 48). Documented here so
@@ -486,11 +495,15 @@ per_file_parse_violations = sorted(
     or stats["successful_records"] == 0
 )
 b_strong_path_all_lines_parse = parse_success_ratio >= PARSE_SUCCESS_MIN_STRONG
-b_fallback_path_most_lines_parse = (
-    parse_success_ratio >= PARSE_SUCCESS_MIN_FALLBACK
-    and not per_file_parse_violations
-)
-b_files_parseable = b_strong_path_all_lines_parse or b_fallback_path_most_lines_parse
+b_fallback_path_most_lines_parse = parse_success_ratio >= PARSE_SUCCESS_MIN_FALLBACK
+# The per-file invariant is applied OUTSIDE the strong/fallback choice. An
+# empty file contributes no denominator rows at all, so the corpus ratio
+# stays 1.0 and the strong path would otherwise carry a file that has no
+# usable records whatsoever.
+b_no_per_file_violations = not per_file_parse_violations
+b_files_parseable = (
+    b_strong_path_all_lines_parse or b_fallback_path_most_lines_parse
+) and b_no_per_file_violations
 
 # ---------- sub-gate c: same bundle ----------
 # Strong path: 100% of records' run_id field carries the DATE_PREFIX
@@ -530,11 +543,11 @@ per_file_date_prefix_violations = sorted(
     or counts["matching_records"] == 0
 )
 c_strong_path_all_records_dated = date_prefix_ratio >= DATE_PREFIX_MIN_STRONG
-c_fallback_path_most_records_dated = (
-    date_prefix_ratio >= DATE_PREFIX_MIN_FALLBACK
-    and not per_file_date_prefix_violations
-)
-c_same_bundle = c_strong_path_all_records_dated or c_fallback_path_most_records_dated
+c_fallback_path_most_records_dated = date_prefix_ratio >= DATE_PREFIX_MIN_FALLBACK
+c_no_per_file_violations = not per_file_date_prefix_violations
+c_same_bundle = (
+    c_strong_path_all_records_dated or c_fallback_path_most_records_dated
+) and c_no_per_file_violations
 
 # ---------- sub-gate d: no extras ----------
 # Strong path: evidence directory contains EXACTLY the 15 canonical
@@ -644,6 +657,7 @@ print(json.dumps({
         "parse_success_ratio": parse_success_ratio,
         "per_file_parse_violations": per_file_parse_violations,
         "parse_failed_lines_max_per_file": PARSE_FAILED_LINES_MAX_PER_FILE,
+        "b_no_per_file_violations": b_no_per_file_violations,
         "b_strong_path_all_lines_parse": b_strong_path_all_lines_parse,
         "b_fallback_path_most_lines_parse": b_fallback_path_most_lines_parse,
         "b_pass": b_files_parseable,
@@ -656,6 +670,7 @@ print(json.dumps({
         "date_prefix_ratio": date_prefix_ratio,
         "per_file_date_prefix_violations": per_file_date_prefix_violations,
         "date_prefix_stray_max_per_file": DATE_PREFIX_STRAY_MAX_PER_FILE,
+        "c_no_per_file_violations": c_no_per_file_violations,
         "c_strong_path_all_records_dated": c_strong_path_all_records_dated,
         "c_fallback_path_most_records_dated": c_fallback_path_most_records_dated,
         "c_pass": c_same_bundle,
@@ -689,6 +704,7 @@ ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 BOOT_TIME_CLUSTER_GAP_MS="$BOOT_TIME_CLUSTER_GAP_MS" \
 SUMMARY_RECONCILE_MIN_STRONG="$SUMMARY_RECONCILE_MIN_STRONG" \
 SUMMARY_RECONCILE_MIN_FALLBACK="$SUMMARY_RECONCILE_MIN_FALLBACK" \
+CELL_MISMATCH_MAX_PER_FILE="$CELL_MISMATCH_MAX_PER_FILE" \
 PARSE_SUCCESS_MIN_STRONG="$PARSE_SUCCESS_MIN_STRONG" \
 PARSE_SUCCESS_MIN_FALLBACK="$PARSE_SUCCESS_MIN_FALLBACK" \
 SCALE_FILES_JSON="$(printf '%s\n' "${SCALE_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
@@ -704,6 +720,7 @@ ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 BOOT_TIME_CLUSTER_GAP_MS = int(os.environ["BOOT_TIME_CLUSTER_GAP_MS"])
 SUMMARY_RECONCILE_MIN_STRONG = int(os.environ["SUMMARY_RECONCILE_MIN_STRONG"])
 SUMMARY_RECONCILE_MIN_FALLBACK = int(os.environ["SUMMARY_RECONCILE_MIN_FALLBACK"])
+CELL_MISMATCH_MAX_PER_FILE = int(os.environ["CELL_MISMATCH_MAX_PER_FILE"])
 PARSE_SUCCESS_MIN_STRONG = float(os.environ["PARSE_SUCCESS_MIN_STRONG"])
 PARSE_SUCCESS_MIN_FALLBACK = float(os.environ["PARSE_SUCCESS_MIN_FALLBACK"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
@@ -838,21 +855,28 @@ cell_match_ratio = (
     all_records_matching_cell / all_records_total
     if all_records_total > 0 else 0.0
 )
+# The documented fallback allows "one straggling record from a previous test
+# run", which is a COUNT, not a proportion. A ratio floor would reject a
+# single bad record in the 6-record scale-1 file while waving through twelve
+# in the 240-record scale-30 file, so the cap is per-file and absolute.
+for fname, info in per_file_cell_match.items():
+    if "error" not in info:
+        info["records_mismatching_cell"] = (
+            info["total_records"] - info["records_matching_cell"]
+        )
 per_file_cell_violations = sorted(
     fname for fname, info in per_file_cell_match.items()
     if "error" in info
     or not info.get("total_records")
-    or info.get("match_ratio", 0.0) < PARSE_SUCCESS_MIN_FALLBACK
+    or info.get("records_mismatching_cell", 0) > CELL_MISMATCH_MAX_PER_FILE
 )
 a_strong_path_all_records_match_cell = cell_match_ratio >= PARSE_SUCCESS_MIN_STRONG
-a_fallback_path_most_records_match_cell = (
-    cell_match_ratio >= PARSE_SUCCESS_MIN_FALLBACK
-    and not per_file_cell_violations
-)
+a_fallback_path_most_records_match_cell = cell_match_ratio >= PARSE_SUCCESS_MIN_FALLBACK
+a_no_per_file_violations = not per_file_cell_violations
 a_each_file_one_cell = (
     a_strong_path_all_records_match_cell
     or a_fallback_path_most_records_match_cell
-)
+) and a_no_per_file_violations
 
 # ---------- sub-gate b: no duplicates ----------
 # Strong path: the {profile, scale, run} tuple-set has 11 unique
@@ -967,7 +991,7 @@ for fname, cell in file_to_cell.items():
 # A duplicated `file` key would be silently collapsed by the dict build
 # above, so surplus or repeated summary entries have to be detected from
 # the raw list length rather than from the lookup.
-summary_duplicate_file_keys = len(summary_runs) != len(summary_by_filename)
+summary_file_keys_not_unique_or_missing = len(summary_runs) != len(summary_by_filename)
 summary_entry_count_matches = total_summary_entries == len(SCALE_FILES)
 
 c_strong_path_all_reconcile = (
@@ -977,7 +1001,7 @@ c_strong_path_all_reconcile = (
 c_fallback_path_most_reconcile = (
     matches_count >= SUMMARY_RECONCILE_MIN_FALLBACK
     and summary_entry_count_matches
-    and not summary_duplicate_file_keys
+    and not summary_file_keys_not_unique_or_missing
 )
 c_summary_reconciles = c_strong_path_all_reconcile or c_fallback_path_most_reconcile
 
@@ -1111,6 +1135,8 @@ print(json.dumps({
         "all_records_matching_cell": all_records_matching_cell,
         "cell_match_ratio": cell_match_ratio,
         "per_file_cell_violations": per_file_cell_violations,
+        "a_no_per_file_violations": a_no_per_file_violations,
+        "cell_mismatch_max_per_file": CELL_MISMATCH_MAX_PER_FILE,
         "a_strong_path_all_records_match_cell": a_strong_path_all_records_match_cell,
         "a_fallback_path_most_records_match_cell": a_fallback_path_most_records_match_cell,
         "a_pass": a_each_file_one_cell,
@@ -1129,7 +1155,7 @@ print(json.dumps({
         "matches_count": matches_count,
         "total_summary_entries": total_summary_entries,
         "total_scale_files": len(SCALE_FILES),
-        "summary_duplicate_file_keys": summary_duplicate_file_keys,
+        "summary_file_keys_not_unique_or_missing": summary_file_keys_not_unique_or_missing,
         "summary_entry_count_matches": summary_entry_count_matches,
         "c_strong_path_all_reconcile": c_strong_path_all_reconcile,
         "c_fallback_path_most_reconcile": c_fallback_path_most_reconcile,

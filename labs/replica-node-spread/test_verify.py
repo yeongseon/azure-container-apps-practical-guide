@@ -369,10 +369,11 @@ class PerFileDamageTests(unittest.TestCase):
     """Corpus-wide ratios alone let one whole file be destroyed.
 
     Six bad records inside the smallest scale file are under 1% of the
-    813-record corpus, so a purely corpus-wide tolerance passed every
-    gate while an entire canonical matrix cell was invalid. Each case
-    below reproduces one such cohort and pins the per-file cap that now
-    rejects it.
+    1117-record corpus, so a purely corpus-wide tolerance passed every
+    gate while an entire canonical matrix cell was invalid. An empty file
+    is worse still: it contributes no denominator rows, so every
+    corpus-wide ratio reads 1.0. Each case below reproduces one such
+    cohort and pins the invariant that now rejects it.
     """
 
     def _scale_file(self, lab: pathlib.Path) -> pathlib.Path:
@@ -381,6 +382,12 @@ class PerFileDamageTests(unittest.TestCase):
     def _rewrite(self, path: pathlib.Path, mutate) -> None:
         records = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
         path.write_text("".join(json.dumps(mutate(r)) + "\n" for r in records))
+
+    def _rewrite_indexes(self, path: pathlib.Path, mutations: dict) -> None:
+        records = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+        for index, mutate in mutations.items():
+            records[index] = mutate(records[index])
+        path.write_text("".join(json.dumps(r) + "\n" for r in records))
 
     def test_entire_file_of_invalid_json_fails_cohort_integrity(self):
         with fixture_lab() as lab:
@@ -428,7 +435,7 @@ class PerFileDamageTests(unittest.TestCase):
             proc = run_verify(lab)
             sub = gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
 
-            self.assertTrue(sub["summary_duplicate_file_keys"])
+            self.assertTrue(sub["summary_file_keys_not_unique_or_missing"])
             self.assertFalse(sub["summary_entry_count_matches"])
             self.assertFalse(sub["c_pass"])
             self.assertNotEqual(proc.returncode, 0)
@@ -445,12 +452,99 @@ class PerFileDamageTests(unittest.TestCase):
             self.assertTrue(sub["b_pass"])
             self.assertEqual(proc.returncode, 0)
 
+    def test_empty_scale_file_cannot_ride_the_strong_path(self):
+        """An empty file makes every corpus-wide ratio read 1.0.
+
+        With no denominator rows it satisfies the Strong predicate
+        trivially, so the per-file invariant has to sit outside the
+        Strong/Fallback choice rather than inside the Fallback.
+        """
+        with fixture_lab() as lab:
+            self._scale_file(lab).write_text("")
+            proc = run_verify(lab)
+
+            cohort = gate(lab, COHORT_GATE)
+            parse = cohort["sub_gate_b_files_parseable"]
+            self.assertEqual(parse["parse_success_ratio"], 1.0)
+            self.assertTrue(parse["b_strong_path_all_lines_parse"])
+            self.assertIn("consumption-scale-1-run-1.jsonl", parse["per_file_parse_violations"])
+            self.assertFalse(parse["b_pass"])
+            self.assertFalse(cohort["gate_1_cohort_integrity_all_subgates_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_blank_only_scale_file_cannot_ride_the_strong_path(self):
+        with fixture_lab() as lab:
+            self._scale_file(lab).write_text("\n\n\n")
+            proc = run_verify(lab)
+
+            parse = gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+            self.assertIn("consumption-scale-1-run-1.jsonl", parse["per_file_parse_violations"])
+            self.assertFalse(parse["b_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_cell_mismatch_cap_is_absolute_not_proportional(self):
+        """Twelve strays in a 240-record file must not outrank one in six.
+
+        The documented fallback admits "one straggling record", which is
+        a count. A proportional floor would reject a single bad record in
+        the 6-record scale-1 file while accepting twelve in the
+        240-record scale-30 file.
+        """
+        with fixture_lab() as lab:
+            path = lab / "evidence" / "consumption-scale-30-run-1.jsonl"
+            records = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+            self.assertGreater(len(records), 200)
+            for index in range(12):
+                records[index] = {**records[index], "profile": "Dedicated-D8"}
+            path.write_text("".join(json.dumps(r) + "\n" for r in records))
+
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_a_each_file_one_cell"]
+
+            self.assertGreaterEqual(sub["cell_match_ratio"], 0.95)
+            self.assertIn("consumption-scale-30-run-1.jsonl", sub["per_file_cell_violations"])
+            self.assertFalse(sub["a_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
+    def test_one_straggling_record_in_a_small_file_is_tolerated(self):
+        with fixture_lab() as lab:
+            self._rewrite_indexes(
+                self._scale_file(lab), {0: lambda r: {**r, "profile": "Dedicated-D8"}}
+            )
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_a_each_file_one_cell"]
+
+            self.assertEqual(sub["per_file_cell_violations"], [])
+            self.assertTrue(sub["a_pass"])
+            self.assertEqual(proc.returncode, 0)
+
+    def test_two_straggling_records_exceed_the_cap(self):
+        with fixture_lab() as lab:
+            self._rewrite_indexes(
+                self._scale_file(lab),
+                {
+                    0: lambda r: {**r, "profile": "Dedicated-D8"},
+                    1: lambda r: {**r, "profile": "Dedicated-D8"},
+                },
+            )
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_a_each_file_one_cell"]
+
+            self.assertIn("consumption-scale-1-run-1.jsonl", sub["per_file_cell_violations"])
+            self.assertFalse(sub["a_pass"])
+            self.assertNotEqual(proc.returncode, 0)
+
 
 class VerdictSubGateTruthTableTests(unittest.TestCase):
     """Each H3 check must be independently able to fail the sub-gate."""
 
-    def _sub(self, lab: pathlib.Path) -> dict:
-        run_verify(lab)
+    def _sub(self, lab: pathlib.Path, expected_returncode: int) -> dict:
+        proc = run_verify(lab)
+        self.assertEqual(
+            proc.returncode,
+            expected_returncode,
+            msg=f"unexpected verify.sh exit.\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}",
+        )
         return gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
 
     def test_only_boot_id_refuted(self):
@@ -458,7 +552,7 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
             records = read_anchor(lab)
             records[-1] = {**records[-1], "boot_id": FOREIGN_BOOT_ID}
             write_anchor(lab, records)
-            sub = self._sub(lab)
+            sub = self._sub(lab, expected_returncode=1)
 
             self.assertEqual(sub["refuted_checks"], ["check_2_boot_id_consistent"])
             self.assertIs(sub["check_3_uptime_monotonic"], True)
@@ -469,7 +563,7 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
             records = read_anchor(lab)
             records[1], records[2] = records[2], records[1]
             write_anchor(lab, records)
-            sub = self._sub(lab)
+            sub = self._sub(lab, expected_returncode=1)
 
             self.assertEqual(sub["refuted_checks"], ["check_3_uptime_monotonic"])
             self.assertIs(sub["check_2_boot_id_consistent"], True)
@@ -483,7 +577,7 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
                 "boot_time_estimate_ms": records[0]["boot_time_estimate_ms"] + 90_000,
             }
             write_anchor(lab, records)
-            sub = self._sub(lab)
+            sub = self._sub(lab, expected_returncode=1)
 
             self.assertEqual(sub["refuted_checks"], ["check_4_bte_stable"])
             self.assertIs(sub["d_pass"], False)
@@ -497,7 +591,7 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
                     for record in read_anchor(lab)
                 ],
             )
-            sub = self._sub(lab)
+            sub = self._sub(lab, expected_returncode=0)
 
             self.assertEqual(sub["refuted_checks"], [])
             self.assertEqual(sub["inconclusive_checks"], ["check_4_bte_stable"])
@@ -508,7 +602,7 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
         with fixture_lab() as lab:
             path = lab / "evidence" / ANCHOR_VERDICT
             path.write_text(path.read_text().replace("Overall: PASS", "Overall: FAIL"))
-            sub = self._sub(lab)
+            sub = self._sub(lab, expected_returncode=1)
 
             self.assertFalse(sub["verdict_overall_pass"])
             self.assertEqual(sub["refuted_checks"], [])

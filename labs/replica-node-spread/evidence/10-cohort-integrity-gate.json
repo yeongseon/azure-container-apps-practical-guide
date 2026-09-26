@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-09-26T17:05:53Z",
+  "evaluated_at_utc": "2026-09-26T17:13:28Z",
   "scenario": "cohort_integrity",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -154,6 +154,7 @@
     "parse_success_ratio": 1.0,
     "per_file_parse_violations": [],
     "parse_failed_lines_max_per_file": 1,
+    "b_no_per_file_violations": true,
     "b_strong_path_all_lines_parse": true,
     "b_fallback_path_most_lines_parse": true,
     "b_pass": true
@@ -215,6 +216,7 @@
     "date_prefix_ratio": 1.0,
     "per_file_date_prefix_violations": [],
     "date_prefix_stray_max_per_file": 1,
+    "c_no_per_file_violations": true,
     "c_strong_path_all_records_dated": true,
     "c_fallback_path_most_records_dated": true,
     "c_pass": true
