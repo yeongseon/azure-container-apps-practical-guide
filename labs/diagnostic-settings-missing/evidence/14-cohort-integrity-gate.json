@@ -8,7 +8,7 @@
     "c_no_unexpected_extras": true,
     "d_readme_cross_reference": true
   },
-  "evaluated_at_utc": "2026-09-26T22:38:16Z",
+  "evaluated_at_utc": "2026-09-26T22:53:22Z",
   "fallback_path": {
     "all_subgates_pass": true,
     "description": "All four sub-gates satisfy at least their Fallback predicates.",
@@ -190,7 +190,7 @@
         "readme_exists": true,
         "strong_holds": true
       },
-      "predicate": "Strong: evidence/README.md exists and literally names all four Phase B gate JSON filenames. Fallback: evidence/README.md exists.",
+      "predicate": "Strong: evidence/README.md exists and literally names all four Phase B gate JSON filenames. Fallback: evidence/README.md exists and names at least one of them; a README naming none of the gate outputs cross-references nothing.",
       "result": "pass",
       "sub_gate": "d_readme_cross_reference"
     }

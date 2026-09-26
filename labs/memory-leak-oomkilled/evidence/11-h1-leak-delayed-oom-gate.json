@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T08:24:13Z",
+  "utc_captured": "2026-09-26T22:51:39Z",
   "scenario": "B_leak",
   "hypothesis": "H1",
   "claim": "leak_delayed_runway_then_oom_signature_distinct_from_hard",

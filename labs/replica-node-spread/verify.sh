@@ -1740,10 +1740,10 @@ c_strong_path_full_filesystem_state = (
     and readme_exists
 )
 c_fallback_path_canonical_files_present = len(canonical_files_missing) == 0
-c_validators_pass = (
-    c_strong_path_full_filesystem_state
-    or c_fallback_path_canonical_files_present
-)
+# Every conjunct here is a cheap filesystem existence check that any real
+# evidence pack satisfies, so a fallback of "canonical files present" would
+# only ever discard the verifier and README checks the sub-gate is named for.
+c_validators_pass = c_strong_path_full_filesystem_state
 
 # ---------- compose gate ----------
 gate_4_packaging_sub_gates = {

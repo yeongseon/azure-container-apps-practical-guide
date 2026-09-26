@@ -30,14 +30,12 @@ undeclared absorbed predicate is found.
 from __future__ import annotations
 
 import argparse
+import ast
 import pathlib
 import re
 import sys
 
 ASSIGNMENT = re.compile(r"^\s*([A-Za-z_]\w*)\s*=\s*(.+?)\s*$")
-DISJUNCTION = re.compile(
-    r"^\(?\s*([A-Za-z_]\w*)\s*\)?\s+or\s+\(?\s*([A-Za-z_]\w*)\s*\)?$"
-)
 
 
 def flatten_continuations(text: str) -> str:
@@ -51,34 +49,96 @@ def flatten_continuations(text: str) -> str:
     return re.sub(r"\n\s+(and|or)\s+", r" \1 ", text)
 
 
-def conjuncts(expression: str) -> set[str]:
-    """Split a predicate into its top-level ``and`` operands.
+def parse_expression(expression: str):
+    """Parse a predicate into an AST node, or None when it is not Python.
 
-    >>> sorted(conjuncts("a and b and c"))
-    ['a', 'b', 'c']
+    Parsing rather than string-splitting is what makes parenthesised and
+    reordered predicates comparable; ``(a and b)`` and ``a and b`` produce
+    the same node, and operand order is read from the tree rather than
+    assumed.
+
+    >>> parse_expression("a and b") is None
+    False
+    >>> parse_expression("not a valid ==== expression") is None
+    True
+    """
+    try:
+        return ast.parse(expression, mode="eval").body
+    except SyntaxError:
+        return None
+
+
+def conjuncts(expression: str) -> set[str]:
+    """Split a predicate into normalised top-level ``and`` operands.
+
+    Outer parentheses are irrelevant to the boolean structure:
+
+    >>> sorted(conjuncts("a and b")) == sorted(conjuncts("(a and b)"))
+    True
+    >>> sorted(conjuncts("a and b"))
+    ['a', 'b']
     >>> sorted(conjuncts("only_one"))
     ['only_one']
     """
-    return {part.strip() for part in re.split(r"\band\b", expression) if part.strip()}
+    node = parse_expression(expression)
+    if node is None:
+        return {expression.strip()}
+    if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.And):
+        return {ast.unparse(operand) for operand in node.values}
+    return {ast.unparse(node)}
 
 
-def find_absorbed(text: str) -> list[tuple[str, str, str, str, str]]:
-    """Return ``(result, strong, strong_expr, fallback, fallback_expr)`` tuples.
+def normalise(expression: str) -> str:
+    """Render a predicate in a canonical form for comparison.
 
-    >>> src = "strong = a and b\\nfallback = b\\nresult = strong or fallback\\n"
-    >>> [f[0] for f in find_absorbed(src)]
+    >>> normalise("(a and b)")
+    'a and b'
+    """
+    node = parse_expression(expression)
+    return ast.unparse(node) if node is not None else expression.strip()
+
+
+def disjunct_names(expression: str) -> list[str]:
+    """Return the operand names of a two-name ``or``, in source order.
+
+    >>> disjunct_names("x or y")
+    ['x', 'y']
+    >>> disjunct_names("(x or y)")
+    ['x', 'y']
+    >>> disjunct_names("x and y")
+    []
+    """
+    node = parse_expression(expression)
+    if not isinstance(node, ast.BoolOp) or not isinstance(node.op, ast.Or):
+        return []
+    if len(node.values) != 2:
+        return []
+    if not all(isinstance(value, ast.Name) for value in node.values):
+        return []
+    return [value.id for value in node.values]
+
+
+def find_absorbed(text: str) -> list[dict]:
+    """Report ``or`` predicates that boolean absorption collapses.
+
+    Either operand may be the absorbing one, so both orders are checked:
+
+    >>> [f["result"] for f in find_absorbed(
+    ...     "strong = a and b\\nfallback = b\\nresult = strong or fallback\\n")]
+    ['result']
+    >>> [f["result"] for f in find_absorbed(
+    ...     "strong = a and b\\nfallback = b\\nresult = fallback or strong\\n")]
     ['result']
 
-    A fallback that is a genuinely different predicate is not absorption:
+    Parentheses do not hide it:
 
-    >>> src = "strong = a\\nfallback = b\\nresult = strong or fallback\\n"
-    >>> find_absorbed(src)
-    []
+    >>> [f["result"] for f in find_absorbed(
+    ...     "strong = (a and b)\\nfallback = b\\nresult = strong or fallback\\n")]
+    ['result']
 
-    Identical paths are reported by other review, not here:
+    Genuinely different predicates are not absorption:
 
-    >>> src = "strong = b\\nfallback = b\\nresult = strong or fallback\\n"
-    >>> find_absorbed(src)
+    >>> find_absorbed("strong = a\\nfallback = b\\nresult = strong or fallback\\n")
     []
     """
     assignments: dict[str, str] = {}
@@ -89,36 +149,63 @@ def find_absorbed(text: str) -> list[tuple[str, str, str, str, str]]:
             continue
         name, expression = match.group(1), match.group(2)
         assignments[name] = expression
-        disjunction = DISJUNCTION.match(expression)
-        if not disjunction:
+        names = disjunct_names(expression)
+        if not names:
             continue
-        strong, fallback = disjunction.group(1), disjunction.group(2)
-        strong_expr = assignments.get(strong)
-        fallback_expr = assignments.get(fallback)
-        if not strong_expr or not fallback_expr:
+        left, right = names
+        if left not in assignments or right not in assignments:
             continue
-        if fallback_expr != strong_expr and fallback_expr in conjuncts(strong_expr):
-            findings.append((name, strong, strong_expr, fallback, fallback_expr))
+        for wide, narrow in ((left, right), (right, left)):
+            wide_expr = normalise(assignments[wide])
+            narrow_expr = normalise(assignments[narrow])
+            if narrow_expr != wide_expr and narrow_expr in conjuncts(wide_expr):
+                findings.append({
+                    "result": name,
+                    "wide": wide,
+                    "wide_expr": wide_expr,
+                    "narrow": narrow,
+                    "narrow_expr": narrow_expr,
+                })
+                break
     return findings
 
 
-def load_allowlist(path: pathlib.Path | None) -> set[str]:
-    """Read ``<relative-path>::<result-name>`` keys, ignoring comments.
+def load_allowlist(path):
+    """Read declared exceptions as ``{key: reason}``.
+
+    A key is ``<path>::<result>::<wide>::<narrow>`` so an exception cannot
+    leak onto an unrelated predicate that happens to reuse a common result
+    name such as ``b_pass``. A reason is mandatory: an undocumented waiver is
+    indistinguishable from an unnoticed defect.
 
     >>> import tempfile, pathlib
     >>> with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as handle:
-    ...     _ = handle.write("# note\\nlabs/x/verify.sh::b_pass  # justified\\n")
+    ...     _ = handle.write("# note\\nlabs/x/verify.sh::b_pass::s::f  # justified\\n")
     ...     name = handle.name
-    >>> sorted(load_allowlist(pathlib.Path(name)))
-    ['labs/x/verify.sh::b_pass']
+    >>> load_allowlist(pathlib.Path(name))
+    {'labs/x/verify.sh::b_pass::s::f': 'justified'}
+
+    >>> with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as handle:
+    ...     _ = handle.write("labs/x/verify.sh::b_pass::s::f\\n")
+    ...     name = handle.name
+    >>> load_allowlist(pathlib.Path(name))
+    Traceback (most recent call last):
+        ...
+    ValueError: allowlist entry has no reason: labs/x/verify.sh::b_pass::s::f
     """
+    entries = {}
     if path is None or not path.is_file():
-        return set()
-    entries = set()
+        return entries
     for line in path.read_text().splitlines():
-        entry = line.split("#", 1)[0].strip()
-        if entry:
-            entries.add(entry)
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        key, _, reason = line.partition("#")
+        key, reason = key.strip(), reason.strip()
+        if not key:
+            continue
+        if not reason:
+            raise ValueError(f"allowlist entry has no reason: {key}")
+        entries[key] = reason
     return entries
 
 
@@ -133,35 +220,48 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    allowed = load_allowlist(pathlib.Path(args.allowlist) if args.allowlist else None)
+    try:
+        allowed = load_allowlist(pathlib.Path(args.allowlist) if args.allowlist else None)
+    except ValueError as exc:
+        print(f"{exc}", file=sys.stderr)
+        return 1
+
     repo_root = pathlib.Path(args.repo_root).resolve()
     undeclared = 0
-    declared = 0
+    matched = set()
 
     for script in sorted(pathlib.Path(args.root).rglob("verify.sh")):
         try:
             relative = script.resolve().relative_to(repo_root).as_posix()
         except ValueError:
             relative = script.as_posix()
-        for result, strong, strong_expr, fallback, fallback_expr in find_absorbed(
-            script.read_text(errors="replace")
-        ):
-            key = f"{relative}::{result}"
+        for finding in find_absorbed(script.read_text(errors="replace")):
+            key = "::".join(
+                (relative, finding["result"], finding["wide"], finding["narrow"])
+            )
             if key in allowed:
-                declared += 1
+                matched.add(key)
                 continue
             undeclared += 1
-            print(f"{relative}: {result} = {strong} or {fallback}")
-            print(f"    {strong} = {strong_expr}")
-            print(f"    {fallback} = {fallback_expr}")
+            print(f"{relative}: {finding['result']} = {finding['wide']} or {finding['narrow']}")
+            print(f"    {finding['wide']} = {finding['wide_expr']}")
+            print(f"    {finding['narrow']} = {finding['narrow_expr']}")
             print(
-                f"    absorbed: '{result}' reduces to '{fallback_expr}' alone, so every "
-                "other conjunct of the strong path is dead code"
+                f"    absorbed: '{finding['result']}' reduces to "
+                f"'{finding['narrow_expr']}' alone, so every other conjunct of "
+                f"'{finding['wide']}' is dead code"
             )
-            print(f"    fix the predicate, or declare it as: {key}")
+            print(f"    fix the predicate, or declare it with a reason as: {key}")
 
-    print(f"\nundeclared absorbed predicates: {undeclared} (declared exceptions: {declared})")
-    return 1 if undeclared else 0
+    stale = sorted(set(allowed) - matched)
+    for key in stale:
+        print(f"stale allowlist entry no longer matches any predicate: {key}", file=sys.stderr)
+
+    print(
+        f"\nundeclared absorbed predicates: {undeclared} "
+        f"(declared: {len(matched)}, stale: {len(stale)})"
+    )
+    return 1 if undeclared or stale else 0
 
 
 if __name__ == "__main__":

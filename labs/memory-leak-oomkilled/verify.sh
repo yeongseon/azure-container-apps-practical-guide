@@ -1381,6 +1381,18 @@ c_strong_path_states_match = (
 c_fallback_path_control_only = (
     healthy_m["health_state"] == "Healthy"
 )
+# The sub-gate is named for the health states of ALL THREE scenarios. A
+# fallback of "the control scenario is Healthy" absorbs the strong path and
+# leaves the leak and hard-limit states unchecked, which is the opposite of
+# what the gate claims, so the fallback may only stand when those two states
+# are genuinely unavailable rather than merely unexpected.
+leak_hard_states_reported = (
+    leak_m.get("health_state") is not None
+    and hard_m.get("health_state") is not None
+)
+c_fallback_path_control_only = (
+    c_fallback_path_control_only and not leak_hard_states_reported
+)
 c_health_states_match_outcome = (
     c_strong_path_states_match or c_fallback_path_control_only
 )

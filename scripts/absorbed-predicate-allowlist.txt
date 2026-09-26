@@ -11,4 +11,4 @@
 #
 # Every entry must state why the weaker path is still sound.
 
-labs/revision-history-limit/verify.sh::b_pass  # Fallback t15m_both_fields_match independently verifies both persisted config fields from raw capture; byte-identity is a stricter variant that would fail on benign re-serialisation. Which path held is reported as b_persistence_evidence_level.
+labs/revision-history-limit/verify.sh::b_pass::b_strong_path_both_fields_match_and_byte_identical::b_fallback_path_both_fields_match  # The weaker path reads both persisted config fields directly from the post-window capture, so it is a substantive check on its own. Byte identity of the two endpoint snapshots is representation-level only: it can fail on benign JSON reserialisation and it does not prove the absence of a mid-window change that was later restored. Which path held is reported as b_persistence_evidence_level.

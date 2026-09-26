@@ -285,7 +285,8 @@ gate14_sub_gates = [
         claim="The evidence-pack README exists and documents the Phase B gate outputs.",
         predicate=(
             "Strong: evidence/README.md exists and literally names all four Phase B gate JSON filenames. "
-            "Fallback: evidence/README.md exists."
+            "Fallback: evidence/README.md exists and names at least one of them; a README naming "
+            "none of the gate outputs cross-references nothing."
         ),
         claim_level="Observed",
         passed=d_pass,

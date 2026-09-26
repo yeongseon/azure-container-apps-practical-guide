@@ -558,9 +558,12 @@ b_pass = b_strong_path_both_fields_match_and_byte_identical or b_fallback_path_b
 # the stricter byte-identity comparison invisible, so the path that actually
 # held is reported as an evidence level.
 if b_strong_path_both_fields_match_and_byte_identical:
-    b_persistence_evidence_level = "Observed"
+    b_persistence_evidence_level = "Byte-Identical Endpoint Snapshots"
 elif b_fallback_path_both_fields_match:
-    b_persistence_evidence_level = "Strongly Suggested"
+    # Field-level endpoint match. Byte identity is a representation-level
+    # observation, not a stronger empirical claim, so the two levels are
+    # named for what was compared rather than for confidence.
+    b_persistence_evidence_level = "Field-Level Endpoint Match"
 else:
     b_persistence_evidence_level = "Not Proven"
 
@@ -589,7 +592,7 @@ result = {
     "sub_gate_b_predicate": (
         "Post-window config readback (06-app-config-t15m.json) shows the same "
         "BOTH fields match (BOTH-not-OR per Lab 19 P0 lesson) AND the file is "
-        "byte-identical to the pre-burst config (proves no mid-window mutation); "
+        "byte-identical to the pre-burst config (shows the endpoint snapshots are byte-identical); "
         "fallback requires only that both fields match without byte-identity."
     ),
     "sub_gate_a_pre_burst_config_persisted": {

@@ -8,7 +8,7 @@
     "c_baseline_classifications_silent_valid_baseline": true,
     "d_baseline_traffic_generated": true
   },
-  "evaluated_at_utc": "2026-09-26T22:38:16Z",
+  "evaluated_at_utc": "2026-09-26T22:53:22Z",
   "gate_classification": "Baseline silence gate: proves the null environment configuration coincided with zero rows in both log tables after traffic.",
   "hypothesis": "H1_baseline_silent",
   "path_used": "single",

@@ -436,19 +436,20 @@ if s5_timestamps and s9_probe_timestamps:
     windows_overlap = max(s5_first, s9_first) <= min(s5_last, s9_last)
 
 windows_comparable = bool(s5_timestamps and s9_probe_timestamps)
-b_strong_path_overlap = probe_failure_present and windows_overlap
-# Probe lines existing somewhere in the capture is presence, not
-# correlation. A fallback of bare presence would absorb the strong path
-# entirely ((A and B) or A == A), leaving this sub-gate asserting a
-# correlation it never checked. The fallback may therefore only stand when
-# the two windows could not be compared at all; once they are comparable
-# and disjoint, the raw timestamps refute correlation.
-b_fallback_path_probe_present = probe_failure_present and not windows_comparable
-b_not_ready_correlated = b_strong_path_overlap or b_fallback_path_probe_present
-if b_strong_path_overlap:
+# This sub-gate asserts a CORRELATION, so it has no admissible weak path:
+# probe lines existing somewhere in the capture is presence, not
+# correlation. Bare presence as a fallback would absorb the strong path
+# ((A and B) or A == A) and leave the overlap comparison dead, and gating
+# the fallback on "windows not comparable" merely moves the fail-open,
+# because stripping the timestamps from the probe lines would then satisfy
+# it. Missing timestamps are an evidentiary gap, not evidence of
+# correlation, so they do not pass.
+b_strong_path_overlap = (
+    probe_failure_present and windows_comparable and windows_overlap
+)
+b_not_ready_correlated = b_strong_path_overlap
+if b_not_ready_correlated:
     b_correlation_evidence_level = "Correlated"
-elif b_fallback_path_probe_present:
-    b_correlation_evidence_level = "Not Proven"
 elif probe_failure_present and windows_comparable:
     b_correlation_evidence_level = "Refuted"
 else:
@@ -516,7 +517,6 @@ print(json.dumps({
         "b_strong_path_probe_present_and_overlap": b_strong_path_overlap,
         "windows_comparable": windows_comparable,
         "b_correlation_evidence_level": b_correlation_evidence_level,
-        "b_fallback_path_probe_present_only": b_fallback_path_probe_present,
         "b_pass": b_not_ready_correlated,
     },
     "sub_gate_c_eventually_ready": {
