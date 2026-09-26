@@ -56,10 +56,11 @@
 #          >= 95% of lines parse cleanly (Fallback — tolerance for
 #          one truncated/partial line at end of any file). The
 #          captured baseline has 100% parse success across 11 files
-#          totaling 1117 records. The fallback additionally caps
-#          unparseable lines at one PER FILE and requires every file to
-#          retain at least one usable record, because a corpus-wide
-#          ratio cannot detect the loss of one small file and an empty
+#          totaling 1117 records. BOTH paths are additionally gated on
+#          a per-file invariant: no file may carry more than one
+#          unparseable line, and every file must retain at least one
+#          usable record. It applies to both paths because a corpus-wide
+#          ratio cannot detect the loss of one small file, and an empty
 #          file would satisfy the Strong ratio vacuously.
 #       c) same_bundle: every record's run_id carries the date prefix
 #          "20260614" (Strong — every line of every file across the
@@ -67,8 +68,9 @@
 #          OR >= 99% of records carry that prefix (Fallback —
 #          allows for one stray test-run record). The captured baseline
 #          has 100% (all 1117 records) date-prefixed 20260614.
-#          The fallback additionally caps strays at one PER FILE and
-#          requires every file to retain at least one matching record.
+#          BOTH paths are additionally gated on a per-file invariant:
+#          at most one stray per file, and at least one matching record
+#          per file.
 #       d) no_extras: the evidence directory contains EXACTLY the
 #          15 canonical files specified by the Oracle directive
 #          (analysis-summary.{json,md}, h3-20260614-143432.{jsonl,
@@ -86,8 +88,9 @@
 #          decomposes uniquely into (profile, scale, run) AND every
 #          record inside the file carries (profile == filename_profile
 #          AND scale_target == filename_scale) — Strong path;
-#          OR >= 95% of records match corpus-wide, with at most ONE
-#          mismatching record PER FILE and no empty file (Fallback —
+#          OR >= 95% of records match corpus-wide (Fallback). BOTH paths
+#          are additionally gated on at most ONE mismatching record PER
+#          FILE and no empty file (
 #          "one straggling record from a previous test run" is a count,
 #          not a proportion, so the cap must not scale with file size).
 #          The captured baseline has 100% match across all 11 scale files.
@@ -311,12 +314,16 @@ SUMMARY_RECONCILE_MIN_STRONG=11  # All 11 RunStats must match
 SUMMARY_RECONCILE_MIN_FALLBACK=9
 
 # Per-file caps. The corpus-wide ratios above are necessary but NOT
-# sufficient: 6 bad records inside one small file are only 0.7% of the
+# sufficient: 6 bad records inside one small file are only 0.5% of the
 # 1117-record corpus, so a purely corpus-wide tolerance lets an ENTIRE
-# canonical file be destroyed while every gate still passes. These caps
-# pin the tolerance to what the gate documentation actually claims —
-# "one truncated/partial line at end of any file" and "one stray
-# test-run record" — by bounding damage per file instead of per corpus.
+# canonical file be destroyed while every gate still passes. Worse, an
+# empty file contributes no denominator rows at all, so every ratio
+# reads 1.0 and satisfies the Strong predicate vacuously — which is why
+# the sub-gates apply these caps OUTSIDE the strong-or-fallback choice
+# rather than inside the fallback. They pin the tolerance to what the
+# gate documentation actually claims — "one truncated/partial line at
+# end of any file" and "one stray test-run record" — by bounding damage
+# per file instead of per corpus.
 PARSE_FAILED_LINES_MAX_PER_FILE=1
 DATE_PREFIX_STRAY_MAX_PER_FILE=1
 CELL_MISMATCH_MAX_PER_FILE=1
