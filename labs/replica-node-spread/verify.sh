@@ -96,14 +96,21 @@
 #          OR >= 9/11 RunStats match (Fallback — allows for two
 #          stale entries from a previous summary regeneration).
 #          The captured baseline has 11/11 match.
-#       d) verdict_explainable: H3 verdict.txt's "Overall: PASS" and
-#          its 4 sub-checks ("samples N >= 4", "boot_id consistent",
-#          "uptime monotonic", "boot_time_estimate stable") are all
-#          recomputable from the H3 jsonl's 5 raw records — Strong
-#          path; OR verdict.txt reports "Overall: PASS" (Fallback —
-#          weakest check, relies on the verdict file rather than
-#          recomputing). The captured baseline has all 4 sub-checks
-#          recomputable from raw and matching the verdict text.
+#       d) verdict_explainable: the H3 verdict text may never overrule
+#          contradictory raw records (see "Summary-first reasoning" and
+#          "Do not let the H3 verdict overrule contradictory raw files"
+#          below). Each of the 4 sub-checks ("samples N >= 4", "boot_id
+#          consistent", "uptime monotonic", "boot_time_estimate stable")
+#          is recomputed from the H3 jsonl as VERIFIED, REFUTED, or
+#          INCONCLUSIVE (raw lacks the data to decide). Strong path: all
+#          4 VERIFIED and verdict.txt reports "Overall: PASS", reported
+#          at evidence level "Observed". Fallback path: verdict.txt
+#          reports "Overall: PASS" and NO sub-check is REFUTED, reported
+#          at the lower level "Inconclusive" so a reviewer can see the
+#          claim rests on the verdict file rather than on recomputation.
+#          Any REFUTED sub-check fails the gate outright. The captured
+#          baseline has all 4 sub-checks VERIFIED from raw and matching
+#          the verdict text.
 #
 #   12-claim-eligibility-gate.json — Gate 3 (5 sub-gates) proves the
 #     evidence supports only Oracle-permitted claims and surfaces
@@ -915,42 +922,78 @@ c_fallback_path_most_reconcile = matches_count >= SUMMARY_RECONCILE_MIN_FALLBACK
 c_summary_reconciles = c_strong_path_all_reconcile or c_fallback_path_most_reconcile
 
 # ---------- sub-gate d: verdict explainable ----------
-# Strong path: H3 verdict.txt's "Overall: PASS" AND its 4 sub-checks
-# are recomputable from the H3 jsonl's raw records.
-# Fallback path: verdict.txt reports "Overall: PASS".
+# RAW-PRIMACY RULE, from this script's Oracle directive (header lines 34
+# and 38): "if analysis-summary or the H3 verdict conflicts with raw
+# JSONL, raw JSONL wins" and "Do not let the H3 verdict overrule
+# contradictory raw files."
+#
+# WARNING TO FUTURE MAINTAINERS: do NOT normalise this sub-gate back into
+# the uniform `strong or fallback` shape the other 15 sub-gates use. With
+# a fallback of plain `verdict_overall_pass`, the absorption law
+# ((A and B) or B == B) collapses the whole predicate to the verdict text
+# alone and silently turns the raw recomputation into dead code — a
+# verdict.txt reading "Overall: PASS" would then pass this gate even when
+# every raw record contradicts it. The fallback below is narrowed
+# precisely to keep that from happening.
+#
+# The fallback is narrowed rather than deleted because weak-but-
+# uncontradicted evidence retains value (Oracle's "run suppression" rule
+# forbids dropping runs silently). Evidence admitted through it is
+# reported at a lower evidence level, never as "Observed".
 verdict_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.verdict.txt"
 verdict_text = open(verdict_path).read()
 anchor_jsonl_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.jsonl"
 anchor_records, _ = parse_jsonl_records(anchor_jsonl_path)
+anchor_record_count = len(anchor_records)
 
-# Recompute the 4 H3 sub-checks from raw:
-#   Check 1: N samples >= 4 (anchor baseline)
-check_1_n_samples = len(anchor_records) >= 4
-#   Check 2: boot_id consistent across all samples (same kernel context)
+
+def evaluated(outcome, *, when_evaluable):
+    """Return the check outcome, or None when raw cannot decide it.
+
+    A None result means INCONCLUSIVE and must never be read as a
+    refutation; `is True` / `is False` comparisons are required at the
+    call sites so that None cannot be absorbed by truthiness.
+    """
+    return outcome if when_evaluable else None
+
+
+# An anchor that parsed to zero records is a missing-input problem owned
+# by Gate 1 sub-gate (a); branding it a contradiction here would both
+# double-count it and mislabel an unreadable file as refuting evidence.
+check_1_n_samples = evaluated(
+    anchor_record_count >= 4, when_evaluable=anchor_record_count > 0
+)
 boot_ids = set(r["boot_id"] for r in anchor_records)
-check_2_boot_id_consistent = len(boot_ids) == 1
-#   Check 3: uptime_seconds strictly monotonic increasing
+check_2_boot_id_consistent = evaluated(
+    len(boot_ids) == 1, when_evaluable=anchor_record_count > 0
+)
+# Monotonicity over fewer than 2 samples is vacuously true, which is
+# "cannot evaluate" rather than "verified".
 uptime_seq = [r["uptime_seconds"] for r in anchor_records]
-check_3_uptime_monotonic = all(
-    uptime_seq[i] < uptime_seq[i + 1] for i in range(len(uptime_seq) - 1)
+check_3_uptime_monotonic = evaluated(
+    all(uptime_seq[i] < uptime_seq[i + 1] for i in range(len(uptime_seq) - 1)),
+    when_evaluable=len(uptime_seq) >= 2,
 )
-#   Check 4: boot_time_estimate_ms stable within a tight band
-#   (Oracle proxy for kernel-boot identity). The H3 falsify.sh uses
-#   a 5000 ms band — we match here.
+# 5000 ms is the same kernel-boot identity band H3 falsify.sh applies.
+# The span is undefined for fewer than 2 values.
 bte_values = [r.get("boot_time_estimate_ms") for r in anchor_records if r.get("boot_time_estimate_ms") is not None]
-if len(bte_values) >= 2:
-    bte_span_ms = max(bte_values) - min(bte_values)
-    check_4_bte_stable = bte_span_ms <= 5000
-else:
-    bte_span_ms = None
-    check_4_bte_stable = False
-
-all_four_checks_recomputable = (
-    check_1_n_samples
-    and check_2_boot_id_consistent
-    and check_3_uptime_monotonic
-    and check_4_bte_stable
+bte_span_ms = max(bte_values) - min(bte_values) if len(bte_values) >= 2 else None
+check_4_bte_stable = evaluated(
+    bte_span_ms is not None and bte_span_ms <= 5000,
+    when_evaluable=len(bte_values) >= 2,
 )
+
+h3_checks = {
+    "check_1_n_samples_ge_4": check_1_n_samples,
+    "check_2_boot_id_consistent": check_2_boot_id_consistent,
+    "check_3_uptime_monotonic": check_3_uptime_monotonic,
+    "check_4_bte_stable": check_4_bte_stable,
+}
+refuted_checks = sorted(name for name, value in h3_checks.items() if value is False)
+inconclusive_checks = sorted(name for name, value in h3_checks.items() if value is None)
+all_four_checks_recomputable = all(value is True for value in h3_checks.values())
+raw_refutes_verdict = len(refuted_checks) > 0
+
 # Line-scoped predicate: the verdict file MUST contain a line whose
 # stripped content is exactly "Overall: PASS" (the H3 falsification
 # verdict header). Whole-file substring matches are forbidden per the
@@ -961,8 +1004,17 @@ verdict_overall_pass = any(
 )
 
 d_strong_path_recomputable = all_four_checks_recomputable and verdict_overall_pass
-d_fallback_path_verdict_pass = verdict_overall_pass
+d_fallback_path_verdict_pass = verdict_overall_pass and not raw_refutes_verdict
 d_verdict_explainable = d_strong_path_recomputable or d_fallback_path_verdict_pass
+
+if d_strong_path_recomputable:
+    d_evidence_level = "Observed"
+elif d_fallback_path_verdict_pass:
+    d_evidence_level = "Inconclusive"
+elif raw_refutes_verdict:
+    d_evidence_level = "Refuted"
+else:
+    d_evidence_level = "Not Proven"
 
 # ---------- compose gate ----------
 gate_2_matrix_coherence_sub_gates = {
@@ -1032,6 +1084,10 @@ print(json.dumps({
         "check_4_bte_stable": check_4_bte_stable,
         "check_4_bte_span_ms": bte_span_ms,
         "all_four_checks_recomputable": all_four_checks_recomputable,
+        "refuted_checks": refuted_checks,
+        "inconclusive_checks": inconclusive_checks,
+        "raw_refutes_verdict": raw_refutes_verdict,
+        "d_evidence_level": d_evidence_level,
         "d_strong_path_recomputable": d_strong_path_recomputable,
         "d_fallback_path_verdict_pass": d_fallback_path_verdict_pass,
         "d_pass": d_verdict_explainable,
