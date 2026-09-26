@@ -1,0 +1,14 @@
+# Declared exceptions for scripts/detect_absorbed_predicates.py
+#
+# Format: <repo-relative-path>::<result-variable>  # reason
+#
+# An entry here asserts that the absorption is DELIBERATE: the fallback is a
+# substantive check in its own right and the strong path is only a stricter
+# variant of it, so no contradiction can pass. It does NOT excuse a fallback
+# that discards the strong path's evidence. If the strong path is the only
+# thing verifying the claim the sub-gate's name makes, fix the predicate
+# instead of listing it here.
+#
+# Every entry must state why the weaker path is still sound.
+
+labs/revision-history-limit/verify.sh::b_pass  # Fallback t15m_both_fields_match independently verifies both persisted config fields from raw capture; byte-identity is a stricter variant that would fail on benign re-serialisation. Which path held is reported as b_persistence_evidence_level.

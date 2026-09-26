@@ -213,7 +213,10 @@ if readme_exists:
     readme_text = readme_path.read_text(encoding="utf-8")
     named_outputs = [name for name in PHASE_B_OUTPUTS if name in readme_text]
 d_strong = readme_exists and len(named_outputs) == len(PHASE_B_OUTPUTS)
-d_fallback = readme_exists
+# A README that names none of the Phase B outputs cross-references nothing.
+# A fallback of bare existence would absorb the strong path outright, so the
+# weaker path still requires at least one named output.
+d_fallback = readme_exists and len(named_outputs) > 0
 d_pass = d_strong or d_fallback
 
 gate14_sub_gates = [
@@ -328,7 +331,7 @@ gate14_path_used = (
 )
 
 gate14_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "diagnostic_settings_missing",
     "hypothesis": "H_cohort_integrity",
     "claim": (
@@ -458,7 +461,7 @@ gate15_sub_gates = [
 
 gate15_all_pass = all(item["result"] == "pass" for item in gate15_sub_gates)
 gate15_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "diagnostic_settings_missing",
     "hypothesis": "H1_baseline_silent",
     "claim": (
@@ -627,7 +630,7 @@ gate16_sub_gates = [
 
 gate16_all_pass = all(item["result"] == "pass" for item in gate16_sub_gates)
 gate16_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "diagnostic_settings_missing",
     "hypothesis": "H2_post_fix_populated",
     "claim": (
@@ -754,7 +757,7 @@ gate17_sub_gates = [
 
 gate17_all_pass = all(item["result"] == "pass" for item in gate17_sub_gates)
 gate17_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "diagnostic_settings_missing",
     "hypothesis": "H3_single_variable_falsification",
     "claim": (

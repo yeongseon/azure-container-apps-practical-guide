@@ -12,6 +12,8 @@ on:
       - 'labs/**/*.sh'
       - 'labs/**/*.py'
       - 'labs/**/evidence/**'
+      - 'scripts/**/*.py'
+      - 'scripts/absorbed-predicate-allowlist.txt'
       - 'infra/**/*.sh'
       - 'scripts/**/*.sh'
       - 'apps/**/*.bicep'
@@ -32,6 +34,8 @@ on:
       - 'labs/**/*.sh'
       - 'labs/**/*.py'
       - 'labs/**/evidence/**'
+      - 'scripts/**/*.py'
+      - 'scripts/absorbed-predicate-allowlist.txt'
       - 'infra/**/*.sh'
       - 'scripts/**/*.sh'
       - 'apps/**/*.bicep'
@@ -76,6 +80,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Detect absorbed strong/fallback gate predicates
+        run: |
+          python3 -m doctest scripts/detect_absorbed_predicates.py
+          python3 scripts/detect_absorbed_predicates.py labs \
+            --allowlist scripts/absorbed-predicate-allowlist.txt \
+            --repo-root .
 
       - name: Run replica-node-spread verifier regression suite
         run: python3 labs/replica-node-spread/test_verify.py
