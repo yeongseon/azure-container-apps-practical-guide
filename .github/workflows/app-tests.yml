@@ -115,15 +115,22 @@ jobs:
               committed = json.loads(show.stdout)
 
               stamp = current.pop(STAMP, None)
-              committed.pop(STAMP, None)
+              committed_stamp = committed.pop(STAMP, None)
 
-              if stamp is None:
-                  failures.append(f"{name}: missing top-level {STAMP}")
-              else:
+              # Both copies are checked on purpose. `current` proves the
+              # verifier still emits the field; `committed` proves the
+              # published pack carries an honest evaluation timestamp,
+              # and it is the only one a reader ever sees.
+              for label, value in (("emitted", stamp), ("committed", committed_stamp)):
+                  if value is None:
+                      failures.append(f"{name}: {label} document has no top-level {STAMP}")
+                      continue
                   try:
-                      datetime.datetime.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ")
+                      datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
                   except (TypeError, ValueError):
-                      failures.append(f"{name}: {STAMP}={stamp!r} is not an ISO-8601 UTC timestamp")
+                      failures.append(
+                          f"{name}: {label} {STAMP}={value!r} is not an ISO-8601 UTC timestamp"
+                      )
 
               if current != committed:
                   failures.append(f"{name}: re-verification changed the gate beyond {STAMP}")
