@@ -744,7 +744,10 @@ d_strong = (c_cache_to_rss >= 30)
 d_fallback = (c_cache_to_rss >= 5)
 d_cache_explains_divergence = d_strong or d_fallback
 
-# ---------- e) ordinal scaling proven (B >> A and B >> C) ----------
+# ---------- e) ordinal scaling proven (B > A and B > C) ----------
+# The passing predicate establishes ORDER, not magnitude: the 2x margin is a
+# stricter variant that does not change which claim is licensed. The comment
+# previously read "B >> A", which the predicate never enforced.
 # This sub-gate is robust to exact-value drift: even if Strong paths drift
 # slightly in a future re-run, the ORDINAL relationship between scenarios
 # is the durable proof that the same scale rule produces different
@@ -752,6 +755,11 @@ d_cache_explains_divergence = d_strong or d_fallback
 e_strong = (b_replicas_max > a_replicas_max and b_replicas_max > c_replicas_max and b_replicas_max >= 2 * a_replicas_max)
 e_fallback = (b_replicas_max > a_replicas_max and b_replicas_max > c_replicas_max)
 e_ordinal_scaling_proven = e_strong or e_fallback
+e_scaling_evidence_level = (
+    "Ordinal With 2x Margin" if e_strong
+    else "Ordinal Only" if e_fallback
+    else "Not Proven"
+)
 
 # ---------- f) three distinct apps (no duplicate measurement) ----------
 distinct_names = {a_app_name, b_app_name, c_app_name}
@@ -807,6 +815,7 @@ print(json.dumps({
         "d_fallback_path_c_cache_5x_rss": d_fallback,
         "e_strong_path_b_2x_a_and_b_gt_c": e_strong,
         "e_fallback_path_b_gt_a_and_b_gt_c": e_fallback,
+        "e_scaling_evidence_level": e_scaling_evidence_level,
     },
     "h2_sub_gates": h2_sub_gates,
     "h2_all_subgates_pass": h2_all_pass,

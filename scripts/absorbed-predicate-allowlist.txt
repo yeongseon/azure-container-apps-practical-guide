@@ -1,6 +1,10 @@
 # Declared exceptions for scripts/detect_absorbed_predicates.py
 #
-# Format: <repo-relative-path>::<result-variable>  # reason
+# Format: <repo-relative-path>::<result>::<wide>::<narrow>  # reason
+#
+# The key names both predicate variables, not just the result, so an exception
+# cannot leak onto an unrelated predicate that reuses a common result name.
+# A reason is mandatory and stale entries fail the gate.
 #
 # An entry here asserts that the absorption is DELIBERATE: the fallback is a
 # substantive check in its own right and the strong path is only a stricter
@@ -12,3 +16,4 @@
 # Every entry must state why the weaker path is still sound.
 
 labs/revision-history-limit/verify.sh::b_pass::b_strong_path_both_fields_match_and_byte_identical::b_fallback_path_both_fields_match  # The weaker path reads both persisted config fields directly from the post-window capture, so it is a substantive check on its own. Byte identity of the two endpoint snapshots is representation-level only: it can fail on benign JSON reserialisation and it does not prove the absence of a mid-window change that was later restored. Which path held is reported as b_persistence_evidence_level.
+labs/memory-percentage-vs-keda-utilization/verify.sh::e_ordinal_scaling_proven::e_strong::e_fallback  # The sub-gate licenses an ORDINAL claim (B > A and B > C) and the weaker path establishes exactly that from raw replica counts. The 2x margin in the strong path is a stricter magnitude variant that does not change which claim is licensed; which path held is reported as e_scaling_evidence_level.

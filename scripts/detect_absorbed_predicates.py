@@ -69,23 +69,34 @@ def parse_expression(expression: str):
 
 
 def conjuncts(expression: str) -> set[str]:
-    """Split a predicate into normalised top-level ``and`` operands.
+    """Flatten a predicate into its normalised ``and`` operands, recursively.
 
-    Outer parentheses are irrelevant to the boolean structure:
+    Nesting and parentheses are irrelevant to the boolean structure, so
+    ``a and (b and c)`` yields the same operand set as ``a and b and c``:
 
-    >>> sorted(conjuncts("a and b")) == sorted(conjuncts("(a and b)"))
+    >>> sorted(conjuncts("a and b and c"))
+    ['a', 'b', 'c']
+    >>> sorted(conjuncts("a and (b and c)"))
+    ['a', 'b', 'c']
+    >>> sorted(conjuncts("(a and b)")) == sorted(conjuncts("a and b"))
     True
-    >>> sorted(conjuncts("a and b"))
-    ['a', 'b']
     >>> sorted(conjuncts("only_one"))
     ['only_one']
     """
     node = parse_expression(expression)
     if node is None:
         return {expression.strip()}
-    if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.And):
-        return {ast.unparse(operand) for operand in node.values}
-    return {ast.unparse(node)}
+    operands: set[str] = set()
+
+    def walk(current) -> None:
+        if isinstance(current, ast.BoolOp) and isinstance(current.op, ast.And):
+            for value in current.values:
+                walk(value)
+        else:
+            operands.add(ast.unparse(current))
+
+    walk(node)
+    return operands
 
 
 def normalise(expression: str) -> str:
@@ -136,9 +147,20 @@ def find_absorbed(text: str) -> list[dict]:
     ...     "strong = (a and b)\\nfallback = b\\nresult = strong or fallback\\n")]
     ['result']
 
+    A narrow path that is a strict subset of the wide one also absorbs:
+
+    >>> [f["result"] for f in find_absorbed(
+    ...     "wide = a and b and c\\nnarrow = b and c\\nresult = wide or narrow\\n")]
+    ['result']
+    >>> [f["result"] for f in find_absorbed(
+    ...     "wide = a and (b and c)\\nnarrow = b and c\\nresult = narrow or wide\\n")]
+    ['result']
+
     Genuinely different predicates are not absorption:
 
     >>> find_absorbed("strong = a\\nfallback = b\\nresult = strong or fallback\\n")
+    []
+    >>> find_absorbed("wide = a and b\\nnarrow = c and d\\nresult = wide or narrow\\n")
     []
     """
     assignments: dict[str, str] = {}
@@ -158,7 +180,10 @@ def find_absorbed(text: str) -> list[dict]:
         for wide, narrow in ((left, right), (right, left)):
             wide_expr = normalise(assignments[wide])
             narrow_expr = normalise(assignments[narrow])
-            if narrow_expr != wide_expr and narrow_expr in conjuncts(wide_expr):
+            # Subset, not membership: `(a and b and c) or (b and c)` absorbs
+            # just as surely as `(a and b) or b`, and comparing the whole
+            # narrow expression against individual wide operands would miss it.
+            if narrow_expr != wide_expr and conjuncts(narrow_expr) < conjuncts(wide_expr):
                 findings.append({
                     "result": name,
                     "wide": wide,

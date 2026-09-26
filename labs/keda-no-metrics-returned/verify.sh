@@ -32,8 +32,10 @@
 #          metrics returned from resource metrics API" substring in §5.
 #       b) NotReady correlation: §9 contains "Probe of StartUp failed"
 #          AND the §5 metric-error timestamp window overlaps the §9
-#          probe-failure timestamp window (Strong); or just probe
-#          failures present (Fallback). Overlap proves the metric
+#          probe-failure timestamp window. There is NO fallback: a
+#          correlation claim requires the overlap itself, and absent
+#          timestamps are an evidentiary gap rather than evidence of
+#          correlation. Overlap proves the metric
 #          errors fire WHILE the container is in the NotReady phase,
 #          not after.
 #       c) Eventually Ready: sidecar revisions[*].healthState=="Healthy"
