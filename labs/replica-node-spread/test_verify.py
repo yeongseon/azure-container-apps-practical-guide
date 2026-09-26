@@ -182,6 +182,82 @@ class VerdictAssertionParityTests(unittest.TestCase):
             self.assertIs(sub["d_pass"], True)
 
 
+class VerdictLineConsistencyTests(unittest.TestCase):
+    """The verdict's own status lines must agree with the recomputation.
+
+    Reading only `Overall: PASS` accepts an internally contradictory
+    artifact: a verdict whose H3a-replica-consistent line reads `no` while
+    its Overall line reads PASS is not explainable from anything, yet it
+    passed. Each asserted line is now compared against the recomputed value.
+    """
+
+    def _sub(self, lab: pathlib.Path) -> dict:
+        run_verify(lab)
+        return gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+    def _set_line(self, lab: pathlib.Path, key: str, value: str) -> None:
+        path = lab / "evidence" / ANCHOR_VERDICT
+        out = []
+        for line in path.read_text().splitlines():
+            if line.startswith(key):
+                head, _, tail = line.partition(":")
+                note = tail.split("(", 1)
+                out.append(f"{head}:  {value}  ({note[1]}" if len(note) > 1 else f"{head}:  {value}")
+            else:
+                out.append(line)
+        path.write_text("\n".join(out) + "\n")
+
+    def test_pristine_lines_agree(self):
+        with fixture_lab() as lab:
+            sub = self._sub(lab)
+            self.assertIs(sub["verdict_lines_consistent"], True)
+            self.assertEqual(sub["verdict_line_disagreements"], [])
+            self.assertIs(sub["d_pass"], True)
+
+    def test_line_says_no_while_overall_says_pass(self):
+        with fixture_lab() as lab:
+            self._set_line(lab, "H3a-replica-consistent", "no")
+            sub = self._sub(lab)
+
+            self.assertTrue(sub["verdict_overall_pass"])
+            self.assertIs(sub["verdict_lines_consistent"], False)
+            self.assertIn("check_replica_consistent", sub["verdict_line_disagreements"])
+            self.assertIs(sub["d_pass"], False)
+
+    def test_missing_verdict_line_is_not_explainable(self):
+        with fixture_lab() as lab:
+            path = lab / "evidence" / ANCHOR_VERDICT
+            path.write_text("\n".join(
+                l for l in path.read_text().splitlines()
+                if not l.startswith("H3b-boot-nontrivial")) + "\n")
+            sub = self._sub(lab)
+
+            self.assertIs(sub["verdict_lines_consistent"], False)
+            self.assertIs(sub["d_pass"], False)
+
+
+class ContradictionScopeTests(unittest.TestCase):
+    """Only checks the verdict asserts may set the contradiction flags."""
+
+    def test_additional_requirement_failure_is_not_a_verdict_contradiction(self):
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            records[-1] = {**records[-1],
+                           "boot_time_estimate_ms": records[0]["boot_time_estimate_ms"] + 90_000}
+            write_anchor(lab, records)
+            run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+
+            self.assertIs(sub["additional_bte_stable"], False)
+            self.assertIs(sub["additional_requirements_refuted"], True)
+            self.assertIs(
+                sub["raw_refutes_verdict"], False,
+                msg="falsify.sh never asserts bte stability, so its failure is not raw refuting the verdict",
+            )
+            self.assertIs(sub["verdict_contradicts_raw"], False)
+            self.assertIs(sub["d_pass"], False)
+
+
 class DisagreementAuditTests(unittest.TestCase):
     """Both directions of verdict/raw disagreement must be visible.
 
@@ -358,7 +434,9 @@ class InconclusiveEvidenceTests(unittest.TestCase):
             self.assertIn("check_uptime_monotonic", sub["inconclusive_checks"])
             self.assertIn("additional_bte_stable", sub["inconclusive_checks"])
             self.assertIs(sub["d_pass"], False)
-            self.assertEqual(sub["d_evidence_level"], "Refuted")
+            # A too-short anchor fails a verifier requirement; it does not
+            # refute anything falsify.sh asserted.
+            self.assertEqual(sub["d_evidence_level"], "Requirements Not Met")
 
 
 class RequiredEvidenceTests(unittest.TestCase):

@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-09-26T23:46:02Z",
+  "evaluated_at_utc": "2026-09-26T23:51:59Z",
   "scenario": "cross_scenario_falsification",
   "hypothesis": "H3",
   "claim": "metric_error_severity_tracks_unreadiness_severity",

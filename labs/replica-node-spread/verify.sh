@@ -1102,10 +1102,62 @@ h3_checks = {
     "additional_sample_count_sufficient": additional_sample_count_sufficient,
     "additional_bte_stable": additional_bte_stable,
 }
+# The verdict asserts only these four. A failure among the verifier's own
+# additional requirements is a real gate failure but it is NOT the raw
+# refuting the verdict, because falsify.sh never claimed them.
+VERDICT_ASSERTED = (
+    "check_replica_consistent",
+    "check_boot_id_consistent",
+    "check_uptime_monotonic",
+    "check_boot_nontrivial",
+)
+verdict_checks = {k: v for k, v in h3_checks.items() if k in VERDICT_ASSERTED}
+additional_checks = {k: v for k, v in h3_checks.items() if k not in VERDICT_ASSERTED}
+
 refuted_checks = sorted(name for name, value in h3_checks.items() if value is False)
 inconclusive_checks = sorted(name for name, value in h3_checks.items() if value is None)
-all_four_checks_recomputable = all(value is True for value in h3_checks.values())
-raw_refutes_verdict = len(refuted_checks) > 0
+all_verdict_checks_verified = all(v is True for v in verdict_checks.values())
+all_requirements_verified = all(v is True for v in h3_checks.values())
+all_four_checks_recomputable = all_requirements_verified
+raw_refutes_verdict = any(v is False for v in verdict_checks.values())
+additional_requirements_refuted = any(v is False for v in additional_checks.values())
+
+# Each asserted line in the verdict is compared against the recomputed
+# value. Reading only "Overall: PASS" accepts an internally contradictory
+# artifact whose own status lines disagree with it.
+VERDICT_LINE_KEYS = {
+    "H3a-replica-consistent": "check_replica_consistent",
+    "H3a-boot-consistent": "check_boot_id_consistent",
+    "H3a-uptime-monotonic": "check_uptime_monotonic",
+    "H3b-boot-nontrivial": "check_boot_nontrivial",
+}
+
+
+def parse_verdict_line(text, key):
+    """Return True/False for a `<key>: yes|no ...` line, or None if absent."""
+    for line in text.splitlines():
+        if line.startswith(key):
+            _, _, rest = line.partition(":")
+            token = rest.strip().split()[0].strip().lower() if rest.strip() else ""
+            if token in ("yes", "no"):
+                return token == "yes"
+            return None
+    return None
+
+
+verdict_line_values = {}
+verdict_line_disagreements = []
+verdict_line_missing = []
+for line_key, check_name in VERDICT_LINE_KEYS.items():
+    stated = parse_verdict_line(verdict_text, line_key)
+    verdict_line_values[line_key] = stated
+    if stated is None:
+        verdict_line_missing.append(line_key)
+    elif h3_checks[check_name] is not None and stated is not h3_checks[check_name]:
+        verdict_line_disagreements.append(check_name)
+verdict_line_disagreements = sorted(verdict_line_disagreements)
+verdict_line_missing = sorted(verdict_line_missing)
+verdict_lines_consistent = not verdict_line_disagreements and not verdict_line_missing
 
 # Line-scoped predicate: the verdict file MUST contain a line whose
 # stripped content is exactly "Overall: PASS" (the H3 falsification
@@ -1116,8 +1168,15 @@ verdict_overall_pass = any(
     line.strip() == "Overall: PASS" for line in verdict_lines
 )
 
-d_strong_path_recomputable = all_four_checks_recomputable and verdict_overall_pass
-d_fallback_path_verdict_pass = verdict_overall_pass and not raw_refutes_verdict
+d_strong_path_recomputable = (
+    all_requirements_verified and verdict_overall_pass and verdict_lines_consistent
+)
+d_fallback_path_verdict_pass = (
+    verdict_overall_pass
+    and not raw_refutes_verdict
+    and not additional_requirements_refuted
+    and verdict_lines_consistent
+)
 d_verdict_explainable = d_strong_path_recomputable or d_fallback_path_verdict_pass
 
 # Both directions of divergence are recorded. Reporting only the first
@@ -1135,6 +1194,10 @@ elif d_fallback_path_verdict_pass:
     d_evidence_level = "Inconclusive"
 elif raw_refutes_verdict:
     d_evidence_level = "Refuted"
+elif not verdict_lines_consistent:
+    d_evidence_level = "Verdict Internally Inconsistent"
+elif additional_requirements_refuted:
+    d_evidence_level = "Requirements Not Met"
 else:
     d_evidence_level = "Not Proven"
 
@@ -1218,6 +1281,13 @@ print(json.dumps({
         "refuted_checks": refuted_checks,
         "inconclusive_checks": inconclusive_checks,
         "raw_refutes_verdict": raw_refutes_verdict,
+        "additional_requirements_refuted": additional_requirements_refuted,
+        "all_verdict_checks_verified": all_verdict_checks_verified,
+        "all_requirements_verified": all_requirements_verified,
+        "verdict_line_values": verdict_line_values,
+        "verdict_line_disagreements": verdict_line_disagreements,
+        "verdict_line_missing": verdict_line_missing,
+        "verdict_lines_consistent": verdict_lines_consistent,
         "verdict_contradicts_raw": verdict_contradicts_raw,
         "raw_contradicts_verdict": raw_contradicts_verdict,
         "d_evidence_level": d_evidence_level,
