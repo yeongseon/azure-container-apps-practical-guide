@@ -16,6 +16,7 @@
     "b_revision_lineage_new_revision_created_for_fix": true,
     "c_container_app_identity_preserved_across_revisions": true
   },
+  "evaluated_at_utc": "2026-09-26T23:57:07Z",
   "gate_classification": "Single-variable falsification gate: bounds the observed change to the intentional env-config mutation surface and the forced post-fix revision lineage, while explicitly documenting what the cohort does not prove.",
   "hypothesis": "H3_single_variable_falsification",
   "path_used": "single",
@@ -100,6 +101,5 @@
       "result": "pass",
       "sub_gate": "c_container_app_identity_preserved_across_revisions"
     }
-  ],
-  "utc_captured": "2026-06-26T04:28:15Z"
+  ]
 }

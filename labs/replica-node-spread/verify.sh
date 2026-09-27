@@ -56,13 +56,21 @@
 #          >= 95% of lines parse cleanly (Fallback — tolerance for
 #          one truncated/partial line at end of any file). The
 #          captured baseline has 100% parse success across 11 files
-#          totaling 813 records.
+#          totaling 1117 records. BOTH paths are additionally gated on
+#          a per-file invariant: no file may carry more than one
+#          unparseable line, and every file must retain at least one
+#          usable record. It applies to both paths because a corpus-wide
+#          ratio cannot detect the loss of one small file, and an empty
+#          file would satisfy the Strong ratio vacuously.
 #       c) same_bundle: every record's run_id carries the date prefix
 #          "20260614" (Strong — every line of every file across the
 #          cohort traces back to the 2026-06-14 capture window);
 #          OR >= 99% of records carry that prefix (Fallback —
 #          allows for one stray test-run record). The captured baseline
-#          has 100% (all 813 records) date-prefixed 20260614.
+#          has 100% (all 1117 records) date-prefixed 20260614.
+#          BOTH paths are additionally gated on a per-file invariant:
+#          at most one stray per file, and at least one matching record
+#          per file.
 #       d) no_extras: the evidence directory contains EXACTLY the
 #          15 canonical files specified by the Oracle directive
 #          (analysis-summary.{json,md}, h3-20260614-143432.{jsonl,
@@ -80,9 +88,12 @@
 #          decomposes uniquely into (profile, scale, run) AND every
 #          record inside the file carries (profile == filename_profile
 #          AND scale_target == filename_scale) — Strong path;
-#          OR >= 95% of records match (Fallback — allows for one
-#          straggling record from a previous test run). The captured
-#          baseline has 100% match across all 11 scale files.
+#          OR >= 95% of records match corpus-wide (Fallback). BOTH paths
+#          are additionally gated on at most ONE mismatching record PER
+#          FILE and no empty file (
+#          "one straggling record from a previous test run" is a count,
+#          not a proportion, so the cap must not scale with file size).
+#          The captured baseline has 100% match across all 11 scale files.
 #       b) no_duplicates: across the 11 scale files, the
 #          {profile, scale, run} tuple-set has 11 unique entries
 #          (no two files map to the same cell) — Strong path;
@@ -96,14 +107,21 @@
 #          OR >= 9/11 RunStats match (Fallback — allows for two
 #          stale entries from a previous summary regeneration).
 #          The captured baseline has 11/11 match.
-#       d) verdict_explainable: H3 verdict.txt's "Overall: PASS" and
-#          its 4 sub-checks ("samples N >= 4", "boot_id consistent",
-#          "uptime monotonic", "boot_time_estimate stable") are all
-#          recomputable from the H3 jsonl's 5 raw records — Strong
-#          path; OR verdict.txt reports "Overall: PASS" (Fallback —
-#          weakest check, relies on the verdict file rather than
-#          recomputing). The captured baseline has all 4 sub-checks
-#          recomputable from raw and matching the verdict text.
+#       d) verdict_explainable: the H3 verdict text may never overrule
+#          contradictory raw records (see "Summary-first reasoning" and
+#          "Do not let the H3 verdict overrule contradictory raw files"
+#          below). Each of the 4 sub-checks ("samples N >= 4", "boot_id
+#          consistent", "uptime monotonic", "boot_time_estimate stable")
+#          is recomputed from the H3 jsonl as VERIFIED, REFUTED, or
+#          INCONCLUSIVE (raw lacks the data to decide). Strong path: all
+#          4 VERIFIED and verdict.txt reports "Overall: PASS", reported
+#          at evidence level "Observed". Fallback path: verdict.txt
+#          reports "Overall: PASS" and NO sub-check is REFUTED, reported
+#          at the lower level "Inconclusive" so a reviewer can see the
+#          claim rests on the verdict file rather than on recomputation.
+#          Any REFUTED sub-check fails the gate outright. The captured
+#          baseline has all 4 sub-checks VERIFIED from raw and matching
+#          the verdict text.
 #
 #   12-claim-eligibility-gate.json — Gate 3 (5 sub-gates) proves the
 #     evidence supports only Oracle-permitted claims and surfaces
@@ -295,6 +313,21 @@ DATE_PREFIX_MIN_FALLBACK=0.99
 SUMMARY_RECONCILE_MIN_STRONG=11  # All 11 RunStats must match
 SUMMARY_RECONCILE_MIN_FALLBACK=9
 
+# Per-file caps. The corpus-wide ratios above are necessary but NOT
+# sufficient: 6 bad records inside one small file are only 0.5% of the
+# 1117-record corpus, so a purely corpus-wide tolerance lets an ENTIRE
+# canonical file be destroyed while every gate still passes. Worse, an
+# empty file contributes no denominator rows at all, so every ratio
+# reads 1.0 and satisfies the Strong predicate vacuously — which is why
+# the sub-gates apply these caps OUTSIDE the strong-or-fallback choice
+# rather than inside the fallback. They pin the tolerance to what the
+# gate documentation actually claims — "one truncated/partial line at
+# end of any file" and "one stray test-run record" — by bounding damage
+# per file instead of per corpus.
+PARSE_FAILED_LINES_MAX_PER_FILE=1
+DATE_PREFIX_STRAY_MAX_PER_FILE=1
+CELL_MISMATCH_MAX_PER_FILE=1
+
 # The boot-time cluster gap threshold the original analyze.py uses
 # (labs/replica-node-spread/analyze.py line 48). Documented here so
 # Gate 11 sub-gate (c) can recompute cluster counts from raw and
@@ -311,7 +344,13 @@ for required in "${CANONICAL_FILES[@]}"; do
     fi
 done
 
-CAPTURED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+# Phase B captures nothing: it is a pure offline re-evaluation of a cohort
+# that Phase A already captured. This timestamp is therefore the moment the
+# gates were RE-EVALUATED, which is not the moment the evidence was
+# captured (the cohort's capture window is DATE_PREFIX / ANCHOR_BASENAME)
+# and not the moment the docs were last edited. Conflating the three would
+# let a months-old cohort re-verified today look like a fresh Azure run.
+EVALUATED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 echo "=== Phase 10: emit Gate 1 (Cohort Integrity, 4 sub-gates) ==="
 # Sub-gate logic implemented in Python so the Strong/Fallback predicates,
@@ -320,7 +359,7 @@ echo "=== Phase 10: emit Gate 1 (Cohort Integrity, 4 sub-gates) ==="
 # writes the gate JSON to stdout.
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 DATE_PREFIX="$DATE_PREFIX" \
 ANCHOR_SAMPLES_MIN_STRONG="$ANCHOR_SAMPLES_MIN_STRONG" \
@@ -329,6 +368,8 @@ PARSE_SUCCESS_MIN_STRONG="$PARSE_SUCCESS_MIN_STRONG" \
 PARSE_SUCCESS_MIN_FALLBACK="$PARSE_SUCCESS_MIN_FALLBACK" \
 DATE_PREFIX_MIN_STRONG="$DATE_PREFIX_MIN_STRONG" \
 DATE_PREFIX_MIN_FALLBACK="$DATE_PREFIX_MIN_FALLBACK" \
+PARSE_FAILED_LINES_MAX_PER_FILE="$PARSE_FAILED_LINES_MAX_PER_FILE" \
+DATE_PREFIX_STRAY_MAX_PER_FILE="$DATE_PREFIX_STRAY_MAX_PER_FILE" \
 CANONICAL_FILES_JSON="$(printf '%s\n' "${CANONICAL_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
 SCALE_FILES_JSON="$(printf '%s\n' "${SCALE_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
 python3 - <<'PY' > "$EVIDENCE_DIR/10-cohort-integrity-gate.json"
@@ -337,7 +378,7 @@ import os
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 DATE_PREFIX = os.environ["DATE_PREFIX"]
 ANCHOR_SAMPLES_MIN_STRONG = int(os.environ["ANCHOR_SAMPLES_MIN_STRONG"])
@@ -346,6 +387,8 @@ PARSE_SUCCESS_MIN_STRONG = float(os.environ["PARSE_SUCCESS_MIN_STRONG"])
 PARSE_SUCCESS_MIN_FALLBACK = float(os.environ["PARSE_SUCCESS_MIN_FALLBACK"])
 DATE_PREFIX_MIN_STRONG = float(os.environ["DATE_PREFIX_MIN_STRONG"])
 DATE_PREFIX_MIN_FALLBACK = float(os.environ["DATE_PREFIX_MIN_FALLBACK"])
+PARSE_FAILED_LINES_MAX_PER_FILE = int(os.environ["PARSE_FAILED_LINES_MAX_PER_FILE"])
+DATE_PREFIX_STRAY_MAX_PER_FILE = int(os.environ["DATE_PREFIX_STRAY_MAX_PER_FILE"])
 CANONICAL_FILES = json.loads(os.environ["CANONICAL_FILES_JSON"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
 
@@ -452,9 +495,22 @@ for fname in [f"{ANCHOR_BASENAME}.jsonl"] + SCALE_FILES:
 parse_success_ratio = (
     total_successful_all / total_lines_all if total_lines_all > 0 else 0.0
 )
+per_file_parse_violations = sorted(
+    fname for fname, stats in per_file_parse_stats.items()
+    if "error" in stats
+    or stats["json_parse_failures"] + stats["missing_keys_failures"] > PARSE_FAILED_LINES_MAX_PER_FILE
+    or stats["successful_records"] == 0
+)
 b_strong_path_all_lines_parse = parse_success_ratio >= PARSE_SUCCESS_MIN_STRONG
 b_fallback_path_most_lines_parse = parse_success_ratio >= PARSE_SUCCESS_MIN_FALLBACK
-b_files_parseable = b_strong_path_all_lines_parse or b_fallback_path_most_lines_parse
+# The per-file invariant is applied OUTSIDE the strong/fallback choice. An
+# empty file contributes no denominator rows at all, so the corpus ratio
+# stays 1.0 and the strong path would otherwise carry a file that has no
+# usable records whatsoever.
+b_no_per_file_violations = not per_file_parse_violations
+b_files_parseable = (
+    b_strong_path_all_lines_parse or b_fallback_path_most_lines_parse
+) and b_no_per_file_violations
 
 # ---------- sub-gate c: same bundle ----------
 # Strong path: 100% of records' run_id field carries the DATE_PREFIX
@@ -488,9 +544,17 @@ date_prefix_ratio = (
     date_prefix_matching_records / date_prefix_total_records
     if date_prefix_total_records > 0 else 0.0
 )
+per_file_date_prefix_violations = sorted(
+    fname for fname, counts in date_prefix_per_file.items()
+    if counts["total_records"] - counts["matching_records"] > DATE_PREFIX_STRAY_MAX_PER_FILE
+    or counts["matching_records"] == 0
+)
 c_strong_path_all_records_dated = date_prefix_ratio >= DATE_PREFIX_MIN_STRONG
 c_fallback_path_most_records_dated = date_prefix_ratio >= DATE_PREFIX_MIN_FALLBACK
-c_same_bundle = c_strong_path_all_records_dated or c_fallback_path_most_records_dated
+c_no_per_file_violations = not per_file_date_prefix_violations
+c_same_bundle = (
+    c_strong_path_all_records_dated or c_fallback_path_most_records_dated
+) and c_no_per_file_violations
 
 # ---------- sub-gate d: no extras ----------
 # Strong path: evidence directory contains EXACTLY the 15 canonical
@@ -564,7 +628,7 @@ gate_1_cohort_integrity_sub_gates = {
 gate_1_cohort_integrity_pass = all(gate_1_cohort_integrity_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "cohort_integrity",
     "hypothesis": "H_cohort_integrity",
     "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -598,6 +662,9 @@ print(json.dumps({
         "total_records_attempted": total_lines_all,
         "total_records_successful": total_successful_all,
         "parse_success_ratio": parse_success_ratio,
+        "per_file_parse_violations": per_file_parse_violations,
+        "parse_failed_lines_max_per_file": PARSE_FAILED_LINES_MAX_PER_FILE,
+        "b_no_per_file_violations": b_no_per_file_violations,
         "b_strong_path_all_lines_parse": b_strong_path_all_lines_parse,
         "b_fallback_path_most_lines_parse": b_fallback_path_most_lines_parse,
         "b_pass": b_files_parseable,
@@ -608,6 +675,9 @@ print(json.dumps({
         "total_records": date_prefix_total_records,
         "matching_records": date_prefix_matching_records,
         "date_prefix_ratio": date_prefix_ratio,
+        "per_file_date_prefix_violations": per_file_date_prefix_violations,
+        "date_prefix_stray_max_per_file": DATE_PREFIX_STRAY_MAX_PER_FILE,
+        "c_no_per_file_violations": c_no_per_file_violations,
         "c_strong_path_all_records_dated": c_strong_path_all_records_dated,
         "c_fallback_path_most_records_dated": c_fallback_path_most_records_dated,
         "c_pass": c_same_bundle,
@@ -636,11 +706,12 @@ PY
 echo "=== Phase 11: emit Gate 2 (Matrix Coherence, 4 sub-gates) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 BOOT_TIME_CLUSTER_GAP_MS="$BOOT_TIME_CLUSTER_GAP_MS" \
 SUMMARY_RECONCILE_MIN_STRONG="$SUMMARY_RECONCILE_MIN_STRONG" \
 SUMMARY_RECONCILE_MIN_FALLBACK="$SUMMARY_RECONCILE_MIN_FALLBACK" \
+CELL_MISMATCH_MAX_PER_FILE="$CELL_MISMATCH_MAX_PER_FILE" \
 PARSE_SUCCESS_MIN_STRONG="$PARSE_SUCCESS_MIN_STRONG" \
 PARSE_SUCCESS_MIN_FALLBACK="$PARSE_SUCCESS_MIN_FALLBACK" \
 SCALE_FILES_JSON="$(printf '%s\n' "${SCALE_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
@@ -651,11 +722,12 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 BOOT_TIME_CLUSTER_GAP_MS = int(os.environ["BOOT_TIME_CLUSTER_GAP_MS"])
 SUMMARY_RECONCILE_MIN_STRONG = int(os.environ["SUMMARY_RECONCILE_MIN_STRONG"])
 SUMMARY_RECONCILE_MIN_FALLBACK = int(os.environ["SUMMARY_RECONCILE_MIN_FALLBACK"])
+CELL_MISMATCH_MAX_PER_FILE = int(os.environ["CELL_MISMATCH_MAX_PER_FILE"])
 PARSE_SUCCESS_MIN_STRONG = float(os.environ["PARSE_SUCCESS_MIN_STRONG"])
 PARSE_SUCCESS_MIN_FALLBACK = float(os.environ["PARSE_SUCCESS_MIN_FALLBACK"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
@@ -790,12 +862,28 @@ cell_match_ratio = (
     all_records_matching_cell / all_records_total
     if all_records_total > 0 else 0.0
 )
+# The documented fallback allows "one straggling record from a previous test
+# run", which is a COUNT, not a proportion. A ratio floor would reject a
+# single bad record in the 6-record scale-1 file while waving through twelve
+# in the 240-record scale-30 file, so the cap is per-file and absolute.
+for fname, info in per_file_cell_match.items():
+    if "error" not in info:
+        info["records_mismatching_cell"] = (
+            info["total_records"] - info["records_matching_cell"]
+        )
+per_file_cell_violations = sorted(
+    fname for fname, info in per_file_cell_match.items()
+    if "error" in info
+    or not info.get("total_records")
+    or info.get("records_mismatching_cell", 0) > CELL_MISMATCH_MAX_PER_FILE
+)
 a_strong_path_all_records_match_cell = cell_match_ratio >= PARSE_SUCCESS_MIN_STRONG
 a_fallback_path_most_records_match_cell = cell_match_ratio >= PARSE_SUCCESS_MIN_FALLBACK
+a_no_per_file_violations = not per_file_cell_violations
 a_each_file_one_cell = (
     a_strong_path_all_records_match_cell
     or a_fallback_path_most_records_match_cell
-)
+) and a_no_per_file_violations
 
 # ---------- sub-gate b: no duplicates ----------
 # Strong path: the {profile, scale, run} tuple-set has 11 unique
@@ -907,62 +995,235 @@ for fname, cell in file_to_cell.items():
         "matches_summary": matches,
     }
 
+# A duplicated `file` key would be silently collapsed by the dict build
+# above, so surplus or repeated summary entries have to be detected from
+# the raw list length rather than from the lookup.
+summary_file_keys_not_unique_or_missing = len(summary_runs) != len(summary_by_filename)
+summary_entry_count_matches = total_summary_entries == len(SCALE_FILES)
+
 c_strong_path_all_reconcile = (
     matches_count >= SUMMARY_RECONCILE_MIN_STRONG
-    and total_summary_entries == len(SCALE_FILES)
+    and summary_entry_count_matches
 )
-c_fallback_path_most_reconcile = matches_count >= SUMMARY_RECONCILE_MIN_FALLBACK
+c_fallback_path_most_reconcile = (
+    matches_count >= SUMMARY_RECONCILE_MIN_FALLBACK
+    and summary_entry_count_matches
+    and not summary_file_keys_not_unique_or_missing
+)
 c_summary_reconciles = c_strong_path_all_reconcile or c_fallback_path_most_reconcile
 
 # ---------- sub-gate d: verdict explainable ----------
-# Strong path: H3 verdict.txt's "Overall: PASS" AND its 4 sub-checks
-# are recomputable from the H3 jsonl's raw records.
-# Fallback path: verdict.txt reports "Overall: PASS".
+# RAW-PRIMACY RULE, from this script's Oracle directive (header lines 34
+# and 38): "if analysis-summary or the H3 verdict conflicts with raw
+# JSONL, raw JSONL wins" and "Do not let the H3 verdict overrule
+# contradictory raw files."
+#
+# WARNING TO FUTURE MAINTAINERS: do NOT normalise this sub-gate back into
+# the uniform `strong or fallback` shape the other 15 sub-gates use. With
+# a fallback of plain `verdict_overall_pass`, the absorption law
+# ((A and B) or B == B) collapses the whole predicate to the verdict text
+# alone and silently turns the raw recomputation into dead code — a
+# verdict.txt reading "Overall: PASS" would then pass this gate even when
+# every raw record contradicts it. The fallback below is narrowed
+# precisely to keep that from happening.
+#
+# The fallback is narrowed rather than deleted because weak-but-
+# uncontradicted evidence retains value (Oracle's "run suppression" rule
+# forbids dropping runs silently). Evidence admitted through it is
+# reported at a lower evidence level, never as "Observed".
 verdict_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.verdict.txt"
 verdict_text = open(verdict_path).read()
 anchor_jsonl_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.jsonl"
 anchor_records, _ = parse_jsonl_records(anchor_jsonl_path)
+anchor_record_count = len(anchor_records)
 
-# Recompute the 4 H3 sub-checks from raw:
-#   Check 1: N samples >= 4 (anchor baseline)
-check_1_n_samples = len(anchor_records) >= 4
-#   Check 2: boot_id consistent across all samples (same kernel context)
+
+def evaluated(outcome, *, when_evaluable):
+    """Return the check outcome, or None when raw cannot decide it.
+
+    A None result means INCONCLUSIVE and must never be read as a
+    refutation; `is True` / `is False` comparisons are required at the
+    call sites so that None cannot be absorbed by truthiness.
+    """
+    return outcome if when_evaluable else None
+
+
+# The four claims falsify.sh actually writes into the verdict are
+# replica-consistent, boot-consistent, uptime-monotonic and
+# boot-nontrivial. Recomputing a DIFFERENT four cannot establish that the
+# verdict is explainable from raw however sound the predicate algebra is:
+# replica drift and a placeholder boot_id both used to pass unnoticed.
+# Sample count and boot-time stability are real requirements but the
+# verdict does not assert them, so they are named separately below rather
+# than folded into the parity set.
+#
+# An anchor that parsed to zero records is a missing-input problem owned
+# by Gate 1 sub-gate (a); branding it a contradiction here would both
+# double-count it and mislabel an unreadable file as refuting evidence.
+have_records = anchor_record_count > 0
+
+TRIVIAL_BOOT_IDS = {"", "null", "none", "00000000-0000-0000-0000-000000000000"}
+
+
+def is_nontrivial_boot_id(value):
+    """Mirror falsify.sh H3b: reject empty, "null" and the all-zero sentinel."""
+    return str(value).strip().lower() not in TRIVIAL_BOOT_IDS
+
+
+replica_names = set(r.get("replica_name") for r in anchor_records)
+check_replica_consistent = evaluated(len(replica_names) == 1, when_evaluable=have_records)
 boot_ids = set(r["boot_id"] for r in anchor_records)
-check_2_boot_id_consistent = len(boot_ids) == 1
-#   Check 3: uptime_seconds strictly monotonic increasing
+check_boot_id_consistent = evaluated(len(boot_ids) == 1, when_evaluable=have_records)
+# Monotonicity over fewer than 2 samples is vacuously true, which is
+# "cannot evaluate" rather than "verified".
 uptime_seq = [r["uptime_seconds"] for r in anchor_records]
-check_3_uptime_monotonic = all(
-    uptime_seq[i] < uptime_seq[i + 1] for i in range(len(uptime_seq) - 1)
+check_uptime_monotonic = evaluated(
+    all(uptime_seq[i] < uptime_seq[i + 1] for i in range(len(uptime_seq) - 1)),
+    when_evaluable=len(uptime_seq) >= 2,
 )
-#   Check 4: boot_time_estimate_ms stable within a tight band
-#   (Oracle proxy for kernel-boot identity). The H3 falsify.sh uses
-#   a 5000 ms band — we match here.
-bte_values = [r.get("boot_time_estimate_ms") for r in anchor_records if r.get("boot_time_estimate_ms") is not None]
-if len(bte_values) >= 2:
-    bte_span_ms = max(bte_values) - min(bte_values)
-    check_4_bte_stable = bte_span_ms <= 5000
-else:
-    bte_span_ms = None
-    check_4_bte_stable = False
+check_boot_nontrivial = evaluated(
+    all(is_nontrivial_boot_id(b) for b in boot_ids), when_evaluable=have_records
+)
 
-all_four_checks_recomputable = (
-    check_1_n_samples
-    and check_2_boot_id_consistent
-    and check_3_uptime_monotonic
-    and check_4_bte_stable
+# Additional requirements this verifier imposes beyond the verdict text.
+# 5000 ms is the same kernel-boot identity band H3 falsify.sh applies.
+bte_values = [r.get("boot_time_estimate_ms") for r in anchor_records if r.get("boot_time_estimate_ms") is not None]
+bte_span_ms = max(bte_values) - min(bte_values) if len(bte_values) >= 2 else None
+additional_sample_count_sufficient = evaluated(anchor_record_count >= 4, when_evaluable=have_records)
+additional_bte_stable = evaluated(
+    bte_span_ms is not None and bte_span_ms <= 5000, when_evaluable=len(bte_values) >= 2
 )
-# Line-scoped predicate: the verdict file MUST contain a line whose
-# stripped content is exactly "Overall: PASS" (the H3 falsification
-# verdict header). Whole-file substring matches are forbidden per the
-# record-scoped predicate rule.
+
+h3_checks = {
+    "check_replica_consistent": check_replica_consistent,
+    "check_boot_id_consistent": check_boot_id_consistent,
+    "check_uptime_monotonic": check_uptime_monotonic,
+    "check_boot_nontrivial": check_boot_nontrivial,
+    "additional_sample_count_sufficient": additional_sample_count_sufficient,
+    "additional_bte_stable": additional_bte_stable,
+}
+# The verdict asserts only these four. A failure among the verifier's own
+# additional requirements is a real gate failure but it is NOT the raw
+# refuting the verdict, because falsify.sh never claimed them.
+VERDICT_ASSERTED = (
+    "check_replica_consistent",
+    "check_boot_id_consistent",
+    "check_uptime_monotonic",
+    "check_boot_nontrivial",
+)
+verdict_checks = {k: v for k, v in h3_checks.items() if k in VERDICT_ASSERTED}
+additional_checks = {k: v for k, v in h3_checks.items() if k not in VERDICT_ASSERTED}
+
+refuted_checks = sorted(name for name, value in h3_checks.items() if value is False)
+inconclusive_checks = sorted(name for name, value in h3_checks.items() if value is None)
+all_verdict_checks_verified = all(v is True for v in verdict_checks.values())
+all_requirements_verified = all(v is True for v in h3_checks.values())
+all_four_checks_recomputable = all_requirements_verified
+raw_refutes_verdict = any(v is False for v in verdict_checks.values())
+additional_requirements_refuted = any(v is False for v in additional_checks.values())
+
+# Each asserted line in the verdict is compared against the recomputed
+# value. Reading only "Overall: PASS" accepts an internally contradictory
+# artifact whose own status lines disagree with it.
 verdict_lines = verdict_text.splitlines()
 verdict_overall_pass = any(
     line.strip() == "Overall: PASS" for line in verdict_lines
 )
 
-d_strong_path_recomputable = all_four_checks_recomputable and verdict_overall_pass
-d_fallback_path_verdict_pass = verdict_overall_pass
+VERDICT_LINE_KEYS = {
+    "H3a-replica-consistent": "check_replica_consistent",
+    "H3a-boot-consistent": "check_boot_id_consistent",
+    "H3a-uptime-monotonic": "check_uptime_monotonic",
+    "H3b-boot-nontrivial": "check_boot_nontrivial",
+}
+
+
+def collect_verdict_lines(text, key):
+    """Return every `yes`/`no` token stated for an EXACT key.
+
+    The key is matched against the text before the colon, not as a prefix:
+    `startswith` would let a line named `<key>-extra` satisfy the required
+    `<key>`. Every occurrence is returned so duplicates can be rejected,
+    since the contract is exactly one correctly-named line per check.
+    """
+    tokens = []
+    for line in text.splitlines():
+        name, sep, rest = line.partition(":")
+        if not sep or name.strip() != key:
+            continue
+        candidate = rest.strip().split()[0].strip().lower() if rest.strip() else ""
+        tokens.append(candidate if candidate in ("yes", "no") else None)
+    return tokens
+
+
+verdict_line_values = {}
+verdict_line_disagreements = []
+verdict_line_missing = []
+verdict_line_duplicated = []
+for line_key, check_name in VERDICT_LINE_KEYS.items():
+    tokens = collect_verdict_lines(verdict_text, line_key)
+    if len(tokens) > 1:
+        verdict_line_duplicated.append(line_key)
+    stated = tokens[0] if len(tokens) == 1 else None
+    verdict_line_values[line_key] = stated
+    if stated is None:
+        verdict_line_missing.append(line_key)
+    # Raw comparison only when raw can actually decide: an INCONCLUSIVE
+    # recomputation neither confirms nor contradicts a stated value.
+    elif h3_checks[check_name] is not None and (stated == "yes") is not h3_checks[check_name]:
+        verdict_line_disagreements.append(check_name)
+verdict_line_disagreements = sorted(verdict_line_disagreements)
+verdict_line_missing = sorted(set(verdict_line_missing))
+verdict_line_duplicated = sorted(verdict_line_duplicated)
+
+# Verdict self-consistency is independent of raw. If the artifact declares
+# Overall: PASS then every asserted line must independently read `yes`,
+# whether or not the recomputation can evaluate that check.
+verdict_lines_all_yes = all(v == "yes" for v in verdict_line_values.values())
+verdict_self_consistent = (not verdict_overall_pass) or verdict_lines_all_yes
+verdict_lines_consistent = (
+    not verdict_line_disagreements
+    and not verdict_line_missing
+    and not verdict_line_duplicated
+    and verdict_self_consistent
+)
+
+# Line-scoped predicate: the verdict file MUST contain a line whose
+# stripped content is exactly "Overall: PASS" (the H3 falsification
+# verdict header). Whole-file substring matches are forbidden per the
+# record-scoped predicate rule.
+d_strong_path_recomputable = (
+    all_requirements_verified and verdict_overall_pass and verdict_lines_consistent
+)
+d_fallback_path_verdict_pass = (
+    verdict_overall_pass
+    and not raw_refutes_verdict
+    and not additional_requirements_refuted
+    and verdict_lines_consistent
+)
 d_verdict_explainable = d_strong_path_recomputable or d_fallback_path_verdict_pass
+
+# Both directions of divergence are recorded. Reporting only the first
+# would leave a verdict that reads FAIL over clean raw invisible, since
+# it fails the sub-gate silently and produces no refuted check.
+# `verdict_contradicts_raw` keys off an active refutation rather than off
+# `not all_four_checks_recomputable`, so raw that is merely INCONCLUSIVE
+# is not miscounted as contradicting the verdict.
+verdict_contradicts_raw = verdict_overall_pass and raw_refutes_verdict
+raw_contradicts_verdict = all_verdict_checks_verified and not verdict_overall_pass
+
+if d_strong_path_recomputable:
+    d_evidence_level = "Observed"
+elif d_fallback_path_verdict_pass:
+    d_evidence_level = "Inconclusive"
+elif raw_refutes_verdict:
+    d_evidence_level = "Refuted"
+elif not verdict_lines_consistent:
+    d_evidence_level = "Verdict Internally Inconsistent"
+elif additional_requirements_refuted:
+    d_evidence_level = "Requirements Not Met"
+else:
+    d_evidence_level = "Not Proven"
 
 # ---------- compose gate ----------
 gate_2_matrix_coherence_sub_gates = {
@@ -974,7 +1235,7 @@ gate_2_matrix_coherence_sub_gates = {
 gate_2_matrix_coherence_pass = all(gate_2_matrix_coherence_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "matrix_coherence",
     "hypothesis": "H_matrix_coherence",
     "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
@@ -998,6 +1259,9 @@ print(json.dumps({
         "all_records_total": all_records_total,
         "all_records_matching_cell": all_records_matching_cell,
         "cell_match_ratio": cell_match_ratio,
+        "per_file_cell_violations": per_file_cell_violations,
+        "a_no_per_file_violations": a_no_per_file_violations,
+        "cell_mismatch_max_per_file": CELL_MISMATCH_MAX_PER_FILE,
         "a_strong_path_all_records_match_cell": a_strong_path_all_records_match_cell,
         "a_fallback_path_most_records_match_cell": a_fallback_path_most_records_match_cell,
         "a_pass": a_each_file_one_cell,
@@ -1016,6 +1280,8 @@ print(json.dumps({
         "matches_count": matches_count,
         "total_summary_entries": total_summary_entries,
         "total_scale_files": len(SCALE_FILES),
+        "summary_file_keys_not_unique_or_missing": summary_file_keys_not_unique_or_missing,
+        "summary_entry_count_matches": summary_entry_count_matches,
         "c_strong_path_all_reconcile": c_strong_path_all_reconcile,
         "c_fallback_path_most_reconcile": c_fallback_path_most_reconcile,
         "c_pass": c_summary_reconciles,
@@ -1024,14 +1290,33 @@ print(json.dumps({
         "verdict_text_excerpt": verdict_text[:200],
         "verdict_overall_pass": verdict_overall_pass,
         "anchor_record_count": len(anchor_records),
-        "check_1_n_samples_ge_4": check_1_n_samples,
-        "check_2_boot_id_consistent": check_2_boot_id_consistent,
-        "check_2_unique_boot_ids": len(boot_ids),
-        "check_3_uptime_monotonic": check_3_uptime_monotonic,
-        "check_3_uptime_sequence": uptime_seq,
-        "check_4_bte_stable": check_4_bte_stable,
-        "check_4_bte_span_ms": bte_span_ms,
+        "verdict_asserted_checks": ["check_replica_consistent", "check_boot_id_consistent", "check_uptime_monotonic", "check_boot_nontrivial"],
+        "check_replica_consistent": check_replica_consistent,
+        "check_unique_replica_names": len(replica_names),
+        "check_boot_id_consistent": check_boot_id_consistent,
+        "check_unique_boot_ids": len(boot_ids),
+        "check_uptime_monotonic": check_uptime_monotonic,
+        "check_uptime_sequence": uptime_seq,
+        "check_boot_nontrivial": check_boot_nontrivial,
+        "additional_sample_count_sufficient": additional_sample_count_sufficient,
+        "additional_bte_stable": additional_bte_stable,
+        "additional_bte_span_ms": bte_span_ms,
         "all_four_checks_recomputable": all_four_checks_recomputable,
+        "refuted_checks": refuted_checks,
+        "inconclusive_checks": inconclusive_checks,
+        "raw_refutes_verdict": raw_refutes_verdict,
+        "additional_requirements_refuted": additional_requirements_refuted,
+        "all_verdict_checks_verified": all_verdict_checks_verified,
+        "all_requirements_verified": all_requirements_verified,
+        "verdict_line_values": verdict_line_values,
+        "verdict_line_disagreements": verdict_line_disagreements,
+        "verdict_line_missing": verdict_line_missing,
+        "verdict_line_duplicated": verdict_line_duplicated,
+        "verdict_self_consistent": verdict_self_consistent,
+        "verdict_lines_consistent": verdict_lines_consistent,
+        "verdict_contradicts_raw": verdict_contradicts_raw,
+        "raw_contradicts_verdict": raw_contradicts_verdict,
+        "d_evidence_level": d_evidence_level,
         "d_strong_path_recomputable": d_strong_path_recomputable,
         "d_fallback_path_verdict_pass": d_fallback_path_verdict_pass,
         "d_pass": d_verdict_explainable,
@@ -1048,7 +1333,7 @@ PY
 echo "=== Phase 12: emit Gate 3 (Claim Eligibility, 5 sub-gates) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 BOOT_TIME_CLUSTER_GAP_MS="$BOOT_TIME_CLUSTER_GAP_MS" \
 SCALE_FILES_JSON="$(printf '%s\n' "${SCALE_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
@@ -1059,7 +1344,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 BOOT_TIME_CLUSTER_GAP_MS = int(os.environ["BOOT_TIME_CLUSTER_GAP_MS"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
@@ -1423,7 +1708,7 @@ gate_3_claim_eligibility_sub_gates = {
 gate_3_claim_eligibility_pass = all(gate_3_claim_eligibility_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "claim_eligibility",
     "hypothesis": "H_claim_eligibility",
     "claim": headline_claim,
@@ -1489,7 +1774,7 @@ PY
 echo "=== Phase 13: emit Gate 4 (Packaging, 3 sub-gates) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 ANCHOR_BASENAME="$ANCHOR_BASENAME" \
 CANONICAL_FILES_JSON="$(printf '%s\n' "${CANONICAL_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
 SCRIPT_PATH="$SCRIPT_PATH" \
@@ -1499,7 +1784,7 @@ import os
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 CANONICAL_FILES = json.loads(os.environ["CANONICAL_FILES_JSON"])
 SCRIPT_PATH = os.environ["SCRIPT_PATH"]
@@ -1588,10 +1873,10 @@ c_strong_path_full_filesystem_state = (
     and readme_exists
 )
 c_fallback_path_canonical_files_present = len(canonical_files_missing) == 0
-c_validators_pass = (
-    c_strong_path_full_filesystem_state
-    or c_fallback_path_canonical_files_present
-)
+# Every conjunct here is a cheap filesystem existence check that any real
+# evidence pack satisfies, so a fallback of "canonical files present" would
+# only ever discard the verifier and README checks the sub-gate is named for.
+c_validators_pass = c_strong_path_full_filesystem_state
 
 # ---------- compose gate ----------
 gate_4_packaging_sub_gates = {
@@ -1602,7 +1887,7 @@ gate_4_packaging_sub_gates = {
 gate_4_packaging_pass = all(gate_4_packaging_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "packaging",
     "hypothesis": "H_packaging",
     "claim": "evidence_pack_is_self_contained_and_re_verifiable",

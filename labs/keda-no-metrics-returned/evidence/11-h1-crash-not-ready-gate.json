@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T07:02:27Z",
+  "evaluated_at_utc": "2026-09-26T23:57:07Z",
   "scenario": "B_crash",
   "hypothesis": "H1",
   "claim": "crash_loop_no_metrics_persists_across_bins_with_unready_state",

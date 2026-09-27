@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T07:02:27Z",
+  "evaluated_at_utc": "2026-09-26T23:57:07Z",
   "scenario": "A_slow",
   "hypothesis": "H1",
   "claim": "slow_start_no_metrics_correlates_with_notready_and_resolves",
@@ -34,7 +34,8 @@
       "s9_probe_last": "2026-06-20T00:37:51.234906Z"
     },
     "b_strong_path_probe_present_and_overlap": true,
-    "b_fallback_path_probe_present_only": true,
+    "windows_comparable": true,
+    "b_correlation_evidence_level": "Correlated",
     "b_pass": true
   },
   "sub_gate_c_eventually_ready": {

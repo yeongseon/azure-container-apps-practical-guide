@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T11:16:59Z",
+  "evaluated_at_utc": "2026-09-26T23:57:07Z",
   "scenario": "matrix_coherence",
   "hypothesis": "H_matrix_coherence",
   "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
@@ -40,7 +40,8 @@
         },
         "total_records": 6,
         "records_matching_cell": 6,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "consumption-scale-3-run-1.jsonl": {
         "filename_decomposed": {
@@ -50,7 +51,8 @@
         },
         "total_records": 30,
         "records_matching_cell": 30,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "consumption-scale-10-run-1.jsonl": {
         "filename_decomposed": {
@@ -60,7 +62,8 @@
         },
         "total_records": 80,
         "records_matching_cell": 80,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "consumption-scale-30-run-1.jsonl": {
         "filename_decomposed": {
@@ -70,7 +73,8 @@
         },
         "total_records": 240,
         "records_matching_cell": 240,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "consumption-scale-30-run-2.jsonl": {
         "filename_decomposed": {
@@ -80,7 +84,8 @@
         },
         "total_records": 240,
         "records_matching_cell": 240,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "consumption-scale-30-run-3.jsonl": {
         "filename_decomposed": {
@@ -90,7 +95,8 @@
         },
         "total_records": 240,
         "records_matching_cell": 240,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-1-run-1.jsonl": {
         "filename_decomposed": {
@@ -100,7 +106,8 @@
         },
         "total_records": 6,
         "records_matching_cell": 6,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-3-run-1.jsonl": {
         "filename_decomposed": {
@@ -110,7 +117,8 @@
         },
         "total_records": 30,
         "records_matching_cell": 30,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-10-run-1.jsonl": {
         "filename_decomposed": {
@@ -120,7 +128,8 @@
         },
         "total_records": 80,
         "records_matching_cell": 80,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-10-run-2.jsonl": {
         "filename_decomposed": {
@@ -130,7 +139,8 @@
         },
         "total_records": 80,
         "records_matching_cell": 80,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-10-run-3.jsonl": {
         "filename_decomposed": {
@@ -140,12 +150,16 @@
         },
         "total_records": 80,
         "records_matching_cell": 80,
-        "match_ratio": 1.0
+        "match_ratio": 1.0,
+        "records_mismatching_cell": 0
       }
     },
     "all_records_total": 1112,
     "all_records_matching_cell": 1112,
     "cell_match_ratio": 1.0,
+    "per_file_cell_violations": [],
+    "a_no_per_file_violations": true,
+    "cell_mismatch_max_per_file": 1,
     "a_strong_path_all_records_match_cell": true,
     "a_fallback_path_most_records_match_cell": true,
     "a_pass": true
@@ -453,6 +467,8 @@
     "matches_count": 11,
     "total_summary_entries": 11,
     "total_scale_files": 11,
+    "summary_file_keys_not_unique_or_missing": false,
+    "summary_entry_count_matches": true,
     "c_strong_path_all_reconcile": true,
     "c_fallback_path_most_reconcile": true,
     "c_pass": true
@@ -461,20 +477,49 @@
     "verdict_text_excerpt": "H3 falsification verdict \u2014 run h3-20260614-143432\n----------------------------------------------------------------\nH3a-replica-consistent:  yes  (all 5 samples hit replica=app-consumption--0000001-65f",
     "verdict_overall_pass": true,
     "anchor_record_count": 5,
-    "check_1_n_samples_ge_4": true,
-    "check_2_boot_id_consistent": true,
-    "check_2_unique_boot_ids": 1,
-    "check_3_uptime_monotonic": true,
-    "check_3_uptime_sequence": [
+    "verdict_asserted_checks": [
+      "check_replica_consistent",
+      "check_boot_id_consistent",
+      "check_uptime_monotonic",
+      "check_boot_nontrivial"
+    ],
+    "check_replica_consistent": true,
+    "check_unique_replica_names": 1,
+    "check_boot_id_consistent": true,
+    "check_unique_boot_ids": 1,
+    "check_uptime_monotonic": true,
+    "check_uptime_sequence": [
       2054.0,
       2064.13,
       2074.24,
       2084.36,
       2094.48
     ],
-    "check_4_bte_stable": true,
-    "check_4_bte_span_ms": 7,
+    "check_boot_nontrivial": true,
+    "additional_sample_count_sufficient": true,
+    "additional_bte_stable": true,
+    "additional_bte_span_ms": 7,
     "all_four_checks_recomputable": true,
+    "refuted_checks": [],
+    "inconclusive_checks": [],
+    "raw_refutes_verdict": false,
+    "additional_requirements_refuted": false,
+    "all_verdict_checks_verified": true,
+    "all_requirements_verified": true,
+    "verdict_line_values": {
+      "H3a-replica-consistent": "yes",
+      "H3a-boot-consistent": "yes",
+      "H3a-uptime-monotonic": "yes",
+      "H3b-boot-nontrivial": "yes"
+    },
+    "verdict_line_disagreements": [],
+    "verdict_line_missing": [],
+    "verdict_line_duplicated": [],
+    "verdict_self_consistent": true,
+    "verdict_lines_consistent": true,
+    "verdict_contradicts_raw": false,
+    "raw_contradicts_verdict": false,
+    "d_evidence_level": "Observed",
     "d_strong_path_recomputable": true,
     "d_fallback_path_verdict_pass": true,
     "d_pass": true

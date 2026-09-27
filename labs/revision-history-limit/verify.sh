@@ -419,7 +419,7 @@ if d_readme_exists:
 d_pass = d_strong_path_readme_references_all_gates or d_fallback_path_readme_exists
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "revision_history_limit_bounded_observation",
     "hypothesis": "H_cohort_integrity",
     "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -553,9 +553,22 @@ byte_identical = config_before_raw == config_t15m_raw
 b_strong_path_both_fields_match_and_byte_identical = t15m_both_fields_match and byte_identical
 b_fallback_path_both_fields_match = t15m_both_fields_match
 b_pass = b_strong_path_both_fields_match_and_byte_identical or b_fallback_path_both_fields_match
+# Matching both named fields is a genuine persistence check, so the fallback
+# is kept. It does absorb the strong path for pass/fail, which would leave
+# the stricter byte-identity comparison invisible, so the path that actually
+# held is reported as an evidence level.
+if b_strong_path_both_fields_match_and_byte_identical:
+    b_persistence_evidence_level = "Byte-Identical Endpoint Snapshots"
+elif b_fallback_path_both_fields_match:
+    # Field-level endpoint match. Byte identity is a representation-level
+    # observation, not a stronger empirical claim, so the two levels are
+    # named for what was compared rather than for confidence.
+    b_persistence_evidence_level = "Field-Level Endpoint Match"
+else:
+    b_persistence_evidence_level = "Not Proven"
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "revision_history_limit_bounded_observation",
     "hypothesis": "H1_config_persistence",
     "claim": "max_inactive_revisions_target_honored_across_observation_window",
@@ -579,7 +592,7 @@ result = {
     "sub_gate_b_predicate": (
         "Post-window config readback (06-app-config-t15m.json) shows the same "
         "BOTH fields match (BOTH-not-OR per Lab 19 P0 lesson) AND the file is "
-        "byte-identical to the pre-burst config (proves no mid-window mutation); "
+        "byte-identical to the pre-burst config (shows the endpoint snapshots are byte-identical); "
         "fallback requires only that both fields match without byte-identity."
     ),
     "sub_gate_a_pre_burst_config_persisted": {
@@ -595,6 +608,7 @@ result = {
         "observed_byte_identical_to_pre_burst": byte_identical,
         "b_strong_path_both_fields_match_and_byte_identical": b_strong_path_both_fields_match_and_byte_identical,
         "b_fallback_path_both_fields_match": b_fallback_path_both_fields_match,
+        "b_persistence_evidence_level": b_persistence_evidence_level,
         "b_pass": b_pass,
     },
 }
@@ -666,7 +680,7 @@ c_fallback_path_distinct_at_least_eight = distinct_count >= 8
 c_pass = c_strong_path_distinct_exactly_eleven or c_fallback_path_distinct_at_least_eight
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "revision_history_limit_bounded_observation",
     "hypothesis": "H_burst_materialization",
     "claim": "env_var_only_updates_materialized_distinct_new_revisions",
@@ -804,7 +818,7 @@ c_fallback_path_both_above_target_and_monotonic = (
 c_pass = c_strong_path_both_above_floor_and_monotonic or c_fallback_path_both_above_target_and_monotonic
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "revision_history_limit_bounded_observation",
     "hypothesis": "H2_bounded_window_non_pruning",
     "claim": "pruning_was_not_prompt_within_this_15_minute_observation_window_in_this_reproduction",

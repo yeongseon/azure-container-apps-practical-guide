@@ -8,6 +8,7 @@
     "c_post_fix_classifications_populated_table": true,
     "d_post_fix_traffic_holder_is_new_running_revision": true
   },
+  "evaluated_at_utc": "2026-09-26T23:57:07Z",
   "gate_classification": "Post-fix materialization gate: proves the environment update restored ingestion to both tables and that the observed post-fix traffic belongs to the new traffic-holding revision.",
   "hypothesis": "H2_post_fix_populated",
   "path_used": "single",
@@ -88,6 +89,5 @@
       "result": "pass",
       "sub_gate": "d_post_fix_traffic_holder_is_new_running_revision"
     }
-  ],
-  "utc_captured": "2026-06-26T04:28:15Z"
+  ]
 }
