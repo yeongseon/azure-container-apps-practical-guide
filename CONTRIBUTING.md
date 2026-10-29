@@ -16,7 +16,7 @@ See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community guidelines.
 
 ## Title Convention
 
-This section is the single source of truth for issue, pull request, and commit titles in this repository. `AGENTS.md`, the pull request template, the issue forms, and the documentation site point here instead of restating the rules.
+This section is the single source of truth for issue, pull request, and commit titles in this repository. `AGENTS.md`, the pull request template, and the documentation site point here instead of restating the rules; the issue forms only prefill a matching prefix.
 
 Issues, pull requests, and the final squash commit on the default branch all use:
 
@@ -63,6 +63,13 @@ Not accepted: `[Bug] crash on save` (bracket prefix, no type), `Fix: crash on sa
 
 Pull requests are squash-merged and the pull request title becomes the final commit title. GitHub appends the pull request number, for example `fix: decode nonempty NULL-only collection results (#503)`. The **PR title** check validates the format whenever a pull request is opened, edited, reopened, or updated. Individual commits on a branch are not checked.
 
-The check enforces the syntax: an allowed lowercase `type`, an optional lowercase `scope` and `!`, exactly one space after the colon, a single-line description with no leading or trailing space, no trailing period, no leading bracket marker such as `[WIP]`, and no `#123`-style issue number. The remaining wording guidance (English, a lowercase first word, no priority, size, status, or owner markers) is a review expectation that the check does not verify.
+The check enforces the syntax and nothing else:
+
+- an allowed lowercase `type`, an optional `!`, and a colon followed by exactly one ASCII space;
+- an optional `scope` that starts with a lowercase ASCII letter or digit and continues with lowercase ASCII letters, digits, or `.`, `_`, `/`, `,`, `-`;
+- a single-line title without control or line-separator characters, and a non-empty description;
+- a description with no leading or trailing whitespace or invisible format character (any Unicode space such as a no-break space, and characters such as a zero-width space or a byte order mark, count), no trailing period, no leading `[` (a bracket marker such as `[WIP]`), and no `#123`-style issue number (a `#` followed by digits that is not directly preceded by a letter or digit, so `C#7` is fine).
+
+The remaining wording guidance (English, a lowercase first word, no priority, size, status, or owner markers) is a review expectation that the check does not verify.
 
 Issue titles are not enforced. Anyone can open an issue without knowing this convention; maintainers adjust the title during triage.
