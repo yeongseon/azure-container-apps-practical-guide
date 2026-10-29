@@ -63,12 +63,13 @@ Not accepted: `[Bug] crash on save` (bracket prefix, no type), `Fix: crash on sa
 
 Pull requests are squash-merged and the pull request title becomes the final commit title. GitHub appends the pull request number, for example `fix: decode nonempty NULL-only collection results (#503)`. The **PR title** check validates the format whenever a pull request is opened, edited, reopened, or updated. Individual commits on a branch are not checked.
 
-The check enforces the syntax and nothing else:
+The check enforces the syntax and nothing else. A title is `type`, an optional `(scope)`, an optional `!`, a colon followed by exactly one ASCII space, and a description, where:
 
-- an allowed lowercase `type`, an optional `!`, and a colon followed by exactly one ASCII space;
-- an optional `scope` that starts with a lowercase ASCII letter or digit and continues with lowercase ASCII letters, digits, or `.`, `_`, `/`, `,`, `-`;
-- a single-line title without control or line-separator characters, and a non-empty description;
-- a description with no leading or trailing whitespace or invisible format character (any Unicode space such as a no-break space, and characters such as a zero-width space or a byte order mark, count), no trailing period, no leading `[` (a bracket marker such as `[WIP]`), and no `#123`-style issue number (a `#` followed by digits that is not directly preceded by a letter or digit, so `C#7` is fine).
+- `type` is one of the eleven lowercase types in the table;
+- `scope`, when present, starts with a lowercase ASCII letter or digit and continues with lowercase ASCII letters, digits, or `.`, `_`, `/`, `,`, `-`;
+- the title is valid UTF-8 on a single line, without control characters (a tab included) or Unicode line and paragraph separators;
+- the description is non-empty and has no leading or trailing whitespace (any Unicode space, such as a no-break space, counts) or invisible format character (such as a zero-width space or a byte order mark);
+- the description does not end with an ASCII period, does not start with `[` (a bracket marker such as `[WIP]`), and contains no `#123`-style issue number, meaning a `#` followed by ASCII digits that is not directly preceded by an ASCII letter or digit. `C#7` and `a#123` are accepted; `(#123)`, `#123`, and `é#123` are rejected.
 
 The remaining wording guidance (English, a lowercase first word, no priority, size, status, or owner markers) is a review expectation that the check does not verify.
 

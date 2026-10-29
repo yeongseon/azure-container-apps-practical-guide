@@ -81,6 +81,12 @@ ACCEPTED = (
     "fix: ends with a paren)",
     'fix: ends with a quote"',
     "fix: " + "long " * 50 + "end",
+    "fix: a#123",
+    "fix: 0#123",
+    "fix: #\u0661\u0662\u0663",
+    "fix: #\uff11\uff12\uff13",
+    "fix: the # key",
+    "fix: trailing hash #",
 )
 
 # Editorial guidance in CONTRIBUTING.md that the check does not verify.
@@ -123,6 +129,12 @@ REJECTED = (
     ("fix: resolve #123", ISSUE),
     ("fix: #123 resolve", ISSUE),
     ("fix: #12", ISSUE),
+    ("fix: \u00e9#123", ISSUE),
+    ("fix: \u6f22#123", ISSUE),
+    ("fix: \u0662#123", ISSUE),
+    ("fix: _#123", ISSUE),
+    ("fix: ##123", ISSUE),
+    ("fix: #123abc", ISSUE),
     ("fix: [WIP] resolve crash", BRACKET),
     ("fix: [Bug] crash", BRACKET),
     ("fix:\ttab separator", CONTROL),
