@@ -35,7 +35,7 @@
 #       single canonical Phase A capture file. There is no dual-path
 #       scaffolding for any claim that is NOT a genuinely-equivalent
 #       manifestation. The only dual-path sub-gates in this verifier are
-#       Gate 16 (a), (b), (c), (d) — cohort integrity tolerates a small
+#       Gate 16 (a), (b), (c) — cohort integrity tolerates a small
 #       fallback band for capture variance but rejects any non-junk extras
 #       and any missing canonical file.
 #
@@ -478,15 +478,10 @@ c_fallback_path_no_foreign_files = (
 )
 c_pass = c_strong_path_exact_match or c_fallback_path_no_foreign_files
 
-# Sub-gate (d): README.md cross-references all 4 Phase B gate JSON
-# filenames. Strong path requires the README to mention every gate JSON
-# by exact name; fallback path requires the README file to exist (so a
-# future maintainer at least has a starting point for the provenance
-# trail).
+# Existence alone proves no cross-reference, so all four filenames are required.
 readme_path = evidence_dir / "README.md"
 d_readme_exists = readme_path.exists()
 d_strong_path_readme_references_all_gates = False
-d_fallback_path_readme_exists = d_readme_exists
 gate_reference_records = []
 if d_readme_exists:
     readme_text = readme_path.read_text()
@@ -497,10 +492,10 @@ if d_readme_exists:
     d_strong_path_readme_references_all_gates = all(
         item["mentioned_in_readme"] for item in gate_reference_records
     )
-d_pass = d_strong_path_readme_references_all_gates or d_fallback_path_readme_exists
+d_pass = d_strong_path_readme_references_all_gates
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "appinsights_connection_string_missing",
     "hypothesis": "H_cohort_integrity",
     "claim": "evidence_cohort_is_internally_consistent_and_temporally_coherent",
@@ -529,8 +524,8 @@ result = {
         "requires zero missing canonical files."
     ),
     "sub_gate_d_predicate": (
-        "evidence/README.md cross-references all 4 Phase B gate JSON filenames; "
-        "fallback requires only that README.md exists."
+        "evidence/README.md exists and cross-references all 4 Phase B gate JSON filenames; "
+        "single path, no existence-only fallback."
     ),
     "required_canonical_file_count": 20,
     "minimum_fallback_file_count": 18,
@@ -562,7 +557,6 @@ result = {
         "observed_readme_exists": d_readme_exists,
         "observed_gate_reference_records": gate_reference_records,
         "d_strong_path_readme_references_all_gates": d_strong_path_readme_references_all_gates,
-        "d_fallback_path_readme_exists": d_fallback_path_readme_exists,
         "d_pass": d_pass,
     },
 }
@@ -673,7 +667,7 @@ d_predicate_holds = d_http_200_count_matches and d_total_log_lines_matches
 d_pass = d_predicate_holds
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "appinsights_connection_string_missing",
     "hypothesis": "H1_failure_attribution",
     "claim": "before_fix_signature_consistent_with_missing_applicationinsights_connection_string",
@@ -947,7 +941,7 @@ e_predicate_holds = (
 e_pass = e_predicate_holds
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "appinsights_connection_string_missing",
     "hypothesis": "H2_recovery_materialization",
     "claim": "adding_applicationinsights_connection_string_materialized_end_to_end_telemetry",
@@ -1259,7 +1253,7 @@ c_predicate_holds = c_same_registry and c_same_container_name_app
 c_pass = c_predicate_holds
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "appinsights_connection_string_missing",
     "hypothesis": "H3_single_variable_falsification",
     "claim": "recovery_is_in_place_single_env_var_delta_same_image_container_registry",

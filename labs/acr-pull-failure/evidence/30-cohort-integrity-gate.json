@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T15:51:13Z",
+  "evaluated_at_utc": "2026-10-29T23:35:04Z",
   "scenario": "acr_pull_failure_manifest_unknown",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_temporally_coherent",
@@ -45,7 +45,7 @@
   "sub_gate_a_predicate": "All 24 canonical Phase A files exist; fallback requires at least 22.",
   "sub_gate_b_predicate": "Deployment timestamp (01-deployment-result.timestamp), trigger.sh start line (00-trigger-run.txt:1), and fix-and-capture.sh start line (00-verify-run.txt:1) are monotonic and span <= 30 minutes (strong) / <= 60 minutes (fallback). Uses runtime-captured tee output, NOT the backfilled 06-h1-gate.json.utc_captured timestamp.",
   "sub_gate_c_predicate": "No unexpected non-junk extras under evidence/. Strong path requires exact match of the canonical 24 + 4 Phase B outputs + README.md; fallback tolerates only editor/OS junk (.swp/.bak/.tmp/.DS_Store) and STILL requires zero missing canonical files.",
-  "sub_gate_d_predicate": "evidence/README.md cross-references all 4 Phase B gate JSON filenames; fallback requires only that README.md exists.",
+  "sub_gate_d_predicate": "evidence/README.md exists and cross-references all 4 Phase B gate JSON filenames; single path, no existence-only fallback.",
   "required_canonical_file_count": 24,
   "minimum_fallback_file_count": 22,
   "sub_gate_a_canonical_files_present": {
@@ -128,7 +128,6 @@
       }
     ],
     "d_strong_path_readme_references_all_gates": true,
-    "d_fallback_path_readme_exists": true,
     "d_pass": true
   },
   "acr_pull_failure_h_cohort_integrity_sub_gates": {
