@@ -1,6 +1,8 @@
 """Regression fixtures for supported syntax, coverage, and declared limits."""
 
 import pathlib
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -89,6 +91,76 @@ class AbsorptionTests(unittest.TestCase):
     def test_alias_expansion_is_outside_analysis_boundary(self):
         given = "referenced = readme_exists and all(refs.values())\ns = referenced\nf = readme_exists\nresult = s or f"
         self.assertEqual(find_absorbed(given), [])
+
+
+class AbsorptionCliTests(unittest.TestCase):
+    def run_cli(self, source: str, declaration: str = ""):
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            lab = root / "labs" / "x"
+            lab.mkdir(parents=True)
+            (lab / "verify.sh").write_text(source)
+            allowlist = root / "allowlist.txt"
+            allowlist.write_text(declaration)
+
+            return subprocess.run(
+                [sys.executable, str(pathlib.Path(__file__).with_name("detect_absorbed_predicates.py")),
+                 str(root), "--allowlist", str(allowlist), "--repo-root", str(root)],
+                capture_output=True, text=True, timeout=30, check=False,
+            )
+
+    def assert_counters(self, output: str, expected: tuple[int, int, int, int, int, int]) -> None:
+        undeclared, declared, stale, known, analysed, ambiguous = expected
+        self.assertIn(f"undeclared absorbed predicates: {undeclared} (declared: {declared}, stale: {stale})", output)
+        self.assertIn(f"known defects: {known} (tracked in #397)", output)
+        self.assertIn(f"disjunctions analysed: {analysed}; skipped: {ambiguous}", output)
+        for reason in ("not a name", "name without assignment", "unsupported construct"):
+            self.assertIn(f"    {reason}: 0", output)
+        self.assertIn(f"    ambiguous assignment: {ambiguous}", output)
+
+    def test_undeclared_absorption_exits_one(self) -> None:
+        source = "s = a and b\nf = b\nd_pass = s or f\n"
+
+        proc = self.run_cli(source)
+
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assert_counters(proc.stdout, (1, 0, 0, 0, 1, 0))
+
+    def test_ambiguous_assignment_exits_one_without_a_finding(self) -> None:
+        source = "s = a and b\nif condition:\n    s = c\nf = b\nd_pass = s or f\n"
+
+        proc = self.run_cli(source)
+
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assert_counters(proc.stdout, (0, 0, 0, 0, 0, 1))
+
+    def test_stale_allowlist_entry_exits_one(self) -> None:
+        source = "s = a\nf = b\nd_pass = s or f\n"
+        declaration = "labs/x/verify.sh::d_pass::s::f  # deliberate threshold\n"
+
+        proc = self.run_cli(source, declaration)
+
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertIn("stale allowlist entry", proc.stderr)
+        self.assert_counters(proc.stdout, (0, 0, 1, 0, 1, 0))
+
+    def test_matching_known_defect_is_not_a_deliberate_declaration(self) -> None:
+        source = "s = a and b\nf = b\nd_pass = s or f\n"
+        declaration = "labs/x/verify.sh::d_pass::s::f  # KNOWN-DEFECT #397: pending correction\n"
+
+        proc = self.run_cli(source, declaration)
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assert_counters(proc.stdout, (0, 0, 0, 1, 1, 0))
+
+    def test_matching_deliberate_entry_is_counted_as_declared(self) -> None:
+        source = "s = a and b\nf = b\nd_pass = s or f\n"
+        declaration = "labs/x/verify.sh::d_pass::s::f  # deliberate threshold\n"
+
+        proc = self.run_cli(source, declaration)
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assert_counters(proc.stdout, (0, 1, 0, 0, 1, 0))
 
 
 if __name__ == "__main__":

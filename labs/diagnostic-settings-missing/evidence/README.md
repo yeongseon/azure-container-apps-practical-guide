@@ -62,10 +62,10 @@ Capture phases:
 | Environment capture | `11-cli-containerapp-ext.json` | 65 B | `az extension list --query "[?name=='containerapp']" --output json` |
 | Environment capture | `12-region.json` | 74 B | Region and resource-group anchor |
 | Deployment outputs | `13-deployment-outputs.json` | 1186 B | `az deployment group show --name main` outputs |
-| Phase B gate JSON | `14-cohort-integrity-gate.json` | 9763 B | `bash verify.sh` Gate 14 output |
-| Phase B gate JSON | `15-baseline-silent-gate.json` | 3526 B | `bash verify.sh` Gate 15 output |
-| Phase B gate JSON | `16-post-fix-populated-gate.json` | 4944 B | `bash verify.sh` Gate 16 output |
-| Phase B gate JSON | `17-single-variable-falsification-gate.json` | 6782 B | `bash verify.sh` Gate 17 output |
+| Phase B gate JSON | `14-cohort-integrity-gate.json` | 10293 B | `bash verify.sh` Gate 14 output |
+| Phase B gate JSON | `15-baseline-silent-gate.json` | 3530 B | `bash verify.sh` Gate 15 output |
+| Phase B gate JSON | `16-post-fix-populated-gate.json` | 4948 B | `bash verify.sh` Gate 16 output |
+| Phase B gate JSON | `17-single-variable-falsification-gate.json` | 6786 B | `bash verify.sh` Gate 17 output |
 | Documentation | `README.md` | (this file) | Phase B evidence-pack tour, capture timeline, gate descriptions, disclosures, file index |
 
 ## CLI versions and platform context

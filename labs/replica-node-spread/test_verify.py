@@ -20,6 +20,7 @@ Run:
 from __future__ import annotations
 
 import contextlib
+import datetime
 import json
 import pathlib
 import shutil
@@ -985,6 +986,172 @@ class CellAndPackagingTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 1, proc.stderr)
             self.assertFalse(sub["b_pass"])
             self.assertFalse(gate(lab, PACKAGING_GATE)["gate_4_packaging_all_subgates_pass"])
+
+
+def reject_json_constant(token: str) -> None:
+    raise AssertionError(f"non-standard JSON constant: {token}")
+
+
+def strict_gate(lab: pathlib.Path, filename: str):
+    path = lab / "evidence" / filename
+    if not path.is_file():
+        raise AssertionError(f"{filename} was not emitted")
+    return json.loads(path.read_text(), parse_constant=reject_json_constant)
+
+
+class BoundedAnchorNumberTests(unittest.TestCase):
+    def assert_rejected_numbers(self, field: str, values: list[int | float]) -> None:
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            for record, value in zip(records, values):
+                record[field] = value
+            write_anchor(lab, records)
+
+            proc = run_verify(lab)
+
+            sub = strict_gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertNotIn("Traceback", proc.stderr)
+            self.assertIn(field, sub["anchor_malformed_fields"])
+            self.assertNotEqual(sub["d_evidence_level"], "Observed")
+            self.assertEqual(sub["refuted_checks"], [])
+            self.assertFalse(sub["d_strong_path_recomputable"])
+            self.assertFalse(sub["d_fallback_path_verdict_pass"])
+            self.assertFalse(sub["d_pass"])
+            self.assertFalse(sub["verdict_contradicts_raw"])
+            self.assertFalse(sub["raw_contradicts_verdict"])
+            check = "check_uptime_monotonic" if field == "uptime_seconds" else "additional_bte_stable"
+            self.assertIsNone(sub[check])
+            self.assertIn(check, sub["inconclusive_checks"])
+
+    def test_huge_integer_boot_time_mixed_with_floats_is_malformed(self) -> None:
+        self.assert_rejected_numbers("boot_time_estimate_ms", [10**4000, 1.0, 1.0, 1.0, 1.0])
+
+    def test_finite_boot_time_endpoints_with_overflowing_span_are_malformed(self) -> None:
+        self.assert_rejected_numbers("boot_time_estimate_ms", [-1e308, 1e308, 1.0, 1.0, 1.0])
+
+    def test_huge_integer_uptime_is_malformed(self) -> None:
+        self.assert_rejected_numbers("uptime_seconds", [1.0, 2.0, 3.0, 4.0, 10**4000])
+
+    def test_large_finite_uptime_is_malformed(self) -> None:
+        self.assert_rejected_numbers("uptime_seconds", [1.0, 2.0, 3.0, 4.0, 1e308])
+
+    def test_integer_just_beyond_exact_bound_is_malformed(self) -> None:
+        for field in ("uptime_seconds", "boot_time_estimate_ms"):
+            with self.subTest(field=field):
+                self.assert_rejected_numbers(field, [1, 2, 3, 4, 2**53 + 1])
+
+    def test_float_beyond_exact_bound_is_malformed(self) -> None:
+        for field in ("uptime_seconds", "boot_time_estimate_ms"):
+            with self.subTest(field=field):
+                self.assert_rejected_numbers(field, [1, 2, 3, 4, float(2**53) * 2])
+
+    def test_numbers_at_exact_bound_remain_observed(self) -> None:
+        for boot_time in (2**53, float(2**53), -(2**53)):
+            with self.subTest(boot_time=boot_time), fixture_lab() as lab:
+                records = read_anchor(lab)
+                for index, record in enumerate(records):
+                    record["uptime_seconds"] = 2**53 - 4 + index
+                    record["boot_time_estimate_ms"] = boot_time
+                write_anchor(lab, records)
+
+                proc = run_verify(lab)
+
+                sub = strict_gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertEqual(sub["anchor_malformed_fields"], [])
+                self.assertEqual(sub["d_evidence_level"], "Observed")
+                self.assertTrue(sub["d_pass"])
+                self.assertNotIn("Traceback", proc.stderr)
+
+
+class UnusableJsonlRecordTests(unittest.TestCase):
+    def test_two_nonobject_scale_lines_exceed_per_file_cap(self) -> None:
+        for token in ("null", "false", "0", "[]"):
+            with self.subTest(token=token), fixture_lab() as lab:
+                name = "consumption-scale-1-run-1.jsonl"
+                path = lab / "evidence" / name
+                path.write_text(path.read_text() + f"{token}\n{token}\n")
+
+                proc = run_verify(lab)
+
+                cohort = strict_gate(lab, COHORT_GATE)
+                sub = cohort["sub_gate_b_files_parseable"]
+                self.assertEqual(proc.returncode, 1, proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+                self.assertEqual(sub["per_file_parse_stats"][name]["missing_keys_failures"], 2)
+                self.assertIn(name, sub["per_file_parse_violations"])
+                self.assertFalse(sub["b_pass"])
+                for filename in GENERATED_GATES:
+                    strict_gate(lab, filename)
+
+    def test_one_nonobject_scale_line_uses_declared_tolerance(self) -> None:
+        for token in ("null", "false", "0", "[]"):
+            with self.subTest(token=token), fixture_lab() as lab:
+                name = "consumption-scale-1-run-1.jsonl"
+                path = lab / "evidence" / name
+                path.write_text(path.read_text() + f"{token}\n")
+
+                proc = run_verify(lab)
+
+                sub = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                stats = sub["per_file_parse_stats"][name]
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+                self.assertEqual(stats["missing_keys_failures"], 1)
+                self.assertEqual(stats["json_parse_failures"], 0)
+                self.assertEqual(stats["successful_records"], 6)
+                self.assertEqual(stats["total_lines"], 7)
+                self.assertEqual(sub["per_file_parse_violations"], [])
+                self.assertFalse(sub["b_strong_path_all_lines_parse"])
+                self.assertTrue(sub["b_fallback_path_most_lines_parse"])
+                self.assertTrue(sub["b_pass"])
+                for filename in GENERATED_GATES:
+                    strict_gate(lab, filename)
+
+    def test_nonobject_anchor_line_is_counted_without_crashing(self) -> None:
+        for token in ("null", "false", "0", "[]"):
+            with self.subTest(token=token), fixture_lab() as lab:
+                path = lab / "evidence" / ANCHOR_JSONL
+                path.write_text(path.read_text() + f"{token}\n")
+
+                proc = run_verify(lab)
+
+                sub = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+                self.assertEqual(sub["per_file_parse_stats"][ANCHOR_JSONL]["missing_keys_failures"], 1)
+                for filename in GENERATED_GATES:
+                    strict_gate(lab, filename)
+
+    def test_overlong_integer_literal_counts_as_parse_failure(self) -> None:
+        with fixture_lab() as lab:
+            name = "consumption-scale-1-run-1.jsonl"
+            path = lab / "evidence" / name
+            path.write_text(path.read_text() + "9" * 5000 + "\n")
+
+            proc = run_verify(lab)
+
+            sub = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertNotIn("Traceback", proc.stderr)
+            self.assertEqual(sub["per_file_parse_stats"][name]["json_parse_failures"], 1)
+            self.assertEqual(sub["per_file_parse_violations"], [])
+            for filename in GENERATED_GATES:
+                strict_gate(lab, filename)
+
+
+class ReplayTimestampTests(unittest.TestCase):
+    def test_every_gate_records_evaluation_not_capture_time(self) -> None:
+        with fixture_lab() as lab:
+            proc = run_verify(lab)
+
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            for filename in GENERATED_GATES:
+                with self.subTest(filename=filename):
+                    document = strict_gate(lab, filename)
+                    self.assertNotIn("utc_captured", document)
+                    datetime.datetime.strptime(document["evaluated_at_utc"], "%Y-%m-%dT%H:%M:%SZ")
 
 
 if __name__ == "__main__":

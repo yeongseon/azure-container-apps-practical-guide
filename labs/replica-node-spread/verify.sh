@@ -201,13 +201,10 @@
 #          ("10-cohort-integrity-gate.json",
 #          "11-matrix-coherence-gate.json",
 #          "12-claim-eligibility-gate.json",
-#          "13-packaging-gate.json") — Strong path; OR README.md
-#          exists (Fallback). The captured baseline has the README
-#          with all 4 references.
+#          "13-packaging-gate.json") on its only path, because existence alone proves no mapping.
 #       c) validators_pass: meta-check — all 15 canonical evidence
 #          files exist on disk AND this verify.sh exists on disk
-#          AND evidence/README.md exists on disk (Strong path);
-#          OR all 15 canonical evidence files exist (Fallback).
+#          AND evidence/README.md exists on disk on its only path, because every filesystem check is required.
 #          The mkdocs / yaml normalizer / content-source validators
 #          are run OUTSIDE this script (in CI / locally via
 #          `mkdocs build --strict` etc.); this sub-gate verifies the
@@ -434,10 +431,10 @@ def parse_jsonl_records(path):
                 continue
             try:
                 obj = json.loads(stripped)
-            except json.JSONDecodeError:
+            except ValueError:
                 stats["json_parse_failures"] += 1
                 continue
-            if not all(k in obj for k in REQUIRED_RECORD_KEYS):
+            if not isinstance(obj, dict) or not all(k in obj for k in REQUIRED_RECORD_KEYS):
                 stats["missing_keys_failures"] += 1
                 continue
             records.append(obj)
@@ -717,7 +714,6 @@ PARSE_SUCCESS_MIN_FALLBACK="$PARSE_SUCCESS_MIN_FALLBACK" \
 SCALE_FILES_JSON="$(printf '%s\n' "${SCALE_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
 python3 - <<'PY' > "$EVIDENCE_DIR/11-matrix-coherence-gate.json"
 import json
-import math
 import os
 import re
 
@@ -759,10 +755,10 @@ def parse_jsonl_records(path):
                 continue
             try:
                 obj = json.loads(stripped)
-            except json.JSONDecodeError:
+            except ValueError:
                 stats["json_parse_failures"] += 1
                 continue
-            if not all(k in obj for k in REQUIRED_RECORD_KEYS):
+            if not isinstance(obj, dict) or not all(k in obj for k in REQUIRED_RECORD_KEYS):
                 stats["missing_keys_failures"] += 1
                 continue
             records.append(obj)
@@ -1038,16 +1034,26 @@ verdict_text = open(verdict_path).read()
 anchor_jsonl_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.jsonl"
 anchor_records, _ = parse_jsonl_records(anchor_jsonl_path)
 anchor_record_count = len(anchor_records)
+JSON_EXACT_MAX = 2**53  # Bound arithmetic to the consecutive-integer range of JSON/IEEE-754 doubles.
+NUMERIC_ANCHOR_FIELDS = ("uptime_seconds", "boot_time_estimate_ms")
+IDENTITY_ANCHOR_FIELDS = ("boot_id", "replica_name")
+
+
+def is_bounded_number(value):
+    return type(value) in (int, float) and abs(value) <= JSON_EXACT_MAX
+
+
+def valid_anchor_value(field, value):
+    if field in NUMERIC_ANCHOR_FIELDS:
+        return is_bounded_number(value)
+    return isinstance(value, str) and bool(value.strip())
+
+
 anchor_malformed_fields = sorted({
     field
     for record in anchor_records
-    for field in ("uptime_seconds", "boot_time_estimate_ms", "boot_id", "replica_name")
-    if field in record and not (
-        (type(record[field]) in (int, float) and
-         (type(record[field]) is int or math.isfinite(record[field])))
-        if field in ("uptime_seconds", "boot_time_estimate_ms")
-        else isinstance(record[field], str) and bool(record[field].strip())
-    )
+    for field in NUMERIC_ANCHOR_FIELDS + IDENTITY_ANCHOR_FIELDS
+    if field in record and not valid_anchor_value(field, record[field])
 })
 
 
@@ -1351,7 +1357,7 @@ print(json.dumps({
         "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping"
         if gate_2_matrix_coherence_pass else "gate_2_matrix_coherence_failed_check_sub_gates"
     ),
-}, indent=2))
+}, indent=2, allow_nan=False))
 PY
 
 echo "=== Phase 12: emit Gate 3 (Claim Eligibility, 5 sub-gates) ==="
@@ -1399,10 +1405,10 @@ def parse_jsonl_records(path):
                 continue
             try:
                 obj = json.loads(stripped)
-            except json.JSONDecodeError:
+            except ValueError:
                 stats["json_parse_failures"] += 1
                 continue
-            if not all(k in obj for k in REQUIRED_RECORD_KEYS):
+            if not isinstance(obj, dict) or not all(k in obj for k in REQUIRED_RECORD_KEYS):
                 stats["missing_keys_failures"] += 1
                 continue
             records.append(obj)
@@ -1847,8 +1853,7 @@ a_verify_sh_reproduces = (
 )
 
 # ---------- sub-gate b: README maps claims ----------
-# Strong path: evidence/README.md exists AND references each of the 4
-# gate filenames.
+# Every gate filename must be referenced, because README existence alone proves no mapping.
 readme_path = os.path.join(EVIDENCE_DIR, "README.md")
 readme_exists = os.path.isfile(readme_path)
 gate_filenames_required_in_readme = (
@@ -1873,7 +1878,6 @@ b_readme_maps_claims = b_strong_path_readme_maps_all_gates
 # ---------- sub-gate c: validators pass ----------
 # Strong path: all 15 canonical evidence files exist on disk AND this
 # verify.sh exists on disk AND evidence/README.md exists on disk.
-# Fallback path: all 15 canonical evidence files exist on disk.
 canonical_files_present = []
 canonical_files_missing = []
 for cf in CANONICAL_FILES:

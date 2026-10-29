@@ -114,8 +114,8 @@ recomputation was not possible. An "Overall: PASS" line in the verdict file
 can never by itself carry a sub-gate whose raw recomputation is REFUTED.
 
 Gate 11 validates anchor `uptime_seconds` and any supplied
-`boot_time_estimate_ms` as finite integers/floats, excluding booleans.
-`boot_id` and `replica_name` must be non-empty strings. Malformed fields
+`boot_time_estimate_ms` as finite integers/floats with magnitude at most 2^53, excluding booleans.
+Out-of-range values are malformed. `boot_id` and `replica_name` must be non-empty strings. Malformed fields
 are named in `anchor_malformed_fields`, make their checks INCONCLUSIVE,
 and block both passing paths; they are not labelled contradictions.
 Missing boot-time estimates retain the lower-evidence, uncontradicted path.

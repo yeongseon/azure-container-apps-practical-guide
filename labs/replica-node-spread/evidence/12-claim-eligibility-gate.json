@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-29T14:48:05Z",
+  "evaluated_at_utc": "2026-10-29T15:38:09Z",
   "scenario": "claim_eligibility",
   "hypothesis": "H_claim_eligibility",
   "claim": "observed_node_spread_behavior_under_this_test_matrix",

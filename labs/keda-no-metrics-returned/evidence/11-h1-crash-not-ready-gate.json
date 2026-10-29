@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-29T14:48:04Z",
+  "evaluated_at_utc": "2026-10-29T15:31:45Z",
   "scenario": "B_crash",
   "hypothesis": "H1",
   "claim": "crash_loop_no_metrics_persists_across_bins_with_unready_state",
