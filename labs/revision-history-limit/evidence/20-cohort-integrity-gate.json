@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-09-26T23:57:07Z",
+  "evaluated_at_utc": "2026-10-29T14:48:05Z",
   "scenario": "revision_history_limit_bounded_observation",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -35,7 +35,7 @@
   "sub_gate_a_predicate": "All 14 canonical Phase A files exist; fallback requires at least 12.",
   "sub_gate_b_predicate": "burst-completed-epoch.txt and burst-completed-iso.txt are reciprocal (int(epoch) \u2192 ISO matches ISO file contents); fallback requires anchor agreement within \u22642 s drift between the parsed epoch and the parsed ISO timestamp (NOT mere parseability).",
   "sub_gate_c_predicate": "No unexpected non-junk extras under evidence/. Strong path requires exact match of the canonical 14 + 4 Phase B outputs + README.md; fallback tolerates only editor/OS junk (.swp/.bak/.tmp/.DS_Store) and STILL requires zero missing canonical files.",
-  "sub_gate_d_predicate": "evidence/README.md cross-references all 4 Phase B gate JSON filenames; fallback requires only that README.md exists.",
+  "sub_gate_d_predicate": "evidence/README.md exists and cross-references all 4 Phase B gate JSON filenames; single path, no existence-only fallback.",
   "required_canonical_file_count": 14,
   "minimum_fallback_file_count": 12,
   "sub_gate_a_canonical_files_present": {
@@ -119,7 +119,6 @@
       }
     ],
     "d_strong_path_readme_references_all_gates": true,
-    "d_fallback_path_readme_exists": true,
     "d_pass": true
   },
   "revision_history_limit_h_cohort_integrity_sub_gates": {

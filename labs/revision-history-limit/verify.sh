@@ -399,13 +399,11 @@ c_fallback_path_no_foreign_files = (
 c_pass = c_strong_path_exact_match or c_fallback_path_no_foreign_files
 
 # Sub-gate (d): README.md cross-references all 4 Phase B gate JSON filenames.
-# Strong path requires the README to mention every gate JSON by exact name;
-# fallback path requires the README file to exist (so a future maintainer
-# at least has a starting point for the provenance trail).
+# Every gate JSON must be mentioned by exact name; existence alone proves
+# no cross-reference and is not an admissible fallback.
 readme_path = evidence_dir / "README.md"
 d_readme_exists = readme_path.exists()
 d_strong_path_readme_references_all_gates = False
-d_fallback_path_readme_exists = d_readme_exists
 gate_reference_records = []
 if d_readme_exists:
     readme_text = readme_path.read_text()
@@ -416,7 +414,7 @@ if d_readme_exists:
     d_strong_path_readme_references_all_gates = all(
         item["mentioned_in_readme"] for item in gate_reference_records
     )
-d_pass = d_strong_path_readme_references_all_gates or d_fallback_path_readme_exists
+d_pass = d_strong_path_readme_references_all_gates
 
 result = {
     "evaluated_at_utc": os.environ["UTC_NOW"],
@@ -445,8 +443,8 @@ result = {
         "editor/OS junk (.swp/.bak/.tmp/.DS_Store) and STILL requires zero missing canonical files."
     ),
     "sub_gate_d_predicate": (
-        "evidence/README.md cross-references all 4 Phase B gate JSON filenames; "
-        "fallback requires only that README.md exists."
+        "evidence/README.md exists and cross-references all 4 Phase B gate JSON filenames; "
+        "single path, no existence-only fallback."
     ),
     "required_canonical_file_count": 14,
     "minimum_fallback_file_count": 12,
@@ -478,7 +476,6 @@ result = {
         "observed_readme_exists": d_readme_exists,
         "observed_gate_reference_records": gate_reference_records,
         "d_strong_path_readme_references_all_gates": d_strong_path_readme_references_all_gates,
-        "d_fallback_path_readme_exists": d_fallback_path_readme_exists,
         "d_pass": d_pass,
     },
 }

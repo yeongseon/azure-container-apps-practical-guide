@@ -110,8 +110,24 @@ H3 checks is recomputed from the anchor JSONL as one of:
 The sub-gate reports `d_evidence_level` so a reviewer can tell the two
 admissible paths apart: `"Observed"` when all four checks are VERIFIED, and
 `"Inconclusive"` when the claim rests on the verdict file because
-recomputation was not possible. A `Overall: PASS` line in the verdict file
+recomputation was not possible. An "Overall: PASS" line in the verdict file
 can never by itself carry a sub-gate whose raw recomputation is REFUTED.
+
+Gate 11 validates anchor `uptime_seconds` and any supplied
+`boot_time_estimate_ms` as finite integers/floats, excluding booleans.
+`boot_id` and `replica_name` must be non-empty strings. Malformed fields
+are named in `anchor_malformed_fields`, make their checks INCONCLUSIVE,
+and block both passing paths; they are not labelled contradictions.
+Missing boot-time estimates retain the lower-evidence, uncontradicted path.
+The verdict must contain exactly one valid `Overall: PASS` or
+`Overall: FAIL` line and one valid line for each of the four check keys.
+Duplicate or missing Overall lines cannot pass; missing Overall is not
+an asserted FAIL and does not set `raw_contradicts_verdict`.
+
+Every scale file needs at least one record matching its filename's profile
+and scale, even within the one-mismatching-record tolerance. Gate 13's
+README check has only one path: the evidence README must reference every
+gate-output filename; existence alone cannot pass.
 
 ## Experiment shape
 

@@ -1377,13 +1377,6 @@ c_strong_path_states_match = (
     and hard_m["health_state"] in allowed_states
 )
 
-# Fallback path: only the control's state is asserted. Used when the
-# other scenarios' snapshots fall in an unexpected state (e.g. a
-# rolling-deploy in-progress state). This still preserves the H3
-# falsification — the healthy control must be Healthy.
-c_fallback_path_control_only = (
-    healthy_m["health_state"] == "Healthy"
-)
 # The sub-gate is named for the health states of ALL THREE scenarios, so it
 # has no admissible weak path. A fallback of "the control scenario is
 # Healthy" leaves the leak and hard-limit states unchecked, and gating that
@@ -1446,7 +1439,6 @@ print(json.dumps({
         "leak_health_state": leak_m["health_state"],
         "healthy_health_state": healthy_m["health_state"],
         "c_strong_path_states_match": c_strong_path_states_match,
-        "c_fallback_path_control_only": c_fallback_path_control_only,
         "c_pass": c_health_states_match_outcome,
     },
     "h3_cross_sub_gates": h3_cross_sub_gates,

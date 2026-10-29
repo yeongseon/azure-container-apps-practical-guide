@@ -84,6 +84,7 @@ jobs:
       - name: Detect absorbed strong/fallback gate predicates
         run: |
           python3 -m doctest scripts/detect_absorbed_predicates.py
+          python3 scripts/test_absorbed_predicates.py
           python3 scripts/detect_absorbed_predicates.py labs \
             --allowlist scripts/absorbed-predicate-allowlist.txt \
             --repo-root .

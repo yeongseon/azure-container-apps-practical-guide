@@ -213,11 +213,8 @@ if readme_exists:
     readme_text = readme_path.read_text(encoding="utf-8")
     named_outputs = [name for name in PHASE_B_OUTPUTS if name in readme_text]
 d_strong = readme_exists and len(named_outputs) == len(PHASE_B_OUTPUTS)
-# A README that names none of the Phase B outputs cross-references nothing.
-# A fallback of bare existence would absorb the strong path outright, so the
-# weaker path still requires at least one named output.
-d_fallback = readme_exists and len(named_outputs) > 0
-d_pass = d_strong or d_fallback
+# All four references are required on the only admissible path.
+d_pass = d_strong
 
 gate14_sub_gates = [
     sub_gate(
@@ -284,9 +281,8 @@ gate14_sub_gates = [
         sub_gate_name="d_readme_cross_reference",
         claim="The evidence-pack README exists and documents the Phase B gate outputs.",
         predicate=(
-            "Strong: evidence/README.md exists and literally names all four Phase B gate JSON filenames. "
-            "Fallback: evidence/README.md exists and names at least one of them; a README naming "
-            "none of the gate outputs cross-references nothing."
+            "Single path: evidence/README.md exists and literally names all four Phase B gate JSON filenames; "
+            "no partial-reference fallback."
         ),
         claim_level="Observed",
         passed=d_pass,
@@ -296,8 +292,7 @@ gate14_sub_gates = [
             "observed_named_outputs": named_outputs,
             "expected_named_outputs": PHASE_B_OUTPUTS,
             "strong_holds": d_strong,
-            "fallback_holds": d_fallback,
-            "path_satisfied": "strong" if d_strong else ("fallback" if d_fallback else "fail"),
+            "path_satisfied": "strong" if d_strong else "fail",
         },
     ),
 ]
@@ -314,12 +309,12 @@ gate14_strong_path = {
 gate14_strong_path["all_subgates_pass"] = all(gate14_strong_path["sub_gates"].values())
 
 gate14_fallback_path = {
-    "description": "All four sub-gates satisfy at least their Fallback predicates.",
+    "description": "Sub-gates a-c satisfy their Fallback predicates and d satisfies its only admissible path.",
     "sub_gates": {
         "a_canonical_files_present": a_fallback,
         "b_temporal_coherence": b_fallback,
         "c_no_unexpected_extras": c_fallback,
-        "d_readme_cross_reference": d_fallback,
+        "d_readme_cross_reference": d_pass,
     },
 }
 gate14_fallback_path["all_subgates_pass"] = all(gate14_fallback_path["sub_gates"].values())

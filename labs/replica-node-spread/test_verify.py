@@ -860,5 +860,132 @@ class VerdictSubGateTruthTableTests(unittest.TestCase):
             self.assertEqual(sub["d_evidence_level"], "Not Proven")
 
 
+class AnchorFieldValidationTests(unittest.TestCase):
+    def assert_malformed(self, field: str, values: list[object]) -> None:
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            for record, value in zip(records, values):
+                record[field] = value
+            write_anchor(lab, records)
+            proc = run_verify(lab)
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+            self.assertFalse(sub["d_pass"])
+            self.assertNotEqual(sub["d_evidence_level"], "Observed")
+            self.assertIn(field, sub["anchor_malformed_fields"])
+            self.assertEqual(sub["refuted_checks"], [])
+            self.assertTrue(sub["inconclusive_checks"])
+
+    def test_string_uptime_is_not_numeric_ordering(self):
+        self.assert_malformed("uptime_seconds", ["1", "20", "3", "4", "5"])
+
+    def test_boolean_boot_id_is_not_a_string(self):
+        self.assert_malformed("boot_id", [False] * 5)
+
+    def test_string_boot_time_is_not_a_number(self):
+        self.assert_malformed("boot_time_estimate_ms", ["123"] * 5)
+
+    def test_list_replica_name_fails_without_crashing(self):
+        self.assert_malformed("replica_name", [["replica"]] * 5)
+
+    def test_nonfinite_and_boolean_numbers_fail_closed(self):
+        for field in ("uptime_seconds", "boot_time_estimate_ms"):
+            for value in (True, float("nan"), float("inf"), float("-inf"), None, [], {}):
+                with self.subTest(field=field, value=value):
+                    self.assert_malformed(field, [value] * 5)
+
+    def test_empty_and_odd_identifiers_fail_closed(self):
+        for field in ("boot_id", "replica_name"):
+            for value in ("", "  ", 42, None, [], {}):
+                with self.subTest(field=field, value=value):
+                    self.assert_malformed(field, [value] * 5)
+
+    def test_valid_integer_and_float_anchor_passes(self):
+        with fixture_lab() as lab:
+            records = read_anchor(lab)
+            for index, record in enumerate(records):
+                record["uptime_seconds"] = index if index % 2 else float(index)
+                record["boot_time_estimate_ms"] = 1000 + index
+            write_anchor(lab, records)
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(sub["d_evidence_level"], "Observed")
+
+
+class OverallParsingTests(unittest.TestCase):
+    def test_lowercase_overall_is_invalid_not_asserted_fail(self):
+        for value in ("pass", "Pass", "fail"):
+            with self.subTest(value=value), fixture_lab() as lab:
+                path = lab / "evidence" / ANCHOR_VERDICT
+                path.write_text(path.read_text().replace("Overall: PASS", f"Overall: {value}"))
+                proc = run_verify(lab)
+                sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+                self.assertEqual(proc.returncode, 1, proc.stderr)
+                self.assertIn("Overall", sub["verdict_line_missing"])
+                self.assertFalse(sub["d_pass"])
+                self.assertFalse(sub["raw_contradicts_verdict"])
+
+    def test_conflicting_overall_is_rejected(self):
+        self.assert_duplicate("FAIL")
+
+    def test_identical_overall_duplicate_is_rejected(self):
+        self.assert_duplicate("PASS")
+
+    def assert_duplicate(self, value: str) -> None:
+        with fixture_lab() as lab:
+            path = lab / "evidence" / ANCHOR_VERDICT
+            path.write_text(path.read_text() + f"\nOverall: {value}\n")
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertIn("Overall", sub["verdict_line_duplicated"])
+            self.assertFalse(sub["verdict_self_consistent"])
+            self.assertFalse(sub["d_pass"])
+
+    def test_missing_overall_is_not_asserted_fail(self):
+        with fixture_lab() as lab:
+            path = lab / "evidence" / ANCHOR_VERDICT
+            path.write_text("\n".join(line for line in path.read_text().splitlines() if not line.startswith("Overall:")))
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertFalse(sub["raw_contradicts_verdict"])
+            self.assertIn("Overall", sub["verdict_line_missing"])
+
+    def test_overall_with_trailing_garbage_is_invalid(self):
+        with fixture_lab() as lab:
+            path = lab / "evidence" / ANCHOR_VERDICT
+            path.write_text(path.read_text().replace("Overall: PASS", "Overall: PASS garbage"))
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertIn("Overall", sub["verdict_line_missing"])
+
+
+class CellAndPackagingTests(unittest.TestCase):
+    def test_singleton_wrong_cell_cannot_use_tolerance(self):
+        with fixture_lab() as lab:
+            name = "consumption-scale-1-run-1.jsonl"
+            path = lab / "evidence" / name
+            record = json.loads(path.read_text().splitlines()[0])
+            path.write_text(json.dumps({**record, "profile": "Dedicated-D8"}) + "\n")
+            proc = run_verify(lab)
+            sub = gate(lab, MATRIX_GATE)["sub_gate_a_each_file_one_cell"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertEqual(sub["per_file_cell_match"][name]["records_matching_cell"], 0)
+            self.assertIn(name, sub["per_file_cell_violations"])
+            self.assertFalse(sub["a_pass"])
+
+    def test_readme_without_gate_names_fails_packaging(self):
+        with fixture_lab() as lab:
+            (lab / "evidence" / "README.md").write_text("This evidence pack has no output references.\n")
+            proc = run_verify(lab)
+            sub = gate(lab, PACKAGING_GATE)["sub_gate_b_readme_maps_claims"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertFalse(sub["b_pass"])
+            self.assertFalse(gate(lab, PACKAGING_GATE)["gate_4_packaging_all_subgates_pass"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

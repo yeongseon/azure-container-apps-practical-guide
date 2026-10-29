@@ -29,7 +29,7 @@ Capture phases:
 - `09-kql-after.json` stores `console_rows` and `system_rows` as JSON strings, not numbers. Phase B casts them with `int(...)` before evaluating thresholds.
 - `07-revisions-after.json` is a top-level array, not an object wrapper. Phase B treats the file itself as the revision record set.
 - The file name `00-verify-run.txt` is preserved for schema stability even though the Phase A script was renamed to `fix-and-capture.sh` during the Phase B overlay.
-- Gate 14 evaluates both Strong and Fallback paths and records both explicitly; a gate passes only when every sub-gate passes at least one path.
+- Gate 14 sub-gates (a)-(c) evaluate Strong and Fallback paths. Sub-gate (d) has one path requiring all four output references; partial references cannot pass. Every sub-gate must pass an admissible path.
 - Exit-code semantics differ by phase: `fix-and-capture.sh` may exit 2 for H2-falsified, while Phase B `verify.sh` exits only 0 (all gates pass) or 1 (any gate fails).
 - Region and tooling context are preserved in `12-region.json`, `10-cli-versions.json`, and `11-cli-containerapp-ext.json` so future readers can compare reproductions apples-to-apples.
 - The environment workspace customer ID is intentionally redacted from Phase B gate JSON prose/observed-values to avoid treating a real workspace GUID as shippable documentation text.

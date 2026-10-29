@@ -23,17 +23,34 @@ Usage::
     python3 scripts/detect_absorbed_predicates.py labs
     python3 scripts/detect_absorbed_predicates.py labs --allowlist scripts/absorbed-predicate-allowlist.txt
 
-Exit codes: ``0`` when every finding is allowlisted, ``1`` when an
-undeclared absorbed predicate is found.
+KNOWN-DEFECT #397 declarations track defects, not deliberate exceptions.
+Exit 1 on undeclared findings, stale entries, or ambiguous assignments.
+Non-name disjunctions are reported as advisory unanalysed forms: many are
+ordinary value defaults, not gate alternatives (74 in the initial corpus).
+Coverage counts include every top-level disjunction and malformed *_pass
+expression, not only findings. Calls other than bool and literal all/any
+reducers remain opaque atoms. Builtins are assumed not to be shadowed.
+
+This is bounded textual analysis, not a general Python data-flow engine.
+Only positive bare-name ``if`` guards with a preceding False initializer
+are incorporated. Other control-flow-dependent assignments are not resolved;
+multiple non-constant assignments are ambiguous and fail closed. Heredocs
+have separate assignment scopes. Relational implications (e.g. len(x) == n
+implies len(x) > 0), arithmetic/comparison implications, and relationships
+between opaque calls are NOT detected.
+Name aliases are not recursively expanded: ``s = referenced; result = s or f``
+can hide absorption inside the earlier ``referenced`` assignment.
 """
 
 from __future__ import annotations
 
-import argparse
 import ast
 import pathlib
 import re
 import sys
+from collections import Counter
+from itertools import permutations
+from lib.absorbed_report import Finding, main
 
 ASSIGNMENT = re.compile(r"^\s*([A-Za-z_]\w*)\s*=\s*(.+?)\s*$")
 
@@ -42,25 +59,33 @@ def flatten_continuations(text: str) -> str:
     """Join parenthesised multi-line predicates onto single lines.
 
     >>> flatten_continuations("x = (\\n    a\\n    or b\\n)")
-    'x = (a or b)'
+    'x = ( a or b )'
     """
-    text = re.sub(r"\(\s*\n\s*", "(", text)
-    text = re.sub(r"\s*\n\s*\)", ")", text)
-    return re.sub(r"\n\s+(and|or)\s+", r" \1 ", text)
+    lines = iter(text.splitlines())
+    joined = []
+    for line in lines:
+        match = ASSIGNMENT.match(line)
+        if match:
+            expression = match.group(2)
+            while True:
+                try:
+                    ast.parse(expression, mode="eval")
+                    break
+                except SyntaxError as exc:
+                    if "was never closed" not in exc.msg and "unexpected EOF" not in exc.msg:
+                        break
+                    following = next(lines, None)
+                    if following is None:
+                        break
+                    expression += " " + following.strip()
+            line = line[:match.start(2)] + expression
+        joined.append(line)
+    return "\n".join(joined)
 
 
-def parse_expression(expression: str):
+def parse_expression(expression: str) -> ast.expr | None:
     """Parse a predicate into an AST node, or None when it is not Python.
 
-    Parsing rather than string-splitting is what makes parenthesised and
-    reordered predicates comparable; ``(a and b)`` and ``a and b`` produce
-    the same node, and operand order is read from the tree rather than
-    assumed.
-
-    >>> parse_expression("a and b") is None
-    False
-    >>> parse_expression("not a valid ==== expression") is None
-    True
     """
     try:
         return ast.parse(expression, mode="eval").body
@@ -68,11 +93,19 @@ def parse_expression(expression: str):
         return None
 
 
+def boolean_node(node: ast.expr) -> ast.expr:
+    """Unwrap bool and lower literal reducers without expanding opaque calls."""
+    match node:
+        case ast.Call(func=ast.Name(id="bool"), args=[arg], keywords=[]):
+            return boolean_node(arg)
+        case ast.Call(func=ast.Name(id=kind), args=[ast.List(elts=elts) | ast.Tuple(elts=elts) | ast.Set(elts=elts)], keywords=[]) if kind in {"all", "any"} and elts:
+            return ast.BoolOp(op=ast.And() if kind == "all" else ast.Or(), values=elts)
+        case _:
+            return node
+
+
 def conjuncts(expression: str) -> set[str]:
     """Flatten a predicate into its normalised ``and`` operands, recursively.
-
-    Nesting and parentheses are irrelevant to the boolean structure, so
-    ``a and (b and c)`` yields the same operand set as ``a and b and c``:
 
     >>> sorted(conjuncts("a and b and c"))
     ['a', 'b', 'c']
@@ -80,20 +113,19 @@ def conjuncts(expression: str) -> set[str]:
     ['a', 'b', 'c']
     >>> sorted(conjuncts("(a and b)")) == sorted(conjuncts("a and b"))
     True
-    >>> sorted(conjuncts("only_one"))
-    ['only_one']
     """
     node = parse_expression(expression)
     if node is None:
         return {expression.strip()}
     operands: set[str] = set()
 
-    def walk(current) -> None:
-        if isinstance(current, ast.BoolOp) and isinstance(current.op, ast.And):
-            for value in current.values:
-                walk(value)
-        else:
-            operands.add(ast.unparse(current))
+    def walk(current: ast.expr) -> None:
+        match boolean_node(current):
+            case ast.BoolOp(op=ast.And(), values=values):
+                for value in values:
+                    walk(value)
+            case atom:
+                operands.add(ast.unparse(atom))
 
     walk(node)
     return operands
@@ -102,15 +134,13 @@ def conjuncts(expression: str) -> set[str]:
 def normalise(expression: str) -> str:
     """Render a predicate in a canonical form for comparison.
 
-    >>> normalise("(a and b)")
-    'a and b'
     """
     node = parse_expression(expression)
-    return ast.unparse(node) if node is not None else expression.strip()
+    return ast.unparse(boolean_node(node)) if node is not None else expression.strip()
 
 
 def disjunct_names(expression: str) -> list[str]:
-    """Return the operand names of a two-name ``or``, in source order.
+    """Return names of a bool-wrapped, literal any, or n-ary disjunction.
 
     >>> disjunct_names("x or y")
     ['x', 'y']
@@ -120,19 +150,16 @@ def disjunct_names(expression: str) -> list[str]:
     []
     """
     node = parse_expression(expression)
+    node = boolean_node(node) if node is not None else None
     if not isinstance(node, ast.BoolOp) or not isinstance(node.op, ast.Or):
-        return []
-    if len(node.values) != 2:
         return []
     if not all(isinstance(value, ast.Name) for value in node.values):
         return []
-    return [value.id for value in node.values]
+    return [value.id for value in node.values if isinstance(value, ast.Name)]
 
 
-def find_absorbed(text: str) -> list[dict]:
+def find_absorbed(text: str) -> list[Finding]:
     """Report ``or`` predicates that boolean absorption collapses.
-
-    Either operand may be the absorbing one, so both orders are checked:
 
     >>> [f["result"] for f in find_absorbed(
     ...     "strong = a and b\\nfallback = b\\nresult = strong or fallback\\n")]
@@ -141,13 +168,9 @@ def find_absorbed(text: str) -> list[dict]:
     ...     "strong = a and b\\nfallback = b\\nresult = fallback or strong\\n")]
     ['result']
 
-    Parentheses do not hide it:
-
     >>> [f["result"] for f in find_absorbed(
     ...     "strong = (a and b)\\nfallback = b\\nresult = strong or fallback\\n")]
     ['result']
-
-    A narrow path that is a strict subset of the wide one also absorbs:
 
     >>> [f["result"] for f in find_absorbed(
     ...     "wide = a and b and c\\nnarrow = b and c\\nresult = wide or narrow\\n")]
@@ -156,28 +179,61 @@ def find_absorbed(text: str) -> list[dict]:
     ...     "wide = a and (b and c)\\nnarrow = b and c\\nresult = narrow or wide\\n")]
     ['result']
 
-    Genuinely different predicates are not absorption:
-
     >>> find_absorbed("strong = a\\nfallback = b\\nresult = strong or fallback\\n")
     []
     >>> find_absorbed("wide = a and b\\nnarrow = c and d\\nresult = wide or narrow\\n")
     []
     """
+    return analyse(text)[0]
+
+
+def analyse(text: str) -> tuple[list[Finding], Counter[str], list[str]]:
+    """Fail closed on uncertain operands; retain coverage and skipped reasons."""
     assignments: dict[str, str] = {}
-    findings = []
+    counts: Counter[str] = Counter()
+    coverage: Counter[str] = Counter()
+    skipped: list[str] = []
+    findings: list[Finding] = []
+    guards: list[tuple[int, str]] = []
     for line in flatten_continuations(text).splitlines():
+        if re.fullmatch(r"[A-Z][A-Z0-9_]*", line):
+            assignments.clear()
+            counts.clear()
+            guards.clear()
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        guards = [(depth, guard) for depth, guard in guards if depth < indent]
+        guard_match = re.fullmatch(r"\s*if ([A-Za-z_]\w*):", line)
+        if guard_match:
+            guards.append((indent, guard_match.group(1)))
         match = ASSIGNMENT.match(line)
         if not match:
             continue
         name, expression = match.group(1), match.group(2)
-        assignments[name] = expression
+        node = parse_expression(expression)
+        previous = assignments.get(name)
+        guarded = bool(guards) and previous == "False"
+        effective = " and ".join([g for _, g in guards] + [f"({expression})"]) if guarded else expression
         names = disjunct_names(expression)
-        if not names:
-            continue
-        left, right = names
-        if left not in assignments or right not in assignments:
-            continue
-        for wide, narrow in ((left, right), (right, left)):
+        reduced = boolean_node(node) if node is not None else None
+        candidate = isinstance(reduced, ast.BoolOp) and isinstance(reduced.op, ast.Or)
+        reason = ""
+        if candidate or (node is None and name.endswith("_pass")):
+            if not candidate:
+                reason = "unsupported construct"
+            elif not names:
+                reason = "not a name"
+            elif any(n not in assignments for n in names):
+                reason = "name without assignment"
+            elif any(counts[n] > 1 for n in names):
+                reason = "ambiguous assignment"
+            elif any(parse_expression(assignments[n]) is None for n in names):
+                reason = "unsupported construct"
+            coverage[reason or "analysed"] += 1
+            if reason:
+                skipped.append(f"{name}: unanalysed: {reason}: {expression}")
+        for wide, narrow in permutations(names if candidate and not reason else [], 2):
             wide_expr = normalise(assignments[wide])
             narrow_expr = normalise(assignments[narrow])
             # Subset, not membership: `(a and b and c) or (b and c)` absorbs
@@ -191,17 +247,13 @@ def find_absorbed(text: str) -> list[dict]:
                     "narrow": narrow,
                     "narrow_expr": narrow_expr,
                 })
-                break
-    return findings
+        assignments[name] = effective
+        counts[name] += int(node is not None and not isinstance(node, ast.Constant))
+    return findings, coverage, skipped
 
 
-def load_allowlist(path):
+def load_allowlist(path: pathlib.Path | None) -> dict[str, str]:
     """Read declared exceptions as ``{key: reason}``.
-
-    A key is ``<path>::<result>::<wide>::<narrow>`` so an exception cannot
-    leak onto an unrelated predicate that happens to reuse a common result
-    name such as ``b_pass``. A reason is mandatory: an undocumented waiver is
-    indistinguishable from an unnoticed defect.
 
     >>> import tempfile, pathlib
     >>> with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as handle:
@@ -217,6 +269,14 @@ def load_allowlist(path):
     Traceback (most recent call last):
         ...
     ValueError: allowlist entry has no reason: labs/x/verify.sh::b_pass::s::f
+
+    >>> with tempfile.TemporaryDirectory() as directory:
+    ...     path = pathlib.Path(directory) / 'allowlist.txt'
+    ...     _ = path.write_text('labs/x/verify.sh::d_pass::s::f # KNOWN-DEFECT: broken\\n')
+    ...     load_allowlist(path)
+    Traceback (most recent call last):
+        ...
+    ValueError: KNOWN-DEFECT entry requires an issue number: labs/x/verify.sh::d_pass::s::f
     """
     entries = {}
     if path is None or not path.is_file():
@@ -230,64 +290,11 @@ def load_allowlist(path):
             continue
         if not reason:
             raise ValueError(f"allowlist entry has no reason: {key}")
+        if reason.startswith("KNOWN-DEFECT") and not re.match(r"KNOWN-DEFECT #\d+:", reason):
+            raise ValueError(f"KNOWN-DEFECT entry requires an issue number: {key}")
         entries[key] = reason
     return entries
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("root", help="Directory to scan for verify.sh files")
-    parser.add_argument("--allowlist", help="File of declared, justified exceptions")
-    parser.add_argument(
-        "--repo-root",
-        default=".",
-        help="Base used to render allowlist keys as repository-relative paths",
-    )
-    args = parser.parse_args()
-
-    try:
-        allowed = load_allowlist(pathlib.Path(args.allowlist) if args.allowlist else None)
-    except ValueError as exc:
-        print(f"{exc}", file=sys.stderr)
-        return 1
-
-    repo_root = pathlib.Path(args.repo_root).resolve()
-    undeclared = 0
-    matched = set()
-
-    for script in sorted(pathlib.Path(args.root).rglob("verify.sh")):
-        try:
-            relative = script.resolve().relative_to(repo_root).as_posix()
-        except ValueError:
-            relative = script.as_posix()
-        for finding in find_absorbed(script.read_text(errors="replace")):
-            key = "::".join(
-                (relative, finding["result"], finding["wide"], finding["narrow"])
-            )
-            if key in allowed:
-                matched.add(key)
-                continue
-            undeclared += 1
-            print(f"{relative}: {finding['result']} = {finding['wide']} or {finding['narrow']}")
-            print(f"    {finding['wide']} = {finding['wide_expr']}")
-            print(f"    {finding['narrow']} = {finding['narrow_expr']}")
-            print(
-                f"    absorbed: '{finding['result']}' reduces to "
-                f"'{finding['narrow_expr']}' alone, so every other conjunct of "
-                f"'{finding['wide']}' is dead code"
-            )
-            print(f"    fix the predicate, or declare it with a reason as: {key}")
-
-    stale = sorted(set(allowed) - matched)
-    for key in stale:
-        print(f"stale allowlist entry no longer matches any predicate: {key}", file=sys.stderr)
-
-    print(
-        f"\nundeclared absorbed predicates: {undeclared} "
-        f"(declared: {len(matched)}, stale: {len(stale)})"
-    )
-    return 1 if undeclared or stale else 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(analyse, load_allowlist))

@@ -717,6 +717,7 @@ PARSE_SUCCESS_MIN_FALLBACK="$PARSE_SUCCESS_MIN_FALLBACK" \
 SCALE_FILES_JSON="$(printf '%s\n' "${SCALE_FILES[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')" \
 python3 - <<'PY' > "$EVIDENCE_DIR/11-matrix-coherence-gate.json"
 import json
+import math
 import os
 import re
 
@@ -875,6 +876,7 @@ per_file_cell_violations = sorted(
     fname for fname, info in per_file_cell_match.items()
     if "error" in info
     or not info.get("total_records")
+    or not info.get("records_matching_cell")
     or info.get("records_mismatching_cell", 0) > CELL_MISMATCH_MAX_PER_FILE
 )
 a_strong_path_all_records_match_cell = cell_match_ratio >= PARSE_SUCCESS_MIN_STRONG
@@ -1036,6 +1038,17 @@ verdict_text = open(verdict_path).read()
 anchor_jsonl_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.jsonl"
 anchor_records, _ = parse_jsonl_records(anchor_jsonl_path)
 anchor_record_count = len(anchor_records)
+anchor_malformed_fields = sorted({
+    field
+    for record in anchor_records
+    for field in ("uptime_seconds", "boot_time_estimate_ms", "boot_id", "replica_name")
+    if field in record and not (
+        (type(record[field]) in (int, float) and
+         (type(record[field]) is int or math.isfinite(record[field])))
+        if field in ("uptime_seconds", "boot_time_estimate_ms")
+        else isinstance(record[field], str) and bool(record[field].strip())
+    )
+})
 
 
 def evaluated(outcome, *, when_evaluable):
@@ -1067,27 +1080,27 @@ TRIVIAL_BOOT_IDS = {"", "null", "none", "00000000-0000-0000-0000-000000000000"}
 
 def is_nontrivial_boot_id(value):
     """Mirror falsify.sh H3b: reject empty, "null" and the all-zero sentinel."""
-    return str(value).strip().lower() not in TRIVIAL_BOOT_IDS
+    return value.strip().lower() not in TRIVIAL_BOOT_IDS
 
 
-replica_names = set(r.get("replica_name") for r in anchor_records)
-check_replica_consistent = evaluated(len(replica_names) == 1, when_evaluable=have_records)
-boot_ids = set(r["boot_id"] for r in anchor_records)
-check_boot_id_consistent = evaluated(len(boot_ids) == 1, when_evaluable=have_records)
+replica_names = set(r["replica_name"] for r in anchor_records) if "replica_name" not in anchor_malformed_fields else set()
+check_replica_consistent = evaluated(len(replica_names) == 1, when_evaluable=have_records and "replica_name" not in anchor_malformed_fields)
+boot_ids = set(r["boot_id"] for r in anchor_records) if "boot_id" not in anchor_malformed_fields else set()
+check_boot_id_consistent = evaluated(len(boot_ids) == 1, when_evaluable=have_records and "boot_id" not in anchor_malformed_fields)
 # Monotonicity over fewer than 2 samples is vacuously true, which is
 # "cannot evaluate" rather than "verified".
-uptime_seq = [r["uptime_seconds"] for r in anchor_records]
+uptime_seq = [r["uptime_seconds"] for r in anchor_records] if "uptime_seconds" not in anchor_malformed_fields else []
 check_uptime_monotonic = evaluated(
     all(uptime_seq[i] < uptime_seq[i + 1] for i in range(len(uptime_seq) - 1)),
     when_evaluable=len(uptime_seq) >= 2,
 )
 check_boot_nontrivial = evaluated(
-    all(is_nontrivial_boot_id(b) for b in boot_ids), when_evaluable=have_records
+    all(is_nontrivial_boot_id(b) for b in boot_ids), when_evaluable=have_records and "boot_id" not in anchor_malformed_fields
 )
 
 # Additional requirements this verifier imposes beyond the verdict text.
 # 5000 ms is the same kernel-boot identity band H3 falsify.sh applies.
-bte_values = [r.get("boot_time_estimate_ms") for r in anchor_records if r.get("boot_time_estimate_ms") is not None]
+bte_values = [r["boot_time_estimate_ms"] for r in anchor_records if "boot_time_estimate_ms" in r] if "boot_time_estimate_ms" not in anchor_malformed_fields else []
 bte_span_ms = max(bte_values) - min(bte_values) if len(bte_values) >= 2 else None
 additional_sample_count_sufficient = evaluated(anchor_record_count >= 4, when_evaluable=have_records)
 additional_bte_stable = evaluated(
@@ -1125,11 +1138,6 @@ additional_requirements_refuted = any(v is False for v in additional_checks.valu
 # Each asserted line in the verdict is compared against the recomputed
 # value. Reading only "Overall: PASS" accepts an internally contradictory
 # artifact whose own status lines disagree with it.
-verdict_lines = verdict_text.splitlines()
-verdict_overall_pass = any(
-    line.strip() == "Overall: PASS" for line in verdict_lines
-)
-
 VERDICT_LINE_KEYS = {
     "H3a-replica-consistent": "check_replica_consistent",
     "H3a-boot-consistent": "check_boot_id_consistent",
@@ -1139,7 +1147,7 @@ VERDICT_LINE_KEYS = {
 
 
 def collect_verdict_lines(text, key):
-    """Return every `yes`/`no` token stated for an EXACT key.
+    """Return check yes/no tokens or an exact Overall PASS/FAIL value.
 
     The key is matched against the text before the colon, not as a prefix:
     `startswith` would let a line named `<key>-extra` satisfy the required
@@ -1151,8 +1159,14 @@ def collect_verdict_lines(text, key):
         name, sep, rest = line.partition(":")
         if not sep or name.strip() != key:
             continue
-        candidate = rest.strip().split()[0].strip().lower() if rest.strip() else ""
-        tokens.append(candidate if candidate in ("yes", "no") else None)
+        value = rest.strip()
+        if key == "Overall":
+            # falsify.sh writes exactly PASS or FAIL; any other spelling is invalid.
+            token = value.lower() if value in ("PASS", "FAIL") else None
+        else:
+            first = value.split()[0].lower() if value else ""
+            token = first if first in ("yes", "no") else None
+        tokens.append(token)
     return tokens
 
 
@@ -1160,6 +1174,13 @@ verdict_line_values = {}
 verdict_line_disagreements = []
 verdict_line_missing = []
 verdict_line_duplicated = []
+overall_tokens = collect_verdict_lines(verdict_text, "Overall")
+verdict_overall_value = overall_tokens[0] if len(overall_tokens) == 1 else None
+verdict_overall_pass = verdict_overall_value == "pass"
+if len(overall_tokens) > 1:
+    verdict_line_duplicated.append("Overall")
+if verdict_overall_value is None:
+    verdict_line_missing.append("Overall")
 for line_key, check_name in VERDICT_LINE_KEYS.items():
     tokens = collect_verdict_lines(verdict_text, line_key)
     if len(tokens) > 1:
@@ -1180,7 +1201,7 @@ verdict_line_duplicated = sorted(verdict_line_duplicated)
 # Overall: PASS then every asserted line must independently read `yes`,
 # whether or not the recomputation can evaluate that check.
 verdict_lines_all_yes = all(v == "yes" for v in verdict_line_values.values())
-verdict_self_consistent = (not verdict_overall_pass) or verdict_lines_all_yes
+verdict_self_consistent = verdict_overall_value is not None and ((not verdict_overall_pass) or verdict_lines_all_yes)
 verdict_lines_consistent = (
     not verdict_line_disagreements
     and not verdict_line_missing
@@ -1199,6 +1220,7 @@ d_fallback_path_verdict_pass = (
     verdict_overall_pass
     and not raw_refutes_verdict
     and not additional_requirements_refuted
+    and not anchor_malformed_fields
     and verdict_lines_consistent
 )
 d_verdict_explainable = d_strong_path_recomputable or d_fallback_path_verdict_pass
@@ -1210,7 +1232,7 @@ d_verdict_explainable = d_strong_path_recomputable or d_fallback_path_verdict_pa
 # `not all_four_checks_recomputable`, so raw that is merely INCONCLUSIVE
 # is not miscounted as contradicting the verdict.
 verdict_contradicts_raw = verdict_overall_pass and raw_refutes_verdict
-raw_contradicts_verdict = all_verdict_checks_verified and not verdict_overall_pass
+raw_contradicts_verdict = all_verdict_checks_verified and verdict_overall_value == "fail"
 
 if d_strong_path_recomputable:
     d_evidence_level = "Observed"
@@ -1290,6 +1312,8 @@ print(json.dumps({
         "verdict_text_excerpt": verdict_text[:200],
         "verdict_overall_pass": verdict_overall_pass,
         "anchor_record_count": len(anchor_records),
+        "anchor_malformed_fields": anchor_malformed_fields,
+        "verdict_overall_value": verdict_overall_value,
         "verdict_asserted_checks": ["check_replica_consistent", "check_boot_id_consistent", "check_uptime_monotonic", "check_boot_nontrivial"],
         "check_replica_consistent": check_replica_consistent,
         "check_unique_replica_names": len(replica_names),
@@ -1825,7 +1849,6 @@ a_verify_sh_reproduces = (
 # ---------- sub-gate b: README maps claims ----------
 # Strong path: evidence/README.md exists AND references each of the 4
 # gate filenames.
-# Fallback path: README.md exists in evidence/.
 readme_path = os.path.join(EVIDENCE_DIR, "README.md")
 readme_exists = os.path.isfile(readme_path)
 gate_filenames_required_in_readme = (
@@ -1845,10 +1868,7 @@ all_gate_files_referenced = (
 )
 
 b_strong_path_readme_maps_all_gates = all_gate_files_referenced
-b_fallback_path_readme_exists = readme_exists
-b_readme_maps_claims = (
-    b_strong_path_readme_maps_all_gates or b_fallback_path_readme_exists
-)
+b_readme_maps_claims = b_strong_path_readme_maps_all_gates
 
 # ---------- sub-gate c: validators pass ----------
 # Strong path: all 15 canonical evidence files exist on disk AND this
@@ -1912,7 +1932,6 @@ print(json.dumps({
         "readme_references": readme_references,
         "all_gate_files_referenced": all_gate_files_referenced,
         "b_strong_path_readme_maps_all_gates": b_strong_path_readme_maps_all_gates,
-        "b_fallback_path_readme_exists": b_fallback_path_readme_exists,
         "b_pass": b_readme_maps_claims,
     },
     "sub_gate_c_validators_pass": {
