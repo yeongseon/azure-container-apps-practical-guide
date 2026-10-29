@@ -1,0 +1,117 @@
+name: PR title
+
+# Validates the pull request title against the Title Convention in
+# CONTRIBUTING.md. The title becomes the squash commit title on the default
+# branch, so this is the one place the convention is enforced.
+#
+# Safe for pull requests from forks: runs on `pull_request` (not
+# `pull_request_target`), checks out nothing, needs no token permissions and no
+# secrets, and passes the untrusted title through an environment variable
+# instead of interpolating it into the script. The check is Python because a
+# bash `[[:space:]]` does not match Unicode spaces such as a no-break space.
+# Control and line-separator characters are masked before the title is printed,
+# so a title cannot start a log line with `::` and inject a workflow command.
+# scripts/test_pr_title_check.py runs this script against accepted and rejected
+# titles.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check the title format
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          PYTHONUTF8: "1"
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import sys
+          import unicodedata
+
+          TYPES = "feat|fix|docs|test|perf|refactor|ci|build|chore|style|revert"
+          FORMAT = re.compile(
+              "(?:" + TYPES + r")(?:\([a-z0-9][a-z0-9._/,-]*\))?!?: (?P<description>.+)"
+          )
+          ISSUE_REFERENCE = re.compile(r"(?<![A-Za-z0-9])#[0-9]+")
+          GUIDANCE = """
+          Expected "type: description" or "type(scope): description":
+            - type is one of: feat fix docs test perf refactor ci build chore style revert
+            - lowercase type and scope, exactly one space after the colon
+            - a non-empty single-line description with no leading or trailing space
+              (including Unicode spaces and zero-width characters) and no trailing period
+            - no bracket prefix such as [WIP] and no issue number such as #123 (link issues in the pull request body)
+            - add "!" before the colon for a breaking change: "feat(api)!: drop the v1 endpoints"
+
+          Examples:
+            fix: decode nonempty NULL-only collection results
+            feat(cli): add a JSON output option
+            docs(readme): clarify the local setup steps
+
+          See "Title Convention" in CONTRIBUTING.md. Edit the title; the check re-runs automatically.
+          """
+
+
+          def is_control(char):
+              return unicodedata.category(char) in ("Cc", "Cs", "Zl", "Zp")
+
+
+          def is_blank(char):
+              return char.isspace() or unicodedata.category(char) in ("Zs", "Cf")
+
+
+          def printable(text):
+              return "".join("?" if is_control(char) else char for char in text)
+
+
+          title = os.environ["TITLE"]
+          problems = []
+          if any(is_control(char) for char in title):
+              problems.append("the title must be a single line without control characters")
+          else:
+              match = FORMAT.fullmatch(title)
+              if match is None:
+                  problems.append(
+                      'the title must be "type: description" or "type(scope): description" '
+                      'with an allowed lowercase type, an optional scope and "!", and one space after the colon'
+                  )
+              else:
+                  description = match["description"]
+                  if is_blank(description[0]) or is_blank(description[-1]):
+                      problems.append(
+                          "the description must not start or end with a space or an invisible character "
+                          "(including Unicode spaces such as a no-break space)"
+                      )
+                  if description.endswith("."):
+                      problems.append("the description must not end with a period")
+                  if description.startswith("["):
+                      problems.append('the description must not start with a bracket marker such as "[WIP]"')
+                  if ISSUE_REFERENCE.search(description):
+                      problems.append(
+                          'the title must not contain an issue number such as "#123"; '
+                          "link issues in the pull request body instead"
+                      )
+
+          if not problems:
+              print("Title OK: " + title)
+              sys.exit(0)
+
+          print("Title rejected: " + printable(title) + "\n")
+          for problem in problems:
+              print("  - " + problem)
+          print(GUIDANCE)
+          print("::error::The pull request title does not follow the Title Convention in CONTRIBUTING.md.")
+          sys.exit(1)
+          PY

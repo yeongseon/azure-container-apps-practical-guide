@@ -1233,8 +1233,4 @@ In these cases, report the blocking gate and hand off to the user.
 
 ## Git Commit Style
 
-```text
-type: short description
-```
-
-Allowed types: `feat`, `fix`, `docs`, `chore`, `refactor`
+Titles for issues, pull requests, and commits follow the **Title Convention** in [`CONTRIBUTING.md`](CONTRIBUTING.md#title-convention), the single source of truth for the format and the allowed types.
