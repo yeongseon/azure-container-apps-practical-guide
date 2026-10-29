@@ -7,7 +7,10 @@ name: PR title
 # Safe for pull requests from forks: runs on `pull_request` (not
 # `pull_request_target`), checks out nothing, needs no token permissions and no
 # secrets, and passes the untrusted title through an environment variable
-# instead of interpolating it into the script.
+# instead of interpolating it into the script. Control characters are masked
+# before the title is printed, so a title cannot start a log line with `::` and
+# inject a workflow command. scripts/test_pr_title_check.py runs this script
+# against accepted and rejected titles.
 
 on:
   pull_request:
@@ -29,17 +32,42 @@ jobs:
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
-          pattern='^(feat|fix|docs|test|perf|refactor|ci|build|chore|style|revert)(\([a-z0-9][a-z0-9._/,-]*\))?!?: [^[:space:]](.*[^.[:space:]])?$'
-          if [[ "$TITLE" =~ $pattern ]]; then
+          format='^(feat|fix|docs|test|perf|refactor|ci|build|chore|style|revert)(\([a-z0-9][a-z0-9._/,-]*\))?!?: [^[:space:]](.*[^[:space:]])?$'
+          control='[[:cntrl:]]'
+          issue_ref='(^|[^[:alnum:]])#[0-9]+'
+          problems=()
+
+          if [[ "$TITLE" =~ $control ]]; then
+            problems+=('the title must be a single line without control characters')
+          elif [[ ! "$TITLE" =~ $format ]]; then
+            problems+=('the title must be "type: description" or "type(scope): description" with an allowed lowercase type, one space after the colon, and no leading or trailing space')
+          else
+            description="${TITLE#*: }"
+            if [[ "$description" == *. ]]; then
+              problems+=('the description must not end with a period')
+            fi
+            if [[ "$description" == \[* ]]; then
+              problems+=('the description must not start with a bracket marker such as "[WIP]"')
+            fi
+            if [[ "$description" =~ $issue_ref ]]; then
+              problems+=('the title must not contain an issue number such as "#123"; link issues in the pull request body instead')
+            fi
+          fi
+
+          if [[ ${#problems[@]} -eq 0 ]]; then
             printf 'Title OK: %s\n' "$TITLE"
             exit 0
           fi
-          printf 'Title rejected: %s\n\n' "$TITLE"
+
+          printf 'Title rejected: %s\n\n' "${TITLE//[[:cntrl:]]/?}"
+          printf '  - %s\n' "${problems[@]}"
           cat <<'EOF'
+
           Expected "type: description" or "type(scope): description":
             - type is one of: feat fix docs test perf refactor ci build chore style revert
             - lowercase type and scope, one space after the colon
-            - a non-empty description with no trailing period
+            - a non-empty single-line description with no trailing period
+            - no bracket prefix such as [WIP] and no issue number such as #123 (link issues in the pull request body)
             - add "!" before the colon for a breaking change: "feat(api)!: drop the v1 endpoints"
 
           Examples:

@@ -59,8 +59,10 @@ docs(readme): clarify the local setup steps
 refactor!: rename the public configuration keys
 ```
 
-Not accepted: `[Bug] crash on save` (bracket prefix, no type), `Fix: crash on save` (uppercase type), `feature: add export` (type not in the table), `fix: crash on save.` (trailing period).
+Not accepted: `[Bug] crash on save` (bracket prefix, no type), `Fix: crash on save` (uppercase type), `feature: add export` (type not in the table), `fix: crash on save.` (trailing period), `fix: crash on save (#123)` (issue number in the title).
 
 Pull requests are squash-merged and the pull request title becomes the final commit title. GitHub appends the pull request number, for example `fix: decode nonempty NULL-only collection results (#503)`. The **PR title** check validates the format whenever a pull request is opened, edited, reopened, or updated. Individual commits on a branch are not checked.
+
+The check enforces the syntax: an allowed lowercase `type`, an optional lowercase `scope` and `!`, exactly one space after the colon, a single-line description with no leading or trailing space, no trailing period, no leading bracket marker such as `[WIP]`, and no `#123`-style issue number. The remaining wording guidance (English, a lowercase first word, no priority, size, status, or owner markers) is a review expectation that the check does not verify.
 
 Issue titles are not enforced. Anyone can open an issue without knowing this convention; maintainers adjust the title during triage.

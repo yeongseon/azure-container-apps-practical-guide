@@ -1,0 +1,44 @@
+name: PR title check tests
+
+# Runs scripts/test_pr_title_check.py, which extracts the script from
+# pr-title.yml and runs it against accepted and rejected titles. This is a
+# separate workflow because the PR title check itself checks out nothing and
+# holds no permissions; only a change to the check or its test triggers this.
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pr-title.yml'
+      - '.github/workflows/pr-title-tests.yml'
+      - 'scripts/test_pr_title_check.py'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/pr-title.yml'
+      - '.github/workflows/pr-title-tests.yml'
+      - 'scripts/test_pr_title_check.py'
+
+permissions:
+  contents: read
+
+jobs:
+  pr-title-tests:
+    name: PR title check tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Test the PR title check
+        run: python scripts/test_pr_title_check.py
