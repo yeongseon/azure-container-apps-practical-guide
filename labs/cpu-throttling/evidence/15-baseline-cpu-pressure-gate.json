@@ -8,6 +8,7 @@
     "c_success_and_zero_errors": true,
     "d_wall_clock_above_floor": true
   },
+  "evaluated_at_utc": "2026-10-29T23:35:04Z",
   "gate_classification": "Baseline gate: establishes that the cohort captured a measurable CPU pressure signal at cpu=0.25, which is the necessary pre-condition for the recovery hypothesis (Gate 16). Without H1 passing, the recovery ratio in Gate 16 is meaningless because there was no pressure to recover from.",
   "hypothesis": "H1_baseline_cpu_pressure",
   "predicate_inputs": {
@@ -60,6 +61,5 @@
     "min_replicas_expected": 1,
     "p95_baseline_floor_ms": 100,
     "requests_ok_floor": 95
-  },
-  "utc_captured": "2026-06-26T03:27:45Z"
+  }
 }

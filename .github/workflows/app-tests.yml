@@ -95,6 +95,9 @@ jobs:
       - name: Run replica-node-spread shell-level gate regression
         run: bash labs/replica-node-spread/tests/test_verify_verdict_explainable.sh
 
+      - name: Run lab README gate regressions
+        run: python3 scripts/test_lab_gates.py
+
       - name: Confirm re-verification reproduces the committed gate JSONs
         run: |
           bash labs/replica-node-spread/verify.sh

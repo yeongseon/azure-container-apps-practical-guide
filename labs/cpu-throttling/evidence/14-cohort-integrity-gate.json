@@ -8,6 +8,7 @@
     "c_no_extras": true,
     "d_readme_xref": true
   },
+  "evaluated_at_utc": "2026-10-29T23:35:04Z",
   "gate_classification": "Cohort integrity gate: a structural pre-condition that the 15-file evidence cohort is suitable to evaluate hypothesis gates 15/16/17. Falsifies the whole Phase B run if any sub-gate fails.",
   "hypothesis": "H_cohort_integrity",
   "predicate_inputs": {
@@ -48,9 +49,8 @@
     "observed_missing_count": 0
   },
   "sub_gate_c_predicate": "evidence/ contains no files outside the 15 canonical + 4 Phase B gates + README.md. Strong: zero extras AND zero missing canonical. Fallback: extras are limited to editor/OS junk (.swp/.bak/.tmp/.swo/.orig/.DS_Store/Thumbs.db) AND zero missing canonical.",
-  "sub_gate_d_predicate": "evidence/README.md exists and names every Phase B gate filename literally. Strong: all four gate filenames appear in the README body. Fallback: README exists (sub-gate runs before README has been authored in the same PR).",
+  "sub_gate_d_predicate": "evidence/README.md exists and names every Phase B gate filename literally. Single path, no existence-only fallback.",
   "sub_gate_d_readme_xref": {
-    "d_fallback_holds": true,
     "d_pass": true,
     "d_path": "strong",
     "d_strong_holds": true,
@@ -80,6 +80,5 @@
     ],
     "loadtest_span_fallback_seconds_max": 3600,
     "loadtest_span_strong_seconds_max": 1800
-  },
-  "utc_captured": "2026-06-26T03:27:45Z"
+  }
 }

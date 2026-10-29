@@ -148,9 +148,7 @@ GATE17_FILE="${EVIDENCE_DIR}/17-single-variable-falsification-gate.json"
 # JSON without knowing the absolute path on the capture host.
 REPO_RELATIVE_EVIDENCE_DIR="labs/cpu-throttling/evidence"
 
-# UTC timestamp this Phase B run was captured at -- recorded inside each gate
-# JSON so a reader can distinguish the Phase A raw capture date (2026-06-22)
-# from the Phase B verification date.
+# Evaluation time must not restate the unchanged Phase A capture as fresh.
 UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export UTC_NOW
 
@@ -218,14 +216,7 @@ echo
 #         Fallback: any extras are limited to editor/OS junk
 #                   (.swp/.bak/.tmp/.swo/.orig/.DS_Store/Thumbs.db) AND no
 #                   canonical file is missing.
-#   d) README.md cross-references every Phase B gate filename.
-#         Strong: README.md exists AND names all four gate filenames literally
-#                 (14-cohort-integrity-gate.json, 15-baseline-cpu-pressure-gate.json,
-#                 16-recovery-materialization-gate.json,
-#                 17-single-variable-falsification-gate.json).
-#         Fallback: README.md exists. (The README is created by a downstream
-#                   step in the same PR -- this sub-gate allows verify.sh to
-#                   run before the README has been authored.)
+#   d) Existence alone proves no cross-reference, so all four filenames are required.
 # =============================================================================
 
 echo "===== Gate 14 -- cohort_integrity ====="
@@ -359,14 +350,13 @@ if readme_exists:
         if n in body:
             named_outputs.append(n)
 d_strong = readme_exists and len(named_outputs) == len(PHASE_B_OUTPUTS)
-d_fallback = readme_exists
-d_pass = bool(d_strong or d_fallback)
-d_path = "strong" if d_strong else ("fallback" if d_fallback else "fail")
+d_pass = d_strong
+d_path = "strong" if d_strong else "fail"
 
 all_pass = a_pass and b_pass and c_pass and d_pass
 
 result = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "cpu_throttling",
     "hypothesis": "H_cohort_integrity",
     "claim": (
@@ -436,8 +426,7 @@ result = {
     },
     "sub_gate_d_predicate": (
         "evidence/README.md exists and names every Phase B gate filename literally. "
-        "Strong: all four gate filenames appear in the README body. Fallback: README "
-        "exists (sub-gate runs before README has been authored in the same PR)."
+        "Single path, no existence-only fallback."
     ),
     "sub_gate_d_readme_xref": {
         "observed_readme_exists": readme_exists,
@@ -445,7 +434,6 @@ result = {
         "expected_named_outputs": PHASE_B_OUTPUTS,
         "d_path": d_path,
         "d_strong_holds": d_strong,
-        "d_fallback_holds": d_fallback,
         "d_pass": d_pass,
     },
     "cpu_throttling_h_cohort_integrity_sub_gates": {
@@ -559,7 +547,7 @@ d_pass = bool(obs_wall > EXPECTED_BASELINE_WALL_CLOCK_FLOOR_SECONDS)
 all_pass = a_pass and b_pass and c_pass and d_pass
 
 result = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "cpu_throttling",
     "hypothesis": "H1_baseline_cpu_pressure",
     "claim": (
@@ -799,7 +787,7 @@ d_pass = bool(
 all_pass = a_pass and b_pass and c_pass and d_pass
 
 result = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "cpu_throttling",
     "hypothesis": "H2_recovery_materialization",
     "claim": (
@@ -1056,7 +1044,7 @@ c_pass = prefix_holds_all
 all_pass = a_pass and b_pass and c_pass
 
 result = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": UTC_NOW,
     "scenario": "cpu_throttling",
     "hypothesis": "H3_single_variable_falsification",
     "claim": (

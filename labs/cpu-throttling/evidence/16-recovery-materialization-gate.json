@@ -8,6 +8,7 @@
     "c_postfix_success_and_zero_errors": true,
     "d_revision_state": true
   },
+  "evaluated_at_utc": "2026-10-29T23:35:04Z",
   "gate_classification": "Recovery materialization gate: confirms that the cohort observed both the platform-side state change (new revision active with traffic) and the workload-side performance change (p95 below half of baseline). Strict less-than on the ratio prevents borderline-noise observations from being counted as recovery. Falsifies whole Phase B if H2 fails.",
   "hypothesis": "H2_recovery_materialization",
   "predicate_inputs": {
@@ -78,6 +79,5 @@
       "Running",
       "RunningAtMaxScale"
     ]
-  },
-  "utc_captured": "2026-06-26T03:27:45Z"
+  }
 }
