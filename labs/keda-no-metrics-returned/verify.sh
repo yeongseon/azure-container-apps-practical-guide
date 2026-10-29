@@ -32,8 +32,10 @@
 #          metrics returned from resource metrics API" substring in §5.
 #       b) NotReady correlation: §9 contains "Probe of StartUp failed"
 #          AND the §5 metric-error timestamp window overlaps the §9
-#          probe-failure timestamp window (Strong); or just probe
-#          failures present (Fallback). Overlap proves the metric
+#          probe-failure timestamp window. There is NO fallback: a
+#          correlation claim requires the overlap itself, and absent
+#          timestamps are an evidentiary gap rather than evidence of
+#          correlation. Overlap proves the metric
 #          errors fire WHILE the container is in the NotReady phase,
 #          not after.
 #       c) Eventually Ready: sidecar revisions[*].healthState=="Healthy"
@@ -194,8 +196,12 @@ for required in \
         exit 1
     fi
 done
+# Phase B captures nothing: it re-evaluates a cohort Phase A already
+# captured. This timestamp is when the gates were RE-EVALUATED, which is
+# neither the evidence capture time nor the docs edit time. Conflating them
+# would let an old cohort re-verified today look like a fresh Azure run.
 
-CAPTURED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+EVALUATED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 echo "=== Phase 10: emit H1 gate for Scenario A (slow-start, NotReady correlation) ==="
 # Sub-gate logic implemented in Python so the Strong/Fallback predicates,
@@ -204,7 +210,7 @@ echo "=== Phase 10: emit H1 gate for Scenario A (slow-start, NotReady correlatio
 # writes the gate JSON to stdout.
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 SLOW_APP_NAME="$SLOW_APP_NAME" \
 SLOW_REVISION_NAME="$SLOW_REVISION_NAME" \
 SLOW_EVIDENCE_TS="$SLOW_EVIDENCE_TS" \
@@ -218,7 +224,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 SLOW_APP_NAME = os.environ["SLOW_APP_NAME"]
 SLOW_REVISION_NAME = os.environ["SLOW_REVISION_NAME"]
 SLOW_EVIDENCE_TS = os.environ["SLOW_EVIDENCE_TS"]
@@ -431,9 +437,25 @@ if s5_timestamps and s9_probe_timestamps:
     # Inclusive overlap: shared instant counts as overlap.
     windows_overlap = max(s5_first, s9_first) <= min(s5_last, s9_last)
 
-b_strong_path_overlap = probe_failure_present and windows_overlap
-b_fallback_path_probe_present = probe_failure_present
-b_not_ready_correlated = b_strong_path_overlap or b_fallback_path_probe_present
+windows_comparable = bool(s5_timestamps and s9_probe_timestamps)
+# This sub-gate asserts a CORRELATION, so it has no admissible weak path:
+# probe lines existing somewhere in the capture is presence, not
+# correlation. Bare presence as a fallback would absorb the strong path
+# ((A and B) or A == A) and leave the overlap comparison dead, and gating
+# the fallback on "windows not comparable" merely moves the fail-open,
+# because stripping the timestamps from the probe lines would then satisfy
+# it. Missing timestamps are an evidentiary gap, not evidence of
+# correlation, so they do not pass.
+b_strong_path_overlap = (
+    probe_failure_present and windows_comparable and windows_overlap
+)
+b_not_ready_correlated = b_strong_path_overlap
+if b_not_ready_correlated:
+    b_correlation_evidence_level = "Correlated"
+elif probe_failure_present and windows_comparable:
+    b_correlation_evidence_level = "Refuted"
+else:
+    b_correlation_evidence_level = "Not Proven"
 
 # ---------- c) eventually Ready ----------
 # Strong path: sidecar revisions[0].healthState == "Healthy". The
@@ -470,7 +492,7 @@ h1_slow_sub_gates = {
 h1_slow_pass = all(h1_slow_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "A_slow",
     "hypothesis": "H1",
     "claim": "slow_start_no_metrics_correlates_with_notready_and_resolves",
@@ -495,7 +517,8 @@ print(json.dumps({
         "windows_overlap_strong_path": windows_overlap,
         "window_timestamps": overlap_info,
         "b_strong_path_probe_present_and_overlap": b_strong_path_overlap,
-        "b_fallback_path_probe_present_only": b_fallback_path_probe_present,
+        "windows_comparable": windows_comparable,
+        "b_correlation_evidence_level": b_correlation_evidence_level,
         "b_pass": b_not_ready_correlated,
     },
     "sub_gate_c_eventually_ready": {
@@ -523,7 +546,7 @@ PY
 echo "=== Phase 11: emit H1 gate for Scenario B (crash-loop, persistent unready) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 CRASH_APP_NAME="$CRASH_APP_NAME" \
 CRASH_REVISION_NAME="$CRASH_REVISION_NAME" \
 CRASH_EVIDENCE_TS="$CRASH_EVIDENCE_TS" \
@@ -537,7 +560,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 CRASH_APP_NAME = os.environ["CRASH_APP_NAME"]
 CRASH_REVISION_NAME = os.environ["CRASH_REVISION_NAME"]
 CRASH_EVIDENCE_TS = os.environ["CRASH_EVIDENCE_TS"]
@@ -752,7 +775,7 @@ h1_crash_sub_gates = {
 h1_crash_pass = all(h1_crash_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "B_crash",
     "hypothesis": "H1",
     "claim": "crash_loop_no_metrics_persists_across_bins_with_unready_state",
@@ -800,7 +823,7 @@ PY
 echo "=== Phase 12: emit H2 gate for Scenario C (healthy, signal bounded to warm-up) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 HEALTHY_APP_NAME="$HEALTHY_APP_NAME" \
 HEALTHY_REVISION_NAME="$HEALTHY_REVISION_NAME" \
 HEALTHY_EVIDENCE_TS="$HEALTHY_EVIDENCE_TS" \
@@ -814,7 +837,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 HEALTHY_APP_NAME = os.environ["HEALTHY_APP_NAME"]
 HEALTHY_REVISION_NAME = os.environ["HEALTHY_REVISION_NAME"]
 HEALTHY_EVIDENCE_TS = os.environ["HEALTHY_EVIDENCE_TS"]
@@ -1005,7 +1028,7 @@ h2_healthy_sub_gates = {
 h2_healthy_pass = all(h2_healthy_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "C_healthy",
     "hypothesis": "H2",
     "claim": "healthy_no_metrics_bounded_to_warmup_does_not_persist",
@@ -1053,7 +1076,7 @@ PY
 echo "=== Phase 13: emit H3 cross-scenario falsification gate ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 SLOW_APP_NAME="$SLOW_APP_NAME" \
 SLOW_REVISION_NAME="$SLOW_REVISION_NAME" \
 SLOW_EVIDENCE_TS="$SLOW_EVIDENCE_TS" \
@@ -1072,7 +1095,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 SLOW_APP_NAME = os.environ["SLOW_APP_NAME"]
 SLOW_REVISION_NAME = os.environ["SLOW_REVISION_NAME"]
 SLOW_EVIDENCE_TS = os.environ["SLOW_EVIDENCE_TS"]
@@ -1284,7 +1307,7 @@ h3_cross_sub_gates = {
 h3_cross_pass = all(h3_cross_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "cross_scenario_falsification",
     "hypothesis": "H3",
     "claim": "metric_error_severity_tracks_unreadiness_severity",

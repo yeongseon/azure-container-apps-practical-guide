@@ -94,8 +94,11 @@ for required in \
         exit 1
     fi
 done
+# Phase B captures nothing: it re-evaluates a cohort Phase A already
+# captured. This timestamp is when the gates were RE-EVALUATED, which is
+# neither the evidence capture time nor the docs edit time.
 
-CAPTURED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+EVALUATED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 echo "=== Phase 22: emit H1 gate for Scenario A (just-below threshold, rss) ==="
 # Sub-gate logic implemented in Python so the Strong/Fallback predicates and
@@ -108,13 +111,13 @@ echo "=== Phase 22: emit H1 gate for Scenario A (just-below threshold, rss) ==="
 # like a literal-dollar match (r"...\$") to a source reader and triggered a
 # false-positive in static review. With the quoted heredoc the regex literal
 # is exactly what Python sees, and shell vars are passed via os.environ.
-EVIDENCE_DIR="$EVIDENCE_DIR" CAPTURED_AT_UTC="$CAPTURED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/22-h1-scenario-a-gate.json"
+EVIDENCE_DIR="$EVIDENCE_DIR" EVALUATED_AT_UTC="$EVALUATED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/22-h1-scenario-a-gate.json"
 import json
 import os
 import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 # ---------- cgroup parser (cgroup v1 memory.stat format, with carriage-return artifacts) ----------
 # az containerapp exec piped through a pty wrapper produces \r\r\n line
@@ -254,7 +257,7 @@ h1_a_sub_gates = {
 h1_a_pass = all(h1_a_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "A",
     "app_name": cgroup.get("app_name"),
     "active_revision": cgroup.get("active_revision"),
@@ -305,13 +308,13 @@ print(json.dumps({
 PY
 
 echo "=== Phase 23: emit H1 gate for Scenario B (just-above threshold, rss) ==="
-EVIDENCE_DIR="$EVIDENCE_DIR" CAPTURED_AT_UTC="$CAPTURED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/23-h1-scenario-b-gate.json"
+EVIDENCE_DIR="$EVIDENCE_DIR" EVALUATED_AT_UTC="$EVALUATED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/23-h1-scenario-b-gate.json"
 import json
 import os
 import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 def parse_memory_stat(raw):
     if not isinstance(raw, str):
@@ -438,7 +441,7 @@ h1_b_sub_gates = {
 h1_b_pass = all(h1_b_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "B",
     "app_name": cgroup.get("app_name"),
     "active_revision": cgroup.get("active_revision"),
@@ -489,13 +492,13 @@ print(json.dumps({
 PY
 
 echo "=== Phase 24: emit H1 gate for Scenario C (cache inflation, cache workload) ==="
-EVIDENCE_DIR="$EVIDENCE_DIR" CAPTURED_AT_UTC="$CAPTURED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/24-h1-scenario-c-gate.json"
+EVIDENCE_DIR="$EVIDENCE_DIR" EVALUATED_AT_UTC="$EVALUATED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/24-h1-scenario-c-gate.json"
 import json
 import os
 import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 def parse_memory_stat(raw):
     if not isinstance(raw, str):
@@ -633,7 +636,7 @@ h1_c_sub_gates = {
 h1_c_pass = all(h1_c_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "C",
     "app_name": cgroup.get("app_name"),
     "active_revision": cgroup.get("active_revision"),
@@ -690,12 +693,12 @@ echo "=== Phase 25: emit H2 cross-scenario differential gate ==="
 # (walked to max), and C (held despite over-target). The differential is
 # the proof; no single scenario alone falsifies the upstream metrics-source
 # mismatch claim, but the three together do.
-EVIDENCE_DIR="$EVIDENCE_DIR" CAPTURED_AT_UTC="$CAPTURED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/25-h2-differential-gate.json"
+EVIDENCE_DIR="$EVIDENCE_DIR" EVALUATED_AT_UTC="$EVALUATED_AT_UTC" python3 - <<'PY' > "$EVIDENCE_DIR/25-h2-differential-gate.json"
 import json
 import os
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 # Reload the three H1 gates — H2 is a derived assertion over their primitive
 # fields (replicas_max, mempct_max, cgroup ratios). This keeps H2 strictly
@@ -744,7 +747,10 @@ d_strong = (c_cache_to_rss >= 30)
 d_fallback = (c_cache_to_rss >= 5)
 d_cache_explains_divergence = d_strong or d_fallback
 
-# ---------- e) ordinal scaling proven (B >> A and B >> C) ----------
+# ---------- e) ordinal scaling proven (B > A and B > C) ----------
+# The passing predicate establishes ORDER, not magnitude: the 2x margin is a
+# stricter variant that does not change which claim is licensed. The comment
+# previously read "B >> A", which the predicate never enforced.
 # This sub-gate is robust to exact-value drift: even if Strong paths drift
 # slightly in a future re-run, the ORDINAL relationship between scenarios
 # is the durable proof that the same scale rule produces different
@@ -752,6 +758,11 @@ d_cache_explains_divergence = d_strong or d_fallback
 e_strong = (b_replicas_max > a_replicas_max and b_replicas_max > c_replicas_max and b_replicas_max >= 2 * a_replicas_max)
 e_fallback = (b_replicas_max > a_replicas_max and b_replicas_max > c_replicas_max)
 e_ordinal_scaling_proven = e_strong or e_fallback
+e_scaling_evidence_level = (
+    "Ordinal With 2x Margin" if e_strong
+    else "Ordinal Only" if e_fallback
+    else "Not Proven"
+)
 
 # ---------- f) three distinct apps (no duplicate measurement) ----------
 distinct_names = {a_app_name, b_app_name, c_app_name}
@@ -773,7 +784,7 @@ h2_sub_gates = {
 h2_all_pass = all(h2_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "hypothesis": "H2: Portal MemoryPercentage value does NOT cleanly map to KEDA scaler input for cache-heavy workloads. Differential between A (held), B (walked to max), and C (stalled despite over-target) is the proof.",
     "scenarios": {
         "A": {
@@ -807,6 +818,7 @@ print(json.dumps({
         "d_fallback_path_c_cache_5x_rss": d_fallback,
         "e_strong_path_b_2x_a_and_b_gt_c": e_strong,
         "e_fallback_path_b_gt_a_and_b_gt_c": e_fallback,
+        "e_scaling_evidence_level": e_scaling_evidence_level,
     },
     "h2_sub_gates": h2_sub_gates,
     "h2_all_subgates_pass": h2_all_pass,

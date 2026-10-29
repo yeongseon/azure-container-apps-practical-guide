@@ -19,7 +19,7 @@ The lab evidence was captured in a single live-Azure window on **2026-06-24** ag
 
 - **Trigger Phase 19–21 (02:23 UTC).** CLI versions, container apps extension metadata, and region/subscription/tenant context captured for evidence completeness.
 
-- **Verify window (02:40 UTC).** `verify.sh` operates as a pure file processor against `evidence/01-*` through `evidence/18-*` (no Azure calls — fully replayable from disk). It computes four falsifiable sub-gates evaluated against a strict 2-path predicate (Strong path + Fallback path; the Strong path matches the exact lab specification, the Fallback path tolerates the same controlling behavior under minor numeric drift). All four gates were emitted with `utc_captured: 2026-06-24T02:40:09Z`:
+- **Original verification window (2026-06-24, 02:40 UTC).** `verify.sh` operates as a pure file processor against `evidence/01-*` through `evidence/18-*` (no Azure calls — fully replayable from disk). It computes four falsifiable gates, generally evaluated against a 2-path predicate (Strong path + Fallback path; the Strong path matches the exact lab specification, the Fallback path tolerates the same controlling behavior under minor numeric drift). The ordinal-scaling fallback checks the same raw ordering with no magnitude margin. The original emission was at 2026-06-24T02:40:09Z; current gate JSONs use `evaluated_at_utc` for the actual replay time, not the original emission or Azure capture time:
     - `22-h1-scenario-a-gate.json` → `scenario_a_held_at_floor_rss_dominant` (5/5 sub-gates PASS)
     - `23-h1-scenario-b-gate.json` → `scenario_b_walked_to_max_rss_dominant` (5/5 sub-gates PASS)
     - `24-h1-scenario-c-gate.json` → `scenario_c_stalled_despite_overtarget_cache_dominant` (5/5 sub-gates PASS)

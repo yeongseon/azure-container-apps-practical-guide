@@ -33,6 +33,7 @@ labs/replica-node-spread/
 ├── analyze.py                    # Phase A — Counts + cluster verdict
 ├── cleanup.sh                    # Phase A — Destructive teardown with confirmation
 ├── verify.sh                     # Phase B — Evidence-pack verifier (4 gates / 16 sub-gates, no Azure calls)
+├── test_verify.py                # Phase B — Offline regression suite for verify.sh (synthetic fixtures, no Azure calls)
 ├── evidence/                     # Committed canonical cohort + gate JSONs + README.md
 └── README.md
 ```
@@ -87,7 +88,46 @@ cat evidence/analysis-summary.md
 # verdicts without re-deploying the lab.
 bash verify.sh
 ls evidence/{10,11,12,13}-*-gate.json
+
+# Regression suite for the verifier itself. Runs verify.sh against isolated
+# temp-dir copies of this lab using synthetic fixtures, so it never touches
+# the preserved cohort and never calls Azure.
+python3 test_verify.py
 ```
+
+## Raw primacy
+
+Gate 11 sub-gate (d) enforces the Oracle rule that raw JSONL wins whenever
+the `analysis-summary` or the H3 verdict conflicts with it. Each of the four
+H3 checks is recomputed from the anchor JSONL as one of:
+
+| Outcome | Meaning | Effect on the sub-gate |
+|---|---|---|
+| VERIFIED | Recomputed from raw and it holds | Contributes to the Strong path |
+| REFUTED | Recomputed from raw and it fails | Fails the sub-gate outright |
+| INCONCLUSIVE | Raw lacks the data needed to decide | Fallback may still stand, at a lower evidence level |
+
+The sub-gate reports `d_evidence_level` so a reviewer can tell the two
+admissible paths apart: `"Observed"` when all four checks are VERIFIED, and
+`"Inconclusive"` when the claim rests on the verdict file because
+recomputation was not possible. An "Overall: PASS" line in the verdict file
+can never by itself carry a sub-gate whose raw recomputation is REFUTED.
+
+Gate 11 validates anchor `uptime_seconds` and any supplied
+`boot_time_estimate_ms` as finite integers/floats with magnitude at most 2^53, excluding booleans.
+Out-of-range values are malformed. `boot_id` and `replica_name` must be non-empty strings. Malformed fields
+are named in `anchor_malformed_fields`, make their checks INCONCLUSIVE,
+and block both passing paths; they are not labelled contradictions.
+Missing boot-time estimates retain the lower-evidence, uncontradicted path.
+The verdict must contain exactly one valid `Overall: PASS` or
+`Overall: FAIL` line and one valid line for each of the four check keys.
+Duplicate or missing Overall lines cannot pass; missing Overall is not
+an asserted FAIL and does not set `raw_contradicts_verdict`.
+
+Every scale file needs at least one record matching its filename's profile
+and scale, even within the one-mismatching-record tolerance. Gate 13's
+README check has only one path: the evidence README must reference every
+gate-output filename; existence alone cannot pass.
 
 ## Experiment shape
 

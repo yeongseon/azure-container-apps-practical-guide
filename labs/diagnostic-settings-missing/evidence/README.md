@@ -29,7 +29,7 @@ Capture phases:
 - `09-kql-after.json` stores `console_rows` and `system_rows` as JSON strings, not numbers. Phase B casts them with `int(...)` before evaluating thresholds.
 - `07-revisions-after.json` is a top-level array, not an object wrapper. Phase B treats the file itself as the revision record set.
 - The file name `00-verify-run.txt` is preserved for schema stability even though the Phase A script was renamed to `fix-and-capture.sh` during the Phase B overlay.
-- Gate 14 evaluates both Strong and Fallback paths and records both explicitly; a gate passes only when every sub-gate passes at least one path.
+- Gate 14 sub-gates (a)-(c) evaluate Strong and Fallback paths. Sub-gate (d) has one path requiring all four output references; partial references cannot pass. Every sub-gate must pass an admissible path.
 - Exit-code semantics differ by phase: `fix-and-capture.sh` may exit 2 for H2-falsified, while Phase B `verify.sh` exits only 0 (all gates pass) or 1 (any gate fails).
 - Region and tooling context are preserved in `12-region.json`, `10-cli-versions.json`, and `11-cli-containerapp-ext.json` so future readers can compare reproductions apples-to-apples.
 - The environment workspace customer ID is intentionally redacted from Phase B gate JSON prose/observed-values to avoid treating a real workspace GUID as shippable documentation text.
@@ -62,10 +62,10 @@ Capture phases:
 | Environment capture | `11-cli-containerapp-ext.json` | 65 B | `az extension list --query "[?name=='containerapp']" --output json` |
 | Environment capture | `12-region.json` | 74 B | Region and resource-group anchor |
 | Deployment outputs | `13-deployment-outputs.json` | 1186 B | `az deployment group show --name main` outputs |
-| Phase B gate JSON | `14-cohort-integrity-gate.json` | 9763 B | `bash verify.sh` Gate 14 output |
-| Phase B gate JSON | `15-baseline-silent-gate.json` | 3526 B | `bash verify.sh` Gate 15 output |
-| Phase B gate JSON | `16-post-fix-populated-gate.json` | 4944 B | `bash verify.sh` Gate 16 output |
-| Phase B gate JSON | `17-single-variable-falsification-gate.json` | 6782 B | `bash verify.sh` Gate 17 output |
+| Phase B gate JSON | `14-cohort-integrity-gate.json` | 10293 B | `bash verify.sh` Gate 14 output |
+| Phase B gate JSON | `15-baseline-silent-gate.json` | 3530 B | `bash verify.sh` Gate 15 output |
+| Phase B gate JSON | `16-post-fix-populated-gate.json` | 4948 B | `bash verify.sh` Gate 16 output |
+| Phase B gate JSON | `17-single-variable-falsification-gate.json` | 6786 B | `bash verify.sh` Gate 17 output |
 | Documentation | `README.md` | (this file) | Phase B evidence-pack tour, capture timeline, gate descriptions, disclosures, file index |
 
 ## CLI versions and platform context
