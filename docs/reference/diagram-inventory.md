@@ -93,6 +93,8 @@ The following summary tables are generated directly from `docs/reference/diagram
 
 ### Asset Exclusions by Group
 
+Asset groups are path-based claims, not visual verification. Wildcard `paths` entries claim only raster images (`.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`); vector or diagram-source assets require an exact path without wildcard characters, or a matching path rule whose optional `extensions` array explicitly lists the extension (for example, `[".svg", ".mmd"]`). Otherwise they remain in `exceptions.unclassified_assets` for review.
+
 <!-- BEGIN GENERATED: diagram-inventory:exclusions -->
 | Exclusions | Count |
 |---|---:|
@@ -248,6 +250,8 @@ This validates that the manifest conforms to the JSON schema, keys are unique, b
 
 ### Regenerating the Manifest
 
+The manifest is regenerated whole from the tree at a pinned `baseline.base_commit`, rather than retaining separate baseline records and current-tree observations. Run `--verify-tree` before rewriting to see removed and changed records. Reviewed planning fields are preserved by key, while a reviewed classification is preserved only when the diagram body's `baseline.source_sha256` is unchanged; a changed body receives a fresh, unreviewed heuristic classification and must be reviewed again.
+
 Update the manifest and generated documentation blocks after adding or modifying diagrams:
 
 ```bash
@@ -260,6 +264,19 @@ To pin the manifest baseline to a specific commit:
 python3 scripts/diagram_inventory.py --write --base-commit "$(git rev-parse HEAD)"
 ```
 
+### Migration Progress States
+
+Batch owners edit `target`, `context.reader_intent`, and `migration` by key; these planning fields survive body changes and regeneration.
+
+| Migration state | Meaning | `exception` |
+|---|---|---|
+| `not-started` | Migration has not begun. | `null` |
+| `in-progress` | The owning batch is migrating the diagram. | `null` |
+| `completed` | The owning batch records migration as complete. | `null` |
+| `exception` | Migration has an explicitly recorded exception. | Nonblank explanation string |
+
+These are owner-maintained progress states, not proof of rendering, source verification, or review approval.
+
 ### Checking Tree Drift (Advisory)
 
 Inspect changes between the working tree and the committed baseline:
@@ -269,6 +286,8 @@ python3 scripts/diagram_inventory.py --verify-tree
 ```
 
 This compares extracted diagram records with the baseline; it does not report extraction completeness. Consult `unrecognized_mermaid_fences` through `--check` for blocking extraction findings. A drift-free result alone does not establish a complete inventory.
+
+The JSON categories are `added` and `removed` keys; `moved` key changes with identical bodies; `changed` body hashes; `reclassified` genre, syntax type, or assignment changes; `provenance` changes to the complete provenance record; and `relocated` changes to the same key's line, end line, or heading path. `assets` lists changed exclusion-group path sets as `{group, added, removed}` records, with `group: null` for the unclassified-asset set; `visuals` lists keys added, removed, or changed in non-Mermaid visual records. Paths are compared as sets, not list order. Drift remains advisory (exit zero); adding `--strict` makes any non-empty category fail.
 
 ### Displaying Summary Metrics
 

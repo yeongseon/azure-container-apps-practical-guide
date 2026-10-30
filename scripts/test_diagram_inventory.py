@@ -322,6 +322,193 @@ class TreeTests(unittest.TestCase):
     def build(self) -> inventory.Record:
         return inventory.build(self.root, self.rules, '0' * 40)
 
+    def test_migration_states_and_exception_schema(self):
+        schema = json.loads((self.root / inventory.SCHEMA).read_text())
+        cases = [(state, None, state in {'not-started', 'in-progress', 'completed'}) for state in
+                 ('not-started', 'in-progress', 'completed', 'exception', 'complete')]
+        cases += [('exception', reason, valid) for reason, valid in
+                  ((None, False), ('', False), (' \t\n', False), ('Owner deferred conversion', True), (42, False))]
+        cases += [(state, 'Unexpected reason', False) for state in
+                  ('not-started', 'in-progress', 'completed')]
+        for state, reason, valid in cases:
+            with self.subTest(state=state, reason=reason):
+                value = self.build()
+                value['diagrams'][0]['migration'] = {'state': state, 'exception': reason}
+                self.assertEqual(not inventory.structural(value, schema, schema['$defs']), valid)
+                if jsonschema is not None:
+                    self.assertEqual(jsonschema.Draft202012Validator(schema).is_valid(value), valid)
+
+    def test_write_preserves_migration_progress_by_key(self):
+        for state, reason in (('in-progress', None), ('completed', None),
+                              ('exception', 'Owner deferred conversion')):
+            with self.subTest(state=state):
+                previous = self.build()
+                migration = {'state': state, 'exception': reason}
+                previous['diagrams'][0]['migration'] = migration
+                _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(previous))
+                written = self.cli('--write')
+                self.assertEqual(written.returncode, 0, written.stderr)
+                actual = json.loads((self.root / inventory.MANIFEST).read_text())
+                self.assertEqual(actual['diagrams'][0]['migration'], migration)
+                checked = self.cli('--check')
+                self.assertEqual(checked.returncode, 0, checked.stdout)
+
+    def test_deleted_tracked_page_is_absent_for_write_and_verify(self):
+        _ = (self.root / 'docs/second.md').write_text('# Second page\n')
+        for args in (('init',), ('add', '.')):
+            result = subprocess.run(['git', *args], cwd=self.root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+        initial = self.cli('--write', '--base-commit', '0' * 40)
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        (self.root / 'docs/x.md').unlink()
+        advisory = self.cli('--verify-tree')
+        self.assertEqual(advisory.returncode, 0, advisory.stderr)
+        self.assertNotIn('Traceback', advisory.stderr)
+        self.assertEqual(json.loads(advisory.stdout)['removed'], ['docs/x.md#x'])
+        written = self.cli('--write')
+        self.assertEqual(written.returncode, 0, written.stderr)
+        self.assertNotIn('Traceback', written.stderr)
+        self.assertEqual(json.loads((self.root / inventory.MANIFEST).read_text())['diagrams'], [])
+        self.assertIn('docs/second.md', inventory.tracked(self.root))
+        self.assertNotIn('docs/x.md', inventory.tracked(self.root))
+
+    def test_walk_tracks_only_existing_files(self):
+        (self.root / 'folder.md').mkdir()
+        (self.root / 'dangling.md').symlink_to(self.root / 'absent.md')
+        (self.root / 'docs/x.md').unlink()
+        self.assertEqual(inventory.tracked(self.root), sorted(
+            [inventory.SCRIPT, inventory.SCHEMA, inventory.RULES]))
+
+    def test_asset_wildcards_require_explicit_vector_or_source_claims(self):
+        directory = self.root / 'docs/assets'
+        directory.mkdir()
+        paths = {extension: f'docs/assets/diagram{extension}' for extension in inventory.ASSETS}
+        for path in paths.values():
+            _ = (self.root / path).write_text('fixture')
+        rule = self.rules['asset_exclusions'][0]
+        for pattern in ('docs/assets/*', 'docs/assets/diagram.?vg', 'docs/assets/diagram.[sm]*'):
+            with self.subTest(pattern=pattern):
+                rule['paths'] = [pattern]
+                result = self.build()
+                self.assertIn(paths['.svg'], result['exceptions']['unclassified_assets'])
+                self.assertIn(paths['.mmd'], result['exceptions']['unclassified_assets'])
+        rule['paths'] = ['docs/assets/*']
+        result = self.build()
+        raster = {paths[e] for e in ('.png', '.webp', '.jpg', '.jpeg', '.gif')}
+        self.assertEqual(set(result['exclusions']['assets'][0]['paths']), raster)
+        self.assertEqual(set(result['exceptions']['unclassified_assets']), set(paths.values()) - raster)
+        rule['paths'].append(paths['.svg'])
+        exact = self.build()
+        self.assertEqual(set(exact['exclusions']['assets'][0]['paths']), raster | {paths['.svg']})
+        self.assertIn(paths['.mmd'], exact['exceptions']['unclassified_assets'])
+        rule['paths'] = ['docs/assets/*']
+        rule['extensions'] = ['.svg', '.mmd']
+        explicit = self.build()
+        self.assertEqual(set(explicit['exclusions']['assets'][0]['paths']), raster | {paths['.svg'], paths['.mmd']})
+        self.assertEqual(set(explicit['exceptions']['unclassified_assets']),
+                         set(paths.values()) - raster - {paths['.svg'], paths['.mmd']})
+        rule['paths'] = ['elsewhere/*']
+        self.assertEqual(self.build()['exceptions']['unclassified_assets'], sorted(paths.values()))
+
+    def test_changed_body_invalidates_review_but_preserves_plan(self):
+        previous = self.build()
+        prior = previous['diagrams'][0]
+        prior['classification']['review_status'] = 'reviewed'
+        prior.update(genre_candidate='topology', needs_review=False)
+        prior['context']['reader_intent'] = 'Identify boundaries'
+        prior['target']['base'] = 'Planned base'
+        prior['migration'] = {'state': 'in-progress', 'exception': None}
+        for changed in (False, True):
+            with self.subTest(changed=changed):
+                if changed:
+                    _ = (self.root / 'docs/x.md').write_text(
+                        '<!-- diagram-id:x -->\n```mermaid\ngraph LR\nsubgraph X\nA{Ready?}-->B\nend\n```\n')
+                _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(previous))
+                written = self.cli('--write')
+                self.assertEqual(written.returncode, 0, written.stderr)
+                actual = json.loads((self.root / inventory.MANIFEST).read_text())['diagrams'][0]
+                self.assertEqual(actual['classification']['review_status'], 'unreviewed' if changed else 'reviewed')
+                self.assertEqual(actual['genre_candidate'], 'unknown' if changed else 'topology')
+                self.assertEqual(actual['needs_review'], changed)
+                self.assertEqual(actual['context']['reader_intent'], prior['context']['reader_intent'])
+                self.assertEqual(actual['target'], prior['target'])
+                self.assertEqual(actual['migration'], prior['migration'])
+
+    def assert_drift(self, expected: inventory.Record) -> None:
+        empty = {name: [] for name in ('added', 'removed', 'moved', 'changed', 'reclassified',
+                                      'provenance', 'relocated', 'assets', 'visuals')}
+        for strict in (False, True):
+            result = self.cli('--verify-tree', *(['--strict'] if strict else []))
+            self.assertEqual(result.returncode, int(strict and bool(expected)), result.stderr)
+            self.assertEqual(json.loads(result.stdout), {**empty, **expected})
+
+    def test_verify_tree_provenance_drift(self):
+        original = (self.root / 'docs/x.md').read_text()
+        for before, after in (({'id': 'x', 'note': 'old'}, {'id': 'x', 'note': 'new'}),
+                              ({'id': 'x', 'note': 'old'}, None)):
+            with self.subTest(after=after):
+                def page(entry: inventory.Record | None) -> str:
+                    return '---\ncontent_sources:\n  diagrams: ' + json.dumps([entry] if entry else []) + '\n---\n' + original
+                _ = (self.root / 'docs/x.md').write_text(page(before))
+                _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(self.build()))
+                _ = (self.root / 'docs/x.md').write_text(page(after))
+                self.assert_drift({'provenance': ['docs/x.md#x']})
+
+    def test_verify_tree_relocated_drift(self):
+        original = (self.root / 'docs/x.md').read_text()
+        for field in ('line', 'end_line', 'heading_path'):
+            with self.subTest(field=field):
+                baseline = self.build()
+                baseline['diagrams'][0]['location'][field] = ['Former heading'] if field == 'heading_path' else 99
+                _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(baseline))
+                self.assert_drift({'relocated': ['docs/x.md#x']})
+        _ = (self.root / 'docs/x.md').write_text('\n' + original)
+        self.assert_drift({'relocated': ['docs/x.md#x']})
+
+    def test_verify_tree_asset_drift(self):
+        directory = self.root / 'docs/assets'
+        directory.mkdir()
+        _ = (directory / 'old.png').write_text('fixture')
+        _ = (directory / 'old.svg').write_text('fixture')
+        _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(self.build()))
+        _ = (directory / 'old.png').rename(directory / 'new.png')
+        _ = (directory / 'old.svg').rename(directory / 'new.svg')
+        self.assert_drift({'assets': [
+            {'group': 'screenshots', 'added': ['docs/assets/new.png'], 'removed': ['docs/assets/old.png']},
+            {'group': None, 'added': ['docs/assets/new.svg'], 'removed': ['docs/assets/old.svg']}]})
+
+    def test_verify_tree_visual_drift(self):
+        visual = self.visual_manifest()['visuals'][0]
+        for change in ('added', 'removed', 'changed'):
+            with self.subTest(change=change):
+                self.rules['visuals'] = [] if change == 'added' else [copy.deepcopy(visual)]
+                _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(self.build()))
+                self.rules['visuals'] = [] if change == 'removed' else [copy.deepcopy(visual)]
+                if change == 'changed':
+                    self.rules['visuals'][0]['sources'] = ['docs/new-graph.json']
+                _ = (self.root / inventory.RULES).write_text(inventory.encoded(self.rules))
+                self.assert_drift({'visuals': ['visual:x']})
+
+    def test_asset_drift_added_and_removed_groups(self):
+        previous = self.build()
+        current = copy.deepcopy(previous)
+        previous['exclusions']['assets'] = [
+            {'group': 'old', 'paths': ['old.png']}, {'group': 'empty', 'paths': []}]
+        current['exclusions']['assets'] = [{'group': 'new', 'paths': ['new.png']}]
+        self.assertEqual(inventory.drift(previous, current)['assets'], [
+            {'group': 'new', 'added': ['new.png'], 'removed': []},
+            {'group': 'old', 'added': [], 'removed': ['old.png']}])
+
+    def test_drift_ignores_asset_order_and_unchanged_visuals(self):
+        previous = self.visual_manifest()
+        previous['exclusions']['assets'][0]['paths'] = ['a.png', 'b.png']
+        previous['exceptions']['unclassified_assets'] = ['a.svg', 'b.svg']
+        current = copy.deepcopy(previous)
+        current['exclusions']['assets'][0]['paths'].reverse()
+        current['exceptions']['unclassified_assets'].reverse()
+        self.assertEqual(inventory.drift(previous, current), {name: [] for name in (
+            'added', 'removed', 'moved', 'changed', 'reclassified', 'provenance', 'relocated', 'assets', 'visuals')})
+
     def visual_manifest(self) -> inventory.Record:
         value = self.build()
         value['visuals'] = [{'key': 'visual:x', 'kind': 'cytoscape', 'pages': ['docs/x.md'],
