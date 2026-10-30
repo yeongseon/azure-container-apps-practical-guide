@@ -31,10 +31,42 @@ body:
     validations:
       required: true
   - type: textarea
-    id: validation
+    id: observed-evidence
     attributes:
-      label: Validation or evidence
-      description: Share logs, screenshots, links, or other evidence.
-      placeholder: Paste relevant output or links here.
+      label: Observed evidence or limitation
+      description: Share logs, screenshots or links, or state why evidence is currently unavailable. Never invent a test run.
+      placeholder: Evidence reference or 'not collected because ...'.
+    validations:
+      required: true
+  - type: textarea
+    id: affected-scope
+    attributes:
+      label: Affected scope and baseline
+      description: Provide repo file paths, version/commit or as-of date, and distinguish confirmed behavior from assumptions.
+      placeholder: Affected paths; observed at commit...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Use checkboxes with observable success and at least one negative/edge case when relevant; say what should fail.
+      placeholder: "- [ ] A specific observable outcome"
+    validations:
+      required: true
+  - type: textarea
+    id: verification-plan
+    attributes:
+      label: Verification plan
+      description: Commands or manual steps, expected result, and what cannot be verified; do not claim unrun tests.
+      placeholder: Command / expected output; or manual evidence path.
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope / dependencies
+      description: Keep fixes bounded and link related issues or prerequisites.
+      placeholder: Not changing...; depends on #...
     validations:
       required: false

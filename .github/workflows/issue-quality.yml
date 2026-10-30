@@ -1,0 +1,53 @@
+name: Issue specification quality
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+  pull_request:
+    paths:
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/workflows/issue-quality.yml"
+      - "scripts/validate_issue_spec.py"
+      - "scripts/test_validate_issue_spec.py"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-new-issue:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check required issue structure (pre-policy issues exempt)
+        env:
+          ISSUE_EVENT_JSON: ${{ toJSON(github.event.issue) }}
+        run: python3 scripts/validate_issue_spec.py
+
+  test-validator:
+    if: github.event_name != 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Parse issue forms and verify mandatory quality fields
+        run: |
+          ruby -ryaml -e '
+            files = Dir.glob(".github/ISSUE_TEMPLATE/*.yml").reject { |f| f.end_with?("/config.yml") }
+            abort "no issue forms found" if files.empty?
+            files.each do |f|
+              form = YAML.safe_load_file(f)
+              fields = form.fetch("body")
+              required = fields.select { |row| row.fetch("validations", {})["required"] }.map { |row| row.dig("attributes", "label").to_s.downcase }
+              abort "#{f}: no acceptance/decision criterion" unless required.any? { |label| label.include?("acceptance") || label.include?("decision or tracking") }
+              abort "#{f}: no validation or closure field" unless required.any? { |label| label.include?("verification") || label.include?("closure") }
+            end
+            puts "Parsed #{files.length} issue forms with required criteria"
+          '
+      - name: Run issue specification unit tests
+        run: python3 scripts/test_validate_issue_spec.py
