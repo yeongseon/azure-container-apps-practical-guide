@@ -1234,3 +1234,17 @@ In these cases, report the blocking gate and hand off to the user.
 ## Git Commit Style
 
 Titles for issues, pull requests, and commits follow the **Title Convention** in [`CONTRIBUTING.md`](CONTRIBUTING.md#title-convention), the single source of truth for the format and the allowed types.
+
+## Issue Quality Contract (Human and AI Authors)
+
+GitHub issue forms help people using the web UI, but **do not constrain issues created by agents through the GitHub API**. Apply this contract before creating or substantially editing an issue. Keep issue titles consistent with the Title Convention in CONTRIBUTING.md.
+
+1. **Problem and impact:** explain the concrete defect, decision or reader problem in plain language; avoid private session IDs, speculative conclusions and unexplained internal abbreviations.
+2. **Evidence and as-of baseline:** link exact source paths, a relevant commit/date and the minimal reproduction/observation. Say *unverified*, *inferred* or *not collected* rather than fabricate a test run, count, live Azure result, source or screenshot. Do not present a dated inventory as current.
+3. **Scope:** specify the affected files/pages and a bounded deliverable; record exclusions, dependencies and parent/child relationships. Search for an existing issue before creating another.
+4. **Acceptance:** list observable success criteria, including a negative/edge fixture for defects where relevant. For visual content require rendered inspection, alt/caption accuracy, source and final-byte PII review. For labs protect raw capture provenance and distinguish offline re-evaluation from live reproduction.
+5. **Verification:** name expected automated or manual checks, what they establish, and what cannot be checked in the current environment. Record actual commands/results in the PR or follow-up; a proposed command is not an executed validation.
+6. **Closure:** link the PR/commit, confirmed external action, documented decision or dated tracker outcomes; explain blocked/deferred work and owner/next checkpoint. Do not close a tracker solely because it looks old, or change historical evidence/check states to fit a template.
+7. **Issue type:** manual decisions and program trackers use explicit decision/closure evidence, not synthetic code regression tests; keep the existing technical detail of already-clear issues. Use short, specific language rather than repeated boilerplate.
+
+Issue forms: `.github/ISSUE_TEMPLATE/`. Future issue events are audited by `scripts/validate_issue_spec.py` (with pre-policy issues grandfathered); the automated check catches *missing structural fields*, not factual or technical quality. Reviewers must still assess evidence, scope, correctness and claims independently. Backlog audit: #419.
