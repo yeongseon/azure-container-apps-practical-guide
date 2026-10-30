@@ -38,6 +38,10 @@ IDENTIFIER = re.compile(r'^\s*<!--\s*diagram-id:\s*(.*?)\s*-->\s*$')
 HEADING = re.compile(r'^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*$')
 LIST_MARKER = re.compile(r'(?:[-+*]|\d{1,9}[.)])(?:[ \t]+|$)')
 CONTAINER = re.compile(r'^\s*(!!!|\?\?\?\+?|===[+!]?)\s')
+THEMATIC_BREAK = re.compile(r'^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$')
+HTML_OPEN = re.compile(r'^ {0,3}<([A-Za-z][A-Za-z0-9-]*)(?=[\s/>]|$)')
+HTML_CLOSE = re.compile(r'^ {0,3}</([A-Za-z][A-Za-z0-9-]*)\s*>')
+HTML_VOID = frozenset('area base br col embed hr img input link meta param source track wbr'.split())
 INLINE_CODE = re.compile(r'(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)')
 BLOCKING_REASONS = {'blockquote', 'list-marker', 'indented'}
 TYPES = set(('flowchart graph sequenceDiagram stateDiagram stateDiagram-v2 '
@@ -227,23 +231,48 @@ def indentation(line: str) -> int:
     return len(expanded) - len(expanded.lstrip(' '))
 
 
-def plain_code(lines: list[str], index: int) -> bool:
-    """A blank/start boundary with no less-indented container ancestor is code."""
+def track_html(line: str, open_tags: list[str]) -> None:
+    """Keep the names of HTML elements that a line start opened and nothing has closed yet.
+
+    Void and self-closing tags and elements closed on the same line are ignored; a closing tag
+    pops the nearest open element of that name. An element that is never closed stays open,
+    which only makes a later indented fence blocking instead of informational.
+    """
+    closing_tag = HTML_CLOSE.match(line)
+    if closing_tag:
+        name = closing_tag.group(1).lower()
+        if name in open_tags:
+            del open_tags[len(open_tags) - 1 - open_tags[::-1].index(name):]
+        return
+    opening_tag = HTML_OPEN.match(line)
+    if not opening_tag:
+        return
+    name = opening_tag.group(1).lower()
+    rest = line[opening_tag.end():]
+    tag_end = rest.find('>')
+    if name in HTML_VOID or (tag_end > 0 and rest[tag_end - 1] == '/') or f'</{name}' in rest.lower():
+        return
+    open_tags.append(name)
+
+
+def plain_code(lines: list[str], index: int, html_open: bool) -> bool:
+    """A blank/start boundary outside open HTML and without a container ancestor is code."""
     column = indentation(lines[index])
-    if column < 4 or (index and lines[index - 1].strip()):
+    if html_open or column < 4 or (index and lines[index - 1].strip()):
         return False
     for position in range(index - 1, -1, -1):
         earlier = lines[position]
         if not earlier.strip() or indentation(earlier) >= column:
             continue
         column = indentation(earlier)
-        html = re.match(r'^\s*<[A-Za-z/!]', earlier) and not re.fullmatch(r'\s*<!--.*?-->\s*', earlier)
-        if LIST_MARKER.match(earlier.lstrip()) or CONTAINER.match(earlier) or html:
+        if LIST_MARKER.match(earlier.lstrip()) or CONTAINER.match(earlier):
             return False
         if column == 0:
             while position and lines[position - 1].strip():
+                if HEADING.match(lines[position]) or THEMATIC_BREAK.match(lines[position]):
+                    break
                 position -= 1
-                if LIST_MARKER.match(lines[position].lstrip()):
+                if indentation(lines[position]) < 4 and LIST_MARKER.match(lines[position].lstrip()):
                     return False
             break
     return True
@@ -266,12 +295,17 @@ def unsupported_fence(line: str, plain: bool) -> tuple[str, str] | None:
 
 
 def unsupported_end(lines: list[str], index: int, marker: str) -> int:
-    """Skip an unsupported block to its closing marker; another opener means the block is unclosed."""
+    """Skip an unsupported block to its closing marker.
+
+    A shorter fence of the same kind inside it is content. Another opener of the same
+    kind and at least the same length means the block is unclosed, so the scan resumes after its opener.
+    """
     for end in range(index + 1, len(lines)):
         rest = re.sub(r'^[\s>]*', '', lines[end])
         if closing(rest, marker):
             return end + 1
-        if FENCE.match(rest):
+        opener = FENCE.match(rest)
+        if opener and opener.group(1)[0] == marker[0] and len(opener.group(1)) >= len(marker):
             break
     return index + 1
 
@@ -310,23 +344,24 @@ def comment_end(lines: list[str], start: int) -> tuple[int, list[int]] | None:
 def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list[Occurrence], list[int], list[Record]]:
     """Consume comments/fences atomically; examples never emit unsupported findings.
 
-    Plain code starts only at a blank/start boundary without container ancestors,
-    survives blank/indented lines, and ends before the first nonblank dedent.
+    Plain code starts only at a blank/start boundary outside open HTML elements and without
+    container ancestors, survives blank/indented lines, and ends before the first nonblank dedent.
     Every unsupported fence (any language) consumes its closer before resuming;
-    only Mermaid openers emit findings. A new opener stops unclosed consumption.
+    only Mermaid openers emit findings. A new same-kind opener stops unclosed consumption.
     """
     lines = text.splitlines()
     headings: list[tuple[int, str]] = []
     output: list[Occurrence] = []
     unclosed: list[int] = []
     unrecognized: list[Record] = []
+    open_tags: list[str] = []
     i = offset
     plain = False
     while i < len(lines):
         if lines[i].strip() and indentation(lines[i]) < 4:
             plain = False
         if not plain:
-            plain = plain_code(lines, i)
+            plain = plain_code(lines, i, bool(open_tags))
         heading = HEADING.match(lines[i])
         opening = FENCE.match(lines[i])
         unsupported = unsupported_fence(lines[i], plain)
@@ -353,6 +388,7 @@ def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list
                 headings = [h for h in headings if h[0] < level]
                 title = re.sub(r'[ \t]+#+[ \t]*$', '', heading.group(2))
                 headings.append((level, title))
+            track_html(lines[i], open_tags)
             i += 1
             continue
         marker, info = opening.groups()

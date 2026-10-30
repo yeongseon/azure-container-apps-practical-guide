@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class ParsingTests(unittest.TestCase):
     def test_html_ancestor_makes_indented_fences_blocking(self):
         ancestors = ('<div>', '<section>', '<details>', '<aside>', '<table>\n  <td>',
-                     '<custom-widget>', '</div>', '<!DOCTYPE html>')
+                     '<custom-widget>', '<div class="x">', '<DIV>', '<div\n  class="x">')
         for ancestor in ancestors:
             for marker in ('```', '~~~'):
                 for newline in ('\n', '\r\n'):
@@ -34,6 +34,70 @@ class ParsingTests(unittest.TestCase):
                         found, _, findings = inventory.scan_fences(text.replace('\n', newline))
                         self.assertEqual([item for item in found if not item.example], [])
                         self.assertEqual(findings, [{'line': len(ancestor.splitlines()) + 4, 'reason': 'indented'}])
+
+    def test_html_wrapper_with_intervening_content_keeps_indented_fence_blocking(self):
+        wrappers = (('<div>\n', '</div>\n'), ('<section>\n', '</section>\n'), ('<details>\n<summary>Title</summary>\n', '</details>\n'),
+                    ('<table>\n  <tr>\n    <td>\n', '    </td>\n  </tr>\n</table>\n'), ('<custom-widget>\n', '</custom-widget>\n'))
+        contents = ('', 'Explanation.\n\n', '# Heading\n\n', '- item\n\n', '---\n\n', '```bash\necho hi\n```\n\n',
+                    '<section>\n\nInner.\n\n', '<!-- note -->\n\n', '![alt](x.png)\n\n', '<br>\n\n')
+        for opening, closing in wrappers:
+            for content in contents:
+                for marker in ('```', '~~~'):
+                    for prefix in ('    ', '\t'):
+                        for newline in ('\n', '\r\n'):
+                            with self.subTest(opening=opening, content=content, marker=marker, prefix=prefix, newline=newline):
+                                tail = '</section>\n' if content.startswith('<section>') else ''
+                                text = (opening + '\n' + content + prefix + marker + 'mermaid\n' + prefix + 'flowchart LR\n'
+                                        + prefix + marker + '\n' + tail + closing).replace('\n', newline)
+                                found, unclosed, findings = inventory.scan_fences(text)
+                                line = next(n for n, row in enumerate(text.splitlines(), 1) if 'mermaid' in row)
+                                self.assertEqual((found, unclosed), ([], []))
+                                self.assertEqual(findings, [{'line': line, 'reason': 'indented'}])
+
+    def test_html_context_ends_with_its_closing_tag(self):
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        found, unclosed, findings = inventory.scan_fences('<p>\n\n' + fence + '\n</p>\n\n' + fence)
+        self.assertEqual((found, unclosed), ([], []))
+        self.assertEqual(findings, [{'line': 3, 'reason': 'indented'}, {'line': 9, 'reason': 'indented-code'}])
+        unclosed_element = inventory.scan_fences('<p>\n\ntext\n\n' + fence)[2]
+        self.assertEqual(unclosed_element, [{'line': 5, 'reason': 'indented'}])
+
+    def test_closed_void_and_inline_html_leave_plain_code_informational(self):
+        contexts = ('<br>\n\n', '<hr/>\n\n', '<img src="x.png">\n\n', '<https://example.com>\n\n', '<a href="x">Link</a>\n\n',
+                    '<div>text</div>\n\n', '<div>\n\nbody\n\n</div>\n\n', '</div>\n\n', '<!DOCTYPE html>\n\n',
+                    '<div>\n<section>\n\nbody\n\n</section>\n</div>\n\n', '<table>\n  <tr>\n    <td>x</td>\n  </tr>\n</table>\n\n')
+        for context in contexts:
+            for marker in ('```', '~~~'):
+                for newline in ('\n', '\r\n'):
+                    with self.subTest(context=context, marker=marker, newline=newline):
+                        text = (context + '    ' + marker + 'mermaid\n    flowchart LR\n    ' + marker + '\n').replace('\n', newline)
+                        found, unclosed, findings = inventory.scan_fences(text)
+                        self.assertEqual((found, unclosed), ([], []))
+                        self.assertEqual(findings, [{'line': len(context.splitlines()) + 1, 'reason': 'indented-code'}])
+
+    def test_track_html_keeps_only_open_elements(self):
+        cases = (([], '<div>', ['div']), ([], '<div class="x" id="y">', ['div']), ([], '<div', ['div']), ([], '   <section>', ['section']),
+                 ([], '<DIV>', ['div']), ([], '<custom-widget>', ['custom-widget']), ([], '<p>text', ['p']),
+                 ([], '<div/>', []), ([], '<custom-widget />', []), ([], '<br>', []), ([], '<img src="x.png">', []),
+                 ([], '<span>a</span>', []), ([], '<p>text</p>', []), ([], '    <div>', []), ([], '<https://example.com>', []),
+                 ([], '<a@b.c>', []), ([], '<!-- note -->', []), ([], '<!DOCTYPE html>', []), ([], 'text <div>', []),
+                 (['div'], '</div>', []), (['div'], '</DIV>', []), (['div', 'section', 'p'], '</section>', ['div']),
+                 (['div', 'div'], '</div>', ['div']), ([], '</div>', []), (['div'], '</section>', ['div']))
+        for before, line, expected in cases:
+            with self.subTest(before=before, line=line):
+                stack = list(before)
+                inventory.track_html(line, stack)
+                self.assertEqual(stack, expected)
+
+    def test_heading_or_thematic_break_ends_a_list_before_plain_code(self):
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        for text, line in (('- item\n# Heading\n\n' + fence, 4), ('- item\n---\n\n' + fence, 4), ('* item\n***\n\n' + fence, 4),
+                           ('1. item\n## Heading\ntext\n\n' + fence, 5), ('- item\n# Heading\n\n' + fence.replace('```', '~~~'), 4)):
+            for newline in ('\n', '\r\n'):
+                with self.subTest(text=text, newline=newline):
+                    found, unclosed, findings = inventory.scan_fences(text.replace('\n', newline))
+                    self.assertEqual((found, unclosed), ([], []))
+                    self.assertEqual(findings, [{'line': line, 'reason': 'indented-code'}])
 
     def test_balanced_html_wrappers_block_both_fence_markers(self):
         for tag in ('div', 'section', 'details', 'aside', 'table', 'td'):
@@ -62,6 +126,10 @@ class ParsingTests(unittest.TestCase):
         text = '    Example:\n    ```mermaid\n    ~~~mermaid\n    body\n    ~~~\n    ```\n'
         found, _, findings = inventory.scan_fences(text)
         self.assertEqual(found, [])
+        self.assertEqual(findings, [{'line': 2, 'reason': 'indented-code'}])
+        separate = '    ```mermaid\n    a\n    ```\n\n    ~~~mermaid\n    b\n    ~~~\n'
+        found, _, findings = inventory.scan_fences(separate)
+        self.assertEqual(found, [])
         self.assertEqual([item['reason'] for item in findings], ['indented-code', 'indented-code'])
 
     def test_plain_code_continuation_without_blank_before_opener(self):
@@ -85,11 +153,43 @@ class ParsingTests(unittest.TestCase):
                             self.assertEqual([(item.line, item.example, item.body) for item in found], [(5, False, 'flowchart LR\nA --> B')])
                             self.assertEqual((unclosed, findings), ([], []))
 
+    def test_longer_outer_fence_consumes_shorter_inner_fences_to_its_closer(self):
+        for char in ('`', '~'):
+            for length in (3, 4, 5):
+                for info in ('', 'markdown'):
+                    for prefix in ('    ', '\t'):
+                        for closer_prefix in ('', '  ', prefix):
+                            for inner in ((char * (length - 1),) if length > 3 else ()) + (('~' if char == '`' else '`') * 3,):
+                                for newline in ('\n', '\r\n'):
+                                    with self.subTest(char=char, length=length, info=info, prefix=prefix, closer_prefix=closer_prefix,
+                                                      inner=inner, newline=newline):
+                                        text = (prefix + char * length + info + '\n' + prefix + inner + 'bash\n' + prefix + 'echo hello\n'
+                                                + prefix + inner + '\n' + closer_prefix + char * length + '\n\n```mermaid\nflowchart LR\n```\n')
+                                        found, unclosed, findings = inventory.scan_fences(text.replace('\n', newline))
+                                        self.assertEqual([(item.line, item.example) for item in found], [(7, False)])
+                                        self.assertEqual((unclosed, findings), ([], []))
+
+    def test_same_kind_opener_of_equal_or_longer_length_still_ends_unclosed_consumption(self):
+        for outer, opener in (('```', '```mermaid'), ('```', '````mermaid'), ('~~~', '~~~mermaid'), ('````', '````mermaid')):
+            with self.subTest(outer=outer, opener=opener):
+                text = '    ' + outer + 'bash\n    echo hello\n\n' + opener + '\nflowchart LR\n' + opener[:len(opener) - 7] + '\n'
+                found, unclosed, findings = inventory.scan_fences(text)
+                self.assertEqual([(item.line, item.example) for item in found], [(4, False)])
+                self.assertEqual((unclosed, findings), ([], []))
+
     def test_indented_generic_unclosed_fence_stops_at_another_opener(self):
         text = '    ```bash\n    echo hello\n\n```mermaid\nflowchart LR\n```\n'
         found, unclosed, findings = inventory.scan_fences(text)
         self.assertEqual([(item.line, item.example) for item in found], [(4, False)])
         self.assertEqual((unclosed, findings), ([], []))
+
+    def test_indented_list_like_code_line_is_not_a_list_item(self):
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        found, unclosed, findings = inventory.scan_fences('    - item literal\nparagraph\n\n' + fence)
+        self.assertEqual((found, unclosed), ([], []))
+        self.assertEqual(findings, [{'line': 4, 'reason': 'indented-code'}])
+        nested = inventory.scan_fences('- a\n    - b\nlazy\n\n' + fence)[2]
+        self.assertEqual(nested, [{'line': 5, 'reason': 'indented'}])
 
     def test_lazy_list_paragraph_keeps_indented_fence_blocking(self):
         for marker in ('-', '*', '1.'):
@@ -697,7 +797,7 @@ class TreeTests(unittest.TestCase):
                     self.assertIn('docs/x.md:', checked.stdout)
                     self.assertIn('move the fence to the top level with at most 3 spaces of indentation, or show it inside a longer outer fence, then regenerate', checked.stdout)
                 else:
-                     self.assertEqual(sum(f': {reason} Mermaid fence is not rendered (informational)' in line for line in checked.stdout.splitlines()), 2)
+                    self.assertEqual(sum(f': {reason} Mermaid fence is not rendered (informational)' in line for line in checked.stdout.splitlines()), 2)
 
     def test_html_container_write_records_blocking_extraction(self):
         _ = (self.root / 'docs/x.md').write_text('<div>\n\n    ~~~mermaid\nflowchart LR\n    ~~~\n</div>\n')
