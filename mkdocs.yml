@@ -100,6 +100,8 @@ validation:
 
 not_in_nav: |
   /reference/metrics.md
+  /reference/diagram-inventory.md
+  /reference/adr-diagram-composition.md
 
 nav:
   - Home: index.md
@@ -560,8 +562,6 @@ nav:
     - Environment Variables: reference/environment-variables.md
     - Platform Limits: reference/platform-limits.md
     - Configuration Scope Matrix: reference/configuration-scope-matrix.md
-    - Diagram Inventory: reference/diagram-inventory.md
-    - ADR - Diagram Composition: reference/adr-diagram-composition.md
     - Metrics:
       - reference/metrics/index.md
       - Container App Metrics: reference/metrics/container-app-metrics.md

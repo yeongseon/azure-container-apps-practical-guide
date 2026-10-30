@@ -1,12 +1,12 @@
 {
   "baseline": {
     "base_commit": "5279b7ba0bc630aad051f956001340b55d53cb39",
-    "counting_policy": "Every Mermaid fence in a tracked Markdown file is one occurrence; an asset referenced N times is one asset with N usages; two fences with equal text are two occurrences. Counts by batch include only migration-required occurrences; excluded occurrences have no owning batch. Node, edge and component counts are regex approximations.",
+    "counting_policy": "Every Mermaid fence in a tracked Markdown file is one occurrence; an asset referenced N times is one asset with N usages; two fences with equal text are two occurrences. Counts by batch include only Mermaid migration-required occurrences; excluded occurrences have no owning batch. Non-Mermaid visuals are reported separately and never included in totals.by_batch. Node, edge and component counts are regex approximations.",
     "rules_sha256": "3b512de53bdbc26f4dab9725a271a73fd3a79ac8623a0083b7e4fc94d3667f64",
     "scanner": {
       "path": "scripts/diagram_inventory.py",
-      "sha256": "481befa41cb60d5479558e2df5a80057689193fa092771200862fb1ba775505b",
-      "version": "1.0.0"
+      "sha256": "71ed37d4363efbb5fc825ef14cb487d3316d6008e8ea30ea3d1c88e8d4adfeb0",
+      "version": "1.1.0"
     }
   },
   "batches": [
@@ -551,6 +551,7 @@
       "labs/replica-node-spread/README.md#~1",
       "labs/startup-degraded-transient-failure/README.md#~1"
     ],
+    "frontmatter_duplicate_ids": [],
     "frontmatter_entries_without_fence": [
       {"entry":{"based_on":["https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures","https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files"],"id":"azure-files-mount-failure-flow","source":"mslearn-adapted","type":"flowchart"},"page":"docs/troubleshooting/lab-guides/azure-files-mount-failure.md"},
       {"entry":{"based_on":["https://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management","https://learn.microsoft.com/en-us/azure/container-apps/revisions","https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting"],"id":"bicep-deployment-timeout-lab","source":"mslearn-adapted","type":"flowchart"},"page":"docs/troubleshooting/lab-guides/bicep-deployment-timeout.md"},
@@ -791,6 +792,7 @@
     ],
     "unclassified_assets": [],
     "unclosed_fences": [],
+    "unrecognized_mermaid_fences": [],
     "unresolved_overlaps": []
   },
   "exclusions": {
