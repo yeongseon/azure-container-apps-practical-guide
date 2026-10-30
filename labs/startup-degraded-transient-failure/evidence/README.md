@@ -70,7 +70,7 @@ This is the crucial transient-state nuance: the system **did** enter a degraded 
 `12-recovery-fix-gate.json` proves the client-visible side of H0. It uses qF plus the latest healthy snapshots from qA/qB to show:
 
 1. The perturbation run's `err_pct` is exactly zero on the strong tier; the lower-evidence fallback tier allows `err_pct < 0.5` under D6.
-2. The D6 falsification rule did not trigger for either baseline or perturbation; both must report `False` on the single path.
+2. The D6 falsification rule did not trigger: qF holds exactly one baseline run and one perturbation run, and both must report `False` on the single path.
 3. The post-rollout healthy snapshots show the newest revision running on the strong tier; the lower-evidence fallback tier requires the latest active qA row to report at least 3 replicas (3 observed).
 
 Gate 12 is intentionally the **H0-held gate**. Its PASS state does **not** mean "nothing happened." It means "something happened internally, but ACA masked it from the client." That interpretation only becomes correct when Gate 12 is read together with Gate 11.
@@ -127,7 +127,7 @@ Sizes shown are bytes-on-disk at commit time; KB values use 1024-byte units.
 | `qG-audit-sampler-quirk-20260620T225143Z.json` | **Canonical / consumed** | 1.5 KB | Consumed by Gates 10 and 13 for pack completeness and documented quirk context. |
 | `10-canonical-evidence-integrity-gate.json` | **Derived / Phase B** | 5.3 KB | Gate 10 output emitted by the pure-file `verify.sh`. |
 | `11-failure-degraded-state-gate.json` | **Derived / Phase B** | 4.7 KB | Gate 11 output emitted by the pure-file `verify.sh`. |
-| `12-recovery-fix-gate.json` | **Derived / Phase B** | 3.9 KB | Gate 12 output emitted by the pure-file `verify.sh`. |
+| `12-recovery-fix-gate.json` | **Derived / Phase B** | 4.0 KB | Gate 12 output emitted by the pure-file `verify.sh`. |
 | `13-cross-artifact-consistency-gate.json` | **Derived / Phase B** | 3.7 KB | Gate 13 output emitted by the pure-file `verify.sh`. |
 | `q1-per-run-summary-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical run-summary export from the 2026-06-20 repro; not part of gate predicates. |
 | `q2-buckets-10s-sum-vus-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical 2026-06-20 bucket export; superseded by qC for canonical gate inputs. |

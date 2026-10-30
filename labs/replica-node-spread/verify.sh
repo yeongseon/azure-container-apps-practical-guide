@@ -9,10 +9,15 @@
 # is replayable from disk so a reviewer can re-classify gates without
 # re-deploying the lab.
 #
-# This script's strict 2-path predicate rule (Lab 11/12/13/14/15/16/17/18 lesson):
-#   Each sub-gate computes Strong AND Fallback in the same evaluation;
+# This script's 2-path predicate rule (Lab 11/12/13/14/15/16/17/18 lesson):
+#   Most sub-gates compute Strong AND Fallback in the same evaluation;
 #   the gate passes if EITHER path is true. The JSON output captures
 #   which path passed so a reviewer can audit the evidence trail.
+#   Gate 12 sub-gates a and d and Gate 13 sub-gates b and c have ONE
+#   path, because a fallback implied by the strong path would discard
+#   the requirement the sub-gate is named for; Gate 11 sub-gate d keeps
+#   a fallback narrowed so that verdict text cannot rescue refuted raw
+#   evidence.
 #
 # Oracle Lab 19 directive (verbatim, bg_021159d5 2026-06-24):
 #   "Pick replica-node-spread over zone-redundancy-best-effort."
@@ -132,10 +137,11 @@
 #       a) observed_level_claims_only: this gate emits an explicit
 #          claim_level field == "Strongly Suggested" for the
 #          headline claim ("observed node-spread behavior under this
-#          test matrix") and does NOT emit any claim_level ==
-#          "Observed" for cross-replica node placement — Strong path;
-#          OR claim_level is not "Observed" (Fallback — weakest
-#          form of the same predicate). The Oracle directive
+#          test matrix") and the headline string carries no standalone
+#          "Observed" token — ONE path. Both values are constants
+#          declared in this script, so the sub-gate checks the
+#          self-consistency of the declared headline, not published
+#          prose. The Oracle directive
 #          requires: "Keep the final claim narrow: observed node-
 #          spread behavior under this test matrix, not platform-
 #          wide placement guarantees." The captured baseline has
@@ -154,8 +160,8 @@
 #       c) repeats_show_variability: the Consumption scale=30 runs
 #          1/2/3 OR the Dedicated-D8 scale=10 runs 1/2/3 show at
 #          least some ms-level variability in cluster_centers_ms
-#          across the 3 runs (proves the captures are independent,
-#          not duplicated) — Strong path; OR at least one re-run
+#          across the 3 runs (shows the repeats are not byte-identical
+#          duplicates) — Strong path; OR at least one re-run
 #          pair shows non-identical cluster_centers_ms (Fallback).
 #          The captured baseline has Consumption scale=30 runs
 #          showing center[0] = 1781224393764 (run 1) vs 1781224393763
@@ -168,8 +174,9 @@
 #          meaning 3 replicas per run land on existing kernel
 #          contexts) AND Dedicated-D8 scale=3 (3 unique replicas
 #          but 1 boot_id, meaning all 3 share kernel context) —
-#          Strong path; OR at least one co-location case identified
-#          in either profile (Fallback). The Oracle directive:
+#          ONE path: both counterexamples are required, because
+#          accepting any single co-location case would discard the
+#          other one. The Oracle directive:
 #          "Deterministic spread claims: no language like 'replicas
 #          always spread one per node' unless the raw cohort
 #          proves that across the matrix, which is unlikely." The
@@ -1556,8 +1563,8 @@ b_profiles_separate = (
 # ---------- sub-gate c: repeats show variability ----------
 # Strong path: the Consumption scale=30 runs 1/2/3 OR the Dedicated-D8
 # scale=10 runs 1/2/3 show at least some ms-level variability in
-# cluster_centers_ms across the 3 runs (proves the captures are
-# independent, not duplicated).
+# cluster_centers_ms across the 3 runs (shows the repeats are not
+# byte-identical duplicates).
 # Fallback path: at least one re-run pair shows non-identical
 # cluster_centers_ms.
 def check_repeats_variability(profile_summary, scale):

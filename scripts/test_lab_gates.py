@@ -175,6 +175,38 @@ class StartupGateTests(unittest.TestCase):
             self.assertIs(sub["b_pass"], False)
             self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_unexpected_run_mix_fails(self) -> None:
+        def rename_baseline(records: list[dict[str, str]]) -> list[dict[str, str]]:
+            return [
+                {**record, "run_id": "perturbation-FAKE"} if record["run_id"].startswith("baseline-") else record
+                for record in records
+            ]
+
+        def duplicate_baseline(records: list[dict[str, str]]) -> list[dict[str, str]]:
+            baseline = next(record for record in records if record["run_id"].startswith("baseline-"))
+            return [*records, {**baseline, "run_id": "baseline-20260620213448"}]
+
+        def remove_baseline(records: list[dict[str, str]]) -> list[dict[str, str]]:
+            return [record for record in records if not record["run_id"].startswith("baseline-")]
+
+        for name, mutate, baseline_count, perturbation_count in (
+            ("baseline renamed to a second perturbation", rename_baseline, 0, 2),
+            ("duplicate baseline appended", duplicate_baseline, 2, 1),
+            ("baseline removed", remove_baseline, 0, 1),
+        ):
+            with self.subTest(case=name), fixture_lab(self.lab_name) as lab:
+                path = lab / "evidence" / "qF-run-summary-20260620T224149Z.json"
+                _ = path.write_text(json.dumps(mutate([*json.loads(path.read_text())])))
+
+                result = run_verify(lab)
+
+                data: dict[str, dict[str, bool | int]] = {**json.loads((lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text())}
+                sub = data["sub_gate_b_falsification_rule_not_triggered"]
+                self.assertEqual(sub["observed_baseline_run_count"], baseline_count)
+                self.assertEqual(sub["observed_perturbation_run_count"], perturbation_count)
+                self.assertIs(sub["b_pass"], False)
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_disjoint_ids_fail_even_with_three_qe_ids(self) -> None:
         with fixture_lab(self.lab_name) as lab:
             path = lab / "evidence" / "qA-revision-state-20260620T223951Z.json"

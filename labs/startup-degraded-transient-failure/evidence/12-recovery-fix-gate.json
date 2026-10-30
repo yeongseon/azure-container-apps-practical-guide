@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T00:06:26Z",
+  "evaluated_at_utc": "2026-10-30T01:35:03Z",
   "scenario": "rolling_rollout_with_probes_masked_by_readiness",
   "hypothesis": "H0_partB_recovery_no_client_impact",
   "claim": "aca_rolling_rollout_masked_transients_to_clients",
@@ -9,7 +9,7 @@
     "qf_path": "labs/startup-degraded-transient-failure/evidence/qF-run-summary-20260620T224149Z.json"
   },
   "sub_gate_a_predicate": "The official perturbation run in qF has err_pct == 0; the lower-evidence fallback tier allows err_pct < 0.5 because D6 falsifies only sustained windows above 0.5%.",
-  "sub_gate_b_predicate": "The D6 falsification rule did not trigger: both canonical runs (baseline + perturbation) must report False on the single path.",
+  "sub_gate_b_predicate": "The D6 falsification rule did not trigger: qF must hold exactly one baseline run and exactly one perturbation run (run_id prefixes) and both must report False, on the single path.",
   "sub_gate_c_predicate": "Healthy snapshots exist after rollout. Strong tier requires all qB rows in the latest snapshot of the latest revision to be Running; the lower-evidence fallback tier requires the latest active qA row to report replicas >= 3.",
   "strong_err_pct_threshold": 0.0,
   "fallback_err_pct_threshold": 0.5,
@@ -33,6 +33,8 @@
     "a_pass": true
   },
   "sub_gate_b_falsification_rule_not_triggered": {
+    "observed_baseline_run_count": 1,
+    "observed_perturbation_run_count": 1,
     "observed_false_run_count": 2,
     "observed_first_5": [
       {

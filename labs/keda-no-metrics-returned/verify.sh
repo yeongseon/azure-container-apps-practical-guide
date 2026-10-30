@@ -87,8 +87,11 @@
 #          has crash=603s vs slow=136s vs healthy=106s → 4.43x ratio.
 #       c) Health state matches outcome: healthy=="Healthy" AND
 #          slow=="Healthy" AND crash=="Unhealthy" (Strong); or crash
-#          != "Healthy" AND at least one of {healthy, slow} == "Healthy"
-#          (Fallback).
+#          =="Unhealthy" AND at least one of {healthy, slow} ==
+#          "Healthy" (Fallback). Both tiers require all three states
+#          to be reported as "Healthy" or "Unhealthy"; anything else
+#          (absent, null, empty, "None", "Unknown", ...) is unreported
+#          evidence and fails both tiers.
 #
 # Why we do NOT key strong predicates to the FULL log sentence:
 #   The current Container Apps KEDA scaler emits the sentence "invalid

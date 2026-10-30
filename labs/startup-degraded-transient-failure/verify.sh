@@ -548,10 +548,14 @@ perturbation_err_pct = as_float(perturbation_run.get("err_pct", 0))
 a_strong = perturbation_err_pct == 0.0
 a_fallback = perturbation_err_pct < 0.5
 
-strong_false_runs = []
-for record in baseline_run_records + perturbation_run_records:
-    strong_false_runs.append(str(record.get("falsification_triggered", "")) == "False")
-b_strong = len(strong_false_runs) == 2 and all(strong_false_runs)
+baseline_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in baseline_run_records]
+perturbation_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in perturbation_run_records]
+strong_false_runs = baseline_runs_false + perturbation_runs_false
+b_strong = (
+    len(baseline_runs_false) == 1
+    and len(perturbation_runs_false) == 1
+    and all(strong_false_runs)
+)
 
 latest_qb_timestamp = max(record.get("TimeGenerated") for record in qb_records)
 latest_qb_records = [record for record in qb_records if record.get("TimeGenerated") == latest_qb_timestamp]
@@ -580,7 +584,7 @@ result = {
         "qf_path": repo_rel(qf),
     },
     "sub_gate_a_predicate": "The official perturbation run in qF has err_pct == 0; the lower-evidence fallback tier allows err_pct < 0.5 because D6 falsifies only sustained windows above 0.5%.",
-    "sub_gate_b_predicate": "The D6 falsification rule did not trigger: both canonical runs (baseline + perturbation) must report False on the single path.",
+    "sub_gate_b_predicate": "The D6 falsification rule did not trigger: qF must hold exactly one baseline run and exactly one perturbation run (run_id prefixes) and both must report False, on the single path.",
     "sub_gate_c_predicate": "Healthy snapshots exist after rollout. Strong tier requires all qB rows in the latest snapshot of the latest revision to be Running; the lower-evidence fallback tier requires the latest active qA row to report replicas >= 3.",
     "strong_err_pct_threshold": 0.0,
     "fallback_err_pct_threshold": 0.5,
@@ -593,6 +597,8 @@ result = {
         "a_pass": a_strong or a_fallback,
     },
     "sub_gate_b_falsification_rule_not_triggered": {
+        "observed_baseline_run_count": len(baseline_run_records),
+        "observed_perturbation_run_count": len(perturbation_run_records),
         "observed_false_run_count": sum(1 for value in strong_false_runs if value),
         "observed_first_5": sample(qf_records),
         "b_strong_path_baseline_and_perturbation_false": b_strong,

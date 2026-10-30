@@ -106,7 +106,7 @@ export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 
 ## Data flow
 
-Offline Gate 12(b) requires both baseline and perturbation to report no falsification; Gate 13(b) requires a shared qA/qE perturbation ID. The error-rate, snapshot and capture-window checks retain their strong and lower-evidence fallback tiers. All four emitted gates record replay time in `evaluated_at_utc`, not a new capture date.
+Offline Gate 12(b) requires exactly one baseline run and one perturbation run in qF, both reporting no falsification; Gate 13(b) requires a shared qA/qE perturbation ID. The error-rate, snapshot and capture-window checks retain their strong and lower-evidence fallback tiers. All four emitted gates record replay time in `evaluated_at_utc`, not a new capture date.
 
 ```mermaid
 flowchart TD
