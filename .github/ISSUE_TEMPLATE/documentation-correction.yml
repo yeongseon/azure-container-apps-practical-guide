@@ -35,3 +35,35 @@ body:
       placeholder: Replace the current sentence with...
     validations:
       required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and as-of baseline
+      description: Quote/link current incorrect claim with path/line; mark facts, inference and version used.
+      placeholder: At commit... this sentence...
+    validations:
+      required: true
+  - type: textarea
+    id: affected-scope
+    attributes:
+      label: Scope and non-goals
+      description: Specific page(s) to change and what is deliberately excluded.
+      placeholder: Change ...; do not alter ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Specific reader-visible correction and source-backed result, not just 'update docs'.
+      placeholder: - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: verification-plan
+    attributes:
+      label: Verification plan
+      description: Documentation commands, citations, link/render/manual visual checks and evidence to report.
+      placeholder: mkdocs build --strict; verify rendered page ...
+    validations:
+      required: true
