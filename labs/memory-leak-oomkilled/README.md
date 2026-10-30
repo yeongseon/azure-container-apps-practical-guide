@@ -36,7 +36,7 @@ labs/memory-leak-oomkilled/
 ├── trigger-scenario-b.sh       # Gradual leak (background thread)
 ├── trigger-scenario-c.sh       # Healthy control
 ├── trigger-fix.sh              # Apply fix to Scenario A
-├── verify.sh                   # Collect evidence (logs, metrics, cgroup)
+├── verify.sh                   # Offline evaluator of the committed evidence (emits the four gate files)
 └── cleanup.sh
 ```
 

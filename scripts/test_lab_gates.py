@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Final
@@ -86,7 +86,7 @@ def fixture_lab(name: str) -> Iterator[Path]:
         yield destination
 
 
-def run_verify(lab: Path) -> subprocess.CompletedProcess[str]:
+def run_verify(lab: Path, extra_env: Mapping[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     # Remove only derived outputs so a no-op verifier cannot reuse committed gates.
     for name in GATE_OUTPUTS[lab.name]:
         (lab / "evidence" / name).unlink(missing_ok=True)
@@ -94,6 +94,7 @@ def run_verify(lab: Path) -> subprocess.CompletedProcess[str]:
         **os.environ,
         "PATH": f"{Path(sys.executable).parent}{os.pathsep}{os.environ.get('PATH', '')}",
         "PYTHONDONTWRITEBYTECODE": "1",
+        **(extra_env or {}),
     }
     return subprocess.run(
         ["bash", "verify.sh"],

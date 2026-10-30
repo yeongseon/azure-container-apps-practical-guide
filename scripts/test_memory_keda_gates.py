@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 from typing import Final
@@ -18,31 +19,133 @@ MEMORY_SECTION: Final = (
 )
 SIGNAL: Final = "no metrics returned from resource metrics API"
 TIMESTAMP: Final = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z")
+OOM_ROW: Final = "ProcessExited exit code '137'  ContainerTerminated  PrimaryResult  2026-06-20T04:13:33.3617092Z"
+MEMORY_SCENARIOS: Final = (
+    ("hard", "20260620T060257Z", 16, 0, "sub_gate_a_signal_observed"),
+    ("leak", "20260620T042200Z", 1, 1, "sub_gate_c_leak_eventually_kills"),
+    ("healthy", "20260620T042246Z", 0, 2, "sub_gate_a_no_oom_records"),
+)
+
+
+def emitted_gates(lab: Path) -> dict[str, object]:
+    """The gate documents the verifier emitted, without the evaluation time."""
+    gates: dict[str, object] = {}
+    for name in GATE_OUTPUTS[MEMORY_LAB]:
+        path = lab / "evidence" / name
+        document = json.loads(path.read_text()) if path.exists() else None
+        if isinstance(document, dict):
+            _ = document.pop("evaluated_at_utc", None)
+        gates[name] = document
+    return gates
 
 
 class MemoryReportTests(unittest.TestCase):
+    def assert_extra_oom_counted(self, lab: Path, result: subprocess.CompletedProcess[str], app: str,
+                                 count: int, gate: int, subgate: str) -> None:
+        data = json.loads((lab / "evidence" / GATE_OUTPUTS[MEMORY_LAB][gate]).read_text())
+        cross = json.loads((lab / "evidence" / GATE_OUTPUTS[MEMORY_LAB][3]).read_text())
+        self.assertEqual(data[subgate]["oom_record_count_section_5"], count + 1)
+        self.assertEqual(cross["observed_metrics"][app]["section_5_oom_count"], count + 1)
+        self.assertEqual([v for k, v in data.items() if k.endswith("all_subgates_pass")], [app != "healthy"])
+        self.assertIs(cross["h3_cross_all_subgates_pass"], app != "healthy")
+        self.assertEqual(result.returncode, int(app == "healthy"), result.stdout + result.stderr)
+
     def test_prefixed_oom_rows_are_counted_in_each_scenario(self) -> None:
-        scenarios = (("hard", "20260620T060257Z", 16, 0, "sub_gate_a_signal_observed"),
-                     ("leak", "20260620T042200Z", 1, 1, "sub_gate_c_leak_eventually_kills"),
-                     ("healthy", "20260620T042246Z", 0, 2, "sub_gate_a_no_oom_records"))
-        for app, stamp, count, gate, subgate in scenarios:
+        for app, stamp, count, gate, subgate in MEMORY_SCENARIOS:
             for prefix in ("(container event)", "- container event", "Log_s container event"):
                 with self.subTest(app=app, prefix=prefix), fixture_lab(MEMORY_LAB) as lab:
                     path = lab / f"evidence/ca-oom-{app}/report-{stamp}.txt"
                     before, rest = path.read_text().split(MEMORY_SECTION, 1)
                     body, after = rest.split("=== 6.", 1)
-                    row = prefix + " ProcessExited exit code '137'  ContainerTerminated  PrimaryResult  2026-06-20T04:13:33.3617092Z"
-                    _ = path.write_text(before + MEMORY_SECTION + body + row + "\n=== 6." + after)
+                    _ = path.write_text(before + MEMORY_SECTION + body + prefix + " " + OOM_ROW + "\n=== 6." + after)
 
                     result = run_verify(lab)
 
-                    data = json.loads((lab / "evidence" / GATE_OUTPUTS[MEMORY_LAB][gate]).read_text())
-                    cross = json.loads((lab / "evidence" / GATE_OUTPUTS[MEMORY_LAB][3]).read_text())
-                    self.assertEqual(data[subgate]["oom_record_count_section_5"], count + 1)
-                    self.assertEqual(cross["observed_metrics"][app]["section_5_oom_count"], count + 1)
-                    self.assertEqual([v for k, v in data.items() if k.endswith("all_subgates_pass")], [app != "healthy"])
-                    self.assertIs(cross["h3_cross_all_subgates_pass"], app != "healthy")
-                    self.assertEqual(result.returncode, int(app == "healthy"), result.stdout + result.stderr)
+                    self.assert_extra_oom_counted(lab, result, app, count, gate, subgate)
+
+    def test_evaluation_reads_the_section_that_was_validated(self) -> None:
+        # An indented copy of the header is not validated, and a form feed or a Unicode line separator
+        # ends a line for the validation as well as for the evaluation; the row added to the validated
+        # section must be counted in every case.
+        cases = (("indented-decoy", ("hard", "leak", "healthy")), ("form-feed-before-header", ("healthy",)),
+                 ("line-separator-before-header", ("healthy",)))
+        for case, apps in cases:
+            for app, stamp, count, gate, subgate in MEMORY_SCENARIOS:
+                if app not in apps:
+                    continue
+                with self.subTest(case=case, app=app), fixture_lab(MEMORY_LAB) as lab:
+                    path = lab / f"evidence/ca-oom-{app}/report-{stamp}.txt"
+                    before, rest = path.read_text().split(MEMORY_SECTION, 1)
+                    body, after = rest.split("=== 6.", 1)
+                    section = MEMORY_SECTION + body + OOM_ROW + "\n=== 6." + after
+                    variants = {
+                        "indented-decoy": "  " + MEMORY_SECTION + "\n" + body + "=== 1. Decoy end ===\n" + before + section,
+                        "form-feed-before-header": before.rstrip("\n") + "\f" + section,
+                        "line-separator-before-header": before.rstrip("\n") + "\u2028" + section,
+                    }
+                    _ = path.write_text(variants[case])
+
+                    result = run_verify(lab)
+
+                    self.assert_extra_oom_counted(lab, result, app, count, gate, subgate)
+
+    def test_alternative_line_separators_do_not_change_any_gate(self) -> None:
+        # Replacing every line feed of the three reports with a form feed, a Unicode line separator or a
+        # next-line character must give exactly the gates of the unchanged reports.
+        reports = ("ca-oom-hard/report-20260620T060257Z.txt", "ca-oom-leak/report-20260620T042200Z.txt",
+                   "ca-oom-healthy/report-20260620T042246Z.txt")
+        with fixture_lab(MEMORY_LAB) as lab:
+            control_result = run_verify(lab)
+            control = emitted_gates(lab)
+        self.assertEqual(control_result.returncode, 0, control_result.stdout + control_result.stderr)
+        for separator in ("\f", "\u2028", "\x85"):
+            with self.subTest(separator=separator), fixture_lab(MEMORY_LAB) as lab:
+                for report in reports:
+                    path = lab / "evidence" / report
+                    _ = path.write_bytes(path.read_text().replace("\n", separator).encode())
+
+                result = run_verify(lab)
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(emitted_gates(lab), control)
+
+    def test_reports_are_read_as_utf8_whatever_the_locale(self) -> None:
+        # The reports hold non-ASCII text; the validation names its encoding, so the evaluation must too.
+        with fixture_lab(MEMORY_LAB) as lab:
+            control_result = run_verify(lab)
+            control = emitted_gates(lab)
+            result = run_verify(lab, {"LC_ALL": "C", "PYTHONUTF8": "0", "PYTHONCOERCECLOCALE": "0"})
+
+            self.assertEqual(control_result.returncode, 0, control_result.stdout + control_result.stderr)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(emitted_gates(lab), control)
+
+    def test_first_data_row_is_evaluated(self) -> None:
+        # The evaluators skip the note, the header and the separator; the first data row must be read.
+        for app, stamp, count, gate, subgate in MEMORY_SCENARIOS:
+            with self.subTest(app=app), fixture_lab(MEMORY_LAB) as lab:
+                path = lab / f"evidence/ca-oom-{app}/report-{stamp}.txt"
+                before, rest = path.read_text().split(MEMORY_SECTION, 1)
+                body, after = rest.split("=== 6.", 1)
+                lines = body.splitlines()
+                _ = path.write_text(before + MEMORY_SECTION + "\n".join(lines[:4] + [OOM_ROW] + lines[4:]) + "\n=== 6." + after)
+
+                result = run_verify(lab)
+
+                self.assert_extra_oom_counted(lab, result, app, count, gate, subgate)
+
+    def test_single_data_row_is_evaluated(self) -> None:
+        with fixture_lab(MEMORY_LAB) as lab:
+            path = lab / "evidence/ca-oom-healthy/report-20260620T042246Z.txt"
+            before, rest = path.read_text().split(MEMORY_SECTION, 1)
+            body, after = rest.split("=== 6.", 1)
+            _ = path.write_text(before + MEMORY_SECTION + "\n".join(body.splitlines()[:4] + [OOM_ROW]) + "\n=== 6." + after)
+
+            result = run_verify(lab)
+
+            data = json.loads((lab / "evidence" / GATE_OUTPUTS[MEMORY_LAB][2]).read_text())
+            self.assertEqual(data["sub_gate_a_no_oom_records"]["oom_record_count_section_5"], 1)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
     def test_structural_defects_are_rejected_independently(self) -> None:
         for case in ("wrong-table", "wrong-boundary", "intervening-section", "duplicate-only", "invalid-day"):
