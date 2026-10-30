@@ -115,8 +115,8 @@
 #       d) verdict_explainable: the H3 verdict text may never overrule
 #          contradictory raw records (see "Summary-first reasoning" and
 #          "Do not let the H3 verdict overrule contradictory raw files"
-#          below). Each of the 4 sub-checks ("samples N >= 4", "boot_id
-#          consistent", "uptime monotonic", "boot_time_estimate stable")
+#          below). Each of the 4 sub-checks (replica-consistent,
+#          boot-consistent, uptime-monotonic, boot-nontrivial)
 #          is recomputed from the H3 jsonl as VERIFIED, REFUTED, or
 #          INCONCLUSIVE (raw lacks the data to decide). Strong path: all
 #          4 VERIFIED and verdict.txt reports "Overall: PASS", reported
@@ -127,6 +127,8 @@
 #          Any REFUTED sub-check fails the gate outright. The captured
 #          baseline has all 4 sub-checks VERIFIED from raw and matching
 #          the verdict text.
+#          Sample count and boot-time span are additional requirements,
+#          not assertions made by the verdict text.
 #
 #   12-claim-eligibility-gate.json — Gate 3 (5 sub-gates) proves the
 #     evidence supports only Oracle-permitted claims and surfaces
@@ -253,6 +255,7 @@
 set -euo pipefail
 
 EVIDENCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/evidence"
+export PYTHONPATH="$(dirname "$EVIDENCE_DIR")${PYTHONPATH:+:$PYTHONPATH}"
 REPO_RELATIVE_EVIDENCE_DIR="labs/replica-node-spread/evidence"
 SCRIPT_PATH="labs/replica-node-spread/verify.sh"
 
@@ -396,57 +399,7 @@ DATE_PREFIX_STRAY_MAX_PER_FILE = int(os.environ["DATE_PREFIX_STRAY_MAX_PER_FILE"
 CANONICAL_FILES = json.loads(os.environ["CANONICAL_FILES_JSON"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
 
-# ---------- shared parsing helpers (used by all phases) ----------
-# Priority 3 helper-comment justification: parsing the Phase A JSONL
-# format is non-trivial because each line is a complete /diag sample
-# JSON object with 20+ fields. Each Python heredoc duplicates these
-# helpers because heredocs are self-contained programs; the
-# duplication is verified-identical across all four phases and any
-# change must be applied to all four simultaneously.
-
-REQUIRED_RECORD_KEYS = (
-    "boot_id",
-    "replica_name",
-    "uptime_seconds",
-    "run_id",
-)
-
-def parse_jsonl_records(path):
-    """Parse a JSONL file. Returns (records, parse_stats) where
-    records is a list of dicts (one per parseable line that has all
-    required keys) and parse_stats is a dict with line-level counts.
-
-    Tight scoping: each line is parsed as JSON; any line that fails
-    json.loads OR is missing any REQUIRED_RECORD_KEYS is counted as
-    a parse failure and excluded from records. This enforces the
-    record-scoped predicate (Lab 15 lesson 34) — no whole-file
-    substring matching."""
-    records = []
-    stats = {
-        "total_lines": 0,
-        "blank_lines": 0,
-        "json_parse_failures": 0,
-        "missing_keys_failures": 0,
-        "successful_records": 0,
-    }
-    with open(path) as f:
-        for line in f:
-            stats["total_lines"] += 1
-            stripped = line.strip()
-            if not stripped:
-                stats["blank_lines"] += 1
-                continue
-            try:
-                obj = json.loads(stripped)
-            except ValueError:
-                stats["json_parse_failures"] += 1
-                continue
-            if not isinstance(obj, dict) or not all(k in obj for k in REQUIRED_RECORD_KEYS):
-                stats["missing_keys_failures"] += 1
-                continue
-            records.append(obj)
-            stats["successful_records"] += 1
-    return records, stats
+from verify_helpers import parse_jsonl_records
 
 # ---------- sub-gate a: anchor exists ----------
 # Strong path: anchor jsonl exists AND parses to >= 4 /diag samples.
@@ -503,6 +456,7 @@ per_file_parse_violations = sorted(
     fname for fname, stats in per_file_parse_stats.items()
     if "error" in stats
     or stats["json_parse_failures"] + stats["missing_keys_failures"] > PARSE_FAILED_LINES_MAX_PER_FILE
+    or stats["malformed_records"] > 0
     or stats["successful_records"] == 0
 )
 b_strong_path_all_lines_parse = parse_success_ratio >= PARSE_SUCCESS_MIN_STRONG
@@ -736,41 +690,7 @@ PARSE_SUCCESS_MIN_STRONG = float(os.environ["PARSE_SUCCESS_MIN_STRONG"])
 PARSE_SUCCESS_MIN_FALLBACK = float(os.environ["PARSE_SUCCESS_MIN_FALLBACK"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
 
-# ---------- shared helpers (duplicated per-phase by design) ----------
-REQUIRED_RECORD_KEYS = (
-    "boot_id",
-    "replica_name",
-    "uptime_seconds",
-    "run_id",
-)
-
-def parse_jsonl_records(path):
-    records = []
-    stats = {
-        "total_lines": 0,
-        "blank_lines": 0,
-        "json_parse_failures": 0,
-        "missing_keys_failures": 0,
-        "successful_records": 0,
-    }
-    with open(path) as f:
-        for line in f:
-            stats["total_lines"] += 1
-            stripped = line.strip()
-            if not stripped:
-                stats["blank_lines"] += 1
-                continue
-            try:
-                obj = json.loads(stripped)
-            except ValueError:
-                stats["json_parse_failures"] += 1
-                continue
-            if not isinstance(obj, dict) or not all(k in obj for k in REQUIRED_RECORD_KEYS):
-                stats["missing_keys_failures"] += 1
-                continue
-            records.append(obj)
-            stats["successful_records"] += 1
-    return records, stats
+from verify_helpers import load_summary, parse_jsonl_records, serialize_gate
 
 # Filename pattern: <profile>-scale-<scale>-run-<run>.jsonl
 # where <profile> in {consumption, dedicated-d8}, <scale> in {1,3,10,30},
@@ -842,7 +762,7 @@ for fname in SCALE_FILES:
     file_to_cell[fname] = cell
     expected_profile, expected_scale, expected_run = cell
     expected_profile_in_record = PROFILE_FILENAME_TO_RECORD.get(expected_profile)
-    records, _ = parse_jsonl_records(fpath)
+    records, stats = parse_jsonl_records(fpath)
     matching = 0
     for r in records:
         r_profile = r.get("profile", "")
@@ -858,6 +778,8 @@ for fname in SCALE_FILES:
         "total_records": len(records),
         "records_matching_cell": matching,
         "match_ratio": matching / len(records) if records else 0.0,
+        "malformed_records": stats["malformed_records"],
+        "malformed_fields": stats["malformed_fields"],
     }
     all_records_total += len(records)
     all_records_matching_cell += matching
@@ -880,6 +802,7 @@ per_file_cell_violations = sorted(
     if "error" in info
     or not info.get("total_records")
     or not info.get("records_matching_cell")
+    or info.get("malformed_records", 0) > 0
     or info.get("records_mismatching_cell", 0) > CELL_MISMATCH_MAX_PER_FILE
 )
 a_strong_path_all_records_match_cell = cell_match_ratio >= PARSE_SUCCESS_MIN_STRONG
@@ -918,21 +841,12 @@ b_no_duplicates = b_strong_path_zero_duplicates or b_fallback_path_at_most_one_d
 # (not `run` integer). We index by the `file` field because it maps
 # 1:1 to SCALE_FILES entries without requiring run-string parsing.
 summary_path = f"{EVIDENCE_DIR}/analysis-summary.json"
-summary_data = json.load(open(summary_path))
-summary_runs = (
-    summary_data if isinstance(summary_data, list)
-    else summary_data.get("runs", [])
-)
+summary_runs, summary_by_filename, invalid_summary_reasons = load_summary(summary_path)
 
 # Build a lookup keyed by the `file` field. This sidesteps the need to
 # parse the run_id string (`consumption-n1-r1-20260614-143834`) and
 # match it back to the (profile, scale, run) tuple decomposed from
 # filenames — the `file` field is itself the structural key.
-summary_by_filename = {}
-for rs in summary_runs:
-    fkey = rs.get("file")
-    if fkey is not None:
-        summary_by_filename[fkey] = rs
 
 # Recompute per-file counts from raw JSONL.
 per_file_recompute = {}
@@ -1015,7 +929,9 @@ c_fallback_path_most_reconcile = (
     and summary_entry_count_matches
     and not summary_file_keys_not_unique_or_missing
 )
-c_summary_reconciles = c_strong_path_all_reconcile or c_fallback_path_most_reconcile
+c_summary_reconciles = (
+    c_strong_path_all_reconcile or c_fallback_path_most_reconcile
+) and not invalid_summary_reasons
 
 # ---------- sub-gate d: verdict explainable ----------
 # RAW-PRIMACY RULE, from this script's Oracle directive (header lines 34
@@ -1024,7 +940,7 @@ c_summary_reconciles = c_strong_path_all_reconcile or c_fallback_path_most_recon
 # contradictory raw files."
 #
 # WARNING TO FUTURE MAINTAINERS: do NOT normalise this sub-gate back into
-# the uniform `strong or fallback` shape the other 15 sub-gates use. With
+# an unrestricted `strong or fallback` shape. With
 # a fallback of plain `verdict_overall_pass`, the absorption law
 # ((A and B) or B == B) collapses the whole predicate to the verdict text
 # alone and silently turns the raw recomputation into dead code — a
@@ -1039,29 +955,9 @@ c_summary_reconciles = c_strong_path_all_reconcile or c_fallback_path_most_recon
 verdict_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.verdict.txt"
 verdict_text = open(verdict_path).read()
 anchor_jsonl_path = f"{EVIDENCE_DIR}/{ANCHOR_BASENAME}.jsonl"
-anchor_records, _ = parse_jsonl_records(anchor_jsonl_path)
+anchor_records, anchor_stats = parse_jsonl_records(anchor_jsonl_path)
 anchor_record_count = len(anchor_records)
-JSON_EXACT_MAX = 2**53  # Bound arithmetic to the consecutive-integer range of JSON/IEEE-754 doubles.
-NUMERIC_ANCHOR_FIELDS = ("uptime_seconds", "boot_time_estimate_ms")
-IDENTITY_ANCHOR_FIELDS = ("boot_id", "replica_name")
-
-
-def is_bounded_number(value):
-    return type(value) in (int, float) and abs(value) <= JSON_EXACT_MAX
-
-
-def valid_anchor_value(field, value):
-    if field in NUMERIC_ANCHOR_FIELDS:
-        return is_bounded_number(value)
-    return isinstance(value, str) and bool(value.strip())
-
-
-anchor_malformed_fields = sorted({
-    field
-    for record in anchor_records
-    for field in NUMERIC_ANCHOR_FIELDS + IDENTITY_ANCHOR_FIELDS
-    if field in record and not valid_anchor_value(field, record[field])
-})
+anchor_malformed_fields = sorted(anchor_stats["malformed_fields"])
 
 
 def evaluated(outcome, *, when_evaluable):
@@ -1115,7 +1011,10 @@ check_boot_nontrivial = evaluated(
 # 5000 ms is the same kernel-boot identity band H3 falsify.sh applies.
 bte_values = [r["boot_time_estimate_ms"] for r in anchor_records if "boot_time_estimate_ms" in r] if "boot_time_estimate_ms" not in anchor_malformed_fields else []
 bte_span_ms = max(bte_values) - min(bte_values) if len(bte_values) >= 2 else None
-additional_sample_count_sufficient = evaluated(anchor_record_count >= 4, when_evaluable=have_records)
+additional_sample_count_sufficient = evaluated(
+    anchor_record_count + anchor_stats["malformed_records"] >= 4,
+    when_evaluable=have_records,
+)
 additional_bte_stable = evaluated(
     bte_span_ms is not None and bte_span_ms <= 5000, when_evaluable=len(bte_values) >= 2
 )
@@ -1228,6 +1127,7 @@ verdict_lines_consistent = (
 # record-scoped predicate rule.
 d_strong_path_recomputable = (
     all_requirements_verified and verdict_overall_pass and verdict_lines_consistent
+    and not anchor_malformed_fields
 )
 d_fallback_path_verdict_pass = (
     verdict_overall_pass
@@ -1269,7 +1169,7 @@ gate_2_matrix_coherence_sub_gates = {
 }
 gate_2_matrix_coherence_pass = all(gate_2_matrix_coherence_sub_gates.values())
 
-print(json.dumps({
+print(serialize_gate({
     "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "matrix_coherence",
     "hypothesis": "H_matrix_coherence",
@@ -1311,6 +1211,7 @@ print(json.dumps({
         "b_pass": b_no_duplicates,
     },
     "sub_gate_c_summary_reconciles": {
+        "invalid_summary_reasons": invalid_summary_reasons,
         "per_file_recompute": per_file_recompute,
         "matches_count": matches_count,
         "total_summary_entries": total_summary_entries,
@@ -1364,7 +1265,7 @@ print(json.dumps({
         "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping"
         if gate_2_matrix_coherence_pass else "gate_2_matrix_coherence_failed_check_sub_gates"
     ),
-}, indent=2, allow_nan=False))
+}))
 PY
 
 echo "=== Phase 12: emit Gate 3 (Claim Eligibility, 5 sub-gates) ==="
@@ -1386,41 +1287,7 @@ ANCHOR_BASENAME = os.environ["ANCHOR_BASENAME"]
 BOOT_TIME_CLUSTER_GAP_MS = int(os.environ["BOOT_TIME_CLUSTER_GAP_MS"])
 SCALE_FILES = json.loads(os.environ["SCALE_FILES_JSON"])
 
-# ---------- shared helpers (duplicated per-phase by design) ----------
-REQUIRED_RECORD_KEYS = (
-    "boot_id",
-    "replica_name",
-    "uptime_seconds",
-    "run_id",
-)
-
-def parse_jsonl_records(path):
-    records = []
-    stats = {
-        "total_lines": 0,
-        "blank_lines": 0,
-        "json_parse_failures": 0,
-        "missing_keys_failures": 0,
-        "successful_records": 0,
-    }
-    with open(path) as f:
-        for line in f:
-            stats["total_lines"] += 1
-            stripped = line.strip()
-            if not stripped:
-                stats["blank_lines"] += 1
-                continue
-            try:
-                obj = json.loads(stripped)
-            except ValueError:
-                stats["json_parse_failures"] += 1
-                continue
-            if not isinstance(obj, dict) or not all(k in obj for k in REQUIRED_RECORD_KEYS):
-                stats["missing_keys_failures"] += 1
-                continue
-            records.append(obj)
-            stats["successful_records"] += 1
-    return records, stats
+from verify_helpers import load_summary, parse_jsonl_records
 
 SCALE_FILENAME_REGEX = re.compile(
     r'^(?P<profile>consumption|dedicated-d8)-scale-(?P<scale>\d+)-run-(?P<run>\d+)\.jsonl$'
@@ -1669,14 +1536,7 @@ d_counterexamples_surfaced = d_strong_path_both_known_counterexamples
 # schema (top-level list, `boot_time_clusters` key, `file` field as
 # structural key).
 summary_path = f"{EVIDENCE_DIR}/analysis-summary.json"
-summary_data = json.load(open(summary_path))
-summary_runs = (
-    summary_data if isinstance(summary_data, list)
-    else summary_data.get("runs", [])
-)
-summary_by_filename = {
-    rs["file"]: rs for rs in summary_runs if rs.get("file") is not None
-}
+summary_runs, summary_by_filename, invalid_summary_reasons = load_summary(summary_path)
 
 raw_vs_summary_discrepancies = []
 per_file_raw_recompute = {}
@@ -1779,6 +1639,7 @@ print(json.dumps({
         "d_pass": d_counterexamples_surfaced,
     },
     "sub_gate_e_falsification_from_raw": {
+        "invalid_summary_reasons": invalid_summary_reasons,
         "per_file_raw_recompute_count": len(per_file_raw_recompute),
         "scale_files_count": len(SCALE_FILES),
         "raw_vs_summary_discrepancies_count": len(raw_vs_summary_discrepancies),
@@ -1891,7 +1752,6 @@ c_strong_path_full_filesystem_state = (
     and verify_sh_exists
     and readme_exists
 )
-c_fallback_path_canonical_files_present = len(canonical_files_missing) == 0
 # Every conjunct here is a cheap filesystem existence check that any real
 # evidence pack satisfies, so a fallback of "canonical files present" would
 # only ever discard the verifier and README checks the sub-gate is named for.
@@ -1940,7 +1800,6 @@ print(json.dumps({
         "verify_sh_exists": verify_sh_exists,
         "readme_exists": readme_exists,
         "c_strong_path_full_filesystem_state": c_strong_path_full_filesystem_state,
-        "c_fallback_path_canonical_files_present": c_fallback_path_canonical_files_present,
         "c_pass": c_validators_pass,
     },
     "gate_4_packaging_sub_gates": gate_4_packaging_sub_gates,

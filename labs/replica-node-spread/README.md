@@ -33,6 +33,7 @@ labs/replica-node-spread/
 ├── analyze.py                    # Phase A — Counts + cluster verdict
 ├── cleanup.sh                    # Phase A — Destructive teardown with confirmation
 ├── verify.sh                     # Phase B — Evidence-pack verifier (4 gates / 16 sub-gates, no Azure calls)
+├── verify_helpers.py             # Phase B — Shared input boundaries and strict JSON writer
 ├── test_verify.py                # Phase B — Offline regression suite for verify.sh (synthetic fixtures, no Azure calls)
 ├── evidence/                     # Committed canonical cohort + gate JSONs + README.md
 └── README.md
@@ -97,6 +98,43 @@ python3 test_verify.py
 
 ## Raw primacy
 
+`analysis-summary.json` is advisory; raw JSONL is authoritative. Gate 11(c)
+keeps its declared two-entry tolerance: at least 9 of 11 entries must reconcile,
+with exactly 11 entries and unique filenames. This permits stale advisory
+entries without replacing raw-derived placement counts. Every count discrepancy
+is emitted by Gate 12(e); its existing recompute-dictionary fallback may pass
+despite discrepancies. Neither sub-gate enforces zero-discrepancy reconciliation.
+The fallback's predicate form is tracked separately in #413.
+
+All three JSONL-reading phases use `verify_helpers.py`. Scale records require
+nonempty string `boot_id` and `replica_name`; a supplied
+`boot_time_estimate_ms` must be a finite integer/float, not a boolean, with
+decoded magnitude at most 2^53. A malformed record is unusable and excluded
+from recomputation. Per-file `malformed_records` and `malformed_fields` counts
+name the offending fields in Gate 10(b) and Gate 11(a). Even one supplied
+malformed value fails those gates; it cannot use the one-bad-line tolerance.
+Missing optional boot-time estimates remain optional.
+
+Invalid JSON, excessive JSON nesting, non-object lines and missing required keys
+remain unusable lines under the existing per-file parse-failure policy: at most
+one such line per file, with at least one usable record and the corpus ratio
+floor still required. Two unusable lines fail Gate 10(b). A record with a supplied
+malformed consumed field is counted as malformed even when it also lacks a required
+key; only an incomplete record whose supplied fields are valid uses the tolerance.
+A member name that occurs twice in one record is ambiguous (a JSON reader keeps only the
+last value, which could erase a malformed one), so it is counted as malformed and named in
+`malformed_fields`; duplicate member names in `analysis-summary.json` appear in
+`invalid_summary_reasons`. Summary roots must be
+a list or the supported legacy `{"runs": [...]}` object; members must be objects
+with nonempty unique string filenames and finite nonnegative integer-valued
+consumed counts (`unique_replicas`, `unique_boot_ids`, `boot_time_clusters`).
+Invalid summary input yields structured `invalid_summary_reasons` in Gates
+11(c) and 12(e), fails reconciliation in Gate 11(c), and never overrides raw.
+Unconsumed metadata is not copied into gates. Malformed-input evaluations still
+emit all four complete JSON gates before returning a nonzero exit; the declared
+single-line parse tolerance remains an explicit exception. Strict serialization
+rejects non-finite derived values as a final writer boundary.
+
 Gate 12(a) has one path requiring the verifier-declared headline level to equal `Strongly Suggested` and its string to contain no standalone `Observed` token. This is a self-consistency check, not an evidence-derived check of the published prose. Gate 12(d) requires both named co-location counterexamples (Consumption-30 and Dedicated-D8-3), not merely any co-location case.
 
 Gate 11 sub-gate (d) enforces the Oracle rule that raw JSONL wins whenever
@@ -116,8 +154,11 @@ recomputation was not possible. An "Overall: PASS" line in the verdict file
 can never by itself carry a sub-gate whose raw recomputation is REFUTED.
 
 Gate 11 validates anchor `uptime_seconds` and any supplied
-`boot_time_estimate_ms` as finite integers/floats with magnitude at most 2^53, excluding booleans.
-Out-of-range values are malformed. `boot_id` and `replica_name` must be non-empty strings. Malformed fields
+`boot_time_estimate_ms` as finite integers/floats with decoded magnitude at most 2^53, excluding booleans.
+The bound applies after JSON decoding, not to the numeric token: the literal
+`9007199254740993.0` rounds to `9007199254740992.0` (2^53) and is accepted,
+whereas the integer token `9007199254740993` is rejected. Out-of-range decoded
+values are malformed. `boot_id` and `replica_name` must be non-empty strings. Malformed fields
 are named in `anchor_malformed_fields`, make their checks INCONCLUSIVE,
 and block both passing paths; they are not labelled contradictions.
 Missing boot-time estimates retain the lower-evidence, uncontradicted path.

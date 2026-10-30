@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T00:06:26Z",
+  "evaluated_at_utc": "2026-10-30T02:27:21Z",
   "scenario": "packaging",
   "hypothesis": "H_packaging",
   "claim": "evidence_pack_is_self_contained_and_re_verifiable",
@@ -63,7 +63,6 @@
     "verify_sh_exists": true,
     "readme_exists": true,
     "c_strong_path_full_filesystem_state": true,
-    "c_fallback_path_canonical_files_present": true,
     "c_pass": true
   },
   "gate_4_packaging_sub_gates": {

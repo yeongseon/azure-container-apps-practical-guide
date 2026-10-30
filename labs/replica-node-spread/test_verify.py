@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import contextlib
 import datetime
+import importlib.util
 import json
 import pathlib
 import shutil
@@ -1041,6 +1042,23 @@ class BoundedAnchorNumberTests(unittest.TestCase):
             with self.subTest(field=field):
                 self.assert_rejected_numbers(field, [1, 2, 3, 4, 2**53 + 1])
 
+    def test_decimal_token_rounded_to_decoded_bound_is_accepted(self) -> None:
+        with fixture_lab() as lab:
+            path = lab / "evidence" / ANCHOR_JSONL
+            records = read_anchor(lab)
+            for record in records:
+                record["boot_time_estimate_ms"] = "BOUNDARY_TOKEN"
+            path.write_text("".join(json.dumps(record).replace('"BOUNDARY_TOKEN"', "9007199254740993.0") + "\n"
+                                    for record in records))
+
+            proc = run_verify(lab)
+
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            sub = strict_gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+            self.assertEqual(sub["anchor_malformed_fields"], [])
+            self.assertEqual(sub["additional_bte_span_ms"], 0)
+            self.assertEqual(sub["d_evidence_level"], "Observed")
+
     def test_float_beyond_exact_bound_is_malformed(self) -> None:
         for field in ("uptime_seconds", "boot_time_estimate_ms"):
             with self.subTest(field=field):
@@ -1218,6 +1236,338 @@ class ClaimSinglePathTests(unittest.TestCase):
                 self.assertIs(sub["a_strong_path_no_observed_placement"], False)
                 self.assertIs(sub["a_pass"], False)
                 self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+
+class ScaleBoundaryTests(unittest.TestCase):
+    def test_each_supplied_malformed_scale_field_is_unusable(self) -> None:
+        cases = {
+            "boot_id": ([], {}, 42, False, None, "", "  "),
+            "replica_name": ([], {}, 42, False, None, "", "  "),
+            "boot_time_estimate_ms": ("wrong", [], {}, None, True, float("nan"),
+                                      float("inf"), float("-inf"), 2**53 + 1, -(2**53 + 1)),
+        }
+        for field, values in cases.items():
+            for value in values:
+                for index in (0, 3):
+                    with self.subTest(field=field, value=value, index=index), fixture_lab() as lab:
+                        name = "consumption-scale-1-run-1.jsonl"
+                        path = lab / "evidence" / name
+                        records = list(map(json.loads, path.read_text().splitlines()))
+                        records[index][field] = value
+                        path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+                        proc = run_verify(lab)
+
+                        self.assertEqual(proc.returncode, 1, proc.stderr)
+                        self.assertNotIn("Traceback", proc.stderr)
+                        for filename in GENERATED_GATES:
+                            strict_gate(lab, filename)
+                        parse = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                        stats = parse["per_file_parse_stats"][name]
+                        self.assertEqual(stats["malformed_records"], 1)
+                        self.assertEqual(stats["malformed_fields"], {field: 1})
+                        self.assertEqual(stats["successful_records"], len(records) - 1)
+                        self.assertFalse(parse["b_pass"])
+                        cell = strict_gate(lab, MATRIX_GATE)["sub_gate_a_each_file_one_cell"]
+                        self.assertFalse(cell["a_pass"])
+                        self.assertEqual(cell["per_file_cell_match"][name]["malformed_fields"], {field: 1})
+
+    def test_malformed_field_takes_precedence_over_a_missing_key(self) -> None:
+        name = "consumption-scale-1-run-1.jsonl"
+        for field, value in (("boot_id", []), ("replica_name", {}), ("boot_time_estimate_ms", "wrong")):
+            with self.subTest(field=field), fixture_lab() as lab:
+                path = lab / "evidence" / name
+                records = list(map(json.loads, path.read_text().splitlines()))
+                records[0][field] = value
+                del records[0]["run_id"]
+                path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+                proc = run_verify(lab)
+
+                self.assertEqual(proc.returncode, 1, proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+                parse = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                stats = parse["per_file_parse_stats"][name]
+                self.assertEqual(stats["malformed_records"], 1)
+                self.assertEqual(stats["malformed_fields"], {field: 1})
+                self.assertEqual(stats["missing_keys_failures"], 0)
+                self.assertFalse(parse["b_pass"])
+
+    def test_missing_key_with_valid_supplied_fields_keeps_the_parse_tolerance(self) -> None:
+        name = "consumption-scale-1-run-1.jsonl"
+        with fixture_lab() as lab:
+            path = lab / "evidence" / name
+            records = list(map(json.loads, path.read_text().splitlines()))
+            del records[0]["run_id"]
+            path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+            proc = run_verify(lab)
+
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            parse = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+            stats = parse["per_file_parse_stats"][name]
+            self.assertEqual(stats["missing_keys_failures"], 1)
+            self.assertEqual(stats["malformed_records"], 0)
+            self.assertTrue(parse["b_pass"])
+
+    def duplicate_line(self, record: dict, field: str, duplicate, first: bool) -> str:
+        """Splice a second member with the same name in front of or behind the original."""
+        line = json.dumps(record)
+        extra = json.dumps(field) + ": " + json.dumps(duplicate)
+        return "{" + extra + ", " + line[1:] if first else line[:-1] + ", " + extra + "}"
+
+    def test_duplicate_member_names_make_a_scale_record_malformed(self) -> None:
+        name = "consumption-scale-1-run-1.jsonl"
+        cases = (("boot_id", []), ("boot_id", "other-valid-id"), ("replica_name", {}),
+                 ("boot_time_estimate_ms", "wrong"), ("boot_time_estimate_ms", 1.0),
+                 ("profile", "Dedicated-D8"), ("scale_target", 99), ("run_id", "other"))
+        for field, duplicate in cases:
+            for first in (True, False):
+                for drop_required in (False, True):
+                    if drop_required and field == "run_id":
+                        continue
+                    with self.subTest(field=field, duplicate=duplicate, first=first, drop_required=drop_required), \
+                            fixture_lab() as lab:
+                        path = lab / "evidence" / name
+                        lines = path.read_text().splitlines()
+                        record = json.loads(lines[0])
+                        if drop_required:
+                            record.pop("run_id")
+                        lines[0] = self.duplicate_line(record, field, duplicate, first)
+                        path.write_text("\n".join(lines) + "\n")
+
+                        proc = run_verify(lab)
+
+                        self.assertEqual(proc.returncode, 1, proc.stderr)
+                        self.assertNotIn("Traceback", proc.stderr)
+                        for filename in GENERATED_GATES:
+                            strict_gate(lab, filename)
+                        parse = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                        stats = parse["per_file_parse_stats"][name]
+                        self.assertEqual(stats["malformed_records"], 1)
+                        self.assertEqual(stats["malformed_fields"], {field: 1})
+                        self.assertEqual(stats["missing_keys_failures"], 0)
+                        self.assertFalse(parse["b_pass"])
+
+    def test_duplicate_member_names_in_the_anchor_are_named_and_inconclusive(self) -> None:
+        for field, duplicate in (("boot_id", []), ("uptime_seconds", "x"), ("boot_time_estimate_ms", 1.0)):
+            for first in (True, False):
+                with self.subTest(field=field, first=first), fixture_lab() as lab:
+                    path = lab / "evidence" / ANCHOR_JSONL
+                    lines = path.read_text().splitlines()
+                    lines[0] = self.duplicate_line(json.loads(lines[0]), field, duplicate, first)
+                    path.write_text("\n".join(lines) + "\n")
+
+                    proc = run_verify(lab)
+
+                    self.assertEqual(proc.returncode, 1, proc.stderr)
+                    self.assertNotIn("Traceback", proc.stderr)
+                    sub = strict_gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+                    self.assertIn(field, sub["anchor_malformed_fields"])
+                    self.assertFalse(sub["d_pass"])
+
+    def test_a_duplicate_free_record_is_unchanged(self) -> None:
+        with fixture_lab() as lab:
+            self.assertEqual(run_verify(lab).returncode, 0)
+
+    def test_valid_scale_numbers_and_string_ids_remain_usable(self) -> None:
+        for value in (2**53, float(2**53), -(2**53), 1000, 1000.5):
+            with self.subTest(value=value), fixture_lab() as lab:
+                path = lab / "evidence" / "consumption-scale-1-run-1.jsonl"
+                records = list(map(json.loads, path.read_text().splitlines()))
+                for record in records:
+                    record.update(boot_id="fixture-boot", replica_name="fixture-replica",
+                                  boot_time_estimate_ms=value)
+                path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+                proc = run_verify(lab)
+
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                stats = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]["per_file_parse_stats"][path.name]
+                self.assertEqual(stats["malformed_records"], 0)
+                self.assertEqual(stats["successful_records"], len(records))
+
+
+class SummaryBoundaryTests(unittest.TestCase):
+    def test_invalid_summary_shapes_fail_with_structured_reasons(self) -> None:
+        shapes = (None, 42, [42], [{"file": []}], {"runs": None}, {"runs": 42},
+                  [{"file": ""}], [{"file": 42}], [{"file": "x", "unique_replicas": []}])
+        for shape in shapes:
+            with self.subTest(shape=shape), fixture_lab() as lab:
+                (lab / "evidence" / "analysis-summary.json").write_text(json.dumps(shape))
+
+                proc = run_verify(lab)
+
+                self.assert_invalid_summary(lab, proc)
+
+    def assert_invalid_summary(self, lab, proc) -> None:
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertNotIn("Traceback", proc.stderr)
+        for filename in GENERATED_GATES:
+            strict_gate(lab, filename)
+        sub = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
+        self.assertFalse(sub["c_pass"])
+        self.assertTrue(sub["invalid_summary_reasons"])
+        self.assertTrue(all("reason" in reason for reason in sub["invalid_summary_reasons"]))
+        self.assertEqual(strict_gate(lab, CLAIM_GATE)["sub_gate_e_falsification_from_raw"]["invalid_summary_reasons"],
+                         sub["invalid_summary_reasons"])
+
+    def test_invalid_consumed_summary_counts_fail_closed(self) -> None:
+        for field in ("unique_replicas", "unique_boot_ids", "boot_time_clusters"):
+            for value in (None, [], {}, "1", True, -1, 1.5, float("nan"), float("inf")):
+                with self.subTest(field=field, value=value), fixture_lab() as lab:
+                    path = lab / "evidence" / "analysis-summary.json"
+                    entries = json.loads(path.read_text())
+                    entries[0][field] = value
+                    path.write_text(json.dumps(entries))
+
+                    proc = run_verify(lab)
+
+                    self.assert_invalid_summary(lab, proc)
+                    reasons = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]["invalid_summary_reasons"]
+                    self.assertIn(field, [reason.get("field") for reason in reasons])
+
+    def test_duplicate_member_names_in_the_summary_are_named(self) -> None:
+        for where in ("member", "root"):
+            with self.subTest(where=where), fixture_lab() as lab:
+                path = lab / "evidence" / "analysis-summary.json"
+                entries = json.loads(path.read_text())
+                if where == "member":
+                    text = json.dumps(entries).replace('"unique_replicas":', '"unique_replicas": 999, "unique_replicas":', 1)
+                else:
+                    text = '{"runs": ' + json.dumps(entries) + ', "runs": []}'
+                path.write_text(text)
+
+                proc = run_verify(lab)
+
+                self.assert_invalid_summary(lab, proc)
+                reasons = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]["invalid_summary_reasons"]
+                self.assertIn("duplicate member name", [reason["reason"] for reason in reasons])
+                self.assertIn("unique_replicas" if where == "member" else "runs", [reason.get("field") for reason in reasons])
+
+    def test_every_problem_of_a_summary_member_is_reported(self) -> None:
+        with fixture_lab() as lab:
+            path = lab / "evidence" / "analysis-summary.json"
+            entries = json.loads(path.read_text())
+            entries[1] = {**entries[0], "unique_replicas": False}
+            path.write_text(json.dumps(entries))
+
+            proc = run_verify(lab)
+
+            self.assert_invalid_summary(lab, proc)
+            reasons = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]["invalid_summary_reasons"]
+            self.assertIn({"index": 1, "field": "file", "reason": "duplicate filename"}, reasons)
+            self.assertIn({"index": 1, "field": "unique_replicas",
+                           "reason": "count must be a finite nonnegative integer"}, reasons)
+
+    def test_valid_legacy_summary_shape_remains_supported(self) -> None:
+        with fixture_lab() as lab:
+            path = lab / "evidence" / "analysis-summary.json"
+            path.write_text(json.dumps({"runs": json.loads(path.read_text())}))
+
+            proc = run_verify(lab)
+
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            sub = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
+            self.assertEqual(sub["invalid_summary_reasons"], [])
+            self.assertEqual(sub["matches_count"], 11)
+
+    def test_missing_duplicate_and_surplus_entries_fail_reconciliation(self) -> None:
+        for kind in ("missing", "duplicate", "surplus"):
+            with self.subTest(kind=kind), fixture_lab() as lab:
+                path = lab / "evidence" / "analysis-summary.json"
+                entries = json.loads(path.read_text())
+                missing_filename = entries[-1]["file"]
+                if kind == "missing":
+                    entries.pop()
+                elif kind == "duplicate":
+                    entries[-1] = dict(entries[0])
+                else:
+                    entries.append({**entries[0], "file": "surplus.jsonl"})
+                path.write_text(json.dumps(entries))
+
+                proc = run_verify(lab)
+
+                self.assertEqual(proc.returncode, 1, proc.stderr)
+                for filename in GENERATED_GATES:
+                    strict_gate(lab, filename)
+                sub = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
+                self.assertFalse(sub["c_pass"])
+                if kind == "duplicate":
+                    self.assertIn("duplicate filename", [reason["reason"] for reason in sub["invalid_summary_reasons"]])
+                if kind == "missing":
+                    discrepancies = strict_gate(lab, CLAIM_GATE)["sub_gate_e_falsification_from_raw"]["raw_vs_summary_discrepancies"]
+                    self.assertIn({"file": missing_filename, "discrepancy": "no matching summary entry"}, discrepancies)
+
+    def test_two_advisory_discrepancies_pass_but_three_fail(self) -> None:
+        for count in (2, 3):
+            with self.subTest(count=count), fixture_lab() as lab:
+                path = lab / "evidence" / "analysis-summary.json"
+                entries = json.loads(path.read_text())
+                expected = []
+                for entry in entries[:count]:
+                    expected.append({"file": entry["file"], "field": "unique_boot_ids",
+                                     "raw": entry["unique_boot_ids"], "summary": 999})
+                    entry["unique_boot_ids"] = 999
+                path.write_text(json.dumps(entries))
+
+                proc = run_verify(lab)
+
+                sub = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
+                self.assertEqual(proc.returncode, 0 if count == 2 else 1, proc.stderr)
+                self.assertEqual(sub["matches_count"], 11 - count)
+                self.assertEqual(sub["c_pass"], count == 2)
+                claim = strict_gate(lab, CLAIM_GATE)["sub_gate_e_falsification_from_raw"]
+                self.assertCountEqual(claim["raw_vs_summary_discrepancies"], expected)
+                self.assertTrue(claim["e_fallback_path_recompute_dict_exists"])
+                self.assertTrue(claim["e_pass"])
+
+
+class RecursiveJsonBoundaryTests(unittest.TestCase):
+    def test_deep_jsonl_lines_follow_per_file_parse_policy(self) -> None:
+        for name in (ANCHOR_JSONL, "consumption-scale-1-run-1.jsonl"):
+            for count in (1, 2):
+                with self.subTest(name=name, count=count), fixture_lab() as lab:
+                    path = lab / "evidence" / name
+                    path.write_text(path.read_text() + ("[" * 1100 + "0" + "]" * 1100 + "\n") * count)
+
+                    proc = run_verify(lab)
+
+                    self.assertEqual(proc.returncode, 0 if count == 1 else 1, proc.stderr)
+                    self.assertNotIn("Traceback", proc.stderr)
+                    for filename in GENERATED_GATES:
+                        strict_gate(lab, filename)
+                    sub = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                    self.assertEqual(sub["per_file_parse_stats"][name]["json_parse_failures"], count)
+                    self.assertEqual(sub["b_pass"], count == 1)
+
+    def test_invalid_summary_json_returns_named_boundary_reason(self) -> None:
+        for text, reason in (("[" * 1100 + "0" + "]" * 1100, "RecursionError"),
+                             ("{broken", "JSONDecodeError")):
+            with self.subTest(reason=reason), fixture_lab() as lab:
+                (lab / "evidence" / "analysis-summary.json").write_text(text)
+
+                proc = run_verify(lab)
+
+                self.assertEqual(proc.returncode, 1, proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+                for filename in GENERATED_GATES:
+                    strict_gate(lab, filename)
+                sub = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
+                self.assertEqual(sub["invalid_summary_reasons"], [{"reason": reason}])
+                self.assertFalse(sub["c_pass"])
+
+
+class StrictSerializationTests(unittest.TestCase):
+    def test_real_gate_serializer_rejects_nonfinite_values(self) -> None:
+        spec = importlib.util.spec_from_file_location("fixture_verify_helpers", LAB_DIR / "verify_helpers.py")
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                module.serialize_gate({"derived_value": value})
 
 
 if __name__ == "__main__":

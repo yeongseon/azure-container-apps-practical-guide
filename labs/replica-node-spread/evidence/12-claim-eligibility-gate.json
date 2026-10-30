@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T00:06:26Z",
+  "evaluated_at_utc": "2026-10-30T02:27:21Z",
   "scenario": "claim_eligibility",
   "hypothesis": "H_claim_eligibility",
   "claim": "observed_node_spread_behavior_under_this_test_matrix",
@@ -591,6 +591,7 @@
     "d_pass": true
   },
   "sub_gate_e_falsification_from_raw": {
+    "invalid_summary_reasons": [],
     "per_file_raw_recompute_count": 11,
     "scale_files_count": 11,
     "raw_vs_summary_discrepancies_count": 0,
