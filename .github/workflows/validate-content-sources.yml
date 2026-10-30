@@ -74,6 +74,14 @@ jobs:
         run: |
           python scripts/validate_mermaid_syntax.py
 
+      - name: Run diagram inventory tests
+        run: |
+          python scripts/test_diagram_inventory.py
+
+      - name: Validate diagram inventory manifest
+        run: |
+          python scripts/diagram_inventory.py --check
+
       - name: Validate changed documentation quality
         run: |
           python scripts/validate_doc_quality.py --changed-only --base-ref "${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
