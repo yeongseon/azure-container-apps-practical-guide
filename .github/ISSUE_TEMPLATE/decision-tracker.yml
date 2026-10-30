@@ -1,0 +1,47 @@
+name: Decision or Tracking Issue
+description: Record an explicit manual decision or track a bounded program with verifiable closure.
+title: "chore: "
+labels: []
+body:
+  - type: dropdown
+    id: work-type
+    attributes:
+      label: Work type
+      options:
+        - Decision
+        - Tracking
+        - Manual external action
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and evidence
+      description: Why this is needed, and the source/as-of date for any counts or statements.
+      placeholder: Observed at commit... or source URL...
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and exclusions
+      description: State affected work, owner/dependencies and what this issue does not cover.
+      placeholder: Includes...; excludes...
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Decision or tracking outcome
+      description: Explicit decision to record, or measurable linked deliverables and completion criteria.
+      placeholder: "- [ ] Decision recorded with rationale and next checkpoint"
+    validations:
+      required: true
+  - type: textarea
+    id: closure
+    attributes:
+      label: Closure evidence
+      description: Specify what confirms completion or a justified defer/blocker; no pretend CI tests for manual tasks.
+      placeholder: Decision record, external confirmation, PR links, or dated status table.
+    validations:
+      required: true
