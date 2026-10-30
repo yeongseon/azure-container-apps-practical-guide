@@ -35,5 +35,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Parse issue forms and verify mandatory quality fields
+        run: |
+          ruby -ryaml -e '
+            files = Dir.glob(".github/ISSUE_TEMPLATE/*.yml").reject { |f| f.end_with?("/config.yml") }
+            abort "no issue forms found" if files.empty?
+            files.each do |f|
+              form = YAML.safe_load_file(f)
+              fields = form.fetch("body")
+              required = fields.select { |row| row.fetch("validations", {})["required"] }.map { |row| row.dig("attributes", "label").to_s.downcase }
+              abort "#{f}: no acceptance/decision criterion" unless required.any? { |label| label.include?("acceptance") || label.include?("decision or tracking") }
+              abort "#{f}: no validation or closure field" unless required.any? { |label| label.include?("verification") || label.include?("closure") }
+            end
+            puts "Parsed #{files.length} issue forms with required criteria"
+          '
       - name: Run issue specification unit tests
         run: python3 scripts/test_validate_issue_spec.py
