@@ -23,6 +23,83 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ParsingTests(unittest.TestCase):
+    def test_html_ancestor_makes_indented_fences_blocking(self):
+        ancestors = ('<div>', '<section>', '<details>', '<aside>', '<table>\n  <td>',
+                     '<custom-widget>', '</div>', '<!DOCTYPE html>')
+        for ancestor in ancestors:
+            for marker in ('```', '~~~'):
+                for newline in ('\n', '\r\n'):
+                    with self.subTest(ancestor=ancestor, marker=marker, newline=newline):
+                        text = ancestor + '\n\n    Example:\n\n    ' + marker + 'mermaid\nflowchart LR\n    ' + marker + '\n</div>\n'
+                        found, _, findings = inventory.scan_fences(text.replace('\n', newline))
+                        self.assertEqual([item for item in found if not item.example], [])
+                        self.assertEqual(findings, [{'line': len(ancestor.splitlines()) + 4, 'reason': 'indented'}])
+
+    def test_balanced_html_wrappers_block_both_fence_markers(self):
+        for tag in ('div', 'section', 'details', 'aside', 'table', 'td'):
+            for marker in ('```', '~~~'):
+                for prefix in ('    ', '\t'):
+                    for newline in ('\n', '\r\n'):
+                        with self.subTest(tag=tag, marker=marker, prefix=prefix, newline=newline):
+                            text = '<' + tag + '>\n\n' + prefix + marker + 'mermaid\nflowchart LR\n' + prefix + marker + '\n</' + tag + '>\n'
+                            found, unclosed, findings = inventory.scan_fences(text.replace('\n', newline))
+                            self.assertEqual((found, unclosed), ([], []))
+                            self.assertEqual(findings, [{'line': 3, 'reason': 'indented'}])
+
+    def test_plain_code_continuation_is_informational_and_resets_on_dedent(self):
+        for before in ('', 'paragraph\n\n', '# Heading\n\n', '- item\n\nplain\n\n', '<!-- note -->\n\n'):
+            for prefix in ('    ', '\t', '        '):
+                for marker in ('```', '~~~'):
+                    for newline in ('\n', '\r\n'):
+                        with self.subTest(before=before, prefix=prefix, marker=marker, newline=newline):
+                            text = before + prefix + 'Example:\n' + prefix + 'continued\n\n' + prefix + marker + 'mermaid\n' + prefix + 'flowchart LR\n' + prefix + marker + '\n\nparagraph\n    ' + marker + 'mermaid\nflowchart LR\n' + marker + '\n\n```mermaid\nflowchart LR\n```\n'
+                            found, unclosed, findings = inventory.scan_fences(text.replace('\n', newline))
+                            self.assertEqual([(item.body, item.example) for item in found], [('flowchart LR', False)])
+                            self.assertEqual(unclosed, [])
+                            self.assertEqual([item['reason'] for item in findings], ['indented-code', 'indented'])
+
+    def test_plain_code_with_multiple_openers_has_no_blocking_findings(self):
+        text = '    Example:\n    ```mermaid\n    ~~~mermaid\n    body\n    ~~~\n    ```\n'
+        found, _, findings = inventory.scan_fences(text)
+        self.assertEqual(found, [])
+        self.assertEqual([item['reason'] for item in findings], ['indented-code', 'indented-code'])
+
+    def test_plain_code_continuation_without_blank_before_opener(self):
+        for marker in ('```', '~~~'):
+            for prefix in ('    ', '\t'):
+                for newline in ('\n', '\r\n'):
+                    with self.subTest(marker=marker, prefix=prefix, newline=newline):
+                        text = prefix + 'Example:\n' + prefix + marker + 'mermaid\n' + prefix + 'flowchart LR\n' + prefix + marker + '\n'
+                        found, unclosed, findings = inventory.scan_fences(text.replace('\n', newline))
+                        self.assertEqual((found, unclosed), ([], []))
+                        self.assertEqual(findings, [{'line': 2, 'reason': 'indented-code'}])
+
+    def test_indented_generic_fence_consumes_dedented_closer(self):
+        for language in ('bash', '', 'python'):
+            for prefix in ('    ', '\t'):
+                for marker in ('```', '~~~'):
+                    for newline in ('\n', '\r\n'):
+                        with self.subTest(language=language, prefix=prefix, marker=marker, newline=newline):
+                            text = prefix + marker + language + '\n' + prefix + 'echo hello\n' + marker + '\n\n```mermaid\nflowchart LR\nA --> B\n```\n'
+                            found, unclosed, findings = inventory.scan_fences(text.replace('\n', newline))
+                            self.assertEqual([(item.line, item.example, item.body) for item in found], [(5, False, 'flowchart LR\nA --> B')])
+                            self.assertEqual((unclosed, findings), ([], []))
+
+    def test_indented_generic_unclosed_fence_stops_at_another_opener(self):
+        text = '    ```bash\n    echo hello\n\n```mermaid\nflowchart LR\n```\n'
+        found, unclosed, findings = inventory.scan_fences(text)
+        self.assertEqual([(item.line, item.example) for item in found], [(4, False)])
+        self.assertEqual((unclosed, findings), ([], []))
+
+    def test_lazy_list_paragraph_keeps_indented_fence_blocking(self):
+        for marker in ('-', '*', '1.'):
+            for newline in ('\n', '\r\n'):
+                with self.subTest(marker=marker, newline=newline):
+                    text = marker + ' item\ntext\nmore text\n\n    ```mermaid\n    flowchart LR\n    ```\n'
+                    found, _, findings = inventory.scan_fences(text.replace('\n', newline))
+                    self.assertEqual(found, [])
+                    self.assertEqual(findings, [{'line': 5, 'reason': 'indented'}])
+
     def test_inline_code_comment_tokens_keep_two_visible_fences(self):
         for prose in ('Use `<!--` literally.', 'Use ``a ` <!-- -->`` here.',
                       'Use `-->` here.', 'A --> B text'):
@@ -327,7 +404,9 @@ class TreeTests(unittest.TestCase):
         cases = [(state, None, state in {'not-started', 'in-progress', 'completed'}) for state in
                  ('not-started', 'in-progress', 'completed', 'exception', 'complete')]
         cases += [('exception', reason, valid) for reason, valid in
-                  ((None, False), ('', False), (' \t\n', False), ('Owner deferred conversion', True), (42, False))]
+                  ((None, False), ('', False), (' \t\n', False), ('\u00a0', False),
+                   ('\u2003\u202f\u3000', False), ('\u0085\u2028\u2029', False),
+                   ('Owner deferred conversion', True), (42, False))]
         cases += [(state, 'Unexpected reason', False) for state in
                   ('not-started', 'in-progress', 'completed')]
         for state, reason, valid in cases:
@@ -409,6 +488,21 @@ class TreeTests(unittest.TestCase):
                          set(paths.values()) - raster - {paths['.svg'], paths['.mmd']})
         rule['paths'] = ['elsewhere/*']
         self.assertEqual(self.build()['exceptions']['unclassified_assets'], sorted(paths.values()))
+
+    def test_asset_suffix_and_extension_opt_in_are_case_insensitive(self):
+        (self.root / 'docs/assets').mkdir()
+        paths = ['docs/assets/diagram.PNG', 'docs/assets/diagram.SVG', 'docs/assets/diagram.MMD']
+        for path in paths:
+            _ = (self.root / path).write_text('fixture')
+        rule = self.rules['asset_exclusions'][0]
+        rule['paths'] = ['docs/assets/*']
+        for extensions, claimed in (([], paths[:1]), (['.svg', '.mmd'], paths),
+                                     (['.SVG'], paths[:2])):
+            with self.subTest(extensions=extensions):
+                rule['extensions'] = extensions
+                result = self.build()
+                self.assertEqual(set(result['exclusions']['assets'][0]['paths']), set(claimed))
+                self.assertEqual(set(result['exceptions']['unclassified_assets']), set(paths) - set(claimed))
 
     def test_changed_body_invalidates_review_but_preserves_plan(self):
         previous = self.build()
@@ -603,7 +697,18 @@ class TreeTests(unittest.TestCase):
                     self.assertIn('docs/x.md:', checked.stdout)
                     self.assertIn('move the fence to the top level with at most 3 spaces of indentation, or show it inside a longer outer fence, then regenerate', checked.stdout)
                 else:
-                    self.assertEqual(sum(f': {reason} Mermaid fence is not rendered (informational)' in line for line in checked.stdout.splitlines()), 2)
+                     self.assertEqual(sum(f': {reason} Mermaid fence is not rendered (informational)' in line for line in checked.stdout.splitlines()), 2)
+
+    def test_html_container_write_records_blocking_extraction(self):
+        _ = (self.root / 'docs/x.md').write_text('<div>\n\n    ~~~mermaid\nflowchart LR\n    ~~~\n</div>\n')
+        written = self.cli('--write', '--base-commit', '0' * 40)
+        self.assertEqual(written.returncode, 0, written.stderr)
+        value = json.loads((self.root / inventory.MANIFEST).read_text())
+        self.assertEqual(value['exceptions']['unrecognized_mermaid_fences'],
+                         [{'page': 'docs/x.md', 'line': 3, 'reason': 'indented'}])
+        checked = self.cli('--check')
+        self.assertEqual(checked.returncode, 1, checked.stdout)
+        self.assertIn('docs/x.md:3: indented', checked.stdout)
 
     def test_write_warning_lists_only_blocking_findings(self):
         _ = (self.root / 'docs/x.md').write_text('    ```mermaid\n    ```\n\n- ```mermaid\n  ```\n\n> ```mermaid\n> ```\n')

@@ -232,25 +232,31 @@ def plain_code(lines: list[str], index: int) -> bool:
     column = indentation(lines[index])
     if column < 4 or (index and lines[index - 1].strip()):
         return False
-    for earlier in reversed(lines[:index]):
+    for position in range(index - 1, -1, -1):
+        earlier = lines[position]
         if not earlier.strip() or indentation(earlier) >= column:
             continue
         column = indentation(earlier)
-        if LIST_MARKER.match(earlier.lstrip()) or CONTAINER.match(earlier):
+        html = re.match(r'^\s*<[A-Za-z/!]', earlier) and not re.fullmatch(r'\s*<!--.*?-->\s*', earlier)
+        if LIST_MARKER.match(earlier.lstrip()) or CONTAINER.match(earlier) or html:
             return False
         if column == 0:
+            while position and lines[position - 1].strip():
+                position -= 1
+                if LIST_MARKER.match(lines[position].lstrip()):
+                    return False
             break
     return True
 
 
-def unsupported_fence(lines: list[str], index: int) -> tuple[str, str] | None:
+def unsupported_fence(line: str, plain: bool) -> tuple[str, str] | None:
     """Report opener-like lines conservatively, distinguishing plain code."""
-    rest, quote, listed = prefixed_fence(lines[index])
+    rest, quote, listed = prefixed_fence(line)
     opening = mermaid_opener(rest)
     if not opening:
         return None
     reason = 'indented'
-    if plain_code(lines, index):
+    if plain:
         reason = 'indented-code'
     elif quote:
         reason = 'blockquote'
@@ -302,17 +308,28 @@ def comment_end(lines: list[str], start: int) -> tuple[int, list[int]] | None:
 
 
 def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list[Occurrence], list[int], list[Record]]:
-    """Report unsupported rendered fences and ignore multiline HTML comments."""
+    """Consume comments/fences atomically; examples never emit unsupported findings.
+
+    Plain code starts only at a blank/start boundary without container ancestors,
+    survives blank/indented lines, and ends before the first nonblank dedent.
+    Every unsupported fence (any language) consumes its closer before resuming;
+    only Mermaid openers emit findings. A new opener stops unclosed consumption.
+    """
     lines = text.splitlines()
     headings: list[tuple[int, str]] = []
     output: list[Occurrence] = []
     unclosed: list[int] = []
     unrecognized: list[Record] = []
     i = offset
+    plain = False
     while i < len(lines):
+        if lines[i].strip() and indentation(lines[i]) < 4:
+            plain = False
+        if not plain:
+            plain = plain_code(lines, i)
         heading = HEADING.match(lines[i])
         opening = FENCE.match(lines[i])
-        unsupported = unsupported_fence(lines, i)
+        unsupported = unsupported_fence(lines[i], plain)
         if not example and not opening and opens_comment(lines[i]):
             closed = comment_end(lines, i)
             if closed:
@@ -320,10 +337,15 @@ def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list
                 unrecognized.extend({'line': n, 'reason': 'html-comment'} for n in hidden)
                 i = end + 1
                 continue
-        if unsupported and not opening and not example:
-            reason, unsupported_marker = unsupported
-            unrecognized.append({'line': i + 1, 'reason': reason})
-            i = unsupported_end(lines, i, unsupported_marker)
+        prefixed = FENCE.match(prefixed_fence(lines[i])[0])
+        if prefixed and not opening and not example:
+            if unsupported:
+                reason, _ = unsupported
+                unrecognized.append({'line': i + 1, 'reason': reason})
+            end = unsupported_end(lines, i, prefixed.group(1))
+            if any(line.strip() and indentation(line) < 4 for line in lines[i + 1:end]):
+                plain = False
+            i = end
             continue
         if not opening:
             if heading:
@@ -508,7 +530,7 @@ def claims_asset(rule: Record, path: str) -> bool:
     for pattern in rule['paths']:
         exact = not any(character in pattern for character in '*?[') and pattern == path
         if exact or (fnmatch.fnmatchcase(path, pattern) and (
-                extension in RASTER_ASSETS or extension in rule.get('extensions', []))):
+                extension in RASTER_ASSETS or extension in [e.lower() for e in rule.get('extensions', [])])):
             return True
     return False
 
