@@ -1,0 +1,39 @@
+name: Issue specification quality
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+  pull_request:
+    paths:
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/workflows/issue-quality.yml"
+      - "scripts/validate_issue_spec.py"
+      - "scripts/test_validate_issue_spec.py"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-new-issue:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check required issue structure (pre-policy issues exempt)
+        env:
+          ISSUE_EVENT_JSON: ${{ toJSON(github.event.issue) }}
+        run: python3 scripts/validate_issue_spec.py
+
+  test-validator:
+    if: github.event_name != 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run issue specification unit tests
+        run: python3 scripts/test_validate_issue_spec.py
