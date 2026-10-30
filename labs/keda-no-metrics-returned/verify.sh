@@ -224,6 +224,7 @@ python3 - <<'PY' > "$EVIDENCE_DIR/10-h1-slow-not-ready-gate.json"
 import json
 import os
 import re
+import sys
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
@@ -286,13 +287,33 @@ def count_record_lines_matching(section_text, substring):
         if substring in line
     )
 
-def extract_timestamps_from_section(section_text):
-    """Return all ISO 8601 timestamps found in the section, in the
-    order they appear. Used to compute first/last/duration for
-    §5 metric-error windows and §9 probe-failure windows."""
+def selected_event_timestamps(section_text, substring):
+    """Read TimeGenerated only from selected rows in the declared table layout."""
     if section_text is None:
         return []
-    return ISO_TS_REGEX.findall(section_text)
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    headers = [i for i, line in enumerate(lines)
+               if re.fullmatch(r"Log_s\s{2,}TableName\s{2,}TimeGenerated", line)]
+    if (len(headers) != 1 or headers[0] + 1 >= len(lines)
+            or not re.fullmatch(r"-+\s{2,}-+\s{2,}-+", lines[headers[0] + 1])):
+        print("ERROR: unusable correlation evidence: missing result-table layout.", file=sys.stderr)
+        return []
+    timestamps = []
+    for number, line in enumerate(lines):
+        if substring not in line:
+            continue
+        parts = re.split(r"\s{2,}", line)
+        if (number <= headers[0] + 1 or len(parts) != 3
+                or parts[1] != "PrimaryResult" or not ISO_TS_REGEX.fullmatch(parts[2])):
+            print("ERROR: unusable correlation evidence: malformed selected row.", file=sys.stderr)
+            return []
+        try:
+            parse_iso_to_seconds(parts[2])
+        except ValueError:
+            print("ERROR: unusable correlation evidence: invalid TimeGenerated.", file=sys.stderr)
+            return []
+        timestamps.append(parts[2])
+    return timestamps
 
 def parse_iso_to_seconds(ts):
     """Parse an ISO 8601 timestamp to Unix-epoch seconds (float). Used
@@ -412,17 +433,8 @@ a_signal_observed = a_strong_path_signal_lines or a_fallback_path_bin_total
 section_9_probe_lines = count_record_lines_matching(section_9, PROBE_FAILURE_SUBSTRING)
 probe_failure_present = section_9_probe_lines > 0
 
-s5_timestamps = [
-    ts for line in (section_5 or "").split("\n")
-    if SIGNAL_SUBSTRING in line
-    for ts in ISO_TS_REGEX.findall(line)
-]
-s9_timestamps = extract_timestamps_from_section(section_9)
-s9_probe_timestamps = [
-    ts for line in (section_9 or "").split("\n")
-    if PROBE_FAILURE_SUBSTRING in line
-    for ts in ISO_TS_REGEX.findall(line)
-]
+s5_timestamps = selected_event_timestamps(section_5, SIGNAL_SUBSTRING)
+s9_probe_timestamps = selected_event_timestamps(section_9, PROBE_FAILURE_SUBSTRING)
 
 windows_overlap = False
 overlap_info = {
@@ -1215,8 +1227,12 @@ def compute_scenario_metrics(app_name, ts):
             timestamps.extend(ISO_TS_REGEX.findall(line))
     duration = None
     if len(timestamps) >= 2:
-        epochs = [parse_iso_to_seconds(t) for t in timestamps]
-        duration = max(epochs) - min(epochs)
+        try:
+            epochs = [parse_iso_to_seconds(t) for t in timestamps]
+        except ValueError:
+            epochs = []
+        if epochs:
+            duration = max(epochs) - min(epochs)
     return {
         "bin_count": len(bins),
         "bins": bins,
