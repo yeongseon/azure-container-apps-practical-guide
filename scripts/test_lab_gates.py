@@ -35,6 +35,12 @@ REPLAY_LABS: Final = {
     ),
 }
 GATE_OUTPUTS: Final = {
+    "memory-leak-oomkilled": (
+        "10-h1-hard-oom-immediate-gate.json",
+        "11-h1-leak-delayed-oom-gate.json",
+        "12-h2-healthy-control-gate.json",
+        "13-h3-cross-scenario-falsification-gate.json",
+    ),
     "startup-degraded-transient-failure": (
         "10-canonical-evidence-integrity-gate.json",
         "11-failure-degraded-state-gate.json",

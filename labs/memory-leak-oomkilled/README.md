@@ -22,7 +22,7 @@ The exit code does NOT include an explicit "OOM" string in platform logs. Operat
 | **C. Healthy control** | `ca-oom-healthy` | `healthy` (no allocations) | 1.0Gi | Stable. RSS ~30-50 MiB. RestartCount=0. HealthState=Healthy. |
 | **Fix** | `ca-oom-hard` (updated) | `healthy` + memory 1.0Gi | 1.0Gi | New revision recovers. Old failing revision retained for evidence. |
 
-Comparing A and B against C proves the OOMs are caused by the workload's memory growth, not by the image, network, registry, or platform.
+Comparing A and B against C supports the workload-memory-growth explanation: the captured control section has no matching OOM rows for that revision. It does not exclude delayed or uncollected logs, or an environmental contribution.
 
 ## Workload
 
@@ -86,13 +86,15 @@ bash labs/memory-leak-oomkilled/cleanup.sh
 
 ## What "Success" Looks Like
 
+Before emitting any gates, offline verification validates section 5 in all three pinned reports: exactly one unindented header in order after section 4, the next boundary at section 6, the collection note, table header and separator, and at least one data row. Every nonblank line after the separator must have the declared columns, `PrimaryResult` and a valid `TimeGenerated`. Missing, unreadable, malformed or ambiguous evidence exits with an evidence error, not a zero-OOM result. A passing control records no matching OOM rows in the captured section; it does not exclude delayed or uncollected logs, or an environmental contribution.
+
 The lab is considered reproduced when **all** of the following hold:
 
 1. **Scenario A (hard-oom)**: `ContainerAppSystemLogs_CL` contains `exit code '137'` + `ProcessExited` entries within the first 60 seconds after deployment. `RestartCount` climbs. The Revisions blade shows `HealthState: Unhealthy` for the failing revision.
 
 2. **Scenario B (leak)**: Console logs show progressive `[leak] tick N: +30 MiB, total retained K MiB` prints. `MemoryPercentage` curve climbs steadily. Around the 12-15th tick, the first OOM appears, followed by CrashLoopBackOff. The pattern is visibly different from Scenario A: there is a healthy runway before the kill.
 
-3. **Scenario C (healthy)**: `WorkingSetBytes` stays at ~30-50 MiB. `RestartCount` remains 0. HealthState reports Healthy. Acts as control proving the platform and image are fine.
+3. **Scenario C (healthy)**: `WorkingSetBytes` stays at ~30-50 MiB. `RestartCount` remains 0. HealthState reports Healthy. The control supports the workload contrast, with no matching OOM rows in the captured section for that revision; it does not establish that the platform or image could not contribute.
 
 4. **Fix**: After `trigger-fix.sh`, a new revision is created. The new revision reaches `HealthState: Healthy`. `MemoryPercentage` drops back to baseline. The old failing revision is preserved (inactive but visible in the Revisions blade) for post-incident review.
 

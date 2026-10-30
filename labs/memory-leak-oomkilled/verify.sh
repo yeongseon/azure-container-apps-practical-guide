@@ -156,11 +156,10 @@
 #          captured baseline has all three Strong-path conditions met.
 #       c) Health states match outcome: healthy.healthState == "Healthy"
 #          AND leak.healthState in ("Healthy", "Unhealthy") AND
-#          hard.healthState in ("Healthy", "Unhealthy") (Strong —
+#          hard.healthState in ("Healthy", "Unhealthy") (single path —
 #          healthy must be Healthy; the others may be in either state
-#          depending on when the snapshot was taken vs the fix); or
-#          healthy.healthState == "Healthy" (Fallback — only the
-#          control's state is required). The captured baseline has
+#          depending on when the snapshot was taken vs the fix).
+#          All three states must be reported. The captured baseline has
 #          all three == "Healthy" because the latest hard snapshot
 #          was taken AFTER trigger-fix.sh.
 #
@@ -247,6 +246,63 @@ for required in \
         exit 1
     fi
 done
+EVIDENCE_DIR="$EVIDENCE_DIR" \
+HARD_APP_NAME="$HARD_APP_NAME" \
+HARD_EVIDENCE_TS="$HARD_EVIDENCE_TS" \
+LEAK_APP_NAME="$LEAK_APP_NAME" \
+LEAK_EVIDENCE_TS="$LEAK_EVIDENCE_TS" \
+HEALTHY_APP_NAME="$HEALTHY_APP_NAME" \
+HEALTHY_EVIDENCE_TS="$HEALTHY_EVIDENCE_TS" \
+python3 - <<'PY'
+import os
+import re
+import sys
+from datetime import datetime
+from pathlib import Path
+
+header = "=== 5. System logs: exit code 137 / OOM / ProcessExited / ContainerTerminated ==="
+next_header = "=== 6. OOM event count timeline (5-min bins) ==="
+timestamp = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z")
+
+def evidence_error(report: Path, line: int, reason: str) -> None:
+    print(f"ERROR: unusable evidence {report.name}:{line}: {reason}.", file=sys.stderr)
+    sys.exit(1)
+
+for scenario in ("HARD", "LEAK", "HEALTHY"):
+    report = Path(os.environ["EVIDENCE_DIR"]) / os.environ[f"{scenario}_APP_NAME"] / (
+        f"report-{os.environ[f'{scenario}_EVIDENCE_TS']}.txt"
+    )
+    try:
+        lines = [line.rstrip() for line in report.read_text(encoding="utf-8-sig").splitlines()]
+    except (OSError, UnicodeError) as error:
+        evidence_error(report, 1, f"cannot read report ({type(error).__name__})")
+    positions = [i for i, line in enumerate(lines) if line == header]
+    if len(positions) != 1:
+        evidence_error(report, 1, "expected exactly one section 5 header")
+    start = positions[0]
+    headers = [i for i, line in enumerate(lines) if line.startswith("=== ")]
+    before = [i for i in headers if i < start]
+    after = [i for i in headers if i > start]
+    if (not before or lines[before[-1]] != "=== 4. Log Analytics workspace ==="
+            or any(re.match(r"=== ([5-9]|[1-9]\d+)[a-z]?\.", lines[i]) for i in before)):
+        evidence_error(report, start + 1, "section 5 is out of order")
+    if not after or lines[after[0]] != next_header:
+        evidence_error(report, start + 1, "section 5 requires the section 6 boundary")
+    body = [(i + 1, lines[i]) for i in range(start + 1, after[0]) if lines[i].strip()]
+    if (len(body) < 4 or body[0][1] != "(Log Analytics ingestion delay: 5-10 min)"
+            or not re.fullmatch(r"Log_s\s{2,}Reason_s\s{2,}TableName\s{2,}TimeGenerated", body[1][1])
+            or not re.fullmatch(r"-+\s{2,}-+\s{2,}-+\s{2,}-+", body[2][1])):
+        evidence_error(report, start + 2, "section 5 requires its note, table header, separator and data rows")
+    for number, line in body[3:]:
+        parts = re.split(r"\s{2,}", line)
+        if (len(parts) != 4 or not parts[0] or not re.fullmatch(r"\S+", parts[1])
+                or parts[2] != "PrimaryResult" or not timestamp.fullmatch(parts[3])):
+            evidence_error(report, number, "malformed section 5 row")
+        try:
+            datetime.strptime(parts[3][:19], "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            evidence_error(report, number, "invalid section 5 TimeGenerated")
+PY
 # Phase B captures nothing: it re-evaluates a cohort Phase A already
 # captured. This timestamp is when the gates were RE-EVALUATED, which is
 # neither the evidence capture time nor the docs edit time.

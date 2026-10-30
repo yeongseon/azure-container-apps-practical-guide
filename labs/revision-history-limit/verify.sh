@@ -539,8 +539,8 @@ a_pass = a_strong_before_both_fields_match or a_fallback_before_both_fields_matc
 
 # Sub-gate (b): post-window config shows the same configured values
 # (BOTH-not-OR: both fields must match) AND is byte-identical to the
-# pre-burst config (proves the platform did not mutate the configured
-# values mid-window).
+# pre-burst config (the two captured endpoint files contain identical
+# bytes; changes between those snapshots are not excluded).
 t15m_max_inactive = config_t15m.get("maxInactiveRevisions")
 t15m_mode = config_t15m.get("activeRevisionsMode")
 t15m_both_fields_match = (

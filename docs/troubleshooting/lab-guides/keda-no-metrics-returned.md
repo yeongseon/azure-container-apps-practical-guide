@@ -44,7 +44,7 @@ validation:
 Reproduce the KEDA/HPA log messages `no metrics returned from resource
 metrics API` and `invalid metrics` by creating containers that are
 intentionally Not Ready or crash-looping, then compare against a healthy
-baseline to confirm the errors are caused by container lifecycle events.
+baseline to test whether the errors correlate with container lifecycle events.
 
 ## Lab Metadata
 
@@ -267,12 +267,14 @@ ca-nometrics-healthy  10          04:10:26               04:11:27  (~61s window)
 
 ### Operator takeaway from experiment
 
-The Scenario C result is the most important takeaway:
-**expect 30-60 seconds of "no metrics returned" logs
-after every deployment**, even when the application starts instantly.
-This is a normal Kubernetes Metrics Server warm-up period, not a defect.
+The Scenario C result shows that a brief burst of "no metrics returned"
+can accompany deployment even when the application starts instantly.
+This is consistent with Kubernetes Metrics Server warm-up, but the control
+does not establish a unique cause or exclude an environmental contribution.
 
 ## 4b) Phase B Falsification Gates
+
+Gate 10(b) reads only the declared `TimeGenerated` column from selected metric-error and startup-probe-failure rows. Both sections must declare the `Log_s`, `TableName`, `TimeGenerated` layout with a separator; selected rows must end in `PrimaryResult` and one valid timestamp without extra columns. An unusable selected row yields `Not Proven`, not correlation. Inclusive window overlap allows a shared endpoint, but an unrelated timestamp in another row or inside a message cannot establish correlation. Overlap is not proof of causation or a per-event match.
 
 `verify.sh` is a pure file processor against the 18 historical-capture artifacts (6 files × 3 scenarios under `evidence/ca-nometrics-*/`) and emits four falsifiable gate JSONs under `evidence/`. Most sub-gates retain a Strong path matching the exact lab specification and a lower-evidence Fallback tier tolerating minor drift. Gate 10(b) requires probe failures and temporal overlap on its only path. All twelve sub-gates (4 gates × 3 sub-gates each), first emitted on 2026-06-24 from the 2026-06-20 captures and later re-evaluated offline, pass. Gate 13(c) counts only `Healthy`/`Unhealthy` as reported §2 health states for all three scenarios; anything else is unreported evidence and fails both tiers, including absent, null, empty, `None`, `Unknown`, `Degraded` or any other string. The exact Healthy/Healthy/Unhealthy pattern is the Strong tier; the lower-evidence Fallback tier requires crash `Unhealthy` and at least one `Healthy` state among healthy/slow. `c_evidence_level` identifies the passing tier.
 
@@ -285,7 +287,7 @@ This is a normal Kubernetes Metrics Server warm-up period, not a defect.
 
 The Gate 13 cross-scenario ratio threshold is intentionally **lower** than the observed 4.44× (set to ≥ 3.0×) to absorb run-to-run variance while still falsifying the case where crash-loop duration converges with the healthy/slow baselines. The Gate 11 sub-gate (b) intentionally keys off the §2 inline JSON `runningState` and `provisioningState` fields rather than the sidecar `revisions-*.json` (which carries only `healthState`, `name`, `replicas`, `trafficWeight`) because `runningState` and `provisioningState` are the authoritative platform-observed state for a failing revision. See [`labs/keda-no-metrics-returned/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/keda-no-metrics-returned/evidence/README.md) "Honest disclosure" section for the full empirical platform behavior documented during the 2026-06-20 live run, including the sidecar `replicas` semantics (DESIRED replica count from the revision spec, NOT the count of replicas that successfully reached Running).
 
-The H1 gates (10/11) together prove that "no metrics returned from resource metrics API" is not a generic platform noise signal — its count, span, and duration scale with container unreadiness severity. The H2 gate (12) proves that the same signal still appears (in bounded form) on a healthy container during Metrics Server warm-up. The H3 cross-scenario gate (13) proves the differential — crash-loop produces materially more errors over a materially longer window than either the slow-startup or healthy baseline. Together these four gates yield the operator guidance in the **Operator takeaway from experiment** subsection above: a transient burst of "no metrics returned" during the first 30–90 seconds after revision creation is expected (Metrics Server warm-up); the same signal spanning multiple 5-minute bins with `§2` reporting `Unhealthy + Failed` indicates a container-health defect that requires application-level diagnosis (crash-loop, OOMKill, readiness probe misconfiguration), not a platform escalation.
+The H1 gates (10/11) distinguish the captured metric-error counts, spans and durations across startup and crash-loop scenarios. The H2 gate (12) shows the same signal in bounded form on the captured healthy container, consistent with Metrics Server warm-up. The H3 cross-scenario gate (13) establishes the captured differential: crash-loop spans a materially longer window than either the slow-startup or healthy baseline. Together these gates support prioritizing application-health diagnosis when persistent metric errors accompany `§2` reporting `Unhealthy + Failed`. They do not identify a unique cause or rule out a platform contribution or escalation.
 
 ## 5) Verification Queries
 
