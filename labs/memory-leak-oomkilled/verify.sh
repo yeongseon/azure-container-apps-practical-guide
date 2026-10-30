@@ -54,12 +54,12 @@
 #     returned no datapoints for this small per-scenario RG, a known
 #     Container Apps metrics-ingestion caveat for short-lived experiments).
 #     Substituted with: `revisions[0].runningState == "RunningAtMaxScale"`
-#     + `revisions[0].healthState == "Healthy"` + `replicas >= 1`. A
-#     restart-looping container could not maintain RunningAtMaxScale and
-#     could not show healthState=Healthy on the same snapshot — the
-#     substitution is functionally equivalent for the falsification
-#     intent of Gate 12. Plus: 0 OOM records in §5 (the direct OOM
-#     denial).
+#     + `revisions[0].healthState == "Healthy"` + `replicas >= 1`. The
+#     snapshot shows the replica running and healthy at that moment,
+#     which supports the absence of an ongoing restart loop; it is weaker
+#     than RestartCount==0, which would also cover earlier restarts.
+#     Plus: 0 matching OOM records in §5 (the direct check of the
+#     captured section).
 #
 # Gate design (4 falsifiable gates / 12 sub-gates total):
 #
@@ -354,13 +354,14 @@ def get_section(text, section_header):
     """Extract the text between a numbered section header (e.g.
     "=== 5. System logs: exit code 137 / OOM / ProcessExited / ContainerTerminated ===")
     and the next "=== " header (or EOF). Returns the section body
-    without the header line. Tight scoping: the header match requires
-    an exact equality on the trimmed line, so a substring like
-    "5. System logs" appearing elsewhere cannot accidentally match."""
-    lines = text.split("\n")
+    without the header line. Tight scoping: lines are split and
+    right-trimmed exactly as the preflight validation does, and the
+    header must equal a whole line, so an indented or quoted copy of a
+    header, or a substring like "5. System logs", cannot match."""
+    lines = [line.rstrip() for line in text.splitlines()]
     start = None
     for i, line in enumerate(lines):
-        if line.strip() == section_header:
+        if line == section_header:
             start = i + 1
             break
     if start is None:
@@ -396,8 +397,9 @@ def parse_section_5_oom_records(section_text):
         ----------------------------         ------------------    -------------  ----------------------------
         Container 'X' was terminated...      ContainerTerminated   PrimaryResult  2026-06-20T05:56:58.5123804Z
     Each data row has the columns separated by 2+ spaces, so we
-    split on `\\s{2,}` to get exactly 4 fields per row. Header,
-    dashes, blank lines, and rows with fewer fields are skipped.
+    split on `\\s{2,}` to get exactly 4 fields per row. Preflight
+    validates the note, header and separator in the first three
+    nonblank positions; every following nonblank line is a data row.
 
     Returns a list of dicts:
       [{"log_s": "...", "reason_s": "...", "timestamp": "...",
@@ -406,33 +408,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        # Skip header row and dash separator.
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        # Skip the "(Log Analytics ingestion delay: ...)" annotation.
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        # Tight scoping: the row's TableName must equal PrimaryResult
-        # (the KQL query's single result table) and the last field
-        # must be a valid ISO timestamp. Any row failing either check
-        # is non-data and skipped.
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         # Form A: Reason_s == "ContainerTerminated" AND Log_s has both
         # "exit code '137'" and "ProcessExited".
         form_a = (
@@ -500,7 +478,7 @@ def parse_section_6_bins(section_text):
 report_path = f"{EVIDENCE_DIR}/{HARD_APP_NAME}/report-{HARD_EVIDENCE_TS}.txt"
 revisions_path = f"{EVIDENCE_DIR}/{HARD_APP_NAME}/revisions-{HARD_EVIDENCE_TS}.json"
 
-report_text = open(report_path).read()
+report_text = open(report_path, encoding="utf-8-sig").read()
 revisions_json = json.load(open(revisions_path))
 
 section_2 = get_section(report_text, "=== 2. Active revision(s) ===")
@@ -657,10 +635,10 @@ ISO_TS_REGEX = re.compile(
 )
 
 def get_section(text, section_header):
-    lines = text.split("\n")
+    lines = [line.rstrip() for line in text.splitlines()]
     start = None
     for i, line in enumerate(lines):
-        if line.strip() == section_header:
+        if line == section_header:
             start = i + 1
             break
     if start is None:
@@ -676,27 +654,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         form_a = (
             reason_s == "ContainerTerminated"
             and "exit code '137'" in log_s
@@ -785,7 +745,7 @@ def parse_section_7_leak_ticks(section_text):
 report_path = f"{EVIDENCE_DIR}/{LEAK_APP_NAME}/report-{LEAK_EVIDENCE_TS}.txt"
 revisions_path = f"{EVIDENCE_DIR}/{LEAK_APP_NAME}/revisions-{LEAK_EVIDENCE_TS}.json"
 
-report_text = open(report_path).read()
+report_text = open(report_path, encoding="utf-8-sig").read()
 revisions_json = json.load(open(revisions_path))
 
 section_5 = get_section(
@@ -955,10 +915,10 @@ ISO_TS_REGEX = re.compile(
 )
 
 def get_section(text, section_header):
-    lines = text.split("\n")
+    lines = [line.rstrip() for line in text.splitlines()]
     start = None
     for i, line in enumerate(lines):
-        if line.strip() == section_header:
+        if line == section_header:
             start = i + 1
             break
     if start is None:
@@ -974,27 +934,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         form_a = (
             reason_s == "ContainerTerminated"
             and "exit code '137'" in log_s
@@ -1047,7 +989,7 @@ def parse_section_6_bins(section_text):
 report_path = f"{EVIDENCE_DIR}/{HEALTHY_APP_NAME}/report-{HEALTHY_EVIDENCE_TS}.txt"
 revisions_path = f"{EVIDENCE_DIR}/{HEALTHY_APP_NAME}/revisions-{HEALTHY_EVIDENCE_TS}.json"
 
-report_text = open(report_path).read()
+report_text = open(report_path, encoding="utf-8-sig").read()
 revisions_json = json.load(open(revisions_path))
 
 section_5 = get_section(
@@ -1106,14 +1048,14 @@ b_healthy_state = (
 
 # ---------- c) stable replicas (substitutes for RestartCount==0) ----------
 # Strong path: revisions[0].runningState == "RunningAtMaxScale" AND
-# revisions[0].replicas >= 1. The combination proves the container is
-# not restart-looping (RunningAtMaxScale would not hold under
-# CrashLoopBackoff). This substitutes for the Oracle directive's
+# revisions[0].replicas >= 1. The combination shows the replica running
+# at max scale at the sidecar snapshot, which does not hold during
+# CrashLoopBackoff at that moment. This substitutes for the original
 # RestartCount==0 check because §10c (Restart count Total PT5M) is
 # empty across all three scenarios — Korea Central's small per-RG
 # metrics ingestion did not return datapoints for this short-lived
-# experiment. The substitution is functionally equivalent for the
-# falsification intent of Gate 12.
+# experiment. The substitution is weaker than RestartCount==0: it does
+# not cover earlier restarts.
 sidecar_running_state = (
     revisions_json[0].get("runningState")
     if isinstance(revisions_json, list) and revisions_json else None
@@ -1237,10 +1179,10 @@ ISO_TS_REGEX = re.compile(
 )
 
 def get_section(text, section_header):
-    lines = text.split("\n")
+    lines = [line.rstrip() for line in text.splitlines()]
     start = None
     for i, line in enumerate(lines):
-        if line.strip() == section_header:
+        if line == section_header:
             start = i + 1
             break
     if start is None:
@@ -1256,27 +1198,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         form_a = (
             reason_s == "ContainerTerminated"
             and "exit code '137'" in log_s
@@ -1340,7 +1264,7 @@ def compute_scenario_metrics(app_name, ts):
     + PrimaryResult parser, §7 leak ticks use the LEAK_TICK_REGEX."""
     report_path = f"{EVIDENCE_DIR}/{app_name}/report-{ts}.txt"
     revisions_path = f"{EVIDENCE_DIR}/{app_name}/revisions-{ts}.json"
-    text = open(report_path).read()
+    text = open(report_path, encoding="utf-8-sig").read()
     revisions_json = json.load(open(revisions_path))
     section_5 = get_section(
         text,

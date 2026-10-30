@@ -37,7 +37,7 @@ unrelated — it occurs because the scale rule uses the legacy
 |---|---|---|---|
 | **A. Slow startup** | `ca-nometrics-slow` | `slow-start` (120s delay) | 12 errors in ~76s during startup probe failure, then resolved |
 | **B. CrashLoopBackOff** | `ca-nometrics-crash` | `crash-loop` (exits every 30s) | 29 recurring errors over 20+ min, correlating with crash/restart cycles |
-| **C. Healthy baseline** | `ca-nometrics-healthy` | `healthy` | 10 errors in ~61s during Metrics Server warm-up, then zero |
+| **C. Healthy baseline** | `ca-nometrics-healthy` | `healthy` | 10 errors in ~61s after deployment, then zero |
 
 Comparing A/B against C supports an association between metric errors and
 container lifecycle events (Not Ready / restart). The Scenario C capture
@@ -57,7 +57,7 @@ labs/keda-no-metrics-returned/
 ├── trigger-scenario-a.sh       # Slow startup (readiness probe fails)
 ├── trigger-scenario-b.sh       # CrashLoopBackOff (repeated exits)
 ├── trigger-scenario-c.sh       # Healthy baseline (control)
-├── verify.sh                   # Query system logs for metric errors
+├── verify.sh                   # Offline evaluator of the committed evidence (emits the four gate files)
 └── cleanup.sh
 ```
 
@@ -103,6 +103,8 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 
 Offline Gate 10(b) compares only the `TimeGenerated` columns of section 5 rows containing the metric-error signal and section 9 startup-probe-failure rows. Each section must declare `Log_s`, `TableName` and `TimeGenerated`; selected rows must end in `PrimaryResult` and one valid timestamp, with no extra columns. An unusable selected row makes correlation `Not Proven`. Their timestamp windows must overlap, including a shared endpoint; an unrelated timestamp, including one inside a message, cannot establish correlation. This is a window-level correlation, not proof of causation or a per-event match.
 
+Validation targets the historical `az` table format; a row that does not match it is unusable evidence, not proof that collection failed.
+
 Offline Gate 13(c) retains two evidence tiers: the exact Healthy/Healthy/Unhealthy pattern, or a lower-evidence fallback with all three states reported as `Healthy` or `Unhealthy`, crash `Unhealthy` and at least one of healthy/slow `Healthy`. Only `Healthy`/`Unhealthy` count as reported; anything else is unreported evidence and fails both tiers. `c_evidence_level` identifies the passing tier.
 
 The lab is considered reproduced when **all** of the following hold
@@ -136,9 +138,11 @@ When investigating these log messages:
    instantly-starting container. This is consistent with Metrics Server
    warm-up, not proof that every deployment has the same duration or cause.
 
-2. **Check if the logs are transient or persistent.** Transient
-   occurrences during deployments, restarts, or scale events are
-   expected and do not affect service health.
+2. **Check if the logs are transient or persistent.** A short burst
+   during a deployment, restart or scale event matches the healthy
+   capture in this lab; judge it by the health and restart signals,
+   because the log text alone cannot show that service health was
+   unaffected.
 
 3. **If persistent (>10 min)**, investigate container health:
    - Is the container crash-looping? (`RestartCount` metric)

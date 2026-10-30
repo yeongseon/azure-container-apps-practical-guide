@@ -106,8 +106,9 @@ workloads with different startup/crash behaviors, **THEN**:
   returned" and "invalid metrics" that correlate with container restart
   timestamps. The pattern repeats with exponential backoff intervals.
 - **Scenario C (healthy)**: System logs show a **brief burst** of metric
-  error entries (~30-60s) immediately after deployment due to the
-  Kubernetes Metrics Server warm-up period, then no further errors.
+  error entries (~30-60s) immediately after deployment, consistent with
+  Kubernetes Metrics Server warm-up (the cause is not established), then
+  no further errors.
   The DEPRECATED warning also appears (it is independent of container
   health).
 
@@ -186,9 +187,13 @@ for APP in ca-nometrics-slow ca-nometrics-crash ca-nometrics-healthy; do
 done
 ```
 
-`verify.sh` queries `ContainerAppSystemLogs_CL` for "no metrics returned",
-"invalid metrics", and "DEPRECATED" messages, then checks console logs,
-replica status, and restart counts.
+In this repository `verify.sh` does not query Azure and ignores `APP_NAME`: it
+evaluates the committed 2026-06-20 evidence under `evidence/ca-nometrics-*/` and
+emits the four gate files described in section 4b. The historical capture, now
+owned by `trigger.sh`, queried `ContainerAppSystemLogs_CL` for "no metrics
+returned", "invalid metrics" and "DEPRECATED" messages and recorded console
+logs, replica status and restart counts. A fresh capture writes new timestamped
+reports, and `verify.sh` evaluates only the timestamps pinned in its header.
 
 ## 4) Expected Evidence
 
@@ -229,10 +234,11 @@ ca-nometrics-healthy  10          04:10:26               04:11:27  (~61s window)
 
 3. **Scenario C (healthy)**: **Unexpected finding** — 10 error entries in
    61 seconds immediately after deployment. The container started within
-   seconds (`[app] listening on :8000` logged instantly), but the Kubernetes
-   Metrics Server needed ~60s to begin returning data for the new pod. This
-   proves that **even a perfectly healthy container produces "no metrics
-   returned" logs during initial provisioning**.
+   seconds (`[app] listening on :8000` logged instantly), yet metric errors
+   continued briefly. This capture shows that **"no metrics returned" can
+   accompany initial provisioning of a container reported as healthy**,
+   consistent with Metrics Server warm-up; it does not establish a unique
+   cause or a duration that applies to every deployment.
 
 4. **DEPRECATED warning**: All three apps produced exactly one instance of:
    ```text
@@ -282,7 +288,7 @@ Gate 10(b) reads only the declared `TimeGenerated` column from selected metric-e
 |---|---|---|---|---|
 | 10 | `10-h1-slow-not-ready-gate.json` | H1 (Scenario A slow-start): "no metrics returned" during startup is correlated with NotReady and resolves | 3 — (a) signal observed: §5 has ≥ 10 "no metrics returned" lines OR §6 bin total ≥ 10; (b) NotReady correlation: §9 `Probe of StartUp failed` events present AND §5 ↔ §9 timestamp windows overlap (single path: a correlation claim requires the overlap itself); (c) eventually Ready: sidecar `healthState: Healthy` OR sidecar `trafficWeight: 100` | PASS — 20 §5 lines, 30 §9 probe failures, §5 window 00:35:49–00:38:05 overlaps §9 probe window 00:37:22–00:37:51, sidecar Healthy + traffic 100 |
 | 11 | `11-h1-crash-not-ready-gate.json` | H1 (Scenario B crash-loop): "no metrics returned" persists across multiple bins with unready state | 3 — (a) signal spans ≥ 2 bins: §6 row count ≥ 2 OR §5 first→last duration > 300 s; (b) unready state: §2 inline JSON has `healthState: Unhealthy` AND `runningState: Failed` OR sidecar `healthState ≠ Healthy` OR §2 `provisioningState: Failed`; (c) persistent pattern: §6 bins beyond the first OR §5 duration > 600 s | PASS — 3 §6 bins (25/1/1 at 00:35/00:40/00:45), §5 duration 603 s, §2 reports `Unhealthy + Failed + Failed`, sidecar Unhealthy |
-| 12 | `12-h2-healthy-post-ready-gate.json` | H2 (Scenario C healthy baseline): "no metrics returned" is bounded to Metrics Server warm-up and does not persist | 3 — (a) Healthy/Running: §2 `Healthy + Running` OR sidecar `Healthy + traffic 100`; (b) single bin: §6 has 1 row OR §6 has ≤ 2 rows; (c) silent after warm-up: §5 duration ≤ 300 s OR §5 lines ≤ 20 | PASS — §2 Healthy/Running, sidecar Healthy + traffic 100, §6 has 1 bin (16), §5 duration 106 s, 16 §5 lines, §9 has 0 probe failures |
+| 12 | `12-h2-healthy-post-ready-gate.json` | H2 (Scenario C healthy baseline): "no metrics returned" is brief on the healthy revision and does not persist (the gate does not test why) | 3 — (a) Healthy/Running: §2 `Healthy + Running` OR sidecar `Healthy + traffic 100`; (b) single bin: §6 has 1 row OR §6 has ≤ 2 rows; (c) silent after warm-up: §5 duration ≤ 300 s OR §5 lines ≤ 20 | PASS — §2 Healthy/Running, sidecar Healthy + traffic 100, §6 has 1 bin (16), §5 duration 106 s, 16 §5 lines, §9 has 0 probe failures |
 | 13 | `13-h3-cross-scenario-falsification-gate.json` | H3 (cross-scenario): metric-error severity tracks unreadiness severity | 3 — (a) bin count ordering: exact `healthy=1 AND slow=1 AND crash≥2` OR weak `healthy ≤ slow < crash`; (b) duration ordering: `crash ≥ 3.0× max(healthy, slow)` OR `crash > both`; (c) strong tier: exact `healthy=Healthy AND slow=Healthy AND crash=Unhealthy` OR lower-evidence fallback tier `crash=Unhealthy AND at-least-one of {healthy, slow}=Healthy`, with all three states reported in {Healthy, Unhealthy}; anything else is unreported evidence and fails both state tiers | PASS — bin counts 1/1/3, durations 106 s / 136 s / 603 s (ratio crash÷max(healthy, slow) = 4.44× ≥ 3.0×), health states Healthy / Healthy / Unhealthy |
 
 The Gate 13 cross-scenario ratio threshold is intentionally **lower** than the observed 4.44× (set to ≥ 3.0×) to absorb run-to-run variance while still falsifying the case where crash-loop duration converges with the healthy/slow baselines. The Gate 11 sub-gate (b) intentionally keys off the §2 inline JSON `runningState` and `provisioningState` fields rather than the sidecar `revisions-*.json` (which carries only `healthState`, `name`, `replicas`, `trafficWeight`) because `runningState` and `provisioningState` are the authoritative platform-observed state for a failing revision. See [`labs/keda-no-metrics-returned/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/keda-no-metrics-returned/evidence/README.md) "Honest disclosure" section for the full empirical platform behavior documented during the 2026-06-20 live run, including the sidecar `replicas` semantics (DESIRED replica count from the revision spec, NOT the count of replicas that successfully reached Running).
@@ -304,7 +310,7 @@ ContainerAppSystemLogs_CL
 Expected: `ca-nometrics-crash` shows sustained error counts across
 multiple 5-min bins. `ca-nometrics-slow` shows errors only in the first
 1-2 bins. `ca-nometrics-healthy` shows errors only in the first bin
-(deployment warm-up), then zero.
+(the brief burst after deployment), then zero.
 
 ### KQL: DEPRECATED warning
 
@@ -355,10 +361,12 @@ Azure Portal screenshots to collect for each scenario. Save to
 !!! note "Portal evidence — System logs"
     ~10 metric error entries during the first ~60 seconds after
     deployment, then no further errors. The container started instantly
-    but the Kubernetes Metrics Server needed ~60s to warm up for the
-    new pod. Total Replica Restart Count is 0. This is the most
-    important screenshot in the lab: it proves the error appears even
-    when nothing is wrong with the container.
+    and Total Replica Restart Count is 0. The brief burst is consistent
+    with Metrics Server warm-up for the new pod, which this capture does
+    not establish as the cause. This is the most important screenshot in
+    the lab: it shows the same warning on a container that started
+    instantly and that the platform reports as healthy, so the warning
+    text alone does not identify a container fault.
 
     ![Scenario C: System logs showing transient "no metrics returned" on a healthy app](../../assets/troubleshooting/keda-no-metrics-returned/scenario-c-healthy-system-logs.png)
 

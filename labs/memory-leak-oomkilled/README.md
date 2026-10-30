@@ -36,7 +36,7 @@ labs/memory-leak-oomkilled/
 ├── trigger-scenario-b.sh       # Gradual leak (background thread)
 ├── trigger-scenario-c.sh       # Healthy control
 ├── trigger-fix.sh              # Apply fix to Scenario A
-├── verify.sh                   # Collect evidence (logs, metrics, cgroup)
+├── verify.sh                   # Offline evaluator of the committed evidence (emits the four gate files)
 └── cleanup.sh
 ```
 
@@ -87,6 +87,8 @@ bash labs/memory-leak-oomkilled/cleanup.sh
 ## What "Success" Looks Like
 
 Before emitting any gates, offline verification validates section 5 in all three pinned reports: exactly one unindented header in order after section 4, the next boundary at section 6, the collection note, table header and separator, and at least one data row. Every nonblank line after the separator must have the declared columns, `PrimaryResult` and a valid `TimeGenerated`. Missing, unreadable, malformed or ambiguous evidence exits with an evidence error, not a zero-OOM result. A passing control records no matching OOM rows in the captured section; it does not exclude delayed or uncollected logs, or an environmental contribution.
+
+Validation targets the historical `az` table format; a row that does not match it is unusable evidence, not proof that collection failed.
 
 The lab is considered reproduced when **all** of the following hold:
 
