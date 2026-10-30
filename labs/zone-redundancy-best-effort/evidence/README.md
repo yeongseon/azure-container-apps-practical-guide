@@ -87,14 +87,14 @@ Azure validation. Replays reproduce the same non-time fields for this cohort.
 
 ### Derived Phase B outputs
 
-Sizes use binary KB (1024 bytes), rounded to one decimal below 10 KB.
+Sizes are measured bytes divided by 1024 (KiB), rounded to two decimals.
 
 | Derived output | Size |
 |---|---|
-| `14-cohort-integrity-gate.json` | 5.5 KB |
-| `15-negative-control-baseline-validity-gate.json` | 3.1 KB |
-| `16-positive-control-perturbation-validity-gate.json` | 6.0 KB |
-| `17-bounded-coverage-uncertainty-gate.json` | 5.9 KB |
+| `14-cohort-integrity-gate.json` | 5.50 KiB |
+| `15-negative-control-baseline-validity-gate.json` | 3.08 KiB |
+| `16-positive-control-perturbation-validity-gate.json` | 5.99 KiB |
+| `17-bounded-coverage-uncertainty-gate.json` | 5.91 KiB |
 
 ## Reproducibility
 

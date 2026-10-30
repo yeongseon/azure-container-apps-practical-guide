@@ -68,14 +68,14 @@ The following observations surfaced during the 2026-06-22 live run and are docum
 
 The pack contains **15 evidence artifacts**, excluding this README: **11 trigger/verify-captured artifacts** (01–09 numbered + 2 system-logs-* files) AND **4 verify.sh-emitted gate JSONs** (10/11/12/13).
 
-Gate sizes use binary KB (1024 bytes), rounded to one decimal below 10 KB.
+Gate sizes are measured bytes divided by 1024 (KiB), rounded to two decimals.
 
 | Derived output | Size |
 |---|---|
-| `10-h1-a-large-cold-pull-gate.json` | 1.6 KB |
-| `11-h1-b-small-cold-pull-gate.json` | 1.6 KB |
-| `12-h1-c-speedup-ratio-gate.json` | 1.2 KB |
-| `13-h2-falsification-gate.json` | 2.1 KB |
+| `10-h1-a-large-cold-pull-gate.json` | 1.56 KiB |
+| `11-h1-b-small-cold-pull-gate.json` | 1.57 KiB |
+| `12-h1-c-speedup-ratio-gate.json` | 1.21 KiB |
+| `13-h2-falsification-gate.json` | 2.12 KiB |
 
 ## Reproducibility
 
