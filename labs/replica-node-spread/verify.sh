@@ -520,30 +520,29 @@ c_same_bundle = (
 # evidence from another lab) fails this sub-gate.
 # Fallback path: no unexpected files match the canonical name pattern
 # set (allows for .swp / .bak that are not under version control).
-actual_files = sorted(
-    [
-        f for f in os.listdir(EVIDENCE_DIR)
-        if os.path.isfile(os.path.join(EVIDENCE_DIR, f))
-    ]
-)
-canonical_set = set(CANONICAL_FILES)
-actual_set = set(actual_files)
-
-# After Phase B verify.sh runs, the directory will also contain
-# 10..13 gate JSONs. The sub-gate must exclude those from the
-# "extras" check (they are emitted by THIS script and are expected).
-# We exclude any file matching the pattern (NN-*-gate.json) where
-# NN is 10..13 — that's the Phase B output namespace.
+# The four Phase B outputs are this script's own products: they are excluded
+# from the recorded listing (and from the extras check) so that the gate's
+# content does not depend on whether they existed before the run. Otherwise a
+# clean replay (outputs deleted first) would record a different directory
+# listing than one that starts from the committed pack.
 phase_b_gate_pattern = (
     "10-cohort-integrity-gate.json",
     "11-matrix-coherence-gate.json",
     "12-claim-eligibility-gate.json",
     "13-packaging-gate.json",
 )
-actual_set_excluding_phase_b = actual_set - set(phase_b_gate_pattern)
+actual_files = sorted(
+    [
+        f for f in os.listdir(EVIDENCE_DIR)
+        if os.path.isfile(os.path.join(EVIDENCE_DIR, f))
+        and f not in phase_b_gate_pattern
+    ]
+)
+canonical_set = set(CANONICAL_FILES)
+actual_set = set(actual_files)
 
-# Also exclude README.md (provenance doc, expected) from "extras".
-actual_set_excluding_phase_b -= {"README.md"}
+# README.md (the provenance doc) is expected and is not an extra.
+actual_set_excluding_phase_b = actual_set - {"README.md"}
 
 extras_found = sorted(actual_set_excluding_phase_b - canonical_set)
 missing_canonical = sorted(canonical_set - actual_set)
@@ -641,7 +640,7 @@ print(json.dumps({
         "c_pass": c_same_bundle,
     },
     "sub_gate_d_no_extras": {
-        "actual_files_in_evidence_dir": actual_files,
+        "actual_files_excluding_phase_b_outputs": actual_files,
         "canonical_files_expected": CANONICAL_FILES,
         "extras_found_after_excluding_phase_b_outputs": extras_found,
         "missing_canonical_files": missing_canonical,
