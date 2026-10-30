@@ -5,10 +5,13 @@ import copy
 import json
 import os
 from pathlib import Path
+import random
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from collections.abc import Callable
 
@@ -106,6 +109,269 @@ class ParsingTests(unittest.TestCase):
                 found, unclosed, findings = inventory.scan_fences(text)
                 self.assertEqual((found, unclosed), ([], []))
                 self.assertEqual(findings, [{'line': 3, 'reason': 'indented'}])
+
+    def test_thematic_break_spacing_follows_the_site_rule(self):
+        # Site renderer: at most two spaces between markers form a rule that ends the list (zero
+        # diagrams); three or more spaces, or tabs, leave a list item (one diagram).
+        rules = ('* * *', '*  *  *', '- - -', '-  -  -', '_ _ _', '_  _  _', '***', '* * * *',
+                 '**\t**', '--\t--', '__\t__', '* *\t* *')
+        items = ('*   *   *', '*    *    *', '-   -   -', '_   _   _', '*   *   *   *', '*\t*\t*', '*  \t*  \t*',
+                 '-\t-\t-', '*\t**')
+        for boundary, reason in [(rule, 'indented-code') for rule in rules] + [(item, 'indented') for item in items]:
+            for marker in ('```', '~~~'):
+                with self.subTest(boundary=boundary, marker=marker):
+                    text = '- item\n' + boundary + '\n\n    ' + marker + 'mermaid\n    flowchart LR\n    ' + marker + '\n'
+                    found, unclosed, findings = inventory.scan_fences(text)
+                    self.assertEqual((found, unclosed), ([], []))
+                    self.assertEqual(findings, [{'line': 4, 'reason': reason}])
+
+    def test_thematic_break_above_a_paragraph_ends_the_list(self):
+        # Site renderer: a rule above a paragraph ends the list (zero diagrams); a separator with three
+        # spaces is a list item whose lazy paragraph keeps the list open (one diagram).
+        cases = (('* * *', 'indented-code'), ('- - -', 'indented-code'), ('***', 'indented-code'),
+                 ('*   *   *', 'indented'), ('-   -   -', 'indented'))
+        for boundary, reason in cases:
+            for paragraph in ('text\n', 'text\nmore text\n'):
+                with self.subTest(boundary=boundary, paragraph=paragraph):
+                    text = '- item\n' + boundary + '\n' + paragraph + '\n    ```mermaid\n    flowchart LR\n    ```\n'
+                    found, unclosed, findings = inventory.scan_fences(text)
+                    self.assertEqual((found, unclosed), ([], []))
+                    self.assertEqual(findings, [{'line': paragraph.count('\n') + 4, 'reason': reason}])
+
+    def test_lazy_lines_under_an_indented_first_line_belong_to_that_block(self):
+        # Site renderer: after a list item the whole block stays in the item (one diagram); after prose or
+        # at the start of the page the indented line is code, and only a list marker starts a new list.
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        lazy = ('lazy line', '# Heading', '- - - -', '***', '---', '> quote', '<br>', '~~~yaml\nx: 1\n~~~')
+        cases = [(f'{bullet}\n\n    first\n{line}\n\n', 'indented') for bullet in ('- item', '1. item') for line in lazy]
+        cases += [('    first\n- sibling\n\n', 'indented'), ('    first\n1. one\n\n', 'indented'),
+                  ('# Title\n\n    first\n- sibling\n\n', 'indented'), ('text\n\n    first\n- - - -\n\n', 'indented-code'),
+                  ('    first\nlazy line\n\n', 'indented-code'), ('- item\n\ntext\n\n    first\nlazy line\n\n', 'indented-code')]
+        for head, reason in cases:
+            with self.subTest(head=head):
+                found, unclosed, findings = inventory.scan_fences(head + fence)
+                self.assertEqual((found, unclosed), ([], []))
+                self.assertEqual(findings, [{'line': head.count('\n') + 1, 'reason': reason}])
+
+    def test_reference_and_footnote_definitions_do_not_end_a_list(self):
+        # Site renderer: the definition is removed before blocks are parsed, so a list or container keeps
+        # the fence (one diagram) and without one the fence is code.
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        contexts = (('- item\n', 'indented'), ('1. item\n', 'indented'), ('- a\n  - b\n', 'indented'),
+                    ('!!! note\n    body\n', 'indented'), ('text\n', 'indented-code'), ('', 'indented-code'))
+        for context, reason in contexts:
+            for definition in ('[ref]: http://example.com\n', '[ref]: http://example.com "Title"\n', '[^1]: note\n'):
+                with self.subTest(context=context, definition=definition):
+                    head = context + '\n' + definition + '\n'
+                    found, unclosed, findings = inventory.scan_fences(head + fence)
+                    self.assertEqual((found, unclosed), ([], []))
+                    self.assertEqual(findings, [{'line': head.count('\n') + 1, 'reason': reason}])
+
+    def test_inline_code_on_a_tag_line_is_not_read_as_markup(self):
+        # Site renderer: zero diagrams, because it closes the wrapper at the backticked tag; the scanner
+        # deliberately keeps the element open, which stays conservative.
+        text = '<div> `</div>`\n\n    ```mermaid\n    flowchart LR\n    ```\n'
+        found, unclosed, findings = inventory.scan_fences(text)
+        self.assertEqual((found, unclosed), ([], []))
+        self.assertEqual(findings, [{'line': 3, 'reason': 'indented'}])
+
+    def test_comment_opener_in_inline_code_does_not_hide_a_later_diagram(self):
+        # Site renderer: one diagram; the backticked comment opener is literal text.
+        text = 'prose with `<!--` literal\n\n```mermaid\nflowchart LR\nA --> B\n```\n\n<!-- note -->\n'
+        found, unclosed, findings = inventory.scan_fences(text)
+        self.assertEqual([(item.line, item.example) for item in found], [(3, False)])
+        self.assertEqual((unclosed, findings), ([], []))
+
+    def test_comment_opener_in_a_fence_info_string_does_not_hide_the_fence(self):
+        # Site renderer: zero diagrams, because extra info-string words make it code; the scanner counts
+        # the fence by its first word, which is the documented over-count.
+        text = '```mermaid <!-- x\nflowchart LR\nA --> B\n```\n\n<!-- y -->\n'
+        found, unclosed, findings = inventory.scan_fences(text)
+        self.assertEqual([(item.line, item.example) for item in found], [(1, False)])
+        self.assertEqual((unclosed, findings), ([], []))
+
+    def test_scan_time_stays_linear_for_unterminated_tags_and_bare_less_than_signs(self):
+        for text in ('<div title="\n' + 'plain text line\n' * 20000, '<div>' + '< ' * 20000 + '\n'):
+            started = time.perf_counter()
+            _ = inventory.scan_fences(text)
+            self.assertLess(time.perf_counter() - started, 3.0)
+
+    def test_scan_time_stays_linear_for_comments_indented_blocks_and_nesting(self):
+        diagram = '    ```mermaid\n    x\n    ```\n'
+        stress = {
+            'unclosed comment openers': '<!-- a\n' * 20000 + '```text\n-->\n```\n',
+            'comment opener before many tag starts': '<!-- ' + '<a ' * 20000 + '"' + '>\n',
+            'list followed by lazy blocks': '- item\n' + '\n    first\nlazy\n' * 6000 + '\n' + diagram,
+            'list followed by indented fences': '- item\n' + ('\n' + diagram) * 4000,
+            'unclosed fence openers': '```text\n' * 10000,
+        }
+        for name, text in stress.items():
+            with self.subTest(name=name):
+                started = time.perf_counter()
+                _ = inventory.scan_fences(text)
+                self.assertLess(time.perf_counter() - started, 3.0)
+
+    def test_deeply_nested_unclosed_openers_do_not_exhaust_the_stack(self):
+        diagram = '```mermaid\nflowchart LR\n```\n'
+        same = '```text\n' * 1500 + diagram
+        growing = ''.join('`' * (3 + k % 50) + 'text\n' for k in range(1500)) + diagram
+        for text in (same, growing):
+            _, _, findings = inventory.scan_fences(text)
+            self.assertEqual(findings, [])
+
+    def test_fence_header_selects_the_diagram_class_like_the_site(self):
+        # Site renderer: a bare or dotted first word, or the first class of an attribute list, selects the
+        # diagram; a later class, another case, a malformed list or a dotted suffix leaves plain code.
+        diagrams = ('mermaid', '.mermaid', '{.mermaid}', '{ .mermaid }', '{.mermaid title="x"}', '{.mermaid .y}',
+                    '{#x .mermaid}', '{.mermaid}{.x}', 'mermaid {.x}', '{.mermaid\t.y}')
+        code = ('{.y .mermaid}', '{mermaid}', '{.mermaid', '.mermaid}', '..mermaid', 'mermaid.x', '{. mermaid}',
+                '#mermaid', 'Mermaid', '{.Mermaid}', '{.y\t.mermaid}')
+        for marker in ('```', '~~~', '````'):
+            for header, count in [(header, 1) for header in diagrams] + [(header, 0) for header in code]:
+                with self.subTest(marker=marker, header=header):
+                    found, unclosed, findings = inventory.scan_fences(marker + header + '\nflowchart LR\n' + marker + '\n')
+                    self.assertEqual((len(found), unclosed, findings), (count, [], []))
+
+    def test_backtick_in_a_backtick_header_is_text_unless_it_is_an_attribute_list(self):
+        # Site renderer: a backtick header with a stray backtick is a paragraph, but inside braces it is
+        # still an attribute list.
+        for text, count in (('```{.mermaid}`x}\nflowchart LR\n```\n', 1), ('```mermaid`\nflowchart LR\n```\n', 0),
+                            ('```{.mermaid`}\nflowchart LR\n```\n', 0), ('```mermaid `x`\nflowchart LR\n```\n', 0)):
+            with self.subTest(text=text):
+                found, _, _ = inventory.scan_fences(text)
+                self.assertEqual(len(found), count)
+
+    def test_tag_joined_comment_opener_does_not_hide_a_later_diagram(self):
+        # Site renderer: one diagram; removing a tag or a code span from the opener does not leave a comment.
+        for opener in ('<!<b>-- note', '<!`x`-- note', '`<!--` <!<b>-- note', '`<!--` <!`x`-- note'):
+            with self.subTest(opener=opener):
+                text = opener + '\n\n```mermaid\nflowchart LR\nA --> B\n```\n\n-->\n'
+                found, unclosed, findings = inventory.scan_fences(text)
+                self.assertEqual([(item.line, item.example) for item in found], [(3, False)])
+                self.assertEqual((unclosed, findings), ([], []))
+
+    def test_only_line_feeds_end_lines_and_only_spaces_and_tabs_make_a_line_blank(self):
+        # Site renderer: a form feed, a vertical tab or a Unicode separator neither ends a line nor makes
+        # one blank, so an indented fence after it stays with the prose block (one diagram), and a closing
+        # fence followed by one is not a closer.
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        diagram = '```mermaid\nflowchart LR\nA --> B\n```'
+        for separator in ('\x0b', '\x0c', '\x1c', '\x85', '\u2028', '\u2029'):
+            with self.subTest(separator=separator):
+                found, unclosed, findings = inventory.scan_fences('text' + separator + '\n' + fence)
+                self.assertEqual((found, unclosed, findings), ([], [], [{'line': 2, 'reason': 'indented'}]))
+                found, unclosed, findings = inventory.scan_fences('text\n' + separator + '\n' + fence)
+                self.assertEqual((found, unclosed, findings), ([], [], [{'line': 3, 'reason': 'indented'}]))
+                found, unclosed, findings = inventory.scan_fences(diagram + separator + '\n\n' + diagram + '\n')
+                self.assertEqual([(item.line, item.end_line) for item in found], [(1, 9)])
+
+    def test_carriage_return_line_ends_are_lines_like_line_feeds(self):
+        # Site renderer: CRLF and a lone CR end lines exactly as LF does.
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        for ending in ('\r\n', '\r'):
+            with self.subTest(ending=repr(ending)):
+                found, unclosed, findings = inventory.scan_fences(('- item\n\n    first\n# Heading\n\n' + fence).replace('\n', ending))
+                self.assertEqual((found, unclosed, findings), ([], [], [{'line': 6, 'reason': 'indented'}]))
+
+    def test_container_openers_follow_the_site_grammar(self):
+        # Site renderer: an opener without a space after the marker, or a tab marker with two modifiers,
+        # still opens a container (one diagram); extra marker characters or a lone marker do not.
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        cases = [(opener, 'indented') for opener in ('!!!note', '???note', '???+note', '===+! "Tab"', '===!+ "Tab"',
+                                                     '!!! note', '??? note', '=== "Tab"')]
+        cases += [(opener, 'indented-code') for opener in ('!!!!', '!!!! note', '!! note', '!!!', '???')]
+        for opener, reason in cases:
+            with self.subTest(opener=opener):
+                found, unclosed, findings = inventory.scan_fences(opener + '\n    body\n\n' + fence)
+                self.assertEqual((found, unclosed), ([], []))
+                self.assertEqual(findings, [{'line': 4, 'reason': reason}])
+
+    def test_complete_tag_stripping_matches_the_pattern_it_replaced(self):
+        pattern = re.compile(r"""</?[A-Za-z][A-Za-z0-9-]*(?=[\s/>])(?:"[^"]*"|'[^']*'|[^'">])*>""")
+        pieces = ('<', '>', '/', '"', "'", ' ', 'a', 'div', '-', '=', '<a ', '</a>', '<b>', 'x="', "y='", '<!--', '-->', '`')
+        generator = random.Random(1017)
+        for _ in range(20000):
+            text = ''.join(generator.choice(pieces) for _ in range(generator.randint(0, 12)))
+            self.assertEqual(inventory.strip_complete_tags(text), pattern.sub(' ', text), text)
+
+    def test_indexed_ancestor_walk_matches_the_direct_upward_walk(self):
+        def direct(lines: list[str], index: int) -> bool:
+            column = inventory.indentation(lines[index])
+            if column < 4 or (index and not inventory.blank(lines[index - 1])):
+                return False
+            position = index - 1
+            while position >= 0:
+                earlier = lines[position]
+                if (inventory.blank(earlier) or inventory.indentation(earlier) >= column
+                        or inventory.REFERENCE_DEFINITION.match(earlier)):
+                    position -= 1
+                    continue
+                top = position
+                while top and not inventory.blank(lines[top - 1]):
+                    top -= 1
+                if inventory.indentation(earlier) < 4 <= inventory.indentation(lines[top]):
+                    first = next(i for i in range(top, position + 1) if inventory.indentation(lines[i]) < 4)
+                    for lazy in range(position, first - 1, -1):
+                        text = lines[lazy]
+                        if inventory.THEMATIC_BREAK.match(text.expandtabs(4)) or inventory.HEADING.match(text):
+                            break
+                        if inventory.indentation(text) < 4 and (inventory.LIST_MARKER.match(text.lstrip())
+                                                               or (lazy == position and inventory.CONTAINER.match(text))):
+                            return False
+                    column = min(column, inventory.indentation(lines[top]))
+                    position = top - 1
+                    continue
+                column = inventory.indentation(earlier)
+                if inventory.THEMATIC_BREAK.match(earlier.expandtabs(4)):
+                    return True
+                if inventory.LIST_MARKER.match(earlier.lstrip()) or inventory.CONTAINER.match(earlier):
+                    return False
+                if column:
+                    position -= 1
+                    continue
+                for above in range(position, top - 1, -1):
+                    if inventory.THEMATIC_BREAK.match(lines[above].expandtabs(4)) or inventory.HEADING.match(lines[above]):
+                        return True
+                    if inventory.indentation(lines[above]) < 4 and inventory.LIST_MARKER.match(lines[above].lstrip()):
+                        return False
+                return True
+            return True
+
+        indents = ('', '', '', ' ', '  ', '   ', '    ', '     ', '      ', '        ', '\t', ' \t', '\t\t')
+        bodies = ('text', 'more text', '- item', '* item', '1. item', '- - -', '* * *', '---', '***', '-   -   -', '# Heading', '> quote',
+                  '!!! note', '=== "Tab"', '[ref]: http://x', '[^1]: note', '<div>', '```mermaid', '```', '===', '|a|b|', ' ', '\t')
+        generator = random.Random(7013)
+        for _ in range(4000):
+            lines = [generator.choice(indents) + generator.choice(bodies) if generator.random() > 0.18 else generator.choice(('', '    ', '\t'))
+                     for _ in range(generator.randint(1, 14))]
+            index = inventory.BlockIndex(lines)
+            for position in range(len(lines)):
+                self.assertEqual(index.plain_code(position, False), direct(lines, position), (lines, position))
+
+    def test_unfinished_tags_complete_on_a_later_line_like_the_site(self):
+        # Site renderer: zero diagrams after a multi-line self-closing tag or closing tag; one diagram
+        # while an outer element or a quoted attribute keeps the wrapper open.
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        cases = (('<div\n/>\n\n', '', 'indented-code'), ('<div\n class="x"\n/>\n\n', '', 'indented-code'),
+                 ('<div>\n\n</div\n>\n\n', '', 'indented-code'), ('<div><section>\n</section\n>\n\n', '</div>\n', 'indented'),
+                 ('<div title="a\n/>b">\n\n', '</div>\n', 'indented'), ("<div title='a\n/>b'>\n\n", '</div>\n', 'indented'),
+                 ('<div title="a\nb\n/>c">\n\n', '</div>\n', 'indented'), ("<div title='a\nb\n/>c'>\n\n", '</div>\n', 'indented'),
+                 ('<div\n class="x"\n>\n\n', '</div>\n', 'indented'))
+        for head, tail, reason in cases:
+            with self.subTest(head=head):
+                found, unclosed, findings = inventory.scan_fences(head + fence + tail)
+                self.assertEqual((found, unclosed), ([], []))
+                self.assertEqual(findings, [{'line': head.count('\n') + 1, 'reason': reason}])
+
+    def test_raw_text_element_closes_at_its_own_closing_tag(self):
+        # Site renderer: zero diagrams after the closed element, one while the outer wrapper stays open.
+        fence = '    ```mermaid\n    flowchart LR\n    ```\n'
+        for tag in ('pre', 'script', 'style', 'textarea'):
+            for outer, tail, reason in (('', '', 'indented-code'), ('<div>', '</div>\n', 'indented')):
+                with self.subTest(tag=tag, outer=outer):
+                    found, unclosed, findings = inventory.scan_fences(f'{outer}<{tag}>\ntext\n</{tag}>\n\n' + fence + tail)
+                    self.assertEqual((found, unclosed), ([], []))
+                    self.assertEqual(findings, [{'line': 5, 'reason': reason}])
 
     def test_raw_text_does_not_close_an_outer_html_element(self):
         # Site renderer: script/style show one diagram; pre/textarea show zero (conservative).

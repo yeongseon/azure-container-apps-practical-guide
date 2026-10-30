@@ -37,16 +37,22 @@ FENCE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
 IDENTIFIER = re.compile(r'^\s*<!--\s*diagram-id:\s*(.*?)\s*-->\s*$')
 HEADING = re.compile(r'^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*$')
 LIST_MARKER = re.compile(r'(?:[-+*]|\d{1,9}[.)])(?:[ \t]+|$)')
-CONTAINER = re.compile(r'^\s*(!!!|\?\?\?\+?|===[+!]?)\s')
-THEMATIC_BREAK = re.compile(r'^ {0,3}([-*_])(?: *\1){2,} *$')
+CONTAINER = re.compile(r'^\s*(?:(?:!!!|\?\?\?\+?)(?:\s|[\w-])|={3}(?:\+!|!\+|[+!])?\s)')
+REFERENCE_DEFINITION = re.compile(r'^ {0,3}\[[^\[\]]*\]:')
+THEMATIC_BREAK = re.compile(r'^ {0,3}(?=(?P<rule>(?:-+ {0,2}){3,}|(?:_+ {0,2}){3,}|(?:\*+ {0,2}){3,}))(?P=rule) *$')
 HTML_OPEN = re.compile(r'^ {0,3}<([A-Za-z][A-Za-z0-9-]*)(?=[\s/>]|$)')
 HTML_CLOSE = re.compile(r'^ {0,3}</([A-Za-z][A-Za-z0-9-]*)(?=[\s/>]|$)')
 HTML_TAG = re.compile(r'<(/?)([A-Za-z][A-Za-z0-9-]*)(?=[\s/>]|$)')
-HTML_COMPLETE_TAG = re.compile(r'''</?[A-Za-z][A-Za-z0-9-]*(?=[\s/>])(?:"[^"]*"|'[^']*'|[^'">])*>''')
+HTML_TAG_START = re.compile(r'</?[A-Za-z][A-Za-z0-9-]*(?=[\s/>])')
 HTML_VOID = frozenset('area base br col embed hr img input link meta param source track wbr'.split())
 HTML_RAW = frozenset(('pre', 'script', 'style', 'textarea'))
+HTML_RAW_CLOSE = {name: re.compile(r'</' + name + r'(?=[\s/>]|$)', re.I) for name in HTML_RAW}
 INLINE_CODE = re.compile(r'(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)')
+FENCE_LANGUAGE = re.compile(r'[ \t]*\.?([\w#.+-]+)(?=[ \t]|$)')
+FENCE_ATTRIBUTES = re.compile(r'[ \t]*\{([^\n]*)\}[ \t]*$')
+ATTRIBUTE_TOKEN = re.compile(r'''[^ =}]+=".*?"|[^ =}]+='.*?'|[^ =}]+=[^ =}]+|([^ =}]+)| ''')
 BLOCKING_REASONS = {'blockquote', 'list-marker', 'indented'}
+MAX_FENCE_DEPTH = 8
 TYPES = set(('flowchart graph sequenceDiagram stateDiagram stateDiagram-v2 '
              'gantt timeline pie quadrantChart classDiagram erDiagram journey '
              'mindmap xychart-beta block-beta gitGraph requirementDiagram '
@@ -127,9 +133,20 @@ def tracked(root: Path) -> list[str]:
                   if '.git' not in p.parts and local(root, p.relative_to(root).as_posix()).is_file())
 
 
+def split_lines(text: str) -> list[str]:
+    """Split at LF, CRLF and CR only: the site's renderer does not end a line at form feeds or Unicode separators."""
+    lines = re.split(r'\r\n|\r|\n', text)
+    return lines[:-1] if lines[-1] == '' else lines
+
+
+def blank(line: str) -> bool:
+    """Only spaces and tabs make a line blank for the site's renderer."""
+    return not line.strip(' \t')
+
+
 def frontmatter(text: str) -> tuple[list[Any], int, str | None]:
     """Return canonical diagram entries, body offset, and a parse/shape error."""
-    lines = text.splitlines()
+    lines = split_lines(text)
     if not lines or lines[0].strip() != '---':
         return [], 0, None
     end = next((i for i in range(1, len(lines)) if lines[i].strip() == '---'), None)
@@ -192,7 +209,7 @@ def preceding(lines: list[str], start: int, floor: int) -> tuple[str | None, str
 
 def closing(line: str, marker: str) -> bool:
     return bool(re.fullmatch(r' {0,3}' + re.escape(marker[0]) +
-                             '{' + str(len(marker)) + r',}\s*', line))
+                             '{' + str(len(marker)) + r',}[ \t]*', line))
 
 
 def fences(text: str, offset: int = 0) -> tuple[list[Occurrence], list[int]]:
@@ -220,11 +237,34 @@ def prefixed_fence(line: str) -> tuple[str, bool, bool]:
     return rest, quote, listed
 
 
+def fence_language(info: str) -> str:
+    """The language the site selects from a fence header: a bare or dotted word, else the first attribute class."""
+    word = FENCE_LANGUAGE.match(info)
+    if word:
+        return word.group(1)
+    attributes = FENCE_ATTRIBUTES.match(info)
+    if attributes:
+        text, position = attributes.group(1).replace('\t', '    '), 0
+        while position < len(text):
+            token = ATTRIBUTE_TOKEN.match(text, position)
+            if not token:
+                break
+            if token.group(1) and token.group(1).startswith('.'):
+                return token.group(1)[1:]
+            position = token.end()
+    return ''
+
+
+def backtick_header(marker: str, info: str) -> bool:
+    """A backtick fence header with a backtick is plain text unless it is an attribute list."""
+    return marker[0] == '`' and '`' in info and not FENCE_ATTRIBUTES.match(info)
+
+
 def mermaid_opener(line: str) -> re.Match[str] | None:
     opening = FENCE.match(line)
     if opening:
         marker, info = opening.groups()
-        if info.strip().split()[:1] == ['mermaid'] and not (marker[0] == '`' and '`' in info):
+        if fence_language(info) == 'mermaid' and not backtick_header(marker, info):
             return opening
     return None
 
@@ -234,94 +274,191 @@ def indentation(line: str) -> int:
     return len(expanded) - len(expanded.lstrip(' '))
 
 
-def track_html(line: str, open_tags: list[str], pending: str = '') -> str:
-    """Apply line-start HTML tags in order, returning any unfinished tag for the next line.
+def tag_end(text: str, start: int, quote: str = '') -> tuple[int, str]:
+    """Index of the '>' that ends a tag outside quotes, or -1 with the quote state at the end."""
+    for index in range(start, len(text)):
+        char = text[index]
+        if quote:
+            if char == quote:
+                quote = ''
+        elif char in "\"'":
+            quote = char
+        elif char == '>':
+            return index, quote
+    return -1, quote
+
+
+def close_element(open_tags: list[str], name: str) -> None:
+    """A closing tag removes the nearest open element of that name and its descendants."""
+    if name in open_tags:
+        del open_tags[len(open_tags) - 1 - open_tags[::-1].index(name):]
+
+
+def track_html(line: str, open_tags: list[str], pending: tuple[str, bool, str] | None = None) -> tuple[str, bool, str] | None:
+    """Apply line-start HTML tags in order, returning the state of any unfinished tag.
 
     Quotes protect tag boundaries and embedded tag text. An unfinished start tag opens
-    provisionally; completion replaces that provisional entry, while EOF keeps it open.
-    Closing tags remove the nearest matching element and its descendants.
+    provisionally and is carried as (name, is_closing, quote); completion replaces that
+    provisional entry, while EOF keeps it open. Only the new line is scanned.
     """
     raw = open_tags[-1] if open_tags and open_tags[-1] in HTML_RAW else ''
     if not pending and not raw and not (HTML_OPEN.match(line) or HTML_CLOSE.match(line)
                             or re.match(r'^ {0,3}<(?:!--|!DOCTYPE\b|\?)', line, re.I)):
-        return ''
-    text = pending + '\n' + line if pending else line
+        return None
     position = 0
-    while position < len(text):
-        start = text.find('<', position)
+    if pending:
+        name, is_close, quote = pending
+        end, quote = tag_end(line, 0, quote)
+        if end < 0:
+            return name, is_close, quote
+        if is_close:
+            close_element(open_tags, name)
+        elif name not in HTML_VOID:
+            _ = open_tags.pop()
+            if (line[end - 1] if end else '\n') != '/':
+                open_tags.append(name)
+        position = end + 1
+    spans = [match.span() for match in INLINE_CODE.finditer(line)]
+    span = 0
+    while position < len(line):
+        start = line.find('<', position)
         if start < 0:
             break
-        literal = INLINE_CODE.search(text, position)
-        if literal and literal.start() < start:
-            position = literal.end()
+        while span < len(spans) and spans[span][1] <= position:
+            span += 1
+        if span < len(spans) and spans[span][0] < start:
+            position = spans[span][1]
             continue
         raw = open_tags[-1] if open_tags and open_tags[-1] in HTML_RAW else ''
-        if raw and not re.match(r'</' + raw + r'(?=[\s/>]|$)', text[start:], re.I):
+        if raw and not HTML_RAW_CLOSE[raw].match(line, start):
             position = start + 1
             continue
-        if text.startswith('<!--', start):
-            end = text.find('-->', start + 4)
+        if line.startswith('<!--', start):
+            end = line.find('-->', start + 4)
             if end < 0:
                 break
             position = end + 3
             continue
-        tag = HTML_TAG.match(text, start)
-        if not tag and not text.startswith(('<!', '<?'), start):
+        tag = HTML_TAG.match(line, start)
+        if not tag and not line.startswith(('<!', '<?'), start):
             position = start + 1
             continue
-        quote = ''
-        end = start + 1
-        while end < len(text):
-            char = text[end]
-            if quote:
-                if char == quote:
-                    quote = ''
-            elif char in "\"'":
-                quote = char
-            elif char == '>':
-                break
-            end += 1
+        end, quote = tag_end(line, start + 1)
         if tag:
             name = tag.group(2).lower()
             is_close = bool(tag.group(1))
-            if pending and start == 0 and not is_close and name not in HTML_VOID:
-                _ = open_tags.pop()
-            if end == len(text):
+            if end < 0:
                 if not is_close and name not in HTML_VOID:
                     open_tags.append(name)
-                return text[start:]
+                return name, is_close, quote
             if is_close:
-                if name in open_tags:
-                    del open_tags[len(open_tags) - 1 - open_tags[::-1].index(name):]
-            elif name not in HTML_VOID and text[end - 1] != '/':
+                close_element(open_tags, name)
+            elif name not in HTML_VOID and line[end - 1] != '/':
                 open_tags.append(name)
+        elif end < 0:
+            break
         position = end + 1
-    return ''
+    return None
 
 
-def plain_code(lines: list[str], index: int, html_open: bool) -> bool:
-    """A blank/start boundary outside open HTML and without a container ancestor is code."""
-    column = indentation(lines[index])
-    if html_open or column < 4 or (index and lines[index - 1].strip()):
-        return False
-    for position in range(index - 1, -1, -1):
-        earlier = lines[position]
-        if not earlier.strip() or indentation(earlier) >= column:
-            continue
-        column = indentation(earlier)
-        if THEMATIC_BREAK.match(earlier):
-            break
-        if LIST_MARKER.match(earlier.lstrip()) or CONTAINER.match(earlier):
+class BlockIndex:
+    """Indentation structure of one page, so the container ancestor of an indented line is found without rescanning.
+
+    A block is a run of lines that are not blank. A block whose first line is indented four columns or
+    more stays with that line's processor, so a less indented line below it is a lazy continuation.
+    Reference definitions are removed by the site before blocks are parsed and are invisible here.
+    """
+
+    def __init__(self, lines: list[str]) -> None:
+        size = len(lines)
+        self.lines = lines
+        self.indent = [indentation(line) for line in lines]
+        self.blank = [blank(line) for line in lines]
+        self.top = [0] * size
+        self.first_lazy = [0] * size
+        self.parent = [-1] * size
+        self.before = [-1] * size
+        self.verdicts: dict[tuple[int, int], bool] = {}
+        self.mark: list[str] = [''] * size
+        self.up: list[str] = [''] * size
+        stack: list[int] = []
+        previous = -1
+        for i, line in enumerate(lines):
+            self.before[i] = previous
+            if i and not self.blank[i - 1]:
+                self.top[i] = self.top[i - 1]
+            else:
+                self.top[i] = i
+            if self.blank[i]:
+                continue
+            if THEMATIC_BREAK.match(line.expandtabs(4)) or HEADING.match(line):
+                self.mark[i] = 'rule'
+            elif self.indent[i] < 4 and LIST_MARKER.match(line.lstrip()):
+                self.mark[i] = 'list'
+            first = self.top[i]
+            self.up[i] = self.mark[i] or (self.up[i - 1] if i > first else '')
+            if self.indent[first] >= 4 and self.indent[i] < 4 and self.first_lazy[first] == 0:
+                self.first_lazy[first] = i
+            if REFERENCE_DEFINITION.match(line):
+                continue
+            while stack and self.indent[stack[-1]] >= self.indent[i]:
+                stack.pop()
+            self.parent[i] = stack[-1] if stack else -1
+            stack.append(i)
+            previous = i
+
+    def nearest(self, start: int, threshold: int) -> int:
+        """The closest visible line above start that is indented less than threshold."""
+        position = self.before[start]
+        while position >= 0 and self.indent[position] >= threshold:
+            position = self.parent[position]
+        return position
+
+    def lazy_opens_list(self, first: int, last: int) -> bool:
+        """Whether non-indented lines after an indented first line start a list or container."""
+        line = self.lines[last]
+        if self.mark[last] == 'rule':
             return False
-        if column == 0:
-            while position and lines[position - 1].strip():
-                if HEADING.match(lines[position]) or THEMATIC_BREAK.match(lines[position]):
+        if self.indent[last] < 4 and (self.mark[last] == 'list' or CONTAINER.match(line)):
+            return True
+        return last > first and self.up[last - 1] == 'list'
+
+    def plain_code(self, index: int, html_open: bool) -> bool:
+        """A blank/start boundary outside open HTML and without a container ancestor is code."""
+        column = self.indent[index]
+        if html_open or column < 4 or (index and not self.blank[index - 1]):
+            return False
+        position = self.nearest(index, column)
+        path: list[tuple[int, int]] = []
+        verdict = True
+        while position >= 0:
+            state = (position, column)
+            if state in self.verdicts:
+                verdict = self.verdicts[state]
+                break
+            path.append(state)
+            earlier = self.lines[position]
+            top = self.top[position]
+            if self.indent[position] < 4 <= self.indent[top]:
+                if self.lazy_opens_list(self.first_lazy[top], position):
+                    verdict = False
                     break
-                position -= 1
-                if indentation(lines[position]) < 4 and LIST_MARKER.match(lines[position].lstrip()):
-                    return False
+                column = min(column, self.indent[top])
+                position = self.nearest(top, column)
+                continue
+            column = self.indent[position]
+            if THEMATIC_BREAK.match(earlier.expandtabs(4)):
+                break
+            if LIST_MARKER.match(earlier.lstrip()) or CONTAINER.match(earlier):
+                verdict = False
+                break
+            if column:
+                position = self.nearest(position, column)
+                continue
+            verdict = self.up[position] != 'list'
             break
-    return True
+        self.verdicts.update(dict.fromkeys(path, verdict))
+        return verdict
 
 
 def unsupported_fence(line: str, plain: bool) -> tuple[str, str] | None:
@@ -356,24 +493,69 @@ def unsupported_end(lines: list[str], index: int, marker: str) -> int:
     return index + 1
 
 
+def tag_ends(text: str) -> list[int]:
+    """For every index, the index of the '>' that ends a tag whose attributes begin there, or -1.
+
+    Quotes protect '>' and an unterminated quote ends no tag. Computing every answer once from the
+    right keeps the cost linear in the line length however many tag starts the line has.
+    """
+    size = len(text)
+    plain, double, single = ([-1] * (size + 1) for _ in range(3))
+    for position in range(size - 1, -1, -1):
+        char = text[position]
+        double[position] = plain[position + 1] if char == '"' else double[position + 1]
+        single[position] = plain[position + 1] if char == "'" else single[position + 1]
+        if char == '>':
+            plain[position] = position
+        elif char == '"':
+            plain[position] = double[position + 1]
+        elif char == "'":
+            plain[position] = single[position + 1]
+        else:
+            plain[position] = plain[position + 1]
+    return plain
+
+
+def strip_complete_tags(text: str) -> str:
+    """Replace each complete HTML tag (a name, then attributes up to a '>' outside quotes) with a space."""
+    if '>' not in text:
+        return text
+    ends = tag_ends(text)
+    pieces: list[str] = []
+    position = 0
+    for found in HTML_TAG_START.finditer(text):
+        end = ends[found.end()]
+        if found.start() >= position and end >= 0:
+            pieces.extend((text[position:found.start()], ' '))
+            position = end + 1
+    pieces.append(text[position:])
+    return ''.join(pieces)
+
+
 def opens_comment(line: str) -> bool:
     """Inline code is literal; prefixed container comments are not modeled."""
+    if '<!--' not in line:
+        return False
     rest, quote, listed = prefixed_fence(line)
     if quote or listed:
         return False
-    literal_free = HTML_COMPLETE_TAG.sub('', INLINE_CODE.sub('', rest))
+    literal_free = strip_complete_tags(INLINE_CODE.sub(' ', rest))
     opener = literal_free.find('<!--')
     return opener >= 0 and '-->' not in literal_free[opener + 4:]
 
 
-def comment_end(lines: list[str], start: int) -> tuple[int, list[int]] | None:
+def comment_end(lines: list[str], start: int, dead: set[int]) -> tuple[int, list[int]] | None:
     """Find the line closing a comment opened at start, or None: the site shows an unclosed one as text.
 
     The site extracts fences before it reads comments, so text inside any fence never closes a comment.
+    The search from a line depends only on that line, so every line of a failed search is remembered
+    in `dead` and a later opener that reaches one stops there instead of rescanning to the end.
     """
     hidden: list[int] = []
+    visited: list[int] = []
     i = start + 1
-    while i < len(lines):
+    while i < len(lines) and i not in dead:
+        visited.append(i)
         rest = prefixed_fence(lines[i])[0]
         opening = FENCE.match(rest)
         if opening:
@@ -384,10 +566,11 @@ def comment_end(lines: list[str], start: int) -> tuple[int, list[int]] | None:
         if '-->' in lines[i]:
             return i, hidden
         i += 1
+    dead.update(visited)
     return None
 
 
-def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list[Occurrence], list[int], list[Record]]:
+def scan_fences(text: str, offset: int = 0, example: bool = False, depth: int = 0) -> tuple[list[Occurrence], list[int], list[Record]]:
     """Consume comments/fences atomically; examples never emit unsupported findings.
 
     Plain code starts only at a blank/start boundary outside open HTML elements and without
@@ -395,25 +578,27 @@ def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list
     Every unsupported fence (any language) consumes its closer before resuming;
     only Mermaid openers emit findings. A new same-kind opener stops unclosed consumption.
     """
-    lines = text.splitlines()
+    lines = split_lines(text)
     headings: list[tuple[int, str]] = []
     output: list[Occurrence] = []
     unclosed: list[int] = []
     unrecognized: list[Record] = []
     open_tags: list[str] = []
-    pending_tag = ''
+    pending_tag = None
+    dead_comment_lines: set[int] = set()
+    index = BlockIndex(lines)
     i = offset
     plain = False
     while i < len(lines):
-        if lines[i].strip() and indentation(lines[i]) < 4:
+        if not blank(lines[i]) and indentation(lines[i]) < 4:
             plain = False
         if not plain:
-            plain = plain_code(lines, i, bool(open_tags))
+            plain = index.plain_code(i, bool(open_tags))
         heading = HEADING.match(lines[i])
         opening = FENCE.match(lines[i])
         unsupported = unsupported_fence(lines[i], plain)
         if not example and not opening and not pending_tag and opens_comment(lines[i]):
-            closed = comment_end(lines, i)
+            closed = comment_end(lines, i, dead_comment_lines)
             if closed:
                 end, hidden = closed
                 unrecognized.extend({'line': n, 'reason': 'html-comment'} for n in hidden)
@@ -427,7 +612,7 @@ def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list
                 reason, _ = unsupported
                 unrecognized.append({'line': i + 1, 'reason': reason})
             end = unsupported_end(lines, i, prefixed.group(1))
-            if any(line.strip() and indentation(line) < 4 for line in lines[i + 1:end]):
+            if any(not blank(line) and indentation(line) < 4 for line in lines[i + 1:end]):
                 plain = False
             i = end
             continue
@@ -441,10 +626,10 @@ def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list
             i += 1
             continue
         marker, info = opening.groups()
-        if marker[0] == '`' and '`' in info:
+        if backtick_header(marker, info):
             i += 1
             continue
-        language = info.strip().split()[0] if info.strip() else ''
+        language = fence_language(info)
         end = next((j for j in range(i + 1, len(lines)) if closing(lines[j], marker)), len(lines))
         if end == len(lines):
             unclosed.append(i + 1)
@@ -453,8 +638,8 @@ def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list
             output.append(Occurrence(i + 1, min(end + 1, len(lines)), identifier,
                                      tuple(h[1] for h in headings), '\n'.join(lines[i + 1:end]),
                                      lead, closed=end < len(lines)))
-        else:
-            nested, _, _ = scan_fences('\n'.join(lines[i + 1:end]), example=True)
+        elif depth < MAX_FENCE_DEPTH:
+            nested, _, _ = scan_fences('\n'.join(lines[i + 1:end]), example=True, depth=depth + 1)
             for item in nested:
                 output.append(Occurrence(item.line + i + 1, item.end_line + i + 1,
                                          item.diagram_id, tuple(h[1] for h in headings),
