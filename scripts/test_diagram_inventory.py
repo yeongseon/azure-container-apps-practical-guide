@@ -240,13 +240,11 @@ class TreeTests(unittest.TestCase):
     def test_excluded_visual_schema_parity(self):
         schema = json.loads((self.root / inventory.SCHEMA).read_text())
         value = self.visual_manifest()
-        value['visuals'][0].update(disposition='excluded', rationale='Branding only')
+        value['visuals'][0].update(disposition='excluded-pending-owner-decision', rationale='Branding only')
         value['visuals'][0]['assignment'].update(method='excluded', batch_issue=None, rationale='Branding only')
         self.assertEqual(inventory.check(self.root, value, self.rules), [])
         mutations: list[Callable[[inventory.Record], None]] = [
             lambda m: m['visuals'][0]['assignment'].update(batch_issue=1),
-            lambda m: m['visuals'][0]['assignment'].update(method='rule', batch_issue=1),
-            lambda m: m['visuals'][0].update(disposition='migration-required'),
             lambda m: m['visuals'][0].update(rationale=''),
             lambda m: m['visuals'][0]['assignment'].update(rationale=''),
             lambda m: m['visuals'][0]['assignment'].update(rationale='   ')]
@@ -258,6 +256,20 @@ class TreeTests(unittest.TestCase):
                 self.assertTrue(inventory.check(self.root, changed, self.rules))
                 if jsonschema is not None:
                     self.assertFalse(jsonschema.Draft202012Validator(schema).is_valid(changed))
+
+    def test_visual_disposition_is_free_text(self):
+        schema = json.loads((self.root / inventory.SCHEMA).read_text())
+        excluded = self.visual_manifest()
+        excluded['visuals'][0]['assignment'].update(method='excluded', batch_issue=None, rationale='Owner decision pending')
+        for base in (self.visual_manifest(), excluded):
+            for disposition in ('excluded', 'excluded-pending-owner-decision', 'migration-required', 'other'):
+                with self.subTest(method=base['visuals'][0]['assignment']['method'], disposition=disposition):
+                    value = copy.deepcopy(base)
+                    value['visuals'][0]['disposition'] = disposition
+                    self.assertEqual(inventory.structural(value, schema, schema['$defs']), [])
+                    self.assertEqual(inventory.check(self.root, value, self.rules), [])
+                    if jsonschema is not None:
+                        self.assertTrue(jsonschema.Draft202012Validator(schema).is_valid(value))
 
     def test_new_exception_schema_is_closed(self):
         schema = json.loads((self.root / inventory.SCHEMA).read_text())
