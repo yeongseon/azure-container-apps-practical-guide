@@ -174,28 +174,6 @@ LAB_GUIDE_PATH = Path(os.environ["LAB_GUIDE_PATH"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
 UTC_NOW = os.environ["UTC_NOW"]
 
-# Determinism contract: when the four Phase B gate JSONs already exist, pin UTC_NOW
-# to the earliest committed utc_captured so reruns against an unchanged corpus produce
-# byte-identical gate outputs. Only the first generation consumes the runtime timestamp.
-_existing_captures = []
-for _gate_file in [
-    "14-cohort-integrity-gate.json",
-    "15-negative-control-baseline-validity-gate.json",
-    "16-positive-control-perturbation-validity-gate.json",
-    "17-bounded-coverage-uncertainty-gate.json",
-]:
-    _gate_path = EVIDENCE_DIR / _gate_file
-    if _gate_path.exists():
-        try:
-            _gate_data = json.loads(_gate_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        _existing = _gate_data.get("utc_captured")
-        if isinstance(_existing, str) and _existing:
-            _existing_captures.append(_existing)
-if _existing_captures:
-    UTC_NOW = min(_existing_captures)
-
 SCENARIO = "zone_redundancy_best_effort"
 VARIANT = "non-falsification-bounded-coverage"
 APPS = ["app-min2", "app-min3", "app-min6"]
@@ -253,7 +231,7 @@ def gate_payload(gate_id, gate_name, claim, predicate_inputs, sub_gates, **extra
         "gate_name": gate_name,
         "scenario": SCENARIO,
         "phase_b_variant": VARIANT,
-        "utc_captured": UTC_NOW,
+        "evaluated_at_utc": UTC_NOW,
         "claim": claim,
         "predicate_inputs": predicate_inputs,
         "sub_gates": sub_gates,

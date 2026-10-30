@@ -1,6 +1,7 @@
 {
   "all_sub_gates_pass": true,
   "claim": "The fixed-range 24-hour baseline is a valid negative control: ingestion is sufficient, steady state holds, and neither clustered churn nor any-termination appears.",
+  "evaluated_at_utc": "2026-10-30T02:19:38Z",
   "gate_id": "15",
   "gate_name": "Negative-control baseline validity",
   "phase_b_variant": "non-falsification-bounded-coverage",
@@ -76,6 +77,5 @@
       "pass": true,
       "predicate": "q3-baseline-fixed-any-termination-20260614114618.json is exactly []."
     }
-  },
-  "utc_captured": "2026-06-26T07:20:20Z"
+  }
 }

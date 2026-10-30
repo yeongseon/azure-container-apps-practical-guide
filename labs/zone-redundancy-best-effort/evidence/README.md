@@ -6,6 +6,12 @@ The claim ceiling is intentionally narrow. The corpus supports a **non-falsifica
 
 ## Phase B gate files
 
+The original Phase B emission on 2026-06-26 was later re-evaluated offline
+from the unchanged Jun 12-Jun 14 raw cohort. Every replay records its own
+execution time as top-level `evaluated_at_utc` on every gate, even when old
+outputs exist. This is not a capture date and represents no new capture or
+Azure validation. Replays reproduce the same non-time fields for this cohort.
+
 - **`14-cohort-integrity-gate.json`** — corpus presence, app identity, 24-hour ordering, and audit sample math
 - **`15-negative-control-baseline-validity-gate.json`** — fixed-range baseline validity with zero-row Q3 variants
 - **`16-positive-control-perturbation-validity-gate.json`** — successful perturbation sequence plus Q3/Q4 alignment and H0b primary metric
@@ -81,10 +87,14 @@ The claim ceiling is intentionally narrow. The corpus supports a **non-falsifica
 
 ### Derived Phase B outputs
 
-- `14-cohort-integrity-gate.json`
-- `15-negative-control-baseline-validity-gate.json`
-- `16-positive-control-perturbation-validity-gate.json`
-- `17-bounded-coverage-uncertainty-gate.json`
+Sizes use binary KB (1024 bytes), rounded to one decimal below 10 KB.
+
+| Derived output | Size |
+|---|---|
+| `14-cohort-integrity-gate.json` | 5.5 KB |
+| `15-negative-control-baseline-validity-gate.json` | 3.1 KB |
+| `16-positive-control-perturbation-validity-gate.json` | 6.0 KB |
+| `17-bounded-coverage-uncertainty-gate.json` | 5.9 KB |
 
 ## Reproducibility
 

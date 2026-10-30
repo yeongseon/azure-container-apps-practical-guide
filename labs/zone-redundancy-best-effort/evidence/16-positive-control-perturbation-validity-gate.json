@@ -1,6 +1,7 @@
 {
   "all_sub_gates_pass": true,
   "claim": "The perturbation sequence is complete, Q3 and Q4 observe the intended churn/recovery windows, and the H0b primary metric remains unfalsified under the tested load profile.",
+  "evaluated_at_utc": "2026-10-30T02:19:38Z",
   "gate_id": "16",
   "gate_name": "Positive-control perturbation validity",
   "phase_b_variant": "non-falsification-bounded-coverage",
@@ -137,6 +138,5 @@
       "pass": true,
       "predicate": "Variant B LoadEnd has total=990 and fail=0; Variant C LoadEnd has total=960 and fail=0. Variant B is the H0b primary metric and Variant C is secondary mitigation context."
     }
-  },
-  "utc_captured": "2026-06-26T07:20:20Z"
+  }
 }

@@ -114,7 +114,7 @@ for required in \
     fi
 done
 
-CAPTURED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+EVALUATED_AT_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 # Lab-specific constants captured from the canonical 2026-06-22 run.
 # Pinning these in the verify.sh header (not inside each Python block) makes
@@ -144,7 +144,7 @@ echo "=== Phase 10: emit H1 gate for Scenario A (large image, scripted) ==="
 # evidence files by absolute path and writes the gate JSON to stdout.
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 LARGE_REVISION_NAME="$LARGE_REVISION_NAME" \
 LARGE_IMAGE_TAG="$LARGE_IMAGE_TAG" \
 LARGE_IMAGE_SIZE_BYTES="$LARGE_IMAGE_SIZE_BYTES" \
@@ -155,7 +155,7 @@ import os
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 LARGE_REVISION_NAME = os.environ["LARGE_REVISION_NAME"]
 LARGE_IMAGE_TAG = os.environ["LARGE_IMAGE_TAG"]
 LARGE_IMAGE_SIZE_BYTES = int(os.environ["LARGE_IMAGE_SIZE_BYTES"])
@@ -264,7 +264,7 @@ h1_a_sub_gates = {
 h1_a_pass = all(h1_a_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "A",
     "hypothesis": "H1",
     "claim": "scripted_large_cold_pull_observed_and_healthy",
@@ -307,7 +307,7 @@ PY
 echo "=== Phase 11: emit H1 gate for Scenario B (small image, scripted) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 SMALL_REVISION_NAME="$SMALL_REVISION_NAME" \
 SMALL_IMAGE_TAG="$SMALL_IMAGE_TAG" \
 SMALL_IMAGE_SIZE_BYTES="$SMALL_IMAGE_SIZE_BYTES" \
@@ -318,7 +318,7 @@ import os
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 SMALL_REVISION_NAME = os.environ["SMALL_REVISION_NAME"]
 SMALL_IMAGE_TAG = os.environ["SMALL_IMAGE_TAG"]
 SMALL_IMAGE_SIZE_BYTES = int(os.environ["SMALL_IMAGE_SIZE_BYTES"])
@@ -404,7 +404,7 @@ h1_b_sub_gates = {
 h1_b_pass = all(h1_b_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "B",
     "hypothesis": "H1",
     "claim": "scripted_small_cold_pull_observed_and_healthy",
@@ -447,7 +447,7 @@ PY
 echo "=== Phase 12: emit H1 gate for Scenario A/B speedup ratio ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 LARGE_REVISION_NAME="$LARGE_REVISION_NAME" \
 SMALL_REVISION_NAME="$SMALL_REVISION_NAME" \
 LARGE_IMAGE_TAG="$LARGE_IMAGE_TAG" \
@@ -460,7 +460,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 LARGE_REVISION_NAME = os.environ["LARGE_REVISION_NAME"]
 SMALL_REVISION_NAME = os.environ["SMALL_REVISION_NAME"]
 LARGE_IMAGE_TAG = os.environ["LARGE_IMAGE_TAG"]
@@ -571,7 +571,7 @@ h1_c_sub_gates = {
 h1_c_pass = all(h1_c_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "hypothesis": "H1",
     "claim": "scripted_cold_pull_speedup_material",
     "ratio_threshold": SPEEDUP_RATIO_THRESHOLD,
@@ -608,7 +608,7 @@ PY
 echo "=== Phase 13: emit H2 falsification gate (small image alone not sufficient) ==="
 EVIDENCE_DIR="$EVIDENCE_DIR" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
-CAPTURED_AT_UTC="$CAPTURED_AT_UTC" \
+EVALUATED_AT_UTC="$EVALUATED_AT_UTC" \
 LARGE_REVISION_NAME="$LARGE_REVISION_NAME" \
 SMALL_REVISION_NAME="$SMALL_REVISION_NAME" \
 HELLOWORLD_REVISION_NAME="$HELLOWORLD_REVISION_NAME" \
@@ -623,7 +623,7 @@ import re
 
 EVIDENCE_DIR = os.environ["EVIDENCE_DIR"]
 REPO_RELATIVE_EVIDENCE_DIR = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-CAPTURED_AT_UTC = os.environ["CAPTURED_AT_UTC"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 LARGE_REVISION_NAME = os.environ["LARGE_REVISION_NAME"]
 SMALL_REVISION_NAME = os.environ["SMALL_REVISION_NAME"]
 HELLOWORLD_REVISION_NAME = os.environ["HELLOWORLD_REVISION_NAME"]
@@ -835,7 +835,7 @@ h2_sub_gates = {
 h2_pass = all(h2_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": CAPTURED_AT_UTC,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "hypothesis": "H2",
     "claim": "small_image_alone_not_sufficient_for_healthy_startup",
     "target_off_script_revision": HELLOWORLD_REVISION_NAME,

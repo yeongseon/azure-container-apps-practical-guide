@@ -1,6 +1,7 @@
 {
   "all_sub_gates_pass": true,
   "claim": "The evidence pack is explicitly bounded to app-min3, two 10-RPS client-bearing runs, and a documented exclusion set; Claims 2 and 3 remain capped at Strongly Suggested rather than Measured.",
+  "evaluated_at_utc": "2026-10-30T02:19:38Z",
   "evidence_ceilings": {
     "claim_2": "Strongly Suggested",
     "claim_3": "Strongly Suggested"
@@ -119,6 +120,5 @@
       "pass": true,
       "predicate": "The Phase B summary must not promote Claim 2 or Claim 3 to [Measured], and Gate 17 records both ceilings as Strongly Suggested."
     }
-  },
-  "utc_captured": "2026-06-26T07:20:20Z"
+  }
 }
