@@ -1,6 +1,7 @@
 {
   "all_sub_gates_pass": true,
   "claim": "The committed 24-hour corpus is present, identity-coherent, temporally ordered, and sensor-consistent for the bounded-coverage Phase B design.",
+  "evaluated_at_utc": "2026-10-30T02:19:38Z",
   "gate_id": "14",
   "gate_name": "Cohort / corpus integrity",
   "phase_b_variant": "non-falsification-bounded-coverage",
@@ -104,6 +105,5 @@
       "pass": true,
       "predicate": "audit-job-config cronExpression == '*/5 * * * *' AND Q1 UniqueApps == 3 AND Q1 ExpectedOkSamples == 864 for 24 hours \u00d7 12 ticks/hour \u00d7 3 apps."
     }
-  },
-  "utc_captured": "2026-06-26T07:20:20Z"
+  }
 }

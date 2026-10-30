@@ -16,7 +16,7 @@ The lab evidence was captured in a single live-Azure window on **2026-06-22** ag
 
 - **Phase 5 — Post-experiment artifact captures (later 02:27 UTC).** Additional artifacts captured: `03-revisions-list.json` (active revision only), `04-containerapp-summary.json` (FQDN, location, latest revision), `05-revisions-all.json` (all 3 revisions including the inactive `--5487avi` and `--0000001`), `06-kql-pull-events.json` (KQL `Successfully pulled image` events across all revisions — 6 entries: 1 cold for each of large/alpine and 1 cold + 3 warm for helloworld), `07-containerapp-full-config.json` (full ACA resource configuration, ~7 KB), `08-environment-logs-config.json` (Container Apps Environment `appLogsConfiguration` proving Log Analytics wiring), `09-kql-event-summary.json` (full revision lifecycle grouped by `Reason_s` with per-revision rollups — KEDAScalersStarted → PullingImage → PulledImage → ContainerCreated → ContainerStarted → ContainerTerminated → KEDAScalersStopped → ScaledObjectDeleted).
 
-- **Verify Phase 10–13 — Gate emission (replayable, no Azure calls).** `verify.sh` is a pure file processor against `evidence/03-*` through `evidence/09-*` (and `system-logs-*.json`). It computes four falsifiable gates evaluated against a strict 2-path predicate (Strong path = exact field match in a specific JSON file; Fallback path = substring search in raw text). All four gates were emitted with `utc_captured` matching the verify-run timestamp:
+- **Verify Phase 10–13 — Gate emission (originally 2026-06-24; later re-evaluated offline).** `verify.sh` is a pure file processor against the unchanged raw cohort, with no Azure calls. Every replay records its own execution time as top-level `evaluated_at_utc` on every gate; this is not a capture date and represents no new capture. Replays reproduce the same non-time fields for this committed cohort:
     - `10-h1-a-large-cold-pull-gate.json` → `scripted_large_cold_pull_observed_and_healthy` (3/3 sub-gates PASS)
     - `11-h1-b-small-cold-pull-gate.json` → `scripted_small_cold_pull_observed_and_healthy` (3/3 sub-gates PASS)
     - `12-h1-c-speedup-ratio-gate.json` → `scripted_cold_pull_speedup_material` (2/2 sub-gates PASS, observed ratio 3.08× ≥ threshold 2.5×)
@@ -26,7 +26,7 @@ All four gates pass on the Strong path with no Fallback-path fallback required.
 
 ## Cross-scenario differential proof — why this is not a fake-fix lab
 
-This lab has a "before/after fix" surface (`verify.sh` literally swaps the image), but the falsifiable claim is **not** that the smaller image is universally better. The falsifiable claim is the **two-part contrast** captured by the four gates:
+This lab has a "before/after fix" surface (the historical `verify.sh` swapped the image; that live step now belongs to `trigger.sh`), but the falsifiable claim is **not** that the smaller image is universally better. The falsifiable claim is the **two-part contrast** captured by the four gates:
 
 - **H1 (Gates 10/11/12) — base-image size dominates cold-pull time when the runtime contract is satisfied.** Both scripted revisions (`python:3.11` at 408 MB and `python:3.11-alpine` at 20 MB) execute the identical workload contract (same command `python -m http.server 8080`, same target port 8080, same Container Apps Environment, same cgroup/CPU/memory shape). The only intentionally changed variable is the base-image size. The 3.08× cold-pull speedup on a 20.5× smaller image (Gate 12) isolates image size as the controlling variable for cold-pull time on this Container Apps Environment, in this region, on this run.
 
@@ -66,7 +66,16 @@ The following observations surfaced during the 2026-06-22 live run and are docum
 | H1 gates | `10-h1-a-large-cold-pull-gate.json`, `11-h1-b-small-cold-pull-gate.json`, `12-h1-c-speedup-ratio-gate.json` | `verify.sh` Phase 10–12 — Scenario A cold pull (3 sub-gates: pull event, image size, revision healthy), Scenario B cold pull (3 sub-gates: pull event, image size, revision healthy), speedup ratio (2 sub-gates: parse both durations, assert ratio ≥ 2.5) — strict 2-path predicate (Strong = exact `Log_s` match in `06-kql-pull-events.json`; Fallback = substring search in `system-logs-*.json`) |
 | H2 falsification gate | `13-h2-falsification-gate.json` | `verify.sh` Phase 13 — small_image_alone_not_sufficient: 3 sub-gates (helloworld pulled fastest of all 3 revisions, ContainerTerminated count ≥ 3 for helloworld revision, runtime mismatch error signature `exec: "python": executable file not found in $PATH` present in raw logs) |
 
-The pack contains **15 physical files** under `evidence/`: **11 trigger/verify-captured artifacts** (01–09 numbered + 2 system-logs-* files) AND **4 verify.sh-emitted gate JSONs** (10/11/12/13).
+The pack contains **15 evidence artifacts**, excluding this README: **11 trigger/verify-captured artifacts** (01–09 numbered + 2 system-logs-* files) AND **4 verify.sh-emitted gate JSONs** (10/11/12/13).
+
+Gate sizes are measured bytes divided by 1024 (KiB), rounded to two decimals.
+
+| Derived output | Size |
+|---|---|
+| `10-h1-a-large-cold-pull-gate.json` | 1.56 KiB |
+| `11-h1-b-small-cold-pull-gate.json` | 1.57 KiB |
+| `12-h1-c-speedup-ratio-gate.json` | 1.21 KiB |
+| `13-h2-falsification-gate.json` | 2.12 KiB |
 
 ## Reproducibility
 
@@ -101,7 +110,7 @@ bash labs/image-size-startup-delay/cleanup.sh
 
 Expected runtime: ~15 minutes total (~2 min Bicep deploy, ~1 min initial python:3.11 cold pull, ~1 min off-script helloworld revision + 4 restart attempts, ~1 min python:3.11-alpine cold pull, ~5 min revision/KQL captures, ~10 s verify, immediate cleanup queue). Estimated cost: <$0.50 USD (Consumption plan, single-replica 1.0 Gi / 0.5 CPU app running for ~15 min across 3 revisions, single Log Analytics workspace, public Docker Hub registry — no ACR, Korea Central).
 
-The `verify.sh` script is a pure file processor — it reads `evidence/01-*` through `evidence/09-*` and `system-logs-*.json` from disk and emits `evidence/10-*` through `evidence/13-*`. It does NOT call Azure (other than the one `az containerapp update` call that performs the image swap in Phase 4 — see Gate naming caveat below), which is why the resource group can be deleted (via `cleanup.sh --no-wait`) before `verify.sh` finishes the gate-emission phases.
+The current `verify.sh` is a pure file processor — it reads the raw cohort from disk and emits `evidence/10-*` through `evidence/13-*`. It does not call Azure or refresh the original capture or validation dates. Offline replay needs neither a live resource group nor a new deployment.
 
 **Note on `verify.sh` and `trigger.sh` boundaries.** The historical `verify.sh` from the 2026-06-22 run performed the image swap (`az containerapp update --image python:3.11-alpine`) and captured the post-fix system logs. The refactored `verify.sh` in this commit is **pure file processor only** — it reads existing evidence and emits gates. The image-swap and post-fix capture logic moved into `trigger.sh` Phase 4 (so that the rerun orchestration is self-contained in `trigger.sh`). The committed 2026-06-22 evidence under `01-*` through `09-*` and `system-logs-*.json` remains the canonical baseline; re-running `trigger.sh` against a fresh subscription will overwrite these files with new timestamps.
 

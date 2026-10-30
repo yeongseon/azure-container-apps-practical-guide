@@ -427,6 +427,8 @@ This lab tests three distinct claims about Container Apps zone redundancy. Each 
 
 The committed Phase B overlay for this lab is a **non-falsification with bounded coverage** variant, not the standard H1-trigger / H2-fix repair loop used by canonical troubleshooting labs. It reuses the existing 24-hour reproduction corpus under `labs/zone-redundancy-best-effort/evidence/` and adds four derived gate files that re-validate what the corpus can honestly support.
 
+[Observed] The original Phase B emission on 2026-06-26 was later re-evaluated offline from the unchanged Jun 12-Jun 14 raw cohort. Run `bash labs/zone-redundancy-best-effort/verify.sh --phase-b-only` for an Azure-free replay. Every replay records its own execution time as top-level `evaluated_at_utc`, even when old outputs exist, and reproduces the same non-time gate fields for this cohort. This is not a capture date and implies no new capture or Azure validation.
+
 ### Gate semantics
 
 | Gate | Name | What it proves |

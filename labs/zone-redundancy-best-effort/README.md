@@ -58,11 +58,17 @@ This lab is observational, not a repair-loop lab. The Jun 12-Jun 14 corpus alrea
 
 ## Reproducibility
 
+The original Phase B emission on 2026-06-26 was later re-evaluated offline
+from the unchanged Jun 12-Jun 14 raw cohort. Each replay writes its own
+execution time in top-level `evaluated_at_utc`, not a capture date, and
+reproduces the same non-time gate fields for this cohort. No new capture or
+Azure validation is implied. See [evidence provenance](evidence/README.md).
+
 | Command | Why it is used |
 |---|---|
 | `cd labs/zone-redundancy-best-effort/` | Enters the lab directory so verifier-relative paths resolve correctly. |
 | `bash verify.sh --phase-b-only` | Re-emits the four Phase B gate JSON files from the committed corpus without querying Azure. |
-| `bash verify.sh` | Runs the same Phase B verifier plus a single live-health gate; if the live resource group is unavailable, the verifier falls back to the committed live-health snapshot and still remains Azure-free. |
+| `bash verify.sh` | Also attempts live Azure health checks when Azure CLI is available; use `--phase-b-only` for an Azure-free replay. |
 
 ```bash
 cd labs/zone-redundancy-best-effort/

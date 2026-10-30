@@ -9,11 +9,31 @@ import sys
 import tempfile
 import unittest
 from collections.abc import Iterator
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
+REPLAY_LABS: Final = {
+    "image-size-startup-delay": (
+        (
+            "10-h1-a-large-cold-pull-gate.json",
+            "11-h1-b-small-cold-pull-gate.json",
+            "12-h1-c-speedup-ratio-gate.json",
+            "13-h2-falsification-gate.json",
+        ),
+        (),
+    ),
+    "zone-redundancy-best-effort": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-negative-control-baseline-validity-gate.json",
+            "16-positive-control-perturbation-validity-gate.json",
+            "17-bounded-coverage-uncertainty-gate.json",
+        ),
+        ("--phase-b-only",),
+    ),
+}
 GATE_OUTPUTS: Final = {
     "startup-degraded-transient-failure": (
         "10-canonical-evidence-integrity-gate.json",
@@ -309,6 +329,84 @@ class KedaGateTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
+class EvaluationReplayTests(unittest.TestCase):
+    @contextlib.contextmanager
+    def replay_fixture(self, name: str) -> Iterator[Path]:
+        with fixture_lab(name) as lab:
+            guide = Path("docs/troubleshooting/lab-guides") / f"{name}.md"
+            destination = lab.parents[1] / guide
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(REPO_ROOT / guide, destination)
+            snapshots = lab.parent / "committed-gates"
+            snapshots.mkdir()
+            for output in REPLAY_LABS[name][0]:
+                shutil.copy2(lab / "evidence" / output, snapshots / output)
+            yield lab
+
+    def assert_replay(self, lab: Path, clean: bool = True) -> None:
+        outputs, arguments = REPLAY_LABS[lab.name]
+        if clean:
+            for name in outputs:
+                (lab / "evidence" / name).unlink(missing_ok=True)
+        start = datetime.now(timezone.utc).replace(microsecond=0)
+        result = subprocess.run(
+            ["bash", "verify.sh", *arguments], cwd=lab,
+            capture_output=True, text=True, timeout=60, check=False,
+        )
+        end = datetime.now(timezone.utc).replace(microsecond=0)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        for name in outputs:
+            path = lab / "evidence" / name
+            self.assertTrue(path.is_file(), f"missing newly emitted output: {name}")
+            current = json.loads(path.read_text())
+            self.assertIsInstance(current, dict)
+            self.assertNotIn("utc_captured", current)
+            value = current.pop("evaluated_at_utc")
+            stamp = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            self.assertEqual(stamp.strftime("%Y-%m-%dT%H:%M:%SZ"), value)
+            self.assertLessEqual(start, stamp)
+            self.assertLessEqual(stamp, end)
+            expected = json.loads((lab.parent / "committed-gates" / name).read_text())
+            expected.pop("evaluated_at_utc", None)
+            expected.pop("utc_captured", None)
+            self.assertEqual(json.dumps(current, sort_keys=True), json.dumps(expected, sort_keys=True), name)
+
+    def test_two_clean_replays_preserve_every_non_stamp_field(self) -> None:
+        for name, (outputs, _) in REPLAY_LABS.items():
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                self.assert_replay(lab)
+                first = {}
+                for output in outputs:
+                    data = json.loads((lab / "evidence" / output).read_text())
+                    data.pop("evaluated_at_utc")
+                    first[output] = data
+                self.assert_replay(lab)
+                for output in outputs:
+                    data = json.loads((lab / "evidence" / output).read_text())
+                    data.pop("evaluated_at_utc")
+                    self.assertEqual(json.dumps(data, sort_keys=True), json.dumps(first[output], sort_keys=True))
+
+    def test_existing_old_stamps_cannot_pin_the_replay_clock(self) -> None:
+        for name, (outputs, _) in REPLAY_LABS.items():
+            for key in ("evaluated_at_utc", "utc_captured"):
+                with self.subTest(lab=name, key=key), self.replay_fixture(name) as lab:
+                    for output in outputs:
+                        path = lab / "evidence" / output
+                        data = json.loads(path.read_text())
+                        data.pop("evaluated_at_utc", None)
+                        data.pop("utc_captured", None)
+                        data[key] = "2000-01-01T00:00:00Z"
+                        path.write_text(json.dumps(data))
+                    self.assert_replay(lab, clean=False)
+
+    def test_noop_verifier_cannot_reuse_committed_outputs(self) -> None:
+        for name in REPLAY_LABS:
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                (lab / "verify.sh").write_text("#!/usr/bin/env bash\nexit 0\n")
+                with self.assertRaisesRegex(AssertionError, "missing newly emitted output"):
+                    self.assert_replay(lab)
+
+
 def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,
                _pattern: str | None) -> unittest.TestSuite:
     return unittest.TestSuite(
@@ -319,6 +417,7 @@ def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,
             CpuThrottlingTests,
             StartupGateTests,
             KedaGateTests,
+            EvaluationReplayTests,
         )
     )
 

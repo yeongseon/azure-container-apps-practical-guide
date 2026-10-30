@@ -1238,6 +1238,34 @@ class ClaimSinglePathTests(unittest.TestCase):
                 self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
 
 
+class CleanReplayTests(unittest.TestCase):
+    def test_gate_10_listing_does_not_depend_on_pre_existing_outputs(self) -> None:
+        with fixture_lab() as lab:
+            self.assertEqual(run_verify(lab).returncode, 0)
+            clean = strict_gate(lab, COHORT_GATE)
+            self.assertEqual(run_verify(lab).returncode, 0)
+            replayed = strict_gate(lab, COHORT_GATE)
+
+            clean.pop("evaluated_at_utc")
+            replayed.pop("evaluated_at_utc")
+            self.assertEqual(clean, replayed)
+            listing = clean["sub_gate_d_no_extras"]["actual_files_excluding_phase_b_outputs"]
+            self.assertTrue(set(GENERATED_GATES).isdisjoint(listing))
+            self.assertIn("README.md", listing)
+            self.assertNotIn("actual_files_in_evidence_dir", clean["sub_gate_d_no_extras"])
+
+    def test_an_extra_file_is_still_found_after_excluding_the_outputs(self) -> None:
+        with fixture_lab() as lab:
+            (lab / "evidence" / "foreign.json").write_text("{}")
+
+            proc = run_verify(lab)
+
+            sub = strict_gate(lab, COHORT_GATE)["sub_gate_d_no_extras"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertEqual(sub["extras_found_after_excluding_phase_b_outputs"], ["foreign.json"])
+            self.assertFalse(sub["d_pass"])
+
+
 class ScaleBoundaryTests(unittest.TestCase):
     def test_each_supplied_malformed_scale_field_is_unusable(self) -> None:
         cases = {
