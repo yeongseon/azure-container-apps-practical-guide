@@ -100,6 +100,8 @@ validation:
 
 not_in_nav: |
   /reference/metrics.md
+  /reference/diagram-inventory.md
+  /reference/adr-diagram-composition.md
 
 nav:
   - Home: index.md
