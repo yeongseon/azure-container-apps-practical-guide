@@ -65,7 +65,7 @@
     "fences_without_frontmatter_entry": {"type": "string"},
     "unclassified_assets": {"type": "string"},
     "frontmatter_duplicate_ids": {"type": "object", "additionalProperties": false, "required": ["page", "id", "count"], "properties": {"page": {"type": "string"}, "id": {"type": "string", "pattern": "\\S"}, "count": {"type": "integer", "minimum": 2}}},
-    "unrecognized_mermaid_fences": {"type": "object", "additionalProperties": false, "required": ["page", "line", "reason"], "properties": {"page": {"type": "string"}, "line": {"type": "integer", "minimum": 1}, "reason": {"enum": ["html-comment", "blockquote", "indented"]}}},
+    "unrecognized_mermaid_fences": {"type": "object", "additionalProperties": false, "required": ["page", "line", "reason"], "properties": {"page": {"type": "string"}, "line": {"type": "integer", "minimum": 1}, "reason": {"enum": ["html-comment", "indented-code", "indented", "blockquote", "list-marker"]}}},
     "duplicate_ids_on_page": {"type": "object", "additionalProperties": false, "required": ["key", "count", "keys"], "properties": {"key": {"type": "string"}, "count": {"type": "integer", "minimum": 2}, "keys": {"$ref": "#/$defs/strings"}}},
     "frontmatter_entries_without_fence": {"type": "object", "additionalProperties": false, "required": ["page", "entry"], "properties": {"page": {"type": "string"}, "entry": {}}},
     "frontmatter_unparseable": {"type": "object", "additionalProperties": false, "required": ["page", "error"], "properties": {"page": {"type": "string"}, "error": {"type": "string"}}},

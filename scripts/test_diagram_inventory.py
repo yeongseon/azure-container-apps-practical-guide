@@ -23,6 +23,114 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ParsingTests(unittest.TestCase):
+    def test_inline_code_comment_tokens_keep_two_visible_fences(self):
+        for prose in ('Use `<!--` literally.', 'Use ``a ` <!-- -->`` here.',
+                      'Use `-->` here.', 'A --> B text'):
+            with self.subTest(prose=prose):
+                text = prose + '\n\n' + '```mermaid\nflowchart LR\n```\n' * 2
+                found, unclosed, findings = inventory.scan_fences(text)
+                self.assertEqual(len(found), 2)
+                self.assertEqual((unclosed, findings), ([], []))
+
+    def test_fence_info_comment_token_has_precedence(self):
+        found, unclosed, findings = inventory.scan_fences('```mermaid title="<!--"\nflowchart LR\n```\n')
+        self.assertEqual(len(found), 1)
+        self.assertEqual((unclosed, findings), ([], []))
+
+    def test_comment_openers_hide_then_resume_without_headings(self):
+        for opener in ('<!-- open', 'text <!-- open', '--> <!-- open'):
+            with self.subTest(opener=opener):
+                text = '# Visible\n' + opener + '\n# Hidden\n> ```mermaid\n> ```\n-->\n<!-- diagram-id:X -->\n```mermaid\nflowchart LR\n```\n'
+                found, unclosed, findings = inventory.scan_fences(text)
+                self.assertEqual([(f.diagram_id, f.headings) for f in found], [('X', ('Visible',))])
+                self.assertEqual(unclosed, [])
+                self.assertEqual(findings, [{'line': 4, 'reason': 'html-comment'}])
+
+    def test_arrow_inside_hidden_fence_does_not_close_html_comment(self):
+        text = 'text <!-- open\n```mermaid\nflowchart LR\nA --> B\n```\n-->\n\n```mermaid\nflowchart LR\n```\n'
+        found, unclosed, findings = inventory.scan_fences(text)
+        self.assertEqual([item.line for item in found], [8])
+        self.assertFalse(found[0].example)
+        self.assertEqual(unclosed, [])
+        self.assertEqual(findings, [{'line': 2, 'reason': 'html-comment'}])
+
+    def test_prefix_findings_consume_block_and_keep_trailing_fence(self):
+        cases = [(marker + ' ', 'list-marker', '') for marker in ('-', '*', '+', '1.', '1)')]
+        cases += [(prefix, 'blockquote', '') for prefix in ('> ', '> > ', '>', '> - ')]
+        cases += [(prefix, 'indented', before) for prefix in ('    ', '\t')
+                  for before in ('- item\n\n', '1. item\n\n', '!!! note\n\n',
+                                 '??? note\n\n', '=== "A"\n\n', 'paragraph\n')]
+        for prefix, reason, before in cases:
+            for marker in ('```', '~~~~'):
+                with self.subTest(prefix=prefix, reason=reason, before=before, marker=marker):
+                    text = before + prefix + marker + 'mermaid\n  flowchart LR\n  ' + marker + '\n\n```mermaid\nflowchart LR\n```\n'
+                    found, unclosed, findings = inventory.scan_fences(text)
+                    self.assertEqual(len(found), 1)
+                    self.assertEqual(unclosed, [])
+                    self.assertEqual(findings, [{'line': len(before.splitlines()) + 1, 'reason': reason}])
+
+    def visible_lines(self, text):
+        found, unclosed, findings = inventory.scan_fences(text)
+        return [item.line for item in found if not item.example], unclosed, findings
+
+    def test_unclosed_comment_is_literal_text_that_keeps_later_diagrams(self):
+        fence = '```mermaid\nflowchart LR\n```\n'
+        for text, lines in (('<!-- note\n' + fence, [2]), ('text <!-- note\n' + fence + '\n' + fence, [2, 6]),
+                            ('<!-- note\n```mermaid\nA-->B\n```\n', [2])):
+            with self.subTest(text=text):
+                self.assertEqual(self.visible_lines(text), (lines, [], []))
+
+    def test_text_inside_a_hidden_fence_never_closes_the_comment(self):
+        fence = '```mermaid\nflowchart LR\n```\n'
+        self.assertEqual(self.visible_lines('<!-- note\n```bash\nA --> B\n```\n-->\n' + fence), ([6], [], []))
+        self.assertEqual(self.visible_lines('<!-- note\n```bash\nA --> B\n```\n' + fence), ([5], [], []))
+
+    def test_closed_comment_still_hides_diagrams_and_resumes_after_it(self):
+        text = '<!-- note\n```mermaid\nA-->B\n```\n-->\n```mermaid\nflowchart LR\n```\n'
+        self.assertEqual(self.visible_lines(text), ([6], [], [{'line': 2, 'reason': 'html-comment'}]))
+
+    def test_unclosed_unsupported_block_never_swallows_later_diagrams(self):
+        fence = '```mermaid\nflowchart LR\n```\n'
+        for opener in ('> ```mermaid\n> flowchart LR\n', '- ```mermaid\n  flowchart LR\n',
+                       '- item\n\n    ```mermaid\n    flowchart LR\n'):
+            with self.subTest(opener=opener):
+                lines, unclosed, findings = self.visible_lines(opener + '\n' + fence + '\n' + fence)
+                self.assertEqual(len(lines), 2)
+                self.assertEqual(unclosed, [])
+                self.assertEqual(len(findings), 1)
+                self.assertIn(findings[0]['reason'], inventory.BLOCKING_REASONS)
+
+    def test_plain_indented_code_never_consumes_later_diagrams(self):
+        lines, _, findings = self.visible_lines('    ```mermaid\n```mermaid\n\n```mermaid\n```\n')
+        self.assertEqual(lines, [2])
+        self.assertEqual(findings, [{'line': 1, 'reason': 'indented-code'}])
+
+    def test_plain_indented_code_is_informational(self):
+        for before in ('', 'paragraph\n\n', '- item\n\nplain\n\n'):
+            for prefix in ('    ', '\t', '    > '):
+                with self.subTest(before=before, prefix=prefix):
+                    text = before + prefix + '```mermaid\n    flowchart LR\n    ```\n'
+                    found, unclosed, findings = inventory.scan_fences(text)
+                    self.assertEqual((found, unclosed), ([], []))
+                    self.assertEqual(findings, [{'line': len(before.splitlines()) + 1, 'reason': 'indented-code'}])
+
+    def test_container_ancestor_walk_reports_nested_indentation(self):
+        text = '- item\n  paragraph\n\n      ```mermaid\n      flowchart LR\n      ```\n'
+        self.assertEqual(inventory.scan_fences(text)[2], [{'line': 4, 'reason': 'indented'}])
+
+    def test_unclosed_unsupported_block_does_not_swallow_page(self):
+        text = '- ~~~~mermaid\nbody\n```mermaid\nflowchart LR\n```\n'
+        found, unclosed, findings = inventory.scan_fences(text)
+        self.assertEqual(len(found), 1)
+        self.assertEqual(unclosed, [])
+        self.assertEqual(findings, [{'line': 1, 'reason': 'list-marker'}])
+
+    def test_long_outer_fence_has_no_findings_for_all_prefixes(self):
+        body = '\n'.join(prefix + '```mermaid\n' + prefix + 'flowchart LR\n' + prefix + '```'
+                         for prefix in ('- ', '* ', '+ ', '1. ', '1) ', '> ', '> > ', '>', '    > ', '    ', '\t'))
+        text = '``````markdown\n<!-- open\n' + body + '\n!!! note\n??? note\n=== "A"\n``````\n'
+        self.assertEqual(inventory.scan_fences(text)[1:], ([], []))
+
     def test_unusable_frontmatter_ids_never_attach(self):
         for entry in ({}, {'id': None}, {'id': ''}, {'id': 42}, {'id': []}, {'id': {}}, {'id': '   '}):
             with self.subTest(entry=entry):
@@ -288,20 +396,52 @@ class TreeTests(unittest.TestCase):
 
     def test_unrecognized_write_warns_check_blocks_only_rendered(self):
         for reason, text in [('html-comment', '<!-- hidden\n```mermaid\nflowchart LR\n```\n-->\n'),
+                             ('indented-code', '\n    ```mermaid\n    flowchart LR\n    ```\n'),
+                             ('list-marker', '- ```mermaid\n  flowchart LR\n  ```\n'),
                              ('blockquote', '> ```mermaid\n> flowchart LR\n> ```\n'),
                              ('indented', '- item\n    ```mermaid\n    flowchart LR\n    ```\n')]:
             with self.subTest(reason=reason):
                 _ = (self.root / 'docs/x.md').write_text(text + text)
                 written = self.cli('--write', '--base-commit', '0' * 40)
                 self.assertEqual(written.returncode, 0, written.stderr)
-                self.assertEqual(len(written.stderr.splitlines()), 1)
-                self.assertIn('docs/x.md:', written.stderr)
+                blocking = reason in {'blockquote', 'list-marker', 'indented'}
+                self.assertEqual(len(written.stderr.splitlines()), 1 if blocking else 0)
+                if blocking:
+                    self.assertIn('docs/x.md:', written.stderr)
+                    self.assertIn(f'({reason})', written.stderr)
                 checked = self.cli('--check')
-                self.assertEqual(checked.returncode, 0 if reason == 'html-comment' else 1, checked.stdout)
+                self.assertEqual(checked.returncode, int(blocking), checked.stdout)
                 self.assertIn(reason, checked.stdout)
-                if reason != 'html-comment':
+                if blocking:
                     self.assertIn('docs/x.md:', checked.stdout)
-                    self.assertIn('move', checked.stdout)
+                    self.assertIn('move the fence to the top level with at most 3 spaces of indentation, or show it inside a longer outer fence, then regenerate', checked.stdout)
+                else:
+                    self.assertEqual(sum(f': {reason} Mermaid fence is not rendered (informational)' in line for line in checked.stdout.splitlines()), 2)
+
+    def test_write_warning_lists_only_blocking_findings(self):
+        _ = (self.root / 'docs/x.md').write_text('    ```mermaid\n    ```\n\n- ```mermaid\n  ```\n\n> ```mermaid\n> ```\n')
+        result = self.cli('--write', '--base-commit', '0' * 40)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(result.stderr.splitlines()), 1)
+        self.assertIn('4 (list-marker), 7 (blockquote)', result.stderr)
+        self.assertNotIn('indented-code', result.stderr)
+
+    def test_reason_enum_and_integer_schema_parity(self):
+        schema = json.loads((self.root / inventory.SCHEMA).read_text())
+        definitions = schema['$defs']
+        for reason in ('html-comment', 'indented-code', 'indented', 'blockquote', 'list-marker', 'other'):
+            entry = {'page': 'x.md', 'line': 1, 'reason': reason}
+            contract = definitions['unrecognized_mermaid_fences']
+            valid = reason != 'other'
+            self.assertEqual(not inventory.structural(entry, contract, definitions), valid)
+            if jsonschema is not None:
+                self.assertEqual(jsonschema.Draft202012Validator(contract).is_valid(entry), valid)
+        for value, valid in ((1, True), (1.0, True), (1.5, False), (True, False), (False, False)):
+            with self.subTest(value=value):
+                contract = {'type': 'integer'}
+                self.assertEqual(not inventory.structural(value, contract, {}), valid)
+                if jsonschema is not None:
+                    self.assertEqual(jsonschema.Draft202012Validator(contract).is_valid(value), valid)
 
     def test_bom_preserves_frontmatter_association(self):
         _ = (self.root / 'docs/x.md').write_text('\ufeff---\ncontent_sources:\n  diagrams: [{id: x}]\n---\n<!-- diagram-id:x -->\n```mermaid\nflowchart LR\n```\n')
