@@ -33,7 +33,7 @@ Non-Mermaid visuals are reported separately; `totals.by_batch` counts Mermaid mi
 
 At the baseline commit recorded in the manifest (`baseline.base_commit`), the repository contains the following; the generated tables below are authoritative if prose and tables ever diverge:
 
-- 479 total Mermaid occurrences across 386 tracked Markdown files.
+- 479 occurrences in 386 diagram-bearing Markdown files. The current tracked tree has 495 Markdown files (`git ls-files '*.md' | wc -l`).
 - 475 published occurrences within user-facing documentation under `docs/`.
 - 4 repository-only occurrences outside published paths (`AGENTS.md` and lab READMEs).
 - 3 excluded occurrences with documented rationales.
@@ -93,7 +93,7 @@ The following summary tables are generated directly from `docs/reference/diagram
 
 ### Asset Exclusions by Group
 
-Asset groups are path-based claims, not visual verification. Wildcard `paths` entries claim only raster images (`.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`); vector or diagram-source assets require an exact path without wildcard characters, or a matching path rule whose optional `extensions` array explicitly lists the extension (for example, `[".svg", ".mmd"]`). Otherwise they remain in `exceptions.unclassified_assets` for review.
+Asset groups are path-based claims, not visual verification. Wildcard `paths` entries claim only raster images (`.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`); vector or diagram-source assets require an exact path without wildcard characters, or a matching path rule whose optional `extensions` array explicitly lists dotted suffixes (for example, `[".svg", ".mmd"]`). Asset suffixes and `extensions` entries are case-insensitive (`[".SVG"]` opts into `.svg`); path matching remains case-sensitive. Otherwise they remain in `exceptions.unclassified_assets` for review.
 
 <!-- BEGIN GENERATED: diagram-inventory:exclusions -->
 | Exclusions | Count |
@@ -158,11 +158,11 @@ These five scenarios are assigned specifically to #403 because their diagrams do
 
 ## Non-Mermaid Visuals
 
-An exhaustive search across `docs/` for non-Mermaid drawing and visualization elements (`<svg`, `<img`, `<iframe`, `<script`, `cytoscape`, `d3`, `vis-network`, `plotly`) confirmed zero non-Mermaid published diagrams in the repository:
+The current inventory classifies no non-Mermaid published visual as detected by the searched mechanisms across `docs/` (`<svg`, `<img`, `<iframe`, `<script`, `cytoscape`, `d3`, `vis-network`, `plotly`). This textual search is not an exhaustive visual classification of raster assets:
 
 - Two vector SVG files exist: `docs/assets/logo.svg` and `docs/assets/favicon.svg`. They are classified as branding by file name only, not by visual inspection.
 - No embedded `<canvas>` elements, Cytoscape graph datasets, D3 charts, or external visualization scripts are present.
-- The 435 raster assets (`.png` and `.webp`) are classified as Portal screenshots or evidence captures by path and alt-text screening. The visual sample covered 88 images across all 45 raster directories, not an exhaustive visual check of every asset.
+- The 435 raster assets (`.png` and `.webp`) are grouped as Portal screenshots or evidence captures by path and alt-text screening. The historical visual sample covered 88 images across all 45 raster directories; it does not classify all 435 raster assets visually.
 
 ## Quality of Classification
 
@@ -224,19 +224,19 @@ Files are decoded as UTF-8 with optional BOM. An undecodable file is skipped and
 
 The scanner is a line-based approximation of how the site renders indentation, not a full Markdown container parser. It errs toward reporting Mermaid-opener-like lines in `unrecognized_mermaid_fences` rather than silently dropping them:
 
-- `html-comment` and `indented-code` are informational: the fence is hidden by a multiline HTML comment or shown as plain indented code. `--check` prints each finding without failing.
-- `blockquote`, `list-marker`, and `indented` are blocking findings. The last reason covers container indentation or a lazy continuation after prose. `--write` succeeds and warns once per page, listing only blocking findings; `--check` fails. Move the fence to the top level with at most three spaces of indentation, or show it inside a longer outer fence, then regenerate.
-- Fence recognition precedes comment detection. Inline code spans containing comment tokens do not open comments. A multiline comment needs a closing `-->`: an unclosed one is shown as literal text by the site, so it hides nothing, and text inside any fence never closes a comment because the site extracts fences first. Unsupported blocks are consumed through their matching closing fence so later canonical fences remain in sync; another fence opener before a closing fence, or no closing fence, means the block is unclosed and the scan resumes on the next line instead of swallowing the page.
+- `html-comment` and `indented-code` are informational: the fence is hidden by a multiline HTML comment or shown as plain indented code. Plain-code state starts at an indented line (at least four columns, with tabs expanded) after a blank line or at document start without a less-indented container/HTML ancestor. It continues across blank or indented lines and ends at the first nonblank line with fewer than four columns. `--check` prints each finding without failing.
+- `blockquote`, `list-marker`, and `indented` are blocking findings. The last reason covers container indentation, including HTML tag lines in the less-indented ancestor chain, or a lazy continuation directly after prose without a blank line. The HTML heuristic recognizes a line starting with `<` followed by a letter, `/`, or `!`, except a single-line HTML comment; it does not parse HTML. `--write` succeeds and warns once per page, listing only blocking findings; `--check` fails. Move the fence to the top level with at most three spaces of indentation, or show it inside a longer outer fence, then regenerate.
+- Fence recognition precedes comment detection. Inline code spans containing comment tokens do not open comments. A multiline comment needs a closing `-->`: an unclosed one is shown as literal text by the site, so it hides nothing, and text inside any fence never closes a comment because the site extracts fences first. Unsupported blocks, including indented generic fences of any language or no language, are consumed through their matching closing fence (even a dedented closer) so later canonical fences remain in sync; only Mermaid openers produce findings. Another fence opener before a closing fence, or no closing fence, means the block is unclosed and the scan resumes on the next line instead of swallowing the page.
 - Recognized outer non-Mermaid fences contain examples, not rendered diagrams, and do not produce unsupported-fence findings. The separate `scripts/validate_mermaid_format.py` policy already rejects indented Mermaid fences, including plain indented code examples; use a longer outer fence for examples.
 
-This classification was checked against Python-Markdown 3.10.2 and pymdownx 10.21.3 on 2026-10-30 in local experiments whose harnesses and evidence are not committed: a 3,300-document grammar corpus in which the site shows no diagram that the scanner neither counts nor reports, and a mutation fuzzer that corrupted documents at random, which found such a document in about 1.7 % of 12,000 mutated documents, all with corrupted or unbalanced fence syntax. It is not a rendering guarantee.
+This classification was checked against Python-Markdown 3.10.2 and pymdownx 10.21.3 on 2026-10-30 in local experiments whose harnesses and evidence are not committed. The repeated 3,300-document grammar corpus had zero documents where rendered diagrams exceeded recognized non-example occurrences plus blocking findings, and zero plain-code documents with blocking findings. The repeated mutation fuzzer (seeds 11, 12, and 13; 4,000 documents each) found 60, 72, and 62 under-accounted documents respectively (194 of 12,000); the remaining minimized cases use corrupted or unbalanced fence syntax. It is not a rendering guarantee.
 
 Known limitations:
 
 - Info strings with extra words are counted by the first-word `mermaid` rule, but the site shows them as code rather than diagrams.
 - A comment that starts after a list marker or blockquote prefix is not tracked.
-- Nested list/container structure beyond the less-indented ancestor heuristic may be reported as `indented` when the site shows code. This is conservative over-reporting, never a silently discarded opener.
-- Corrupted or unbalanced fence syntax, for example an indented fence opener that is never closed or fence markers and comment tokens inside an info string, is parsed differently by CommonMark and by the site's renderer. The scanner follows CommonMark and records unclosed fences in `unclosed_fences`, but the site can show more diagrams than the scanner accounts for on such a page.
+- Nested list/container structure beyond the less-indented ancestor heuristic may be reported as `indented` when the site shows code. HTML ancestor detection is deliberately conservative, including balanced wrappers, and does not establish whether a tag remains open. Plain-code continuation is tracked explicitly, but this is not a full container parser.
+- Corrupted or unbalanced fence syntax, for example an opener that is never closed, bare marker lines of a different kind, tilde/backtick mixes, or fence markers and comment tokens inside an info string, is parsed differently by CommonMark and by the site's renderer. The scanner uses CommonMark-style boundaries for recognized top-level fences and records their unclosed fences in `unclosed_fences`, but the site can show more diagrams than the scanner accounts for on such a page.
 
 ### Validating the Inventory (Blocking CI)
 
@@ -250,7 +250,7 @@ This validates that the manifest conforms to the JSON schema, keys are unique, b
 
 ### Regenerating the Manifest
 
-The manifest is regenerated whole from the tree at a pinned `baseline.base_commit`, rather than retaining separate baseline records and current-tree observations. Run `--verify-tree` before rewriting to see removed and changed records. Reviewed planning fields are preserved by key, while a reviewed classification is preserved only when the diagram body's `baseline.source_sha256` is unchanged; a changed body receives a fresh, unreviewed heuristic classification and must be reviewed again.
+`--write` reads the current working tree and regenerates the whole manifest, recording `baseline.base_commit` as metadata (pass `--base-commit` to pin it); it does not read the tree at that commit or retain separate baseline records and current-tree observations. Run `--verify-tree` before rewriting to see removed and changed records. Reviewed planning fields are preserved by key, while a reviewed classification is preserved only when the diagram body's `baseline.source_sha256` is unchanged; a changed body receives a fresh, unreviewed heuristic classification and must be reviewed again.
 
 Update the manifest and generated documentation blocks after adding or modifying diagrams:
 
