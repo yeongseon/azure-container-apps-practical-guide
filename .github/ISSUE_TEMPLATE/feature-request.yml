@@ -36,6 +36,14 @@ body:
     validations:
       required: false
   - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or rationale
+      description: Link current sources, user scenario, and as-of date; if exploratory, say the claim is unverified.
+      placeholder: Current page ...; observed ...; or proposed scenario ...
+    validations:
+      required: true
+  - type: textarea
     id: affected-scope
     attributes:
       label: Scope and exclusions
