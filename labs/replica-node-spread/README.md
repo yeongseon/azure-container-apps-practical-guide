@@ -97,6 +97,8 @@ python3 test_verify.py
 
 ## Raw primacy
 
+Gate 12(a) has one path requiring the verifier-declared headline level to equal `Strongly Suggested` and its string to contain no standalone `Observed` token. This is a self-consistency check, not an evidence-derived check of the published prose. Gate 12(d) requires both named co-location counterexamples (Consumption-30 and Dedicated-D8-3), not merely any co-location case.
+
 Gate 11 sub-gate (d) enforces the Oracle rule that raw JSONL wins whenever
 the `analysis-summary` or the H3 verdict conflicts with it. Each of the four
 H3 checks is recomputed from the anchor JSONL as one of:

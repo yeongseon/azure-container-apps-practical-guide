@@ -1154,5 +1154,71 @@ class ReplayTimestampTests(unittest.TestCase):
                     datetime.datetime.strptime(document["evaluated_at_utc"], "%Y-%m-%dT%H:%M:%SZ")
 
 
+class ClaimSinglePathTests(unittest.TestCase):
+    def _verify(self, lab: pathlib.Path) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["bash", str(lab / "verify.sh")], capture_output=True,
+            text=True, timeout=600, check=False,
+        )
+
+    def test_committed_evidence_control_passes(self) -> None:
+        with fixture_lab() as lab:
+            proc = self._verify(lab)
+
+            data: dict[str, dict[str, bool]] = {**gate(lab, CLAIM_GATE)}
+            self.assertIs(data["sub_gate_a_observed_level_claims_only"]["a_pass"], True)
+            sub = data["sub_gate_d_counterexamples_surfaced"]
+            self.assertIs(sub["consumption_30_co_location_detected"], True)
+            self.assertIs(sub["dedicated_3_co_location_detected"], True)
+            self.assertIs(sub["d_pass"], True)
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_each_counterexample_is_required(self) -> None:
+        for pattern, removed, retained in (
+            ("consumption-scale-30-*.jsonl", "consumption_30_co_location_detected", "dedicated_3_co_location_detected"),
+            ("dedicated-d8-scale-3-*.jsonl", "dedicated_3_co_location_detected", "consumption_30_co_location_detected"),
+        ):
+            with self.subTest(removed=removed), fixture_lab() as lab:
+                for path in (lab / "evidence").glob(pattern):
+                    records: list[dict[str, str | int]] = [*map(json.loads, path.read_text().splitlines())]
+                    replicas = sorted({str(record["replica_name"]) for record in records})
+                    for record in records:
+                        index = replicas.index(str(record["replica_name"]))
+                        record["replica_name"] = f"fixture-replica-{index}"
+                        record["boot_id"] = f"fixture-boot-{index}"
+                        record["boot_time_estimate_ms"] = 1_780_000_000_000 + index * 10_000
+                    _ = path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+                proc = self._verify(lab)
+
+                data: dict[str, dict[str, bool]] = {**gate(lab, CLAIM_GATE)}
+                sub = data["sub_gate_d_counterexamples_surfaced"]
+                self.assertIs(sub[removed], False)
+                self.assertIs(sub[retained], True)
+                self.assertIs(sub["d_pass"], False)
+                self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_declared_headline_requires_both_conjuncts(self) -> None:
+        for original, replacement in (
+            ('headline_claim = "observed_node_spread_behavior_under_this_test_matrix"',
+             'headline_claim = "Observed cross-replica node placement"'),
+            ('headline_claim_level = "Strongly Suggested"',
+             'headline_claim_level = "Inferred"'),
+        ):
+            with self.subTest(replacement=replacement), fixture_lab() as lab:
+                path = lab / "verify.sh"
+                text = path.read_text()
+                self.assertEqual(text.count(original), 1)
+                _ = path.write_text(text.replace(original, replacement))
+
+                proc = self._verify(lab)
+
+                data: dict[str, dict[str, bool]] = {**gate(lab, CLAIM_GATE)}
+                sub = data["sub_gate_a_observed_level_claims_only"]
+                self.assertIs(sub["a_strong_path_no_observed_placement"], False)
+                self.assertIs(sub["a_pass"], False)
+                self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

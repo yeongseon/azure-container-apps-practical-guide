@@ -87,8 +87,11 @@
 #          has crash=603s vs slow=136s vs healthy=106s → 4.43x ratio.
 #       c) Health state matches outcome: healthy=="Healthy" AND
 #          slow=="Healthy" AND crash=="Unhealthy" (Strong); or crash
-#          != "Healthy" AND at least one of {healthy, slow} == "Healthy"
-#          (Fallback).
+#          =="Unhealthy" AND at least one of {healthy, slow} ==
+#          "Healthy" (Fallback). Both tiers require all three states
+#          to be reported as "Healthy" or "Unhealthy"; anything else
+#          (absent, null, empty, "None", "Unknown", ...) is unreported
+#          evidence and fails both tiers.
 #
 # Why we do NOT key strong predicates to the FULL log sentence:
 #   The current Container Apps KEDA scaler emits the sentence "invalid
@@ -1286,8 +1289,13 @@ c_strong_path_exact_state_pattern = (
     and slow_m["health_state"] == "Healthy"
     and crash_m["health_state"] == "Unhealthy"
 )
+health_states_reported = all(
+    m["health_state"] in ("Healthy", "Unhealthy")
+    for m in (healthy_m, slow_m, crash_m)
+)
 c_fallback_path_crash_not_healthy_and_one_healthy = (
-    crash_m["health_state"] != "Healthy"
+    health_states_reported
+    and crash_m["health_state"] == "Unhealthy"
     and (
         healthy_m["health_state"] == "Healthy"
         or slow_m["health_state"] == "Healthy"
@@ -1347,6 +1355,12 @@ print(json.dumps({
         "b_pass": b_duration_ordering,
     },
     "sub_gate_c_health_state_matches_outcome": {
+        "c_predicate": "Strong tier: healthy=Healthy, slow=Healthy, crash=Unhealthy. Lower-evidence fallback tier: all three states reported as Healthy or Unhealthy, crash=Unhealthy and at least one other Healthy; only Healthy/Unhealthy count as reported, anything else is unreported evidence and fails both tiers.",
+        "c_evidence_level": (
+            "Strong" if c_strong_path_exact_state_pattern
+            else "Fallback" if c_fallback_path_crash_not_healthy_and_one_healthy
+            else "Not Proven"
+        ),
         "healthy_health_state": healthy_m["health_state"],
         "slow_health_state": slow_m["health_state"],
         "crash_health_state": crash_m["health_state"],

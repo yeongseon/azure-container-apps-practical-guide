@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-29T15:38:09Z",
+  "evaluated_at_utc": "2026-10-30T00:06:26Z",
   "scenario": "claim_eligibility",
   "hypothesis": "H_claim_eligibility",
   "claim": "observed_node_spread_behavior_under_this_test_matrix",
@@ -29,7 +29,6 @@
     "headline_claim": "observed_node_spread_behavior_under_this_test_matrix",
     "headline_claim_level": "Strongly Suggested",
     "a_strong_path_no_observed_placement": true,
-    "a_fallback_path_not_observed": true,
     "a_pass": true
   },
   "sub_gate_b_profiles_separate": {
@@ -589,7 +588,6 @@
     "consumption_30_co_location_detected": true,
     "dedicated_3_co_location_detected": true,
     "d_strong_path_both_known_counterexamples": true,
-    "d_fallback_path_at_least_one": true,
     "d_pass": true
   },
   "sub_gate_e_falsification_from_raw": {

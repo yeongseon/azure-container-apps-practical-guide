@@ -9,10 +9,15 @@
 # is replayable from disk so a reviewer can re-classify gates without
 # re-deploying the lab.
 #
-# This script's strict 2-path predicate rule (Lab 11/12/13/14/15/16/17/18 lesson):
-#   Each sub-gate computes Strong AND Fallback in the same evaluation;
+# This script's 2-path predicate rule (Lab 11/12/13/14/15/16/17/18 lesson):
+#   Most sub-gates compute Strong AND Fallback in the same evaluation;
 #   the gate passes if EITHER path is true. The JSON output captures
 #   which path passed so a reviewer can audit the evidence trail.
+#   Gate 12 sub-gates a and d and Gate 13 sub-gates b and c have ONE
+#   path, because a fallback implied by the strong path would discard
+#   the requirement the sub-gate is named for; Gate 11 sub-gate d keeps
+#   a fallback narrowed so that verdict text cannot rescue refuted raw
+#   evidence.
 #
 # Oracle Lab 19 directive (verbatim, bg_021159d5 2026-06-24):
 #   "Pick replica-node-spread over zone-redundancy-best-effort."
@@ -132,10 +137,11 @@
 #       a) observed_level_claims_only: this gate emits an explicit
 #          claim_level field == "Strongly Suggested" for the
 #          headline claim ("observed node-spread behavior under this
-#          test matrix") and does NOT emit any claim_level ==
-#          "Observed" for cross-replica node placement — Strong path;
-#          OR claim_level is not "Observed" (Fallback — weakest
-#          form of the same predicate). The Oracle directive
+#          test matrix") and the headline string carries no standalone
+#          "Observed" token — ONE path. Both values are constants
+#          declared in this script, so the sub-gate checks the
+#          self-consistency of the declared headline, not published
+#          prose. The Oracle directive
 #          requires: "Keep the final claim narrow: observed node-
 #          spread behavior under this test matrix, not platform-
 #          wide placement guarantees." The captured baseline has
@@ -154,8 +160,8 @@
 #       c) repeats_show_variability: the Consumption scale=30 runs
 #          1/2/3 OR the Dedicated-D8 scale=10 runs 1/2/3 show at
 #          least some ms-level variability in cluster_centers_ms
-#          across the 3 runs (proves the captures are independent,
-#          not duplicated) — Strong path; OR at least one re-run
+#          across the 3 runs (shows the repeats are not byte-identical
+#          duplicates) — Strong path; OR at least one re-run
 #          pair shows non-identical cluster_centers_ms (Fallback).
 #          The captured baseline has Consumption scale=30 runs
 #          showing center[0] = 1781224393764 (run 1) vs 1781224393763
@@ -168,8 +174,9 @@
 #          meaning 3 replicas per run land on existing kernel
 #          contexts) AND Dedicated-D8 scale=3 (3 unique replicas
 #          but 1 boot_id, meaning all 3 share kernel context) —
-#          Strong path; OR at least one co-location case identified
-#          in either profile (Fallback). The Oracle directive:
+#          ONE path: both counterexamples are required, because
+#          accepting any single co-location case would discard the
+#          other one. The Oracle directive:
 #          "Deterministic spread claims: no language like 'replicas
 #          always spread one per node' unless the raw cohort
 #          proves that across the matrix, which is unlikely." The
@@ -1472,7 +1479,7 @@ for fname in SCALE_FILES:
     }
 
 # ---------- sub-gate a: observed-level claims only ----------
-# Strong path: TWO independent checks must both pass:
+# Single path: TWO independent checks must both pass:
 #   (1) the headline claim level is exactly "Strongly Suggested"
 #       (per Oracle directive: "Keep the final claim narrow"); AND
 #   (2) the headline claim STRING does not contain the word "Observed"
@@ -1482,10 +1489,7 @@ for fname in SCALE_FILES:
 #       node placement IS observed; the guard catches phrases like
 #       "Observed cross-replica node placement" that would over-claim
 #       the evidence ceiling for placement).
-# Fallback path: claim_level is not "Observed" (weakest form).
-# Note: `re` is already imported at the top of this Python heredoc
-# (line ~1056); no duplicate import is needed here.
-
+# This checks the verifier-declared headline's self-consistency, not an evidence-derived claim.
 headline_claim = "observed_node_spread_behavior_under_this_test_matrix"
 headline_claim_level = "Strongly Suggested"
 
@@ -1503,10 +1507,7 @@ a_strong_path_no_observed_placement = (
     headline_claim_level == "Strongly Suggested"
     and not headline_claim_has_observed_token
 )
-a_fallback_path_not_observed = headline_claim_level != "Observed"
-a_observed_level_claims_only = (
-    a_strong_path_no_observed_placement or a_fallback_path_not_observed
-)
+a_observed_level_claims_only = a_strong_path_no_observed_placement
 
 # ---------- sub-gate b: profiles separate ----------
 # Strong path: per-profile summaries computed as two SEPARATE dicts
@@ -1562,8 +1563,8 @@ b_profiles_separate = (
 # ---------- sub-gate c: repeats show variability ----------
 # Strong path: the Consumption scale=30 runs 1/2/3 OR the Dedicated-D8
 # scale=10 runs 1/2/3 show at least some ms-level variability in
-# cluster_centers_ms across the 3 runs (proves the captures are
-# independent, not duplicated).
+# cluster_centers_ms across the 3 runs (shows the repeats are not
+# byte-identical duplicates).
 # Fallback path: at least one re-run pair shows non-identical
 # cluster_centers_ms.
 def check_repeats_variability(profile_summary, scale):
@@ -1627,7 +1628,6 @@ c_repeats_show_variability = (
 #     clusters per run (3 co-locations per run)
 #   - Dedicated-D8 scale=3: 3 unique replicas but 1 boot_id (all 3
 #     share kernel context)
-# Fallback path: at least one co-location case identified.
 co_location_cases = []
 for fname, d in per_file_data.items():
     if not d["cell"]:
@@ -1658,10 +1658,7 @@ dedicated_3_co_location_detected = any(
 d_strong_path_both_known_counterexamples = (
     consumption_30_co_location_detected and dedicated_3_co_location_detected
 )
-d_fallback_path_at_least_one = len(co_location_cases) >= 1
-d_counterexamples_surfaced = (
-    d_strong_path_both_known_counterexamples or d_fallback_path_at_least_one
-)
+d_counterexamples_surfaced = d_strong_path_both_known_counterexamples
 
 # ---------- sub-gate e: falsification from raw ----------
 # Strong path: every per-file count is recomputed from raw JSONL and
@@ -1756,7 +1753,6 @@ print(json.dumps({
         "headline_claim": headline_claim,
         "headline_claim_level": headline_claim_level,
         "a_strong_path_no_observed_placement": a_strong_path_no_observed_placement,
-        "a_fallback_path_not_observed": a_fallback_path_not_observed,
         "a_pass": a_observed_level_claims_only,
     },
     "sub_gate_b_profiles_separate": {
@@ -1780,7 +1776,6 @@ print(json.dumps({
         "consumption_30_co_location_detected": consumption_30_co_location_detected,
         "dedicated_3_co_location_detected": dedicated_3_co_location_detected,
         "d_strong_path_both_known_counterexamples": d_strong_path_both_known_counterexamples,
-        "d_fallback_path_at_least_one": d_fallback_path_at_least_one,
         "d_pass": d_counterexamples_surfaced,
     },
     "sub_gate_e_falsification_from_raw": {

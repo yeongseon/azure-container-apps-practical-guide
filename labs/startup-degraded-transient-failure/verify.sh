@@ -327,7 +327,7 @@ c_strong = len(baseline_records) >= 1 and len(perturbation_records) >= 1
 c_fallback = len(distinct_run_ids) >= 2
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "rolling_rollout_with_probes_masked_by_readiness",
     "hypothesis": "H0_preconditions",
     "claim": "canonical_evidence_pack_internally_consistent",
@@ -454,7 +454,7 @@ c_strong = len(demoted_revision_records) >= 1
 c_fallback = len(distinct_revisions) >= 2
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "rolling_rollout_with_probes_masked_by_readiness",
     "hypothesis": "H0_partA_degraded_state_evidence",
     "claim": "rolling_rollout_produced_observable_degraded_state_signatures",
@@ -548,11 +548,14 @@ perturbation_err_pct = as_float(perturbation_run.get("err_pct", 0))
 a_strong = perturbation_err_pct == 0.0
 a_fallback = perturbation_err_pct < 0.5
 
-strong_false_runs = []
-for record in baseline_run_records + perturbation_run_records:
-    strong_false_runs.append(str(record.get("falsification_triggered", "")) == "False")
-b_strong = len(strong_false_runs) == 2 and all(strong_false_runs)
-b_fallback = str(perturbation_run.get("falsification_triggered", "")) == "False"
+baseline_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in baseline_run_records]
+perturbation_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in perturbation_run_records]
+strong_false_runs = baseline_runs_false + perturbation_runs_false
+b_strong = (
+    len(baseline_runs_false) == 1
+    and len(perturbation_runs_false) == 1
+    and all(strong_false_runs)
+)
 
 latest_qb_timestamp = max(record.get("TimeGenerated") for record in qb_records)
 latest_qb_records = [record for record in qb_records if record.get("TimeGenerated") == latest_qb_timestamp]
@@ -571,7 +574,7 @@ latest_active_replicas = as_int(latest_active_qa_record.get("replicas", 0))
 c_fallback = latest_active_replicas >= 3
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "rolling_rollout_with_probes_masked_by_readiness",
     "hypothesis": "H0_partB_recovery_no_client_impact",
     "claim": "aca_rolling_rollout_masked_transients_to_clients",
@@ -580,9 +583,9 @@ result = {
         "qb_path": repo_rel(qb),
         "qf_path": repo_rel(qf),
     },
-    "sub_gate_a_predicate": "The official perturbation run in qF has err_pct == 0; fallback allows err_pct < 0.5 because D6 falsifies only sustained windows above 0.5%.",
-    "sub_gate_b_predicate": "The D6 falsification rule did not trigger. Strong path requires both canonical runs (baseline + perturbation) to report False, fallback requires the perturbation run to report False.",
-    "sub_gate_c_predicate": "Healthy snapshots exist after rollout. Strong path requires all qB rows in the latest snapshot of the latest revision to be Running; fallback requires the latest active qA row to report replicas >= 3.",
+    "sub_gate_a_predicate": "The official perturbation run in qF has err_pct == 0; the lower-evidence fallback tier allows err_pct < 0.5 because D6 falsifies only sustained windows above 0.5%.",
+    "sub_gate_b_predicate": "The D6 falsification rule did not trigger: qF must hold exactly one baseline run and exactly one perturbation run (run_id prefixes) and both must report False, on the single path.",
+    "sub_gate_c_predicate": "Healthy snapshots exist after rollout. Strong tier requires all qB rows in the latest snapshot of the latest revision to be Running; the lower-evidence fallback tier requires the latest active qA row to report replicas >= 3.",
     "strong_err_pct_threshold": 0.0,
     "fallback_err_pct_threshold": 0.5,
     "fallback_active_replica_threshold": 3,
@@ -594,11 +597,12 @@ result = {
         "a_pass": a_strong or a_fallback,
     },
     "sub_gate_b_falsification_rule_not_triggered": {
+        "observed_baseline_run_count": len(baseline_run_records),
+        "observed_perturbation_run_count": len(perturbation_run_records),
         "observed_false_run_count": sum(1 for value in strong_false_runs if value),
         "observed_first_5": sample(qf_records),
         "b_strong_path_baseline_and_perturbation_false": b_strong,
-        "b_fallback_path_perturbation_false": b_fallback,
-        "b_pass": b_strong or b_fallback,
+        "b_pass": b_strong,
     },
     "sub_gate_c_latest_snapshots_healthy": {
         "observed_latest_revision": latest_revision,
@@ -690,10 +694,9 @@ qa_ids = sorted({str(record.get("perturbation_id", "")) for record in qa_records
 qe_ids = sorted({str(record.get("perturbation_id", "")) for record in qe_records if record.get("perturbation_id")})
 shared_ids = sorted(set(qa_ids) & set(qe_ids))
 b_strong = len(shared_ids) >= 1
-b_fallback = len(qe_ids) >= 3 or len(qa_ids) >= 1
 
 result = {
-    "utc_captured": os.environ["UTC_NOW"],
+    "evaluated_at_utc": os.environ["UTC_NOW"],
     "scenario": "rolling_rollout_with_probes_masked_by_readiness",
     "hypothesis": "H0_cross_artifact_integrity",
     "claim": "evidence_artifacts_cohere_across_canonical_window",
@@ -706,8 +709,8 @@ result = {
         "qf_path": repo_rel(qf),
         "qg_path": repo_rel(qg),
     },
-    "sub_gate_a_predicate": "All canonical qA-qG filename timestamps stay inside the 2026-06-20T22:39Z-22:51Z capture window; fallback allows the wider 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
-    "sub_gate_b_predicate": "At least one perturbation identifier is shared by qA and qE; fallback requires qE to expose the three event identifiers or qA to expose any non-null perturbation_id values.",
+    "sub_gate_a_predicate": "All canonical qA-qG filename timestamps stay inside the 2026-06-20T22:39Z-22:51Z capture window; the lower-evidence fallback tier allows the wider 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
+    "sub_gate_b_predicate": "At least one perturbation identifier must be shared by qA and qE on the single path.",
     "strong_window_start_utc": "2026-06-20T22:39:00Z",
     "strong_window_end_utc": "2026-06-20T22:51:59Z",
     "fallback_window_start_utc": "2026-06-20T21:30:00Z",
@@ -727,8 +730,7 @@ result = {
             else [{"qa_perturbation_id": value} for value in qa_ids]
         ),
         "b_strong_path_shared_id_between_qa_and_qe": b_strong,
-        "b_fallback_path_qe_has_3_ids_or_qa_has_any_id": b_fallback,
-        "b_pass": b_strong or b_fallback,
+        "b_pass": b_strong,
     },
 }
 result["startup_degraded_transient_failure_h0_cross_artifact_integrity_sub_gates"] = {
