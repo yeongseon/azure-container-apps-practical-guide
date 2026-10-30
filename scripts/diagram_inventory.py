@@ -46,6 +46,7 @@ TYPES = set(('flowchart graph sequenceDiagram stateDiagram stateDiagram-v2 '
              'C4Context sankey-beta').split())
 ASSETS = {'.png', '.webp', '.jpg', '.jpeg', '.gif', '.svg', '.drawio', '.mmd',
           '.mermaid', '.puml', '.plantuml', '.excalidraw'}
+RASTER_ASSETS = {'.png', '.webp', '.jpg', '.jpeg', '.gif'}
 EMPTY_TARGET: Record = {'base': None, 'extensions': [], 'overlays': [], 'status': 'provisional'}
 
 
@@ -113,9 +114,10 @@ def tracked(root: Path) -> list[str]:
     if (root / '.git').exists():
         result = subprocess.run(['git', 'ls-files', '-z'], cwd=root,
                                 check=True, capture_output=True)
-        return sorted(result.stdout.decode().rstrip('\0').split('\0'))
+        return sorted(p for p in result.stdout.decode().split('\0')
+                      if p and local(root, p).is_file())
     return sorted(p.relative_to(root).as_posix() for p in root.rglob('*')
-                  if p.is_file() and '.git' not in p.parts)
+                  if '.git' not in p.parts and local(root, p.relative_to(root).as_posix()).is_file())
 
 
 def frontmatter(text: str) -> tuple[list[Any], int, str | None]:
@@ -500,6 +502,17 @@ def page_records(page: str, text: str) -> tuple[list[Record], Record, list[Recor
     return records, dict(exceptions), exclusions
 
 
+def claims_asset(rule: Record, path: str) -> bool:
+    """Wildcard exclusions need explicit extension opt-in for vector/source assets."""
+    extension = Path(path).suffix.lower()
+    for pattern in rule['paths']:
+        exact = not any(character in pattern for character in '*?[') and pattern == path
+        if exact or (fnmatch.fnmatchcase(path, pattern) and (
+                extension in RASTER_ASSETS or extension in rule.get('extensions', []))):
+            return True
+    return False
+
+
 def asset_groups(root: Path, files: list[str], rules: Record) -> tuple[list[Record], list[str]]:
     references: collections.Counter[str] = collections.Counter()
     for page in files:
@@ -521,8 +534,7 @@ def asset_groups(root: Path, files: list[str], rules: Record) -> tuple[list[Reco
     assigned: set[str] = set()
     assets = [p for p in files if Path(p).suffix.lower() in ASSETS]
     for rule in rules.get('asset_exclusions', []):
-        paths = sorted(p for p in assets if p not in assigned and any(
-            fnmatch.fnmatchcase(p, pattern) for pattern in rule['paths']))
+        paths = sorted(p for p in assets if p not in assigned and claims_asset(rule, p))
         assigned.update(paths)
         groups.append({'group': rule['group'], 'reason': rule['reason'], 'rule': rule['id'],
                        'count': len(paths), 'referenced_count': sum(references[p] for p in paths), 'paths': paths})
@@ -554,7 +566,8 @@ def preserve(current: Record, previous: Record) -> None:
         prior = old.get(diagram['key'])
         if prior is None:
             continue
-        if prior['classification']['review_status'] != 'unreviewed':
+        if (prior['baseline']['source_sha256'] == diagram['baseline']['source_sha256'] and
+                prior['classification']['review_status'] != 'unreviewed'):
             diagram['classification']['review_status'] = prior['classification']['review_status']
             diagram['genre_candidate'] = prior['genre_candidate']
             diagram['needs_review'] = prior['needs_review']
@@ -767,6 +780,20 @@ def check(root: Path, manifest: Record, rules: Record) -> list[str]:
     return errors
 
 
+def asset_drift(previous: Record, current: Record) -> list[Record]:
+    """Compare group path sets; a null group identifies unclassified assets."""
+    old: dict[str | None, set[str]] = {group['group']: set(group['paths'])
+                                     for group in previous['exclusions']['assets']}
+    new: dict[str | None, set[str]] = {group['group']: set(group['paths'])
+                                     for group in current['exclusions']['assets']}
+    groups = sorted(group for group in old.keys() | new.keys() if group is not None)
+    old[None] = set(previous['exceptions']['unclassified_assets'])
+    new[None] = set(current['exceptions']['unclassified_assets'])
+    return [{'group': group, 'added': sorted(new.get(group, set()) - old.get(group, set())),
+             'removed': sorted(old.get(group, set()) - new.get(group, set()))}
+            for group in [*groups, None] if old.get(group, set()) != new.get(group, set())]
+
+
 def drift(previous: Record, current: Record) -> Record:
     """Compare source facts, separately reporting moves and changed classifications."""
     old: dict[str, Record] = {d['key']: d for d in previous['diagrams']}
@@ -784,7 +811,17 @@ def drift(previous: Record, current: Record) -> Record:
                if old[key]['baseline']['source_sha256'] != new[key]['baseline']['source_sha256']]
     reclassified = [key for key in sorted(old.keys() & new.keys())
                     if any(old[key][f] != new[key][f] for f in ('genre_candidate', 'mermaid_type', 'assignment'))]
-    return {'added': added, 'removed': removed, 'moved': moved, 'changed': changed, 'reclassified': reclassified}
+    provenance = [key for key in sorted(old.keys() & new.keys())
+                  if old[key]['provenance'] != new[key]['provenance']]
+    relocated = [key for key in sorted(old.keys() & new.keys())
+                 if old[key]['location'] != new[key]['location']]
+    old_visuals = {v['key']: v for v in previous['visuals']}
+    new_visuals = {v['key']: v for v in current['visuals']}
+    visuals = [key for key in sorted(old_visuals.keys() | new_visuals.keys())
+               if old_visuals.get(key) != new_visuals.get(key)]
+    return {'added': added, 'removed': removed, 'moved': moved, 'changed': changed,
+            'reclassified': reclassified, 'provenance': provenance, 'relocated': relocated,
+            'assets': asset_drift(previous, current), 'visuals': visuals}
 
 
 def main() -> int:
