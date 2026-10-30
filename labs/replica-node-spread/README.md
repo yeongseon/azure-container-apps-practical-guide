@@ -121,7 +121,10 @@ one such line per file, with at least one usable record and the corpus ratio
 floor still required. Two unusable lines fail Gate 10(b). A record with a supplied
 malformed consumed field is counted as malformed even when it also lacks a required
 key; only an incomplete record whose supplied fields are valid uses the tolerance.
-Summary roots must be
+A member name that occurs twice in one record is ambiguous (a JSON reader keeps only the
+last value, which could erase a malformed one), so it is counted as malformed and named in
+`malformed_fields`; duplicate member names in `analysis-summary.json` appear in
+`invalid_summary_reasons`. Summary roots must be
 a list or the supported legacy `{"runs": [...]}` object; members must be objects
 with nonempty unique string filenames and finite nonnegative integer-valued
 consumed counts (`unique_replicas`, `unique_boot_ids`, `boot_time_clusters`).

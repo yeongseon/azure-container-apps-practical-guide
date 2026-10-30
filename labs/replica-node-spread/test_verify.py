@@ -1310,6 +1310,66 @@ class ScaleBoundaryTests(unittest.TestCase):
             self.assertEqual(stats["malformed_records"], 0)
             self.assertTrue(parse["b_pass"])
 
+    def duplicate_line(self, record: dict, field: str, duplicate, first: bool) -> str:
+        """Splice a second member with the same name in front of or behind the original."""
+        line = json.dumps(record)
+        extra = json.dumps(field) + ": " + json.dumps(duplicate)
+        return "{" + extra + ", " + line[1:] if first else line[:-1] + ", " + extra + "}"
+
+    def test_duplicate_member_names_make_a_scale_record_malformed(self) -> None:
+        name = "consumption-scale-1-run-1.jsonl"
+        cases = (("boot_id", []), ("boot_id", "other-valid-id"), ("replica_name", {}),
+                 ("boot_time_estimate_ms", "wrong"), ("boot_time_estimate_ms", 1.0),
+                 ("profile", "Dedicated-D8"), ("scale_target", 99), ("run_id", "other"))
+        for field, duplicate in cases:
+            for first in (True, False):
+                for drop_required in (False, True):
+                    if drop_required and field == "run_id":
+                        continue
+                    with self.subTest(field=field, duplicate=duplicate, first=first, drop_required=drop_required), \
+                            fixture_lab() as lab:
+                        path = lab / "evidence" / name
+                        lines = path.read_text().splitlines()
+                        record = json.loads(lines[0])
+                        if drop_required:
+                            record.pop("run_id")
+                        lines[0] = self.duplicate_line(record, field, duplicate, first)
+                        path.write_text("\n".join(lines) + "\n")
+
+                        proc = run_verify(lab)
+
+                        self.assertEqual(proc.returncode, 1, proc.stderr)
+                        self.assertNotIn("Traceback", proc.stderr)
+                        for filename in GENERATED_GATES:
+                            strict_gate(lab, filename)
+                        parse = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                        stats = parse["per_file_parse_stats"][name]
+                        self.assertEqual(stats["malformed_records"], 1)
+                        self.assertEqual(stats["malformed_fields"], {field: 1})
+                        self.assertEqual(stats["missing_keys_failures"], 0)
+                        self.assertFalse(parse["b_pass"])
+
+    def test_duplicate_member_names_in_the_anchor_are_named_and_inconclusive(self) -> None:
+        for field, duplicate in (("boot_id", []), ("uptime_seconds", "x"), ("boot_time_estimate_ms", 1.0)):
+            for first in (True, False):
+                with self.subTest(field=field, first=first), fixture_lab() as lab:
+                    path = lab / "evidence" / ANCHOR_JSONL
+                    lines = path.read_text().splitlines()
+                    lines[0] = self.duplicate_line(json.loads(lines[0]), field, duplicate, first)
+                    path.write_text("\n".join(lines) + "\n")
+
+                    proc = run_verify(lab)
+
+                    self.assertEqual(proc.returncode, 1, proc.stderr)
+                    self.assertNotIn("Traceback", proc.stderr)
+                    sub = strict_gate(lab, MATRIX_GATE)["sub_gate_d_verdict_explainable"]
+                    self.assertIn(field, sub["anchor_malformed_fields"])
+                    self.assertFalse(sub["d_pass"])
+
+    def test_a_duplicate_free_record_is_unchanged(self) -> None:
+        with fixture_lab() as lab:
+            self.assertEqual(run_verify(lab).returncode, 0)
+
     def test_valid_scale_numbers_and_string_ids_remain_usable(self) -> None:
         for value in (2**53, float(2**53), -(2**53), 1000, 1000.5):
             with self.subTest(value=value), fixture_lab() as lab:
@@ -1366,6 +1426,39 @@ class SummaryBoundaryTests(unittest.TestCase):
                     self.assert_invalid_summary(lab, proc)
                     reasons = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]["invalid_summary_reasons"]
                     self.assertIn(field, [reason.get("field") for reason in reasons])
+
+    def test_duplicate_member_names_in_the_summary_are_named(self) -> None:
+        for where in ("member", "root"):
+            with self.subTest(where=where), fixture_lab() as lab:
+                path = lab / "evidence" / "analysis-summary.json"
+                entries = json.loads(path.read_text())
+                if where == "member":
+                    text = json.dumps(entries).replace('"unique_replicas":', '"unique_replicas": 999, "unique_replicas":', 1)
+                else:
+                    text = '{"runs": ' + json.dumps(entries) + ', "runs": []}'
+                path.write_text(text)
+
+                proc = run_verify(lab)
+
+                self.assert_invalid_summary(lab, proc)
+                reasons = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]["invalid_summary_reasons"]
+                self.assertIn("duplicate member name", [reason["reason"] for reason in reasons])
+                self.assertIn("unique_replicas" if where == "member" else "runs", [reason.get("field") for reason in reasons])
+
+    def test_every_problem_of_a_summary_member_is_reported(self) -> None:
+        with fixture_lab() as lab:
+            path = lab / "evidence" / "analysis-summary.json"
+            entries = json.loads(path.read_text())
+            entries[1] = {**entries[0], "unique_replicas": False}
+            path.write_text(json.dumps(entries))
+
+            proc = run_verify(lab)
+
+            self.assert_invalid_summary(lab, proc)
+            reasons = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]["invalid_summary_reasons"]
+            self.assertIn({"index": 1, "field": "file", "reason": "duplicate filename"}, reasons)
+            self.assertIn({"index": 1, "field": "unique_replicas",
+                           "reason": "count must be a finite nonnegative integer"}, reasons)
 
     def test_valid_legacy_summary_shape_remains_supported(self) -> None:
         with fixture_lab() as lab:
