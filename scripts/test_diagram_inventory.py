@@ -12,12 +12,14 @@ import tempfile
 import unittest
 from collections.abc import Callable
 
-import jsonschema
-
 import diagram_inventory as inventory
 
+try:
+    import jsonschema
+except ImportError:  # the scanner works without it; only the parity test needs it
+    jsonschema = None
+
 ROOT = Path(__file__).resolve().parents[1]
-SCRATCH = Path('/tmp/opencode/aca-diag-scratch')
 
 
 class ParsingTests(unittest.TestCase):
@@ -124,11 +126,11 @@ class AssignmentTests(unittest.TestCase):
 class TreeTests(unittest.TestCase):
     def __init__(self, methodName: str = 'runTest') -> None:
         super().__init__(methodName)
-        self.root: Path = SCRATCH
+        self.root: Path = Path(tempfile.gettempdir())
         self.rules: inventory.Record = {}
 
     def setUp(self) -> None:
-        temporary = tempfile.TemporaryDirectory(dir=SCRATCH)
+        temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         (self.root / 'scripts').mkdir()
@@ -143,7 +145,7 @@ class TreeTests(unittest.TestCase):
         return inventory.build(self.root, self.rules, '0' * 40)
 
     def cli(self, *args: str) -> subprocess.CompletedProcess[str]:
-        return subprocess.run([sys.executable, str(self.root / inventory.SCRIPT), '--root', str(self.root), *args], cwd=SCRATCH, capture_output=True, text=True, env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'})
+        return subprocess.run([sys.executable, str(self.root / inventory.SCRIPT), '--root', str(self.root), *args], cwd=tempfile.gettempdir(), capture_output=True, text=True, env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'})
 
     def test_determinism(self):
         first = self.cli('--write', '--base-commit', '0' * 40)
@@ -327,7 +329,9 @@ class TreeTests(unittest.TestCase):
                 if moved.exists():
                     moved.unlink()
 
+    @unittest.skipIf(jsonschema is None, 'jsonschema is not installed')
     def test_schema_mutation_parity(self):
+        assert jsonschema is not None
         schema: inventory.Record = json.loads((self.root / inventory.SCHEMA).read_text())
         validator = jsonschema.Draft202012Validator(schema)
         baseline: inventory.Record = json.loads((ROOT / inventory.MANIFEST).read_text())
@@ -378,7 +382,7 @@ class IntegrationTests(unittest.TestCase):
     def test_baseline_reproduction_in_temp_tree(self):
         if not (ROOT / inventory.MANIFEST).exists():
             self.skipTest('baseline not generated yet')
-        with tempfile.TemporaryDirectory(dir=SCRATCH) as directory:
+        with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             paths = [p for p in inventory.tracked(ROOT) if p.endswith('.md') or Path(p).suffix.lower() in inventory.ASSETS]
             paths += [inventory.SCRIPT, inventory.RULES, inventory.SCHEMA, inventory.MANIFEST]
