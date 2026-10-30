@@ -75,7 +75,7 @@ flowchart TD
 
     subgraph DEDICATED["Scenario C: Workload Profiles"]
         C1[Dedicated Compute] --- C2[Custom VNet]
-        C2 --- C3[Scale to Zero (Consumption)]
+        C2 --- C3["Scale to Zero (Consumption)"]
     end
 
     PUBLIC -->|"Add VNet + Private Ingress"| PRIVATE
