@@ -51,7 +51,7 @@ body:
     attributes:
       label: Acceptance criteria
       description: Use checkboxes with observable success and at least one negative/edge case when relevant; say what should fail.
-      placeholder: - [ ] ...
+      placeholder: "- [ ] A specific observable outcome"
     validations:
       required: true
   - type: textarea
