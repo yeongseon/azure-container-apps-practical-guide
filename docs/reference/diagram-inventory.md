@@ -158,9 +158,9 @@ These five scenarios are assigned specifically to #403 because their diagrams do
 
 An exhaustive search across `docs/` for non-Mermaid drawing and visualization elements (`<svg`, `<img`, `<iframe`, `<script`, `cytoscape`, `d3`, `vis-network`, `plotly`) confirmed zero non-Mermaid published diagrams in the repository:
 
-- Two vector SVG files exist: `docs/assets/logo.svg` and `docs/assets/favicon.svg`. These provide site branding and icons rather than architectural illustrations.
+- Two vector SVG files exist: `docs/assets/logo.svg` and `docs/assets/favicon.svg`. They are classified as branding by file name only, not by visual inspection.
 - No embedded `<canvas>` elements, Cytoscape graph datasets, D3 charts, or external visualization scripts are present.
-- All 435 raster assets (`.png` and `.webp`) are Azure Portal screenshots, Log Analytics query captures, or command output evidence.
+- The 435 raster assets (`.png` and `.webp`) are classified as Portal screenshots or evidence captures by path and alt-text screening. The visual sample covered 88 images across all 45 raster directories, not an exhaustive visual check of every asset.
 
 ## Quality of Classification
 
@@ -175,7 +175,7 @@ For the 463 flowchart and graph blocks (96.7 % of all diagrams), genre assignmen
 - All other flowcharts predict `flow`.
 - Ambiguous signals or conflicting markers predict `unknown` with `needs_review: true`.
 
-A stratified random validation sample (seed 400, sample size n=62) measured agreement between heuristic predictions and manual labels assigned by reading each diagram (by an AI agent, not an independent human review):
+A stratified random validation sample (seed 400, sample size n=62) was drawn and labelled against `main` at `944b237`, before PR #414. It measured agreement between heuristic predictions and manual labels assigned by reading each diagram (by an AI agent, not an independent human review). The only sampled diagram changed since, `docs/platform/deployment-scenarios.md#scenario-overview`, had only a label quoted by PR #414 and keeps its genre:
 
 - Syntax-decided genres achieved 16/16 agreement (100 %).
 - Heuristic flowchart candidates achieved 38/46 agreement (82.6 %).
@@ -220,7 +220,21 @@ The inventory workflow relies on `scripts/diagram_inventory.py`, requiring Pytho
 
 Files are decoded as UTF-8 with optional BOM. An undecodable file is skipped and recorded in `frontmatter_unparseable` with its path and decoding error, like unparseable frontmatter; this exception means extraction is incomplete, not that no diagram exists. Duplicate usable frontmatter IDs appear in `frontmatter_duplicate_ids`; only the first entry supplies declared provenance. Missing, null, empty, or non-string frontmatter IDs never attach to a fence.
 
-The scanner does not parse Markdown containers. It records Mermaid openers in multiline HTML comments, blockquotes, and indentation of at least four spaces in `unrecognized_mermaid_fences`. Commented-out fences are not rendered and are informational. Blockquote or indented entries mean an incomplete inventory: `--write` preserves the finding and warns once per page; `--check` fails until the fence is moved outside the container with at most three spaces and the manifest regenerated. Recognized outer code fences still contain example text, not rendered diagrams.
+The scanner is a line-based approximation of how the site renders indentation, not a full Markdown container parser. It errs toward reporting Mermaid-opener-like lines in `unrecognized_mermaid_fences` rather than silently dropping them:
+
+- `html-comment` and `indented-code` are informational: the fence is hidden by a multiline HTML comment or shown as plain indented code. `--check` prints each finding without failing.
+- `blockquote`, `list-marker`, and `indented` are blocking findings. The last reason covers container indentation or a lazy continuation after prose. `--write` succeeds and warns once per page, listing only blocking findings; `--check` fails. Move the fence to the top level with at most three spaces of indentation, or show it inside a longer outer fence, then regenerate.
+- Fence recognition precedes comment detection. Inline code spans containing comment tokens do not open comments. A multiline comment needs a closing `-->`: an unclosed one is shown as literal text by the site, so it hides nothing, and text inside any fence never closes a comment because the site extracts fences first. Unsupported blocks are consumed through their matching closing fence so later canonical fences remain in sync; another fence opener before a closing fence, or no closing fence, means the block is unclosed and the scan resumes on the next line instead of swallowing the page.
+- Recognized outer non-Mermaid fences contain examples, not rendered diagrams, and do not produce unsupported-fence findings. The separate `scripts/validate_mermaid_format.py` policy already rejects indented Mermaid fences, including plain indented code examples; use a longer outer fence for examples.
+
+This classification was checked against Python-Markdown 3.10.2 and pymdownx 10.21.3 on 2026-10-30 in local experiments whose harnesses and evidence are not committed: a 3,300-document grammar corpus in which the site shows no diagram that the scanner neither counts nor reports, and a mutation fuzzer that corrupted documents at random, which found such a document in about 1.7 % of 12,000 mutated documents, all with corrupted or unbalanced fence syntax. It is not a rendering guarantee.
+
+Known limitations:
+
+- Info strings with extra words are counted by the first-word `mermaid` rule, but the site shows them as code rather than diagrams.
+- A comment that starts after a list marker or blockquote prefix is not tracked.
+- Nested list/container structure beyond the less-indented ancestor heuristic may be reported as `indented` when the site shows code. This is conservative over-reporting, never a silently discarded opener.
+- Corrupted or unbalanced fence syntax, for example an indented fence opener that is never closed or fence markers and comment tokens inside an info string, is parsed differently by CommonMark and by the site's renderer. The scanner follows CommonMark and records unclosed fences in `unclosed_fences`, but the site can show more diagrams than the scanner accounts for on such a page.
 
 ### Validating the Inventory (Blocking CI)
 
@@ -253,6 +267,8 @@ Inspect changes between the working tree and the committed baseline:
 ```bash
 python3 scripts/diagram_inventory.py --verify-tree
 ```
+
+This compares extracted diagram records with the baseline; it does not report extraction completeness. Consult `unrecognized_mermaid_fences` through `--check` for blocking extraction findings. A drift-free result alone does not establish a complete inventory.
 
 ### Displaying Summary Metrics
 

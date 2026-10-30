@@ -36,6 +36,10 @@ PAGE = 'docs/reference/diagram-inventory.md'
 FENCE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
 IDENTIFIER = re.compile(r'^\s*<!--\s*diagram-id:\s*(.*?)\s*-->\s*$')
 HEADING = re.compile(r'^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*$')
+LIST_MARKER = re.compile(r'(?:[-+*]|\d{1,9}[.)])(?:[ \t]+|$)')
+CONTAINER = re.compile(r'^\s*(!!!|\?\?\?\+?|===[+!]?)\s')
+INLINE_CODE = re.compile(r'(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)')
+BLOCKING_REASONS = {'blockquote', 'list-marker', 'indented'}
 TYPES = set(('flowchart graph sequenceDiagram stateDiagram stateDiagram-v2 '
              'gantt timeline pie quadrantChart classDiagram erDiagram journey '
              'mindmap xychart-beta block-beta gitGraph requirementDiagram '
@@ -188,16 +192,110 @@ def fences(text: str, offset: int = 0) -> tuple[list[Occurrence], list[int]]:
     return output, unclosed
 
 
-def unsupported_fence(line: str) -> str | None:
-    """Recognize unsupported containers, not arbitrary mentions of Mermaid."""
-    for reason, pattern in [('blockquote', r'^\s*(?:>\s*)+'), ('indented', r'^ {4,}')]:
-        prefix = re.match(pattern, line)
-        if prefix:
-            opening = FENCE.match(line[prefix.end():])
-            if opening:
-                marker, info = opening.groups()
-                if info.strip().split()[:1] == ['mermaid'] and not (marker[0] == '`' and '`' in info):
-                    return reason
+def prefixed_fence(line: str) -> tuple[str, bool, bool]:
+    """Strip whitespace, quote and list tokens without interpreting their nesting."""
+    rest = line.expandtabs(4)
+    quote = listed = False
+    while rest:
+        rest = rest.lstrip(' ')
+        if rest.startswith('>'):
+            quote = True
+            rest = rest[1:]
+            continue
+        marker = LIST_MARKER.match(rest)
+        if marker:
+            listed = True
+            rest = rest[marker.end():]
+            continue
+        break
+    return rest, quote, listed
+
+
+def mermaid_opener(line: str) -> re.Match[str] | None:
+    opening = FENCE.match(line)
+    if opening:
+        marker, info = opening.groups()
+        if info.strip().split()[:1] == ['mermaid'] and not (marker[0] == '`' and '`' in info):
+            return opening
+    return None
+
+
+def indentation(line: str) -> int:
+    expanded = line.expandtabs(4)
+    return len(expanded) - len(expanded.lstrip(' '))
+
+
+def plain_code(lines: list[str], index: int) -> bool:
+    """A blank/start boundary with no less-indented container ancestor is code."""
+    column = indentation(lines[index])
+    if column < 4 or (index and lines[index - 1].strip()):
+        return False
+    for earlier in reversed(lines[:index]):
+        if not earlier.strip() or indentation(earlier) >= column:
+            continue
+        column = indentation(earlier)
+        if LIST_MARKER.match(earlier.lstrip()) or CONTAINER.match(earlier):
+            return False
+        if column == 0:
+            break
+    return True
+
+
+def unsupported_fence(lines: list[str], index: int) -> tuple[str, str] | None:
+    """Report opener-like lines conservatively, distinguishing plain code."""
+    rest, quote, listed = prefixed_fence(lines[index])
+    opening = mermaid_opener(rest)
+    if not opening:
+        return None
+    reason = 'indented'
+    if plain_code(lines, index):
+        reason = 'indented-code'
+    elif quote:
+        reason = 'blockquote'
+    elif listed:
+        reason = 'list-marker'
+    return reason, opening.group(1)
+
+
+def unsupported_end(lines: list[str], index: int, marker: str) -> int:
+    """Skip an unsupported block to its closing marker; another opener means the block is unclosed."""
+    for end in range(index + 1, len(lines)):
+        rest = re.sub(r'^[\s>]*', '', lines[end])
+        if closing(rest, marker):
+            return end + 1
+        if FENCE.match(rest):
+            break
+    return index + 1
+
+
+def opens_comment(line: str) -> bool:
+    """Inline code is literal; prefixed container comments are not modeled."""
+    rest, quote, listed = prefixed_fence(line)
+    if quote or listed:
+        return False
+    literal_free = INLINE_CODE.sub('', rest)
+    opener = literal_free.find('<!--')
+    return opener >= 0 and '-->' not in literal_free[opener + 4:]
+
+
+def comment_end(lines: list[str], start: int) -> tuple[int, list[int]] | None:
+    """Find the line closing a comment opened at start, or None: the site shows an unclosed one as text.
+
+    The site extracts fences before it reads comments, so text inside any fence never closes a comment.
+    """
+    hidden: list[int] = []
+    i = start + 1
+    while i < len(lines):
+        rest = prefixed_fence(lines[i])[0]
+        opening = FENCE.match(rest)
+        if opening:
+            if mermaid_opener(rest):
+                hidden.append(i + 1)
+            i = unsupported_end(lines, i, opening.group(1))
+            continue
+        if '-->' in lines[i]:
+            return i, hidden
+        i += 1
     return None
 
 
@@ -208,27 +306,22 @@ def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list
     output: list[Occurrence] = []
     unclosed: list[int] = []
     unrecognized: list[Record] = []
-    in_comment = False
     i = offset
     while i < len(lines):
         heading = HEADING.match(lines[i])
         opening = FENCE.match(lines[i])
-        language = opening.group(2).strip().split()[:1] if opening else []
-        unsupported = unsupported_fence(lines[i])
-        if in_comment:
-            if language == ['mermaid'] or unsupported:
-                unrecognized.append({'line': i + 1, 'reason': 'html-comment'})
-            if '-->' in lines[i]:
-                in_comment = False
-            i += 1
-            continue
-        if not example and '<!--' in lines[i] and '-->' not in lines[i].split('<!--', 1)[1]:
-            in_comment = True
-            i += 1
-            continue
-        if unsupported and not example:
-            unrecognized.append({'line': i + 1, 'reason': unsupported})
-            i += 1
+        unsupported = unsupported_fence(lines, i)
+        if not example and not opening and opens_comment(lines[i]):
+            closed = comment_end(lines, i)
+            if closed:
+                end, hidden = closed
+                unrecognized.extend({'line': n, 'reason': 'html-comment'} for n in hidden)
+                i = end + 1
+                continue
+        if unsupported and not opening and not example:
+            reason, unsupported_marker = unsupported
+            unrecognized.append({'line': i + 1, 'reason': reason})
+            i = unsupported_end(lines, i, unsupported_marker)
             continue
         if not opening:
             if heading:
@@ -536,12 +629,13 @@ def structural(value: Any, schema: Record, definitions: Record, path: str = '$')
     """Dependency-free checks for the schema vocabulary used by this contract."""
     if '$ref' in schema:
         return structural(value, definitions[schema['$ref'].split('/')[-1]], definitions, path)
-    types = {'object': dict, 'array': list, 'string': str, 'integer': int,
+    types = {'object': dict, 'array': list, 'string': str, 'integer': (int, float),
              'boolean': bool, 'null': type(None), 'number': (int, float)}
     wanted = schema.get('type')
     allowed: list[str] = wanted if isinstance(wanted, list) else [wanted] if wanted else []
     if wanted and not any(isinstance(value, types[t]) and not (
-            t in {'integer', 'number'} and isinstance(value, bool)) for t in allowed):
+            t in {'integer', 'number'} and isinstance(value, bool)) and not (
+            t == 'integer' and isinstance(value, float) and not value.is_integer()) for t in allowed):
         return [f'{path}: expected {wanted}']
     errors: list[str] = []
     if 'oneOf' in schema:
@@ -665,8 +759,8 @@ def check(root: Path, manifest: Record, rules: Record) -> list[str]:
     if manifest['exceptions']['unresolved_overlaps']:
         errors.append('exceptions.unresolved_overlaps: assignments unresolved')
     for item in manifest['exceptions']['unrecognized_mermaid_fences']:
-        if item['reason'] != 'html-comment':
-            errors.append(f'{item["page"]}:{item["line"]}: {item["reason"]} Mermaid fence makes inventory incomplete; move the fence outside the container using at most 3 spaces, then regenerate')
+        if item['reason'] in BLOCKING_REASONS:
+            errors.append(f'{item["page"]}:{item["line"]}: {item["reason"]} Mermaid fence makes inventory incomplete; move the fence to the top level with at most 3 spaces of indentation, or show it inside a longer outer fence, then regenerate')
     original, updated = generated_page(root, manifest)
     if original != updated:
         errors.append(f'{PAGE}: stale generated blocks')
@@ -710,8 +804,8 @@ def main() -> int:
         if args.check:
             errors = check(root, previous, rules)
             for item in previous.get('exceptions', {}).get('unrecognized_mermaid_fences', []):
-                if item['reason'] == 'html-comment':
-                    print(f'{item["page"]}:{item["line"]}: html-comment Mermaid fence is not rendered (informational)')
+                if item['reason'] not in BLOCKING_REASONS:
+                    print(f'{item["page"]}:{item["line"]}: {item["reason"]} Mermaid fence is not rendered (informational)')
             print('\n'.join(errors) if errors else 'diagram inventory: check passed')
             return int(bool(errors))
         if args.summary:
@@ -732,9 +826,11 @@ def main() -> int:
         errors = [e for e in errors if 'stale generated blocks' not in e and 'Mermaid fence makes inventory incomplete' not in e]
         if errors:
             raise InventoryError('\n'.join(errors))
-        pages = sorted({item['page'] for item in current['exceptions']['unrecognized_mermaid_fences']})
+        blocking = [item for item in current['exceptions']['unrecognized_mermaid_fences']
+                    if item['reason'] in BLOCKING_REASONS]
+        pages = sorted({item['page'] for item in blocking})
         for page in pages:
-            details = ', '.join(f'{item["line"]} ({item["reason"]})' for item in current['exceptions']['unrecognized_mermaid_fences'] if item['page'] == page)
+            details = ', '.join(f'{item["line"]} ({item["reason"]})' for item in blocking if item['page'] == page)
             print(f'diagram inventory: warning: {page}: unrecognized Mermaid fences at {details}; see manifest exceptions', file=sys.stderr)
         _ = path.write_text(encoded(current), encoding='utf-8', newline='\n')
         original, updated = generated_page(root, current)

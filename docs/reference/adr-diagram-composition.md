@@ -72,7 +72,7 @@ Proposed: Keep inline Mermaid as the reviewed source of truth, keep typed genres
 
 Specifically:
 
-1. Inventory first: For P0, maintain `scripts/diagram_inventory.py` as a scanning, consistency-validation, and reporting tool that never renders, converts, or verifies source provenance. `--write` writes the manifest and generated inventory-page blocks; `--check` validates consistency, not provenance. The script is copied byte-identically into sibling repositories and pinned by its SHA-256 digest in each repository's manifest (`docs/reference/diagram-manifest.json`).
+1. Inventory first: For P0, maintain `scripts/diagram_inventory.py` as a scanning, consistency-validation, and reporting tool that never renders, converts, or verifies source provenance. `--write` writes the manifest and generated inventory-page blocks; `--check` validates consistency, not provenance. `--verify-tree` compares extracted records with the baseline, not extraction completeness; `--check` reports `unrecognized_mermaid_fences`. The script is copied byte-identically into sibling repositories and pinned by its SHA-256 digest in each repository's manifest (`docs/reference/diagram-manifest.json`).
 2. Interchange contract: Schema v1 (`docs/reference/diagram-manifest.schema.json`) serves as the immutable cross-guide contract. All repositories share the same baseline manifest structure, primary key format, and provenance rules. Repository-specific batch assignments and path rules stay separated in `scripts/diagram_inventory_rules.json`.
 3. Hand-authored typed genres: Specialized genres (sequenceDiagram, stateDiagram-v2, pie charts, quadrant charts) represent 3.3 % of Container Apps diagrams (16 blocks). These convey precise temporal or state-machine semantics and will permanently remain hand-authored Mermaid.
 4. Heuristic candidate genres: The remaining 96.7 % (463 flowcharts and graphs) are classified heuristically into flow, decision, or topology candidates. These classifications are advisory work-routing candidates, not confirmed architectural genres. Each child migration batch (#401 to #407) will evaluate and confirm genre during implementation.
@@ -92,7 +92,7 @@ What this project deliberately does not do in P0:
 ### Positive Consequences
 
 - Clean baseline: Provides a mechanical inventory of all 479 Mermaid occurrences: one owning batch for each of the 476 migration-required occurrences, a stated reason for each of the 3 exclusions, zero unresolved rule overlaps and counted data-quality exceptions.
-- Toolchain stability: CI checks remain fast and lightweight. Python standard library plus PyYAML run in milliseconds without external binary dependencies.
+- Toolchain stability: Python standard library plus PyYAML require no external binary dependencies for inventory scanning.
 - Independent execution: Container Apps child batches can proceed with clear boundaries without waiting for cross-repository package releases.
 
 ### Risks and Mitigations
@@ -103,6 +103,8 @@ What this project deliberately does not do in P0:
   - Mitigation: The manifest primary key combines page path and diagram ID (`<page>#<id>`), ensuring global uniqueness regardless of local naming collisions.
 - Risk: Heuristic classification mislabels topology diagrams as flows or decisions.
   - Mitigation: The manifest marks all genre classifications as unreviewed candidates (`classification.review_status: unreviewed`). Child batch owners review actual diagram semantics before refactoring.
+- Risk: A line-based scanner cannot fully reproduce the site's Markdown container rendering.
+  - Mitigation: It errs toward reporting: `blockquote`, `list-marker`, and `indented` findings block `--check`; `html-comment` and plain `indented-code` findings are informational. `--write` warns once per page for blocking findings only. The separate Mermaid format validator already rejects indented Mermaid fences; examples belong inside longer outer fences. See the [inventory's known limitations](diagram-inventory.md#command-reference), including extra info words, prefixed comments, and conservative nested-container over-reporting. Classification was checked locally against Python-Markdown 3.10.2 / pymdownx 10.21.3 on 2026-10-30; the experiment is not committed.
 
 ## See Also
 
