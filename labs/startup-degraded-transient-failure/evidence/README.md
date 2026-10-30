@@ -17,7 +17,7 @@ The canonical 2026-06-20 run can be described as four phases:
 
 Phase B adds a fifth replay-only step:
 
-- **Verify Phase 10-13 — Gate emission (replayable, no Azure calls).** The rewritten `labs/startup-degraded-transient-failure/verify.sh` is now a pure file processor. It consumes the committed qA-qG evidence, emits four derived falsification/integrity gates, prints a PASS/FAIL matrix, and exits non-zero if any top-level gate fails.
+- **Verify Phase 10-13 — Gate emission (replayable, no Azure calls).** The rewritten `labs/startup-degraded-transient-failure/verify.sh` is now a pure file processor. It consumes the committed qA-qG evidence, emits four derived falsification/integrity gates, prints a PASS/FAIL matrix, and exits non-zero if any top-level gate fails. The gates were first emitted on 2026-06-24 and later re-evaluated offline from the same raw evidence. Every replay records its actual execution time in `evaluated_at_utc`, not a capture date; no new capture occurred.
 
 This split is deliberate. The historical Phase A `verify.sh` owned live Azure health checks. The Phase B `verify.sh` owns derived evidence classification only.
 
@@ -69,15 +69,15 @@ This is the crucial transient-state nuance: the system **did** enter a degraded 
 
 `12-recovery-fix-gate.json` proves the client-visible side of H0. It uses qF plus the latest healthy snapshots from qA/qB to show:
 
-1. The perturbation run's `err_pct` is exactly zero.
-2. The D6 falsification rule did not trigger for baseline or perturbation.
-3. The post-rollout healthy snapshots show the newest revision running and the latest active qA row still reporting 3 replicas.
+1. The perturbation run's `err_pct` is exactly zero on the strong tier; the lower-evidence fallback tier allows `err_pct < 0.5` under D6.
+2. The D6 falsification rule did not trigger for either baseline or perturbation; both must report `False` on the single path.
+3. The post-rollout healthy snapshots show the newest revision running on the strong tier; the lower-evidence fallback tier requires the latest active qA row to report at least 3 replicas (3 observed).
 
 Gate 12 is intentionally the **H0-held gate**. Its PASS state does **not** mean "nothing happened." It means "something happened internally, but ACA masked it from the client." That interpretation only becomes correct when Gate 12 is read together with Gate 11.
 
 ### Gate 13 — cross-artifact integrity
 
-`13-cross-artifact-consistency-gate.json` is the coherence overlay. It confirms that the canonical files belong to one window and share perturbation identifiers across qA and qE. This guards against a subtle failure mode: using the right file names but the wrong cross-table joins.
+`13-cross-artifact-consistency-gate.json` is the coherence overlay. It checks the narrow capture-window tier or the wider execution-plus-capture fallback tier and requires at least one shared perturbation identifier across qA and qE on a single path (3 observed). This guards against a subtle failure mode: using the right file names but the wrong cross-table joins.
 
 ### The actual differential
 
@@ -106,7 +106,7 @@ The following caveats are intentionally documented so a future reviewer does not
 
 - **`evidence/*.pid` files are process metadata, not evidence.** Files such as `kql-pack.pid`, `perturbation.pid`, and `supplemental-restart.pid` exist because the historical orchestration used background processes. They are not consumed by the gates and should not be treated as forensic evidence.
 
-- **`qB`'s latest final snapshot for `subject-app--0000003` shows two Running rows, not three.** This looks surprising because the active qA row still reports `replicas: 3`. The correct interpretation is not data corruption; it is sampling skew between the 30-second audit cadence (qB) and the 5-second sampler / control-plane state (qA). Gate 12 therefore uses a strong path of "all rows in the latest qB snapshot are Running" and a fallback of "latest active qA row reports 3 replicas." This is an honest representation of the capture, not an attempt to fabricate a 3/3 final qB snapshot that the canonical evidence does not contain.
+- **`qB`'s latest final snapshot for `subject-app--0000003` shows two Running rows, not three.** This looks surprising because the active qA row still reports `replicas: 3`. The correct interpretation is not data corruption; it is sampling skew between the 30-second audit cadence (qB) and the 5-second sampler / control-plane state (qA). Gate 12 therefore uses a strong tier of "all rows in the latest qB snapshot are Running" and a lower-evidence fallback tier of "latest active qA row reports at least 3 replicas." This is an honest representation of the capture, not an attempt to fabricate a 3/3 final qB snapshot that the canonical evidence does not contain.
 
 - **CLI version context comes from the preserved logs, not from a new live query.** `preflight-002.log` records `azure-cli 2.79.0`. The exact containerapp extension version is part of the historical capture context and should be traced via the deploy-time evidence files rather than by re-querying Azure during Phase B.
 
@@ -125,10 +125,10 @@ Sizes shown are bytes-on-disk at commit time; KB values use 1024-byte units.
 | `qE-perturbation-markers-20260620T224143Z.json` | **Canonical / consumed** | 1.1 KB | Consumed by Gates 10, 11, 13. Three start markers and three end markers. |
 | `qF-run-summary-20260620T224149Z.json` | **Canonical / consumed** | 509 B | Consumed by Gates 10 and 12. One baseline row, one perturbation row, both `falsification_triggered: False`. |
 | `qG-audit-sampler-quirk-20260620T225143Z.json` | **Canonical / consumed** | 1.5 KB | Consumed by Gates 10 and 13 for pack completeness and documented quirk context. |
-| `10-canonical-evidence-integrity-gate.json` | **Derived / Phase B** | 5.4 KB | Gate 10 output emitted by the pure-file `verify.sh`. |
-| `11-failure-degraded-state-gate.json` | **Derived / Phase B** | 4.8 KB | Gate 11 output emitted by the pure-file `verify.sh`. |
-| `12-recovery-fix-gate.json` | **Derived / Phase B** | 4.0 KB | Gate 12 output emitted by the pure-file `verify.sh`. |
-| `13-cross-artifact-consistency-gate.json` | **Derived / Phase B** | 3.9 KB | Gate 13 output emitted by the pure-file `verify.sh`. |
+| `10-canonical-evidence-integrity-gate.json` | **Derived / Phase B** | 5.3 KB | Gate 10 output emitted by the pure-file `verify.sh`. |
+| `11-failure-degraded-state-gate.json` | **Derived / Phase B** | 4.7 KB | Gate 11 output emitted by the pure-file `verify.sh`. |
+| `12-recovery-fix-gate.json` | **Derived / Phase B** | 3.9 KB | Gate 12 output emitted by the pure-file `verify.sh`. |
+| `13-cross-artifact-consistency-gate.json` | **Derived / Phase B** | 3.7 KB | Gate 13 output emitted by the pure-file `verify.sh`. |
 | `q1-per-run-summary-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical run-summary export from the 2026-06-20 repro; not part of gate predicates. |
 | `q2-buckets-10s-sum-vus-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical 2026-06-20 bucket export; superseded by qC for canonical gate inputs. |
 | `q3-revision-state-timeline-20260620222220.{json,tsv}` | Preserved, not consumed | 872 B each | Historical timeline export; qA is the canonical input for Phase B. |

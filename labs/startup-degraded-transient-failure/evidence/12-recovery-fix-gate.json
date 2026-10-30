@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T09:36:18Z",
+  "evaluated_at_utc": "2026-10-30T00:06:26Z",
   "scenario": "rolling_rollout_with_probes_masked_by_readiness",
   "hypothesis": "H0_partB_recovery_no_client_impact",
   "claim": "aca_rolling_rollout_masked_transients_to_clients",
@@ -8,9 +8,9 @@
     "qb_path": "labs/startup-degraded-transient-failure/evidence/qB-replica-inventory-20260620T223955Z.json",
     "qf_path": "labs/startup-degraded-transient-failure/evidence/qF-run-summary-20260620T224149Z.json"
   },
-  "sub_gate_a_predicate": "The official perturbation run in qF has err_pct == 0; fallback allows err_pct < 0.5 because D6 falsifies only sustained windows above 0.5%.",
-  "sub_gate_b_predicate": "The D6 falsification rule did not trigger. Strong path requires both canonical runs (baseline + perturbation) to report False, fallback requires the perturbation run to report False.",
-  "sub_gate_c_predicate": "Healthy snapshots exist after rollout. Strong path requires all qB rows in the latest snapshot of the latest revision to be Running; fallback requires the latest active qA row to report replicas >= 3.",
+  "sub_gate_a_predicate": "The official perturbation run in qF has err_pct == 0; the lower-evidence fallback tier allows err_pct < 0.5 because D6 falsifies only sustained windows above 0.5%.",
+  "sub_gate_b_predicate": "The D6 falsification rule did not trigger: both canonical runs (baseline + perturbation) must report False on the single path.",
+  "sub_gate_c_predicate": "Healthy snapshots exist after rollout. Strong tier requires all qB rows in the latest snapshot of the latest revision to be Running; the lower-evidence fallback tier requires the latest active qA row to report replicas >= 3.",
   "strong_err_pct_threshold": 0.0,
   "fallback_err_pct_threshold": 0.5,
   "fallback_active_replica_threshold": 3,
@@ -57,7 +57,6 @@
       }
     ],
     "b_strong_path_baseline_and_perturbation_false": true,
-    "b_fallback_path_perturbation_false": true,
     "b_pass": true
   },
   "sub_gate_c_latest_snapshots_healthy": {

@@ -100,6 +100,8 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 
 ## What "Success" Looks Like
 
+Offline Gate 13(c) retains two evidence tiers: the exact Healthy/Healthy/Unhealthy pattern, or a lower-evidence fallback with all three states reported as `Healthy` or `Unhealthy`, crash `Unhealthy` and at least one of healthy/slow `Healthy`. Only `Healthy`/`Unhealthy` count as reported; anything else is unreported evidence and fails both tiers. `c_evidence_level` identifies the passing tier.
+
 The lab is considered reproduced when **all** of the following hold
 (validated 2026-06-05, Korea Central):
 

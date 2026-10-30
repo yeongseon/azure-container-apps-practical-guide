@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-29T15:31:45Z",
+  "evaluated_at_utc": "2026-10-30T00:18:48Z",
   "scenario": "cross_scenario_falsification",
   "hypothesis": "H3",
   "claim": "metric_error_severity_tracks_unreadiness_severity",
@@ -80,6 +80,8 @@
     "b_pass": true
   },
   "sub_gate_c_health_state_matches_outcome": {
+    "c_predicate": "Strong tier: healthy=Healthy, slow=Healthy, crash=Unhealthy. Lower-evidence fallback tier: all three states reported as Healthy or Unhealthy, crash=Unhealthy and at least one other Healthy; only Healthy/Unhealthy count as reported, anything else is unreported evidence and fails both tiers.",
+    "c_evidence_level": "Strong",
     "healthy_health_state": "Healthy",
     "slow_health_state": "Healthy",
     "crash_health_state": "Unhealthy",

@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T09:36:18Z",
+  "evaluated_at_utc": "2026-10-30T00:06:26Z",
   "scenario": "rolling_rollout_with_probes_masked_by_readiness",
   "hypothesis": "H0_preconditions",
   "claim": "canonical_evidence_pack_internally_consistent",

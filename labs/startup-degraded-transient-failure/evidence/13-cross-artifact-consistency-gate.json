@@ -1,5 +1,5 @@
 {
-  "utc_captured": "2026-06-24T09:36:18Z",
+  "evaluated_at_utc": "2026-10-30T00:06:26Z",
   "scenario": "rolling_rollout_with_probes_masked_by_readiness",
   "hypothesis": "H0_cross_artifact_integrity",
   "claim": "evidence_artifacts_cohere_across_canonical_window",
@@ -12,8 +12,8 @@
     "qf_path": "labs/startup-degraded-transient-failure/evidence/qF-run-summary-20260620T224149Z.json",
     "qg_path": "labs/startup-degraded-transient-failure/evidence/qG-audit-sampler-quirk-20260620T225143Z.json"
   },
-  "sub_gate_a_predicate": "All canonical qA-qG filename timestamps stay inside the 2026-06-20T22:39Z-22:51Z capture window; fallback allows the wider 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
-  "sub_gate_b_predicate": "At least one perturbation identifier is shared by qA and qE; fallback requires qE to expose the three event identifiers or qA to expose any non-null perturbation_id values.",
+  "sub_gate_a_predicate": "All canonical qA-qG filename timestamps stay inside the 2026-06-20T22:39Z-22:51Z capture window; the lower-evidence fallback tier allows the wider 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
+  "sub_gate_b_predicate": "At least one perturbation identifier must be shared by qA and qE on the single path.",
   "strong_window_start_utc": "2026-06-20T22:39:00Z",
   "strong_window_end_utc": "2026-06-20T22:51:59Z",
   "fallback_window_start_utc": "2026-06-20T21:30:00Z",
@@ -70,7 +70,6 @@
       }
     ],
     "b_strong_path_shared_id_between_qa_and_qe": true,
-    "b_fallback_path_qe_has_3_ids_or_qa_has_any_id": true,
     "b_pass": true
   },
   "startup_degraded_transient_failure_h0_cross_artifact_integrity_sub_gates": {

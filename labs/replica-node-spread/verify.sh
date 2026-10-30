@@ -1472,7 +1472,7 @@ for fname in SCALE_FILES:
     }
 
 # ---------- sub-gate a: observed-level claims only ----------
-# Strong path: TWO independent checks must both pass:
+# Single path: TWO independent checks must both pass:
 #   (1) the headline claim level is exactly "Strongly Suggested"
 #       (per Oracle directive: "Keep the final claim narrow"); AND
 #   (2) the headline claim STRING does not contain the word "Observed"
@@ -1482,10 +1482,7 @@ for fname in SCALE_FILES:
 #       node placement IS observed; the guard catches phrases like
 #       "Observed cross-replica node placement" that would over-claim
 #       the evidence ceiling for placement).
-# Fallback path: claim_level is not "Observed" (weakest form).
-# Note: `re` is already imported at the top of this Python heredoc
-# (line ~1056); no duplicate import is needed here.
-
+# This checks the verifier-declared headline's self-consistency, not an evidence-derived claim.
 headline_claim = "observed_node_spread_behavior_under_this_test_matrix"
 headline_claim_level = "Strongly Suggested"
 
@@ -1503,10 +1500,7 @@ a_strong_path_no_observed_placement = (
     headline_claim_level == "Strongly Suggested"
     and not headline_claim_has_observed_token
 )
-a_fallback_path_not_observed = headline_claim_level != "Observed"
-a_observed_level_claims_only = (
-    a_strong_path_no_observed_placement or a_fallback_path_not_observed
-)
+a_observed_level_claims_only = a_strong_path_no_observed_placement
 
 # ---------- sub-gate b: profiles separate ----------
 # Strong path: per-profile summaries computed as two SEPARATE dicts
@@ -1627,7 +1621,6 @@ c_repeats_show_variability = (
 #     clusters per run (3 co-locations per run)
 #   - Dedicated-D8 scale=3: 3 unique replicas but 1 boot_id (all 3
 #     share kernel context)
-# Fallback path: at least one co-location case identified.
 co_location_cases = []
 for fname, d in per_file_data.items():
     if not d["cell"]:
@@ -1658,10 +1651,7 @@ dedicated_3_co_location_detected = any(
 d_strong_path_both_known_counterexamples = (
     consumption_30_co_location_detected and dedicated_3_co_location_detected
 )
-d_fallback_path_at_least_one = len(co_location_cases) >= 1
-d_counterexamples_surfaced = (
-    d_strong_path_both_known_counterexamples or d_fallback_path_at_least_one
-)
+d_counterexamples_surfaced = d_strong_path_both_known_counterexamples
 
 # ---------- sub-gate e: falsification from raw ----------
 # Strong path: every per-file count is recomputed from raw JSONL and
@@ -1756,7 +1746,6 @@ print(json.dumps({
         "headline_claim": headline_claim,
         "headline_claim_level": headline_claim_level,
         "a_strong_path_no_observed_placement": a_strong_path_no_observed_placement,
-        "a_fallback_path_not_observed": a_fallback_path_not_observed,
         "a_pass": a_observed_level_claims_only,
     },
     "sub_gate_b_profiles_separate": {
@@ -1780,7 +1769,6 @@ print(json.dumps({
         "consumption_30_co_location_detected": consumption_30_co_location_detected,
         "dedicated_3_co_location_detected": dedicated_3_co_location_detected,
         "d_strong_path_both_known_counterexamples": d_strong_path_both_known_counterexamples,
-        "d_fallback_path_at_least_one": d_fallback_path_at_least_one,
         "d_pass": d_counterexamples_surfaced,
     },
     "sub_gate_e_falsification_from_raw": {
