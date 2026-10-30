@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T00:06:26Z",
+  "evaluated_at_utc": "2026-10-30T02:27:21Z",
   "scenario": "cohort_integrity",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
@@ -56,6 +56,8 @@
       "blank_lines": 0,
       "json_parse_failures": 0,
       "missing_keys_failures": 0,
+      "malformed_records": 0,
+      "malformed_fields": {},
       "successful_records": 5
     },
     "a_strong_path_anchor_with_min_samples": true,
@@ -69,6 +71,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 5
       },
       "consumption-scale-1-run-1.jsonl": {
@@ -76,6 +80,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 6
       },
       "consumption-scale-3-run-1.jsonl": {
@@ -83,6 +89,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 30
       },
       "consumption-scale-10-run-1.jsonl": {
@@ -90,6 +98,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 80
       },
       "consumption-scale-30-run-1.jsonl": {
@@ -97,6 +107,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 240
       },
       "consumption-scale-30-run-2.jsonl": {
@@ -104,6 +116,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 240
       },
       "consumption-scale-30-run-3.jsonl": {
@@ -111,6 +125,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 240
       },
       "dedicated-d8-scale-1-run-1.jsonl": {
@@ -118,6 +134,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 6
       },
       "dedicated-d8-scale-3-run-1.jsonl": {
@@ -125,6 +143,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 30
       },
       "dedicated-d8-scale-10-run-1.jsonl": {
@@ -132,6 +152,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 80
       },
       "dedicated-d8-scale-10-run-2.jsonl": {
@@ -139,6 +161,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 80
       },
       "dedicated-d8-scale-10-run-3.jsonl": {
@@ -146,6 +170,8 @@
         "blank_lines": 0,
         "json_parse_failures": 0,
         "missing_keys_failures": 0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "successful_records": 80
       }
     },

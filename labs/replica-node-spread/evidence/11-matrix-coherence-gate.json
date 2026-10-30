@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T00:06:26Z",
+  "evaluated_at_utc": "2026-10-30T02:27:21Z",
   "scenario": "matrix_coherence",
   "hypothesis": "H_matrix_coherence",
   "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",
@@ -41,6 +41,8 @@
         "total_records": 6,
         "records_matching_cell": 6,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "consumption-scale-3-run-1.jsonl": {
@@ -52,6 +54,8 @@
         "total_records": 30,
         "records_matching_cell": 30,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "consumption-scale-10-run-1.jsonl": {
@@ -63,6 +67,8 @@
         "total_records": 80,
         "records_matching_cell": 80,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "consumption-scale-30-run-1.jsonl": {
@@ -74,6 +80,8 @@
         "total_records": 240,
         "records_matching_cell": 240,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "consumption-scale-30-run-2.jsonl": {
@@ -85,6 +93,8 @@
         "total_records": 240,
         "records_matching_cell": 240,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "consumption-scale-30-run-3.jsonl": {
@@ -96,6 +106,8 @@
         "total_records": 240,
         "records_matching_cell": 240,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-1-run-1.jsonl": {
@@ -107,6 +119,8 @@
         "total_records": 6,
         "records_matching_cell": 6,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-3-run-1.jsonl": {
@@ -118,6 +132,8 @@
         "total_records": 30,
         "records_matching_cell": 30,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-10-run-1.jsonl": {
@@ -129,6 +145,8 @@
         "total_records": 80,
         "records_matching_cell": 80,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-10-run-2.jsonl": {
@@ -140,6 +158,8 @@
         "total_records": 80,
         "records_matching_cell": 80,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       },
       "dedicated-d8-scale-10-run-3.jsonl": {
@@ -151,6 +171,8 @@
         "total_records": 80,
         "records_matching_cell": 80,
         "match_ratio": 1.0,
+        "malformed_records": 0,
+        "malformed_fields": {},
         "records_mismatching_cell": 0
       }
     },
@@ -230,6 +252,7 @@
     "b_pass": true
   },
   "sub_gate_c_summary_reconciles": {
+    "invalid_summary_reasons": [],
     "per_file_recompute": {
       "consumption-scale-1-run-1.jsonl": {
         "raw_unique_replicas": 1,
