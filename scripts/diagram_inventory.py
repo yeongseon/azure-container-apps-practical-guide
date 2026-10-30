@@ -27,7 +27,7 @@ import yaml
 
 # Heterogeneous JSON and verbatim foreign YAML do not share a recursive record shape.
 Record: TypeAlias = dict[str, Any]
-VERSION = '1.0.0'
+VERSION = '1.1.0'
 MANIFEST = 'docs/reference/diagram-manifest.json'
 SCHEMA = 'docs/reference/diagram-manifest.schema.json'
 RULES = 'scripts/diagram_inventory_rules.json'
@@ -35,7 +35,7 @@ SCRIPT = 'scripts/diagram_inventory.py'
 PAGE = 'docs/reference/diagram-inventory.md'
 FENCE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
 IDENTIFIER = re.compile(r'^\s*<!--\s*diagram-id:\s*(.*?)\s*-->\s*$')
-HEADING = re.compile(r'^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$')
+HEADING = re.compile(r'^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*$')
 TYPES = set(('flowchart graph sequenceDiagram stateDiagram stateDiagram-v2 '
              'gantt timeline pie quadrantChart classDiagram erDiagram journey '
              'mindmap xychart-beta block-beta gitGraph requirementDiagram '
@@ -159,7 +159,7 @@ def preceding(lines: list[str], start: int, floor: int) -> tuple[str | None, str
     while i >= floor and not lines[i].strip():
         i -= 1
     match = IDENTIFIER.fullmatch(lines[i]) if i >= floor else None
-    identifier = match.group(1) if match else None
+    identifier = (match.group(1).strip() or None) if match else None
     if match:
         i -= 1
     while i >= floor and (not lines[i].strip() or lines[i].lstrip().startswith('<!--')):
@@ -184,19 +184,58 @@ def closing(line: str, marker: str) -> bool:
 
 def fences(text: str, offset: int = 0) -> tuple[list[Occurrence], list[int]]:
     """Parse CommonMark fence boundaries; nested Mermaid is excluded example text."""
+    output, unclosed, _ = scan_fences(text, offset)
+    return output, unclosed
+
+
+def unsupported_fence(line: str) -> str | None:
+    """Recognize unsupported containers, not arbitrary mentions of Mermaid."""
+    for reason, pattern in [('blockquote', r'^\s*(?:>\s*)+'), ('indented', r'^ {4,}')]:
+        prefix = re.match(pattern, line)
+        if prefix:
+            opening = FENCE.match(line[prefix.end():])
+            if opening:
+                marker, info = opening.groups()
+                if info.strip().split()[:1] == ['mermaid'] and not (marker[0] == '`' and '`' in info):
+                    return reason
+    return None
+
+
+def scan_fences(text: str, offset: int = 0, example: bool = False) -> tuple[list[Occurrence], list[int], list[Record]]:
+    """Report unsupported rendered fences and ignore multiline HTML comments."""
     lines = text.splitlines()
     headings: list[tuple[int, str]] = []
     output: list[Occurrence] = []
     unclosed: list[int] = []
+    unrecognized: list[Record] = []
+    in_comment = False
     i = offset
     while i < len(lines):
         heading = HEADING.match(lines[i])
         opening = FENCE.match(lines[i])
+        language = opening.group(2).strip().split()[:1] if opening else []
+        unsupported = unsupported_fence(lines[i])
+        if in_comment:
+            if language == ['mermaid'] or unsupported:
+                unrecognized.append({'line': i + 1, 'reason': 'html-comment'})
+            if '-->' in lines[i]:
+                in_comment = False
+            i += 1
+            continue
+        if not example and '<!--' in lines[i] and '-->' not in lines[i].split('<!--', 1)[1]:
+            in_comment = True
+            i += 1
+            continue
+        if unsupported and not example:
+            unrecognized.append({'line': i + 1, 'reason': unsupported})
+            i += 1
+            continue
         if not opening:
             if heading:
                 level = len(heading.group(1))
                 headings = [h for h in headings if h[0] < level]
-                headings.append((level, heading.group(2)))
+                title = re.sub(r'[ \t]+#+[ \t]*$', '', heading.group(2))
+                headings.append((level, title))
             i += 1
             continue
         marker, info = opening.groups()
@@ -213,13 +252,13 @@ def fences(text: str, offset: int = 0) -> tuple[list[Occurrence], list[int]]:
                                      tuple(h[1] for h in headings), '\n'.join(lines[i + 1:end]),
                                      lead, closed=end < len(lines)))
         else:
-            nested, _ = fences('\n'.join(lines[i + 1:end]))
+            nested, _, _ = scan_fences('\n'.join(lines[i + 1:end]), example=True)
             for item in nested:
                 output.append(Occurrence(item.line + i + 1, item.end_line + i + 1,
                                          item.diagram_id, tuple(h[1] for h in headings),
                                          item.body, item.lead_in, True, item.closed))
         i = end + 1
-    return output, unclosed
+    return output, unclosed, unrecognized
 
 
 def classify(body: str) -> tuple[str, str, Record]:
@@ -302,26 +341,52 @@ def diagram_record(page: str, ordinal: int, item: Occurrence) -> Record:
     }
 
 
+def unique_record_keys(records: list[Record]) -> list[str]:
+    """Reserve literal IDs before allocating collision suffixes in source order."""
+    bases = [f'{r["page"]}#{r["diagram_id"] or "~" + str(r["ordinal"])}' for r in records]
+    reserved = set(bases)
+    used: set[str] = set()
+    keys: list[str] = []
+    for base in bases:
+        key = base
+        suffix = 2
+        if key in used:
+            key = f'{base}~{suffix}'
+            while key in reserved or key in used:
+                suffix += 1
+                key = f'{base}~{suffix}'
+        used.add(key)
+        keys.append(key)
+    return keys
+
+
 def page_records(page: str, text: str) -> tuple[list[Record], Record, list[Record]]:
     entries, offset, error = frontmatter(text)
-    occurrences, unclosed = fences(text, offset)
-    records: list[Record] = []
+    occurrences, unclosed, unrecognized = scan_fences(text, offset)
+    records = [diagram_record(page, ordinal, item) for ordinal, item in enumerate(occurrences, 1)]
     exceptions: collections.defaultdict[str, list[Any]] = collections.defaultdict(list)
     exclusions: list[Record] = []
-    seen: collections.Counter[str] = collections.Counter()
+    declared_by_id: Record = {}
+    entry_ids: collections.Counter[str] = collections.Counter()
+    for entry in entries:
+        identifier = entry.get('id') if isinstance(entry, dict) else None
+        if isinstance(identifier, str) and identifier.strip():
+            entry_ids[identifier] += 1
+            declared_by_id.setdefault(identifier, entry)
+    for identifier, count in sorted(entry_ids.items()):
+        if count > 1:
+            exceptions['frontmatter_duplicate_ids'].append({'page': page, 'id': identifier, 'count': count})
+    if unrecognized:
+        exceptions['unrecognized_mermaid_fences'] = [{'page': page, **item} for item in unrecognized]
     if error:
         exceptions['frontmatter_unparseable'].append({'page': page, 'error': error})
     for line in unclosed:
         exceptions['unclosed_fences'].append({'page': page, 'line': line})
-    for ordinal, item in enumerate(occurrences, 1):
-        record = diagram_record(page, ordinal, item)
-        if item.diagram_id is not None:
-            seen[item.diagram_id] += 1
-            if seen[item.diagram_id] > 1:
-                record['key'] += f'~{seen[item.diagram_id]}'
-                record['id_provisional'] = True
-        declared = next((e for e in entries if isinstance(e, dict) and e.get('id') == item.diagram_id), None)
-        status = 'declared' if declared else ('malformed' if error else 'missing')
+    for item, record, key in zip(occurrences, records, unique_record_keys(records)):
+        record['id_provisional'] = record['id_provisional'] or record['key'] != key
+        record['key'] = key
+        declared = declared_by_id.get(item.diagram_id) if item.diagram_id else None
+        status = 'declared' if declared is not None else ('malformed' if error else 'missing')
         record['provenance'] = {'status': status, 'declared': declared, 'verification': 'not-performed'}
         if item.diagram_id is None:
             exceptions['missing_id_comment'].append(record['key'])
@@ -329,7 +394,6 @@ def page_records(page: str, text: str) -> tuple[list[Record], Record, list[Recor
             exceptions['fences_without_frontmatter_entry'].append(record['key'])
         if item.example:
             exclusions.append({'key': record['key'], 'kind': 'example', 'reason': 'Mermaid example nested inside another code fence'})
-        records.append(record)
     ids = collections.Counter(r['diagram_id'] for r in records if r['diagram_id'])
     for identifier, count in sorted(ids.items()):
         if count > 1:
@@ -337,7 +401,8 @@ def page_records(page: str, text: str) -> tuple[list[Record], Record, list[Recor
                 'key': f'{page}#{identifier}', 'count': count,
                 'keys': [r['key'] for r in records if r['diagram_id'] == identifier]})
     for entry in entries:
-        if not isinstance(entry, dict) or entry.get('id') not in ids:
+        identifier = entry.get('id') if isinstance(entry, dict) else None
+        if not isinstance(identifier, str) or not identifier.strip() or identifier not in ids:
             exceptions['frontmatter_entries_without_fence'].append({'page': page, 'entry': entry})
     return records, dict(exceptions), exclusions
 
@@ -347,7 +412,10 @@ def asset_groups(root: Path, files: list[str], rules: Record) -> tuple[list[Reco
     for page in files:
         if not page.endswith('.md'):
             continue
-        text = local(root, page).read_text(encoding='utf-8')
+        try:
+            text = local(root, page).read_text(encoding='utf-8-sig')
+        except UnicodeDecodeError:
+            continue
         for destination in re.findall(r'!\[[^\]]*\]\(\s*<?([^\s)>]+)', text):
             url = urlsplit(destination)
             if url.scheme or url.netloc:
@@ -409,13 +477,17 @@ def build(root: Path, rules: Record, base_commit: str) -> Record:
     exclusions: list[Record] = []
     names = ('missing_id_comment duplicate_ids_on_page frontmatter_entries_without_fence '
              'fences_without_frontmatter_entry frontmatter_unparseable unresolved_overlaps '
-             'unclassified_assets unclosed_fences').split()
+             'unclassified_assets unclosed_fences frontmatter_duplicate_ids unrecognized_mermaid_fences').split()
     exceptions: Record = {name: [] for name in names}
     components: collections.Counter[str] = collections.Counter()
     for page in files:
         if not page.endswith('.md'):
             continue
-        text = local(root, page).read_text(encoding='utf-8')
+        try:
+            text = local(root, page).read_text(encoding='utf-8-sig')
+        except UnicodeDecodeError as error:
+            exceptions['frontmatter_unparseable'].append({'page': page, 'error': f'Invalid UTF-8: {error}'})
+            continue
         records, errors, examples = page_records(page, text)
         diagrams.extend(records)
         exclusions.extend(examples)
@@ -448,7 +520,7 @@ def build(root: Path, rules: Record, base_commit: str) -> Record:
               'baseline': {'base_commit': base_commit,
                            'scanner': {'path': SCRIPT, 'version': VERSION, 'sha256': digest(local(root, SCRIPT))},
                            'rules_sha256': digest(local(root, RULES)),
-                            'counting_policy': 'Every Mermaid fence in a tracked Markdown file is one occurrence; an asset referenced N times is one asset with N usages; two fences with equal text are two occurrences. Counts by batch include only migration-required occurrences; excluded occurrences have no owning batch. Node, edge and component counts are regex approximations.'},
+                             'counting_policy': 'Every Mermaid fence in a tracked Markdown file is one occurrence; an asset referenced N times is one asset with N usages; two fences with equal text are two occurrences. Counts by batch include only Mermaid migration-required occurrences; excluded occurrences have no owning batch. Non-Mermaid visuals are reported separately and never included in totals.by_batch. Node, edge and component counts are regex approximations.'},
               'diagrams': sorted(diagrams, key=lambda d: d['key']),
               'exclusions': {'occurrences': sorted(exclusions, key=lambda e: e['key']), 'assets': assets},
               'visuals': rules.get('visuals', []), 'exceptions': exceptions,
@@ -515,7 +587,7 @@ def generated_tables(manifest: Record) -> dict[str, str]:
                          ('exclusions', {a['group']: a['count'] for a in manifest['exclusions']['assets']}),
                          ('exceptions', {k: len(v) for k, v in manifest['exceptions'].items()})]:
         tables[name] = '| ' + name.title() + ' | Count |\n|---|---:|\n' + '\n'.join(
-            f'| {key} | {count} |' for key, count in sorted(counts.items())) + '\n'
+            f'| {key} | {count} |' for key, count in sorted(counts.items())) + '\n\n'
     return tables
 
 
@@ -552,24 +624,24 @@ def check(root: Path, manifest: Record, rules: Record) -> list[str]:
     keys = [d['key'] for d in diagrams]
     if len(set(keys)) != len(keys):
         errors.append('diagrams: duplicate key')
-    for diagram in diagrams:
-        expected = f'{diagram["page"]}#{diagram["diagram_id"] or "~" + str(diagram["ordinal"])}'
-        duplicates = sorted((d for d in diagrams if d['page'] == diagram['page'] and
-                             d['diagram_id'] == diagram['diagram_id']), key=lambda d: d['ordinal'])
-        index = duplicates.index(diagram) + 1
-        if diagram['diagram_id'] is not None and index > 1:
-            expected += f'~{index}'
+    ordered = sorted(diagrams, key=lambda d: (d['page'], d['ordinal']))
+    for diagram, expected in zip(ordered, unique_record_keys(ordered)):
         if diagram['key'] != expected:
             errors.append(f'{diagram["key"]}: key does not match page/id/ordinal')
     for key in rules.get('overrides', {}):
         if key not in keys:
             errors.append(f'override references absent key: {key}')
     batches = {b['issue']: b for b in manifest['batches']}
+    visual_keys = [v['key'] for v in manifest['visuals']]
+    if len(set(visual_keys)) != len(visual_keys):
+        errors.append('visuals: duplicate key')
+    if set(visual_keys) & set(keys):
+        errors.append('visuals: key collides with diagram key')
     excluded = [e['key'] for e in manifest['exclusions']['occurrences']]
     assigned_excluded = {d['key'] for d in diagrams if d['assignment']['method'] == 'excluded'}
     if len(excluded) != len(set(excluded)) or set(excluded) != assigned_excluded or not set(excluded) <= set(keys):
         errors.append('exclusions.occurrences: keys must exactly match excluded assignments')
-    for diagram in diagrams:
+    for diagram in [*diagrams, *manifest['visuals']]:
         if diagram['assignment']['method'] == 'excluded':
             continue
         batch = batches.get(diagram['assignment']['batch_issue'])
@@ -592,6 +664,9 @@ def check(root: Path, manifest: Record, rules: Record) -> list[str]:
             errors.append(f'baseline.{field}: hash differs from {file}; regenerate')
     if manifest['exceptions']['unresolved_overlaps']:
         errors.append('exceptions.unresolved_overlaps: assignments unresolved')
+    for item in manifest['exceptions']['unrecognized_mermaid_fences']:
+        if item['reason'] != 'html-comment':
+            errors.append(f'{item["page"]}:{item["line"]}: {item["reason"]} Mermaid fence makes inventory incomplete; move the fence outside the container using at most 3 spaces, then regenerate')
     original, updated = generated_page(root, manifest)
     if original != updated:
         errors.append(f'{PAGE}: stale generated blocks')
@@ -634,6 +709,9 @@ def main() -> int:
         previous: Record = json.loads(path.read_text()) if path.exists() else {}
         if args.check:
             errors = check(root, previous, rules)
+            for item in previous.get('exceptions', {}).get('unrecognized_mermaid_fences', []):
+                if item['reason'] == 'html-comment':
+                    print(f'{item["page"]}:{item["line"]}: html-comment Mermaid fence is not rendered (informational)')
             print('\n'.join(errors) if errors else 'diagram inventory: check passed')
             return int(bool(errors))
         if args.summary:
@@ -651,9 +729,13 @@ def main() -> int:
             print(encoded(difference), end='')
             return int(args.strict and any(difference.values()))
         errors = check(root, current, rules)
-        errors = [e for e in errors if 'stale generated blocks' not in e]
+        errors = [e for e in errors if 'stale generated blocks' not in e and 'Mermaid fence makes inventory incomplete' not in e]
         if errors:
             raise InventoryError('\n'.join(errors))
+        pages = sorted({item['page'] for item in current['exceptions']['unrecognized_mermaid_fences']})
+        for page in pages:
+            details = ', '.join(f'{item["line"]} ({item["reason"]})' for item in current['exceptions']['unrecognized_mermaid_fences'] if item['page'] == page)
+            print(f'diagram inventory: warning: {page}: unrecognized Mermaid fences at {details}; see manifest exceptions', file=sys.stderr)
         _ = path.write_text(encoded(current), encoding='utf-8', newline='\n')
         original, updated = generated_page(root, current)
         if original != updated:

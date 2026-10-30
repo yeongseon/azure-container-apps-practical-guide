@@ -23,6 +23,76 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ParsingTests(unittest.TestCase):
+    def test_unusable_frontmatter_ids_never_attach(self):
+        for entry in ({}, {'id': None}, {'id': ''}, {'id': 42}, {'id': []}, {'id': {}}, {'id': '   '}):
+            with self.subTest(entry=entry):
+                text = '---\ncontent_sources:\n  diagrams: ' + json.dumps([entry]) + '\n---\n```mermaid\nflowchart LR\n```\n'
+                records, errors, _ = inventory.page_records('x.md', text)
+                self.assertEqual(records[0]['provenance']['status'], 'missing')
+                self.assertIsNone(records[0]['provenance']['declared'])
+                self.assertTrue(records[0]['id_provisional'])
+                self.assertEqual(records[0]['key'], 'x.md#~1')
+                self.assertEqual(errors['frontmatter_entries_without_fence'], [{'page': 'x.md', 'entry': entry}])
+
+    def test_duplicate_frontmatter_ids_keep_first_and_report_count(self):
+        text = '---\ncontent_sources:\n  diagrams: [{id: x, note: first}, {id: x, note: second}, {id: x, note: third}]\n---\n<!-- diagram-id:x -->\n```mermaid\nflowchart LR\n```\n'
+        records, errors, _ = inventory.page_records('x.md', text)
+        self.assertEqual(records[0]['provenance']['declared'], {'id': 'x', 'note': 'first'})
+        self.assertEqual(errors['frontmatter_duplicate_ids'], [{'page': 'x.md', 'id': 'x', 'count': 3}])
+
+    def test_empty_comment_id_is_provisional(self):
+        records, _, _ = inventory.page_records('x.md', '<!-- diagram-id: -->\n```mermaid\nflowchart LR\n```')
+        self.assertIsNone(records[0]['diagram_id'])
+        self.assertTrue(records[0]['id_provisional'])
+        self.assertEqual(records[0]['key'], 'x.md#~1')
+
+    def test_duplicate_suffix_avoids_literal_and_provisional_keys(self):
+        text = ''.join(f'<!-- diagram-id:{identifier} -->\n```mermaid\nflowchart LR\n```\n'
+                       for identifier in ('x', 'x', 'x~2', '~5')) + '```mermaid\nflowchart LR\n```\n'
+        records, _, _ = inventory.page_records('x.md', text)
+        self.assertEqual([r['key'] for r in records], ['x.md#x', 'x.md#x~3', 'x.md#x~2', 'x.md#~5', 'x.md#~5~2'])
+        self.assertEqual(len({r['key'] for r in records}), len(records))
+
+    def test_heading_preserves_attached_hash(self):
+        found, _ = inventory.fences('# C#\n## Child ###\n```mermaid\nflowchart LR\n```')
+        self.assertEqual(found[0].headings, ('C#', 'Child'))
+
+    def test_backtick_info_cannot_contain_backticks(self):
+        found, _ = inventory.fences('```mermaid `invalid`\nflowchart LR\n```')
+        self.assertEqual(found, [])
+
+    def test_identifier_colon_needs_no_space(self):
+        found, _ = inventory.fences('<!-- diagram-id:X -->\n```mermaid\nflowchart LR\n```')
+        self.assertEqual(found[0].diagram_id, 'X')
+
+    def test_unrecognized_fences_are_reported(self):
+        for prefix, reason, before, after in [
+                ('', 'html-comment', '<!-- hidden\n', '-->\n'),
+                ('> ', 'blockquote', '', ''),
+                ('    ', 'indented', '- item\n', '')]:
+            for marker in ('```', '~~~~'):
+                with self.subTest(reason=reason, marker=marker):
+                    records, errors, _ = inventory.page_records('x.md', before + prefix + marker + 'mermaid extra\n' + prefix + 'flowchart LR\n' + prefix + marker + '\n' + after)
+                    self.assertEqual(records, [])
+                    self.assertEqual(errors['unrecognized_mermaid_fences'], [{'page': 'x.md', 'line': 2 if before else 1, 'reason': reason}])
+
+    def test_html_comment_closes_and_single_line_comment_is_unaffected(self):
+        text = '<!-- hidden\n```mermaid\nflowchart LR\n```\n-->\n<!-- diagram-id:X -->\n```mermaid\nflowchart LR\n```\n'
+        records, errors, _ = inventory.page_records('x.md', text)
+        self.assertEqual([r['diagram_id'] for r in records], ['X'])
+        self.assertEqual(len(errors['unrecognized_mermaid_fences']), 1)
+
+    def test_outer_fence_does_not_report_container_examples(self):
+        text = '`````markdown\n> ```mermaid\n    ~~~mermaid\n<!-- hidden\n`````\n<!-- diagram-id:X -->\n```mermaid\nflowchart LR\n```\n'
+        records, errors, _ = inventory.page_records('x.md', text)
+        self.assertEqual([r['diagram_id'] for r in records], ['X'])
+        self.assertNotIn('unrecognized_mermaid_fences', errors)
+
+    def test_indented_mermaid_prose_is_not_a_fence(self):
+        records, errors, _ = inventory.page_records('x.md', '    mermaid is prose\n    ```text mermaid\n    ```mermaidx\n')
+        self.assertEqual(records, [])
+        self.assertNotIn('unrecognized_mermaid_fences', errors)
+
     def test_fence_variants(self):
         text = '# Title\n## Child\n<!-- diagram-id: x -->\n\n   ~~~~mermaid extra\nflowchart LR\nA-->B\n~~~\n~~~~~\n'
         found, errors = inventory.fences(text)
@@ -143,6 +213,126 @@ class TreeTests(unittest.TestCase):
 
     def build(self) -> inventory.Record:
         return inventory.build(self.root, self.rules, '0' * 40)
+
+    def visual_manifest(self) -> inventory.Record:
+        value = self.build()
+        value['visuals'] = [{'key': 'visual:x', 'kind': 'cytoscape', 'pages': ['docs/x.md'],
+                             'sources': ['docs/graph.json'], 'assignment': copy.deepcopy(value['diagrams'][0]['assignment']),
+                             'disposition': 'migration-required', 'rationale': 'Published graph'}]
+        value['totals']['non_mermaid_visuals'] = 1
+        return value
+
+    def test_visual_ownership_and_keys(self):
+        baseline = self.visual_manifest()
+        self.assertEqual(inventory.check(self.root, baseline, self.rules), [])
+        mutations: list[tuple[str, Callable[[inventory.Record], None], str]] = [
+            ('unknown-batch', lambda m: m['visuals'][0]['assignment'].update(batch_issue=999), 'invalid owning batch'),
+            ('non-owning', lambda m: m['batches'][0].update(owns_diagrams=False), 'visual:x: invalid owning batch'),
+            ('duplicate', lambda m: m['visuals'].append(copy.deepcopy(m['visuals'][0])), 'visuals: duplicate key'),
+            ('collision', lambda m: m['visuals'][0].update(key=m['diagrams'][0]['key']), 'visuals: key collides'),
+            ('count', lambda m: m['totals'].update(non_mermaid_visuals=0), 'totals.non_mermaid_visuals')]
+        for name, mutate, message in mutations:
+            with self.subTest(mutation=name):
+                value = copy.deepcopy(baseline)
+                mutate(value)
+                self.assertTrue(any(message in e for e in inventory.check(self.root, value, self.rules)))
+
+    def test_excluded_visual_schema_parity(self):
+        schema = json.loads((self.root / inventory.SCHEMA).read_text())
+        value = self.visual_manifest()
+        value['visuals'][0].update(disposition='excluded', rationale='Branding only')
+        value['visuals'][0]['assignment'].update(method='excluded', batch_issue=None, rationale='Branding only')
+        self.assertEqual(inventory.check(self.root, value, self.rules), [])
+        mutations: list[Callable[[inventory.Record], None]] = [
+            lambda m: m['visuals'][0]['assignment'].update(batch_issue=1),
+            lambda m: m['visuals'][0]['assignment'].update(method='rule', batch_issue=1),
+            lambda m: m['visuals'][0].update(disposition='migration-required'),
+            lambda m: m['visuals'][0].update(rationale=''),
+            lambda m: m['visuals'][0]['assignment'].update(rationale=''),
+            lambda m: m['visuals'][0]['assignment'].update(rationale='   ')]
+        for mutate in mutations:
+            with self.subTest(mutation=mutate):
+                changed = copy.deepcopy(value)
+                mutate(changed)
+                self.assertTrue(inventory.structural(changed, schema, schema['$defs']))
+                self.assertTrue(inventory.check(self.root, changed, self.rules))
+                if jsonschema is not None:
+                    self.assertFalse(jsonschema.Draft202012Validator(schema).is_valid(changed))
+
+    def test_new_exception_schema_is_closed(self):
+        schema = json.loads((self.root / inventory.SCHEMA).read_text())
+        for name, entry in [('frontmatter_duplicate_ids', {'page': 'x.md', 'id': 'x', 'count': 2}),
+                            ('unrecognized_mermaid_fences', {'page': 'x.md', 'line': 1, 'reason': 'blockquote'})]:
+            value = self.build()
+            value['exceptions'][name] = [entry]
+            self.assertEqual(inventory.structural(value, schema, schema['$defs']), [])
+            for changed in ({**entry, 'extra': True}, {k: v for k, v in entry.items() if k != 'page'},
+                            {**entry, 'count': 1} if 'count' in entry else {**entry, 'reason': 'other'}):
+                with self.subTest(name=name, entry=changed):
+                    value['exceptions'][name] = [changed]
+                    self.assertTrue(inventory.structural(value, schema, schema['$defs']))
+                    if jsonschema is not None:
+                        self.assertFalse(jsonschema.Draft202012Validator(schema).is_valid(value))
+
+    def test_unrecognized_write_warns_check_blocks_only_rendered(self):
+        for reason, text in [('html-comment', '<!-- hidden\n```mermaid\nflowchart LR\n```\n-->\n'),
+                             ('blockquote', '> ```mermaid\n> flowchart LR\n> ```\n'),
+                             ('indented', '- item\n    ```mermaid\n    flowchart LR\n    ```\n')]:
+            with self.subTest(reason=reason):
+                _ = (self.root / 'docs/x.md').write_text(text + text)
+                written = self.cli('--write', '--base-commit', '0' * 40)
+                self.assertEqual(written.returncode, 0, written.stderr)
+                self.assertEqual(len(written.stderr.splitlines()), 1)
+                self.assertIn('docs/x.md:', written.stderr)
+                checked = self.cli('--check')
+                self.assertEqual(checked.returncode, 0 if reason == 'html-comment' else 1, checked.stdout)
+                self.assertIn(reason, checked.stdout)
+                if reason != 'html-comment':
+                    self.assertIn('docs/x.md:', checked.stdout)
+                    self.assertIn('move', checked.stdout)
+
+    def test_bom_preserves_frontmatter_association(self):
+        _ = (self.root / 'docs/x.md').write_text('\ufeff---\ncontent_sources:\n  diagrams: [{id: x}]\n---\n<!-- diagram-id:x -->\n```mermaid\nflowchart LR\n```\n')
+        self.assertEqual(self.build()['diagrams'][0]['provenance']['status'], 'declared')
+
+    def test_non_utf8_is_recorded_like_unparseable_frontmatter(self):
+        _ = (self.root / 'docs/x.md').write_bytes(b'\xff```mermaid\n')
+        written = self.cli('--write', '--base-commit', '0' * 40)
+        self.assertEqual(written.returncode, 0, written.stderr)
+        value = json.loads((self.root / inventory.MANIFEST).read_text())
+        self.assertEqual(value['diagrams'], [])
+        self.assertEqual(value['exceptions']['frontmatter_unparseable'][0]['page'], 'docs/x.md')
+        self.assertIn('UTF-8', value['exceptions']['frontmatter_unparseable'][0]['error'])
+
+    def test_suffix_collision_keys_pass_check(self):
+        _ = (self.root / 'docs/x.md').write_text(''.join(f'<!-- diagram-id:{identifier} -->\n```mermaid\nflowchart LR\n```\n' for identifier in ('x', 'x', 'x~2')))
+        value = self.build()
+        self.assertEqual(len({d['key'] for d in value['diagrams']}), 3)
+        self.assertEqual(inventory.check(self.root, value, self.rules), [])
+
+    def test_generated_tables_have_blank_before_end_and_are_idempotent(self):
+        page = self.root / inventory.PAGE
+        _ = page.write_text('\n'.join(f'<!-- BEGIN GENERATED: diagram-inventory:{n} -->\nstale\n<!-- END GENERATED: diagram-inventory:{n} -->' for n in ('section', 'type', 'batch', 'exclusions', 'exceptions')))
+        written = self.cli('--write', '--base-commit', '0' * 40)
+        self.assertEqual(written.returncode, 0, written.stderr)
+        first = page.read_bytes()
+        lines = page.read_text().splitlines()
+        for index, line in enumerate(lines):
+            if line.startswith('<!-- END GENERATED:'):
+                self.assertEqual(lines[index - 1], '')
+        self.assertEqual(self.cli('--check').returncode, 0)
+        self.assertEqual(self.cli('--write').returncode, 0)
+        self.assertEqual(page.read_bytes(), first)
+
+    def test_tree_label_drift_is_advisory_for_check(self):
+        _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(self.build()))
+        path = self.root / 'docs/x.md'
+        _ = path.write_text(path.read_text().replace('A-->B', 'A[Changed label]-->B'))
+        checked = self.cli('--check')
+        self.assertEqual(checked.returncode, 0, checked.stdout)
+        advisory = self.cli('--verify-tree')
+        self.assertEqual(advisory.returncode, 0)
+        self.assertEqual(json.loads(advisory.stdout)['changed'], ['docs/x.md#x'])
 
     def cli(self, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run([sys.executable, str(self.root / inventory.SCRIPT), '--root', str(self.root), *args], cwd=tempfile.gettempdir(), capture_output=True, text=True, env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'})
@@ -372,6 +562,11 @@ class TreeTests(unittest.TestCase):
 
 
 class IntegrationTests(unittest.TestCase):
+    def test_current_tree_reproduction_requires_opt_in(self):
+        reproduction = type(self).test_baseline_reproduction_in_temp_tree
+        self.assertEqual(getattr(reproduction, '__unittest_skip__', False),
+                         os.environ.get('DIAGRAM_INVENTORY_REPRODUCE') != '1')
+
     def test_baseline_check(self):
         if not (ROOT / inventory.MANIFEST).exists():
             self.skipTest('baseline not generated yet')
@@ -379,6 +574,8 @@ class IntegrationTests(unittest.TestCase):
         rules: inventory.Record = json.loads((ROOT / inventory.RULES).read_text())
         self.assertEqual(inventory.check(ROOT, manifest, rules), [])
 
+    @unittest.skipUnless(os.environ.get('DIAGRAM_INVENTORY_REPRODUCE') == '1',
+                         'current-tree reproduction is opt-in: baseline is frozen at baseline.base_commit; tree drift is advisory')
     def test_baseline_reproduction_in_temp_tree(self):
         if not (ROOT / inventory.MANIFEST).exists():
             self.skipTest('baseline not generated yet')

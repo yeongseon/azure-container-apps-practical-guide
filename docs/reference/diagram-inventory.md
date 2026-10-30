@@ -29,6 +29,8 @@ The inventory applies the normative counting policy defined in the manifest base
 
 Every Mermaid fence in a tracked Markdown file is one occurrence. An asset referenced N times is one asset with N usages. Two fences with equal text are two occurrences.
 
+Non-Mermaid visuals are reported separately; `totals.by_batch` counts Mermaid migration-required occurrences only, not visual records.
+
 At the baseline commit recorded in the manifest (`baseline.base_commit`), the repository contains the following; the generated tables below are authoritative if prose and tables ever diverge:
 
 - 479 total Mermaid occurrences across 386 tracked Markdown files.
@@ -57,6 +59,7 @@ The following summary tables are generated directly from `docs/reference/diagram
 | repository | 4 |
 | start-here | 12 |
 | troubleshooting | 177 |
+
 <!-- END GENERATED: diagram-inventory:section -->
 
 ### Occurrences by Mermaid Syntax Type
@@ -70,6 +73,7 @@ The following summary tables are generated directly from `docs/reference/diagram
 | quadrantChart | 1 |
 | sequenceDiagram | 9 |
 | stateDiagram-v2 | 4 |
+
 <!-- END GENERATED: diagram-inventory:type -->
 
 ### Migration-Required Occurrences by Batch
@@ -84,6 +88,7 @@ The following summary tables are generated directly from `docs/reference/diagram
 | 405 | 31 |
 | 406 | 176 |
 | 407 | 181 |
+
 <!-- END GENERATED: diagram-inventory:batch -->
 
 ### Asset Exclusions by Group
@@ -96,6 +101,7 @@ The following summary tables are generated directly from `docs/reference/diagram
 | legacy-portal-screenshots | 88 |
 | metrics-evidence | 45 |
 | portal-screenshots | 0 |
+
 <!-- END GENERATED: diagram-inventory:exclusions -->
 
 ### Data-Quality Exceptions Summary
@@ -105,13 +111,16 @@ The following summary tables are generated directly from `docs/reference/diagram
 |---|---:|
 | duplicate_ids_on_page | 0 |
 | fences_without_frontmatter_entry | 5 |
+| frontmatter_duplicate_ids | 0 |
 | frontmatter_entries_without_fence | 16 |
 | frontmatter_unparseable | 1 |
 | id_reused_on_other_pages | 18 |
 | missing_id_comment | 4 |
 | unclassified_assets | 0 |
 | unclosed_fences | 0 |
+| unrecognized_mermaid_fences | 0 |
 | unresolved_overlaps | 0 |
+
 <!-- END GENERATED: diagram-inventory:exceptions -->
 
 ## Batch Map and Ownership Rules
@@ -166,7 +175,7 @@ For the 463 flowchart and graph blocks (96.7 % of all diagrams), genre assignmen
 - All other flowcharts predict `flow`.
 - Ambiguous signals or conflicting markers predict `unknown` with `needs_review: true`.
 
-A stratified random validation sample (seed 400, sample size n=62) measured agreement between heuristic predictions and manual human review:
+A stratified random validation sample (seed 400, sample size n=62) measured agreement between heuristic predictions and manual labels assigned by reading each diagram (by an AI agent, not an independent human review):
 
 - Syntax-decided genres achieved 16/16 agreement (100 %).
 - Heuristic flowchart candidates achieved 38/46 agreement (82.6 %).
@@ -193,7 +202,7 @@ The scanner detected three specific categories of metadata debt:
 
 ## Initial Rendering Test and Binary Screenshots Decision
 
-A one-time rendering test was run on 2026-10-30 with throwaway tooling outside the repository tree, on `main` at `944b237` (no diagram block changed between it and the baseline commit of the manifest). The site was built and every published Mermaid block was rendered in headless Chrome 145 with the Mermaid library MkDocs Material loads (`mermaid@11`, which resolved to 11.17.2 at the time):
+A one-time rendering test was run on 2026-10-30 with throwaway tooling outside the repository tree, on `main` at `944b237`, before PR #414 fixed the failing block in `docs/platform/deployment-scenarios.md`. That is the only measured block that has changed since the test; the measurement is not a rendering result for the manifest baseline. The site was built and every published Mermaid block was rendered in headless Chrome 145 with the Mermaid library MkDocs Material loads (`mermaid@11`, which resolved to 11.17.2 at the time):
 
 - 474 out of 475 published blocks rendered without errors.
 - 1 block failed to parse (`docs/platform/deployment-scenarios.md`, an unquoted label containing parentheses); it was tracked in issue #412 and fixed by PR #414.
@@ -207,7 +216,11 @@ The rendered PNG images for Container Apps total 15.9 MB (approximately 33 KiB p
 
 ## Command Reference
 
-The inventory workflow relies on `scripts/diagram_inventory.py`, requiring Python 3.11 and PyYAML.
+The inventory workflow relies on `scripts/diagram_inventory.py`, requiring Python 3.11 and PyYAML. It never renders, converts, or verifies source provenance. `--write` writes the manifest and this page's generated blocks; `--check` performs consistency validation, not provenance verification.
+
+Files are decoded as UTF-8 with optional BOM. An undecodable file is skipped and recorded in `frontmatter_unparseable` with its path and decoding error, like unparseable frontmatter; this exception means extraction is incomplete, not that no diagram exists. Duplicate usable frontmatter IDs appear in `frontmatter_duplicate_ids`; only the first entry supplies declared provenance. Missing, null, empty, or non-string frontmatter IDs never attach to a fence.
+
+The scanner does not parse Markdown containers. It records Mermaid openers in multiline HTML comments, blockquotes, and indentation of at least four spaces in `unrecognized_mermaid_fences`. Commented-out fences are not rendered and are informational. Blockquote or indented entries mean an incomplete inventory: `--write` preserves the finding and warns once per page; `--check` fails until the fence is moved outside the container with at most three spaces and the manifest regenerated. Recognized outer code fences still contain example text, not rendered diagrams.
 
 ### Validating the Inventory (Blocking CI)
 
@@ -217,7 +230,7 @@ Run the consistency check during automated CI validation:
 python3 scripts/diagram_inventory.py --check
 ```
 
-This verifies that the manifest conforms to the JSON schema, keys are unique, batch counts reconcile with totals, rule hashes match, and markdown blocks in this document match the generated tables.
+This validates that the manifest conforms to the JSON schema, keys are unique, batch counts reconcile with totals, rule hashes match, and markdown blocks in this document match the generated tables. It does not compare the current diagram tree with the frozen baseline. Deterministic fixture reproduction remains blocking; current-tree baseline reproduction is opt-in with `DIAGRAM_INVENTORY_REPRODUCE=1` when the tree is unchanged.
 
 ### Regenerating the Manifest
 
