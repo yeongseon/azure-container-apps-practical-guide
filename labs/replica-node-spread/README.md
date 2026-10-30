@@ -118,7 +118,10 @@ Missing optional boot-time estimates remain optional.
 Invalid JSON, excessive JSON nesting, non-object lines and missing required keys
 remain unusable lines under the existing per-file parse-failure policy: at most
 one such line per file, with at least one usable record and the corpus ratio
-floor still required. Two unusable lines fail Gate 10(b). Summary roots must be
+floor still required. Two unusable lines fail Gate 10(b). A record with a supplied
+malformed consumed field is counted as malformed even when it also lacks a required
+key; only an incomplete record whose supplied fields are valid uses the tolerance.
+Summary roots must be
 a list or the supported legacy `{"runs": [...]}` object; members must be objects
 with nonempty unique string filenames and finite nonnegative integer-valued
 consumed counts (`unique_replicas`, `unique_boot_ids`, `boot_time_clusters`).

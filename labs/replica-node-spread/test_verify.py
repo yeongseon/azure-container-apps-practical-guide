@@ -1272,6 +1272,44 @@ class ScaleBoundaryTests(unittest.TestCase):
                         self.assertFalse(cell["a_pass"])
                         self.assertEqual(cell["per_file_cell_match"][name]["malformed_fields"], {field: 1})
 
+    def test_malformed_field_takes_precedence_over_a_missing_key(self) -> None:
+        name = "consumption-scale-1-run-1.jsonl"
+        for field, value in (("boot_id", []), ("replica_name", {}), ("boot_time_estimate_ms", "wrong")):
+            with self.subTest(field=field), fixture_lab() as lab:
+                path = lab / "evidence" / name
+                records = list(map(json.loads, path.read_text().splitlines()))
+                records[0][field] = value
+                del records[0]["run_id"]
+                path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+                proc = run_verify(lab)
+
+                self.assertEqual(proc.returncode, 1, proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+                parse = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+                stats = parse["per_file_parse_stats"][name]
+                self.assertEqual(stats["malformed_records"], 1)
+                self.assertEqual(stats["malformed_fields"], {field: 1})
+                self.assertEqual(stats["missing_keys_failures"], 0)
+                self.assertFalse(parse["b_pass"])
+
+    def test_missing_key_with_valid_supplied_fields_keeps_the_parse_tolerance(self) -> None:
+        name = "consumption-scale-1-run-1.jsonl"
+        with fixture_lab() as lab:
+            path = lab / "evidence" / name
+            records = list(map(json.loads, path.read_text().splitlines()))
+            del records[0]["run_id"]
+            path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+            proc = run_verify(lab)
+
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            parse = strict_gate(lab, COHORT_GATE)["sub_gate_b_files_parseable"]
+            stats = parse["per_file_parse_stats"][name]
+            self.assertEqual(stats["missing_keys_failures"], 1)
+            self.assertEqual(stats["malformed_records"], 0)
+            self.assertTrue(parse["b_pass"])
+
     def test_valid_scale_numbers_and_string_ids_remain_usable(self) -> None:
         for value in (2**53, float(2**53), -(2**53), 1000, 1000.5):
             with self.subTest(value=value), fixture_lab() as lab:

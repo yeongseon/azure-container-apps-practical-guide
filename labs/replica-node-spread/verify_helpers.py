@@ -61,12 +61,12 @@ def parse_jsonl_records(path: str) -> tuple[list[dict[str, Json]], ParseStats]:
             except (ValueError, RecursionError):
                 stats["json_parse_failures"] += 1
                 continue
-            if not isinstance(record, dict) or not all(k in record for k in REQUIRED_RECORD_KEYS):
+            if not isinstance(record, dict):
                 stats["missing_keys_failures"] += 1
                 continue
             malformed = [
                 field for field in ("boot_id", "replica_name")
-                if not isinstance(record[field], str) or not record[field].strip()
+                if field in record and (not isinstance(record[field], str) or not record[field].strip())
             ] + [
                 field for field in numeric_fields
                 if field in record and not is_bounded_number(record[field])
@@ -75,6 +75,9 @@ def parse_jsonl_records(path: str) -> tuple[list[dict[str, Json]], ParseStats]:
                 stats["malformed_records"] += 1
                 for field in malformed:
                     stats["malformed_fields"][field] = stats["malformed_fields"].get(field, 0) + 1
+                continue
+            if not all(k in record for k in REQUIRED_RECORD_KEYS):
+                stats["missing_keys_failures"] += 1
                 continue
             records.append(record)
             stats["successful_records"] += 1
