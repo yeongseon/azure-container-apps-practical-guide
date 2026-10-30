@@ -100,6 +100,8 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 
 ## What "Success" Looks Like
 
+Offline Gate 10(b) compares only section 5 rows containing the metric-error signal with section 9 startup-probe-failure rows. Their timestamp windows must overlap, including a shared endpoint; an unrelated timestamp cannot establish correlation. This is a window-level correlation, not proof of causation or a per-event match.
+
 Offline Gate 13(c) retains two evidence tiers: the exact Healthy/Healthy/Unhealthy pattern, or a lower-evidence fallback with all three states reported as `Healthy` or `Unhealthy`, crash `Unhealthy` and at least one of healthy/slow `Healthy`. Only `Healthy`/`Unhealthy` count as reported; anything else is unreported evidence and fails both tiers. `c_evidence_level` identifies the passing tier.
 
 The lab is considered reproduced when **all** of the following hold

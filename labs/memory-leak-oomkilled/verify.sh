@@ -156,11 +156,10 @@
 #          captured baseline has all three Strong-path conditions met.
 #       c) Health states match outcome: healthy.healthState == "Healthy"
 #          AND leak.healthState in ("Healthy", "Unhealthy") AND
-#          hard.healthState in ("Healthy", "Unhealthy") (Strong —
+#          hard.healthState in ("Healthy", "Unhealthy") (single path —
 #          healthy must be Healthy; the others may be in either state
-#          depending on when the snapshot was taken vs the fix); or
-#          healthy.healthState == "Healthy" (Fallback — only the
-#          control's state is required). The captured baseline has
+#          depending on when the snapshot was taken vs the fix).
+#          All three states must be reported. The captured baseline has
 #          all three == "Healthy" because the latest hard snapshot
 #          was taken AFTER trigger-fix.sh.
 #
@@ -247,6 +246,22 @@ for required in \
         exit 1
     fi
 done
+EVIDENCE_DIR="$EVIDENCE_DIR" \
+HEALTHY_APP_NAME="$HEALTHY_APP_NAME" \
+HEALTHY_EVIDENCE_TS="$HEALTHY_EVIDENCE_TS" \
+python3 - <<'PY'
+import os
+import sys
+from pathlib import Path
+
+report = Path(os.environ["EVIDENCE_DIR"]) / os.environ["HEALTHY_APP_NAME"] / (
+    f"report-{os.environ['HEALTHY_EVIDENCE_TS']}.txt"
+)
+header = "=== 5. System logs: exit code 137 / OOM / ProcessExited / ContainerTerminated ==="
+if header not in {line.strip() for line in report.read_text().splitlines()}:
+    print("ERROR: required healthy report section 5 missing; zero OOM records cannot be established.", file=sys.stderr)
+    sys.exit(1)
+PY
 # Phase B captures nothing: it re-evaluates a cohort Phase A already
 # captured. This timestamp is when the gates were RE-EVALUATED, which is
 # neither the evidence capture time nor the docs edit time.

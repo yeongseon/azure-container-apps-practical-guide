@@ -86,6 +86,8 @@ bash labs/memory-leak-oomkilled/cleanup.sh
 
 ## What "Success" Looks Like
 
+Offline verification requires the pinned healthy report and its exact section 5 header before any gates are emitted. An absent, empty or headerless report exits with an evidence error, not a zero-OOM result. A passing control records no matching OOM rows in the captured section; it does not exclude missing logs or an environmental contribution.
+
 The lab is considered reproduced when **all** of the following hold:
 
 1. **Scenario A (hard-oom)**: `ContainerAppSystemLogs_CL` contains `exit code '137'` + `ProcessExited` entries within the first 60 seconds after deployment. `RestartCount` climbs. The Revisions blade shows `HealthState: Unhealthy` for the failing revision.

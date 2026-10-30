@@ -406,14 +406,17 @@ a_signal_observed = a_strong_path_signal_lines or a_fallback_path_bin_total
 
 # ---------- b) NotReady correlation via §9 probe failures ----------
 # Strong path: §9 contains "Probe of StartUp failed" AND the §5
-# metric-error timestamp window OVERLAPS the §9 probe-failure window.
-# Overlap proves the metric errors fire WHILE the container is in
-# the NotReady phase, not in a wholly unrelated window. Window
-# overlap definition: max(s5_first, s9_first) < min(s5_last, s9_last).
+# signal-row timestamp window OVERLAPS the §9 probe-failure window.
+# This compares the two observed windows, not a causal explanation.
+# Overlap definition: max(s5_first, s9_first) <= min(s5_last, s9_last).
 section_9_probe_lines = count_record_lines_matching(section_9, PROBE_FAILURE_SUBSTRING)
 probe_failure_present = section_9_probe_lines > 0
 
-s5_timestamps = extract_timestamps_from_section(section_5)
+s5_timestamps = [
+    ts for line in (section_5 or "").split("\n")
+    if SIGNAL_SUBSTRING in line
+    for ts in ISO_TS_REGEX.findall(line)
+]
 s9_timestamps = extract_timestamps_from_section(section_9)
 s9_probe_timestamps = [
     ts for line in (section_9 or "").split("\n")

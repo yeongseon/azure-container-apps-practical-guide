@@ -31,6 +31,8 @@ All four gates pass on the Strong path with no Fallback-path fallback required. 
 
 ## Cross-scenario differential proof — why this is not a fake-fix lab
 
+Gate 10(b) computes the section 5 window from rows containing the metric-error signal only; unrelated rows do not supply timestamps. It compares that window with startup-probe-failure rows in section 9 using inclusive overlap. The result is a window-level correlation, not a per-event match or proof of causation; missing signal or probe timestamps cannot pass the comparison.
+
 This lab does not have a "before/after fix" surface — there is no single broken state that the operator then "fixes". Instead, the falsifiable claim is the **three-way contrast** between three deliberately-different workload behaviors (slow startup, crash-loop, healthy baseline) captured against an otherwise-identical platform shape. The four gates encode that contrast:
 
 - **H1 (Gate 10, Scenario A slow-start) — "no metrics returned" during startup is correlated with NotReady and resolves.** The slow-start revision (`ca-nometrics-slow--gd2u817`) reaches `Healthy/Running` eventually (sidecar `revisions-20260620T004802Z.json` reports `healthState: Healthy`, `trafficWeight: 100`). During its 136-second startup window, the report's §5 captures 20 distinct "no metrics returned" log lines and §9 captures 30 `Probe of StartUp failed` events. Gate 10 sub-gate (b) proves these two windows **overlap** (§5: 00:35:49 → 00:38:05; §9 probe: 00:37:22 → 00:37:51 sits inside §5). The strong-path predicate keys off this overlap, not just probe presence, to differentiate startup-correlated metric errors from steady-state metric errors.

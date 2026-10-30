@@ -98,6 +98,9 @@ jobs:
       - name: Run lab README gate regressions
         run: python3 scripts/test_lab_gates.py
 
+      - name: Run memory report and KEDA correlation regressions
+        run: python3 scripts/test_memory_keda_gates.py
+
       - name: Run clean-output replay runner regressions
         run: python3 scripts/test_check_gate_replay.py
 
