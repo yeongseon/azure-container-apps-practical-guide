@@ -88,6 +88,8 @@ bash labs/memory-leak-oomkilled/cleanup.sh
 
 Before emitting any gates, offline verification validates section 5 in all three pinned reports: exactly one unindented header in order after section 4, the next boundary at section 6, the collection note, table header and separator, and at least one data row. Every nonblank line after the separator must have the declared columns, `PrimaryResult` and a valid `TimeGenerated`. Missing, unreadable, malformed or ambiguous evidence exits with an evidence error, not a zero-OOM result. A passing control records no matching OOM rows in the captured section; it does not exclude delayed or uncollected logs, or an environmental contribution.
 
+Validation targets the historical `az` table format; a row that does not match it is unusable evidence, not proof that collection failed.
+
 The lab is considered reproduced when **all** of the following hold:
 
 1. **Scenario A (hard-oom)**: `ContainerAppSystemLogs_CL` contains `exit code '137'` + `ProcessExited` entries within the first 60 seconds after deployment. `RestartCount` climbs. The Revisions blade shows `HealthState: Unhealthy` for the failing revision.

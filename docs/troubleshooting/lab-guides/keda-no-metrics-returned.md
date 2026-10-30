@@ -229,10 +229,11 @@ ca-nometrics-healthy  10          04:10:26               04:11:27  (~61s window)
 
 3. **Scenario C (healthy)**: **Unexpected finding** — 10 error entries in
    61 seconds immediately after deployment. The container started within
-   seconds (`[app] listening on :8000` logged instantly), but the Kubernetes
-   Metrics Server needed ~60s to begin returning data for the new pod. This
-   proves that **even a perfectly healthy container produces "no metrics
-   returned" logs during initial provisioning**.
+   seconds (`[app] listening on :8000` logged instantly), yet metric errors
+   continued briefly. This capture shows that **"no metrics returned" can
+   accompany initial provisioning of a container reported as healthy**,
+   consistent with Metrics Server warm-up; it does not establish a unique
+   cause or a duration that applies to every deployment.
 
 4. **DEPRECATED warning**: All three apps produced exactly one instance of:
    ```text

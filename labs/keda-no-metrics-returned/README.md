@@ -103,6 +103,8 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 
 Offline Gate 10(b) compares only the `TimeGenerated` columns of section 5 rows containing the metric-error signal and section 9 startup-probe-failure rows. Each section must declare `Log_s`, `TableName` and `TimeGenerated`; selected rows must end in `PrimaryResult` and one valid timestamp, with no extra columns. An unusable selected row makes correlation `Not Proven`. Their timestamp windows must overlap, including a shared endpoint; an unrelated timestamp, including one inside a message, cannot establish correlation. This is a window-level correlation, not proof of causation or a per-event match.
 
+Validation targets the historical `az` table format; a row that does not match it is unusable evidence, not proof that collection failed.
+
 Offline Gate 13(c) retains two evidence tiers: the exact Healthy/Healthy/Unhealthy pattern, or a lower-evidence fallback with all three states reported as `Healthy` or `Unhealthy`, crash `Unhealthy` and at least one of healthy/slow `Healthy`. Only `Healthy`/`Unhealthy` count as reported; anything else is unreported evidence and fails both tiers. `c_evidence_level` identifies the passing tier.
 
 The lab is considered reproduced when **all** of the following hold

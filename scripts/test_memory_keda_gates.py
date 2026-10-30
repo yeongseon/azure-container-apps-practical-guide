@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import unittest
+from pathlib import Path
 from typing import Final
 
 from test_lab_gates import GATE_OUTPUTS, fixture_lab, run_verify
@@ -19,6 +21,61 @@ TIMESTAMP: Final = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z")
 
 
 class MemoryReportTests(unittest.TestCase):
+    def test_prefixed_oom_rows_are_counted_in_each_scenario(self) -> None:
+        scenarios = (("hard", "20260620T060257Z", 16, 0, "sub_gate_a_signal_observed"),
+                     ("leak", "20260620T042200Z", 1, 1, "sub_gate_c_leak_eventually_kills"),
+                     ("healthy", "20260620T042246Z", 0, 2, "sub_gate_a_no_oom_records"))
+        for app, stamp, count, gate, subgate in scenarios:
+            for prefix in ("(container event)", "- container event", "Log_s container event"):
+                with self.subTest(app=app, prefix=prefix), fixture_lab(MEMORY_LAB) as lab:
+                    path = lab / f"evidence/ca-oom-{app}/report-{stamp}.txt"
+                    before, rest = path.read_text().split(MEMORY_SECTION, 1)
+                    body, after = rest.split("=== 6.", 1)
+                    row = prefix + " ProcessExited exit code '137'  ContainerTerminated  PrimaryResult  2026-06-20T04:13:33.3617092Z"
+                    _ = path.write_text(before + MEMORY_SECTION + body + row + "\n=== 6." + after)
+
+                    result = run_verify(lab)
+
+                    data = json.loads((lab / "evidence" / GATE_OUTPUTS[MEMORY_LAB][gate]).read_text())
+                    cross = json.loads((lab / "evidence" / GATE_OUTPUTS[MEMORY_LAB][3]).read_text())
+                    self.assertEqual(data[subgate]["oom_record_count_section_5"], count + 1)
+                    self.assertEqual(cross["observed_metrics"][app]["section_5_oom_count"], count + 1)
+                    self.assertEqual([v for k, v in data.items() if k.endswith("all_subgates_pass")], [app != "healthy"])
+                    self.assertIs(cross["h3_cross_all_subgates_pass"], app != "healthy")
+                    self.assertEqual(result.returncode, int(app == "healthy"), result.stdout + result.stderr)
+
+    def test_structural_defects_are_rejected_independently(self) -> None:
+        for case in ("wrong-table", "wrong-boundary", "intervening-section", "duplicate-only", "invalid-day"):
+            with self.subTest(case=case), fixture_lab(MEMORY_LAB) as lab:
+                path = lab / "evidence/ca-oom-healthy/report-20260620T042246Z.txt"
+                original = path.read_text()
+                before, rest = original.split(MEMORY_SECTION, 1)
+                body, after = rest.split("=== 6.", 1)
+                variants = {
+                    "wrong-table": before + MEMORY_SECTION + body.replace("PrimaryResult", "OtherResult", 1) + "=== 6." + after,
+                    "wrong-boundary": before + MEMORY_SECTION + body + "=== 6b." + after,
+                    "intervening-section": before + "=== 4b. Additional context ===\n" + MEMORY_SECTION + body + "=== 6." + after,
+                    "duplicate-only": original + "\n" + MEMORY_SECTION + "\n",
+                    "invalid-day": before + MEMORY_SECTION + TIMESTAMP.sub("2026-02-30T04:13:33.3617092Z", body, count=1) + "=== 6." + after,
+                }
+                _ = path.write_text(variants[case])
+
+                result = run_verify(lab)
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("ERROR:", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+                self.assertFalse(any((lab / "evidence" / name).exists() for name in GATE_OUTPUTS[MEMORY_LAB]))
+
+    def test_validation_avoids_fraction_incompatible_iso_parser(self) -> None:
+        source = (Path(__file__).resolve().parents[1] / "labs" / MEMORY_LAB / "verify.sh").read_text()
+        validation = source.split("python3 - <<'PY'\n", 1)[1].split("\nPY\n", 1)[0]
+
+        attributes = [node.attr for node in ast.walk(ast.parse(validation)) if isinstance(node, ast.Attribute)]
+
+        # Python 3.10 fromisoformat cannot parse the reports' seven-digit fractions.
+        self.assertNotIn("fromisoformat", attributes)
+
     def test_unusable_section_is_rejected_before_gate_emission(self) -> None:
         for case in ("header-only", "truncated", "empty-section", "error-only", "duplicate",
                      "relocated", "malformed-row", "quoted", "suffixed", "indented",
@@ -73,18 +130,21 @@ class MemoryReportTests(unittest.TestCase):
                 self.assertFalse(any((lab / "evidence" / name).exists() for name in GATE_OUTPUTS[MEMORY_LAB]))
 
     def test_normalized_report_layout_passes(self) -> None:
+        reports = ("ca-oom-hard/report-20260620T060257Z.txt", "ca-oom-leak/report-20260620T042200Z.txt",
+                   "ca-oom-healthy/report-20260620T042246Z.txt")
         for case in ("crlf", "trailing-spaces", "bom"):
-            with self.subTest(case=case), fixture_lab(MEMORY_LAB) as lab:
-                path = lab / "evidence/ca-oom-healthy/report-20260620T042246Z.txt"
-                text = path.read_text()
-                variants = {"crlf": text.replace("\n", "\r\n"),
-                            "trailing-spaces": "\n".join(line + "  " for line in text.split("\n")),
-                            "bom": "\ufeff" + text}
-                _ = path.write_bytes(variants[case].encode())
+            for report in reports:
+                with self.subTest(case=case, report=report), fixture_lab(MEMORY_LAB) as lab:
+                    path = lab / "evidence" / report
+                    text = path.read_text()
+                    variants = {"crlf": text.replace("\n", "\r\n"),
+                                "trailing-spaces": "\n".join(line + "  " for line in text.split("\n")),
+                                "bom": "\ufeff" + text}
+                    _ = path.write_bytes(variants[case].encode())
 
-                result = run_verify(lab)
+                    result = run_verify(lab)
 
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_incomplete_failure_scenario_report_is_rejected(self) -> None:
         for app, stamp in (("hard", "20260620T060257Z"), ("leak", "20260620T042200Z")):

@@ -367,7 +367,7 @@ def get_section(text, section_header):
         return None
     end = len(lines)
     for j in range(start, len(lines)):
-        if lines[j].startswith("=== ") and lines[j].endswith(" ==="):
+        if lines[j].startswith("=== ") and lines[j].rstrip().endswith(" ==="):
             end = j
             break
     return "\n".join(lines[start:end])
@@ -396,8 +396,9 @@ def parse_section_5_oom_records(section_text):
         ----------------------------         ------------------    -------------  ----------------------------
         Container 'X' was terminated...      ContainerTerminated   PrimaryResult  2026-06-20T05:56:58.5123804Z
     Each data row has the columns separated by 2+ spaces, so we
-    split on `\\s{2,}` to get exactly 4 fields per row. Header,
-    dashes, blank lines, and rows with fewer fields are skipped.
+    split on `\\s{2,}` to get exactly 4 fields per row. Preflight
+    validates the note, header and separator in the first three
+    nonblank positions; every following nonblank line is a data row.
 
     Returns a list of dicts:
       [{"log_s": "...", "reason_s": "...", "timestamp": "...",
@@ -406,33 +407,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        # Skip header row and dash separator.
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        # Skip the "(Log Analytics ingestion delay: ...)" annotation.
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        # Tight scoping: the row's TableName must equal PrimaryResult
-        # (the KQL query's single result table) and the last field
-        # must be a valid ISO timestamp. Any row failing either check
-        # is non-data and skipped.
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         # Form A: Reason_s == "ContainerTerminated" AND Log_s has both
         # "exit code '137'" and "ProcessExited".
         form_a = (
@@ -667,7 +644,7 @@ def get_section(text, section_header):
         return None
     end = len(lines)
     for j in range(start, len(lines)):
-        if lines[j].startswith("=== ") and lines[j].endswith(" ==="):
+        if lines[j].startswith("=== ") and lines[j].rstrip().endswith(" ==="):
             end = j
             break
     return "\n".join(lines[start:end])
@@ -676,27 +653,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         form_a = (
             reason_s == "ContainerTerminated"
             and "exit code '137'" in log_s
@@ -965,7 +924,7 @@ def get_section(text, section_header):
         return None
     end = len(lines)
     for j in range(start, len(lines)):
-        if lines[j].startswith("=== ") and lines[j].endswith(" ==="):
+        if lines[j].startswith("=== ") and lines[j].rstrip().endswith(" ==="):
             end = j
             break
     return "\n".join(lines[start:end])
@@ -974,27 +933,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         form_a = (
             reason_s == "ContainerTerminated"
             and "exit code '137'" in log_s
@@ -1247,7 +1188,7 @@ def get_section(text, section_header):
         return None
     end = len(lines)
     for j in range(start, len(lines)):
-        if lines[j].startswith("=== ") and lines[j].endswith(" ==="):
+        if lines[j].startswith("=== ") and lines[j].rstrip().endswith(" ==="):
             end = j
             break
     return "\n".join(lines[start:end])
@@ -1256,27 +1197,9 @@ def parse_section_5_oom_records(section_text):
     if section_text is None:
         return []
     records = []
-    for line in section_text.split("\n"):
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        if stripped.startswith("Log_s"):
-            continue
-        if stripped.startswith("-"):
-            continue
-        if stripped.startswith("("):
-            continue
-        parts = re.split(r'\s{2,}', stripped)
-        if len(parts) < 4:
-            continue
-        log_s = parts[0]
-        reason_s = parts[-3]
-        table_s = parts[-2]
-        ts = parts[-1]
-        if table_s != "PrimaryResult":
-            continue
-        if not ISO_TS_REGEX.fullmatch(ts):
-            continue
+    lines = [line.rstrip() for line in section_text.splitlines() if line.strip()]
+    for line in lines[3:]:
+        log_s, reason_s, table_s, ts = re.split(r'\s{2,}', line)
         form_a = (
             reason_s == "ContainerTerminated"
             and "exit code '137'" in log_s

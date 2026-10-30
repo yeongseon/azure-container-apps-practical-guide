@@ -319,7 +319,7 @@ The 62 captures committed under `docs/assets/troubleshooting/memory-leak-oomkill
 |---|---|---|---|---|
 | 26 | Steady state | `ca-oom-healthy` → Overview | `Healthy` | `26-ca-oom-healthy-overview.png` |
 | 27 | Same | Metrics | `Memory Percentage` — flat at a very low level | `27-ca-oom-healthy-metric-memory-percentage.png` |
-| 28 | Same | Revisions and replicas | Single active revision with `HealthState: Healthy` and no restart history — the differential control proving the platform, image, environment, and network path are all fine | `28-ca-oom-healthy-revisions.png` |
+| 28 | Same | Revisions and replicas | Single active revision with `HealthState: Healthy` and no restart history — supports the captured workload contrast, without excluding a platform, image, environment or network contribution | `28-ca-oom-healthy-revisions.png` |
 
 #### Environment and Log Analytics workspace (captures 29-30)
 
