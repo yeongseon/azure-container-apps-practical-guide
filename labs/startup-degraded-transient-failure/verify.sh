@@ -265,10 +265,28 @@ QG_FILE="$QG_FILE" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
 python3 <<'PY' > "$GATE10_FILE"
 import json
+import math
 import os
 import pathlib
 import re
 from datetime import datetime
+from decimal import Decimal
+
+
+def load_json(path: pathlib.Path):
+    """Decode without rounding numbers through binary floats; bare NaN and Infinity become non-finite Decimals."""
+    return json.loads(path.read_text(), parse_float=Decimal, parse_constant=Decimal)
+
+
+def jsonable(value):
+    """Write a Decimal as standard JSON: a float when that round-trips unchanged, otherwise its exact decimal text."""
+    if isinstance(value, Decimal):
+        if value.is_finite():
+            as_float = float(value)
+            if math.isfinite(as_float) and Decimal(repr(as_float)) == value:
+                return as_float
+        return str(value)
+    raise TypeError(f"{type(value).__name__} is not JSON serializable")
 
 
 def parse_ts_from_filename(path: pathlib.Path) -> datetime:
@@ -294,7 +312,7 @@ qe = pathlib.Path(os.environ["QE_FILE"])
 qf = pathlib.Path(os.environ["QF_FILE"])
 qg = pathlib.Path(os.environ["QG_FILE"])
 paths = [qa, qb, qc, qd, qe, qf, qg]
-qf_records = json.loads(qf.read_text())
+qf_records = load_json(qf)
 
 strong_window_start = datetime(2026, 6, 20, 22, 39, 0)
 strong_window_end = datetime(2026, 6, 20, 22, 51, 59)
@@ -380,7 +398,7 @@ result["startup_degraded_transient_failure_h0_preconditions_all_subgates_pass"] 
     result["startup_degraded_transient_failure_h0_preconditions_sub_gates"].values()
 )
 result["gate_classification"] = "canonical_evidence_pack_internally_consistent"
-print(json.dumps(result, indent=2))
+print(json.dumps(result, indent=2, default=jsonable))
 PY
 
 echo "=== Phase 11: degraded-state evidence gate ==="
@@ -516,6 +534,7 @@ import json
 import math
 import os
 import pathlib
+import re
 from decimal import Decimal, InvalidOperation
 
 
@@ -531,15 +550,40 @@ def as_int(value) -> int:
     return int(str(value))
 
 
+def load_json(path: pathlib.Path):
+    """Decode without rounding numbers through binary floats; bare NaN and Infinity become non-finite Decimals."""
+    return json.loads(path.read_text(), parse_float=Decimal, parse_constant=Decimal)
+
+
+def jsonable(value):
+    """Write a Decimal as standard JSON: a float when that round-trips unchanged, otherwise its exact decimal text."""
+    if isinstance(value, Decimal):
+        if value.is_finite():
+            as_float = float(value)
+            if math.isfinite(as_float) and Decimal(repr(as_float)) == value:
+                return as_float
+        return str(value)
+    raise TypeError(f"{type(value).__name__} is not JSON serializable")
+
+
+NUMBER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
+
+
 def read_error_rate(record):
     """Return (rate, problem) with rate an exact Decimal. Absent or malformed evidence is a problem, never a zero rate, and no value is rounded through a binary float."""
     raw = record.get("err_pct")
     if raw is None or isinstance(raw, bool) or (isinstance(raw, str) and not raw.strip()):
         return None, "err_pct is missing, null, boolean or empty"
-    try:
-        rate = Decimal(str(raw).strip())
-    except InvalidOperation:
-        return None, "err_pct is not numeric"
+    if isinstance(raw, Decimal):
+        rate = raw
+    else:
+        text = str(raw).strip()
+        if NUMBER.fullmatch(text) is None:
+            return None, "err_pct is not numeric"
+        try:
+            rate = Decimal(text)
+        except InvalidOperation:
+            return None, "err_pct is not numeric"
     if not rate.is_finite() or rate < 0:
         return None, "err_pct is not a finite non-negative number"
     return rate, None
@@ -549,9 +593,9 @@ qa = pathlib.Path(os.environ["QA_FILE"])
 qb = pathlib.Path(os.environ["QB_FILE"])
 qf = pathlib.Path(os.environ["QF_FILE"])
 
-qa_records = json.loads(qa.read_text())
-qb_records = json.loads(qb.read_text())
-qf_records = json.loads(qf.read_text())
+qa_records = load_json(qa)
+qb_records = load_json(qb)
+qf_records = load_json(qf)
 
 perturbation_run_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("perturbation-")]
 baseline_run_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("baseline-")]
@@ -642,7 +686,7 @@ result["startup_degraded_transient_failure_h0_partb_recovery_no_client_impact_al
     result["startup_degraded_transient_failure_h0_partb_recovery_no_client_impact_sub_gates"].values()
 )
 result["gate_classification"] = "aca_rolling_rollout_masked_transients_to_clients"
-print(json.dumps(result, indent=2))
+print(json.dumps(result, indent=2, default=jsonable))
 PY
 
 echo "=== Phase 13: cross-artifact consistency gate ==="
