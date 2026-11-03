@@ -513,6 +513,7 @@ QF_FILE="$QF_FILE" \
 REPO_RELATIVE_EVIDENCE_DIR="$REPO_RELATIVE_EVIDENCE_DIR" \
 python3 <<'PY' > "$GATE12_FILE"
 import json
+import math
 import os
 import pathlib
 
@@ -529,8 +530,18 @@ def as_int(value) -> int:
     return int(str(value))
 
 
-def as_float(value) -> float:
-    return float(str(value))
+def read_error_rate(record):
+    """Return (rate, problem). Absent or malformed evidence is a problem, never a zero rate."""
+    raw = record.get("err_pct")
+    if raw is None or isinstance(raw, bool) or (isinstance(raw, str) and not raw.strip()):
+        return None, "err_pct is missing, null, boolean or empty"
+    try:
+        rate = float(str(raw))
+    except ValueError:
+        return None, "err_pct is not numeric"
+    if not math.isfinite(rate) or rate < 0:
+        return None, "err_pct is not a finite non-negative number"
+    return rate, None
 
 
 qa = pathlib.Path(os.environ["QA_FILE"])
@@ -544,9 +555,9 @@ qf_records = json.loads(qf.read_text())
 perturbation_run_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("perturbation-")]
 baseline_run_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("baseline-")]
 perturbation_run = perturbation_run_records[0]
-perturbation_err_pct = as_float(perturbation_run.get("err_pct", 0))
-a_strong = perturbation_err_pct == 0.0
-a_fallback = perturbation_err_pct < 0.5
+perturbation_err_pct, err_pct_problem = read_error_rate(perturbation_run)
+a_strong = perturbation_err_pct is not None and perturbation_err_pct == 0.0
+a_fallback = perturbation_err_pct is not None and perturbation_err_pct < 0.5
 
 baseline_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in baseline_run_records]
 perturbation_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in perturbation_run_records]
@@ -614,6 +625,8 @@ result = {
         "c_pass": c_strong or c_fallback,
     },
 }
+if err_pct_problem is not None:
+    result["sub_gate_a_k6_client_observed_error_rate_zero"]["a_input_problem"] = err_pct_problem
 result["startup_degraded_transient_failure_h0_partb_recovery_no_client_impact_sub_gates"] = {
     "a_k6_client_observed_error_rate_zero": result["sub_gate_a_k6_client_observed_error_rate_zero"]["a_pass"],
     "b_falsification_rule_not_triggered": result["sub_gate_b_falsification_rule_not_triggered"]["b_pass"],
