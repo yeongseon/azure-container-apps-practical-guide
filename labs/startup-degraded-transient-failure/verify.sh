@@ -516,6 +516,7 @@ import json
 import math
 import os
 import pathlib
+from decimal import Decimal, InvalidOperation
 
 
 def repo_rel(path: pathlib.Path) -> str:
@@ -531,15 +532,15 @@ def as_int(value) -> int:
 
 
 def read_error_rate(record):
-    """Return (rate, problem). Absent or malformed evidence is a problem, never a zero rate."""
+    """Return (rate, problem) with rate an exact Decimal. Absent or malformed evidence is a problem, never a zero rate, and no value is rounded through a binary float."""
     raw = record.get("err_pct")
     if raw is None or isinstance(raw, bool) or (isinstance(raw, str) and not raw.strip()):
         return None, "err_pct is missing, null, boolean or empty"
     try:
-        rate = float(str(raw))
-    except ValueError:
+        rate = Decimal(str(raw).strip())
+    except InvalidOperation:
         return None, "err_pct is not numeric"
-    if not math.isfinite(rate) or rate < 0:
+    if not rate.is_finite() or rate < 0:
         return None, "err_pct is not a finite non-negative number"
     return rate, None
 
@@ -556,8 +557,11 @@ perturbation_run_records = [record for record in qf_records if str(record.get("r
 baseline_run_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("baseline-")]
 perturbation_run = perturbation_run_records[0]
 perturbation_err_pct, err_pct_problem = read_error_rate(perturbation_run)
-a_strong = perturbation_err_pct is not None and perturbation_err_pct == 0.0
-a_fallback = perturbation_err_pct is not None and perturbation_err_pct < 0.5
+a_strong = perturbation_err_pct is not None and perturbation_err_pct == 0
+a_fallback = perturbation_err_pct is not None and perturbation_err_pct < Decimal("0.5")
+observed_err_pct = None
+if perturbation_err_pct is not None and math.isfinite(float(perturbation_err_pct)):
+    observed_err_pct = float(perturbation_err_pct)
 
 baseline_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in baseline_run_records]
 perturbation_runs_false = [str(record.get("falsification_triggered", "")) == "False" for record in perturbation_run_records]
@@ -601,7 +605,7 @@ result = {
     "fallback_err_pct_threshold": 0.5,
     "fallback_active_replica_threshold": 3,
     "sub_gate_a_k6_client_observed_error_rate_zero": {
-        "observed_perturbation_err_pct": perturbation_err_pct,
+        "observed_perturbation_err_pct": observed_err_pct,
         "observed_first_5": sample(perturbation_run_records),
         "a_strong_path_err_pct_equals_zero": a_strong,
         "a_fallback_path_err_pct_below_point_five": a_fallback,
@@ -627,6 +631,8 @@ result = {
 }
 if err_pct_problem is not None:
     result["sub_gate_a_k6_client_observed_error_rate_zero"]["a_input_problem"] = err_pct_problem
+elif observed_err_pct is None or Decimal(repr(observed_err_pct)) != perturbation_err_pct:
+    result["sub_gate_a_k6_client_observed_error_rate_zero"]["observed_perturbation_err_pct_exact"] = str(perturbation_err_pct)
 result["startup_degraded_transient_failure_h0_partb_recovery_no_client_impact_sub_gates"] = {
     "a_k6_client_observed_error_rate_zero": result["sub_gate_a_k6_client_observed_error_rate_zero"]["a_pass"],
     "b_falsification_rule_not_triggered": result["sub_gate_b_falsification_rule_not_triggered"]["b_pass"],

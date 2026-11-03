@@ -259,9 +259,16 @@ class StartupGateTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    @staticmethod
+    def set_error_rate(value: object) -> Callable[[dict[str, object]], object]:
+        def apply(record: dict[str, object]) -> None:
+            record["err_pct"] = value
+
+        return apply
+
     def error_rate_subgate(
         self, mutate: Callable[[dict[str, object]], object]
-    ) -> tuple[subprocess.CompletedProcess[str], dict[str, object]]:
+    ) -> tuple[subprocess.CompletedProcess[str], dict[str, object], str]:
         with fixture_lab(self.lab_name) as lab:
             path = lab / "evidence" / "qF-run-summary-20260620T224149Z.json"
             records: list[dict[str, object]] = [*json.loads(path.read_text())]
@@ -272,29 +279,25 @@ class StartupGateTests(unittest.TestCase):
 
             result = run_verify(lab)
 
-            data: dict[str, dict[str, object]] = {**json.loads((lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text())}
-            return result, data["sub_gate_a_k6_client_observed_error_rate_zero"]
+            gate_text = (lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text()
+            data: dict[str, dict[str, object]] = {**json.loads(gate_text)}
+            return result, data["sub_gate_a_k6_client_observed_error_rate_zero"], gate_text
 
     def test_missing_or_invalid_error_rate_fails_the_owning_subgate(self) -> None:
-        def set_value(value: object) -> Callable[[dict[str, object]], object]:
-            def apply(record: dict[str, object]) -> None:
-                record["err_pct"] = value
-
-            return apply
-
         for name, mutate in (
             ("key missing", lambda record: record.pop("err_pct")),
-            ("null", set_value(None)),
-            ("empty string", set_value("")),
-            ("blank string", set_value("   ")),
-            ("boolean", set_value(True)),
-            ("non-numeric text", set_value("abc")),
-            ("not a number", set_value("nan")),
-            ("infinity", set_value("inf")),
-            ("negative", set_value("-1")),
+            ("null", self.set_error_rate(None)),
+            ("empty string", self.set_error_rate("")),
+            ("blank string", self.set_error_rate("   ")),
+            ("boolean", self.set_error_rate(True)),
+            ("non-numeric text", self.set_error_rate("abc")),
+            ("not a number", self.set_error_rate("nan")),
+            ("infinity", self.set_error_rate("inf")),
+            ("negative", self.set_error_rate("-1")),
+            ("negative below float range", self.set_error_rate("-1e-400")),
         ):
             with self.subTest(case=name):
-                result, sub = self.error_rate_subgate(mutate)
+                result, sub, _ = self.error_rate_subgate(mutate)
 
                 self.assertIsNone(sub["observed_perturbation_err_pct"])
                 self.assertIs(sub["a_pass"], False)
@@ -302,26 +305,40 @@ class StartupGateTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_valid_error_rate_forms_keep_their_documented_tiers(self) -> None:
-        def set_value(value: object) -> Callable[[dict[str, object]], object]:
-            def apply(record: dict[str, object]) -> None:
-                record["err_pct"] = value
-
-            return apply
-
         for name, value, strong, fallback, expected_pass in (
             ("integer zero", 0, True, True, True),
             ("string zero", "0", True, True, True),
             ("decimal zero", "0.0", True, True, True),
+            ("JSON float zero", 0.0, True, True, True),
             ("inside the lower-evidence tier", "0.3", False, True, True),
+            ("JSON float inside the lower-evidence tier", 0.3, False, True, True),
             ("at the fallback bound", "0.5", False, False, False),
         ):
             with self.subTest(case=name):
-                result, sub = self.error_rate_subgate(set_value(value))
+                result, sub, _ = self.error_rate_subgate(self.set_error_rate(value))
 
                 self.assertIs(sub["a_strong_path_err_pct_equals_zero"], strong)
                 self.assertIs(sub["a_fallback_path_err_pct_below_point_five"], fallback)
                 self.assertIs(sub["a_pass"], expected_pass)
                 self.assertNotIn("a_input_problem", sub)
+                self.assertNotIn("observed_perturbation_err_pct_exact", sub)
+                self.assertEqual(result.returncode == 0, expected_pass, result.stdout + result.stderr)
+
+    def test_error_rates_beyond_float_resolution_are_compared_exactly(self) -> None:
+        for name, value, strong, fallback, expected_pass, exact in (
+            ("positive below float range", "1e-400", False, True, True, "1E-400"),
+            ("just below the fallback bound", "0.49999999999999999", False, True, True, "0.49999999999999999"),
+            ("beyond float range", "1e309", False, False, False, "1E+309"),
+        ):
+            with self.subTest(case=name):
+                result, sub, gate_text = self.error_rate_subgate(self.set_error_rate(value))
+
+                self.assertIs(sub["a_strong_path_err_pct_equals_zero"], strong)
+                self.assertIs(sub["a_fallback_path_err_pct_below_point_five"], fallback)
+                self.assertIs(sub["a_pass"], expected_pass)
+                self.assertEqual(sub["observed_perturbation_err_pct_exact"], exact)
+                self.assertNotIn("a_input_problem", sub)
+                self.assertNotIn("Infinity", gate_text)
                 self.assertEqual(result.returncode == 0, expected_pass, result.stdout + result.stderr)
 
     def test_emitted_gates_use_evaluation_time(self) -> None:
