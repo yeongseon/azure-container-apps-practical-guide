@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Final
@@ -258,6 +258,71 @@ class StartupGateTests(unittest.TestCase):
             result = run_verify(lab)
 
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def error_rate_subgate(
+        self, mutate: Callable[[dict[str, object]], object]
+    ) -> tuple[subprocess.CompletedProcess[str], dict[str, object]]:
+        with fixture_lab(self.lab_name) as lab:
+            path = lab / "evidence" / "qF-run-summary-20260620T224149Z.json"
+            records: list[dict[str, object]] = [*json.loads(path.read_text())]
+            for record in records:
+                if str(record["run_id"]).startswith("perturbation-"):
+                    _ = mutate(record)
+            _ = path.write_text(json.dumps(records))
+
+            result = run_verify(lab)
+
+            data: dict[str, dict[str, object]] = {**json.loads((lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text())}
+            return result, data["sub_gate_a_k6_client_observed_error_rate_zero"]
+
+    def test_missing_or_invalid_error_rate_fails_the_owning_subgate(self) -> None:
+        def set_value(value: object) -> Callable[[dict[str, object]], object]:
+            def apply(record: dict[str, object]) -> None:
+                record["err_pct"] = value
+
+            return apply
+
+        for name, mutate in (
+            ("key missing", lambda record: record.pop("err_pct")),
+            ("null", set_value(None)),
+            ("empty string", set_value("")),
+            ("blank string", set_value("   ")),
+            ("boolean", set_value(True)),
+            ("non-numeric text", set_value("abc")),
+            ("not a number", set_value("nan")),
+            ("infinity", set_value("inf")),
+            ("negative", set_value("-1")),
+        ):
+            with self.subTest(case=name):
+                result, sub = self.error_rate_subgate(mutate)
+
+                self.assertIsNone(sub["observed_perturbation_err_pct"])
+                self.assertIs(sub["a_pass"], False)
+                self.assertIn("a_input_problem", sub)
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_valid_error_rate_forms_keep_their_documented_tiers(self) -> None:
+        def set_value(value: object) -> Callable[[dict[str, object]], object]:
+            def apply(record: dict[str, object]) -> None:
+                record["err_pct"] = value
+
+            return apply
+
+        for name, value, strong, fallback, expected_pass in (
+            ("integer zero", 0, True, True, True),
+            ("string zero", "0", True, True, True),
+            ("decimal zero", "0.0", True, True, True),
+            ("inside the lower-evidence tier", "0.3", False, True, True),
+            ("at the fallback bound", "0.5", False, False, False),
+        ):
+            with self.subTest(case=name):
+                result, sub = self.error_rate_subgate(set_value(value))
+
+                self.assertIs(sub["a_strong_path_err_pct_equals_zero"], strong)
+                self.assertIs(sub["a_fallback_path_err_pct_below_point_five"], fallback)
+                self.assertIs(sub["a_pass"], expected_pass)
+                self.assertNotIn("a_input_problem", sub)
+                self.assertEqual(result.returncode == 0, expected_pass, result.stdout + result.stderr)
 
     def test_emitted_gates_use_evaluation_time(self) -> None:
         with fixture_lab(self.lab_name) as lab:
