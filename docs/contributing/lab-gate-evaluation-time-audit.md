@@ -52,12 +52,12 @@ Issue #579 audited the checked items in #398 at `origin/main` commit `9cbf725392
 
 | #398 item | Merged implementation |
 |---|---|
-| 1. Reject a missing or incomplete healthy memory report | `041333d47bf212a2677094baa0fe79815bcfaff1` in PR #394 changed `labs/memory-leak-oomkilled/verify.sh`; PRs #418 and #421 later tightened report structure and row evaluation. |
-| 2. Scope KEDA correlation to signal rows | `cf51f7041ff10e151bf16e617c947471b4122e0c` in PR #394 changed `labs/keda-no-metrics-returned/verify.sh`; PR #418 added the current signal-window regressions. |
-| 3. Declare the replica-summary tolerance and preserve raw primacy | PR #394 documented the two-entry advisory tolerance and made raw contradictions fail the verdict; the current boundary regression is in `labs/replica-node-spread/test_verify.py`. |
-| 4. Validate consumed scale-record fields | PR #416 added the scale boundary checks in `labs/replica-node-spread/verify_helpers.py` and their structured gate output and negative fixtures. |
-| 5. Harden serialization, recursive input handling, numeric bounds, and clean replay | PR #416 added the input and serialization boundaries; PR #417 added `scripts/check_gate_replay.py`, delete-first replay, and replay-runner negatives. |
-| 6. Correct stale comments and evidence descriptions | `041333d47bf212a2677094baa0fe79815bcfaff1` and `cf51f7041ff10e151bf16e617c947471b4122e0c` in PR #394 corrected the affected verifier comments and evidence README text. |
+| 1. Reject a missing or incomplete healthy memory report | PR #418 (`ed2f834feec8af361807ad040a588216e3f9bed3`) added structural rejection and negative fixtures; PR #421 (`3862fa214213fbd5cb64fc1931fb83a9a94ee8b8`) made every evaluator consume the validated rows. |
+| 2. Scope KEDA correlation to signal rows | PR #418 (`ed2f834feec8af361807ad040a588216e3f9bed3`) restricted correlation to the declared timestamp columns of selected signal and probe rows and added the disjoint-window fixture. |
+| 3. Declare the replica-summary tolerance and preserve raw primacy | PR #416 (`e56ee7e29abb522a00ea4621b74b6cbb3db39f46`) documented the two-entry advisory tolerance, added the two-pass/three-fail boundary fixture, and retained raw JSONL as authoritative. |
+| 4. Validate consumed scale-record fields | PR #416 (`e56ee7e29abb522a00ea4621b74b6cbb3db39f46`) added the scale boundary checks in `labs/replica-node-spread/verify_helpers.py` and their structured gate output and negative fixtures. |
+| 5. Harden serialization, recursive input handling, numeric bounds, and clean replay | PR #416 (`e56ee7e29abb522a00ea4621b74b6cbb3db39f46`) added the input and serialization boundaries; PR #417 (`3d56d18bce04b9294bd3485390820472f63179a1`) added `scripts/check_gate_replay.py`, delete-first replay, and replay-runner negatives. |
+| 6. Correct stale comments and evidence descriptions | PR #416 (`e56ee7e29abb522a00ea4621b74b6cbb3db39f46`) corrected the replica comments and measured size cells; PR #418 (`ed2f834feec8af361807ad040a588216e3f9bed3`) corrected the memory, KEDA, and revision-history comments, including the byte-identity overclaim. |
 
 The current negative coverage includes:
 
@@ -74,8 +74,11 @@ A scratch clone replayed the current verifiers against unchanged committed raw e
 - `memory-leak-oomkilled`: Gates 10-13
 - `keda-no-metrics-returned`: Gates 10-13
 - `replica-node-spread`: Gates 10-13
+- `revision-history-limit`: Gates 20-23
 
-All 12 outputs matched the committed JSON exactly after removing only the top-level `evaluated_at_utc` field. The stale-output list is therefore **empty**: #579 regenerates no gate JSON, changes no raw evidence, and defers no #398 artifact. The 21 verifier conversions remaining in #409 and the predicate changes tracked by #413 remain separate work.
+All 16 outputs matched the committed JSON exactly after removing only the top-level `evaluated_at_utc` field. The stale-output list is therefore **empty**: #579 regenerates no gate JSON, changes no raw evidence, and defers no #398 artifact. Startup Gates 10-13 were also replayed and were current, but they are not counted in the 16-output #579 scope because PRs #432 and #433 implement separately tracked #413 work. The 21 verifier conversions remaining in #409 and the other predicate changes tracked by #413 remain separate work.
+
+Two pre-existing local checks remain visible rather than being presented as #579 results. `labs/replica-node-spread/test_verify.py` has five `RecursiveJsonBoundaryTests` failures at this pinned SHA under local Python 3.11 and 3.14: four expected parse-failure counts differ and `test_invalid_summary_json_returns_named_boundary_reason` does not observe the expected `RecursionError`. The Application Tests workflow is configured to run this suite on hosted Python 3.11 when its lab, script, or workflow paths change, but this documentation-only PR does not trigger that workflow. Full ShellCheck also reports pre-existing advisory `SC2155` at `labs/replica-node-spread/verify.sh:258`; CI blocks ShellCheck errors and reports warnings as advisory. Neither baseline finding changes the successful clean replays above.
 
 ## See Also
 
