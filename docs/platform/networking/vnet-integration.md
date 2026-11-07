@@ -33,12 +33,12 @@ content_validation:
 ---
 # VNet Integration
 
-Deploy Container Apps in a custom virtual network for network isolation.
+Deploy Container Apps in a custom virtual network to use customer-managed network controls and private connectivity.
 
 ## Overview
 
 Container Apps can be deployed into a custom VNet to:
-- Isolate traffic from the public internet
+- Support private ingress when the environment accessibility and public network access settings are configured for it
 - Connect to private resources (databases, storage)
 - Control ingress/egress with NSG rules
 
@@ -55,55 +55,38 @@ flowchart TD
     accTitle: Azure Container Apps custom VNet and private endpoint topology
     accDescr: The managed Container Apps environment is a logical boundary associated with a dedicated environment subnet. A replica reaches a Storage account through a separate downstream private endpoint subnet after private DNS resolution. An optional inbound private endpoint to the environment occupies another endpoint subnet and requires a workload profiles environment with public network access disabled.
 
-    USER["Public or VNet caller<br/>according to environment accessibility"]
-    PRIVATE_CLIENT["Private client"]
-    STORAGE_NAME["Storage Blob service name"]
-    DNS["DNS resolver"]
-    STORAGE_ZONE["Private DNS zone<br/>privatelink.blob.core.windows.net"]
-    ACA_ZONE["Private DNS zone<br/>privatelink.region.azurecontainerapps.io"]
+    PRIVATE_CLIENT["1  Private client"]
+    ACA_ZONE["2  DNS lookup<br/>environment name resolves to PE IP<br/>privatelink.region.azurecontainerapps.io"]
 
     subgraph ENV["Managed Container Apps environment — logical boundary"]
-        INGRESS["Managed ingress proxy"]
-        APP["Container app — logical grouping"]
-        REV_ACTIVE["Active revision"]
-        REPLICAS["Revision replicas"]
-        APP -.-> REV_ACTIVE
-        REV_ACTIVE -.-> REPLICAS
+        INGRESS["4  Managed ingress proxy"]
+        REV_ACTIVE["5  Active revision"]
+        REPLICAS["6  Revision replica"]
     end
 
     subgraph VNET["Customer-managed virtual network"]
-        subgraph ENV_SUBNET["Dedicated environment subnet"]
-            ADAPTER["ACA environment subnet relationship<br/>not an app integration NIC"]
-        end
-
-        subgraph TARGET_SUBNET["Target-side private endpoint subnet"]
-            STORAGE_PE["Storage private endpoint NIC<br/>Blob private IP"]
-        end
-
         subgraph INBOUND_SUBNET["Optional inbound endpoint subnet"]
-            ACA_PE["Container Apps environment<br/>private endpoint NIC"]
+            ACA_PE["3  Container Apps environment PE NIC<br/>workload profiles environment<br/>public network access disabled"]
         end
+        ENV_SUBNET["Dedicated environment subnet<br/>ACA environment relationship<br/>not an app integration NIC"]
+        TARGET_SUBNET["8  Target-side PE subnet<br/>Storage private endpoint NIC"]
     end
 
-    STORAGE["Storage account<br/>outside customer VNet"]
-    INBOUND_REQ["Inbound environment PE requirements<br/>workload profiles environment<br/>public network access disabled"]
+    STORAGE_ZONE["7  DNS lookup<br/>Storage name resolves to PE IP<br/>privatelink.blob.core.windows.net"]
+    STORAGE["9  Storage account<br/>outside customer VNet"]
 
-    ENV -.->|"uses dedicated subnet"| ADAPTER
-    USER ==>|"Allowed inbound request"| INGRESS
-    INGRESS ==>|"Route request"| REV_ACTIVE
-    REV_ACTIVE ==>|"Select replica"| REPLICAS
-
-    REPLICAS -.->|"1  Resolve dependency name"| STORAGE_NAME
-    STORAGE_NAME -.-> DNS
-    DNS -.->|"2  Consult linked zone"| STORAGE_ZONE
-    STORAGE_ZONE -.->|"3  Return private IP"| REPLICAS
-    REPLICAS ==>|"4  Outbound HTTPS"| STORAGE_PE
-    STORAGE_PE ==>|"5  Private Link"| STORAGE
-
-    ACA_ZONE -.->|"linked DNS for environment name"| ACA_PE
-    PRIVATE_CLIENT ==>|"Optional inbound HTTPS"| ACA_PE
+    ENV_SUBNET -.-> ENV
+    PRIVATE_CLIENT -.->|"Resolve environment name"| ACA_ZONE
+    ACA_ZONE -.->|"Return environment PE IP"| ACA_PE
+    PRIVATE_CLIENT ==>|"Inbound HTTPS"| ACA_PE
     ACA_PE ==>|"Private Link to environment"| INGRESS
-    INBOUND_REQ -.-> ACA_PE
+    INGRESS ==>|"Route request"| REV_ACTIVE
+    REV_ACTIVE ==>|"Continue request to replica"| REPLICAS
+
+    REPLICAS -.->|"Resolve Storage name"| STORAGE_ZONE
+    STORAGE_ZONE -.->|"Return Storage PE IP"| TARGET_SUBNET
+    REPLICAS ==>|"Outbound HTTPS"| TARGET_SUBNET
+    TARGET_SUBNET ==>|"Private Link"| STORAGE
 
     LEGEND["Arrow key<br/>thick = HTTPS/data transport<br/>dotted = DNS, requirement, or logical relationship"]
 ```
@@ -120,7 +103,7 @@ This screenshot is used here as a visual contrast baseline for the Bicep example
 
 [Inferred] The visible `This environment isn't integrated` text is consistent with the Bicep example in [Deploy Container Apps Environment with VNet](#deploy-container-apps-environment-with-vnet) introducing networking properties that are not shown on this blade. The absence of any visible subnet resource ID value appears to map to the `infrastructureSubnetId` property in that same example.
 
-[Not Proven] This image does not show the `infrastructureSubnetId` property from [Deploy Container Apps Environment with VNet](#deploy-container-apps-environment-with-vnet). It does not show the `internal: true` vs `internal: false` choice from [Internal vs External Ingress](#internal-vs-external-ingress). It does not show the `/23` minimum subnet sizing from [Overview](#overview). It does not show the NSG rules from [Network Security Groups](#network-security-groups). It does not show the private endpoint connectivity discussed in [Access Private Resources](#access-private-resources).
+[Not Proven] This image does not show the `infrastructureSubnetId` property from [Deploy Container Apps Environment with VNet](#deploy-container-apps-environment-with-vnet). It does not show the `internal: true` vs `internal: false` choice from [Internal vs External Ingress](#internal-vs-external-ingress). It does not show the environment-type-specific subnet sizing and delegation requirements from [Overview](#overview). It does not show the NSG rules from [Network Security Groups](#network-security-groups). It does not show the private endpoint connectivity discussed in [Access Private Resources](#access-private-resources).
 
 ## Prerequisites
 
@@ -129,43 +112,67 @@ This screenshot is used here as a visual contrast baseline for the Bicep example
 
 ## Create VNet with Subnets
 
-Container Apps requires a dedicated environment subnet. Choose its prefix from the current Microsoft Learn requirements for the environment type and expected scale.
+This example explicitly targets a **workload profiles environment**. It uses a dedicated subnet, delegates that subnet to `Microsoft.App/environments`, and accepts the prefix as a placeholder so you can size it for expected scale. The documented minimum is `/27`; legacy Consumption-only environments instead require `/23` or larger and must not delegate the subnet.
 
 ### Using Azure CLI:
 ```bash
+export VNET_ADDRESS_PREFIX="<virtual-network-cidr>"
+export CONTAINER_APPS_SUBNET_PREFIX="<workload-profiles-subnet-cidr>"
+
 # Create VNet
 az network vnet create \
   --name vnet-containerapp \
   --resource-group $RESOURCE_GROUP \
   --location $LOCATION \
-  --address-prefix 10.0.0.0/16
+  --address-prefix $VNET_ADDRESS_PREFIX
 
-# Create subnet for Container Apps (minimum /23)
+# Create a delegated subnet for a workload profiles environment
 az network vnet subnet create \
   --name snet-containerapp \
   --vnet-name vnet-containerapp \
   --resource-group $RESOURCE_GROUP \
-  --address-prefix 10.0.0.0/23
+  --address-prefixes $CONTAINER_APPS_SUBNET_PREFIX \
+  --delegations Microsoft.App/environments
 ```
 
 | Command | Why it is used |
 |---|---|
+| `export VNET_ADDRESS_PREFIX="<virtual-network-cidr>"` | Sets the VNet address-space placeholder for this example. |
+| `export CONTAINER_APPS_SUBNET_PREFIX="<workload-profiles-subnet-cidr>"` | Sets a workload-profiles subnet placeholder; choose `/27` or larger and size for expected scale. |
 | `az network vnet create ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `--address-prefix` | Applies the VNet address-space placeholder. |
+| `az network vnet subnet create` | Creates the dedicated environment subnet. |
+| `--address-prefixes` | Uses the workload-specific prefix supplied in `$CONTAINER_APPS_SUBNET_PREFIX`; choose `/27` or larger for workload profiles and size for expected scale. |
+| `--delegations` | Delegates this workload-profiles subnet to `Microsoft.App/environments`. Do not use this delegation for a legacy Consumption-only environment. |
 
 ### Using Bicep:
 ```bicep
+@description('Virtual network address prefix')
+param vnetAddressPrefix string
+
+@description('Dedicated workload profiles environment subnet prefix (/27 or larger)')
+param containerAppsSubnetPrefix string
+
 resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {
   name: 'vnet-containerapp'
   location: location
   properties: {
     addressSpace: {
-      addressPrefixes: ['10.0.0.0/16']
+      addressPrefixes: [vnetAddressPrefix]
     }
     subnets: [
       {
         name: 'snet-containerapp'
         properties: {
-          addressPrefix: '10.0.0.0/23'
+          addressPrefix: containerAppsSubnetPrefix
+          delegations: [
+            {
+              name: 'Microsoft.App.environments'
+              properties: {
+                serviceName: 'Microsoft.App/environments'
+              }
+            }
+          ]
         }
       }
     ]

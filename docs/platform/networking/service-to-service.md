@@ -45,15 +45,17 @@ For the broader ingress decision model, including how internal-only app ingress 
 
 ## Internal DNS
 
-Each Container App gets an internal FQDN:
+When HTTP ingress is enabled, the app receives an FQDN. An app configured with internal ingress uses this pattern:
 ```
 <app-name>.internal.<environment-unique-id>.<region>.azurecontainerapps.io
 ```
 
-Or simply use the app name within the same environment:
+With ingress enabled, a caller in the same environment can also use the app name:
 ```
 http://<app-name>
 ```
+
+A Dapr-enabled app can omit HTTP ingress and still receive Dapr service-invocation calls. In that case, the app is not reachable by its app name or FQDN; callers use the Dapr invocation API and Dapr App ID instead.
 
 ### Internal Resolution Flow
 
@@ -66,20 +68,20 @@ flowchart TD
     accDescr: A frontend replica resolves a backend app name through environment service discovery. DNS returns the managed proxy address, then the frontend sends an HTTP request carrying the target host name. The managed Envoy proxy selects an active backend revision according to traffic rules and routes to a ready replica.
 
     subgraph ENV["Managed Container Apps environment — logical boundary"]
-        CALL_REPLICA["Frontend revision replica<br/>calling workload"]
-        DISCOVERY["Environment service discovery<br/>app name or internal FQDN"]
-        INGRESS["Managed Envoy proxy<br/>internal routing and load balancing"]
-        TARGET_APP["Backend app<br/>logical grouping"]
-        TARGET_REV["Active backend revision(s)"]
-        TARGET_REPLICAS["Ready backend replicas"]
+        direction TB
+        CALL_REPLICA["1  Frontend revision replica<br/>starts the call"]
+        DISCOVERY["2  Environment service discovery<br/>returns managed proxy address"]
+        REQUEST["3  HTTP request<br/>carries target host name"]
+        INGRESS["4  Managed Envoy proxy<br/>internal routing and load balancing"]
+        TARGET_REV["5  Active backend revision<br/>chosen by traffic rules"]
+        TARGET_REPLICAS["6  Ready backend replica<br/>serves the request"]
     end
 
-    CALL_REPLICA -.->|"1  Resolve ca-backend"| DISCOVERY
-    DISCOVERY -.->|"2  Return managed proxy address"| CALL_REPLICA
-    CALL_REPLICA ==>|"3  HTTP request with target host"| INGRESS
-    INGRESS ==>|"4  Apply revision traffic rules"| TARGET_REV
-    TARGET_REV ==>|"5  Select ready replica"| TARGET_REPLICAS
-    TARGET_APP -.->|"Logical revision membership"| TARGET_REV
+    CALL_REPLICA -.->|"DNS query"| DISCOVERY
+    DISCOVERY -.->|"Resolved proxy address"| REQUEST
+    REQUEST ==>|"Send request"| INGRESS
+    INGRESS ==>|"Continue request to chosen revision"| TARGET_REV
+    TARGET_REV ==>|"Continue request to ready replica"| TARGET_REPLICAS
 
     LEGEND["Arrow key<br/>thick = request transport<br/>dotted = DNS or logical relationship"]
 ```

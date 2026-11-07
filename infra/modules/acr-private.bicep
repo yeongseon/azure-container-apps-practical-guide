@@ -36,9 +36,9 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   properties: {
     adminUserEnabled: false           // Disable admin — use managed identity
     publicNetworkAccess: 'Disabled'   // All access via private endpoint
-    // Note: dataEndpointEnabled requires a separate PE for registry_data_<location>
-    // Enable this after ACR is fully provisioned, then add a second PE manually.
-    // See docs/recipes/container-registry.md for details.
+    // ACR Private Link uses the registry group ID. Current platform behavior
+    // automatically enables dedicated data endpoints and adds one NIC IP
+    // configuration per registry_data_<location> on this private endpoint.
     dataEndpointEnabled: false
     networkRuleBypassOptions: 'AzureServices'
     policies: {
