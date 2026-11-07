@@ -1053,6 +1053,86 @@ def generated_page(root: Path, manifest: Record) -> tuple[str | None, str | None
     return original, updated
 
 
+def migrated_contract_errors(root: Path, manifest: Record, rules: Record) -> list[str]:
+    """Validate owner-maintained contracts only after a diagram is completed."""
+    diagrams: list[Record] = manifest['diagrams']
+    migrated = [diagram for diagram in diagrams if diagram['migration']['state'] == 'completed']
+    if not migrated:
+        return []
+    by_key = {diagram['key']: diagram for diagram in diagrams}
+    referenced = {reference for diagram in migrated for reference in
+                  [diagram['target']['base'], *diagram['target']['extensions'],
+                   *diagram['target']['overlays']] if reference is not None}
+    pages = {diagram['page'] for diagram in migrated}
+    pages.update(by_key[reference]['page'] for reference in referenced if reference in by_key)
+    current: collections.defaultdict[str, list[Record]] = collections.defaultdict(list)
+    current_ids: collections.defaultdict[tuple[str, str], list[Record]] = collections.defaultdict(list)
+    for page in sorted(pages):
+        path = local(root, page)
+        if not path.exists():
+            continue
+        try:
+            records, _, _ = page_records(page, path.read_text(encoding='utf-8-sig'))
+        except UnicodeDecodeError:
+            continue
+        for record in records:
+            current[record['key']].append(record)
+            if record['diagram_id'] is not None:
+                current_ids[(record['page'], record['diagram_id'])].append(record)
+    errors: list[str] = []
+    for diagram in migrated:
+        key = diagram['key']
+        if diagram['id_provisional'] or diagram['diagram_id'] is None:
+            errors.append(f'{key}: completed diagram requires a stable diagram-id')
+        observed_records = current_ids[(diagram['page'], diagram['diagram_id'])]
+        observed = observed_records[0] if len(observed_records) == 1 else None
+        if len(observed_records) > 1:
+            errors.append(f'{key}: completed diagram ID is duplicated in current sources')
+        elif observed is None:
+            errors.append(f'{key}: completed diagram ID is absent from its page')
+        override = rules.get('overrides', {}).get(key)
+        matching = [rule for rule in rules['ownership_rules'] if matches(rule, observed or diagram)]
+        highest = max((rule['priority'] for rule in matching), default=None)
+        owners = {rule['batch_issue'] for rule in matching if rule['priority'] == highest}
+        if override is None and not owners:
+            errors.append(f'{key}: completed diagram has no owner in current rules')
+        elif override is None and len(owners) > 1:
+            errors.append(f'{key}: completed diagram has duplicate owners {sorted(owners)}')
+        else:
+            owner = override['batch_issue'] if override is not None else next(iter(owners))
+            if diagram['assignment']['batch_issue'] != owner:
+                errors.append(f'{key}: completed diagram owner drifted from {diagram["assignment"]["batch_issue"]} to {owner}')
+        references = [diagram['target']['base'], *diagram['target']['extensions'],
+                      *diagram['target']['overlays']]
+        for reference in (value for value in references if value is not None):
+            target = by_key.get(reference)
+            if target is None:
+                errors.append(f'{key}: unknown target component {reference}')
+                continue
+            current_targets = current_ids[(target['page'], target['diagram_id'])]
+            if len(current_targets) != 1:
+                errors.append(f'{key}: target component {reference} is absent from current sources')
+            elif (current_targets[0]['baseline']['source_sha256'] !=
+                  target['baseline']['source_sha256']):
+                errors.append(f'{key}: target component {reference} has a stale committed literal Mermaid snapshot')
+        for label, record in [('declared', diagram), ('current', observed)]:
+            if record is None:
+                continue
+            declared = record['provenance']['declared'] or {}
+            source_references = [declared.get('mslearn_url'), declared.get('url')]
+            based_on = declared.get('based_on', [])
+            if isinstance(based_on, list):
+                source_references.extend(based_on)
+            if any(isinstance(reference, str) and reference.strip()
+                   for reference in source_references):
+                continue
+            errors.append(f'{key}: {label} provenance has no source reference')
+        if (observed is not None and
+                observed['baseline']['source_sha256'] != diagram['baseline']['source_sha256']):
+            errors.append(f'{key}: committed literal Mermaid snapshot is stale; regenerate the manifest')
+    return errors
+
+
 def check(root: Path, manifest: Record, rules: Record) -> list[str]:
     schema: Record = json.loads(local(root, SCHEMA).read_text())
     errors = structural(manifest, schema, schema.get('$defs', {}))
@@ -1065,6 +1145,7 @@ def check(root: Path, manifest: Record, rules: Record) -> list[str]:
                       jsonschema.Draft202012Validator(schema).iter_errors(manifest))
     if errors:
         return errors
+    errors.extend(migrated_contract_errors(root, manifest, rules))
     diagrams: list[Record] = manifest['diagrams']
     keys = [d['key'] for d in diagrams]
     if len(set(keys)) != len(keys):
