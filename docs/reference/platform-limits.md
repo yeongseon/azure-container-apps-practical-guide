@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps platform limits and quota scopes for subscription-region, managed-environment, app, revision, replica, and container planning.
 content_sources:
   diagrams:
     - id: limits-hierarchy-and-blast-radius
@@ -6,17 +7,8 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-content_validation:
-  status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
-  core_claims:
-    - claim: Azure Container Apps has quotas and limits at the subscription, environment, and app levels.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
-      verified: true
-    - claim: Some Container Apps limits are fixed platform constraints while others are adjustable quotas.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
-      verified: true
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 ---
 # Azure Container Apps Platform Limits and Quotas
 
@@ -33,17 +25,31 @@ Use this quick reference for common design-time and runtime limits in Azure Cont
 <!-- diagram-id: limits-hierarchy-and-blast-radius -->
 ```mermaid
 flowchart TD
-    A[Container Apps Environment] --> B[Container App]
-    B --> C[Revision]
-    C --> D[Replica]
-    D --> E[Container]
+    accTitle: Container Apps quota scopes and runtime limit hierarchy
+    accDescr: Subscription-region quotas constrain environment creation, managed-environment quotas constrain shared capacity, and app or runtime limits constrain an app, revision, replica, or container. Identify the affected scope before requesting quota or changing workload design.
 
-    A --> A1[Shared networking and logging boundary]
-    B --> B1[Ingress, scale rules, identity, secrets]
-    C --> C1[Immutable app template snapshot]
-    D --> D1[Scaled runtime unit]
-    E --> E1[CPU and memory constrained process]
+    SUBSCRIPTION[Subscription and region<br/>environment and regional quotas]
+    ENVIRONMENT[Managed environment<br/>shared capacity quotas]
+    APP[Container app<br/>application limits]
+    REVISION[Revision<br/>immutable template version]
+    REPLICA[Replica<br/>scaled runtime instance]
+    CONTAINER[Container<br/>configured CPU and memory]
+    REQUEST[Classify the reached boundary<br/>by its documented scope and type]
+    QUOTA[Adjustable quota<br/>use the matching request path]
+    LIMIT[Platform or configuration limit<br/>change the workload design]
+
+    SUBSCRIPTION --> ENVIRONMENT
+    ENVIRONMENT --> APP
+    APP --> REVISION
+    REVISION --> REPLICA
+    REPLICA --> CONTAINER
+    ENVIRONMENT --> REQUEST
+    APP --> REQUEST
+    REQUEST -->|Quota| QUOTA
+    REQUEST -->|Fixed or configured limit| LIMIT
 ```
+
+The vertical chain locates the blast radius; it is not a request path. A quota increase applies only at its documented scope, while fixed or configured limits require a design or configuration change.
 
 ## Prerequisites
 
@@ -73,8 +79,8 @@ Observed deployment baseline (verified, PII scrubbed):
 
 | Limit | Value | Notes |
 |---|---|---|
-| Minimum replicas | `0` (consumption) or higher | Scale-to-zero supported for eligible workloads |
-| Maximum replicas | Configurable per app | Bound by environment capacity and workload profile |
+| Minimum replicas per revision | Default `0`; minimum `0` | A minimum of `1` or higher keeps a replica running |
+| Maximum replicas per revision | Default `10`; configurable up to `1,000` | Actual scale-out is constrained by available quota and capacity |
 | Revision mode | `Single` or `Multiple` | Multiple required for traffic splitting/canary |
 | Concurrent HTTP requests | Configurable via scale rules | Affects autoscale behavior and throughput |
 
@@ -82,7 +88,7 @@ Observed deployment baseline (verified, PII scrubbed):
 
 | Limit | Value | Notes |
 |---|---|---|
-| Ingress target port | One primary app port | Must match your container listener (`CONTAINER_APP_PORT`) |
+| Ingress ports | One main HTTP/TCP target port plus up to five additional TCP ports per app | Extra external TCP ports must be unique across the environment; only the main port supports built-in HTTP features |
 | External/internal ingress | Per app setting | Internal apps are not internet reachable |
 | Environment subnet size | Must satisfy environment requirements | Dedicated infrastructure consumes subnet IPs |
 | Private endpoint support | Available for supported dependencies | Validate service/SKU prerequisites |
@@ -99,7 +105,7 @@ Observed deployment baseline (verified, PII scrubbed):
 
 | Limit | Value | Notes |
 |---|---|---|
-| Apps per environment | Subscription/region quota dependent | Track growth during multi-team adoption |
+| Apps per environment | Governed by managed-environment quotas and capacity rather than the subscription-region environment-count quota | Check the environment's quota usage and shared core allocation before adding workloads |
 | Revisions retained | Configurable with retention policy | Keep enough history for rollback without excessive sprawl |
 | Log/metrics retention | Workspace policy dependent | Controlled in Log Analytics/Application Insights |
 
@@ -143,9 +149,7 @@ Job snapshot from `az containerapp job show`:
 
 | Limit | Value | Notes |
 |---|---|---|
-| HTTP request timeout | Platform and app server dependent | Align ingress timeout with Gunicorn/app timeout |
-| Request body size | Ingress/runtime dependent | Use object storage for large uploads |
-| Header size | Standard proxy/runtime constraints | Keep token/header payloads bounded |
+| HTTP request timeout | `240` seconds | Keep application-server timeouts and client expectations within the documented ingress timeout |
 
 ## Design guidance
 
@@ -170,3 +174,5 @@ Job snapshot from `az containerapp job show`:
 ## Sources
 
 - [Microsoft Learn: Azure Container Apps limits and quotas](https://learn.microsoft.com/en-us/azure/container-apps/quotas)
+- [Microsoft Learn: Scaling in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn: Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)

@@ -61,13 +61,29 @@ For orientation and study order, start with [Start Here](start-here/overview.md)
 <!-- diagram-id: learning-flow -->
 ```mermaid
 flowchart TD
-    A[Start Here] --> B[Platform]
-    B --> C[Best Practices]
-    C --> D[Language Guides]
-    D --> E[Operations]
-    E --> F[Troubleshooting]
-    F --> G[Reference]
+    accTitle: Goal-based learning flow for the Container Apps practical guide
+    accDescr: Begin with orientation, learn the platform model, apply production practices, implement a language tutorial, operate the workload, and use troubleshooting or reference material whenever the task requires it.
+
+    START[Start Here<br/>choose a goal and path]
+    PLATFORM[Platform<br/>understand service behavior]
+    PRACTICES[Best Practices<br/>make design decisions]
+    BUILD[Language Guides<br/>build and deploy]
+    OPERATE[Operations<br/>run day-two procedures]
+    TROUBLESHOOT[Troubleshooting<br/>diagnose from evidence]
+    REFERENCE[Reference<br/>look up commands and limits]
+
+    START --> PLATFORM
+    PLATFORM --> PRACTICES
+    PRACTICES --> BUILD
+    BUILD --> OPERATE
+    OPERATE --> TROUBLESHOOT
+    PLATFORM -. look up details .-> REFERENCE
+    BUILD -. look up details .-> REFERENCE
+    OPERATE -. look up details .-> REFERENCE
+    TROUBLESHOOT -. look up details .-> REFERENCE
 ```
+
+The solid path is a recommended learning sequence, not a mandatory prerequisite chain. Use the dotted reference links whenever you need exact syntax, configuration meaning, metrics, or limits.
 
 ## Scope and disclaimer
 
