@@ -36,6 +36,7 @@ Managed certificates reduce certificate-handling work when the target hostname f
 ```bash
 export RG="rg-aca-prod"
 export APP_NAME="app-python-api-prod"
+export ACA_ENV_NAME="aca-env-prod"
 export HOSTNAME="api.contoso.com"
 ```
 
@@ -110,7 +111,8 @@ flowchart TD
     HTTPS["Serve HTTPS"]
     RENEW{"Requirements still met<br/>at renewal time?"}
     AUTO["Automatic renewal"]
-    RETRY["Issuance or renewal retries<br/>restore requirements"]
+    REMEDIATE["Operator restores DNS, ingress,<br/>reachability, app state, or CAA"]
+    RETRY["Container Apps periodically retries<br/>issuance or renewal"]
 
     HOST --> TYPE
     TYPE -->|"Apex"| APEX
@@ -119,14 +121,15 @@ flowchart TD
     SUB --> METHOD
     METHOD --> READY
     READY -->|"Yes"| ISSUE
-    READY -->|"No"| RETRY
+    READY -->|"No"| REMEDIATE
     ISSUE --> HTTPS
     HTTPS --> RENEW
     RENEW -->|"Yes"| AUTO
-    RENEW -->|"No"| RETRY
+    RENEW -->|"No"| REMEDIATE
+    REMEDIATE --> RETRY
     RETRY -.-> READY
 
-    LEGEND["Arrow key<br/>solid = issuance or renewal decision<br/>dotted = retry after requirements are restored"]
+    LEGEND["Arrow key<br/>solid = operator or certificate workflow<br/>dotted = periodic platform retry"]
 ```
 
 *Figure: Apex and subdomain DNS records feed different validation methods, but both paths also require the TXT ownership record and the managed-certificate service requirements. The retry branch is a control workflow, not HTTPS transport.*
