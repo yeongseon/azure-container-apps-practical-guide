@@ -10,8 +10,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Container Apps secrets are application-scoped, outside any specific revision, and changing a secret does not create a new revision.
       source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
@@ -21,6 +21,9 @@ content_validation:
       verified: true
     - claim: Environment variables can reference a secret by using the secretRef field.
       source: https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
+      verified: true
+    - claim: Application-level secrets can be mounted as files in a secret volume, with all or selected secrets exposed to a revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
       verified: true
     - claim: If a Key Vault URI omits the secret version, Container Apps retrieves the latest version within 30 minutes and restarts active revisions that reference the secret in an environment variable.
       source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
@@ -35,7 +38,7 @@ Azure Container Apps supports application-scoped secrets stored directly in the 
 Container Apps exposes secrets through two layers:
 
 1. **Secret definitions** in the app configuration.
-2. **Secret references** from containers, most commonly through environment variables.
+2. **Secret references** from a revision's containers, through environment variables or secret volume mounts.
 
 Microsoft Learn documents two supported secret definition patterns:
 
@@ -79,21 +82,52 @@ For a user-assigned identity, Microsoft Learn documents replacing `system` with 
 
 ## How containers consume secrets
 
-Environment variables reference secrets with `secretRef` instead of embedding the value directly in the container spec.
+A revision can expose an application-level secret to a container in two documented ways:
+
+- An environment variable uses `secretRef`; the container reads a process environment value.
+- A secret volume uses `secretRef`; the container reads the secret from a mounted file. The volume can mount all application secrets or a selected set with chosen file paths.
+
+**Takeaway:** Choosing environment variable or file consumption does not change where the secret is defined. Inline values and Key Vault references both become application-level Container Apps secrets before a revision consumes them.
 
 <!-- diagram-id: secretref-resolution-path -->
 ```mermaid
 flowchart TD
-    A[Container env var] --> B[secretRef]
-    B --> C{Secret definition type}
-    C --> D[Inline secret value]
-    C --> E[Key Vault reference]
-    E --> F[Managed identity]
-    F --> G[Azure Key Vault]
-    D --> H[Resolved value at runtime]
-    G --> H
-    H --> I[Revision container process]
+    accTitle: Resolve and consume an Azure Container Apps secret
+    accDescr: A decision flow starts with an application-level secret definition. An inline value is stored by Container Apps, while a Key Vault reference is resolved through an assigned managed identity. A revision then consumes the resolved app secret through either a secretRef environment variable or a mounted secret file. Dotted arrows show identity and authorization relationships rather than secret-value transport.
+
+    DEFINE{"Application-level<br/>secret definition?"}
+    INLINE["Inline Container Apps secret<br/>name and value"]
+    KVREF["Key Vault reference<br/>keyVaultUrl and identity"]
+    IDENTITY["Assigned managed identity<br/>system or user assigned"]
+    RBAC["Key Vault authorization<br/>for example, Secrets User"]
+    VAULT["Azure Key Vault secret"]
+    APP_SECRET["Resolved Container Apps secret<br/>application scope"]
+
+    CONSUME{"How does the revision<br/>consume the secret?"}
+    ENV_REF["Environment variable<br/>secretRef"]
+    VOLUME_REF["Secret volume<br/>secretRef file"]
+    PROCESS["Revision container process"]
+    FILE["Mounted secret file"]
+
+    DEFINE -->|"Inline value"| INLINE
+    DEFINE -->|"Key Vault source"| KVREF
+    INLINE -->|"Store value"| APP_SECRET
+    IDENTITY -.->|"Selected identity"| KVREF
+    RBAC -.->|"Allows secret read"| IDENTITY
+    KVREF ==>|"Resolve by managed identity"| VAULT
+    VAULT ==>|"Return secret value"| APP_SECRET
+
+    APP_SECRET --> CONSUME
+    CONSUME -->|"Environment variable"| ENV_REF
+    CONSUME -->|"Mounted file"| VOLUME_REF
+    ENV_REF -->|"Populate at revision start"| PROCESS
+    VOLUME_REF -->|"Mount file"| FILE
+    FILE -->|"Application reads file"| PROCESS
+
+    LEGEND["Arrow key<br/>thick = Key Vault value transport<br/>solid = definition or consumption flow<br/>dotted = identity or authorization relationship"]
 ```
+
+*Figure: The flow keeps secret source, identity authorization, application-level resolution, and revision-level consumption distinct. Managed identity and Key Vault authorization enable retrieval; they are not secret-value transport hops.*
 
 Example environment variable reference:
 
@@ -105,6 +139,8 @@ Example environment variable reference:
 ```
 
 The same secret name can be referenced by multiple revisions because the secret definition lives at the application level.
+
+For a file-based consumer, define a revision-scoped secret volume and mount it into the container. Creating or changing the volume or its mount is a template change and therefore creates a new revision. Microsoft Learn documents that mounted secrets appear as files, but the current Container Apps secret page does not promise live in-place updates to those files after an application-level secret changes. Plan a new revision or restart when the mounted value must refresh.
 
 ## Managed identity requirements for Key Vault
 
@@ -142,6 +178,9 @@ When the `keyVaultUrl` omits a secret version:
 
 If you pin a specific secret version in the URI, you control promotion explicitly, but you also give up automatic latest-version refresh.
 
+!!! note "Refresh behavior depends on the consumption path"
+    Microsoft Learn explicitly promises the automatic restart for active revisions that reference the versionless Key Vault secret in an **environment variable**. It documents secret volume mounts as files, but does not state that those files update in place. For mounted secrets, use a deliberate revision rollout or restart rather than assuming live refresh.
+
 ## Practical configuration patterns
 
 ### Pattern 1: Inline secret stored in Container Apps
@@ -162,7 +201,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Creates or updates an application-level secret. |
+| `az containerapp update` | Updates the app template and creates a revision for the environment-variable reference. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--secrets` | Supplies the named application-level secret definition. |
+| `--set-env-vars` | Creates the environment variable that points to the secret with `secretref:`. |
 
 ### Pattern 2: Key Vault-backed secret with managed identity
 
@@ -182,7 +226,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Creates or updates an application-level Key Vault reference. |
+| `az containerapp update` | Updates the app template and creates a revision for the environment-variable reference. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--secrets` | Supplies the Key Vault URL and managed identity reference. |
+| `--set-env-vars` | Creates the environment variable that points to the resolved app secret. |
 
 !!! tip "Use Key Vault references for production defaults"
     Key Vault references reduce secret sprawl inside app configuration and align better with centralized rotation, RBAC, and audit requirements.
