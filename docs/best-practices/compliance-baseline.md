@@ -11,6 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/security
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
 content_validation:
@@ -29,6 +30,9 @@ content_validation:
       verified: true
     - claim: Container Apps policy reference documents built-in Azure Policy coverage for the service.
       source: https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
+      verified: true
+    - claim: Container Apps can import a Key Vault certificate for a custom domain and automatically update the environment certificate after Key Vault rotation.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage
       verified: true
 ---
 # Azure Container Apps Compliance Baseline
@@ -172,7 +176,11 @@ Mapped benchmark themes: **DP-3**, **DP-4**, **DP-6**, **DP-7**
 
 - Use **TLS in transit** for exposed application paths.
 - Use **Key Vault-backed secrets** for centralized lifecycle and auditability.
-- Store and rotate application-managed certificates through your approved PKI or Key Vault workflow, while recording that the cited Container Apps baseline does not document native Key Vault certificate integration for this control.
+- For custom-domain server certificates, import certificates from Key Vault into the Container Apps environment by using an environment managed identity. Container Apps automatically applies a rotated Key Vault certificate to the environment, which can take up to 12 hours.
+- Manage application-level or client certificates through your application and approved PKI workflow; the custom-domain certificate import feature does not replace application certificate handling.
+
+!!! note "The legacy baseline is stale on certificate integration"
+    The version 1.0 security baseline marks Key Vault certificate integration unsupported, but current Container Apps documentation supports importing Key Vault certificates for custom domains and automatically updating them after rotation. Use the current certificate documentation for this service capability while preserving the distinction between ingress server certificates and application or client certificates.
 
 !!! warning "Do not assume Azure Container Apps environment CMK support"
     Microsoft Learn currently documents Key Vault-backed secrets and certificate integration, but not customer-managed keys for Container Apps environment encryption at rest. If your control framework requires environment-level CMK, record this as a gap or platform selection constraint.
@@ -326,5 +334,6 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 - [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/security)
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Import certificates from Azure Key Vault to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage)
 - [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [Policy reference for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/policy-reference)

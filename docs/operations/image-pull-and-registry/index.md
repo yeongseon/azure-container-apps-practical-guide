@@ -1,4 +1,5 @@
 ---
+description: Operate reliable Azure Container Apps image pulls with managed identity, ACR authorization, registry networking, and staged failure diagnosis.
 content_sources:
   diagrams:
     - id: image-pull-workflow
@@ -10,6 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-directory-reference
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints
+        - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
 content_validation:
   status: verified
   last_reviewed: 2026-11-07
@@ -144,7 +146,7 @@ az containerapp logs show \
 ```mermaid
 flowchart TD
     accTitle: Azure Container Apps image pull decision flow
-    accDescr: A new revision needs an image. The platform resolves and reaches the registry login server before authentication and pull authorization. An ABAC-enabled registry requires Container Registry Repository Reader, while an RBAC-only registry requires AcrPull. After authorization and discovery, ACR redirects layer downloads with HTTP 307 to a named data endpoint or regional storage endpoint, which must also resolve and accept HTTPS. Microsoft Artifact Registry is a parallel platform dependency.
+    accDescr: A new revision needs an image. The platform resolves and reaches the registry login server before authentication and pull authorization. An ABAC-enabled registry requires Container Registry Repository Reader, while an RBAC-only registry requires AcrPull. After authorization, the ACR login server discovers the required layers and responds with an HTTP 307 redirect to a named data endpoint or regional storage endpoint, which must also resolve and accept HTTPS. In firewall-controlled environments, Microsoft Artifact Registry is a separate required platform dependency.
 
     REV_ACTIVE["New revision<br/>private image reference"]
     PULLER["Platform image pull<br/>logical actor"]
@@ -155,6 +157,7 @@ flowchart TD
     ABAC["Container Registry<br/>Repository Reader"]
     RBAC["AcrPull"]
     AUTH{"Pull authorization<br/>succeeds?"}
+    DISCOVERY["ACR login server<br/>identify required layers"]
     REDIRECT["307 redirect<br/>named layer endpoint"]
     DATA_DNS{"Layer endpoint<br/>resolves?"}
     DATA_HTTPS{"Layer endpoint HTTPS<br/>reachable?"}
@@ -174,20 +177,21 @@ flowchart TD
     MODE -->|"RBAC only"| RBAC
     ABAC -.->|"authorize pull identity"| AUTH
     RBAC -.->|"authorize pull identity"| AUTH
-    AUTH -->|"Authorized; layers identified"| REDIRECT
+    AUTH -->|"Authorized"| DISCOVERY
     AUTH -.->|"Denied"| FAIL
+    DISCOVERY ==>|"307 response with layer location"| REDIRECT
     REDIRECT -.->|"resolve redirect target"| DATA_DNS
     DATA_DNS -->|"Yes"| DATA_HTTPS
     DATA_DNS -.->|"No"| FAIL
     DATA_HTTPS ==>|"Reachable"| LAYERS
     DATA_HTTPS -.->|"Blocked"| FAIL
     LAYERS ==>|"Image layer bytes"| REPLICAS
-    PULLER ==>|"Parallel platform HTTPS"| MCR
+    PULLER ==>|"Required with firewall-controlled egress"| MCR
 
     LEGEND["Arrow key<br/>thick = HTTPS or image-data transport<br/>solid = decision or registry step<br/>dotted = DNS, authorization, logical relation, or failure"]
 ```
 
-*Figure: Registry HTTPS and authentication discovery occur before the pull-authorization result. Authorization is not a transport hop. After authorization, the 307 redirect names a second endpoint whose DNS and HTTPS path must succeed before layer bytes arrive. MCR is a parallel platform dependency, not the application image source.*
+*Figure: Registry HTTPS and authentication occur before the pull-authorization result. Authorization is not a transport hop. After authorization, the ACR login server identifies the required layers and returns the 307 redirect; the named endpoint's DNS and HTTPS path must then succeed before layer bytes arrive. MCR is shown as a separate platform dependency required on the allowlist when Azure Firewall controls environment egress, not as the application image source.*
 
 ## Registry Access Strategy Matrix
 
@@ -254,3 +258,4 @@ az containerapp show \
 - [Authenticate with managed identity in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [Azure Container Registry roles directory reference](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-directory-reference)
 - [Dedicated data endpoints for Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
+- [Use Azure Firewall with Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)
