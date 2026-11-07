@@ -118,10 +118,10 @@ pie title In-Scope Document Validation Status
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
 | [Azd](../operations/deployment/azd.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
-| [Byo Certificates](../operations/custom-domains/byo-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
+| [Byo Certificates](../operations/custom-domains/byo-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Diagnostic Settings](../operations/logging/diagnostic-settings.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Index](../operations/health-probes/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
-| [Index](../operations/custom-domains/index.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
+| [Index](../operations/custom-domains/index.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Index](../operations/recovery/index.md) | ✅ | ❓ No Metadata | — | — |
 | [Index](../operations/secret-rotation/index.md) | ✅ | ❓ No Metadata | — | — |
 | [Index](../operations/disaster-recovery/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
@@ -132,10 +132,10 @@ pie title In-Scope Document Validation Status
 | [Index](../operations/image-pull-and-registry/index.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Index](../operations/revision-management/index.md) | ✅ | ❓ No Metadata | — | — |
 | [Index](../operations/logging/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
-| [Internal Ingress On Prem Dns](../operations/deployment/internal-ingress-on-prem-dns.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
+| [Internal Ingress On Prem Dns](../operations/deployment/internal-ingress-on-prem-dns.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Log Analytics Queries](../operations/logging/log-analytics-queries.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Log Streaming](../operations/logging/log-streaming.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
-| [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
+| [Managed Certificates](../operations/custom-domains/managed-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Metric Alerts By Incident Question](../operations/alerts/metric-alerts-by-incident-question.md) | ✅ | ✅ Verified | 3/3 | 2026-06-05 |
 | [Min Replica Change Impact](../operations/scaling/min-replica-change-impact.md) | ✅ | ✅ Verified | 3/3 | 2026-05-18 |
 | [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
