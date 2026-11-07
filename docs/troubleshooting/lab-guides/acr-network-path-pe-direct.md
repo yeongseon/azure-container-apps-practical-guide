@@ -256,6 +256,8 @@ RevisionReady     Revision is ready
 
 ## 4) Experiment Log
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-26 and later re-evaluated offline from unchanged raw evidence. Their top-level `evaluated_at_utc` records each replay invocation, not a new evidence capture or current Azure validation date.
+
 | Step | Action | Expected | Actual (2026-06-05, koreacentral, Azure CLI 2.79.0) | Pass/Fail |
 |---|---|---|---|---|
 | 1 | Deploy lab infrastructure (`az deployment group create`) | Deployment `Succeeded` | `provisioningState: Succeeded` after 5m 13s; all 8 outputs returned (registry, app, environment, LAW, VNet, zone, PE, NIC IPs). | Pass |

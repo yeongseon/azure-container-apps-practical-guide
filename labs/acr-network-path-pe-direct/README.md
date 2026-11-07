@@ -92,6 +92,8 @@ Steps 3-4 together prove the PE-via-private-DNS path was the cause.
 
 The reusable Phase B cohort lives in [`evidence/`](evidence/README.md).
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-26 and later re-evaluated offline from the unchanged raw cohort. Each replay records its own invocation time in top-level `evaluated_at_utc`; that value is not a capture date and implies no current Azure replay or validation.
+
 - It captures one live Azure reproduction in `koreacentral` with ACR `publicNetworkAccess=Disabled`, the `privatelink.azurecr.io` VNet link removed for H1, and restored for H2.
 - The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
 - Gate 14 proves the cohort is structurally coherent: canonical files present, parseable, bounded in one UTC window, same lineage, and unchanged PE NIC IPs.

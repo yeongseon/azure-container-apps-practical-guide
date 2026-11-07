@@ -130,6 +130,16 @@ jobs:
             15-h1-trigger-produces-failure-gate.json \
             16-h2-fix-restores-recovery-gate.json \
             17-bounded-falsification-gate.json
+          python3 scripts/check_gate_replay.py acr-network-path-firewall-allowlist \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-bounded-falsification-gate.json
+          python3 scripts/check_gate_replay.py acr-network-path-pe-direct \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-bounded-falsification-gate.json
 
   bicep:
     name: Bicep Templates

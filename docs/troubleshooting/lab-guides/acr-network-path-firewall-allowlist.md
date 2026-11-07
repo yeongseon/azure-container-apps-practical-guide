@@ -367,6 +367,8 @@ In the live run on 2026-06-06, this query returned `Reason_s=ContainerTerminated
 
 ## 4) Experiment Log
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-29 and later re-evaluated offline from unchanged raw evidence. Their top-level `evaluated_at_utc` records each replay invocation, not a new evidence capture or current Azure validation date.
+
 ### Pre-fix evidence (H1 confirmed)
 
 - [Observed] `labs/acr-network-path-firewall-allowlist/evidence/03-acr-network-rules-pre-fix.json` shows `publicNetworkAccess=Enabled`, `networkRuleBypassOptions=None`, `networkRuleSet.defaultAction=Deny`, and an empty `ipRules` list after the firewall public IP was removed.

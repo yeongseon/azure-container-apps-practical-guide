@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -31,11 +33,45 @@ def check_replay(lab_name: str, gates: list[str], verify_args: list[str]) -> int
             return 1
         committed[name] = json.loads(show.stdout)
 
+    tracked = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "HEAD", "--", evidence.as_posix()],
+        capture_output=True, text=True, check=True,
+    )
+    gate_paths = {(evidence / name).as_posix() for name in gates}
+    raw_paths = [Path(name) for name in tracked.stdout.splitlines() if name not in gate_paths]
+    raw_failures: list[str] = []
+    for path in raw_paths:
+        committed_raw = subprocess.run(
+            ["git", "show", f"HEAD:{path.as_posix()}"],
+            capture_output=True, check=True,
+        ).stdout
+        try:
+            current_raw = path.read_bytes()
+        except OSError as error:
+            raw_failures.append(f"{path}: missing current raw input: {error}")
+            continue
+        if current_raw != committed_raw:
+            raw_failures.append(f"{path}: current raw input bytes differ from HEAD")
+    if raw_failures:
+        print("Replay anchors cannot be reused for a different raw cohort:", file=sys.stderr)
+        for failure in raw_failures:
+            print(f"  - {failure}", file=sys.stderr)
+        return 1
+
     for name in gates:
         (evidence / name).unlink(missing_ok=True)
     start = datetime.now(timezone.utc).replace(microsecond=0)
     timer = perf_counter()
-    result = subprocess.run(["bash", str(lab / "verify.sh"), *verify_args], check=False, timeout=60)
+    with tempfile.TemporaryDirectory(prefix="gate-replay-baseline-") as temporary:
+        baseline = Path(temporary)
+        for name, document in committed.items():
+            (baseline / name).write_text(json.dumps(document))
+        result = subprocess.run(
+            ["bash", str(lab / "verify.sh"), *verify_args],
+            env={**os.environ, "GATE_REPLAY_BASELINE_DIR": str(baseline)},
+            check=False,
+            timeout=60,
+        )
     end = datetime.now(timezone.utc).replace(microsecond=0)
     print(f"{lab_name}: replay took {perf_counter() - timer:.3f} seconds")
     if result.returncode:

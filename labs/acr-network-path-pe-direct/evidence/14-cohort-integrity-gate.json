@@ -667,5 +667,5 @@
     "utc_window_span_strong_seconds_max": 1800,
     "utc_window_span_fallback_seconds_max": 5400
   },
-  "utc_captured": "2026-06-26T12:48:47Z"
+  "evaluated_at_utc": "2026-11-07T02:48:18Z"
 }
