@@ -11,6 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-directory-reference
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints
         - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
         - https://learn.microsoft.com/en-us/azure/container-apps/azure-pipelines
 content_validation:
@@ -44,7 +45,7 @@ flowchart TD
         OPERATOR["Operator"]
         UAMI["User-assigned identity<br/>pull principal"]
         MODE{"ACR permission mode?"}
-        ABAC["Repository Reader<br/>ABAC-enabled"]
+        ABAC["Container Registry<br/>Repository Reader<br/>ABAC-enabled"]
         RBAC["AcrPull<br/>RBAC-only"]
         OPERATOR -->|"1  Create identity"| UAMI
         OPERATOR -->|"2  Check mode"| MODE
@@ -65,21 +66,29 @@ flowchart TD
     end
 
     subgraph PULL["Runtime image-pull checks"]
-        DNS{"Endpoint names resolve?"}
+        LOGIN_DNS{"Login server name resolves?"}
         HTTPS{"Registry HTTPS reachable?"}
         ACR["ACR login server<br/>authentication and discovery"]
-        AUTH{"Pull role authorizes read?"}
+        AUTH{"ACR pull authorization succeeds?"}
+        REDIRECT["307 redirect<br/>named layer endpoint"]
+        DATA_DNS{"Layer endpoint name resolves?"}
+        DATA_HTTPS{"Layer endpoint HTTPS reachable?"}
         LAYERS["Layer data endpoint<br/>or regional storage"]
         READY["Image layers available"]
         FAIL["FAILED IMAGE PULL<br/>DNS, transport, or authorization"]
-        DNS -.->|"Resolved"| HTTPS
-        DNS -.->|"No"| FAIL
+        LOGIN_DNS -.->|"Resolved"| HTTPS
+        LOGIN_DNS -.->|"No"| FAIL
         HTTPS ==>|"Reachable"| ACR
         HTTPS -.->|"Blocked"| FAIL
         ACR -->|"3  Authenticate and discover"| AUTH
-        AUTH -->|"Authorized"| LAYERS
+        AUTH -->|"Authorized; layers identified"| REDIRECT
         AUTH -.->|"Denied"| FAIL
-        LAYERS ==>|"4  Image layer bytes"| READY
+        REDIRECT -.->|"4  Resolve redirect target"| DATA_DNS
+        DATA_DNS -.->|"Resolved"| DATA_HTTPS
+        DATA_DNS -.->|"No"| FAIL
+        DATA_HTTPS ==>|"Reachable"| LAYERS
+        DATA_HTTPS -.->|"Blocked"| FAIL
+        LAYERS ==>|"5  Image layer bytes"| READY
     end
 
     subgraph DELIVERY["Reconnect continuous delivery"]
@@ -93,7 +102,7 @@ flowchart TD
     MCR["Microsoft Artifact Registry<br/>parallel platform dependency"]
 
     UAMI -->|"Assign and select for registry"| APP
-    PULLER -.->|"Resolve endpoint names"| DNS
+    PULLER -.->|"Resolve login server"| LOGIN_DNS
     PULLER ==>|"Registry HTTPS request"| HTTPS
     UAMI -.->|"identity presented"| AUTH
     READY -.->|"image ready"| REPLICAS
@@ -104,7 +113,7 @@ flowchart TD
     LEGEND["Arrow key<br/>thick = HTTPS or image-data transport<br/>solid = operator, deployment, or authorization step<br/>dotted = identity, DNS, logical relationship, or failure"]
 ```
 
-*Figure: Runbook flow that consumes the shared `ENV` → `APP` → `REV_ACTIVE` → `REPLICAS` vocabulary. ACR remains an external dependency. Registry HTTPS and authentication discovery happen before the pull-authorization result; Microsoft Artifact Registry is a parallel platform dependency, not the source of the application image.*
+*Figure: Runbook flow that consumes the shared `ENV` → `APP` → `REV_ACTIVE` → `REPLICAS` vocabulary. ACR remains an external dependency. Login-server HTTPS and authentication discovery precede ACR pull authorization; after authorization, the login server returns a 307 redirect whose named layer endpoint must resolve and accept HTTPS before image bytes download. Microsoft Artifact Registry is a parallel platform dependency, not the source of the application image.*
 
 ## Prerequisites
 
@@ -187,6 +196,8 @@ az containerapp identity assign \
 | Command part | Purpose |
 |---|---|
 | `az identity show` | Reads the managed identity metadata created in the previous step. |
+| `--resource-group` | Selects the resource group containing the identity or Container App. |
+| `--name` | Selects the identity or Container App by name. |
 | `--query id` | Returns only the identity resource ID for reuse. |
 | `--output tsv` | Emits a shell-friendly value without JSON formatting. |
 | `az containerapp identity assign` | Attaches the user-assigned identity to the Container App. |
@@ -259,6 +270,8 @@ az containerapp registry set \
 | Command part | Purpose |
 |---|---|
 | `az containerapp registry set` | Updates the registry authentication configuration for the Container App. |
+| `--resource-group` | Selects the resource group containing the Container App. |
+| `--name` | Selects the Container App to update. |
 | `--server` | Identifies the ACR login server used by the image reference. |
 | `--identity` | Selects the user-assigned identity for registry pulls. |
 
@@ -276,6 +289,8 @@ az containerapp update \
 | Command part | Purpose |
 |---|---|
 | `az containerapp update` | Creates a new revision with the specified container image. |
+| `--resource-group` | Selects the resource group containing the Container App. |
+| `--name` | Selects the Container App to update. |
 | `--image` | Points the app to the private ACR image and tag. |
 
 ## Verification
@@ -293,6 +308,8 @@ az containerapp show \
 | Command part | Purpose |
 |---|---|
 | `az containerapp show` | Reads the current Container App configuration. |
+| `--resource-group` | Selects the resource group containing the Container App. |
+| `--name` | Selects the Container App to inspect. |
 | `--query` | Extracts the image, registry identity, and provisioning state fields needed for verification. |
 | `--output json` | Keeps nested registry details readable. |
 
@@ -330,7 +347,7 @@ For detailed diagnosis, see the [Image Pull Failure](../../troubleshooting/playb
 
 ## Clean Up
 
-To remove the demo resources:
+Run this command only when `$RG` names a disposable demo resource group that you created for this exercise. Do not delete a pre-existing or production resource group. If you used existing resources, leave the group intact and roll back only the identity, role assignment, registry configuration, and revision changes according to your change record.
 
 ```bash
 az group delete --name $RG --yes --no-wait
@@ -338,7 +355,8 @@ az group delete --name $RG --yes --no-wait
 
 | Command part | Purpose |
 |---|---|
-| `az group delete` | Removes the demo resource group and resources created for this procedure. |
+| `az group delete` | Removes the disposable demo resource group and all resources it contains. |
+| `--name` | Selects the disposable demo resource group to delete. |
 | `--yes` | Confirms deletion without an interactive prompt. |
 | `--no-wait` | Starts deletion and returns before Azure finishes removing the resources. |
 
@@ -355,6 +373,7 @@ az group delete --name $RG --yes --no-wait
 - [Managed identities in Azure Container Apps — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [ACR built-in roles directory — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-directory-reference)
 - [ACR ABAC repository permissions — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)
+- [ACR dedicated data endpoints and 307 redirects — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
 - [Publish revisions with GitHub Actions — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
 - [Authenticate GitHub Actions to Azure with OIDC — Microsoft Learn](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect)
 - [Publish revisions with Azure Pipelines — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/azure-pipelines)
