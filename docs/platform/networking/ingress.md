@@ -6,27 +6,34 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
     - id: ingress-decision-tree
       type: flowchart
       source: self-generated
       justification: Synthesized decision flow from Microsoft Learn ingress, networking, connect-apps, client certificate, and rule-based routing guidance.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
         - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
         - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
         - https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
-    - claim: Azure Container Apps ingress supports external and internal exposure modes, where external accepts public internet traffic and internal limits reachability to the environment boundary described by Microsoft Learn.
+    - claim: External app ingress publishes an app at the environment inbound boundary; public internet reachability also depends on the environment virtual IP and public network access configuration.
       source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
       verified: true
-    - claim: Internal service discovery uses environment-scoped names, including an internal FQDN that contains the .internal segment.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+    - claim: An app with internal ingress is directly reachable only within its environment by default, but an environment-level HTTP route can target that app and provide an outside entry path.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing
       verified: true
     - claim: Azure Container Apps supports transport values auto, http, http2, and tcp for ingress configuration.
       source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
@@ -53,22 +60,48 @@ Azure Container Apps provides a managed ingress layer in front of your app. Micr
 !!! note "Document Envoy conservatively"
     Microsoft Learn explicitly documents the HTTP edge proxy and separately documents Envoy for internal routing inside Container Apps clusters. This page therefore refers to a managed ingress edge and avoids overstating that every ingress detail is directly documented as Envoy-based at the public edge.
 
+**Takeaway:** Environment accessibility controls which callers can reach the managed entry point; app ingress and revision traffic settings then control how an accepted request reaches a replica.
+
 <!-- diagram-id: ingress-request-lifecycle -->
 ```mermaid
 flowchart TD
-    Client[Client or caller] --> DNS[Default FQDN or custom domain]
-    DNS --> Edge[Managed ingress edge]
-    Edge --> TLS[TLS termination and ingress policy]
-    TLS --> Route[Host, path, or port routing]
-    Route --> Revision[Active revision selection]
-    Revision --> Replica[Container app replica]
+    accTitle: Azure Container Apps ingress request lifecycle
+    accDescr: Internet, virtual network, private endpoint, and same-environment callers reach the managed environment only through allowed entry paths. The managed ingress proxy terminates TLS and routes accepted requests to an active revision and its replicas. Dotted arrows show configuration rather than request traffic.
+
+    INTERNET["Internet caller"]
+    PRIVATE["Private caller<br/>VNet or private endpoint path"]
+    INTERNAL["Same-environment caller"]
+    CONFIG["Ingress configuration<br/>environment access, app exposure,<br/>revision traffic weights"]
+
+    subgraph ENV["Managed Container Apps environment"]
+        ENTRY["Allowed environment entry<br/>public or private"]
+        INGRESS["Managed ingress proxy<br/>TLS and request routing"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
+    end
+
+    INTERNET ==>|"When public entry is enabled"| ENTRY
+    PRIVATE ==>|"When private entry is configured"| ENTRY
+    INTERNAL ==>|"Internal app call"| INGRESS
+    ENTRY ==>|"Accepted inbound request"| INGRESS
+    INGRESS ==>|"Route by revision traffic rule"| REV_ACTIVE
+    REV_ACTIVE ==>|"Select replica"| REPLICAS
+
+    CONFIG -.->|"CONTROL: apply exposure and routing settings"| ENTRY
+    CONFIG -.->|"CONTROL: apply app ingress policy"| INGRESS
+    APP -.->|"Logical revision membership"| REV_ACTIVE
+
+    LEGEND["Arrow key<br/>thick = request path<br/>dotted = configuration or logical relationship"]
 ```
+
+*Figure: Accepted ingress traffic crosses the environment entry boundary, then follows the managed ingress → active revision → replica path. App-level external ingress does not by itself prove public internet reachability; environment accessibility and public network access also apply.*
 
 The default FQDN uses the environment DNS suffix. For internal service-to-service calls, Microsoft Learn documents an internal FQDN pattern that includes `.internal.` and is scoped to the same Container Apps environment.
 
 ## Portal view
 
-The **Ingress** blade under **Networking** is where every ingress setting documented on this page is configured for a single container app. Use this view to confirm an app's current ingress posture before deciding which deeper section (transport, IP restrictions, CORS, etc.) to consult.
+The **Ingress** blade under **Networking** shows the app-level ingress controls visible for a single container app. Use it to confirm app exposure, protocol, port, client-certificate mode, and IP restrictions. Environment accessibility, public network access, and premium ingress are configured on the Container Apps environment rather than this app blade, while some app ingress properties require another portal surface or ARM, Bicep, YAML, or CLI configuration.
 
 ![Azure Portal Ingress blade for ca-sample-d38538 showing Ingress enabled, Accepting traffic from anywhere, Ingress type HTTP, Client certificate mode Ignore, Transport Auto, Target port 80, the public Endpoints URL ending in koreacentral.azurecontainerapps.io, an Additional TCP ports row, and the start of the IP Restrictions section with "Allow all traffic (default)" selected.](../../assets/platform/networking/01-ingress-blade.png)
 
@@ -82,27 +115,27 @@ At the app level, ingress is controlled through the ingress configuration, inclu
 
 | Ingress state | Result | Typical use |
 |---|---|---|
-| Enabled + `external: true` | App accepts internet and environment-originated traffic | Public web app, public API, partner API |
-| Enabled + `external: false` | App is internal-only at the app level | Internal microservice, internal API |
+| Enabled + `external: true` | App is published at the environment inbound boundary; public or private reachability follows the environment network configuration | Public web app on a public environment, or VNet/private endpoint access |
+| Enabled + `external: false` | App's own FQDN is directly reachable only within the environment by default; an environment-level HTTP route can still target it | Internal microservice, internal API |
 | Disabled | No inbound HTTP or TCP endpoint | Queue worker, event-driven processor, background component |
 
 When ingress is disabled, the app does not expose an inbound endpoint. That is the safest posture for workloads that only react to events or outbound calls.
 
 ## External vs Internal ingress
 
-The most important ingress decision is whether the app itself is public or internal.
+The most important app-level ingress decision is whether the app is published at its environment boundary or directly reachable only inside the environment. This setting alone does not determine internet reachability.
 
 | Setting | Reachability | Name behavior | Best fit |
 |---|---|---|---|
-| `external: true` | Public internet and internal callers | Uses the default public FQDN or custom domain | Public web front ends, public APIs |
-| `external: false` | Internal callers only | Uses environment-scoped internal addressing, including `.internal.` FQDN patterns | Internal microservices |
+| `external: true` | Environment inbound boundary and same-environment callers; the boundary can be public, internal-load-balancer, or private-endpoint based | Uses the app FQDN or custom domain | Public apps when the environment permits public access; private VNet apps on an internal environment |
+| `external: false` | Direct app access from the same environment by default; an environment-level HTTP route can still forward outside traffic to the app | Uses environment-scoped internal addressing, including `.internal.` FQDN patterns | Internal microservices not targeted by an external route |
 
 For same-environment calls, Microsoft Learn documents two common internal patterns:
 
 - `http://<app-name>`
 - `<app-name>.internal.<environment-unique-id>.<region>.azurecontainerapps.io`
 
-Requests sent to an internal-only app from outside the same environment are rejected by the environment proxy and return `404`.
+By default, a request sent through the environment inbound endpoint to an app with internal ingress returns `404`. An environment-level HTTP route is an explicit exception: it can target an `external: false` app and forward requests from the route FQDN. To keep the app unreachable from outside the environment, do not include it as an HTTP route target, or isolate it in a separate environment with no public routes.
 
 ### App-level vs environment-level internal exposure
 
@@ -110,7 +143,7 @@ Do not confuse **app-level internal ingress** with an **internal environment**:
 
 | Scope | Setting | Effect |
 |---|---|---|
-| App | `external: false` | Restricts that app to callers in the same Container Apps environment |
+| App | `external: false` | Hides the app's own FQDN from the environment inbound boundary; same-environment callers retain direct access, and an environment HTTP route can still target the app |
 | Environment | `internal: true` / `--internal-only true` | Removes the public environment entry point and uses internal load balancer behavior for the environment |
 
 This distinction matters:
@@ -121,19 +154,43 @@ This distinction matters:
 
 For the full environment-level private networking deep dive, see [Private Endpoints](private-endpoints.md) and [VNet Integration](vnet-integration.md).
 
+**Takeaway:** Decide who needs access before choosing app ingress. For VNet-only inbound access, an internal environment still uses app-level external ingress so the environment's internal entry point can accept the request.
+
 <!-- diagram-id: ingress-decision-tree -->
 ```mermaid
 flowchart TD
-    A[What must reach the app?] -->|No inbound callers| B[Disable ingress]
-    A -->|Public browsers or APIs| C[External ingress]
-    A -->|Same environment services| D[Internal ingress]
-    A -->|Private VNet-only exposure| E[Internal environment plus app ingress design]
-    A -->|B2B partner with client certificates| F[External ingress plus client certificate auth]
-    C --> G[Use custom domain, TLS, and optional IP rules]
-    D --> H[Use internal name or .internal. FQDN]
-    E --> I[Cross-link to private environment guidance]
-    F --> J[Cross-link to mTLS guidance]
+    accTitle: Choose an Azure Container Apps ingress exposure model
+    accDescr: A decision tree starts with whether the workload accepts inbound traffic, then separates same-environment, public internet, private virtual network, and partner callers. It distinguishes app ingress from environment accessibility and public network access.
+
+    NEED{"Does the workload<br/>accept inbound traffic?"}
+    CALLER{"Who must reach<br/>the app?"}
+    DISABLED["Disable ingress<br/>no inbound endpoint"]
+    INTERNAL_APP["Internal app ingress<br/>external: false"]
+    INTERNAL_NAME["Use the app name or<br/>internal FQDN"]
+    PUBLIC_APP["External app ingress<br/>external: true"]
+    PUBLIC_ENV["External environment<br/>public network access enabled"]
+    PUBLIC_CONTROLS["Use TLS, custom domain,<br/>IP rules, and app authorization"]
+    PRIVATE_ENV["Internal environment<br/>custom VNet and internal entry"]
+    PRIVATE_APP["External app ingress<br/>accept through the environment's<br/>private entry point"]
+    PARTNER["External app ingress<br/>plus required client certificate"]
+    PARTNER_CONTROLS["Validate client identity<br/>and apply app authorization"]
+
+    NEED -->|"No"| DISABLED
+    NEED -->|"Yes"| CALLER
+    CALLER -->|"Same environment only"| INTERNAL_APP
+    INTERNAL_APP --> INTERNAL_NAME
+    CALLER -->|"Public internet"| PUBLIC_APP
+    PUBLIC_APP --> PUBLIC_ENV
+    PUBLIC_ENV --> PUBLIC_CONTROLS
+    CALLER -->|"Private VNet only"| PRIVATE_ENV
+    PRIVATE_ENV --> PRIVATE_APP
+    CALLER -->|"B2B partner with mTLS"| PARTNER
+    PARTNER --> PARTNER_CONTROLS
+
+    LEGEND["Boundary key<br/>app ingress = per-app exposure<br/>environment access = available public or private entry"]
 ```
+
+*Figure: The decision keeps app-level ingress separate from the environment traffic boundary. In particular, external app ingress on an internal environment accepts traffic through the private environment entry point; it does not create public internet reachability.*
 
 ## Transport
 
@@ -216,20 +273,17 @@ Use platform CORS when you want a consistent ingress policy across revisions. Us
 
 ## Sticky sessions and session affinity
 
-Container Apps supports session affinity with `affinity: sticky` or `affinity: none`.
+Container Apps supports session affinity with `affinity: sticky` or `affinity: none` only when HTTP ingress is enabled and the app uses single revision mode.
 
 | Setting | Behavior |
 |---|---|
 | `none` | No session affinity |
 | `sticky` | Uses cookies to keep a client on the same replica |
 
-Prefer `sticky` only when the application cannot yet be made stateless. Sticky sessions pin a client to a replica within the selected revision, so they can reduce load distribution quality. They do not replace or override revision-level traffic split rules.
+Prefer `sticky` only when the application cannot yet be made stateless. Sticky sessions pin a client to a replica, so they can reduce load distribution quality. Because the feature requires single revision mode, it is not a mechanism for multiple-revision traffic splitting.
 
 !!! note "Use session affinity conservatively"
-    Microsoft Learn documents cookie-based session affinity for HTTP ingress. It is most meaningful when more than one replica can serve requests; otherwise there is nothing to pin a client to.
-
-!!! note "Sticky sessions are replica-level, not revision routing"
-    Session affinity keeps a client on a replica after ingress has selected the target revision. Use multiple revision traffic rules for canary or blue-green routing; use sticky sessions only for temporary compatibility with stateful request handling.
+    Microsoft Learn documents cookie-based session affinity only for HTTP ingress in single revision mode. It is most meaningful when more than one replica can serve requests; otherwise there is nothing to pin a client to. Use multiple revision mode and traffic rules for canary or blue-green routing instead of session affinity.
 
 ## Request timeout
 
@@ -269,7 +323,7 @@ Microsoft Learn explicitly documents these ingress-forwarded headers for HTTP in
 
 | Dimension | External ingress | Internal ingress |
 |---|---|---|
-| Internet reachable | Yes | No |
+| Internet reachable | Only when the environment has a public inbound endpoint and public network access is enabled | Not through the app's own FQDN; an environment-level HTTP route can still provide an outside path |
 | Same-environment reachable | Yes | Yes |
 | Default naming | Public FQDN or custom domain | Internal addressing including `.internal.` pattern |
 | Best fit | Public apps and partner APIs | Private microservices |
@@ -279,12 +333,12 @@ Microsoft Learn explicitly documents these ingress-forwarded headers for HTTP in
 
 | Scenario | Recommended ingress posture | Why |
 |---|---|---|
-| Public API | External ingress | Public clients must reach the service |
-| Internal microservice | Internal ingress | Keeps east-west calls inside the environment |
-| B2B partner API with client certificates | External ingress plus client certificate auth | Keeps the public contract while enforcing certificate-based caller identity |
+| Public API | External app ingress on an environment that accepts public traffic | Public clients must reach the service through the environment boundary |
+| Internal microservice | Internal ingress with no environment HTTP route targeting the app | Keeps direct app access inside the environment |
+| B2B partner API with client certificates | External app ingress plus client certificate auth on an environment reachable by partners | Publishes the app at the intended environment boundary while enforcing certificate-based caller identity |
 | gRPC backend | `transport: http2` | gRPC requires HTTP/2 |
 | TCP database proxy or custom TCP endpoint | `transport: tcp` with explicit exposed port rules | Raw TCP listener, not HTTP |
-| Multi-region app behind Azure Front Door | External ingress behind a global edge | Front Door handles global routing while Container Apps ingress remains the regional app entry point |
+| Multi-region app behind Azure Front Door | External app ingress behind a global edge, using either the documented public or private-link integration | Front Door handles global routing while Container Apps ingress remains the regional app entry point |
 
 ## See Also
 
@@ -302,6 +356,8 @@ Microsoft Learn explicitly documents these ingress-forwarded headers for HTTP in
 - [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
 - [Communicate between container apps in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Configure virtual networks in Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
+- [Use a private endpoint with an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
 - [Ingress for your app in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
 - [Configure IP ingress restrictions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ip-restrictions)
 - [az containerapp ingress access-restriction (Microsoft Learn)](https://learn.microsoft.com/en-us/cli/azure/containerapp/ingress/access-restriction?view=azure-cli-latest)
