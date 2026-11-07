@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T05:07:22Z",
+  "evaluated_at_utc": "2026-11-07T02:47:31Z",
   "scenario": "matrix_coherence",
   "hypothesis": "H_matrix_coherence",
   "claim": "test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping",

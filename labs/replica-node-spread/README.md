@@ -102,9 +102,10 @@ python3 test_verify.py
 keeps its declared two-entry tolerance: at least 9 of 11 entries must reconcile,
 with exactly 11 entries and unique filenames. This permits stale advisory
 entries without replacing raw-derived placement counts. Every count discrepancy
-is emitted by Gate 12(e); its existing recompute-dictionary fallback may pass
-despite discrepancies. Neither sub-gate enforces zero-discrepancy reconciliation.
-The fallback's predicate form is tracked separately in #413.
+is emitted by Gate 12(e), whose single path requires all 11 raw recomputes and
+zero raw-versus-summary discrepancies. Gate 11(c) therefore remains the weaker
+advisory-summary tier, while Gate 12(e) is the strict reconciliation tier; both
+report their named path or tier in the emitted JSON.
 
 All three JSONL-reading phases use `verify_helpers.py`. Scale records require
 nonempty string `boot_id` and `replica_name`; a supplied

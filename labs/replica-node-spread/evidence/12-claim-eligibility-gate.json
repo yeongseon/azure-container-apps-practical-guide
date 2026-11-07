@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T05:07:22Z",
+  "evaluated_at_utc": "2026-11-07T02:47:31Z",
   "scenario": "claim_eligibility",
   "hypothesis": "H_claim_eligibility",
   "claim": "observed_node_spread_behavior_under_this_test_matrix",
@@ -250,8 +250,8 @@
       ]
     },
     "merged_counts_present": false,
-    "b_strong_path_two_separate_dicts": true,
-    "b_fallback_path_both_profiles_populated": true,
+    "b_single_path_two_separate_dicts": true,
+    "b_path_tier": "separate_profile_tables",
     "b_pass": true
   },
   "sub_gate_c_repeats_show_variability": {
@@ -507,8 +507,8 @@
       "any_variability": true,
       "reason": "ok"
     },
-    "c_strong_path_both_top_scale_repeats_vary": true,
-    "c_fallback_path_any_repeats_vary": true,
+    "c_single_path_both_top_scale_repeats_vary": true,
+    "c_path_tier": "both_top_scale_repeat_sets_vary",
     "c_pass": true
   },
   "sub_gate_d_counterexamples_surfaced": {
@@ -596,8 +596,8 @@
     "scale_files_count": 11,
     "raw_vs_summary_discrepancies_count": 0,
     "raw_vs_summary_discrepancies": [],
-    "e_strong_path_zero_discrepancies": true,
-    "e_fallback_path_recompute_dict_exists": true,
+    "e_single_path_raw_recomputes_reconcile": true,
+    "e_path_tier": "raw_recomputes_reconcile",
     "e_pass": true
   },
   "gate_3_claim_eligibility_sub_gates": {
