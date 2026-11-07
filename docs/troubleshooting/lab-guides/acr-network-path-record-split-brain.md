@@ -9,6 +9,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules
+        - https://learn.microsoft.com/en-us/azure/dns/private-dns-fallback
 validation:
   az_cli:
     last_tested: '2026-06-06'
@@ -25,7 +26,7 @@ Reproduce **Scenario D** from [ACR Network Path Selection](../../platform/networ
 This lab makes a non-obvious Azure Container Apps behavior falsifiable: **deleting one A record from the linked private DNS zone produces no immediate revision-health impact on the already-running revision**. The already-running revision stays `Healthy` and continues to serve traffic unchanged from cached image layers, while a four-layer probe (DNS → TCP → TLS → HTTP) run from inside the replica clearly shows the asymmetry — `topology_class=data_nxdomain`, with the data endpoint returning `socket.gaierror: [Errno -2] Name or service not known` at the DNS layer (before any TCP/TLS/HTTP layer can run), while the registry endpoint still returns DNS=private/HTTP 401 from the ACR backend. Pull-path observability is therefore **not** a reliable early warning for Scenario D in Container Apps in this scenario. The `/probe` endpoint in this lab is the workload-side signal that clearly moves.
 
 !!! info "Empirical deviation from the original Scenario D framing"
-    The [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) page describes Scenario D as a "record-level split-brain" with the login record resolving privately and the data record resolving publicly. That framing is precise only for a custom-DNS topology (a customer-managed DNS server such as BIND with views or `systemd-resolved` with multi-domain fallback) that is configured to fall back to public DNS when an upstream returns NXDOMAIN. The default Container Apps topology — Azure-provided DNS in the VNet, no custom DNS server — behaves differently: Azure DNS at `168.63.129.16` treats every Private DNS Zone linked to the VNet as **authoritative** for that namespace, and a query for a missing record returns NXDOMAIN, not the public CNAME chain. This lab reproduces the default-Azure-DNS variant of Scenario D, because that is the topology most production Container Apps environments actually run. The custom-DNS-with-public-fallback variant ("true split-brain") is a distinct topology that this lab intentionally does not reproduce; the `topology_class` taxonomy in [§1 Background](#1-background) names both outcomes (`data_nxdomain` for this lab, `split_brain` for the custom-DNS-with-fallback variant) so the operational distinction stays explicit.
+    The [ACR Network Path Selection](../../platform/networking/acr-network-path-selection.md) page describes Scenario D as a record-level failure that can produce either NXDOMAIN or "login private, data public" split-brain. This lab's Bicep declares its `Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01` resource without `resolutionPolicy`, so the link uses the `Default` policy and a missing record remains NXDOMAIN. Azure Private DNS now also supports the native `NxDomainRedirect` link policy, which retries public resolution after an authoritative NXDOMAIN response; custom DNS can independently implement public fallback too. Either fallback topology can produce `topology_class=split_brain`, but this lab intentionally reproduces only the `Default`-policy `data_nxdomain` outcome.
 
 !!! info "Scope: we do not script a broken-window fresh pull"
     This lab intentionally does not script a fresh `az containerapp update --image <new-tag>` during the broken window. With ACR configured for `publicNetworkAccess=Disabled` (the realistic production posture this lab models), the Container Apps control plane's ACR token exchange is blocked at the ACR firewall for reasons unrelated to the missing data record, which would confound the variable under test. The layer-3 probe (NXDOMAIN on the data FQDN) replaces the broken-window fresh pull as the falsification proof. See [§"Why we do not script a broken-window fresh pull"](#why-we-do-not-script-a-broken-window-fresh-pull) below.
@@ -57,7 +58,7 @@ This lab is part of the **5-lab ACR network path series** that reproduces the fi
 | Fresh-pull behavior cleanly proven | No — broken-window fresh pull is explicitly out of scope under `publicNetworkAccess=Disabled` (control-plane token-exchange confound; see [§"Why we do not script a broken-window fresh pull"](#why-we-do-not-script-a-broken-window-fresh-pull) below) |
 
 !!! note "Observed in this lab"
-    This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (ACR Premium PE, default Azure DNS at `168.63.129.16` in the VNet, `privatelink.azurecr.io` linked zone with deliberate single-record deletion of the regional data endpoint, Container Apps Consumption profile, managed-identity auth). Treat it as **validated for this lab's specific topology and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. In a custom-DNS-with-public-fallback topology (BIND with views, `systemd-resolved` with multi-domain fallback, etc.), the same record deletion produces a different observable outcome (`topology_class=split_brain` instead of `topology_class=data_nxdomain`) — see the [§1 Background](#1-background) taxonomy table.
+    This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (ACR Premium PE, default Azure DNS at `168.63.129.16` in the VNet, `privatelink.azurecr.io` linked through a VNet link that omits `resolutionPolicy` and therefore uses `Default`, deliberate single-record deletion of the regional data endpoint, Container Apps Consumption profile, managed-identity auth). Treat it as **validated for this lab's specific topology and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. A VNet link using native `NxDomainRedirect`, or custom DNS configured for public fallback, can produce `topology_class=split_brain` instead of `topology_class=data_nxdomain`; see the [§1 Background](#1-background) taxonomy table.
 
 ## 1) Background
 
@@ -69,7 +70,7 @@ For ACR specifically, the zone needs BOTH the `<registry>` A record (for the reg
 
 Three properties make Scenario D worth reproducing as a hands-on lab:
 
-- **Azure Private DNS Zones linked to a VNet are authoritative for their namespace.** The Private DNS Zone IP-substitution mechanism documented in [Azure Private Endpoint DNS configuration](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns) works at the zone level: once a VNet is linked to a private zone, Azure DNS treats every query for a name in that namespace as a query against the zone, and answers with the zone's record if one exists or with NXDOMAIN if no record exists. There is no automatic fallthrough to the public CNAME chain from Azure DNS itself. This means a missing `<registry>.<region>.data` record produces a hard DNS failure for the application (the data FQDN is unaddressable), not a silent flip to a public IP. The platform doc's older "split-brain" framing — login private, data public — is accurate only for a custom-DNS topology where a customer-managed resolver is explicitly configured to fall back to public DNS on NXDOMAIN; that is a different topology than this lab.
+- **This lab's VNet link uses the `Default` resolution policy.** The Bicep resource uses API version `2020-06-01` and does not declare `resolutionPolicy`, so a missing `<registry>.<region>.data` record produces authoritative NXDOMAIN and a hard DNS failure for the application. Azure Private DNS also offers `NxDomainRedirect` on newer VNet-link API versions: after authoritative NXDOMAIN for a Private Link zone, Azure's recursive resolver can retry the public endpoint name. Custom DNS can independently implement similar fallback. Those alternatives can produce a public data answer, but neither is configured in this lab.
 - **In Azure Container Apps in this reproduction, deleting the data A record produces no immediate revision-health impact on the already-running revision.** This is the central finding of the lab, and it mirrors the Scenario E lab's central finding for a different root cause. Empirically, when the `<registry>.<region>.data` record is deleted from `privatelink.azurecr.io`, the already-running revision continues to report `healthState=Healthy` and serves traffic from the already-cached image layers. The workload, however, immediately sees the broken record — the 4-layer probe's data-FQDN DNS layer flips from `class=private` (PE NIC IP) to `class=null` with `error="gaierror: [Errno -2] Name or service not known"`, and all downstream layers (TCP, TLS, HTTP) are skipped because there is no IP to connect to.
 - **Scenario D is distinct from Scenario E in a way that matters operationally.** Scenario E breaks the resolver path so the ENTIRE ACR namespace resolves publicly; Scenario D leaves the resolver path correct but breaks a SINGLE record so only PART of the namespace fails to resolve. Both can produce workload-layer failures without revision-health impact, but they require DIFFERENT FIXES — fix the forwarder for E, fix the zone record for D. A lab that can distinguish them on the wire (this lab vs. the sibling Scenario E lab) is operationally useful because the diagnostic signal differs: Scenario E shows `topology_class=both_public` (custom DNS bypasses Azure DNS entirely), Scenario D in default Azure DNS shows `topology_class=data_nxdomain` (Azure DNS is authoritative and answers NXDOMAIN for the missing record).
 
@@ -79,7 +80,7 @@ The lab's `topology_class` taxonomy enumerates the observable outcomes:
 |---|---|---|---|
 | `both_private` | private | private | Scenario B baseline (both records present in zone, Azure DNS returns PE NIC IPs) |
 | `data_nxdomain` | private | NXDOMAIN | **Scenario D in default Azure DNS** (data record missing, zone is authoritative, Azure DNS returns NXDOMAIN) — the outcome this lab reproduces |
-| `split_brain` | private | public | Scenario D in custom-DNS-with-public-fallback topology (data record missing AND custom resolver falls back to public DNS on NXDOMAIN) — NOT reproduced by this lab |
+| `split_brain` | private | public | Scenario D with public fallback after the missing-record NXDOMAIN: either Azure-native `NxDomainRedirect` on the zone's VNet link or explicitly configured custom-resolver fallback — NOT reproduced by this lab |
 | `both_public` | public | public | Scenario E or no zone link at all (resolver path bypasses Azure DNS for the entire ACR namespace) |
 | `inverted_split_brain` | public | private | Unusual; resolver-side caching anomaly or partial zone link |
 | `registry_nxdomain` | NXDOMAIN | private | Unusual; registry record deleted (not the lab path) |
@@ -90,47 +91,45 @@ The lab's `topology_class` taxonomy enumerates the observable outcomes:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    REPLICA[Container App replica<br/>workload profile subnet 10.70.0.0/23]
-    PROBE[Workload /probe endpoint<br/>4-layer probe DNS/TCP/TLS/HTTP<br/>for BOTH FQDNs]
-    CACHED[Already-cached image layers<br/>no pull during broken window]
-    AZDNS[Azure DNS<br/>168.63.129.16<br/>default VNet DNS - no custom forwarder]
-    ZONE[Private DNS Zone<br/>privatelink.azurecr.io<br/>linked to VNet - AUTHORITATIVE]
-    ZONEREG["A record: registry<br/>HELD CONSTANT"]
-    ZONEDATA["A record: registry.region.data<br/>HEALTHY: present<br/>BROKEN: DELETED"]
-    PEREG[PE NIC registry IP<br/>10.70.4.x]
-    PEDATA[PE NIC data IP<br/>10.70.4.x]
-    ACR[Azure Container Registry<br/>Premium<br/>publicNetworkAccess=Disabled]
-    NXDOMAIN[NXDOMAIN<br/>socket.gaierror in replica<br/>data FQDN unaddressable]
-    ACRREGBE[ACR registry backend<br/>HTTP 401 auth challenge]
-    ACRDATABE[ACR data backend<br/>HTTP 403 default for unauth /v2/]
+    accTitle: Path D record-level authority failure in the ACR private DNS zone
+    accDescr: A workload probe in the running Container Apps revision asks Azure DNS for ACR login and data names. The linked privatelink.azurecr.io zone remains authoritative. Its login record continues to answer with a private endpoint IP, while deleting only the regional data record returns NXDOMAIN. The cached revision remains healthy because the lab does not trigger a fresh image pull.
 
-    REPLICA --> PROBE
-    REPLICA --> CACHED
-    PROBE -->|registry FQDN| AZDNS
-    PROBE -->|data FQDN| AZDNS
-    AZDNS --> ZONE
-    ZONE --> ZONEREG
-    ZONE --> ZONEDATA
-    ZONEREG -->|returns PE NIC IP| PEREG
-    ZONEDATA -->|HEALTHY: returns PE NIC IP| PEDATA
-    ZONEDATA -.->|BROKEN: record gone, zone authoritative| NXDOMAIN
-    PEREG --> ACRREGBE
-    PEDATA --> ACRDATABE
-    ACRREGBE --> ACR
-    ACRDATABE --> ACR
+    subgraph ENV["Managed Container Apps environment"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        PROBE["Workload four-layer probe<br/>login and data FQDNs"]
+        CACHED["Cached image layers<br/>no fresh pull in broken window"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.->|hosts| PROBE
+        REV_ACTIVE -.-> CACHED
+    end
 
-    classDef workload fill:#e1f5ff,stroke:#0078d4
-    classDef brokenpath fill:#fde7e9,stroke:#a4262c
-    classDef registry fill:#e5f5e5,stroke:#107c10
-    classDef neutral fill:#f3f2f1,stroke:#605e5c
+    AZDNS["Azure DNS<br/>default VNet resolver"]
+    ZONE["Private DNS zone<br/>privatelink.azurecr.io"]
+    LOGIN["Login A record<br/>held constant"]
+    DATA{"Regional data A record<br/>present?"}
+    PE_LOGIN["PE NIC login IP"]
+    PE_DATA["PE NIC data IP"]
+    NXDOMAIN["NXDOMAIN<br/>data transport cannot start"]
+    ACR["ACR Premium<br/>public network access disabled"]
 
-    class REPLICA,PROBE workload
-    class NXDOMAIN brokenpath
-    class ACR,PEREG,PEDATA,ACRREGBE,ACRDATABE registry
-    class CACHED,ZONEREG,ZONEDATA neutral
+    ZONE -.->|VNet link and authority| AZDNS
+    PROBE -->|query both FQDNs| AZDNS
+    AZDNS -->|consult linked zone| ZONE
+    ZONE --> LOGIN
+    ZONE --> DATA
+    LOGIN -.->|private IP answer| PROBE
+    DATA -.->|Yes: private IP answer| PROBE
+    DATA -.->|No: authoritative negative answer| NXDOMAIN
+    PROBE ==>|login HTTPS probe| PE_LOGIN
+    PROBE ==>|data HTTPS probe when resolvable| PE_DATA
+    PE_LOGIN ==>|Private Link transport| ACR
+    PE_DATA ==>|Private Link transport| ACR
+
+    LEGEND["Arrow key<br/>thick = workload request or probe transport<br/>solid = DNS query and lookup<br/>dotted = answer, authority, or cached-state relation"]
 ```
 
-The solid arrows are the workload DNS path and image data path in the **HEALTHY** baseline state. The dotted arrow is what the workload sees for the **data FQDN only** in the **BROKEN** state after the data A record is deleted — Azure DNS returns NXDOMAIN because the linked Private DNS Zone is authoritative for that namespace, and the application code surfaces this as `socket.gaierror`. The registry login FQDN is unchanged across both states. Note that the registry backend returns **HTTP 401** (auth challenge) and the data backend returns **HTTP 403** (default response to an unauthenticated `/v2/` probe) even in the BASELINE state — the HTTP status difference between registry and data is the data endpoint's default behavior, not a discriminator for the broken vs. healthy state. The reliable broken-state discriminator is the DNS layer's NXDOMAIN/`gaierror` on the data FQDN. The neutral-colored `Already-cached image layers` node captures the lab's central Container Apps finding: during the broken window, the lab does not trigger a fresh pull, so the replica continues to run from the already-cached layers without re-pulling, and revision `healthState` stays `Healthy`. See [§"Why we do not script a broken-window fresh pull"](#why-we-do-not-script-a-broken-window-fresh-pull) for the scope boundary.
+The thick arrows are workload probe transport, not a fresh image pull. In the **HEALTHY** baseline, both private answers let the probe reach the two PE NIC addresses. In the **BROKEN** state, only the regional data record is absent; the linked zone remains authoritative, so Azure DNS returns NXDOMAIN and no data-endpoint transport starts. The login answer remains private. The recorded HTTP 401 and 403 responses belong to the successful baseline probes and are not the broken-state discriminator; NXDOMAIN is. The cached-state relation preserves the lab's explicit scope: no fresh pull occurs in the broken window.
 
 ## 2) Hypothesis
 
@@ -523,6 +522,7 @@ ACR Premium is the dominant cost (~$1.67/day), so do not leave the lab running b
 ## Sources
 
 - [Azure Private Endpoint DNS configuration (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns) — why Azure DNS performs IP substitution for `privatelink.*` zones and how linked private zones behave authoritatively for names in that namespace
+- [Fallback to internet for Azure Private DNS zones (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/dns/private-dns-fallback) — the VNet-link `Default` and `NxDomainRedirect` resolution policies and Azure-native retry of public resolution after authoritative NXDOMAIN
 - [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints) — ACR PE topology, sub-resource model, and the registry+data FQDN split
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking) — Container Apps VNet DNS behavior (defaults to Azure DNS when no custom DNS server is configured on the VNet)
 - [Use a private endpoint with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
