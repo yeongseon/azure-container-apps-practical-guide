@@ -3,20 +3,25 @@ content_sources:
   diagrams:
     - id: custom-domain-request-flow
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Runtime custom-domain request path synthesized from documented DNS records, TLS termination, hostname certificate binding, managed ingress, revisions, and replicas; DNS lookup is kept separate from TCP and TLS transport.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
         - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
+  last_reviewed: 2026-11-07
   reviewer: agent
   core_claims:
-    - claim: Azure Container Apps supports custom domains with managed certificates and uploaded certificates.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-      verified: true
-    - claim: Custom domain binding is tied to TLS certificate binding on the container app.
+    - claim: Every custom domain must be associated with a TLS certificate, using either a free managed certificate or an existing certificate.
       source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+      verified: true
+    - claim: Apex domains use an A record and HTTP validation, while subdomains use a direct CNAME record and CNAME validation; both workflows use a TXT domain-verification record.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+      verified: true
+    - claim: Container Apps HTTP ingress terminates TLS at the ingress point before routing the request to an app revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
       verified: true
 ---
 # Custom Domains and TLS
@@ -53,17 +58,39 @@ The two main certificate paths are:
 - **Managed certificate** for a lower-operations experience
 - **Bring your own certificate** when you need your own CA, packaging, or domain support path
 
-Microsoft Learn now documents the current domain-type split: Container Apps supports apex domains and subdomains, uses **A record + HTTP validation** for apex domains, and **CNAME + CNAME validation** for subdomains. Both managed-certificate and uploaded-certificate workflows still require the matching TXT verification record.
+Microsoft Learn documents the current domain-type split: Container Apps supports apex domains and subdomains, uses **A record + HTTP validation** for apex domains, and **a direct CNAME + CNAME validation** for subdomains. Both managed-certificate and uploaded-certificate workflows also use the matching TXT ownership record: `asuid` for an apex domain or `asuid.<subdomain>` for a subdomain. With an environment private endpoint, an apex-domain A record resolves privately to the private endpoint IP while the ownership TXT record remains in public DNS.
 
 <!-- diagram-id: custom-domain-request-flow -->
 ```mermaid
 flowchart TD
-    A[Client request] --> B[Public DNS zone]
-    B --> C[Container Apps ingress endpoint]
-    C --> D[SNI certificate binding]
-    D --> E[Container App routing]
-    E --> F[Active revision]
+    accTitle: Custom domain DNS, TCP, TLS, and app routing path
+    accDescr: A client first resolves an apex A record or subdomain CNAME. It then opens TCP port 443, negotiates TLS by using the hostname and its SNI certificate binding, and sends the HTTPS request through managed ingress to an active revision and replica.
+
+    CLIENT["Client"]
+    DNS["Authoritative DNS<br/>A or direct CNAME"]
+    ADDRESS["Environment inbound address<br/>or private endpoint IP"]
+
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed ingress proxy<br/>TLS and request routing"]
+        CERT["Hostname binding<br/>SNI certificate"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
+    end
+
+    CLIENT -.->|"1  DNS query"| DNS
+    DNS -.->|"2  A or CNAME answer"| CLIENT
+    CLIENT ==>|"3  TCP 443"| ADDRESS
+    ADDRESS ==>|"4  TLS ClientHello with SNI"| INGRESS
+    CERT -.->|"Certificate selection"| INGRESS
+    INGRESS ==>|"5  HTTPS request"| APP
+    APP ==>|"6  Route by traffic rule"| REV_ACTIVE
+    REV_ACTIVE ==>|"7  Select ready replica"| REPLICAS
+
+    LEGEND["Arrow key<br/>thick = TCP, TLS, or HTTPS transport<br/>dotted = DNS or certificate-selection relationship"]
 ```
+
+*Figure: DNS resolution, TCP establishment, TLS/SNI certificate selection, and application routing are separate stages. The runtime portion consumes the reviewed `ENV` → `INGRESS` → `APP` → `REV_ACTIVE` → `REPLICAS` vocabulary without presenting DNS or certificate selection as request transport.*
 
 ## Verification
 
@@ -78,7 +105,10 @@ az containerapp hostname list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname list` | Lists custom hostname bindings for the container app. |
+| `--name` | Identifies the container app. |
+| `--resource-group` | Identifies the resource group that contains the app. |
+| `--output` | Formats the result as a table for operator review. |
 
 Validate that the expected hostname serves TLS:
 
