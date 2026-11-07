@@ -28,15 +28,23 @@ Use this query when a revision fails to become healthy or startup behavior is un
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter startup and failure signals] --> C[Project revision columns] --> D[Sort by time]
+    accTitle: Find revision startup and provisioning failure signals
+    accDescr: The query selects one app from legacy system logs, keeps failure, provisioning, startup, probe, and timeout terms, projects revision and replica context, and sorts matching rows from newest to oldest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep failure, provisioning,<br/>startup, probe, and timeout terms]
+    SIGNALS --> CONTEXT[Project timestamp, revision,<br/>replica, reason, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: The broad filter finds candidate startup evidence. Diagnose the earliest relevant row for a revision and corroborate it with image, probe, configuration, and application evidence.*
 
 ## Query
 

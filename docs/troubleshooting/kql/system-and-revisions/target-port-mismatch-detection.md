@@ -19,15 +19,23 @@ The platform message *"The TargetPort N does not match the listening port M"* is
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Match Pending:PortMismatch or TargetPort Log_s or ProbeFailed] --> C[Project mismatch evidence columns] --> D[Sort newest first]
+    accTitle: Detect target-port mismatch attribution in system logs
+    accDescr: The query selects a recent window for one app from legacy system logs, keeps direct Pending PortMismatch and TargetPort attribution plus probe-failure context, projects the evidence fields, and sorts rows from newest to oldest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> SCOPE[Select app and recent window]
+    SCOPE --> SIGNALS[Keep direct mismatch attribution<br/>plus ProbeFailed context]
+    SIGNALS --> EVIDENCE[Project timestamp, revision,<br/>replica, reason, type, and message]
+    EVIDENCE --> RESULT[Order newest first]
 ```
+
+*Figure: Direct `PortMismatch` or `TargetPort` text is attribution evidence; `ProbeFailed` alone is supporting context and does not prove a target-port mismatch.*
 
 ## Query
 
