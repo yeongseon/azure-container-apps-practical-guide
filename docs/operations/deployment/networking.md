@@ -8,6 +8,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
     - id: vnet-setup-flow
       type: flowchart
@@ -40,8 +41,8 @@ content_validation:
     - claim: An internal Container Apps environment has no public endpoint and uses an internal load balancer IP from the custom virtual network.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
       verified: true
-    - claim: App-level internal ingress is reachable only from other apps in the same Container Apps environment, while external app ingress on an internal environment is reachable from the virtual network without becoming internet-accessible.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
+    - claim: An app's internal-ingress FQDN is directly reachable only from other apps in the same Container Apps environment, but an environment-level HTTP route can still forward outside traffic to that app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
       verified: true
     - claim: Creating a private endpoint on a Container Apps environment requires a workload profiles environment and disabled public network access.
       source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
@@ -92,7 +93,7 @@ az containerapp ingress enable \
 | `--type external` | Publishes the app at the environment inbound boundary; it does not independently create internet reachability. |
 | `--target-port 8000` | Routes accepted ingress traffic to the container listener on port `8000`. |
 
-Use app-level **internal** ingress only when callers are other apps in the same Container Apps environment:
+Use app-level **internal** ingress when only other apps in the same Container Apps environment should directly reach the app's own FQDN:
 
 ```bash
 az containerapp ingress enable \
@@ -109,6 +110,9 @@ az containerapp ingress enable \
 | `--resource-group "$RG"` | Selects the resource group that contains the app. |
 | `--type internal` | Limits direct access to other apps in the same Container Apps environment. |
 | `--target-port 8000` | Routes accepted ingress traffic to the container listener on port `8000`. |
+
+!!! warning "Internal ingress is not an absolute isolation boundary"
+    An environment-level HTTP route can target an internal-ingress app (`external: false`) and forward requests from the route FQDN. To keep the app unreachable from outside the environment, do not include it as an HTTP route target, or isolate it in an environment with no public routes.
 
 Disable ingress for workers and jobs that should expose no inbound endpoint:
 
@@ -135,7 +139,7 @@ flowchart TD
     accDescr: An operator sends an ingress update through Azure Resource Manager. The platform applies the desired app configuration. A separate caller request reaches an allowed environment entry, then the managed ingress proxy routes it to an active revision and a ready replica. Dotted arrows are management or logical relationships; thick arrows are request transport.
 
     OPERATOR["Operator<br/>Azure CLI or IaC"]
-    CALLER["Expected caller<br/>internet, VNet, or same environment"]
+    CALLER["Expected caller<br/>through the configured<br/>environment entry"]
 
     subgraph MGMT["Azure management plane"]
         ARM["Azure Resource Manager"]
@@ -341,7 +345,7 @@ Check that `external`, `targetPort`, and `transport` match the intended caller. 
 
 ### Verify from the caller network context
 
-For external app ingress on an internal environment, test from a VM, Application Gateway, VPN, or ExpressRoute-connected client in the VNet. For app-level internal ingress, test from another app in the **same Container Apps environment**, for example by opening a shell in the calling app:
+For external app ingress on an internal environment, test from a VM, Application Gateway, VPN, or ExpressRoute-connected client in the VNet. For direct access to an app-level internal-ingress FQDN, test from another app in the **same Container Apps environment**, for example by opening a shell in the calling app:
 
 ```bash
 az containerapp exec \
@@ -366,6 +370,8 @@ curl --connect-timeout 5 --verbose https://<dependency-hostname>/health
 ```
 
 DNS success proves only name resolution. A TCP success proves only that a connection reached a listener, and a successful TLS handshake proves only that the client reached an endpoint presenting an acceptable certificate. An HTTP `401` or `403` confirms an HTTP responder, but it does not identify which boundary rejected the request. In particular, a service firewall or network policy can return `403` when DNS selected a public endpoint. Correlate the resolved IP, response source and body, and service logs before choosing network-policy, routing, or authorization remediation.
+
+If an environment-level HTTP route targets the internal-ingress app, verify outside access through the **route FQDN and configured path**, not through the app's `.internal.` FQDN. Record the route configuration and response source so the route path is not mistaken for direct app-FQDN reachability.
 
 ### Diagnostic decision flow
 
@@ -431,7 +437,7 @@ Before changing DNS, NSGs, UDRs, ingress, or public network access, save the cur
 | Correct private IP, TCP timeout | NSG flow, effective route, firewall logs, private endpoint state | Restore the last NSG/UDR/firewall change; don't alter DNS that already resolves correctly. |
 | TLS or host-routing error | Certificate name, SNI/Host header, app ingress mode, target port | Restore the previous ingress or gateway host configuration. |
 | HTTP `401` or `403` | Resolved IP, response source/body, service firewall logs, app/gateway logs, identity and RBAC evidence | Determine which boundary generated the response. A service firewall or network policy can return `403`; change identity or RBAC only when authorization evidence confirms that failure class. |
-| Internal app FQDN fails from a VM | Caller location and `.internal.` hostname | Test from another app in the same environment, or use external app ingress on an internal environment for VNet clients. |
+| Internal app FQDN fails from a VM | Caller location, `.internal.` hostname, and environment HTTP-route configuration | Test the app's own internal FQDN from another app in the same environment. If an HTTP route targets the app, test outside access through the route FQDN and path; otherwise use external app ingress on an internal environment for direct VNet-client access. |
 
 !!! warning "Change one network layer at a time"
     Combining DNS, NSG, UDR, private endpoint, and ingress changes destroys the evidence needed to identify which layer fixed or broke the path.
@@ -450,6 +456,7 @@ Before changing DNS, NSGs, UDRs, ingress, or public network access, save the cur
 - [Configure virtual networks in Azure Container Apps environments](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
 - [Integrate a virtual network with an Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom)
 - [Configure ingress for your app in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
+- [Use rule-based routing in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing)
 - [Communicate between container apps in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
 - [Use a private endpoint with an Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
 - [Azure Private Endpoint DNS configuration](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)
