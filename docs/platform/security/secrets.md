@@ -93,14 +93,17 @@ A revision can expose an application-level secret to a container in two document
 ```mermaid
 flowchart TD
     accTitle: Resolve and consume an Azure Container Apps secret
-    accDescr: A decision flow starts with an application-level secret definition. An inline value is stored by Container Apps, while a Key Vault reference is resolved through an assigned managed identity. A revision then consumes the resolved app secret through either a secretRef environment variable or a mounted secret file. Dotted arrows show identity and authorization relationships rather than secret-value transport.
+    accDescr: A decision flow starts with an application-level secret definition. An inline value is stored by Container Apps. For a Key Vault reference, the Container Apps secret resolver uses the selected managed identity, requests authorization from Key Vault, returns a failure when access is denied, and retrieves the value only after authorization succeeds. A revision then consumes the resolved app secret through either a secretRef environment variable or a mounted secret file.
 
     DEFINE{"Application-level<br/>secret definition?"}
     INLINE["Inline Container Apps secret<br/>name and value"]
     KVREF["Key Vault reference<br/>keyVaultUrl and identity"]
+    RESOLVER["Container Apps secret resolver<br/>platform requester"]
     IDENTITY["Assigned managed identity<br/>system or user assigned"]
-    RBAC["Key Vault authorization<br/>for example, Secrets User"]
+    RBAC["Key Vault access policy or RBAC<br/>for example, Secrets User"]
+    AUTHZ{"Key Vault authorization<br/>succeeds?"}
     VAULT["Azure Key Vault secret"]
+    FAILURE["Secret retrieval fails<br/>identity, permission, or access error"]
     APP_SECRET["Resolved Container Apps secret<br/>application scope"]
 
     CONSUME{"How does the revision<br/>consume the secret?"}
@@ -112,10 +115,14 @@ flowchart TD
     DEFINE -->|"Inline value"| INLINE
     DEFINE -->|"Key Vault source"| KVREF
     INLINE -->|"Store value"| APP_SECRET
-    IDENTITY -.->|"Selected identity"| KVREF
-    RBAC -.->|"Allows secret read"| IDENTITY
-    KVREF ==>|"Resolve by managed identity"| VAULT
-    VAULT ==>|"Return secret value"| APP_SECRET
+    KVREF -->|"Configure source"| RESOLVER
+    IDENTITY -.->|"Selected identity"| RESOLVER
+    RESOLVER -->|"Request secret read"| AUTHZ
+    RBAC -.->|"Evaluate permission"| AUTHZ
+    AUTHZ -->|"Denied"| FAILURE
+    AUTHZ -->|"Allowed"| VAULT
+    VAULT ==>|"Return secret value"| RESOLVER
+    RESOLVER ==>|"Store resolved value"| APP_SECRET
 
     APP_SECRET --> CONSUME
     CONSUME -->|"Environment variable"| ENV_REF
@@ -124,10 +131,10 @@ flowchart TD
     VOLUME_REF -->|"Mount file"| FILE
     FILE -->|"Application reads file"| PROCESS
 
-    LEGEND["Arrow key<br/>thick = Key Vault value transport<br/>solid = definition or consumption flow<br/>dotted = identity or authorization relationship"]
+    LEGEND["Arrow key<br/>thick = secret-value transport<br/>solid = configuration, request, or decision flow<br/>dotted = identity or policy input"]
 ```
 
-*Figure: The flow keeps secret source, identity authorization, application-level resolution, and revision-level consumption distinct. Managed identity and Key Vault authorization enable retrieval; they are not secret-value transport hops.*
+*Figure: The Container Apps secret resolver is the platform requester. It uses the selected managed identity, but Key Vault returns the secret value only after its access policy or RBAC evaluation allows the read; denial ends in a retrieval failure rather than an application-level secret.*
 
 Example environment variable reference:
 

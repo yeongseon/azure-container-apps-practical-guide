@@ -29,7 +29,7 @@ content_validation:
 ---
 # mTLS Architecture in Azure Container Apps
 
-Azure Container Apps has three distinct mTLS-related planes: environment-internal peer encryption, ingress client certificate authentication, and Dapr service-to-service calls. Treat them as complementary transport and authentication controls rather than one feature flag or an application-authorization system.
+Azure Container Apps has three distinct mTLS-related planes: environment-internal peer encryption, ingress client certificate presentation, and Dapr service-to-service calls. Treat them as complementary transport and identity-input controls rather than one feature flag or an application-authorization system.
 
 ## mTLS Planes in Container Apps
 
@@ -37,16 +37,18 @@ Azure Container Apps has three distinct mTLS-related planes: environment-interna
 ```mermaid
 flowchart TD
     accTitle: Three distinct mTLS-related planes in Azure Container Apps
-    accDescr: A topology separates client certificate authentication at managed ingress, environment peer-to-peer encryption for traffic within one managed environment, and Dapr mutual TLS between sidecars. Thick arrows are request transport. Dotted arrows are settings, metadata, or authorization reminders rather than transport.
+    accDescr: A topology separates client certificate presentation at managed ingress, application validation of forwarded certificate material, environment peer-to-peer encryption for traffic within one managed environment, and Dapr mutual TLS between sidecars. Thick arrows are request transport. Dotted arrows are settings, metadata, trust evaluation, or authorization relationships rather than transport.
 
     CLIENT["External or private client<br/>client certificate optional or required"]
     AUTHZ["Application authorization<br/>still required where applicable"]
+    CERT_REJECT["Reject untrusted certificate<br/>for example, 403"]
 
     subgraph ENV["Managed Container Apps environment"]
         INGRESS["Managed ingress proxy<br/>TLS and client certificate mode"]
         APP_EDGE["Ingress-enabled app"]
+        CERT_VALIDATION{"Certificate trusted by<br/>application policy?"}
 
-        APP_A["App A<br/>direct caller"]
+        APP_A["App A<br/>same-environment caller"]
         APP_B["App B<br/>same environment"]
         PEER_SETTING["Peer encryption setting<br/>environment scope, opt-in"]
 
@@ -59,12 +61,14 @@ flowchart TD
     MODE["clientCertificateMode<br/>ignore, accept, or require"]
     XFCC["X-Forwarded-Client-Cert<br/>when accept or require"]
 
-    CLIENT ==>|"1  HTTPS and client certificate"| INGRESS
+    CLIENT ==>|"1  HTTPS; certificate<br/>when presented"| INGRESS
     MODE -.->|"Ingress setting"| INGRESS
     INGRESS ==>|"2  Forward request"| APP_EDGE
     INGRESS -.->|"Certificate metadata"| XFCC
-    XFCC -.->|"Available to app"| APP_EDGE
-    APP_EDGE -.->|"Authorization decision"| AUTHZ
+    XFCC -.->|"Certificate material"| CERT_VALIDATION
+    APP_EDGE -.->|"Validate forwarded certificate"| CERT_VALIDATION
+    CERT_VALIDATION -.->|"Trusted identity input"| AUTHZ
+    CERT_VALIDATION -.->|"Not trusted"| CERT_REJECT
 
     APP_A ==>|"3  Same-environment request"| INGRESS
     INGRESS ==>|"4  Peer-encrypted traffic"| APP_B
@@ -75,15 +79,15 @@ flowchart TD
     DAPR_A ==>|"6  Automatic Dapr mTLS"| DAPR_B
     DAPR_B ==>|"7  Local HTTP or gRPC"| APP_DAPR_B
 
-    LEGEND["Arrow key<br/>thick = request transport<br/>dotted = setting, metadata,<br/>or authorization relationship"]
+    LEGEND["Arrow key<br/>thick = request transport<br/>dotted = setting, metadata,<br/>trust, or authorization relationship"]
 ```
 
-*Figure: The three planes share one managed environment but solve different problems. Client certificate mode authenticates the ingress caller, peer encryption protects transport within the environment, and Dapr provides authenticated and encrypted sidecar-to-sidecar invocation.*
+*Figure: The three planes share one managed environment but solve different problems. Client certificate mode controls certificate presentation and forwarding; the application must validate the forwarded leaf certificate against its trust policy before authorization. Peer encryption protects transport within the environment, and Dapr provides authenticated and encrypted sidecar-to-sidecar invocation.*
 
 | Plane | Primary purpose | Scope |
 |---|---|---|
 | Environment-internal peer encryption | Encrypt traffic inside the managed environment | App-to-app traffic inside the environment boundary |
-| Ingress client certificate authentication | Authenticate external clients with certificates | Internet or private clients calling ingress |
+| Ingress client certificate presentation | Require, accept, or ignore a certificate and forward presented certificate material | Internet or private clients calling ingress; application validates trust before authorization |
 | Dapr service-to-service mTLS | Secure Dapr sidecar-to-sidecar invocation | Dapr-enabled apps in the same environment |
 
 ### Plane 1: Environment-internal peer encryption
@@ -108,7 +112,7 @@ What this plane does:
 
 - Encrypts network traffic within the Azure Container Apps environment with platform-managed private certificates.
 - Applies at the environment boundary, not as application code middleware.
-- Helps protect east-west traffic when apps communicate directly through environment networking.
+- Helps protect east-west traffic when apps communicate by app name or FQDN through the environment's proxy-managed routing.
 
 What it does not do:
 
@@ -133,11 +137,11 @@ Performance and scope notes:
 
 [Inferred] The presence of a dedicated `Encryption` tab in the tab strip is consistent with [Plane 1: Environment-internal peer encryption](#plane-1-environment-internal-peer-encryption) being framed on this page as an environment-scoped setting rather than an app-scoped one. The grouping of `Encryption` as a peer tab alongside `Ingress settings` and `Request Routing` is consistent with the three-plane model on this page locating the environment plane and the ingress-side surfaces on the same environment blade, while [Plane 3: Dapr service-to-service mTLS](#plane-3-dapr-service-to-service-mtls) is described as configured separately on Dapr-enabled apps. The `Virtual network` row reading "This environment isn't integrated" appears to be orthogonal to the `Encryption` tab being present, which is consistent with this page's description of peer encryption as protecting east-west traffic within the managed environment rather than depending on VNet integration state.
 
-[Not Proven] This image does not show the contents of the `Encryption` tab, so the actual toggle, the field label corresponding to `peerTrafficConfiguration.encryption.enabled`, and any latency or throughput warnings inside the tab body are not visible here. It does not show the `Ingress settings` tab contents, so the `clientCertificateMode` field referenced in [Plane 2: Ingress client certificate authentication](#plane-2-ingress-client-certificate-authentication) is outside the scope of this capture. It does not show any Dapr-related surface, so [Plane 3: Dapr service-to-service mTLS](#plane-3-dapr-service-to-service-mtls) is not represented in this image.
+[Not Proven] This image does not show the contents of the `Encryption` tab, so the actual toggle, the field label corresponding to `peerTrafficConfiguration.encryption.enabled`, and any latency or throughput warnings inside the tab body are not visible here. It does not show the `Ingress settings` tab contents, so the `clientCertificateMode` field referenced in [Plane 2: Ingress client certificate presentation and application validation](#plane-2-ingress-client-certificate-presentation-and-application-validation) is outside the scope of this capture. It does not show any Dapr-related surface, so [Plane 3: Dapr service-to-service mTLS](#plane-3-dapr-service-to-service-mtls) is not represented in this image.
 
-### Plane 2: Ingress client certificate authentication
+### Plane 2: Ingress client certificate presentation and application validation
 
-Ingress client certificate authentication terminates at the Container Apps managed ingress layer. You configure it with `ingress.clientCertificateMode` on the container app.
+The client TLS exchange terminates at the Container Apps managed ingress layer. You configure certificate presentation with `ingress.clientCertificateMode` on the container app. This mode does not establish that a presented certificate is trusted by your application's policy: `accept` permits requests without a certificate, and Container Apps accepts CA-issued or self-signed client certificates.
 
 | Value | Behavior |
 |---|---|
@@ -145,13 +149,13 @@ Ingress client certificate authentication terminates at the Container Apps manag
 | `accept` | Accept requests with or without a certificate, and forward the certificate when present |
 | `ignore` | Ignore client certificates |
 
-When `require` or `accept` is enabled, ingress passes a presented client certificate to the app through `X-Forwarded-Client-Cert`. The header carries certificate material for application inspection; accepting or requiring the certificate does not replace the app's own authorization decision.
+When `require` or `accept` is enabled, ingress passes a presented client certificate to the app through `X-Forwarded-Client-Cert`. Before authorization, the application must extract and decode the leaf certificate, then validate the thumbprint, subject, issuer, or trust chain against its own policy. Reject an untrusted presented certificate, for example with `403`; certificate presentation alone is not a successful trust decision.
 
 This plane is best for:
 
-- Partner APIs that require certificate-based caller authentication.
-- Edge APIs that must accept known enterprise devices or gateways.
-- Scenarios where the application still needs certificate-aware authorization logic after ingress validation.
+- Partner APIs whose application policy validates an approved certificate thumbprint, subject, issuer, or trust chain.
+- Edge APIs that accept certificate material from enterprise devices or gateways and evaluate it before authorization.
+- Scenarios where ingress should require or optionally forward a certificate while the application owns trust validation and authorization.
 
 ### Plane 3: Dapr service-to-service mTLS
 
@@ -176,13 +180,13 @@ Key points:
 | Plane | Who terminates or validates | What is encrypted | Default or opt-in | Certificate source and rotation |
 |---|---|---|---|---|
 | Environment-internal peer encryption | Platform-managed environment networking | Traffic within the managed environment | Opt-in | Platform-managed private certificates inside the environment |
-| Ingress client certificate authentication | Managed ingress / Envoy | Client-to-ingress TLS, plus certificate forwarding metadata to the app | Opt-in per app | Client presents its own certificate; ingress forwards XFCC metadata |
+| Ingress client certificate presentation | Managed ingress controls presentation; application validates trust | Client-to-ingress TLS, plus certificate forwarding metadata to the app | Opt-in per app | Client presents its own certificate; ingress forwards XFCC metadata; application validates the leaf certificate |
 | Dapr service-to-service mTLS | Dapr sidecars | Sidecar-to-sidecar service invocation | Automatic when Dapr service invocation is used | Dapr-managed certificates; see Dapr security docs for current rotation details |
 
 ## Design Guidance
 
-- Use environment peer encryption when you want direct app-to-app traffic inside the environment protected without re-implementing TLS in each service.
-- Use ingress client certificates when the trust decision belongs at the edge.
+- Use environment peer encryption when you want proxy-managed app-to-app traffic inside the environment protected without re-implementing TLS in each service.
+- Use ingress client certificates when ingress should require or accept certificate presentation, and implement the trust decision in application policy before authorization.
 - Use Dapr service invocation when both apps are in the same environment and you want mTLS, retries, and service discovery together.
 - Do not assume one plane automatically enables the others.
 
