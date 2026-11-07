@@ -8,10 +8,11 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage
+        - https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps supports single and multiple revision modes, and single revision mode is the default.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -25,6 +26,9 @@ content_validation:
     - claim: The container app configuration property for revision mode is activeRevisionsMode.
       source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps
       verified: true
+    - claim: Deployment labels are a preview workflow enabled through the labels revision mode in the Azure CLI.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels
+      verified: true
 ---
 # Revision Modes in Azure Container Apps
 
@@ -32,26 +36,60 @@ Revision mode decides whether Azure Container Apps keeps one active revision or 
 
 ## Revision Modes
 
-Azure Container Apps exposes revision mode through the `activeRevisionsMode` property.
+The stable `activeRevisionsMode` resource property and `az containerapp revision set-mode` command expose `Single` and `Multiple`. Microsoft Learn separately documents **Deployment labels** as a preview deployment mode enabled with `--revisions-mode labels`. The preview CLI workflow is ahead of the stable 2026-01-01 ARM contract, so treat these as related but distinct contracts.
 
 | Mode | Active revisions | Best fit | Operational effect |
 |---|---|---|---|
 | `Single` | One | Standard production updates, simple zero-downtime replacement | Platform activates the new revision and deprovisions the old one after cutover |
 | `Multiple` | One or more | Canary, blue/green, A/B testing, staged rollback | You decide which revisions stay active and how ingress traffic is distributed |
 
+| Preview workflow | Enablement | Best fit | Operational effect |
+|---|---|---|---|
+| `labels` | `az containerapp create --revisions-mode labels` | Named dev, staging, and production release tracks | New revisions can target labels; unreferenced revisions are shut down automatically, and label history supports rollback |
+
 <!-- diagram-id: revision-mode-comparison -->
 ```mermaid
 flowchart TD
-    A[Deploy configuration or image change] --> B{Revision mode}
-    B -->|Single| C[Create new revision]
-    C --> D[Wait until new revision is ready]
-    D --> E[Send production traffic to new revision]
-    E --> F[Deprovision prior active revision]
-    B -->|Multiple| G[Create new revision]
-    G --> H[Keep current revision active]
-    H --> I[Choose weights or labels]
-    I --> J[Promote or rollback by traffic change]
+    accTitle: Choose a stable revision mode or the preview deployment-label workflow
+    accDescr: Stable active revision mode supports single and multiple values. A separate preview deployment-label mode manages named release tracks and label history.
+
+    PREVIEW{"Adopt preview deployment-label<br/>mode and its lifecycle?"}
+    LABELS["Deployment labels preview<br/>--revisions-mode labels"]
+    LABEL_RELEASE["Target a named label<br/>for each new revision"]
+    LABEL_PROMOTE["Promote or roll back<br/>through label history"]
+    NEED{"Need side-by-side revisions<br/>or weighted main-URL traffic?"}
+    SINGLE["Single mode<br/>default activeRevisionsMode"]
+    MULTIPLE["Multiple mode<br/>operator-managed revisions"]
+    DEPLOY_SINGLE["Deploy revision-scope change"]
+    READY{"New revision ready?<br/>provisioned, scaled, probes pass"}
+    KEEP_OLD["Keep traffic on<br/>previous revision"]
+    CUTOVER["Platform diverts traffic<br/>to new revision"]
+    DEPROVISION["Platform deprovisions<br/>previous revision"]
+    DEPLOY_MULTIPLE["Deploy candidate while<br/>stable revision stays active"]
+    ROUTE["Validate a revision and<br/>set main URL traffic weights"]
+    DECIDE{"Release evidence<br/>meets criteria?"}
+    PROMOTE["Promote candidate<br/>by traffic update"]
+    ROLLBACK["Keep or restore<br/>stable traffic"]
+
+    PREVIEW -->|Yes| LABELS
+    LABELS --> LABEL_RELEASE
+    LABEL_RELEASE --> LABEL_PROMOTE
+    PREVIEW -->|No, use stable contract| NEED
+    NEED -->|No| SINGLE
+    SINGLE --> DEPLOY_SINGLE
+    DEPLOY_SINGLE --> READY
+    READY -->|No| KEEP_OLD
+    READY -->|Yes| CUTOVER
+    CUTOVER --> DEPROVISION
+    NEED -->|Yes| MULTIPLE
+    MULTIPLE --> DEPLOY_MULTIPLE
+    DEPLOY_MULTIPLE --> ROUTE
+    ROUTE --> DECIDE
+    DECIDE -->|Yes| PROMOTE
+    DECIDE -->|No| ROLLBACK
 ```
+
+*Figure: The stable resource and `revision set-mode` contracts use `single` or `multiple`. The preview deployment-label workflow uses `--revisions-mode labels` and adds automatic label-targeted revision management and history.*
 
 ### Single revision mode
 
@@ -74,6 +112,13 @@ Use multiple revision mode when rollout control matters more than simplicity.
 - Old revisions remain your responsibility until you deactivate them.
 
 This mode is the right platform primitive for canary and blue/green patterns.
+
+### Deployment labels mode (preview)
+
+The preview workflow is not merely an ordinary revision label attached to multiple mode. You enable it with `--revisions-mode labels`, target new revisions with `--target-label`, and can use label history for rollback. Microsoft Learn states that revisions no longer referenced by a deployment label are shut down automatically.
+
+!!! warning "Stable and preview contracts currently differ"
+    The stable `activeRevisionsMode` ARM property and `az containerapp revision set-mode` command document only `Single`/`Multiple` and `single`/`multiple`. The preview deployment-label article documents `--revisions-mode labels`. Verify preview CLI and service behavior before adopting it in production automation.
 
 ## How activation behaves
 
@@ -104,10 +149,14 @@ az containerapp revision set-mode \
   --mode multiple
 ```
 
+
 | Command | Purpose |
 |---|---|
-| `az containerapp revision set-mode` | Switches the app into multiple revision mode so old and new revisions can stay active side by side during promotion. |
-| `--mode multiple` | Enables the operational model where you manage traffic weights, labels, and deactivation explicitly instead of letting the platform auto-promote one revision. |
+| `az containerapp revision set-mode` | Sets stable single or multiple active revision mode. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--mode` | Specifies the active revision mode. |
+
 
 ## Deployment, rollback, and traffic implications
 
@@ -116,7 +165,7 @@ az containerapp revision set-mode \
 | Deployment promotion | Automatic after readiness | Manual, usually through traffic or label changes |
 | Rollback speed | Re-deploy or restore previous configuration | Immediate if a stable revision is still active |
 | Weighted traffic split | Not available | Native capability |
-| Label-based validation | Not applicable | Native capability |
+| Ordinary revision-label validation | Available through a revision URL, but usually unnecessary | Useful alongside weighted rollout control |
 | Operational overhead | Lower | Higher |
 
 !!! tip "Choose the simplest mode that matches your release strategy"
@@ -161,4 +210,5 @@ Choose **multiple** when:
 
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Manage revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage)
+- [Deployment labels in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/deployment-labels)
 - [Microsoft.App/containerApps template reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps)

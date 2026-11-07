@@ -1,4 +1,5 @@
 ---
+description: Day-2 Azure Container Apps revision operations for health-gated promotion, weighted traffic changes, rollback, and revision cleanup.
 content_sources:
   diagrams:
     - id: revision-promotion-workflow
@@ -34,9 +35,14 @@ az containerapp revision set-mode \
   --mode multiple
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision set-mode` | Sets stable single or multiple active revision mode. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--mode` | Specifies the active revision mode. |
+
 
 Review revisions and health state:
 
@@ -47,9 +53,14 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions and their current operational fields. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--output` | Selects the command output format. |
+
 
 Use Activity Log for deployment event timeline:
 
@@ -61,9 +72,15 @@ az monitor activity-log list \
   --output table
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az monitor activity-log ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+| `az monitor activity-log list` | Lists matching Azure Activity Log events. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--max-events` | Limits the number of Activity Log events returned. |
+| `--status` | Filters Activity Log entries by operation status. |
+| `--output` | Selects the command output format. |
+
 
 ## Traffic Splitting
 
@@ -76,9 +93,14 @@ az containerapp ingress traffic set \
   --revision-weight "${APP_NAME}--stable=90" "${APP_NAME}--candidate=10"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Updates ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision-weight` | Assigns main-URL traffic percentages to named revisions. |
+
 
 Gradually increase traffic only when SLOs remain healthy.
 
@@ -93,9 +115,14 @@ az containerapp ingress traffic set \
   --revision-weight "${APP_NAME}--stable=100"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Updates ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision-weight` | Assigns main-URL traffic percentages to named revisions. |
+
 
 Deactivate failed revision:
 
@@ -106,9 +133,14 @@ az containerapp revision deactivate \
   --revision "${APP_NAME}--candidate"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision deactivate ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision deactivate` | Deactivates the selected revision and stops its replicas. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision` | Selects the exact revision to manage. |
+
 
 ## Verification Steps
 
@@ -119,9 +151,14 @@ az containerapp ingress traffic show \
   --output json
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic show` | Shows the current ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--output` | Selects the command output format. |
+
 
 Example output (PII masked):
 
@@ -150,25 +187,50 @@ az containerapp show \
   --output json
 ```
 
+
 | Command | Purpose |
 |---|---|
-| `az containerapp show --query "properties.configuration.ingress"` | Pulls the full ingress configuration so you can confirm that ingress is enabled and correctly configured before diagnosing why a healthy revision gets no traffic. |
-| `--name "$APP_NAME"` / `--resource-group "$RG"` | Ensures the ingress check is run against the exact app whose revision weights you are troubleshooting. |
-| `--output json` | Keeps nested ingress details such as FQDN, transport, and traffic-related configuration visible for operational triage. |
+| `az containerapp show` | Shows the selected container app configuration. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--query` | Projects the response to the fields needed for this check. |
+| `--output` | Selects the command output format. |
+
 
 ## Revision Promotion Workflow
 
 <!-- diagram-id: revision-promotion-workflow -->
 ```mermaid
 flowchart TD
-    A[Deploy Candidate Revision] --> B[Assign 5-10% Traffic]
-    B --> C[Observe Errors Latency Restarts]
-    C --> D{Within SLO?}
-    D -->|Yes| E[Increase Traffic in Stages]
-    D -->|No| F[Rollback to Stable Revision]
-    E --> G[Promote 100% Traffic]
-    F --> H[Deactivate Failed Revision]
+    accTitle: Revision promotion operations decision
+    accDescr: Operators verify the candidate is ready, assign a bounded traffic weight, evaluate revision-scoped evidence, and either continue promotion or restore stable traffic before cleanup.
+
+    DEPLOY["Deploy candidate revision<br/>in multiple revision mode"]
+    READY{"Candidate provisioned,<br/>running, and ready?"}
+    NO_TRAFFIC["Keep production traffic<br/>on stable revision"]
+    CANARY["Assign bounded canary weight<br/>on main application URL"]
+    OBSERVE["Observe candidate and baseline<br/>errors, latency, probes, restarts"]
+    GATE{"Predefined release<br/>criteria met?"}
+    MORE{"Next promotion stage<br/>required?"}
+    INCREASE["Increase candidate weight"]
+    COMPLETE["Route 100 percent<br/>to promoted revision"]
+    ROLLBACK["Restore stable revision<br/>to 100 percent"]
+    CLEANUP["After evidence capture,<br/>deactivate failed candidate"]
+
+    DEPLOY --> READY
+    READY -->|No| NO_TRAFFIC
+    READY -->|Yes| CANARY
+    CANARY --> OBSERVE
+    OBSERVE --> GATE
+    GATE -->|No| ROLLBACK
+    ROLLBACK --> CLEANUP
+    GATE -->|Yes| MORE
+    MORE -->|Yes| INCREASE
+    INCREASE --> OBSERVE
+    MORE -->|No| COMPLETE
 ```
+
+*Figure: Promotion begins only after the candidate is ready. A failed gate changes traffic first; deactivation follows after the operator preserves the evidence needed for diagnosis.*
 
 | Scenario | Recommended Action | Why |
 |---|---|---|
@@ -197,9 +259,16 @@ az containerapp ingress traffic show \
   --output table
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions and their current operational fields. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--query` | Projects the response to the fields needed for this check. |
+| `--output` | Selects the command output format. |
+| `az containerapp ingress traffic show` | Shows the current ingress traffic routing rules. |
+
 
 ## Advanced Topics
 

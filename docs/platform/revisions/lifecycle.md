@@ -12,13 +12,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: A revision is an immutable snapshot, and revision-scope changes create a new revision.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
-    - claim: Azure Container Apps keeps up to 100 inactive revisions by default and supports the maxInactiveRevisions property.
+    - claim: Azure Container Apps purges the oldest inactive revisions after the available revision count exceeds 100 and supports the maxInactiveRevisions property.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
     - claim: Azure Container Apps lets you manually activate and deactivate revisions.
@@ -34,9 +34,9 @@ Revision lifecycle explains what happens from revision creation through activati
 Microsoft Learn documents revision creation and management behavior more clearly than it documents a single canonical state enum. In practice, these are the lifecycle checkpoints you can reason about safely:
 
 - **Provisioning** — the platform creates the revision and prepares runtime resources.
-- **Ready for activation** — the revision is healthy enough to receive traffic.
-- **Active** — the revision can serve requests or process events.
-- **Inactive** — the revision is retained but not serving traffic.
+- **Provisioned** — the revision passed provisioning checks and can proceed to activation.
+- **Active** — the revision is operational and has a separate running state.
+- **Inactive** — the revision is retained without running containers and has no provisioning or running state.
 - **Removed** — the inactive revision ages out or is purged from retention.
 
 !!! warning "Microsoft Learn does not publish one authoritative end-to-end revision state enum list"
@@ -45,16 +45,44 @@ Microsoft Learn documents revision creation and management behavior more clearly
 <!-- diagram-id: documented-revision-lifecycle -->
 ```mermaid
 stateDiagram-v2
+    accTitle: Revision provisioning activation and retention lifecycle
+    accDescr: Provisioning status reaches provisioned or provisioning failed. An active revision has one documented running status at a time, including provisioning and deprovisioning. Inactive revisions have neither provisioning nor running status.
+
     [*] --> Provisioning
-    Provisioning --> Ready: startup succeeds
-    Provisioning --> Failed: startup or deployment fails
-    Ready --> Active: activated or assigned traffic
-    Active --> Inactive: deactivated or replaced
-    Inactive --> Active: manually activated
-    Inactive --> Removed: retention limit reached
-    Failed --> [*]
-    Removed --> [*]
+    Provisioning --> Provisioned: checks pass
+    Provisioning --> ProvisioningFailed: verification fails
+    Provisioned --> Active: activate revision
+    state Active {
+        [*] --> RunningStatus
+        state "Running status" as RunningStatus
+        state "Provisioning" as RunningProvisioning
+        state "Scale to 0" as ScaleToZero
+        state "Activating" as Activating
+        state "Activation failed" as ActivationFailed
+        state "Scaling / Processing" as ScalingProcessing
+        state "Running" as Running
+        state "Running (at max)" as RunningAtMax
+        state "Deprovisioning" as Deprovisioning
+        state "Degraded" as Degraded
+        state "Failed" as Failed
+        RunningStatus --> RunningProvisioning: verification in progress
+        RunningStatus --> ScaleToZero: zero replicas
+        RunningStatus --> Activating: first replica provisioning
+        RunningStatus --> ActivationFailed: first replica fails
+        RunningStatus --> ScalingProcessing: scaling in or out
+        RunningStatus --> Running: replicas healthy
+        RunningStatus --> RunningAtMax: maximum replicas healthy
+        RunningStatus --> Deprovisioning: removing runtime resources
+        RunningStatus --> Degraded: replica failure
+        RunningStatus --> Failed: critical error
+    }
+    Active --> Inactive: deprovisioning completes
+    Inactive --> Provisioning: reactivate
+    Inactive --> Purged: inactive cap exceeded
+    Purged --> [*]
 ```
+
+*Figure: Provisioning status, active status, and running status are separate dimensions. The peer states inside the active group represent every running-status value currently documented by Microsoft Learn; the diagram does not assert an order between those values. Inactive revisions have neither provisioning nor running status.*
 
 ## How revisions enter the lifecycle
 
@@ -89,9 +117,15 @@ az containerapp revision deactivate \
   --revision "$APP_NAME--20260420-3"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision activate ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision activate` | Activates the selected revision. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision` | Selects the exact revision to manage. |
+| `az containerapp revision deactivate` | Deactivates the selected revision and stops its replicas. |
+
 
 Manual deactivation is useful when:
 
@@ -103,7 +137,7 @@ Manual deactivation is useful when:
 
 Container Apps keeps inactive revisions so you can inspect or reactivate them later.
 
-- Default inactive retention: **up to 100** inactive revisions.
+- Available inactive revision count: **up to 100** before the oldest revisions are purged.
 - ARM/Bicep property: `maxInactiveRevisions`.
 - Older inactive revisions are purged when the retention limit is exceeded.
 
@@ -136,9 +170,15 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions and their current operational fields. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--query` | Projects the response to the fields needed for this check. |
+| `--output` | Selects the command output format. |
+
 
 ## Portal view: Revisions and replicas blade
 
