@@ -279,16 +279,16 @@ import yaml
 EVIDENCE_DIR = Path(os.environ['EVIDENCE_DIR'])
 REL = os.environ['REPO_RELATIVE_EVIDENCE_DIR']
 EVALUATED_AT_UTC = os.environ['EVALUATED_AT_UTC']
-BASELINE_EVIDENCE_DIR = Path(os.environ.get('GATE_REPLAY_BASELINE_DIR', EVIDENCE_DIR))
+BASELINE_EVIDENCE_DIR = os.environ.get('GATE_REPLAY_BASELINE_DIR')
 
 EXISTING_GATE14 = None
-existing_gate14_path = BASELINE_EVIDENCE_DIR / '14-cohort-integrity-gate.json'
-if existing_gate14_path.exists():
-    try:
-        EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding='utf-8'))
-    except (OSError, json.JSONDecodeError):
-        EXISTING_GATE14 = None
-
+if BASELINE_EVIDENCE_DIR:
+    existing_gate14_path = Path(BASELINE_EVIDENCE_DIR) / '14-cohort-integrity-gate.json'
+    if existing_gate14_path.exists():
+        try:
+            EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            EXISTING_GATE14 = None
 RAW_FILES = [
     '01-app-spec-pre-fix.json',
     '02-revision-list-pre-fix.json',
@@ -339,13 +339,6 @@ def parse_iso(text: str):
     return value.astimezone(timezone.utc)
 
 def resolve_anchor_timestamp(name: str):
-    if EXISTING_GATE14 is not None:
-        observed = EXISTING_GATE14.get('sub_gates', [{}, {}])[1].get('observed_values', {})
-        anchor_class = 'pre_anchor_timestamps' if name in pre_anchor_files else 'post_anchor_timestamps'
-        prior = observed.get(anchor_class, {}).get(name)
-        if isinstance(prior, dict) and prior.get('timestamp_utc'):
-            dt = parse_iso(prior['timestamp_utc'])
-            return {'timestamp': dt, 'timestamp_utc': prior['timestamp_utc'], 'time_source': prior.get('time_source', 'mtime'), 'raw_epoch': prior.get('raw_epoch')}
     if name == '05-baseline-success-window.json':
         dt = parse_iso(baseline_payload.get('window_end_utc'))
         return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': 'payload.window_end_utc', 'raw_epoch': baseline_payload.get('window_end_utc')}
@@ -361,6 +354,13 @@ def resolve_anchor_timestamp(name: str):
     if name == '12-h2-recovery-window.json':
         dt = parse_iso(h2_payload.get('h2_recovery_ts_utc'))
         return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': 'payload.h2_recovery_ts_utc', 'raw_epoch': h2_payload.get('h2_recovery_ts_utc')}
+    if EXISTING_GATE14 is not None:
+        observed = EXISTING_GATE14.get('sub_gates', [{}, {}])[1].get('observed_values', {})
+        anchor_class = 'pre_anchor_timestamps' if name in pre_anchor_files else 'post_anchor_timestamps'
+        prior = observed.get(anchor_class, {}).get(name)
+        if isinstance(prior, dict) and prior.get('timestamp_utc'):
+            dt = parse_iso(prior['timestamp_utc'])
+            return {'timestamp': dt, 'timestamp_utc': prior['timestamp_utc'], 'time_source': prior.get('time_source', 'mtime'), 'raw_epoch': prior.get('raw_epoch')}
     stat = (EVIDENCE_DIR / name).stat()
     birthtime = getattr(stat, 'st_birthtime', None)
     if birthtime is not None and birthtime > 0:
