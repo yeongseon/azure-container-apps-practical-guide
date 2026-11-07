@@ -262,15 +262,16 @@ from pathlib import Path
 EVIDENCE_DIR = Path(os.environ['EVIDENCE_DIR'])
 REL = os.environ['REPO_RELATIVE_EVIDENCE_DIR']
 EVALUATED_AT_UTC = os.environ['EVALUATED_AT_UTC']
-BASELINE_EVIDENCE_DIR = Path(os.environ.get('GATE_REPLAY_BASELINE_DIR', EVIDENCE_DIR))
+BASELINE_EVIDENCE_DIR = os.environ.get('GATE_REPLAY_BASELINE_DIR')
 
 EXISTING_GATE14 = None
-_existing_gate14_path = BASELINE_EVIDENCE_DIR / '14-cohort-integrity-gate.json'
-if _existing_gate14_path.exists():
-    try:
-        EXISTING_GATE14 = json.loads(_existing_gate14_path.read_text(encoding='utf-8'))
-    except (OSError, json.JSONDecodeError):
-        EXISTING_GATE14 = None
+if BASELINE_EVIDENCE_DIR:
+    existing_gate14_path = Path(BASELINE_EVIDENCE_DIR) / '14-cohort-integrity-gate.json'
+    if existing_gate14_path.exists():
+        try:
+            EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            EXISTING_GATE14 = None
 
 RAW_FILES = [
     '01-app-spec-pre-fix.json', '02-revision-list-pre-fix.json', '03-dnsmasq-config-pre-fix.json',
@@ -303,7 +304,7 @@ SANITIZER_RULES = [
     (re.compile(r'Yeongseon\s+Choe', re.I), 'Demo User'),
     (re.compile(r'\byeongseon\b', re.I), 'demouser'),
     (re.compile(r'https://ms\.portal\.azure\.com/#@[^/]+/', re.I), 'https://ms.portal.azure.com/#@contoso.onmicrosoft.com/'),
-    (re.compile(r'https://ms\.portal\.azure\.com[^\s"\']*', re.I), 'https://ms.portal.azure.com/#@contoso.onmicrosoft.com/'),
+    (re.compile(r"https://ms\.portal\.azure\.com[^\s\"']*", re.I), 'https://ms.portal.azure.com/#@contoso.onmicrosoft.com/'),
 ]
 
 def sanitize_text(text: str) -> str:
@@ -334,6 +335,13 @@ def parse_iso(text: str):
     return value.astimezone(timezone.utc)
 
 def resolve_anchor_timestamp(name: str, anchor_class: str):
+    payload_anchors = {
+        '08-probe-response-pre-fix.json': (probe_pre_payload.get('captured_after_utc'), 'payload.captured_after_utc'),
+    }
+    payload_value, payload_source = payload_anchors.get(name, (None, None))
+    if isinstance(payload_value, str) and payload_value:
+        dt = parse_iso(payload_value)
+        return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': payload_source, 'raw_epoch': payload_value}
     if EXISTING_GATE14 is not None:
         observed = EXISTING_GATE14.get('sub_gates', [{}, {}])[1].get('observed_values', {})
         prior_map = observed.get('pre_anchor_timestamps' if anchor_class == 'pre' else 'post_anchor_timestamps', {})

@@ -74,9 +74,9 @@
         "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
       ],
       "observed_values": {
-        "utc_window_start": "2026-06-28T22:34:36.733457+00:00",
+        "utc_window_start": "2026-06-28T22:34:36+00:00",
         "utc_window_end": "2026-06-28T22:37:05.378577+00:00",
-        "utc_window_span_seconds": 148.64512,
+        "utc_window_span_seconds": 149.378577,
         "monotonic_ordering_holds": true,
         "pre_anchor_timestamps": {
           "01-app-spec-pre-fix.json": {
@@ -115,9 +115,9 @@
             "raw_epoch": 1782686089.861872
           },
           "08-probe-response-pre-fix.json": {
-            "timestamp_utc": "2026-06-28T22:34:36.733457+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782686076.7334569
+            "timestamp_utc": "2026-06-28T22:34:36+00:00",
+            "time_source": "payload.captured_after_utc",
+            "raw_epoch": "2026-06-28T22:34:36Z"
           }
         },
         "post_anchor_timestamps": {
@@ -145,8 +145,8 @@
         "sorted_anchor_sequence": [
           {
             "file": "08-probe-response-pre-fix.json",
-            "timestamp_utc": "2026-06-28T22:34:36.733457+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-28T22:34:36+00:00",
+            "time_source": "payload.captured_after_utc",
             "anchor_class": "pre"
           },
           {
@@ -499,42 +499,42 @@
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-28T22:34:36.733457+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-28T22:34:36+00:00",
+            "pre_time_source": "payload.captured_after_utc",
             "post_file": "09-private-dns-record-list-post-fix.json",
             "post_timestamp_utc": "2026-06-28T22:36:52.059941+00:00",
             "post_time_source": "birthtime",
-            "delta_seconds": 135.326484,
+            "delta_seconds": 136.059941,
             "holds": true
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-28T22:34:36.733457+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-28T22:34:36+00:00",
+            "pre_time_source": "payload.captured_after_utc",
             "post_file": "10-revision-list-post-fix.json",
             "post_timestamp_utc": "2026-06-28T22:36:54.970978+00:00",
             "post_time_source": "birthtime",
-            "delta_seconds": 138.237521,
+            "delta_seconds": 138.970978,
             "holds": true
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-28T22:34:36.733457+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-28T22:34:36+00:00",
+            "pre_time_source": "payload.captured_after_utc",
             "post_file": "11-probe-response-post-fix.json",
             "post_timestamp_utc": "2026-06-28T22:36:42.896126+00:00",
             "post_time_source": "birthtime",
-            "delta_seconds": 126.162669,
+            "delta_seconds": 126.896126,
             "holds": true
           },
           {
             "pre_file": "08-probe-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-28T22:34:36.733457+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-28T22:34:36+00:00",
+            "pre_time_source": "payload.captured_after_utc",
             "post_file": "12-pe-nic-config-post-fix.json",
             "post_timestamp_utc": "2026-06-28T22:37:05.378577+00:00",
             "post_time_source": "birthtime",
-            "delta_seconds": 148.64512,
+            "delta_seconds": 149.378577,
             "holds": true
           }
         ],
@@ -547,7 +547,7 @@
           "max_span_seconds": 5400
         },
         "time_source_summary": {
-          "birthtime_count": 12,
+          "birthtime_count": 11,
           "mtime_count": 0,
           "fallback_used": false
         }
@@ -682,11 +682,11 @@
         "labs/acr-network-path-record-split-brain/evidence/12-pe-nic-config-post-fix.json"
       ],
       "observed_values": {
-        "utc_window_start": "2026-06-28T22:34:36.733457+00:00",
+        "utc_window_start": "2026-06-28T22:34:36+00:00",
         "utc_window_end": "2026-06-28T22:37:05.378577+00:00",
-        "utc_window_span_seconds": 148.64512,
+        "utc_window_span_seconds": 149.378577,
         "time_source_summary": {
-          "birthtime_count": 12,
+          "birthtime_count": 11,
           "mtime_count": 0,
           "fallback_used": false
         }
@@ -702,5 +702,5 @@
     "utc_window_span_strong_seconds_max": 1800,
     "utc_window_span_fallback_seconds_max": 5400
   },
-  "evaluated_at_utc": "2026-11-07T04:02:50Z"
+  "evaluated_at_utc": "2026-11-07T04:40:56Z"
 }

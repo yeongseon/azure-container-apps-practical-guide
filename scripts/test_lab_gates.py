@@ -612,6 +612,17 @@ class KedaGateTests(unittest.TestCase):
 
 
 class EvaluationReplayTests(unittest.TestCase):
+    batch_b_payload_anchors: Final = {
+        "acr-network-path-dns-forwarder-bypass": (
+            "08-probe-response-pre-fix.json",
+            "captured_after_utc",
+        ),
+        "acr-network-path-record-split-brain": (
+            "08-probe-response-pre-fix.json",
+            "captured_after_utc",
+        ),
+    }
+
     @contextlib.contextmanager
     def replay_fixture(self, name: str) -> Iterator[Path]:
         with fixture_lab(name) as lab:
@@ -761,6 +772,64 @@ class EvaluationReplayTests(unittest.TestCase):
 
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertIn("current raw input bytes differ from HEAD", result.stderr)
+
+    def test_batch_b_payload_timestamps_override_shifted_baseline_anchors(self) -> None:
+        for name, (raw_name, raw_key) in self.batch_b_payload_anchors.items():
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                gate14 = lab.parent / "committed-gates" / REPLAY_LABS[name][0][0]
+                baseline = json.loads(gate14.read_text())
+                observed = baseline["sub_gates"][1]["observed_values"]
+                for anchor_class in ("pre_anchor_timestamps", "post_anchor_timestamps"):
+                    for anchor in observed[anchor_class].values():
+                        anchor["timestamp_utc"] = "2026-07-30T00:00:00+00:00"
+                _ = gate14.write_text(json.dumps(baseline))
+                for output in REPLAY_LABS[name][0]:
+                    (lab / "evidence" / output).unlink(missing_ok=True)
+
+                result = subprocess.run(
+                    ["bash", "verify.sh"],
+                    cwd=lab,
+                    env={**os.environ, "GATE_REPLAY_BASELINE_DIR": str(lab.parent / "committed-gates")},
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                emitted = json.loads((lab / "evidence" / REPLAY_LABS[name][0][0]).read_text())
+                raw = json.loads((lab / "evidence" / raw_name).read_text())
+                actual = emitted["sub_gates"][1]["observed_values"]["pre_anchor_timestamps"][raw_name]
+                expected = datetime.fromisoformat(raw[raw_key].replace("Z", "+00:00")).isoformat()
+                self.assertEqual(actual["timestamp_utc"], expected)
+                self.assertEqual(actual["time_source"], f"payload.{raw_key}")
+
+    def test_batch_b_direct_invocation_ignores_local_gate_anchors(self) -> None:
+        for name, (raw_name, raw_key) in self.batch_b_payload_anchors.items():
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                gate14 = lab / "evidence" / REPLAY_LABS[name][0][0]
+                local = json.loads(gate14.read_text())
+                observed = local["sub_gates"][1]["observed_values"]
+                for anchor_class in ("pre_anchor_timestamps", "post_anchor_timestamps"):
+                    for anchor in observed[anchor_class].values():
+                        anchor["timestamp_utc"] = "2026-07-30T00:00:00+00:00"
+                _ = gate14.write_text(json.dumps(local))
+
+                result = subprocess.run(
+                    ["bash", "verify.sh"],
+                    cwd=lab,
+                    env={key: value for key, value in os.environ.items() if key != "GATE_REPLAY_BASELINE_DIR"},
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                emitted = json.loads(gate14.read_text())
+                raw = json.loads((lab / "evidence" / raw_name).read_text())
+                actual = emitted["sub_gates"][1]["observed_values"]["pre_anchor_timestamps"][raw_name]
+                expected = datetime.fromisoformat(raw[raw_key].replace("Z", "+00:00")).isoformat()
+                self.assertEqual(actual["timestamp_utc"], expected)
+                self.assertEqual(actual["time_source"], f"payload.{raw_key}")
 
 
 def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,
