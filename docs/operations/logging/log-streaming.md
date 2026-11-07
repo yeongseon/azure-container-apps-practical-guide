@@ -1,4 +1,5 @@
 ---
+description: Choose live Azure Container Apps log streaming for current failures or Log Analytics for retained, aggregated incident evidence.
 content_sources:
   diagrams:
     - id: log-streaming-decision-flow
@@ -7,16 +8,17 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/log-streaming
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-options
 content_validation:
   status: verified
-  last_reviewed: '2026-07-18'
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps supports live log streaming with az containerapp logs show.
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-streaming
       verified: true
     - claim: Live streaming is different from querying retained logs in Log Analytics.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-options
       verified: true
 ---
 # Log Streaming
@@ -53,7 +55,10 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Opens the container app log stream. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--follow` | Keeps the stream open for new records. |
 
 ### Portal view: Log stream blade
 
@@ -79,7 +84,11 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Opens the container app log stream. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--revision` | Filters the stream to one revision. |
+| `--follow` | Keeps the stream open for new records. |
 
 ```bash
 az containerapp logs show \
@@ -92,7 +101,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Opens the container app log stream. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--container` | Filters to one container. |
+| `--replica` | Filters to one replica. |
+| `--follow` | Keeps the stream open for new records. |
 
 Streaming is best for **current** output. Log Analytics is better when you need:
 
@@ -109,23 +123,37 @@ Navigate: **Container App** → **Monitoring** → **Logs**.
 
 `[Observed]` The **Logs** blade on the Container App opens a query editor tab (**New Query 1**) with a **Run** button, a **Time range** selector (currently **Last 24 hours**), a **Show** row-limit selector (**1000 results**), a **KQL mode** dropdown, an empty editor showing the placeholder *"Type your query here or click one of the queries to start"*, and a **Query history** panel below.
 
-`[Inferred]` This editor is the Log Analytics surface scoped to the workspace attached to the Container Apps environment — the same workspace that the environment's diagnostic settings stream logs into. It is the correct surface for **historical** analysis (counts, aggregations, cross-revision queries) because the data is persisted in the workspace; live tailing belongs on the Log stream blade, not here. The tables exposed for this workload are typically `ContainerAppConsoleLogs_CL` (stdout/stderr) and `ContainerAppSystemLogs_CL` (platform events) — confirm by expanding the **Tables** pane on the left.
+`[Inferred]` This editor is the Log Analytics surface scoped to the workspace used by the Container Apps environment. That workspace can be selected directly with the Azure Log Analytics destination or reached through an environment-level diagnostic setting after the environment destination is changed to Azure Monitor. It is the correct surface for **historical** analysis (counts, aggregations, cross-revision queries) because the data is persisted in the workspace; live tailing belongs on the Log stream blade, not here. The tables exposed for this workload are typically `ContainerAppConsoleLogs_CL` (stdout/stderr) and `ContainerAppSystemLogs_CL` (platform events) — confirm by expanding the **Tables** pane on the left.
 
 `[Not Proven]` The exact ingestion lag between a log line being emitted by the container and becoming queryable in this blade depends on workspace ingestion behavior and is not measured on this page.
 
 <!-- diagram-id: log-streaming-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Need log data] --> B{Happening now?}
-    B -->|Yes| C[Use az containerapp logs show]
-    B -->|No| D[Use Log Analytics query]
-    C --> E[Filter by revision, replica, or container]
-    D --> F[Summarize trends and alerts]
+    NEED[Need Container Apps log evidence]
+    CURRENT{Need output from a running app now?}
+    STREAM[Open live system or console stream]
+    SCOPE[Filter by revision, replica, and container]
+    HISTORY{Need retained history or aggregation?}
+    QUERY[Query the configured Log Analytics destination]
+    WAIT[Allow for documented ingestion delay]
+    RESULT{Evidence available?}
+    VERIFY[Correlate timestamps and continue diagnosis]
+
+    NEED --> CURRENT
+    CURRENT -->|Yes| STREAM
+    STREAM --> SCOPE
+    SCOPE --> VERIFY
+    CURRENT -->|No| HISTORY
+    HISTORY -->|Yes| QUERY
+    HISTORY -->|No| STREAM
+    QUERY --> RESULT
+    RESULT -->|No, record is recent| WAIT
+    WAIT --> QUERY
+    RESULT -->|Yes| VERIFY
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+The decision flow uses live streaming for current output and waits at the retained-query step when recent records have not yet completed ingestion.
 
 ## Verification
 
@@ -149,3 +177,4 @@ flowchart TD
 
 - [Stream logs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-streaming)
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Log storage and monitoring options](https://learn.microsoft.com/en-us/azure/container-apps/log-options)

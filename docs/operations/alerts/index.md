@@ -1,4 +1,5 @@
 ---
+description: Production alerting for Azure Container Apps, from metric and log signals through alert evaluation, action groups, investigation, and mitigation.
 content_sources:
   diagrams:
     - id: alert-lifecycle-flow
@@ -7,6 +8,22 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/alerts
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups
+content_validation:
+  status: verified
+  last_reviewed: 2026-11-08
+  reviewer: agent
+  core_claims:
+    - claim: An Azure Monitor alert rule evaluates a signal and triggers an alert plus its associated action group when the configured condition is met.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview
+      verified: true
+    - claim: Metric alerts evaluate resource metrics at regular intervals, while log search alerts evaluate Log Analytics queries at a configured frequency.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
+      verified: true
+    - claim: Action groups define notification recipients and automated actions and can be reused by multiple alert rules.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups
+      verified: true
 ---
 # Alerting for Container Apps
 
@@ -58,7 +75,15 @@ az monitor metrics alert create \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+| `az monitor metrics alert create` | Creates the metric alert rule. |
+| `--name` | Names the alert rule. |
+| `--resource-group` | Selects the resource group that owns the rule. |
+| `--scopes` | Sets the monitored Container App resource ID. |
+| `--condition` | Defines the metric aggregation, signal, operator, and threshold. |
+| `--window-size` | Sets the period over which metric values are aggregated. |
+| `--evaluation-frequency` | Sets how often Azure Monitor evaluates the rule. |
+| `--severity` | Assigns the alert severity. |
+| `--action` | Associates the action group resource ID. |
 
 ### Portal view: Container App Alerts blade
 
@@ -112,7 +137,11 @@ az containerapp job execution list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--output` | Returns structured JSON evidence. |
+| `az containerapp job execution list` | Lists recent executions for the selected Container Apps job. |
 
 ```json
 [
@@ -196,6 +225,8 @@ From the alert rule overview, click **ag-ops-demo** in the **Actions** card to o
 
 ## Recommended Threshold Baseline
 
+The values below are illustrative workload-policy starting points, not Azure platform limits or universal production defaults:
+
 - HTTP 5xx rate > 2% for 5 minutes (sev2)
 - p95 latency > 1.5s for 10 minutes (sev2)
 - Ready replicas = 0 for 2 minutes (sev1)
@@ -209,20 +240,35 @@ Tune these values using your normal load patterns after 2-4 weeks of baseline da
 <!-- diagram-id: alert-lifecycle-flow -->
 ```mermaid
 flowchart TD
-    A[Metric or Log Threshold Breach] --> B[Azure Monitor Alert Rule]
-    B --> C[Action Group Triggered]
-    C --> D[Notify On-call Channel]
-    D --> E[Run Investigation Queries]
-    E --> F{Customer Impact?}
-    F -->|Yes| G[Mitigate and Rollback]
-    F -->|No| H[Track and Tune Threshold]
+    SIGNAL[Metric or log signal]
+    RULE[Azure Monitor alert rule]
+    CONDITION{Condition met?}
+    ALERT[Alert instance fired]
+    ACTIONS[Associated action group]
+    RESPONDER[On-call responder]
+    IMPACT{Customer impact confirmed?}
+    MITIGATE[Mitigate or roll back]
+    TUNE[Record evidence and tune rule]
+
+    SIGNAL -. evaluation input .-> RULE
+    RULE -. evaluates .-> CONDITION
+    CONDITION -->|No| SIGNAL
+    CONDITION -->|Yes| ALERT
+    ALERT -. invokes .-> ACTIONS
+    ACTIONS -. notification or automation .-> RESPONDER
+    RESPONDER --> IMPACT
+    IMPACT -->|Yes| MITIGATE
+    IMPACT -->|No| TUNE
+    MITIGATE --> TUNE
 ```
+
+The alert lifecycle separates signal evaluation from notification and keeps the response decision with the on-call operator.
 
 ## Alert Rule Decision Matrix
 
 | Alert Type | Best Use Case | Strength | Limitation |
 |---|---|---|---|
-| Metric alert | Fast resource saturation detection | Near-real-time signal | Less detailed error context |
+| Metric alert | Fast resource saturation detection | Evaluates at the rule's configured frequency | Less detailed error context |
 | Log search alert | Semantic detection from app/system logs | Rich context and pattern matching | Slightly higher detection latency |
 | Activity log alert | Control-plane change visibility | Captures config mutations | Not a direct user-impact metric |
 
@@ -245,7 +291,12 @@ az monitor activity-log alert create \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor activity-log ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+| `az monitor activity-log alert create` | Creates the activity log alert rule. |
+| `--name` | Names the alert rule. |
+| `--resource-group` | Selects the resource group that owns the rule. |
+| `--scope` | Sets the resource scope whose activity events are evaluated. |
+| `--condition` | Defines the matching activity-log fields. |
+| `--action-group` | Associates the action group resource ID. |
 
 ## See Also
 
@@ -257,3 +308,5 @@ az monitor activity-log alert create \
 
 - [Set alerts in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/alerts)
 - [Monitor logs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Overview of Azure Monitor alerts](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview)
+- [Create and manage action groups](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups)

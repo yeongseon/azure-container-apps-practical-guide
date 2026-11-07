@@ -1,4 +1,5 @@
 ---
+description: Choose Azure Container Apps metric alerts by incident question, including the correct signal, aggregation, dimensions, and fallback to logs or traces.
 content_sources:
   diagrams:
     - id: ops-metric-alerts-by-question-flow
@@ -8,7 +9,7 @@ content_sources:
 
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Azure Monitor metric alert rules evaluate platform metrics on a fixed `evaluation-frequency` and `window-size` and do not natively compute ratios between metrics.
@@ -30,14 +31,32 @@ Decision path for incident-question-driven metric alerts:
 <!-- diagram-id: ops-metric-alerts-by-question-flow -->
 ```mermaid
 flowchart TD
-    Q["Incident question from on-call"] --> M{"Answerable by Container Apps metrics?"}
-    M -- yes --> MAP["Map question to metric: replicas, execution, http, resource usage"]
-    MAP --> ALERT["Create metric alert with action group"]
-    M -- "no — behavioral or trace data" --> LOGS["Use logs or App Insights instead"]
-    ALERT --> V["Verification: alert fires with threshold and dimensions as intended"]
-    LOGS --> V
-    V --> RB["Rollback / Troubleshooting if noisy or silent"]
+    QUESTION[Incident question]
+    METRIC{Directly answerable by a published metric?}
+    MATH{Needs ratio, percentile, or log content?}
+    MAP[Choose metric, aggregation, and dimensions]
+    METRIC_ALERT[Create metric alert and action group]
+    LOG_ALERT[Use Log Analytics or Application Insights alert]
+    VERIFY[Exercise and verify the rule]
+    QUALITY{Signal actionable?}
+    RETUNE[Retune threshold, window, or signal]
+    READY[Publish with runbook and owner]
+
+    QUESTION --> METRIC
+    METRIC -->|Yes| MAP
+    METRIC -->|No| MATH
+    MATH -->|Yes| LOG_ALERT
+    MATH -->|No| MAP
+    MAP --> METRIC_ALERT
+    METRIC_ALERT --> VERIFY
+    LOG_ALERT --> VERIFY
+    VERIFY --> QUALITY
+    QUALITY -->|No| RETUNE
+    RETUNE --> VERIFY
+    QUALITY -->|Yes| READY
 ```
+
+The decision flow preserves the incident question while selecting metrics only when they can express the required calculation.
 
 ## Prerequisites
 
@@ -88,7 +107,7 @@ Skip this page if you need: CLI syntax (see [Alerting for Container Apps](index.
 
 ### Use logs or App Insights instead
 
-Azure Monitor metric alerts on Container Apps platform metrics are the fastest signal (1-2 minute evaluation), but they have hard limits. Use these alternatives when the metric-alert column above cannot express what you need.
+Azure Monitor metric alerts evaluate precomputed platform metrics at the frequency configured on the rule. Use these alternatives when the metric-alert column above cannot express what you need.
 
 | Need | Why metric alerts fall short | Use instead |
 |---|---|---|
@@ -112,6 +131,7 @@ Before you commit a new metric-alert rule to production, confirm the metric is a
 
     | Flag | Purpose |
     |---|---|
+    | `az monitor metrics list-definitions` | Lists the metric definitions published for the target container app so you can verify `CpuPercentage` is a valid signal before defining an alert. |
     | `--resource` | Full Azure resource ID of the target container app; `metrics list-definitions` is resource-scoped, so the shorter `--name` form is not accepted here. |
     | `--query` | JMESPath filter on the response to verify the specific metric ID (`CpuPercentage`) is actually published for this resource and not just listed in Azure-wide reference docs. |
 
@@ -128,6 +148,7 @@ Before you commit a new metric-alert rule to production, confirm the metric is a
 
     | Flag | Purpose |
     |---|---|
+    | `az monitor metrics list` | Retrieves recent `CpuPercentage` samples for the target container app to validate emission, aggregation, and threshold assumptions before alert creation. |
     | `--resource` | Targets the exact Container App resource whose metric stream you plan to alert on, so the dry run reflects the same scope the future alert rule will evaluate. |
     | `--metric "CpuPercentage"` | Chooses the specific metric signal under review, which lets the operator confirm that this incident question maps to a real Container Apps metric instead of a guessed name. |
     | `--aggregation Average` | Tests the same rollup style an alert would use, which matters because averages can look healthy even when single spikes would have triggered a `Maximum`-based rule. |
@@ -157,6 +178,7 @@ az monitor metrics alert update \
 
 | Flag | Purpose |
 |---|---|
+| `az monitor metrics alert update` | Updates the existing metric alert rule so evaluation can be paused without deleting its conditions or notification configuration. |
 | `--name` | The exact name of the metric alert rule to update (case-sensitive). |
 | `--resource-group` | The resource group that owns the alert rule (not the resource group of the monitored container app). |
 | `--enabled false` | Disables evaluation without deleting the rule. Re-enable with `--enabled true` to resume; severity, conditions, and action groups are preserved. |

@@ -1,4 +1,5 @@
 ---
+description: Recover Azure Container Apps incidents with evidence-led triage, revision traffic rollback, dependency recovery, verification, and post-incident action.
 content_sources:
   diagrams:
     - id: incident-recovery-workflow
@@ -7,6 +8,21 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+content_validation:
+  status: verified
+  last_reviewed: 2026-11-08
+  reviewer: agent
+  core_claims:
+    - claim: Container Apps revisions are immutable snapshots, and multiple revision mode allows traffic to be allocated between active revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: In single revision mode, the existing revision continues receiving traffic until the new revision is ready; a failed update leaves traffic on the old revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Container Apps is a single-region service, so region-wide recovery requires separate regional environments and external failover routing.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
 ---
 # Recovery and Incident Readiness
 
@@ -34,7 +50,10 @@ az containerapp revision set-mode \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision set-mode` | Changes the app to multiple revision mode for explicit traffic control. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--mode` | Selects multiple revision mode. |
 
 ```bash
 az containerapp ingress traffic set \
@@ -45,7 +64,10 @@ az containerapp ingress traffic set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Updates revision traffic weights. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--revision-weight` | Routes all application traffic to the last known good revision. |
 
 ## Environment Recovery
 
@@ -110,15 +132,36 @@ Measure detection-to-recovery time and refine runbooks after each drill.
 <!-- diagram-id: incident-recovery-workflow -->
 ```mermaid
 flowchart TD
-    A[Incident Detected] --> B[Assess Scope and Severity]
-    B --> C[Stabilize Service]
-    C --> D{Deployment-related?}
-    D -->|Yes| E[Rollback Revision Traffic]
-    D -->|No| F[Recover Dependency]
-    E --> G[Verify Customer Transactions]
-    F --> G
-    G --> H[Post-Incident Review and Actions]
+    DETECT[Incident detected]
+    EVIDENCE[Preserve alerts, changes, metrics, and logs]
+    SCOPE[Assess scope and severity]
+    STABILIZE[Apply one reversible stabilization]
+    CAUSE{Deployment regression confirmed?}
+    ROLLBACK[Route traffic to a known-good revision]
+    DEPENDENCY{Dependency or regional failure?}
+    RECOVER[Execute dependency or regional recovery plan]
+    ESCALATE[Escalate with evidence and avoid speculative changes]
+    VERIFY[Verify health, signals, and customer transactions]
+    RESTORED{Service restored?}
+    REVIEW[Record timeline, owners, and prevention actions]
+
+    DETECT --> EVIDENCE
+    EVIDENCE --> SCOPE
+    SCOPE --> STABILIZE
+    STABILIZE --> CAUSE
+    CAUSE -->|Yes| ROLLBACK
+    CAUSE -->|No| DEPENDENCY
+    DEPENDENCY -->|Yes| RECOVER
+    DEPENDENCY -->|No| ESCALATE
+    ROLLBACK --> VERIFY
+    RECOVER --> VERIFY
+    ESCALATE --> VERIFY
+    VERIFY --> RESTORED
+    RESTORED -->|No| SCOPE
+    RESTORED -->|Yes| REVIEW
 ```
+
+The incident loop returns failed verification to scope assessment while preserving evidence and limiting each pass to one reversible mitigation.
 
 ## Recovery Strategy Matrix
 
@@ -157,7 +200,14 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revision health and state. |
+| `az containerapp ingress traffic show` | Shows current revision traffic weights. |
+| `az containerapp logs show` | Retrieves current console output. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--output` | Selects table or JSON output. |
+| `--type` | Selects console logs. |
+| `--follow` | Controls whether the command keeps following new records. |
 
 ### Recovery Exit Criteria
 
@@ -178,3 +228,4 @@ az containerapp logs show \
 
 - [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)

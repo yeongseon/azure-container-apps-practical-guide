@@ -1,4 +1,5 @@
 ---
+description: Query retained Azure Container Apps logs with KQL, correlate revision and replica context, and promote stable queries into alert rules.
 content_sources:
   diagrams:
     - id: log-analytics-query-workflow
@@ -10,7 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Container Apps logs can be queried in Log Analytics with KQL.
@@ -102,11 +103,31 @@ Microsoft Learn currently shows both schema shapes. The Container Apps log-monit
 <!-- diagram-id: log-analytics-query-workflow -->
 ```mermaid
 flowchart TD
-    A[Identify active table schema] --> B[Filter by app and time range]
-    B --> C[Summarize the symptom]
-    C --> D[Correlate revision and replica context]
-    D --> E[Reuse query in alert rules]
+    QUESTION[Start with an incident question]
+    SCHEMA[Identify the table schema in this workspace]
+    NATIVE[Use native table and columns]
+    LEGACY[Use _CL table and suffixed columns]
+    WINDOW[Filter by app and bounded time range]
+    SYMPTOM[Summarize the symptom]
+    CONTEXT[Correlate revision, replica, and reason]
+    USEFUL[Evaluate whether the query explains the incident]
+    REFINE[Refine fields, time range, or hypothesis]
+    REUSE[Save for alerts, workbooks, or runbooks]
+
+    QUESTION --> SCHEMA
+    SCHEMA -->|Native| NATIVE
+    SCHEMA -->|Legacy| LEGACY
+    NATIVE --> WINDOW
+    LEGACY --> WINDOW
+    WINDOW --> SYMPTOM
+    SYMPTOM --> CONTEXT
+    CONTEXT --> USEFUL
+    USEFUL -->|Needs refinement| REFINE
+    REFINE --> WINDOW
+    USEFUL -->|Ready| REUSE
 ```
+
+The query workflow checks the workspace schema before analysis and loops refinement back to the bounded query, not to the entire investigation.
 
 ## Verification
 

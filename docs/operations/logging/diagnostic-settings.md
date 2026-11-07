@@ -1,4 +1,5 @@
 ---
+description: Route Azure Container Apps environment logs through Azure Monitor diagnostic settings to Log Analytics, Event Hubs, storage, or partner destinations.
 content_sources:
   diagrams:
     - id: diagnostic-settings-routing-flow
@@ -7,10 +8,11 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-options
 content_validation:
   status: verified
-  last_reviewed: '2026-07-18'
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Monitor diagnostic settings can route platform logs to supported destinations such as Log Analytics workspaces and Event Hubs.
       source: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings
@@ -44,9 +46,26 @@ export ENVIRONMENT_ID="/subscriptions/<subscription-id>/resourceGroups/$RG/provi
 ## Procedure
 
 1. Identify the managed environment resource ID.
-2. Decide whether you need all available log categories or a limited set.
-3. Create the diagnostic setting.
-4. Validate that records arrive at the destination.
+2. Set the environment logs destination to Azure Monitor.
+3. Decide whether you need all available log categories or a limited set.
+4. Create an environment-level diagnostic setting for the selected log categories.
+5. Validate that records arrive at the destination.
+
+Select Azure Monitor before configuring diagnostic log export:
+
+```bash
+az containerapp env update \
+  --name "$ACA_ENV_NAME" \
+  --resource-group "$RG" \
+  --logs-destination azure-monitor
+```
+
+| Command | Why it is used |
+|---|---|
+| `az containerapp env update` | Updates the managed environment logging configuration. |
+| `--name` | Selects the Container Apps environment. |
+| `--resource-group` | Selects the resource group. |
+| `--logs-destination` | Selects Azure Monitor so diagnostic settings can route environment logs. |
 
 Example to route logs to Log Analytics:
 
@@ -60,7 +79,11 @@ az monitor diagnostic-settings create \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor diagnostic-settings ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+| `az monitor diagnostic-settings create` | Creates the diagnostic setting. |
+| `--name` | Names the diagnostic setting. |
+| `--resource` | Selects the managed environment resource. |
+| `--workspace` | Sets the destination Log Analytics workspace resource ID. |
+| `--logs` | Enables the `allLogs` category group. |
 
 ### Portal view: confirm log destination on the environment
 
@@ -70,7 +93,7 @@ Open the Container Apps environment → **Monitoring** → **Logging options**.
 
 [Observed] The Logging options blade shows three radio choices under **Logs Destination**: `Azure Log Analytics`, `Azure Monitor`, and `Don't save logs`. `Azure Log Analytics` is the selected option. Under **Log Destination Configuration**, `Subscription`, `Resource group` (`rg-aca-ops-cgedjv`), and `Log Analytics workspace` (`law-ops-cgedjv`) are populated, the `Parse JSON logs into columns` checkbox is unchecked, and the toolbar `Save` and `Discard` buttons are disabled.
 
-[Inferred] The `Azure Log Analytics` selection plus the populated workspace value means this environment is already sending system and console logs to `law-ops-cgedjv`. If you intend to add an Azure Monitor diagnostic setting on top of (or instead of) this default workspace path, you usually keep `Azure Log Analytics` selected here and create a separate `az monitor diagnostic-settings` rule against the environment resource ID; switching to `Azure Monitor` in this blade is the alternative entry point that the in-blade hint text describes.
+[Inferred] The `Azure Log Analytics` selection plus the populated workspace value means this environment is using the direct workspace path shown in the capture. This is not the required state for the diagnostic-export procedure above. Before creating a diagnostic setting for environment log categories, select `Azure Monitor`, save the logging option, and then configure the diagnostic setting and its destinations.
 
 [Not Proven] This blade alone does not list the `az monitor diagnostic-settings` rules that exist on the environment, does not show the categories or category groups those rules export, and does not confirm whether records are currently arriving at the destination — those need a separate confirmation (see the Activity log view below and the Verification section).
 
@@ -105,19 +128,36 @@ resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
 ```
 
 !!! note "Container Apps diagnostic-setting categories"
-    For Container Apps environments, the documented diagnostic-setting options are the category group `allLogs` and the categories `ContainerAppConsoleLogs` and `ContainerAppSystemLogs`.
+    Environment-level diagnostic settings support the category group `allLogs` and the log categories `ContainerAppConsoleLogs` and `ContainerAppSystemLogs`, plus `AllMetrics`. Container-app-level diagnostic settings support `AllMetrics` only; they do not support the `--logs` parameter.
 
 <!-- diagram-id: diagnostic-settings-routing-flow -->
 ```mermaid
 flowchart TD
-    A[Managed environment] --> B[Diagnostic settings]
-    B --> C[Log Analytics workspace]
-    B --> D[Event Hubs]
-    B --> E[Storage account]
-    C --> F[Queries and alerts]
-    D --> F
-    E --> F
+    ENVIRONMENT[Container Apps managed environment]
+    DESTINATION[Logs destination set to Azure Monitor]
+    CATEGORIES[Console and system log categories]
+    SETTINGS[Azure Monitor diagnostic settings]
+    WORKSPACE[Log Analytics workspace]
+    EVENT_HUB[Event Hubs]
+    STORAGE[Storage account]
+    PARTNER[Partner monitoring solution]
+    QUERY[Queries, alerts, consumers, or archive]
+
+    ENVIRONMENT -. required configuration .-> DESTINATION
+    ENVIRONMENT ==>|Platform log records| CATEGORIES
+    DESTINATION -. enables routing configuration .-> SETTINGS
+    CATEGORIES ==>|Selected categories| SETTINGS
+    SETTINGS ==>|Workspace export| WORKSPACE
+    SETTINGS ==>|Streaming export| EVENT_HUB
+    SETTINGS ==>|Archive export| STORAGE
+    SETTINGS ==>|Partner export| PARTNER
+    WORKSPACE --> QUERY
+    EVENT_HUB --> QUERY
+    STORAGE --> QUERY
+    PARTNER --> QUERY
 ```
+
+After the environment logs destination is set to Azure Monitor, diagnostic settings route selected environment log categories to one or more destinations. App-level diagnostic settings are a separate metrics-only path.
 
 ## Verification
 
@@ -141,3 +181,4 @@ flowchart TD
 
 - [Diagnostic settings in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings)
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Log storage and monitoring options](https://learn.microsoft.com/en-us/azure/container-apps/log-options)
