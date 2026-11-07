@@ -7,10 +7,11 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/overview
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps uses revisions to manage different versions of a container app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -34,39 +35,52 @@ This overview maps how Azure Container Apps runtime components, identities, and 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
+    accTitle: Container Apps resource and dependency relationships
+    accDescr: A client request enters managed ingress and reaches an active revision replica. The running app exchanges data with external Azure services after its managed identity receives authorization, while Azure Container Registry supplies image layers during revision startup.
 
-    subgraph ENV[Container Apps Environment]
-        APP[Container App]
-        REV[Active Revision]
-        APP --> REV
-        DAPR["Dapr sidecar (optional)"]
-        APP -.-> DAPR
+    CLIENT[Request caller]
+    ACR[Azure Container Registry<br/>startup dependency]
+    IDENTITY[App managed identity<br/>principal used for authorization]
+    TOKEN_ENDPOINT[Container Apps local identity endpoint]
+    ENTRA[Microsoft Entra ID<br/>token issuer]
+    AUTHORIZED_RUNTIME[Authorized runtime access<br/>RBAC or data-plane permission]
+    REGISTRY_ACCESS[Authorized image pull<br/>registry role or repository permission]
+    IMAGE_PULL[Container Apps image pull<br/>during replica provisioning]
+    RUNTIME_DEPENDENCY[Runtime Azure dependency<br/>data service or Key Vault]
+
+    subgraph ENV[Managed Container Apps environment]
+        INGRESS[Managed ingress<br/>TLS and request routing]
+        APP[Container app<br/>logical resource]
+        REV[Active revision<br/>immutable version]
+        REPLICA[Revision replica<br/>running containers]
+        DAPR[Dapr sidecar<br/>optional]
     end
 
-    I --> REV
+    APP -.->|Defines| REV
+    REV -.->|Creates| REPLICA
+    REPLICA -.->|May include| DAPR
 
-    APP --> COSMOS[Azure Cosmos DB]
-    APP --> SQL[Azure SQL Database]
-    APP --> REDIS[Azure Cache for Redis]
-    APP --> KV[Azure Key Vault]
-    APP --> STG[Azure Storage]
-    APP -.->|image pull at startup| ACR[Azure Container Registry]
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| REV
+    REV ==>|Serves request| REPLICA
 
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-
-    DAPR -.-> APP2["Container App (peer service)"]
-
-    MI -.-> COSMOS
-    MI -.-> SQL
-    MI -.-> REDIS
-    MI -.-> KV
-    MI -.-> STG
-    MI -.-> ACR
+    REPLICA -->|Requests token| TOKEN_ENDPOINT
+    TOKEN_ENDPOINT -->|Requests token using identity| ENTRA
+    ENTRA -->|Returns access token| TOKEN_ENDPOINT
+    TOKEN_ENDPOINT -->|Returns access token| REPLICA
+    IDENTITY -.->|Identifies principal| TOKEN_ENDPOINT
+    IDENTITY -.-> AUTHORIZED_RUNTIME
+    IDENTITY -.-> REGISTRY_ACCESS
+    AUTHORIZED_RUNTIME -.-> RUNTIME_DEPENDENCY
+    REGISTRY_ACCESS -.-> ACR
+    REPLICA ==>|Runtime request| RUNTIME_DEPENDENCY
+    RUNTIME_DEPENDENCY ==>|Runtime response| REPLICA
+    IMAGE_PULL ==>|Image manifest and layer request| ACR
+    ACR ==>|Image response and layers| IMAGE_PULL
+    REV -.->|Provisioning requires| IMAGE_PULL
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity, authentication, and deployment-time dependencies.
+Thick arrows show request or data transport, including the bidirectional runtime exchange and the platform image pull during replica provisioning. Thin arrows show token requests and responses through the local identity endpoint and Microsoft Entra ID; dotted arrows show resource, principal, provisioning, or authorization relationships rather than traffic.
 
 !!! warning "Shared dependencies become shared failure domains"
     Multiple apps using the same database, cache, or Key Vault can fail together during dependency incidents.
@@ -114,3 +128,4 @@ This screenshot is used here as a visual companion to the [Architecture](#archit
 ## Sources
 - [Azure Container Apps architecture (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)
 - [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Containers in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)

@@ -11,8 +11,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps supports Consumption, Dedicated, and Flex workload profile types, and each environment includes a default Consumption profile.
       source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
@@ -55,7 +55,7 @@ Each v2 environment includes a default **Consumption** profile. You can then add
 
 !!! note "Flexible is preview"
     Microsoft Learn lists **Flexible** as a preview profile type.
-    This page focuses on the generally available Consumption and Dedicated placement options first.
+    Flexible requires a subnet of at least `/25`, runs in a single-tenant compute pool, and does not scale to zero. This page focuses on the generally available Consumption and Dedicated placement options first.
 
 ### Profile properties and app targeting
 
@@ -132,16 +132,35 @@ Workload profiles add a second scaling layer:
 <!-- diagram-id: environment-to-profiles-to-apps -->
 ```mermaid
 flowchart TD
-    ENV[Workload profiles environment] --> P1[Consumption profile]
-    ENV --> P2[Dedicated profile D4]
-    ENV --> P3[Dedicated profile E8]
-    P1 --> A1[Bursty app]
-    P2 --> A2[Steady API]
-    P3 --> A3[Memory-heavy worker]
-    A1 --> R1[Replicas scale by demand]
-    A2 --> R2[Replicas share dedicated nodes]
-    A3 --> R3[Replicas share memory-optimized nodes]
+    accTitle: Environment, workload profile, app, and replica placement
+    accDescr: The environment contains workload profiles. Each app targets one profile, app scale rules create replicas, and the selected profile places those replicas on serverless or dedicated compute.
+
+    ENV[Workload profiles environment]
+    CONSUMPTION[Consumption profile<br/>serverless compute]
+    D4[Dedicated D4 profile<br/>general purpose nodes]
+    E8[Dedicated E8 profile<br/>memory-optimized nodes]
+    BURSTY[Bursty app]
+    API[Steady API]
+    WORKER[Memory-heavy worker]
+    BURSTY_REPLICAS[Demand-scaled replicas<br/>on serverless compute]
+    API_REPLICAS[API replicas<br/>on general-purpose nodes]
+    WORKER_REPLICAS[Worker replicas<br/>on memory-optimized nodes]
+
+    ENV -.->|Contains| CONSUMPTION
+    ENV -.->|Contains| D4
+    ENV -.->|Contains| E8
+    BURSTY -.->|Targets| CONSUMPTION
+    API -.->|Targets| D4
+    WORKER -.->|Targets| E8
+    BURSTY -->|Scale rules create| BURSTY_REPLICAS
+    API -->|Scale rules create| API_REPLICAS
+    WORKER -->|Scale rules create| WORKER_REPLICAS
+    CONSUMPTION -.->|Compute placement| BURSTY_REPLICAS
+    D4 -.->|Compute placement| API_REPLICAS
+    E8 -.->|Compute placement| WORKER_REPLICAS
 ```
+
+Solid arrows show scale rules creating replicas. Dotted arrows separately show environment containment, each app targeting a profile, and that profile providing compute placement for the resulting replicas.
 
 ### When to use Dedicated profiles
 

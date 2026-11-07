@@ -10,10 +10,10 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
-    - claim: Azure Container Apps applies quotas at region, environment, and application scopes.
+    - claim: Azure Container Apps quotas can apply to a subscription and region, one managed environment, or an application.
       source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
       verified: true
     - claim: The maximum configurable replicas per revision is 1,000.
@@ -37,12 +37,26 @@ Azure Container Apps mixes fixed platform limits with quotas that vary by subscr
 <!-- diagram-id: quota-and-limit-scope-stack -->
 ```mermaid
 flowchart TD
-    A[Subscription scope] --> B[Region scope]
-    B --> C[Environment scope]
-    C --> D[Application scope]
-    D --> E[Revision scope]
-    E --> F[Replica scope]
+    accTitle: Azure Container Apps quota and fixed-limit scopes
+    accDescr: Subscription-and-region quotas govern environment count and dedicated GPU capacity. Managed-environment quotas govern consumption, general-purpose, memory-optimized, and serverless GPU capacity. Application configuration sets revision and replica limits within those available quotas.
+
+    SUB[Subscription and region quotas<br/>environment count and dedicated GPU]
+    ENV[Managed environment quotas<br/>cores and serverless GPU]
+    APP[Container app configuration]
+    REV[Revision scale limits]
+    REPLICA[Running replicas]
+    PORTAL[Azure Quota Management System]
+    ENV_QUOTA[Environment Quota page<br/>and list-usages CLI]
+
+    SUB -.->|Constrains creation and regional capacity| ENV
+    ENV -.->|Constrains app scale headroom| APP
+    APP -->|Defines min and max| REV
+    REV -->|Creates within available capacity| REPLICA
+    PORTAL -.->|View or request| SUB
+    ENV_QUOTA -.->|View or request| ENV
 ```
+
+Dotted arrows represent quota constraints and management surfaces; the solid path shows how app configuration bounds running replicas.
 
 ### What Microsoft Learn publishes directly
 
@@ -83,7 +97,7 @@ Microsoft Learn documents two request paths:
 | Request path | Best fit |
 |---|---|
 | Integrated request | Region and subscription-scoped quotas via Azure portal |
-| Manual request | Environment-scoped quotas via Azure CLI workflow |
+| Managed environment request | Environment-scoped quotas through the environment's **Quota** page; use Azure CLI to inspect current usage |
 
 Useful Learn-backed checkpoints:
 

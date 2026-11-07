@@ -7,10 +7,11 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/billing
+        - https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps manages automatic horizontal scaling through declarative scaling rules.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
@@ -45,18 +46,40 @@ export ACA_ENV_NAME="aca-env-prod"
 
 ## Choose the Right Runtime Profile
 
-- **Consumption profile**: best for variable traffic and scale-to-zero scenarios.
-- **Workload profiles**: best for predictable baseline load and dedicated capacity planning.
+- **Consumption profile**: best for variable traffic, scale-to-zero scenarios, and steady workloads that do not require dedicated or single-tenant compute.
+- **Dedicated or Flexible profiles**: evaluate for predictable baseline load that also requires a dedicated pool, a supported Dedicated shape, or Flexible preview's single-tenant characteristics.
 
 <!-- diagram-id: workload-profiles-best-for-predictable-baseline -->
 ```mermaid
 flowchart TD
-    T[Traffic Pattern] --> P{Profile Choice}
-    P -->|Bursty/idle| C[Consumption]
-    P -->|Steady baseline| W[Workload Profiles]
-    C --> S[Scale-to-zero friendly]
-    W --> R[Reserved capacity planning]
+    accTitle: Cost-oriented workload profile decision
+    accDescr: Choose a profile from measured demand and isolation requirements. Bursty or idle-prone workloads fit Consumption and serverless GPU profiles, while sustained workloads may fit Dedicated profiles. Flexible preview is for single-tenant behavior without scale to zero and includes a management fee.
+
+    DEMAND{Measured demand pattern?}
+    ISOLATION{Need dedicated or<br/>single-tenant compute?}
+    PROFILE_TYPE{Which compute requirement?}
+    GPU{GPU workload?}
+    CONSUMPTION[Consumption profile<br/>per-replica usage]
+    SERVERLESS_GPU[Consumption GPU profile<br/>per-second use and scale to zero]
+    DEDICATED[Dedicated profile<br/>per-profile instance billing]
+    FLEX[Flexible profile preview<br/>no scale to zero]
+    VALIDATE[Validate SLOs, quotas,<br/>regional availability, and total cost]
+
+    DEMAND -->|Bursty or idle-prone| GPU
+    GPU -->|No| CONSUMPTION
+    GPU -->|Yes| SERVERLESS_GPU
+    DEMAND -->|Steady baseline| ISOLATION
+    ISOLATION -->|No| CONSUMPTION
+    ISOLATION -->|Yes| PROFILE_TYPE
+    PROFILE_TYPE -->|Dedicated pool and supported shape| DEDICATED
+    PROFILE_TYPE -->|Flexible preview requirements| FLEX
+    CONSUMPTION --> VALIDATE
+    SERVERLESS_GPU --> VALIDATE
+    DEDICATED --> VALIDATE
+    FLEX --> VALIDATE
 ```
+
+This is a cost-screening decision, not a universal recommendation; validate availability, performance, networking, and reliability before changing profiles.
 
 !!! warning "Cost optimization without SLO context is risky"
     Lowering replicas or CPU aggressively can reduce spend but degrade latency and reliability.
@@ -95,8 +118,10 @@ az containerapp env show \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp env show --query "properties.workloadProfiles"` | Inspects the managed environment's workload-profile configuration so you can see which profile options are available before making a cost/performance sizing decision. |
-| `--name "$ACA_ENV_NAME"` / `--resource-group "$RG"` | Points the check at the exact Container Apps environment that hosts the workload, because profile availability is environment-scoped. |
+| `az containerapp env show` | Inspects a managed environment's configuration. |
+| `--name "$ACA_ENV_NAME"` | Selects the Container Apps environment by name. |
+| `--resource-group "$RG"` | Selects the resource group that contains the environment. |
+| `--query "properties.workloadProfiles"` | Returns only the workload-profile configuration. |
 | `--output json` | Returns the full profile objects, which is more useful than a table when you need to compare names, types, and sizing fields. |
 
 Review current app resource allocation:
@@ -111,7 +136,11 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App configuration. |
+| `--name "$APP_NAME"` | Selects the app by name. |
+| `--resource-group "$RG"` | Selects the resource group that contains the app. |
+| `--query "properties.template.containers[].resources"` | Returns the CPU and memory configuration for each container. |
+| `--output json` | Preserves the resource objects for comparison. |
 
 ## Scale-to-Zero for Intermittent Workloads
 
@@ -125,7 +154,11 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration without recreating the app. |
+| `--name "$APP_NAME"` | Selects the app by name. |
+| `--resource-group "$RG"` | Selects the resource group that contains the app. |
+| `--min-replicas 0` | Allows the revision to scale to zero when its rules permit. |
+| `--max-replicas 5` | Caps the configured replica range for this example. |
 
 Set conservative max replicas for non-critical services to cap runaway spend.
 
@@ -144,7 +177,9 @@ az consumption usage list \
 
 | Command | Why it is used |
 |---|---|
-| `az consumption usage ...` | Runs the Azure CLI operation required by the documented step. |
+| `az consumption usage list` | Lists subscription usage records for cost review. |
+| `--top 20` | Limits the result to 20 records. |
+| `--output table` | Formats the result for an interactive review. |
 
 Track request and replica trends with metrics to identify over-provisioning:
 
@@ -158,7 +193,11 @@ az monitor metrics list \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+| `az monitor metrics list` | Lists Azure Monitor metric values for the target app. |
+| `--resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME"` | Selects the Container App resource. |
+| `--metric "Replicas"` | Requests the replica-count metric. |
+| `--interval "PT1H"` | Aggregates the requested series into one-hour intervals. |
+| `--output table` | Formats the result for an interactive review. |
 
 ## Verification Steps
 
@@ -172,7 +211,11 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App configuration for verification. |
+| `--name "$APP_NAME"` | Selects the app by name. |
+| `--resource-group "$RG"` | Selects the resource group that contains the app. |
+| `--query "{minReplicas:properties.template.scale.minReplicas,maxReplicas:properties.template.scale.maxReplicas,resources:properties.template.containers[].resources}"` | Returns the replica range and container resource allocations. |
+| `--output json` | Preserves the nested verification result. |
 
 Example output (PII masked):
 
@@ -210,3 +253,4 @@ Example output (PII masked):
 ## Sources
 - [Container Apps workload profiles](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview)
 - [Azure Container Apps billing (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/billing)
+- [Azure Container Apps Well-Architected guidance (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps)

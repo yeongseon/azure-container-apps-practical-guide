@@ -8,8 +8,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/azure-arc-overview
 content_validation:
   status: verified
-  last_reviewed: '2026-07-18'
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps can run on an Azure Arc-enabled AKS or AKS on Azure Local cluster, letting IT administrators host Container Apps on internal infrastructure.
       source: https://learn.microsoft.com/en-us/azure/container-apps/azure-arc-overview
@@ -47,19 +47,38 @@ Setting up Container Apps on Arc builds up several layered resources on top of y
 <!-- diagram-id: connected-environment-topology -->
 ```mermaid
 flowchart TD
-    K8S[Kubernetes cluster<br/>Arc-enabled AKS or AKS on Azure Local]
-    CONNECTED[Connected cluster<br/>Azure projection of the cluster]
-    EXT[Container Apps cluster extension<br/>installs Microsoft.App resources + optional KEDA]
-    LOC[Custom location<br/>maps extensions to a namespace]
-    ENV[Container Apps connected environment]
-    APP[Container Apps and jobs]
+    accTitle: Container Apps connected environment dependency topology
+    accDescr: Azure Arc agents project a supported Kubernetes cluster into Azure as a connected cluster. The Container Apps extension runs data-plane components in the cluster. A custom location associates that cluster, extension, and namespace, and the connected environment references the custom location for apps and jobs.
 
-    K8S --> CONNECTED
-    CONNECTED --> EXT
-    EXT --> LOC
-    LOC --> ENV
-    ENV --> APP
+    AZURE[Azure Resource Manager<br/>management operations]
+    CONNECTED[Connected cluster<br/>Azure resource]
+    EXTENSION[Container Apps cluster extension<br/>child of connected cluster]
+    LOCATION[Custom location<br/>cluster, extension, and namespace association]
+    ENVIRONMENT[Container Apps connected environment<br/>shared app configuration]
+    APPS[Container apps and jobs<br/>Azure resources]
+
+    CLUSTER[Customer-operated<br/>Azure Arc-enabled Kubernetes cluster]
+    NAMESPACE[Kubernetes namespace<br/>selected by custom location]
+    AGENTS[Azure Arc agents<br/>maintain connected cluster link]
+    DATA_PLANE[Container Apps data plane<br/>ingress, scaling, Dapr, and logging]
+    WORKLOADS[Application containers<br/>and job executions]
+
+    AZURE -.-> CONNECTED
+    CLUSTER -.->|Projected by Arc agents| CONNECTED
+    CONNECTED -.->|Parent resource| EXTENSION
+    EXTENSION -.->|Associated through| LOCATION
+    CONNECTED -.->|Associated through| LOCATION
+    NAMESPACE -.->|Associated through| LOCATION
+    LOCATION -.->|Referenced by| ENVIRONMENT
+    ENVIRONMENT -.->|Contains| APPS
+    EXTENSION -.->|Installs in namespace| DATA_PLANE
+    DATA_PLANE -->|Runs and routes| WORKLOADS
+    APPS -.->|Desired state| WORKLOADS
+    CLUSTER -.-> AGENTS
+    CLUSTER -.->|Hosts selected namespace| NAMESPACE
 ```
+
+Solid arrows show management or runtime activity; dotted arrows show Azure resource dependencies and associations. The cluster remains customer-operated rather than becoming Azure-hosted compute.
 
 | Layer | Role |
 |---|---|

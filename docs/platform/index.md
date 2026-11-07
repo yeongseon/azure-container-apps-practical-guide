@@ -29,15 +29,33 @@ This section explains Azure Container Apps platform behavior in a language-agnos
 
 <!-- diagram-id: documents -->
 ```mermaid
-graph TD
-    A[Architecture] --> B[Environments]
-    B --> C[Revisions]
-    C --> D[Scaling]
-    D --> E[Networking]
-    E --> F[Identity and Secrets]
-    F --> G[Reliability]
-    C --> H[Jobs]
+flowchart TD
+    accTitle: Recommended Container Apps platform reading paths
+    accDescr: Begin with architecture and environments. The application path continues through revisions, scaling, networking, identity, and reliability. The execution path branches to jobs, and an integration path branches to Dapr and security guidance.
+
+    START[Start with platform concepts]
+    ARCH[Architecture<br/>resource and runtime model]
+    ENV[Environments<br/>boundaries and compute]
+    REVISIONS[Revisions<br/>version and release model]
+    SCALING[Scaling<br/>replica rules and limits]
+    NETWORK[Networking<br/>ingress and connectivity]
+    IDENTITY[Identity and secrets<br/>authentication and configuration]
+    RELIABILITY[Reliability<br/>health and recovery]
+    JOBS[Jobs<br/>manual, scheduled, or event-driven]
+    INTEGRATIONS[Dapr and security<br/>optional integration paths]
+
+    START --> ARCH
+    ARCH --> ENV
+    ENV --> REVISIONS
+    REVISIONS --> SCALING
+    SCALING --> NETWORK
+    NETWORK --> IDENTITY
+    IDENTITY --> RELIABILITY
+    ENV --> JOBS
+    ENV --> INTEGRATIONS
 ```
+
+The main path is a recommended design sequence, while the branches identify workload-specific topics rather than additional runtime dependencies.
 
 ### Recommended reading order
 
