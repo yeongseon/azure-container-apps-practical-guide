@@ -16,16 +16,16 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 475 | 475 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 155 | 0 | 0 | 9 |
+| In-Scope Factual-Claim Documents | 164 | 156 | 0 | 0 | 8 |
 
 !!! warning "Validation In Progress"
-    9 in-scope document(s) need `content_validation` metadata added.
+    8 in-scope document(s) need `content_validation` metadata added.
 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 155
-    "No Metadata" : 9
+    "Verified" : 156
+    "No Metadata" : 8
 ```
 
 ## By Section
@@ -35,7 +35,7 @@ pie title In-Scope Document Validation Status
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
 | [Acr Network Path Selection](../platform/networking/acr-network-path-selection.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Application Gateway Integration](../platform/networking/application-gateway-integration.md) | ✅ | ✅ Verified | 6/6 | 2026-07-03 |
+| [Application Gateway Integration](../platform/networking/application-gateway-integration.md) | ✅ | ✅ Verified | 6/6 | 2026-11-07 |
 | [Components State Pubsub](../platform/dapr/components-state-pubsub.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
 | [Connected Environments Arc](../platform/hybrid/connected-environments-arc.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
 | [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
@@ -56,7 +56,7 @@ pie title In-Scope Document Validation Status
 | [Image Security](../platform/security/image-security.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Index](../platform/security/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/environments/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
-| [Index](../platform/networking/index.md) | ✅ | ❓ No Metadata | — | — |
+| [Index](../platform/networking/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Index](../platform/storage/index.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/scaling/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
