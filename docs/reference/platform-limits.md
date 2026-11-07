@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps platform limits and quota scopes for subscription-region, managed-environment, app, revision, replica, and container planning.
 content_sources:
   diagrams:
     - id: limits-hierarchy-and-blast-radius
@@ -6,17 +7,6 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/quotas
-content_validation:
-  status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
-  core_claims:
-    - claim: Azure Container Apps has quotas and limits at the subscription, environment, and app levels.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
-      verified: true
-    - claim: Some Container Apps limits are fixed platform constraints while others are adjustable quotas.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/quotas
-      verified: true
 ---
 # Azure Container Apps Platform Limits and Quotas
 
@@ -33,17 +23,31 @@ Use this quick reference for common design-time and runtime limits in Azure Cont
 <!-- diagram-id: limits-hierarchy-and-blast-radius -->
 ```mermaid
 flowchart TD
-    A[Container Apps Environment] --> B[Container App]
-    B --> C[Revision]
-    C --> D[Replica]
-    D --> E[Container]
+    accTitle: Container Apps quota scopes and runtime limit hierarchy
+    accDescr: Subscription-region quotas constrain environment creation, managed-environment quotas constrain shared capacity, and app or runtime limits constrain an app, revision, replica, or container. Identify the affected scope before requesting quota or changing workload design.
 
-    A --> A1[Shared networking and logging boundary]
-    B --> B1[Ingress, scale rules, identity, secrets]
-    C --> C1[Immutable app template snapshot]
-    D --> D1[Scaled runtime unit]
-    E --> E1[CPU and memory constrained process]
+    SUBSCRIPTION[Subscription and region<br/>environment and regional quotas]
+    ENVIRONMENT[Managed environment<br/>shared capacity quotas]
+    APP[Container app<br/>application limits]
+    REVISION[Revision<br/>immutable template version]
+    REPLICA[Replica<br/>scaled runtime instance]
+    CONTAINER[Container<br/>configured CPU and memory]
+    REQUEST{What kind of<br/>boundary was reached?}
+    QUOTA[Adjustable quota<br/>use the matching request path]
+    LIMIT[Platform or configuration limit<br/>change the workload design]
+
+    SUBSCRIPTION --> ENVIRONMENT
+    ENVIRONMENT --> APP
+    APP --> REVISION
+    REVISION --> REPLICA
+    REPLICA --> CONTAINER
+    ENVIRONMENT --> REQUEST
+    APP --> REQUEST
+    REQUEST -->|Quota| QUOTA
+    REQUEST -->|Fixed or configured limit| LIMIT
 ```
+
+The vertical chain locates the blast radius; it is not a request path. A quota increase applies only at its documented scope, while fixed or configured limits require a design or configuration change.
 
 ## Prerequisites
 

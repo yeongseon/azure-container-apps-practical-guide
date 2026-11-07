@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps metrics reference for app and environment namespaces, supported dimensions, aggregations, alerts, dashboards, and autoscaling.
 content_sources:
   diagrams:
     - id: metric-collection-flow
@@ -7,26 +8,6 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/metrics
         - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics
-content_validation:
-  status: verified
-  last_reviewed: '2026-06-05'
-  reviewer: agent
-  core_claims:
-    - claim: Azure Container Apps publishes platform metrics under the Microsoft.App/containerapps namespace, including CPU, memory, network, replica, request, and resiliency metrics.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      verified: true
-    - claim: CPU Usage Percentage and Memory Percentage metrics report consumption as a percentage of the container's configured CPU and memory limits.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      verified: true
-    - claim: Container Apps metrics support Replica and Revision dimensions for splitting and filtering.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
-      verified: true
-    - claim: Resiliency metrics are emitted by the per-app Envoy sidecar only when a resiliency policy is attached to the receiving app and traffic originates inside the same Container Apps Environment via service discovery.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/service-discovery-resiliency
-      verified: true
-    - claim: NodeCount is published under Microsoft.App/managedEnvironments for environments that use managed workload profiles, and is split by the Workload Profile Name dimension.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
-      verified: true
 ---
 # Azure Container Apps Metrics Reference
 
@@ -49,14 +30,30 @@ Quick lookup for the platform metrics that Azure Container Apps publishes to Azu
 <!-- diagram-id: metric-collection-flow -->
 ```mermaid
 flowchart TD
-    A[Container replica] --> B[Container Apps data plane]
-    B --> C[Azure Monitor metrics pipeline]
-    C --> D[Microsoft.App/containerapps namespace]
-    C --> E[Microsoft.App/managedEnvironments namespace]
-    D --> F[Portal Metrics blade]
-    D --> G[az monitor metrics list]
-    D --> H[Alerts and autoscale rules]
+    accTitle: Azure Monitor metric scopes for Container Apps
+    accDescr: Container app resource metrics and managed environment metrics use separate Azure Monitor namespaces. Operators select the matching resource scope before viewing metrics, querying them through the CLI, or using supported metrics in alerts and autoscale rules.
+
+    APP[Container app resource<br/>revisions and replicas]
+    ENVIRONMENT[Managed environment resource<br/>workload profiles]
+    APP_NS[Microsoft.App/containerapps<br/>metric namespace]
+    ENV_NS[Microsoft.App/managedEnvironments<br/>metric namespace]
+    MONITOR[Azure Monitor metrics platform]
+    PORTAL[Metrics explorer<br/>charts, filters, and splits]
+    CLI[Azure CLI<br/>az monitor metrics list]
+    ALERTS[Metric alerts]
+    SCALE[Azure Monitor metric<br/>scale rules where supported]
+
+    APP --> APP_NS
+    ENVIRONMENT --> ENV_NS
+    APP_NS --> MONITOR
+    ENV_NS --> MONITOR
+    MONITOR --> PORTAL
+    MONITOR --> CLI
+    MONITOR --> ALERTS
+    MONITOR --> SCALE
 ```
+
+Select the resource first: app metrics and environment metrics are not interchangeable. The downstream tools consume Azure Monitor metric data; the diagram does not imply that every metric supports every destination.
 
 ## Quick navigation
 

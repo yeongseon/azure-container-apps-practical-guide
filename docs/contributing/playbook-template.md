@@ -80,10 +80,31 @@ az containerapp show --name "<app-name>" --resource-group "<rg>" --query "{name:
 <!-- diagram-id: TODO-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Symptom] --> B{First check}
-    B -->|Pass| C[Hypothesis 1]
-    B -->|Fail| D[Hypothesis 2]
+    accTitle: TODO accessible title that states the troubleshooting decision
+    accDescr: TODO describe the symptom, first discriminating check, evidence branches, resolution verification, and escalation outcome without relying on color.
+
+    SYMPTOM[TODO observed symptom]
+    CHECK{TODO first discriminating check}
+    H1[H1 supported<br/>TODO relevant evidence]
+    H2[H2 supported<br/>TODO relevant evidence]
+    ACTION1[TODO resolution for H1]
+    ACTION2[TODO resolution for H2]
+    VERIFY{TODO symptom resolved<br/>and healthy evidence restored?}
+    CLOSE[Close with recorded evidence]
+    ESCALATE[Escalate with evidence<br/>and next hypothesis]
+
+    SYMPTOM --> CHECK
+    CHECK -->|TODO result supporting H1| H1
+    CHECK -->|TODO result supporting H2| H2
+    H1 --> ACTION1
+    H2 --> ACTION2
+    ACTION1 --> VERIFY
+    ACTION2 --> VERIFY
+    VERIFY -->|Yes| CLOSE
+    VERIFY -->|No| ESCALATE
 ```
+
+<!-- Add one sentence explaining what each branch proves and what evidence the operator records before changing production. -->
 
 ## 5. Resolution
 

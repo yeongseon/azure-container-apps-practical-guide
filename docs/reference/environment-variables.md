@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps environment-variable reference covering manual values, secret references, built-in metadata, and effective runtime configuration.
 content_sources:
   diagrams:
     - id: environment-variable-resolution-flow
@@ -6,17 +7,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
-content_validation:
-  status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
-  core_claims:
-    - claim: Azure Container Apps injects runtime environment variables into running containers.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
-      verified: true
-    - claim: Environment variables can reference secrets stored in Container Apps.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
-      verified: true
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
 ---
 # Container Apps Environment Variables Reference
 
@@ -38,16 +29,29 @@ Use this reference to understand variables injected by Azure Container Apps and 
 <!-- diagram-id: environment-variable-resolution-flow -->
 ```mermaid
 flowchart TD
-    A[Container App Configuration] --> B[Platform Injected Variables]
-    A --> C[User-defined Env Vars]
-    A --> D[Secret References]
-    D --> C
-    B --> E[Container Runtime Environment]
-    C --> E
-    E --> F[Application Startup]
-    F --> G[os.getenv or framework config loader]
-    G --> H[Effective Runtime Configuration]
+    accTitle: Environment variable resolution for a Container Apps revision
+    accDescr: A revision template supplies manual environment-variable values and secret references. Container Apps also adds built-in metadata variables. The running container receives the combined environment and the application reads it during startup.
+
+    TEMPLATE[Revision template<br/>container environment-variable entries]
+    MANUAL[Manual value<br/>name and value]
+    SECRET_REF[Secret reference<br/>name and secretRef]
+    SECRET[Container Apps secret<br/>resolved value]
+    BUILT_IN[Built-in platform metadata<br/>app, revision, replica, and port]
+    RUNTIME[Running container<br/>process environment]
+    APP[Application configuration loader]
+    EFFECTIVE[Effective runtime configuration]
+
+    TEMPLATE --> MANUAL
+    TEMPLATE --> SECRET_REF
+    SECRET_REF -. resolves by name .-> SECRET
+    MANUAL --> RUNTIME
+    SECRET --> RUNTIME
+    BUILT_IN --> RUNTIME
+    RUNTIME --> APP
+    APP --> EFFECTIVE
 ```
+
+Manual values and secret-backed values are both declared on the revision template. The dotted edge is secret lookup, while the solid paths show values available to the running container.
 
 ## Platform-injected variables
 
@@ -163,3 +167,4 @@ def runtime_info():
 ## Sources
 
 - [Microsoft Learn: Environment variables in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/environment-variables)
+- [Microsoft Learn: Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)

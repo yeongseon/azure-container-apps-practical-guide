@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps CLI commands for creating, configuring, observing, scaling, and operating apps, revisions, replicas, environments, and jobs.
 content_sources:
   diagrams:
     - id: cli-workflow-map
@@ -6,17 +7,6 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/cli/azure/containerapp
-content_validation:
-  status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
-  core_claims:
-    - claim: Azure CLI provides the containerapp command group for managing Container Apps resources.
-      source: https://learn.microsoft.com/en-us/cli/azure/containerapp
-      verified: true
-    - claim: The Container Apps CLI extension must be installed separately from the base Azure CLI.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/get-started
-      verified: true
 ---
 # Azure Container Apps CLI Reference
 
@@ -46,21 +36,29 @@ az extension add --name containerapp --upgrade
 <!-- diagram-id: cli-workflow-map -->
 ```mermaid
 flowchart TD
-    A[Create App or Job] --> B[Configure Runtime and Access]
-    B --> C[Deploy Revision / Update Image]
-    C --> D[Validate Revision and Replica State]
-    D --> E[Observe Logs and Health]
-    E --> F[Adjust Traffic or Scale]
+    accTitle: Container Apps CLI lifecycle workflow
+    accDescr: Create an app or job, configure access and runtime settings, deploy a change, verify the resulting resource state, observe health, and then adjust traffic or scaling when evidence supports a change.
 
-    A1[az containerapp create\naz containerapp job create]:::cmd --> A
-    B1[az containerapp ingress enable\naz containerapp identity assign\naz containerapp secret set]:::cmd --> B
-    C1[az containerapp update\naz containerapp ingress traffic set]:::cmd --> C
-    D1[az containerapp revision list\naz containerapp replica list]:::cmd --> D
-    E1[az containerapp logs show\naz containerapp show]:::cmd --> E
-    F1[az containerapp update\naz containerapp ingress traffic set]:::cmd --> F
+    CREATE[Create app or job<br/>containerapp create or job create]
+    CONFIGURE[Configure runtime and access<br/>ingress, identity, and secrets]
+    DEPLOY[Deploy a revision change<br/>containerapp update]
+    VERIFY[Verify revision or execution state<br/>revision, replica, or job execution list]
+    OBSERVE[Observe configuration and logs<br/>show and logs show]
+    DECIDE{Healthy and ready<br/>for the next change?}
+    OPERATE[Adjust traffic or scale<br/>traffic set or update]
+    INVESTIGATE[Keep traffic stable<br/>and investigate evidence]
 
-    classDef cmd fill:#eef6ff,stroke:#2b6cb0,color:#1a365d;
+    CREATE --> CONFIGURE
+    CONFIGURE --> DEPLOY
+    DEPLOY --> VERIFY
+    VERIFY --> OBSERVE
+    OBSERVE --> DECIDE
+    DECIDE -->|Yes| OPERATE
+    DECIDE -->|No| INVESTIGATE
+    INVESTIGATE --> OBSERVE
 ```
+
+Follow the main path for a planned change. The decision point keeps traffic and scale changes after state and log verification rather than treating every deployment as successful.
 
 ## `az containerapp` commands
 
