@@ -81,6 +81,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install lab verifier dependencies
+        run: python3 -m pip install PyYAML
+
       - name: Detect absorbed strong/fallback gate predicates
         run: |
           python3 -m doctest scripts/detect_absorbed_predicates.py
