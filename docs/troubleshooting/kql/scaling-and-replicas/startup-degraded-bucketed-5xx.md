@@ -204,7 +204,7 @@ ContainerAppConsoleLogs_CL
 | order by perturbation_id asc, client_ts asc
 ```
 
-**Interpretation**: The sequence of `(revision, active, traffic_weight, replicas, provisioning_state)` rows captures the exact moment of revision transition. Healthy rollout: old revision goes `active=false, traffic_weight=0` while new revision goes `active=true, traffic_weight=100` and `replicas` ramps to 3. Look for the duration between `PerturbationWindowMarker(phase=start)` and the new revision's first `provisioning_state=Succeeded` sample — that bracket is where Q2 5xx spikes are causally attributable to the rollout.
+**Interpretation**: The sequence of `(revision, active, traffic_weight, replicas, provisioning_state)` rows samples the revision transition at five-second intervals. Healthy rollout evidence in the checked-in run shows the old revision moving to `active=false, traffic_weight=0` while the new revision moves to `active=true, traffic_weight=100`, ramps to 3 replicas, and reports `provisioning_state=Provisioned`. The transition is bracketed by the last sample before a state change and the first sample after it; compare that sampled bracket with Q2 5xx buckets. Temporal overlap is `[Correlated]` evidence consistent with rollout-related degradation, not proof that the rollout caused each 5xx response.
 
 The perturbation-sampler is unlike the slow audit Job — it does not emit `event` (which `parse_json` parses cleanly out of raw stdout) but emits `kind` directly. The shell script writes JSON to stdout via `jq --null-input`, so the Container Apps log shipper records the raw JSON in `Log_s` without the Logrus wrapper. That is why this query uses `parse_json(Log_s)` directly, while Q1/Q2 use the `extract`+`replace_string`+`parse_json` chain.
 
@@ -216,8 +216,9 @@ The perturbation-sampler is unlike the slow audit Job — it does not emit `even
     The audit-sampler is a cron-triggered job (`*/5 * * * *`) with `replicaTimeout=240`s, but the `audit` container runs as a long-lived sampler daemon. The platform sends SIGTERM at 240s, the container exits non-zero, and Container Apps marks the execution as `Failed`. **Data ingestion is unaffected** — every audit container's first ~240 seconds of `ReplicaInventorySample` rows are present in `ContainerAppConsoleLogs_CL`. Operators must NOT alert on audit-sampler execution failure count. See the companion lab guide's "audit-sampler 'Failed' executions are benign" subsection.
 
 ```kusto
+let Lookback = 3h;
 ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(<hours_back>h)
+| where TimeGenerated >= ago(Lookback)
 | where ContainerName_s == "audit"
 | extend payload = parse_json(Log_s)
 | extend event_kind = tostring(payload.kind)
@@ -355,8 +356,9 @@ allBuckets
 `[Observed]` evidence — platform-emitted rollout milestones for the subject app. Use to corroborate the `perturbation-sampler`-derived view in Q3 and to detect anomalies (failed scale-up, container restart loops) that the sampler cannot see.
 
 ```kusto
+let Lookback = 3h;
 ContainerAppSystemLogs_CL
-| where TimeGenerated >= ago(<hours_back>h)
+| where TimeGenerated >= ago(Lookback)
 | where ContainerAppName_s == "subject-app"
 | where Reason_s in ("ContainerTerminated", "ContainerStarted", "AssigningReplica",
                      "RevisionReady", "FailedScalingUp", "ContainerCreating")

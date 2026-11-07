@@ -34,7 +34,7 @@ content_validation:
 | Table | Used for |
 |---|---|
 | `ContainerAppConsoleLogs_CL` | Parsing `ReplicaInventorySample` JSON lines emitted every 5 min by the audit Job (`audit-sampler`). |
-| `ContainerAppSystemLogs_CL` | Restart / probe / `AssigningReplica` events; ground truth for replica lifecycle. |
+| `ContainerAppSystemLogs_CL` | Platform-emitted restart, probe, and `AssigningReplica` events used as lifecycle evidence; event coverage can be limited by emission and ingestion gaps. |
 
 **Companion lab**: [Zone redundancy is best-effort](../../lab-guides/zone-redundancy-best-effort.md).
 
@@ -77,7 +77,7 @@ ContainerAppConsoleLogs_CL
 | extend HealthRatio = round(todouble(OkSamples) / todouble(ExpectedOkSamples), 2)
 ```
 
-**Healthy result**: `HealthRatio` close to `1.0` (within ±10%), `UniqueApps == 3`, and `ErrorSamples == 0`. `HealthRatio` is computed only from `resolutionStatus == "ok"` samples — error-shaped rows (timeouts, ARM throttling, missing replica list) intentionally do **not** count toward health. A `HealthRatio < 0.5` means the audit Job is failing or the workload profile is throttling its cold-starts — diagnose the Job, **do not** interpret downstream results as authoritative. If `ErrorSamples > 0`, run Q1b to see which apps and which `resolutionStatus` values are appearing before treating any downstream baseline as clean.
+**Healthy result**: `HealthRatio` close to `1.0` (within ±10%), `UniqueApps == 3`, and `ErrorSamples == 0`. `HealthRatio` is computed only from `resolutionStatus == "ok"` samples — error-shaped rows (timeouts, ARM throttling, missing replica list) intentionally do **not** count toward health. A `HealthRatio < 0.5` shows that too few successful samples arrived to treat downstream results as authoritative. `[Not Proven]` Possible causes include audit Job execution failures, delayed starts, collection errors, or ingestion gaps; inspect Job executions and Q1b before choosing a cause. If `ErrorSamples > 0`, run Q1b to see which apps and which `resolutionStatus` values are appearing before treating any downstream baseline as clean.
 
 ### Q1b — Error Sample Breakdown (drill-down)
 
@@ -166,6 +166,7 @@ ReplicaEvents
 - Zero rows across a full 24-hour baseline is `[Observed]` evidence consistent with H0a (no clustered churn).
 - Repeated rows aligned to perturbation timestamps from `trigger.sh --perturb restart` are **expected** — that perturbation is the positive control.
 - The 60-second window matches the lab's pre-registered definition. Do not adjust without amending the lab guide's analysis plan.
+- Fixed `bin()` boundaries can split terminations less than 60 seconds apart into adjacent bins, so this query can miss a cluster that crosses a boundary. A returned row proves same-bin co-occurrence; an empty result does not prove that no rolling 60-second cluster occurred.
 
 ## Q4 — Recovery Duration After Churn
 
@@ -249,7 +250,7 @@ Churns
 
 **Interpretation** (valid when subject apps are running the custom OpenTelemetry image and `AppRequests` is populated):
 
-- `CorrelationStrong == true` across multiple churn windows is `[Correlated]` evidence that clustered churn produces client-visible failures.
+- `CorrelationStrong == true` across multiple churn windows is `[Correlated]` evidence that clustered churn and app-handled 5xx responses occurred in the same fixed 60-second bins. The query does not establish causation and does not observe ingress-generated failures.
 - `CorrelationStrong == false` across all churn windows is consistent with H0b (no client impact), but only if traffic was actively driving requests during the churn window. Verify by running `AppRequests | where AppRoleName in ("app-min2", "app-min3", "app-min6") | summarize count() by bin(TimeGenerated, 1m)` over the same window and confirming non-zero request counts.
 - Causation requires the `trigger.sh --perturb restart` control: see Q6.
 - Zero rows in the `Errors` CTE means either the custom image is not deployed or telemetry routing is broken. **This is not evidence in favor of H0b** — it is evidence that the data source is not connected. Verify the image is wired by running `AppRequests | where AppRoleName startswith "app-min" | take 10` and confirming at least one row. If empty, check that `APPLICATIONINSIGHTS_CONNECTION_STRING` is set on the subject app's container env (via the secret named `appinsights-connection-string`).
@@ -286,21 +287,46 @@ let PerturbedChurns =
 let BaselineChurns =
     AllChurns
     | join kind=leftanti PerturbedChurns on ChurnTime, App;
-union
+let PerturbDurationByApp =
+    PerturbWindows
+    | summarize PerturbationMinutes = count() * (PerturbPad / 1m * 2) by App;
+let ChurnCounts = union
     (BaselineChurns | summarize ChurnEvents = count(), Bucket = "Baseline (no perturb)" by App),
-    (PerturbedChurns | summarize ChurnEvents = count(), Bucket = "Perturbation window" by App)
-| extend WindowMinutes = case(Bucket == "Baseline (no perturb)",
-                              ((Window / 1m) - (toscalar(PerturbWindows | count) * (PerturbPad / 1m * 2))),
-                              toscalar(PerturbWindows | count) * (PerturbPad / 1m * 2))
+    (PerturbedChurns | summarize ChurnEvents = count(), Bucket = "Perturbation window" by App);
+let SubjectApps = datatable(App: string)
+[
+  "app-min2",
+  "app-min3",
+  "app-min6",
+];
+let Buckets = datatable(Bucket: string)
+[
+  "Baseline (no perturb)",
+  "Perturbation window",
+];
+SubjectApps
+| extend JoinKey = 1
+| join kind=inner (Buckets | extend JoinKey = 1) on JoinKey
+| project-away JoinKey, JoinKey1
+| join kind=leftouter ChurnCounts on App, Bucket
+| join kind=leftouter PerturbDurationByApp on App
+| extend ChurnEvents = coalesce(ChurnEvents, 0)
+| extend PerturbationMinutes = coalesce(PerturbationMinutes, 0.0)
+| extend WindowMinutes = case(Bucket == "Baseline (no perturb)", (Window / 1m) - PerturbationMinutes,
+                              Bucket == "Perturbation window", PerturbationMinutes,
+                              real(null))
+| where WindowMinutes > 0
 | extend ChurnPerHour = round(todouble(ChurnEvents) / (WindowMinutes / 60.0), 3)
+| project App, Bucket, ChurnEvents, WindowMinutes, ChurnPerHour
 | order by App asc, Bucket asc
 ```
 
 **Interpretation**:
 
 - Baseline `ChurnPerHour ≈ 0` and Perturbation `ChurnPerHour >> 0` confirms the perturbation control is working.
-- Baseline `ChurnPerHour > 0` is `[Observed]` evidence that the **platform itself** produces clustered churn even without operator action — the central claim the lab is set up to falsify.
+- Baseline `ChurnPerHour > 0` is `[Observed]` evidence of clustered churn outside the recorded perturbation windows. `[Not Proven]` The query does not exclude deployments, scaling actions, unrecorded operator activity, or other causes, so it cannot attribute that baseline churn to the platform itself.
 - Keep the `PerturbWindows` table in sync with your actual `trigger.sh` invocation log (`/tmp/perturb.log` if you redirect stdout).
+- The denominator is computed per app from that app's recorded perturbation windows. Keep windows non-overlapping; overlapping entries would double-count duration and require interval merging before rate calculation.
 
 ## Q7 — Multi-App Comparison
 
