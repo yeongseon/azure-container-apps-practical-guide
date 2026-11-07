@@ -97,7 +97,7 @@ pie title In-Scope Document Validation Status
 | [Availability And Non Guarantees](../best-practices/availability-and-non-guarantees.md) | ✅ | ✅ Verified | 5/5 | 2026-06-12 |
 | [Blue Green Deployment](../best-practices/blue-green-deployment.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Canary Deployment](../best-practices/canary-deployment.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
-| [Compliance Baseline](../best-practices/compliance-baseline.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
+| [Compliance Baseline](../best-practices/compliance-baseline.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Container Design](../best-practices/container-design.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Cost](../best-practices/cost.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Environment Design](../best-practices/environment-design.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
