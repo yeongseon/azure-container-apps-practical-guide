@@ -106,7 +106,7 @@ flowchart TD
     subgraph ENV["Managed Container Apps environment"]
         direction TB
         INGRESS["Managed ingress proxy<br/>TLS and request routing"]
-        APP["Container app<br/>external app ingress"]
+        APP["Container app<br/>logical grouping"]
         REV_ACTIVE["Active revision<br/>immutable app version"]
         REPLICAS["Revision replicas<br/>running instances"]
     end
@@ -124,11 +124,11 @@ flowchart TD
     RESOLVER -.->|"6  DNS response"| DNS_OP
     DNS_OP -.->|"7  IP answer"| CLIENT
 
-    CLIENT ==>|"8  TCP 443 toward environment static IP"| PRIVATE_LINK
-    PRIVATE_LINK ==>|"9  TLS ClientHello with hostname SNI"| INGRESS
-    INGRESS ==>|"10  HTTPS request"| APP
-    APP ==>|"11  Route traffic"| REV_ACTIVE
-    REV_ACTIVE ==>|"12  Select ready replica"| REPLICAS
+    CLIENT ==>|"8  TCP 443 to static IP"| PRIVATE_LINK
+    PRIVATE_LINK ==>|"9  TLS with hostname SNI"| INGRESS
+    INGRESS ==>|"10  Route request after TLS termination"| REV_ACTIVE
+    APP -.->|"Logical app grouping"| REV_ACTIVE
+    REV_ACTIVE ==>|"11  Select ready replica"| REPLICAS
 
     FIREWALL -.->|"Optional inspection policy"| PRIVATE_LINK
     RESOLVER -.-> RESOLVER_SUBNET
@@ -136,7 +136,7 @@ flowchart TD
     DNS_ROUTES -.->|"Subnet association"| RESOLVER_SUBNET
     ACA_ROUTES -.->|"Subnet association"| ACA_SUBNET
 
-    LEGEND["Arrow key<br/>thick = TCP, TLS, or HTTPS transport<br/>dotted = DNS, optional policy, or association"]
+    LEGEND["Arrow key<br/>thick = client transport or runtime request path<br/>dotted = DNS, logical relation, optional policy, or association"]
 ```
 
 *Figure: The DNS lookup and HTTPS connection are separate paths. The optional firewall and route tables sit outside the VNet and managed-environment boundaries because they are associated network controls; the diagram does not claim that every deployment requires forced inspection.*
