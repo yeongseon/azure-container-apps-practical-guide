@@ -29,7 +29,7 @@ flowchart TD
     accTitle: Choose a Container Apps reference by operator question
     accDescr: Start from the question you need to answer, then choose command syntax, configuration scope, environment variables, metrics, or platform quotas and limits.
 
-    QUESTION{What do you need<br/>to look up?}
+    QUESTION[Start with the operator question<br/>that needs a reference]
     CLI[CLI reference<br/>command syntax]
     SCOPE[Configuration scope matrix<br/>change impact]
     ENV[Environment variables<br/>runtime configuration]
@@ -119,6 +119,10 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "
 | Command | Purpose |
 |---|---|
 | `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.defaultDomain" --output tsv` | Extracts the environment's default DNS suffix as plain text so you can record the canonical `*.azurecontainerapps.io` domain used for ingress, verification, and troubleshooting. |
+| `--name` | Selects the Container Apps environment whose default domain is required. |
+| `--resource-group` | Selects the resource group containing that environment. |
+| `--query` | Extracts only `properties.defaultDomain` from the environment resource. |
+| `--output` | Returns the extracted domain as unquoted text for reuse in commands or records. |
 
 ## Fast verification checklist
 

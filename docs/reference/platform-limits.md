@@ -7,6 +7,8 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/quotas
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 ---
 # Azure Container Apps Platform Limits and Quotas
 
@@ -32,7 +34,7 @@ flowchart TD
     REVISION[Revision<br/>immutable template version]
     REPLICA[Replica<br/>scaled runtime instance]
     CONTAINER[Container<br/>configured CPU and memory]
-    REQUEST{What kind of<br/>boundary was reached?}
+    REQUEST[Classify the reached boundary<br/>by its documented scope and type]
     QUOTA[Adjustable quota<br/>use the matching request path]
     LIMIT[Platform or configuration limit<br/>change the workload design]
 
@@ -77,8 +79,8 @@ Observed deployment baseline (verified, PII scrubbed):
 
 | Limit | Value | Notes |
 |---|---|---|
-| Minimum replicas | `0` (consumption) or higher | Scale-to-zero supported for eligible workloads |
-| Maximum replicas | Configurable per app | Bound by environment capacity and workload profile |
+| Minimum replicas per revision | Default `0`; minimum `0` | A minimum of `1` or higher keeps a replica running |
+| Maximum replicas per revision | Default `10`; configurable up to `1,000` | Actual scale-out is constrained by available quota and capacity |
 | Revision mode | `Single` or `Multiple` | Multiple required for traffic splitting/canary |
 | Concurrent HTTP requests | Configurable via scale rules | Affects autoscale behavior and throughput |
 
@@ -86,7 +88,7 @@ Observed deployment baseline (verified, PII scrubbed):
 
 | Limit | Value | Notes |
 |---|---|---|
-| Ingress target port | One primary app port | Must match your container listener (`CONTAINER_APP_PORT`) |
+| Ingress ports | One main HTTP/TCP target port plus up to five additional TCP ports per app | Extra external TCP ports must be unique across the environment; only the main port supports built-in HTTP features |
 | External/internal ingress | Per app setting | Internal apps are not internet reachable |
 | Environment subnet size | Must satisfy environment requirements | Dedicated infrastructure consumes subnet IPs |
 | Private endpoint support | Available for supported dependencies | Validate service/SKU prerequisites |
@@ -103,7 +105,7 @@ Observed deployment baseline (verified, PII scrubbed):
 
 | Limit | Value | Notes |
 |---|---|---|
-| Apps per environment | Subscription/region quota dependent | Track growth during multi-team adoption |
+| Apps per environment | Governed by managed-environment quotas and capacity rather than the subscription-region environment-count quota | Check the environment's quota usage and shared core allocation before adding workloads |
 | Revisions retained | Configurable with retention policy | Keep enough history for rollback without excessive sprawl |
 | Log/metrics retention | Workspace policy dependent | Controlled in Log Analytics/Application Insights |
 
@@ -147,9 +149,7 @@ Job snapshot from `az containerapp job show`:
 
 | Limit | Value | Notes |
 |---|---|---|
-| HTTP request timeout | Platform and app server dependent | Align ingress timeout with Gunicorn/app timeout |
-| Request body size | Ingress/runtime dependent | Use object storage for large uploads |
-| Header size | Standard proxy/runtime constraints | Keep token/header payloads bounded |
+| HTTP request timeout | `240` seconds | Keep application-server timeouts and client expectations within the documented ingress timeout |
 
 ## Design guidance
 
@@ -174,3 +174,5 @@ Job snapshot from `az containerapp job show`:
 ## Sources
 
 - [Microsoft Learn: Azure Container Apps limits and quotas](https://learn.microsoft.com/en-us/azure/container-apps/quotas)
+- [Microsoft Learn: Scaling in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Microsoft Learn: Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)

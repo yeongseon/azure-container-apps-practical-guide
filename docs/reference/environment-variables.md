@@ -63,11 +63,10 @@ These variables are provided by the platform at runtime.
 | `CONTAINER_APP_REVISION` | Active revision name | None | `ca-myapp--0000001` |
 | `CONTAINER_APP_REPLICA_NAME` | Replica identifier | None | `ca-myapp--0000001-646779b4c5-bhc2v` |
 | `CONTAINER_APP_PORT` | Expected listening port for app container | `8000` (if configured that way) | `8000` |
-| `CONTAINER_APP_HOSTNAME` | Internal hostname for app service discovery | None | `ca-orders-api.internal` |
+| `CONTAINER_APP_HOSTNAME` | Revision-specific FQDN for the container app | None | `ca-myapp--0000001.<default-hostname>.<region>.azurecontainerapps.io` |
 | `CONTAINER_APP_ENV_DNS_SUFFIX` | Environment-level internal DNS suffix | None | `<hash>.<region>.azurecontainerapps.io` |
 | `CONTAINER_APP_JOB_NAME` | Job name (jobs only) | None | `job-data-sync` |
 | `CONTAINER_APP_JOB_EXECUTION_NAME` | Job execution id (jobs only) | None | `job-data-sync-xxxxxxxx` |
-| `CONTAINER_APP_JOB_TRIGGER_TYPE` | Trigger type for job execution | None | `Schedule` |
 
 ## Verified runtime values from real deployment
 

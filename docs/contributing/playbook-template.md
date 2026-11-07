@@ -74,6 +74,9 @@ az containerapp show --name "<app-name>" --resource-group "<rg>" --query "{name:
 | Command | Why it is used |
 |---|---|
 | `az containerapp show` | Confirms the app exists and is provisioned. |
+| `--name` | Selects the container app whose provisioning state the triage step inspects. |
+| `--resource-group` | Selects the resource group that contains the app under investigation. |
+| `--query` | Returns only the app name and provisioning state needed for the first check. |
 
 ### Decision flow
 
@@ -126,4 +129,5 @@ flowchart TD
 
 ## Sources
 
+- [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
 - <!-- Microsoft Learn or vendor URL -->
