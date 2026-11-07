@@ -68,29 +68,28 @@ flowchart TD
 
     CLIENT["Client"]
     DNS["Authoritative DNS<br/>A or direct CNAME"]
-    ADDRESS["Environment inbound address<br/>or private endpoint IP"]
 
     subgraph ENV["Managed Container Apps environment"]
+        direction TB
+        ADDRESS["Destination address<br/>environment inbound IP<br/>or private endpoint IP"]
         INGRESS["Managed ingress proxy<br/>TLS and request routing"]
         CERT["Hostname binding<br/>SNI certificate"]
-        APP["Container app<br/>logical grouping"]
         REV_ACTIVE["Active revision<br/>immutable app version"]
         REPLICAS["Revision replicas<br/>running instances"]
     end
 
     CLIENT -.->|"1  DNS query"| DNS
     DNS -.->|"2  A or CNAME answer"| CLIENT
-    CLIENT ==>|"3  TCP 443"| ADDRESS
-    ADDRESS ==>|"4  TLS ClientHello with SNI"| INGRESS
+    ADDRESS -.->|"Ingress address"| INGRESS
+    CLIENT ==>|"3  TCP 443 to destination<br/>4  TLS ClientHello with SNI"| INGRESS
     CERT -.->|"Certificate selection"| INGRESS
-    INGRESS ==>|"5  HTTPS request"| APP
-    APP ==>|"6  Route by traffic rule"| REV_ACTIVE
-    REV_ACTIVE ==>|"7  Select ready replica"| REPLICAS
+    INGRESS ==>|"5  Route HTTPS by traffic rule"| REV_ACTIVE
+    REV_ACTIVE ==>|"6  Select ready replica"| REPLICAS
 
     LEGEND["Arrow key<br/>thick = TCP, TLS, or HTTPS transport<br/>dotted = DNS or certificate-selection relationship"]
 ```
 
-*Figure: DNS resolution, TCP establishment, TLS/SNI certificate selection, and application routing are separate stages. The runtime portion consumes the reviewed `ENV` → `INGRESS` → `APP` → `REV_ACTIVE` → `REPLICAS` vocabulary without presenting DNS or certificate selection as request transport.*
+*Figure: DNS resolution, TCP establishment, TLS/SNI certificate selection, and application routing are separate stages. The runtime portion consumes the reviewed `ENV` → `INGRESS` → `REV_ACTIVE` → `REPLICAS` base path without presenting an IP address, DNS answer, or certificate selection as a transport hop.*
 
 ## Verification
 
