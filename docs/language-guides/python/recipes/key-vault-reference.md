@@ -15,14 +15,27 @@ Use managed identity and Key Vault references so your Python app receives secret
 <!-- diagram-id: use-managed-identity-and-key-vault -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> KV[Azure Key Vault]
-    KV -.-> SEC["Secrets (env vars)"]
-    SEC -.-> APP
+    accTitle: Resolve a Key Vault-backed Container Apps secret
+    accDescr: A Container Apps secret stores a Key Vault URL and identity reference. The platform uses the app identity and its Key Vault role assignment to resolve the value, then injects the referenced secret into the Python container as an environment variable.
+
+    APP_ID[App managed identity]
+    KV[Azure Key Vault]
+
+    subgraph APP[Container app]
+        CONFIG[Secret definition<br/>Key Vault URL and identity reference]
+        ENVVAR[Environment variable<br/>secretRef]
+        PYTHON[Python container]
+    end
+
+    CONFIG -.->|Uses| APP_ID
+    APP_ID -.->|Key Vault role assignment| KV
+    CONFIG ==>|Platform resolves secret| KV
+    KV ==>|Secret value| CONFIG
+    CONFIG -->|Binds secretRef| ENVVAR
+    ENVVAR -->|Injected at startup| PYTHON
 ```
+
+Thick arrows show secret resolution. Thin and dotted arrows show configuration, identity, and authorization associations.
 
 ## Prerequisites
 

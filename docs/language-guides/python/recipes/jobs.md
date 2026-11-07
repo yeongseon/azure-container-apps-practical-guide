@@ -42,12 +42,33 @@ export SERVICEBUS_QUEUE="orders"
 <!-- diagram-id: python-jobs-recipe-flow -->
 ```mermaid
 flowchart TD
-    A[Write Python job script] --> B[Build container image]
-    B --> C[Create manual job]
-    C --> D[Start execution]
-    D --> E[Adapt to one-message Service Bus consumer]
-    E --> F[Add dedup table guard]
+    accTitle: Build manual and event-driven Python jobs
+    accDescr: Package a finite Python task as an image and create a manual job for on-demand execution. For a Service Bus event job, configure an authenticated scale rule, start one or more executions when messages are available, and make processing idempotent for retries.
+
+    CODE[Finite Python task]
+    IMAGE[Container image]
+    JOB[Container Apps job definition]
+    TRIGGER{Trigger type}
+    MANUAL[Manual start]
+    EVENT[Authenticated Service Bus<br/>scale rule]
+    EXECUTION[Job execution]
+    PROCESS[Process finite work<br/>and exit]
+    DEDUP[Shared durable<br/>idempotency record]
+    HISTORY[Execution history and logs]
+
+    CODE --> IMAGE
+    IMAGE --> JOB
+    JOB --> TRIGGER
+    TRIGGER -->|Manual| MANUAL
+    TRIGGER -->|Event| EVENT
+    MANUAL --> EXECUTION
+    EVENT -->|Queue threshold met| EXECUTION
+    EXECUTION ==>|Runs image| PROCESS
+    PROCESS -.->|Checks and records message ID| DEDUP
+    PROCESS --> HISTORY
 ```
+
+Thick arrows show job execution. Thin and dotted arrows show trigger, evidence, and idempotency relationships.
 
 ### 1. Package a manual Python job
 
@@ -157,7 +178,7 @@ with client:
             print(json.dumps({"event": "message-completed", "message_id": message.message_id}))
 ```
 
-Create the event-driven Job:
+Create the event-driven Job, assign its system identity, grant that identity the required Service Bus data roles on the queue or namespace, and then configure the scaler to use the same identity:
 
 ```bash
 az acr build \
@@ -178,11 +199,43 @@ az containerapp job create \
   --replica-timeout 300 \
   --replica-retry-limit 1 \
   --env-vars SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
+
+az containerapp job identity assign \
+  --name "$EVENT_JOB_NAME" \
+  --resource-group "$RG" \
+  --system-assigned
+
+# Grant this identity the least-privilege Service Bus data roles required by
+# both the scaler and the message receiver before enabling identity auth.
+
+az containerapp job update \
+  --name "$EVENT_JOB_NAME" \
+  --resource-group "$RG" \
+  --scale-rule-name "orders-queue" \
+  --scale-rule-type "azure-servicebus" \
+  --scale-rule-metadata "queueName=$SERVICEBUS_QUEUE" "messageCount=1" "namespace=$SERVICEBUS_NAMESPACE.servicebus.windows.net" \
+  --scale-rule-identity "system"
 ```
 
 | Command | Why it is used |
 |---|---|
 | `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az containerapp job create` | Creates the event-driven job and Service Bus scaling rule. |
+| `--name` | Sets the job name. |
+| `--resource-group` | Selects the resource group. |
+| `--environment` | Selects the Container Apps environment. |
+| `--trigger-type` | Configures the job to start from events. |
+| `--image` | Selects the image that each execution runs. |
+| `--scale-rule-name` | Names the Service Bus scale rule. |
+| `--scale-rule-type` | Selects the Azure Service Bus scaler. |
+| `--scale-rule-metadata` | Supplies the queue, threshold, and namespace metadata. |
+| `--replica-timeout` | Limits execution duration. |
+| `--replica-retry-limit` | Limits failed replica retries. |
+| `--env-vars` | Passes non-secret namespace and queue settings to the Python process. |
+| `az containerapp job identity assign` | Assigns the system identity used by the scaler and Python SDK. |
+| `--system-assigned` | Enables the job's system-assigned identity. |
+| `az containerapp job update` | Updates the existing job after its identity and Service Bus roles are ready. |
+| `--scale-rule-identity` | Uses the job's system-assigned identity to authenticate the scaler. |
 
 ### 3. Add an idempotency guard with a dedup table
 

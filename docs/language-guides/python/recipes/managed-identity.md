@@ -15,14 +15,24 @@ Use managed identity and `DefaultAzureCredential` to access Azure services from 
 <!-- diagram-id: use-managed-identity-and-defaultazurecredential-to -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> BLOB[Azure Blob Storage]
-    MI -.-> SQL[Azure SQL]
-    MI -.-> KV[Azure Key Vault]
+    accTitle: Use DefaultAzureCredential with a Container Apps managed identity
+    accDescr: The Python SDK requests a token through DefaultAzureCredential. In Container Apps it uses the assigned managed identity; Microsoft Entra ID issues a resource-specific token, and the target service authorizes the operation through its data-plane permissions.
+
+    APP[Python container app]
+    SDK[Azure SDK client<br/>DefaultAzureCredential]
+    IDENTITY[System-assigned or<br/>user-assigned identity]
+    ENTRA[Microsoft Entra ID]
+    SERVICE[Target Azure service]
+
+    APP -->|Calls| SDK
+    SDK -.->|Uses in Azure| IDENTITY
+    IDENTITY -->|Requests resource token| ENTRA
+    ENTRA -->|Issues access token| SDK
+    IDENTITY -.->|Data-plane permission| SERVICE
+    SDK ==>|Service request with token| SERVICE
 ```
+
+Thick arrows show service transport. Thin arrows show token exchange, and dotted arrows show credential and authorization associations.
 
 ## Prerequisites
 

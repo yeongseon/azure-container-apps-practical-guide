@@ -59,18 +59,32 @@ These recipes are intentionally task-oriented: each page solves a specific produ
 <!-- diagram-id: integration-dependency-map -->
 ```mermaid
 flowchart TD
-    BASE[Baseline app deployed<br/>Steps 01-07] --> ID[Managed Identity]
-    BASE --> REV[Revision Validation]
-    ID --> KV[Key Vault Reference]
-    ID --> COSMOS[Cosmos DB]
-    ID --> SQL[Azure SQL]
-    ID --> ACR[Container Registry]
-    BASE --> REDIS[Redis]
-    BASE --> STORAGE[Storage]
-    STORAGE --> BYOS[Bring Your Own Storage]
-    BASE --> DAPR[Dapr Integration]
-    REV --> DOMAIN[Custom Domains]
+    accTitle: Select Python recipes by prerequisite
+    accDescr: Begin with a deployed baseline app. Add managed identity before passwordless data and secret integrations, add image construction before private registry deployment, and enable multiple revisions before validation. Storage, Dapr, authentication, domains, mTLS, and jobs branch from their own platform prerequisites.
+
+    BASE[Baseline Python app deployed]
+    IMAGE[Custom image and<br/>native dependencies]
+    IDENTITY[Managed identity]
+    REVISIONS[Multiple revisions]
+    STORAGE[Storage choice]
+
+    BASE --> IMAGE
+    BASE --> IDENTITY
+    BASE --> REVISIONS
+    BASE --> STORAGE
+    IMAGE --> ACR[Private container registry]
+    IDENTITY --> DATA[Azure SQL, Cosmos DB,<br/>Redis, Blob Storage]
+    IDENTITY --> KV[Key Vault references]
+    REVISIONS --> VALIDATE[Revision validation]
+    STORAGE --> FILES[Azure Files mount]
+    BASE --> DAPR[Dapr integration]
+    BASE --> AUTH[Built-in authentication]
+    BASE --> DOMAIN[Custom domain]
+    BASE --> MTLS[mTLS client certificates]
+    BASE --> JOBS[Finite-duration jobs]
 ```
+
+Arrows show prerequisite order, not runtime request flow.
 
 !!! warning "Apply prerequisites before recipe commands"
     Most recipe failures come from missing baseline resources or missing role assignments. Confirm `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, and (when needed) `$ACR_NAME` are already set and valid in your current subscription context before you run recipe commands.
