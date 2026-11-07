@@ -6,9 +6,9 @@ EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 REPO_RELATIVE_EVIDENCE_DIR="labs/acr-network-path-record-split-brain/evidence"
 LAB_README_PATH="${SCRIPT_DIR}/README.md"
 LAB_GUIDE_PATH="${SCRIPT_DIR}/../../docs/troubleshooting/lab-guides/acr-network-path-record-split-brain.md"
-UTC_NOW="${UTC_NOW:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH UTC_NOW
+export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH EVALUATED_AT_UTC
 
 declare -a CANONICAL_RAW_FILES=(
     "01-app-spec-pre-fix.json"
@@ -283,29 +283,11 @@ EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
 LAB_README_PATH = Path(os.environ["LAB_README_PATH"])
 LAB_GUIDE_PATH = Path(os.environ["LAB_GUIDE_PATH"])
-UTC_NOW = os.environ["UTC_NOW"]
-
-_existing_captures = []
-for _gate_file in [
-    "14-cohort-integrity-gate.json",
-    "15-h1-trigger-produces-failure-gate.json",
-    "16-h2-fix-restores-recovery-gate.json",
-    "17-bounded-falsification-gate.json",
-]:
-    _gate_path = EVIDENCE_DIR / _gate_file
-    if _gate_path.exists():
-        try:
-            _gate_data = json.loads(_gate_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        _existing = _gate_data.get("utc_captured")
-        if isinstance(_existing, str) and _existing:
-            _existing_captures.append(_existing)
-if _existing_captures:
-    UTC_NOW = min(_existing_captures)
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
+BASELINE_EVIDENCE_DIR = Path(os.environ.get("GATE_REPLAY_BASELINE_DIR", EVIDENCE_DIR))
 
 EXISTING_GATE14 = None
-_existing_gate14_path = EVIDENCE_DIR / "14-cohort-integrity-gate.json"
+_existing_gate14_path = BASELINE_EVIDENCE_DIR / "14-cohort-integrity-gate.json"
 if _existing_gate14_path.exists():
     try:
         EXISTING_GATE14 = json.loads(_existing_gate14_path.read_text(encoding="utf-8"))
@@ -608,7 +590,9 @@ strong_temporal = monotonic_ordering_holds and utc_window_span_seconds <= 1800
 fallback_temporal = monotonic_ordering_holds and utc_window_span_seconds <= 5400
 path_used = "strong" if strong_temporal else "fallback"
 
-observed_files_on_disk = sorted(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file())
+observed_files_on_disk = sorted(
+    set(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file()) | set(GATE_FILES)
+)
 non_junk_files = [name for name in observed_files_on_disk if name not in JUNK_NAMES]
 unexpected_non_junk = [name for name in non_junk_files if name not in EXPECTED_EVIDENCE_FILES]
 readme_text = (EVIDENCE_DIR / "README.md").read_text(encoding="utf-8")
@@ -989,7 +973,7 @@ gate14 = {
         "utc_window_span_strong_seconds_max": 1800,
         "utc_window_span_fallback_seconds_max": 5400,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate15 = {
@@ -1087,7 +1071,7 @@ gate15 = {
     "thresholds": {
         "expected_broken_pull_failure_rows": 0,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate16 = {
@@ -1172,7 +1156,7 @@ gate16 = {
     "thresholds": {
         "expected_post_fix_data_record_count": 1,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate17 = {
@@ -1270,7 +1254,7 @@ gate17 = {
         "held_constant_field_count": len(held_constant_checks),
         "expected_broken_pull_failure_rows": 0,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gates = [

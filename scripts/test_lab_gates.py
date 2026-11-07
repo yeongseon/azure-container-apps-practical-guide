@@ -15,6 +15,15 @@ from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPLAY_LABS: Final = {
+    "acr-network-path-dns-forwarder-bypass": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
     "acr-network-path-firewall-allowlist": (
         (
             "14-cohort-integrity-gate.json",
@@ -25,6 +34,15 @@ REPLAY_LABS: Final = {
         (),
     ),
     "acr-network-path-pe-direct": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
+    "acr-network-path-record-split-brain": (
         (
             "14-cohort-integrity-gate.json",
             "15-h1-trigger-produces-failure-gate.json",
@@ -673,8 +691,10 @@ class EvaluationReplayTests(unittest.TestCase):
 
     def test_previous_verifier_capture_stamp_is_rejected(self) -> None:
         for name in (
+            "acr-network-path-dns-forwarder-bypass",
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
+            "acr-network-path-record-split-brain",
         ):
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 verify = lab / "verify.sh"
@@ -691,6 +711,56 @@ class EvaluationReplayTests(unittest.TestCase):
 
                 with self.assertRaisesRegex(AssertionError, "utc_captured"):
                     self.assert_replay(lab)
+
+    def test_acr_replay_rejects_changed_embedded_raw_timestamp(self) -> None:
+        timestamp_files = {
+            "acr-network-path-dns-forwarder-bypass": "08-probe-response-pre-fix.json",
+            "acr-network-path-record-split-brain": "08-probe-response-pre-fix.json",
+        }
+        for name, raw_name in timestamp_files.items():
+            with self.subTest(lab=name), tempfile.TemporaryDirectory(prefix="lab-gate-tamper-") as tmp:
+                root = Path(tmp)
+                lab = root / "labs" / name
+                _ = shutil.copytree(REPO_ROOT / "labs" / name, lab)
+                guide = Path("docs/troubleshooting/lab-guides") / f"{name}.md"
+                destination = root / guide
+                destination.parent.mkdir(parents=True)
+                _ = shutil.copy2(REPO_ROOT / guide, destination)
+                scripts = root / "scripts"
+                scripts.mkdir()
+                _ = shutil.copy2(REPO_ROOT / "scripts" / "check_gate_replay.py", scripts)
+                for command in (
+                    ["git", "init", "--quiet"],
+                    ["git", "add", "."],
+                    [
+                        "git", "-c", "user.name=Replay fixture",
+                        "-c", "user.email=fixture@example.com",
+                        "-c", "core.hooksPath=/dev/null", "commit", "--quiet", "-m", "test: fixture",
+                    ],
+                ):
+                    _ = subprocess.run(command, cwd=root, check=True, capture_output=True)
+                raw = lab / "evidence" / raw_name
+                original = raw.read_text()
+                changed = original.replace("2026-06-", "2026-07-", 1)
+                self.assertNotEqual(changed, original)
+                _ = raw.write_text(changed)
+
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(scripts / "check_gate_replay.py"),
+                        name,
+                        *REPLAY_LABS[name][0],
+                    ],
+                    cwd=root,
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("current raw input bytes differ from HEAD", result.stderr)
 
 
 def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,
