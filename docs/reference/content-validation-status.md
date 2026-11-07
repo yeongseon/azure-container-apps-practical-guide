@@ -36,7 +36,7 @@ pie title In-Scope Document Validation Status
 |---|---|---|---|---|
 | [Acr Network Path Selection](../platform/networking/acr-network-path-selection.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Application Gateway Integration](../platform/networking/application-gateway-integration.md) | ✅ | ✅ Verified | 6/6 | 2026-11-07 |
-| [Components State Pubsub](../platform/dapr/components-state-pubsub.md) | ✅ | ✅ Verified | 4/4 | 2026-07-18 |
+| [Components State Pubsub](../platform/dapr/components-state-pubsub.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Connected Environments Arc](../platform/hybrid/connected-environments-arc.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
 | [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
@@ -60,7 +60,7 @@ pie title In-Scope Document Validation Status
 | [Index](../platform/storage/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/scaling/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
-| [Index](../platform/dapr/index.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
+| [Index](../platform/dapr/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Index](../platform/revisions/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/jobs/index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
