@@ -49,5 +49,7 @@ jobs:
             end
             puts "Parsed #{files.length} issue forms with required criteria"
           '
+      - name: Install PyYAML
+        run: pip install pyyaml
       - name: Run issue specification unit tests
         run: python3 scripts/test_validate_issue_spec.py
