@@ -28,7 +28,9 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
         - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-directory-reference
 content_validation:
   status: verified
   last_reviewed: 2026-11-07
@@ -138,9 +140,10 @@ flowchart TD
     NSG -.->|"Deny"| DENY
     ROUTE ==>|"4  UDR: virtual appliance"| FW
     FW -->|"5  Evaluate"| POLICY
-    POLICY ==>|"Allow and forward"| DEST
+    POLICY -->|"Allow result"| FW
     POLICY -.->|"Deny"| DENY
-    DEST ==>|"6  Response on established flow"| FW
+    FW ==>|"6  Forward packet"| DEST
+    DEST ==>|"7  Response on established flow"| FW
 
     LEGEND["Arrow key<br/>thick = packet transport<br/>solid = policy evaluation<br/>dotted = DNS, logical relationship, or denied branch"]
 ```
@@ -195,7 +198,7 @@ resource appRuleCollection 'Microsoft.Network/firewallPolicies/ruleCollectionGro
             name: 'allow-jsonplaceholder'
             protocols: [{ protocolType: 'Https', port: 443 }]
             targetFqdns: ['jsonplaceholder.typicode.com']
-            sourceAddresses: ['10.0.0.0/23']
+            sourceAddresses: [environmentSubnetPrefix]
           }
         ]
       }
@@ -252,7 +255,7 @@ flowchart TD
     REPLICAS ==>|"3  Outbound packet"| NSG
     NSG ==>|"Allow"| NAT
     NSG -.->|"Deny"| DENY
-    NAT ==>|"4  SNAT to public IP"| DEST
+    NAT ==>|"4  SNAT and internet egress"| DEST
     DEST -->|"5  Evaluate request"| AUTH
     AUTH ==>|"Accept; response flow"| NAT
     AUTH -.->|"Reject"| DENY
@@ -344,9 +347,9 @@ flowchart TD
     NET_TOKEN{"Token HTTPS allowed?"}
     ENTRA["Microsoft Entra ID<br/>token endpoint"]
     TOKEN["Managed-identity token"]
-    ACR_AUTH{"AcrPull authorization succeeds?"}
     NET_LOGIN{"Registry HTTPS allowed?"}
     ACR_LOGIN["ACR login server<br/>authentication and discovery"]
+    ACR_AUTH{"ACR pull authorization succeeds?"}
     REDIRECT["307 redirect<br/>layer endpoint location"]
     NET_LAYER{"Layer HTTPS allowed?"}
     ACR_DATA["Layer data endpoint<br/>dedicated endpoint or regional storage"]
@@ -363,13 +366,13 @@ flowchart TD
     NET_TOKEN ==>|"Allow"| ENTRA
     NET_TOKEN -.->|"Block"| FAIL
     ENTRA --> TOKEN
-    TOKEN --> ACR_AUTH
-    ACR_AUTH -.->|"No"| FAIL
 
-    ACR_AUTH -->|"Authorized pull context"| NET_LOGIN
+    TOKEN --> NET_LOGIN
     NET_LOGIN ==>|"Registry HTTPS allowed"| ACR_LOGIN
     NET_LOGIN -.->|"Block"| FAIL
-    ACR_LOGIN --> REDIRECT
+    ACR_LOGIN -->|"Authenticate and discover"| ACR_AUTH
+    ACR_AUTH -.->|"No"| FAIL
+    ACR_AUTH -->|"Authorized; layers identified"| REDIRECT
     REDIRECT --> NET_LAYER
     NET_LAYER ==>|"Layer HTTPS allowed"| ACR_DATA
     NET_LAYER -.->|"Block"| FAIL
