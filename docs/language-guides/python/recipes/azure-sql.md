@@ -17,15 +17,25 @@ Use this recipe to connect Azure Container Apps to Azure SQL Database with Micro
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> SQL[Azure SQL Database]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> SQL
+    accTitle: Passwordless Python access to Azure SQL
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a token for Azure SQL through its managed identity and Microsoft Entra ID before opening the database connection.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    SQL[Azure SQL Database]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests SQL token| ENTRA
+    ENTRA -->|Issues access token| APP
+    APP ==>|Encrypted SQL connection<br/>with access token| SQL
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or database transport. Thin arrows show token exchange, and the dotted arrow shows the identity association.
 
 ## Prerequisites
 

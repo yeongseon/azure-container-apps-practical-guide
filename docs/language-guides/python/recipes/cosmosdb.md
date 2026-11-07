@@ -17,15 +17,26 @@ Use this recipe to connect a Python Container App to Azure Cosmos DB (NoSQL) wit
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> COSMOS[Azure Cosmos DB]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> COSMOS
+    accTitle: Passwordless Python access to Azure Cosmos DB
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a data-plane token through its managed identity and Microsoft Entra ID, and Azure Cosmos DB authorizes the operation through its data-plane role assignment.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    COSMOS[Azure Cosmos DB for NoSQL]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests Cosmos DB token| ENTRA
+    ENTRA -->|Issues access token| APP
+    IDENTITY -.->|Data-plane role assignment| COSMOS
+    APP ==>|SDK request with token| COSMOS
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or SDK transport. Thin arrows show token exchange, and dotted arrows show identity and authorization associations.
 
 ## Prerequisites
 
