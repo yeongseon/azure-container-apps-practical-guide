@@ -10,6 +10,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/overview
         - https://learn.microsoft.com/en-us/azure/container-apps/environment
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
@@ -22,6 +23,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
         - https://learn.microsoft.com/en-us/azure/container-apps/environment
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
@@ -33,7 +35,7 @@ content_validation:
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
     - claim: Container Apps uses an HTTP edge proxy (Envoy) that terminates TLS and routes requests.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
       verified: true
     - claim: A Container Apps environment is a secure boundary that manages OS upgrades, scale operations, failover procedures, and resource balancing.
       source: https://learn.microsoft.com/en-us/azure/container-apps/environment
@@ -67,10 +69,9 @@ flowchart TD
         RP["Container Apps resource provider"]
     end
 
-    subgraph ENV["Container Apps environment<br/>Azure-managed logical boundary"]
-        ENV_SCOPE["Managed platform boundary<br/>documented abstractions only"]
+    subgraph ENV["Managed Container Apps environment"]
         INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
-        PROFILES["Workload profile<br/>Consumption or Dedicated compute"]
+        PROFILES["Selected workload profile<br/>compute placement"]
         SCALE["KEDA-powered scale decisions<br/>logical platform function"]
         APP["Container app<br/>logical grouping"]
         REV_ACTIVE["Active revision<br/>immutable app version"]
@@ -81,20 +82,19 @@ flowchart TD
 
     DEPLOYER -->|"1  Management request"| ARM
     ARM -->|"2  Resource operation"| RP
-    RP -.->|"3  Apply desired state"| ENV_SCOPE
+    RP -.->|"3  Apply desired state"| APP
 
     CLIENT ==>|"A  HTTPS request"| INGRESS
     INGRESS ==>|"B  Normal traffic"| REV_ACTIVE
     REV_ACTIVE ==>|"C  Serve request"| REPLICAS
 
-    INGRESS -.->|"Optional weighted traffic"| REV_CANARY
-    REV_CANARY --> CANARY_REPLICAS
+    INGRESS ==>|"Optional weighted traffic"| REV_CANARY
+    REV_CANARY ==>|"Serve request"| CANARY_REPLICAS
 
     SIGNAL -->|"Scale input"| SCALE
     SCALE -.->|"Desired replica count"| REV_ACTIVE
     PROFILES -.->|"Compute placement"| REPLICAS
     PROFILES -.->|"Compute placement"| CANARY_REPLICAS
-    ENV_SCOPE -.-> APP
     APP -.-> REV_ACTIVE
     APP -.-> REV_CANARY
 
@@ -129,8 +129,7 @@ flowchart TD
         RP["Container Apps resource provider"]
     end
 
-    subgraph ENV["Container Apps environment<br/>Azure-managed logical boundary"]
-        ENV_SCOPE["Managed platform boundary<br/>documented abstractions only"]
+    subgraph ENV["Managed Container Apps environment"]
         INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
         SCALE["KEDA-powered scale decisions<br/>logical platform function"]
         APP["Container app<br/>logical grouping"]
@@ -146,7 +145,7 @@ flowchart TD
 
     CONFIG -->|"Management request"| ARM
     ARM -->|"Resource operation"| RP
-    RP -.->|"Apply desired state"| ENV_SCOPE
+    RP -.->|"Apply desired state"| APP
 
     CALLER ==>|"Normal request path"| INGRESS
     INGRESS ==>|"Route traffic"| REV_ACTIVE
@@ -155,7 +154,6 @@ flowchart TD
 
     SIGNAL -->|"Scale input"| SCALE
     SCALE -.->|"Desired replica count"| REV_ACTIVE
-    ENV_SCOPE -.-> APP
     APP -.-> REV_ACTIVE
 
     REV_ACTIVE -.->|"FAULT branch"| FAULT
