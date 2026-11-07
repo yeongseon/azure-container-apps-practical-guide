@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T05:07:22Z",
+  "evaluated_at_utc": "2026-11-07T02:47:31Z",
   "scenario": "cohort_integrity",
   "hypothesis": "H_cohort_integrity",
   "claim": "evidence_cohort_is_internally_consistent_and_uncontaminated",
