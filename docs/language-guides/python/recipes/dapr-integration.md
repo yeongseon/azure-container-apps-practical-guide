@@ -15,13 +15,32 @@ Azure Container Apps provides native Dapr integration, allowing your Python appl
 <!-- diagram-id: azure-container-apps-aca-provides-native -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Python App]
-    APP <--> DAPR[Dapr Sidecar]
-    DAPR --> STATE[State Store]
-    DAPR --> PUBSUB["Pub/Sub Broker"]
-    DAPR --> SVC[Other Services]
+    accTitle: Use Dapr APIs from a Python container app
+    accDescr: A client request reaches the Python app through managed ingress. The app calls its local Dapr sidecar, which invokes configured state, publish and subscribe, secret, or service-invocation components.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+
+    subgraph APP_BOUNDARY[Container app replica]
+        APP[Python app]
+        DAPR[Dapr sidecar]
+    end
+
+    STATE[State store component]
+    BROKER[Publish and subscribe component]
+    SECRET[Secret store component]
+    SERVICE[Target Dapr-enabled app]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP ==>|HTTP or gRPC on localhost| DAPR
+    DAPR ==>|State API| STATE
+    DAPR ==>|Publish or subscribe API| BROKER
+    DAPR ==>|Secrets API| SECRET
+    DAPR ==>|Service invocation| SERVICE
 ```
+
+Thick arrows show application and Dapr API transport. The component resources remain outside the app replica boundary.
 
 ## Enabling Dapr
 

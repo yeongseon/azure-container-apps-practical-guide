@@ -15,12 +15,27 @@ Use Container Apps authentication (Easy Auth) to offload sign-in and token handl
 <!-- diagram-id: use-container-apps-authentication-easy-auth -->
 ```mermaid
 flowchart TD
-    C[Client] --> AUTH["Easy Auth (Built-in)"]
-    AUTH --> IDP[Identity Provider]
-    IDP --> AUTH
-    AUTH --> APP[Python App]
-    APP -.-> HEADERS["X-MS-CLIENT-PRINCIPAL"]
+    accTitle: Authenticate users before requests reach Flask
+    accDescr: Built-in authentication intercepts the request outside the application code. It redirects unauthenticated users to the configured identity provider, validates the returned identity, and forwards authenticated requests with identity headers for app-level authorization.
+
+    CLIENT[Client]
+    AUTH[Container Apps<br/>built-in authentication]
+    IDP[Configured identity provider]
+    APP[Python app]
+    AUTHORIZE{Required role or scope?}
+    ALLOW[Serve protected route]
+    DENY[Return 403]
+
+    CLIENT ==>|Request| AUTH
+    AUTH ==>|Sign-in redirect| IDP
+    IDP ==>|Authentication response| AUTH
+    AUTH ==>|Request with identity headers| APP
+    APP --> AUTHORIZE
+    AUTHORIZE -->|Present| ALLOW
+    AUTHORIZE -->|Missing| DENY
 ```
+
+Thick arrows show browser and application requests. The decision remains in Flask because built-in authentication establishes identity but does not replace app-specific authorization.
 
 ## Prerequisites
 
