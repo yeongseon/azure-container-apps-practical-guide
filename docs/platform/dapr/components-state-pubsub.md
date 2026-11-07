@@ -40,7 +40,7 @@ By default, every Dapr-enabled app in the environment loads every deployed compo
 ```mermaid
 flowchart TD
     accTitle: Environment-level Dapr component scoping and backend identity
-    accDescr: A Dapr pub-sub component is configured at the managed Container Apps environment level. Its scopes array lists the order-service and shipping-service Dapr application IDs, so those two apps load the component while billing-service does not. The scoped apps use their local Dapr sidecars to publish or receive messages through the component and a supported Service Bus backend. Their managed identities authenticate to the backend when configured and authorized. Thick arrows are runtime message operations, while dotted arrows are scope, loading, or identity relationships.
+    accDescr: A Dapr pub-sub component is configured at the managed Container Apps environment level. Its scopes array lists the order-service and shipping-service Dapr application IDs, so those two apps load the component while billing-service does not. The scoped apps use their local Dapr sidecars to publish or receive messages through the component and a supported Service Bus backend. System-assigned or user-assigned identities on the scoped container apps authenticate the component connection to that backend when configured and authorized. Thick arrows are runtime message operations, while dotted arrows are scope, loading, or identity relationships.
 
     subgraph ENV["Managed Container Apps environment — logical boundary"]
         COMPONENT["Dapr pub/sub component<br/>scopes: order-service, shipping-service"]
@@ -60,7 +60,7 @@ flowchart TD
         BILLING["Container app<br/>appId: billing-service"]
     end
 
-    IDENTITY["Managed identities<br/>of scoped container apps"]
+    IDENTITY["Identities assigned to scoped apps<br/>system-assigned or user-assigned"]
     BROKER[("Azure Service Bus<br/>supported pub/sub backend")]
 
     COMPONENT -.->|"Loaded by scope"| ORDER_SIDE
@@ -68,13 +68,12 @@ flowchart TD
     COMPONENT -.->|"Not loaded<br/>appId absent from scopes"| BILLING
     ORDER_SIDE ==>|"Publish via component"| BROKER
     BROKER ==>|"Deliver via component"| SHIPPING_SIDE
-    IDENTITY -.->|"Identity used for<br/>backend authentication"| ORDER_SIDE
-    IDENTITY -.->|"Identity used for<br/>backend authentication"| SHIPPING_SIDE
+    IDENTITY -.->|"Authenticate component connection<br/>when configured and authorized"| BROKER
 
     LEGEND["Arrow key<br/>thick = runtime message operation<br/>dotted = scope, loading, or identity relationship"]
 ```
 
-*Figure: One environment-level pub/sub component is loaded only by the two Dapr application IDs in its `scopes` array. The backend and managed identities remain separate Azure resources rather than managed-environment internals.*
+*Figure: One environment-level pub/sub component is loaded only by the two Dapr application IDs in its `scopes` array. Azure Service Bus remains a separate backend resource. A system-assigned identity belongs to its container app, while a user-assigned identity is an independently provisioned resource that can be assigned to scoped apps.*
 
 !!! tip "Scope every production component"
     Leaving `scopes` empty causes **all** Dapr-enabled apps in the environment to load the component. For least privilege, list the exact `appId`s that need each state store, broker, or secret store.

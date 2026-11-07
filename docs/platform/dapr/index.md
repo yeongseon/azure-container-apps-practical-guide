@@ -8,6 +8,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
         - https://learn.microsoft.com/en-us/azure/container-apps/microservices-dapr
 content_validation:
   status: verified
@@ -20,11 +21,11 @@ content_validation:
     - claim: The Dapr sidecar exposes an HTTP endpoint on port 3500 and a gRPC endpoint on port 50001 that the application container calls to use Dapr building blocks.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
       verified: true
-    - claim: Dapr service invocation between container apps is automatically authenticated and encrypted with mutual TLS.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - claim: Dapr service invocation between Dapr-enabled container apps in the same Container Apps environment is automatically secured with mutual TLS between their sidecars.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
       verified: true
-    - claim: A container app is identified to Dapr by a unique Dapr application ID (appId) that is used for service discovery, state encapsulation, and pub/sub consumer identification.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - claim: A Dapr application ID is used for service discovery, state encapsulation, and pub/sub consumer identification; when it isn't explicitly set, the Dapr runtime uses the container app name.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
       verified: true
     - claim: Dapr is not supported for Azure Container Apps jobs.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
@@ -36,42 +37,45 @@ The Distributed Application Runtime (Dapr) is a set of incrementally adoptable A
 
 ## Managed Sidecar Model
 
-When Dapr is enabled on a container app, the platform exposes the managed Dapr APIs to the app through a **sidecar**. Your application calls its local sidecar over HTTP or gRPC; the sidecar then handles the selected building block, such as service invocation, state management, or pub/sub. The diagram is a logical runtime view and does not expose the managed Kubernetes implementation.
+When Dapr is enabled on a container app, every running replica has its own **local Dapr sidecar**. The application calls that sidecar over HTTP or gRPC; the sidecar then handles the selected building block, such as service invocation, state management, or pub/sub. The diagram shows one representative replica and one representative destination app without exposing the managed Kubernetes implementation.
 
 <!-- diagram-id: dapr-sidecar-model -->
 ```mermaid
 flowchart TD
     accTitle: Dapr sidecar and component relationships in Azure Container Apps
-    accDescr: Inside a managed Container Apps environment, a container app groups an active revision and its running replicas. Each illustrated replica contains an application container that calls its local Dapr sidecar over HTTP or gRPC. The sidecar can invoke another Dapr-enabled app or use environment-level component configuration to reach supported state, pub-sub, and secret-store backends. A scoped app managed identity can authenticate the component connection when the backend supports it. Thick arrows are runtime calls, while dotted arrows are logical configuration or identity relationships.
+    accDescr: Inside a managed Container Apps environment, a container app groups an active revision and running replicas. One representative replica contains an application container and its local Dapr sidecar; this pair repeats for every replica. For service invocation, the caller sidecar uses mutual TLS to reach the destination app's local sidecar, which then calls its application. The caller sidecar can also load environment-level component configuration and exchange runtime operations with supported state, pub-sub, and secret-store backends. Thick arrows are runtime calls, while dotted arrows are logical configuration relationships.
 
     subgraph ENV["Managed Container Apps environment — logical boundary"]
         subgraph APP["Container app — logical grouping"]
             REV_ACTIVE["Active revision<br/>immutable app version"]
-            subgraph REPLICAS["Revision replicas — running instances"]
+            subgraph REPLICA["Representative replica — repeated per replica"]
                 APP_CONTAINER["Application container"]
                 SIDECAR["Local Dapr sidecar<br/>HTTP 3500 or gRPC 50001"]
                 APP_CONTAINER ==>|"Local Dapr API call"| SIDECAR
             end
-            REV_ACTIVE -.->|"Runs as"| REPLICAS
+            REV_ACTIVE -.->|"Runs as replicas"| REPLICA
         end
 
         COMPONENT["Dapr component configuration<br/>environment-level resource"]
-        OTHER["Another Dapr-enabled app<br/>identified by appId"]
+        subgraph TARGET["Invoked Dapr app — same environment"]
+            TARGET_SIDE["Destination app's<br/>local Dapr sidecar"]
+            TARGET_APP["Destination application<br/>identified by appId"]
+            TARGET_SIDE ==>|"Invoke application"| TARGET_APP
+        end
     end
 
-    IDENTITY["Scoped app managed identity"]
     STATE[("Supported state store")]
     PUBSUB[("Supported pub/sub broker")]
     SECRETS[("Supported secret store")]
 
-    SIDECAR ==>|"Automatic mTLS<br/>service invocation"| OTHER
+    SIDECAR ==>|"Automatic mTLS<br/>Dapr invocation"| TARGET_SIDE
     SIDECAR -.->|"Loads component"| COMPONENT
     SIDECAR ==>|"State API operation"| STATE
-    SIDECAR ==>|"Publish or receive message"| PUBSUB
+    SIDECAR ==>|"Publish message"| PUBSUB
+    PUBSUB ==>|"Deliver message"| SIDECAR
     SIDECAR ==>|"Retrieve referenced secret"| SECRETS
-    IDENTITY -.->|"Authenticate when supported"| SIDECAR
 
-    LEGEND["Arrow key<br/>thick = runtime API or service call<br/>dotted = logical configuration or identity relationship"]
+    LEGEND["Arrow key<br/>thick = runtime API or service call<br/>dotted = logical configuration relationship"]
 ```
 
 *Figure: Logical Dapr extension of the managed environment, app, revision, and replica vocabulary. Component configuration belongs to the environment, while supported backing services remain separate resources.*
@@ -96,7 +100,7 @@ Dapr is an **application-scoped** setting stored under the app's `properties.con
 az containerapp create \
   --resource-group $RG \
   --name $APP_NAME \
-  --environment $ENVIRONMENT \
+  --environment $ACA_ENV_NAME \
   --image $IMAGE \
   --enable-dapr \
   --dapr-app-id order-service \
@@ -106,17 +110,24 @@ az containerapp create \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp create ... --enable-dapr` | Creates the app with the Dapr sidecar turned on from the first deployment so service invocation, pub/sub, and other Dapr building blocks are available immediately. |
-| `--environment $ENVIRONMENT` | Places the app in the target Container Apps environment, which is where the managed Dapr runtime version and networking context are defined. |
+| `az containerapp create` | Creates a container app. |
+| `--resource-group $RG` | Selects the resource group that owns the container app. |
+| `--name $APP_NAME` | Sets the container app resource name. |
+| `--environment $ACA_ENV_NAME` | Places the app in the target Container Apps environment, which supplies the managed Dapr runtime and environment-scoped communication boundary. |
+| `--image $IMAGE` | Selects the container image for the app revision. |
+| `--enable-dapr` | Enables the managed Dapr sidecar for the container app. |
 | `--dapr-app-id order-service` | Sets the logical Dapr identity other services will use for service invocation, which is distinct from the Container App resource name. |
-| `--dapr-app-port 8080` / `--dapr-app-protocol http` | Tells the sidecar how to call back into your app so Dapr-delivered requests reach the correct port and protocol. |
+| `--dapr-app-port 8080` | Tells the sidecar which application port receives Dapr-delivered requests. |
+| `--dapr-app-protocol http` | Tells the sidecar to call the application over HTTP. |
+
+This example intentionally omits ingress flags. A Dapr-enabled app without HTTP ingress has no FQDN or app-name endpoint, but another Dapr-enabled app in the same environment can still reach it through Dapr service invocation.
 
 ### Core Dapr Settings
 
 | Setting | Meaning | Default |
 |---|---|---|
 | `enabled` | Turns the Dapr sidecar on for the app | `false` |
-| `appId` | Unique Dapr identifier for the app | — (required when enabled) |
+| `appId` | Dapr identifier for the app | Container app name when no explicit ID is set |
 | `appPort` | Port your app listens on for Dapr-delivered traffic | — |
 | `appProtocol` | How the sidecar calls your app: `http` or `grpc` | `http` |
 | `httpMaxRequestSize` | Max request body size in MB | `4` |
@@ -139,7 +150,7 @@ Dapr can probe your application before routing pub/sub or input-binding traffic 
 
 ## The Application ID (appId)
 
-Each Dapr-enabled app is identified by an `appId`. This identifier is the backbone of several building blocks:
+Each Dapr-enabled app is identified by an `appId`. If you don't configure one explicitly, the Dapr runtime uses the container app name. App IDs must be unique within an environment and support several building blocks:
 
 - **Service discovery** — other apps invoke this app by its `appId`, not by hostname or IP.
 - **State encapsulation** — state keys are namespaced under the `appId`, so apps do not collide in a shared state store.
@@ -167,7 +178,7 @@ Two operational APIs — **health** and **metadata** — are also available for 
 
 ## Security by Default
 
-Service invocation between Dapr-enabled apps is **automatically authenticated and encrypted with mutual TLS (mTLS)**. This is the documented Dapr service-invocation path; do not treat the diagram as a physical trace of certificate or managed control-plane internals. This complements the environment-level [mTLS architecture](../security/mtls.md) that Container Apps provides for general service-to-service traffic.
+For the managed Dapr service-invocation path between Dapr-enabled apps in the **same Container Apps environment**, the Dapr sidecars automatically secure Dapr-to-Dapr communication with mutual TLS (mTLS). You do not configure mTLS separately for those calls. This statement does not describe cross-environment invocation or expose certificate and managed control-plane internals.
 
 ## Limitations
 
@@ -187,5 +198,6 @@ Service invocation between Dapr-enabled apps is **automatically authenticated an
 - [Dapr integration with Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
 - [Dapr components in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-components)
 - [Connect to services via Dapr components](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services)
+- [Communicate between container apps](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
 - [Configure Dapr on an existing container app](https://learn.microsoft.com/en-us/azure/container-apps/enable-dapr)
 - [Microservices with Dapr using the Azure Developer CLI](https://learn.microsoft.com/en-us/azure/container-apps/microservices-dapr)
