@@ -17,15 +17,26 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> REDIS[Azure Cache for Redis]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> REDIS
+    accTitle: Passwordless Python access to Azure Cache for Redis
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a Redis token through its managed identity and Microsoft Entra ID, and the cache access policy authorizes the object ID used as the Redis username.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    REDIS[Azure Cache for Redis]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests Redis token| ENTRA
+    ENTRA -->|Issues access token| APP
+    IDENTITY -.->|Cache access policy| REDIS
+    APP ==>|TLS Redis request<br/>object ID and token| REDIS
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or Redis transport. Thin arrows show token exchange, and dotted arrows show identity and authorization associations.
 
 ## Prerequisites
 

@@ -16,12 +16,26 @@ Use Flask middleware to parse `X-Forwarded-Client-Cert`, validate the forwarded 
 <!-- diagram-id: flask-xfcc-validation-flow -->
 ```mermaid
 flowchart TD
-    Client[Client certificate] --> Ingress[ACA ingress]
-    Ingress --> Header[X-Forwarded-Client-Cert]
-    Header --> Flask[Flask middleware]
-    Flask --> Policy[CN or thumbprint allowlist]
-    Flask --> Outbound[Dapr invoke or direct httpx call]
+    accTitle: Authorize a forwarded client certificate in Flask
+    accDescr: A client presents a certificate during TLS. Container Apps ingress requires or accepts it and forwards certificate fields in X-Forwarded-Client-Cert. Flask parses the forwarded certificate, validates the SHA-256 hash or a full trust chain and application policy, and either serves the request or rejects it.
+
+    CLIENT[Client with certificate]
+    INGRESS[Managed ingress<br/>require or accept mode]
+    XFCC[X-Forwarded-Client-Cert<br/>Hash, Cert, and Chain]
+    PARSE[Flask middleware<br/>parse forwarded fields]
+    VALIDATE{Certificate and<br/>caller policy valid?}
+    ALLOW[Serve protected route]
+    DENY[Return 403]
+
+    CLIENT ==>|TLS with client certificate| INGRESS
+    INGRESS ==>|Request with XFCC header| XFCC
+    XFCC --> PARSE
+    PARSE --> VALIDATE
+    VALIDATE -->|Yes| ALLOW
+    VALIDATE -->|No| DENY
 ```
+
+Thick arrows show request transport. The decision remains in the application: certificate presentation and forwarding alone do not prove that the caller satisfies your authorization policy.
 
 ## Prerequisites
 
@@ -40,8 +54,8 @@ httpx==0.28.1
 
 ## What You'll Build
 
-- A Flask `before_request` hook that extracts the leaf PEM from `X-Forwarded-Client-Cert`.
-- Certificate validation against an allowlist of thumbprints or common names.
+- A Flask `before_request` hook that extracts the forwarded leaf PEM from `X-Forwarded-Client-Cert`.
+- Certificate validation against a SHA-256 thumbprint allowlist. The CN example is an application policy check, not full certificate-chain validation.
 - Two outbound patterns:
     - Dapr service invocation through `localhost:3500`
     - Direct internal call with `httpx`

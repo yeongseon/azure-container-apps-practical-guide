@@ -16,13 +16,29 @@ Validate new revisions with direct testing and controlled traffic movement so yo
 <!-- diagram-id: validate-new-revisions-with-direct-testing -->
 ```mermaid
 flowchart TD
-    DEV[Developer] --> IMG["New Image Tag"]
-    IMG --> REV["New Revision (0% traffic)"]
-    REV --> LABEL["Label URL (canary---)"]
-    LABEL --> TEST[Smoke Test]
-    TEST -->|Pass| PROMOTE["Promote (100% traffic)"]
-    TEST -->|Fail| ROLLBACK[Rollback]
+    accTitle: Validate a candidate revision before promotion
+    accDescr: Deploy a uniquely tagged image as a new revision in multiple revision mode, keep its production traffic weight at zero, assign a label URL for direct smoke tests, and promote or return traffic to the stable revision based on the result.
+
+    IMAGE[Uniquely tagged image]
+    CANDIDATE[Candidate revision<br/>0 percent production traffic]
+    LABEL[Label URL<br/>direct revision endpoint]
+    TEST[Smoke and dependency tests]
+    DECISION{Release criteria pass?}
+    CANARY[Shift a small traffic weight]
+    PROMOTE[Promote candidate]
+    ROLLBACK[Keep or return traffic<br/>to stable revision]
+
+    IMAGE -->|Creates| CANDIDATE
+    CANDIDATE -->|Assign label| LABEL
+    LABEL ==>|Direct test requests| TEST
+    TEST --> DECISION
+    DECISION -->|Yes| CANARY
+    CANARY -->|Telemetry remains healthy| PROMOTE
+    DECISION -->|No| ROLLBACK
+    CANARY -->|Regression| ROLLBACK
 ```
+
+Thick arrows show direct test traffic. Thin arrows show release-control decisions; a zero traffic weight does not deactivate the labeled candidate revision.
 
 ## Prerequisites
 
