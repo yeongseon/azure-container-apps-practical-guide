@@ -39,7 +39,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 - The pack captures one live Azure reproduction in `koreacentral`; it is not a statistical sample.
 - `06-system-logs-pre-fix.json` is an explicit Log Analytics query payload whose `rows` list is intentionally empty in the broken window; emptiness is the evidence.
 - `08-probe-response-pre-fix.json` and `11-probe-response-post-fix.json` preserve every retry attempt explicitly so the verifier never overclaims instantaneous convergence.
-- Gate 14 reuses the originally emitted file-system UTC anchors (`birthtime`, falling back to `mtime`) only when the replay runner has first proved that every current tracked raw evidence file is byte-identical to the committed cohort. Raw-payload-derived values remain authoritative.
+- Gate 14 reuses the originally emitted file-system UTC anchors (`birthtime`, falling back to `mtime`) only when `scripts/check_gate_replay.py` explicitly supplies them after proving every current tracked raw evidence file is byte-identical to the committed cohort. Direct `verify.sh` runs ignore local gate files as anchor sources, and raw-payload-derived values remain authoritative.
 - The pack does not prove exact DNS timing, exact retry counts, broken-window control-plane fresh pulls, byte-identical backend HTTP bodies, or TLS cipher-suite identity. Those ceilings are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 
 ## File index
