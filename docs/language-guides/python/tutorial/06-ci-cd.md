@@ -91,33 +91,31 @@ flowchart TD
 ```mermaid
 flowchart TD
     accTitle: GitHub Actions delivery flow for the Python container app
-    accDescr: A commit starts a workflow that tests the Python source, builds an immutable container image, pushes it to Azure Container Registry, updates the container app, and verifies the new revision before release completion.
+    accDescr: A commit starts a workflow that builds a commit-tagged container image, pushes it to Azure Container Registry, and updates the container app. Pre-deployment tests are not included, while revision health, traffic, and ingress are verified manually after deployment.
 
     COMMIT["Commit to the configured branch"]
     WORKFLOW["GitHub Actions workflow"]
-    TEST["Build and test<br/>Python source"]
     IMAGE["Build container image<br/>tagged with commit SHA"]
     ACR["Azure Container Registry"]
     DEPLOY["Azure Container Apps<br/>deploy action"]
     REVISION["New immutable revision"]
-    VERIFY["Verify revision readiness<br/>and health checks"]
-    COMPLETE["Release complete"]
-    INVESTIGATE["Keep prior serving revision<br/>and inspect workflow or revision"]
+    VERIFY["Manual post-deployment checks<br/>revision, traffic, and ingress"]
+    COMPLETE["Verification complete"]
+    INVESTIGATE["Inspect workflow or revision<br/>before changing traffic"]
 
     COMMIT -->|"Trigger"| WORKFLOW
-    WORKFLOW --> TEST
-    TEST --> IMAGE
+    WORKFLOW --> IMAGE
     IMAGE -->|"Push image"| ACR
     ACR --> DEPLOY
     DEPLOY -->|"Update image reference"| REVISION
     REVISION --> VERIFY
-    VERIFY -->|"Release criteria pass"| COMPLETE
-    VERIFY -.->|"Failure path"| INVESTIGATE
+    VERIFY -->|"Expected state confirmed"| COMPLETE
+    VERIFY -.->|"Unexpected state"| INVESTIGATE
 
-    LEGEND["Arrow key<br/>solid = delivery path<br/>dotted = failed verification path"]
+    LEGEND["Arrow key<br/>solid = automated delivery then manual checks<br/>dotted = unexpected verification result"]
 ```
 
-*Figure: The runtime-specific test step differs, but every language uses the same commit, image, registry, deploy, revision, and verification semantics.*
+*Figure: The shown workflow automates image build, push, and deployment without a test gate. After deployment, an operator uses the CLI checks in Step 4 to confirm revision health, traffic, and ingress; add pre-deployment tests before treating the workflow as test-gated.*
 
 ## Prerequisites
 
@@ -211,9 +209,12 @@ flowchart TD
       --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,replicas:properties.replicas,healthState:properties.healthState,runningState:properties.runningState}"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+    | `az containerapp revision list` | Lists revisions so the operator can inspect rollout, traffic, and health after deployment. |
+    | `--name` | Targets the Container App being configured or inspected in this step. |
+    | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+    | `--query` | Extracts `[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,replicas:properties.replicas,healthState:properties.healthState,runningState:properties.runningState}` from the command result for this verification or shell variable. |
 
     ???+ example "Expected output"
         ```json
@@ -235,9 +236,11 @@ flowchart TD
       --resource-group "$RG"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp ingress show ...` | Reads ingress configuration such as exposure, target port, transport, and affinity. |
+    | `az containerapp ingress show` | Reads the app ingress configuration so the operator can confirm its endpoint and traffic settings. |
+    | `--name` | Targets the Container App being configured or inspected in this step. |
+    | `--resource-group` | Targets the resource group that contains the tutorial resources. |
 
     ???+ example "Expected output"
         ```json

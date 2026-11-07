@@ -90,33 +90,31 @@ flowchart TD
 ```mermaid
 flowchart TD
     accTitle: GitHub Actions delivery flow for the .NET container app
-    accDescr: A commit starts a workflow that tests the .NET source, builds an immutable container image, pushes it to Azure Container Registry, updates the container app, and verifies the new revision before release completion.
+    accDescr: A commit starts a workflow that builds a commit-tagged container image, pushes it to Azure Container Registry, and updates the container app. Tests are a recommended addition, while revision health and traffic are verified manually after deployment.
 
     COMMIT["Commit to the configured branch"]
     WORKFLOW["GitHub Actions workflow"]
-    TEST["Build and test<br/>.NET source"]
     IMAGE["Build container image<br/>tagged with commit SHA"]
     ACR["Azure Container Registry"]
     DEPLOY["Azure Container Apps<br/>deploy action"]
     REVISION["New immutable revision"]
-    VERIFY["Verify revision readiness<br/>and health checks"]
-    COMPLETE["Release complete"]
-    INVESTIGATE["Keep prior serving revision<br/>and inspect workflow or revision"]
+    VERIFY["Manual post-deployment check<br/>revision health and traffic"]
+    COMPLETE["Verification complete"]
+    INVESTIGATE["Inspect workflow or revision<br/>before changing traffic"]
 
     COMMIT -->|"Trigger"| WORKFLOW
-    WORKFLOW --> TEST
-    TEST --> IMAGE
+    WORKFLOW --> IMAGE
     IMAGE -->|"Push image"| ACR
     ACR --> DEPLOY
     DEPLOY -->|"Update image reference"| REVISION
     REVISION --> VERIFY
-    VERIFY -->|"Release criteria pass"| COMPLETE
-    VERIFY -.->|"Failure path"| INVESTIGATE
+    VERIFY -->|"Expected state confirmed"| COMPLETE
+    VERIFY -.->|"Unexpected state"| INVESTIGATE
 
-    LEGEND["Arrow key<br/>solid = delivery path<br/>dotted = failed verification path"]
+    LEGEND["Arrow key<br/>solid = automated delivery then manual check<br/>dotted = unexpected verification result"]
 ```
 
-*Figure: The runtime-specific test step differs, but every language uses the same commit, image, registry, deploy, revision, and verification semantics.*
+*Figure: The shown workflow automates image build, push, and deployment. Add the recommended .NET test step before the image build; after deployment, an operator uses the CLI check in Step 4 to confirm revision health and traffic.*
 
 ## Prerequisites
 
@@ -216,9 +214,12 @@ flowchart TD
        --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,healthState:properties.healthState}"
      ```
 
-     | Command | Why it is used |
+     | Command/Parameter | Purpose |
      |---|---|
-     | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+     | `az containerapp revision list` | Lists revisions so the operator can inspect rollout, traffic, and health after deployment. |
+     | `--name` | Targets the Container App being configured or inspected in this step. |
+     | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+     | `--query` | Extracts `[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight,healthState:properties.healthState}` from the command result for this verification or shell variable. |
 
      ???+ example "Expected output"
          ```json

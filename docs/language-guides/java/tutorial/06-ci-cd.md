@@ -90,33 +90,33 @@ flowchart TD
 ```mermaid
 flowchart TD
     accTitle: GitHub Actions delivery flow for the Java container app
-    accDescr: A commit starts a workflow that tests the Java source, builds an immutable container image, pushes it to Azure Container Registry, updates the container app, and verifies the new revision before release completion.
+    accDescr: A commit starts a workflow that packages the Java source with tests skipped, builds a commit-tagged container image in Azure Container Registry, and updates the container app. Revision and application health are verified manually after deployment.
 
     COMMIT["Commit to the configured branch"]
     WORKFLOW["GitHub Actions workflow"]
-    TEST["Build and test<br/>Java source with Maven"]
+    PACKAGE["Package Java source<br/>tests skipped"]
     IMAGE["Build container image<br/>tagged with commit SHA"]
     ACR["Azure Container Registry"]
     DEPLOY["Azure Container Apps<br/>deploy action"]
     REVISION["New immutable revision"]
-    VERIFY["Verify revision readiness<br/>and health checks"]
-    COMPLETE["Release complete"]
-    INVESTIGATE["Keep prior serving revision<br/>and inspect workflow or revision"]
+    VERIFY["Manual post-deployment checks<br/>revision name and /health"]
+    COMPLETE["Verification complete"]
+    INVESTIGATE["Inspect workflow or revision<br/>before changing traffic"]
 
     COMMIT -->|"Trigger"| WORKFLOW
-    WORKFLOW --> TEST
-    TEST --> IMAGE
+    WORKFLOW --> PACKAGE
+    PACKAGE --> IMAGE
     IMAGE -->|"Push image"| ACR
     ACR --> DEPLOY
     DEPLOY -->|"Update image reference"| REVISION
     REVISION --> VERIFY
-    VERIFY -->|"Release criteria pass"| COMPLETE
-    VERIFY -.->|"Failure path"| INVESTIGATE
+    VERIFY -->|"Expected state confirmed"| COMPLETE
+    VERIFY -.->|"Unexpected state"| INVESTIGATE
 
-    LEGEND["Arrow key<br/>solid = delivery path<br/>dotted = failed verification path"]
+    LEGEND["Arrow key<br/>solid = automated delivery then manual checks<br/>dotted = unexpected verification result"]
 ```
 
-*Figure: The runtime-specific test step differs, but every language uses the same commit, image, registry, deploy, revision, and verification semantics.*
+*Figure: The shown workflow packages Java with `-DskipTests`, builds and deploys the image, and then relies on the manual revision and `/health` checks below. Remove `-DskipTests` or add a separate test step before using this as a test-gated release.*
 
 ## Prerequisites
 
@@ -138,9 +138,13 @@ To allow GitHub Actions to authenticate with Azure, you must store credentials a
       --json-auth
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az ad sp create-for-rbac ...` | Creates or inspects service principal settings for automation identity. |
+    | `az ad sp create-for-rbac` | Creates the GitHub Actions service principal scoped to the tutorial resource group. |
+    | `--name` | Sets the display name for the GitHub Actions service principal. |
+    | `--role` | Selects the Contributor or Key Vault Secrets User role required by this step. |
+    | `--scopes` | Limits the service principal assignment to the tutorial resource group. |
+    | `--json-auth` | Returns credential JSON in the format expected by the Azure Login action. |
 
 2. **Add Secrets to GitHub**
 
@@ -179,7 +183,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build and Test with Maven
+      - name: Package with Maven (tests skipped)
         run: |
           cd apps/java-springboot
           mvn package -DskipTests
@@ -224,9 +228,13 @@ jobs:
       --query "[0].name" --output tsv
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+    | `az containerapp revision list` | Lists revisions so the operator can inspect rollout, traffic, and health after deployment. |
+    | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+    | `--name` | Targets the Container App being configured or inspected in this step. |
+    | `--query` | Extracts `[0].name` from the command result for this verification or shell variable. |
+    | `--output` | Returns the selected value in `tsv` format for shell capture or readable verification. |
 
     ???+ example "Expected output"
         ```text
@@ -245,7 +253,7 @@ jobs:
 - [x] Maven cache is enabled in GitHub Actions to speed up builds
 - [x] Workflow uses specific commit SHAs for container image tags (avoid `latest`)
 - [x] Workflow triggers only on changes to the application's source path
-- [x] Deployment is verified by a health check endpoint
+- [x] The operator verifies the deployment with the revision query and health endpoint after the workflow completes
 
 !!! info "Using Federated Credentials (OIDC)"
     For enhanced security, consider using [Workload Identity Federation](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux) (OIDC) instead of storing secrets in GitHub. This removes the need for long-lived service principal keys.

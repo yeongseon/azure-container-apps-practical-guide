@@ -146,11 +146,13 @@ flowchart TD
      --output tsv)
    ```
 
-    | Command | Purpose |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the existing Container App name from the deployment outputs so configuration changes apply to the correct Python app. |
-    | `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the environment name from the same deployment so later config and secret examples stay aligned with the deployed environment. |
-    | `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name used by the app image so subsequent configuration and deployment examples reference the same registry. |
+    | `az deployment group show` | Reads outputs from the existing resource-group deployment for reuse in this tutorial. |
+    | `--name` | Selects the existing Bicep deployment whose outputs are being read. |
+    | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+    | `--query` | Extracts `properties.outputs.containerAppName.value` from the command result for this verification or shell variable. |
+    | `--output` | Returns the selected value in `tsv)` format for shell capture or readable verification. |
 
    ???+ example "Expected output"
        The commands above set shell variables silently. Verify them with:
@@ -176,9 +178,12 @@ flowchart TD
       --set-env-vars "LOG_LEVEL=INFO" "FEATURE_FLAG=true"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
    ???+ example "Expected output"
        ```json
@@ -197,9 +202,12 @@ flowchart TD
       --secrets "db-password=<secret-value>"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+   | `az containerapp secret set` | Creates or updates the named Container Apps secret used by this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--secrets` | Defines the Container Apps secret value or Key Vault reference shown in this step. |
 
    ???+ example "Expected output"
        ```text
@@ -226,9 +234,12 @@ flowchart TD
      --set-env-vars "DB_PASSWORD=secretref:db-password"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
    ???+ example "Expected output"
        ```json
@@ -251,9 +262,16 @@ flowchart TD
       --scale-rule-http-concurrency 50
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--min-replicas` | Allows the HTTP-scaled app to scale down to the configured minimum replica count. |
+   | `--max-replicas` | Caps the HTTP-scaled app at the configured maximum replica count. |
+   | `--scale-rule-name` | Names the scaling rule so it can be identified in the app configuration. |
+   | `--scale-rule-type` | Selects the HTTP or Azure Service Bus scaler used in this step. |
+   | `--scale-rule-http-concurrency` | Sets the concurrent-request threshold used by the HTTP scaling rule. |
 
    ???+ example "Expected output"
        ```json
@@ -278,9 +296,15 @@ flowchart TD
      --scale-rule-auth "connection=servicebus-connection"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--scale-rule-name` | Names the scaling rule so it can be identified in the app configuration. |
+   | `--scale-rule-type` | Selects the HTTP or Azure Service Bus scaler used in this step. |
+   | `--scale-rule-metadata` | Supplies the queue name and Service Bus namespace required by the scaler. |
+   | `--scale-rule-auth` | Maps the scaler's connection parameter to the named Container Apps secret. |
 
    ???+ example "Expected output"
        ```json
@@ -298,9 +322,11 @@ flowchart TD
      --output json
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az acr repository list ...` | Inspects or manages repositories and tags inside Azure Container Registry. |
+   | `az acr repository list` | Lists repositories in the tutorial's Azure Container Registry to confirm pushed images. |
+   | `--name` | Targets the tutorial Azure Container Registry by name. |
+   | `--output` | Returns the selected value in `json` format for shell capture or readable verification. |
 
    ???+ example "Expected output"
        ```json
@@ -317,9 +343,13 @@ flowchart TD
      --dapr-app-port 8000
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
+   | `az containerapp dapr enable` | Enables and configures the Dapr sidecar for the target Container App. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--dapr-app-id` | Sets the Dapr application ID used to identify this service. |
+   | `--dapr-app-port` | Sets the application port that the Dapr sidecar calls. |
 
    ???+ example "Expected output"
        ```json

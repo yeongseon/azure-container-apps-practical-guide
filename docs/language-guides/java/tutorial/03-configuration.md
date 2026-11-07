@@ -140,9 +140,12 @@ az containerapp update \
   --set-env-vars "APP_VERSION=1.0.0" "RUNTIME_MODE=production"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
 ???+ example "Expected output"
     ```text
@@ -163,9 +166,12 @@ az containerapp secret set \
   --secrets "db-password=<secret-value>"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Creates or updates the named Container Apps secret used by this step. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--secrets` | Defines the Container Apps secret value or Key Vault reference shown in this step. |
 
 ### 2. Map Secret to Environment Variable
 
@@ -178,9 +184,12 @@ az containerapp update \
   --set-env-vars "SPRING_DATASOURCE_PASSWORD=secretref:db-password"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
 ## Azure Key Vault Integration
 
@@ -193,9 +202,12 @@ KV_NAME="kv-java-$(date +%s)"
 az keyvault create --resource-group $RG --name $KV_NAME --location $LOCATION
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az keyvault create ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+| `az keyvault create` | Creates the Key Vault used for the Java application's external secret. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Sets the Key Vault or secret name used by this Java tutorial step. |
+| `--location` | Creates the Key Vault in the tutorial's selected Azure region. |
 
 ### 2. Configure Managed Identity
 
@@ -216,9 +228,19 @@ az role assignment create \
   --scope /subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KV_NAME
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables a system-assigned managed identity on the Java Container App. |
+| `az containerapp identity show` | Reads the app identity's principal ID for the Key Vault role assignment. |
+| `az role assignment create` | Grants the app identity permission to read secrets from the tutorial Key Vault. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--system-assigned` | Enables the Container App's system-assigned managed identity. |
+| `--query` | Extracts `principalId` from the command result for this verification or shell variable. |
+| `--output` | Returns the selected value in `tsv)` format for shell capture or readable verification. |
+| `--role` | Selects the Contributor or Key Vault Secrets User role required by this step. |
+| `--assignee` | Targets the Container App managed identity principal that receives access. |
+| `--scope` | Limits the role assignment to the tutorial Key Vault resource. |
 
 ### 3. Reference Key Vault Secrets
 
@@ -233,9 +255,15 @@ az containerapp secret set \
   --secrets "db-password=keyvaultref:https://$KV_NAME.vault.azure.net/secrets/db-password"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az keyvault secret ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+| `az containerapp secret set` | Creates or updates the named Container Apps secret used by this step. |
+| `az keyvault secret set` | Stores the database password in the tutorial Key Vault. |
+| `--vault-name` | Targets the Key Vault that stores the Java application's database password. |
+| `--name` | Sets the Key Vault or secret name used by this Java tutorial step. |
+| `--value` | Supplies the database-password value to store in Key Vault. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--secrets` | Defines the Container Apps secret value or Key Vault reference shown in this step. |
 
 ## Best Practices for Java Apps
 
