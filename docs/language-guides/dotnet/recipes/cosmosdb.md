@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
         - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-dotnet
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Cosmos DB Integration (Managed Identity)
 
@@ -17,15 +18,30 @@ Use this recipe to connect a .NET Container App to Azure Cosmos DB for NoSQL wit
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[.NET Container App]
-    APP --> COSMOS[Azure Cosmos DB]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> COSMOS
+    accTitle: Passwordless Cosmos DB request from an ASP.NET Core container app
+    accDescr: A client request reaches the app through managed ingress. DefaultAzureCredential obtains a Cosmos DB access token through the app's managed identity, then the SDK sends a data request. Cosmos DB separately evaluates the identity's data-plane role assignment.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[ASP.NET Core app<br/>Cosmos SDK]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    COSMOS[Azure Cosmos DB for NoSQL]
+    AUTHZ{Data-plane role<br/>allows operation?}
+    RESULT[Read or write result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Cosmos DB token"| ENDPOINT
+    ENDPOINT ==>|"Token request and response"| ENTRA
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"Cosmos DB request + token"| COSMOS
+    COSMOS -->|"Evaluate data-plane role"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, service transport, and Cosmos DB data-plane authorization are separate steps. A management-plane role alone does not grant document access.*
 
 ## Prerequisites
 
@@ -173,3 +189,4 @@ az containerapp update \
 
 - [Azure Cosmos DB for NoSQL RBAC](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control)
 - [Azure Cosmos DB for NoSQL .NET quickstart](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-dotnet)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

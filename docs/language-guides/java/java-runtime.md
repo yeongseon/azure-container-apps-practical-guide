@@ -11,22 +11,37 @@ content_sources:
 ---
 # Java Runtime Reference
 
-This guide provides technical details on the Java runtime environment and optimization strategies for running Spring Boot applications on Azure Container Apps.
+This guide provides technical details on the repository's Java runtime image and optimization strategies for running Spring Boot applications on Azure Container Apps.
 
 ## Runtime Environment
 
-Azure Container Apps uses the [Eclipse Temurin](https://adoptium.net/temurin/) distribution for the OpenJDK runtime. The reference application uses **Java 21 (LTS)**.
+Azure Container Apps runs the image you configure; the reference application selects the [Eclipse Temurin](https://adoptium.net/temurin/) **Java 21 (LTS)** image.
 
 <!-- diagram-id: azure-container-apps-uses-the-eclipse -->
 ```mermaid
-graph TD
-    JVM[JVM Runtime] --> GC[Garbage Collector]
-    JVM --> MEM[Memory Management]
-    JVM --> LOGS[Structured Logging]
-    GC --> G1GC[G1 Garbage Collector]
-    MEM --> CGROUPS[Cgroups v2]
-    LOGS --> LOGBACK[Logback JSON]
+flowchart TD
+    accTitle: Java runtime execution model in Container Apps
+    accDescr: A revision starts the selected Eclipse Temurin image and Spring Boot listener. Platform health probes determine readiness, managed ingress routes requests to a ready replica, and Logback console output is collected for logging.
+    IMAGE[Eclipse Temurin Java 21 image]
+    START[Spring Boot JVM starts]
+    LISTEN[HTTP listener<br/>0.0.0.0:8000]
+    PROBES[Container Apps health probes]
+    READY{Replica ready?}
+    INGRESS[Managed ingress]
+    REQUEST[Request handled by Spring Boot]
+    CONSOLE[Logback to stdout and stderr]
+    LOGS[Container Apps logging destination]
+
+    IMAGE --> START --> LISTEN
+    PROBES ==>|"Probe request"| LISTEN
+    PROBES -->|"Evaluate result"| READY
+    READY -.->|"Ready replicas are eligible"| INGRESS
+    INGRESS ==>|"Routed request"| REQUEST
+    REQUEST -.->|"Application writes"| CONSOLE
+    CONSOLE ==>|"Log transport"| LOGS
 ```
+
+*Figure: Runtime startup, health evaluation, request routing, and console-log collection are separate paths. Eclipse Temurin, Java 21, port 8000, and Logback are choices made by this repository rather than platform-selected runtime components.*
 
 ## JVM Memory Management
 

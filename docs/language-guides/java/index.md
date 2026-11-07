@@ -66,14 +66,24 @@ Follow these step-by-step guides to master the deployment of Java applications o
 <!-- diagram-id: end-to-end-learning-flow -->
 ```mermaid
 flowchart TD
-    A[Local Docker Validation] --> B[Azure First Deployment]
-    B --> C[Configuration and Secrets]
-    C --> D[Logs, Metrics, Traces]
-    D --> E[Bicep-Driven Infrastructure]
-    E --> F[GitHub Actions CI/CD]
-    F --> G[Revisions and Traffic Splits]
-    G --> H[Runtime Tuning and Recipes]
+    accTitle: Java guide learning path
+    accDescr: Follow seven ordered tutorials from local Docker validation through revision traffic management, then branch to the Spring Boot runtime reference and integration recipes.
+    LOCAL[01 Local development<br/>Spring Boot + Docker]
+    DEPLOY[02 First deployment<br/>image to Container Apps]
+    CONFIG[03 Configuration and secrets]
+    OBSERVE[04 Logs, metrics, and traces]
+    IAC[05 Bicep-driven infrastructure]
+    CICD[06 GitHub Actions CI/CD]
+    RELEASE[07 Revisions and traffic]
+    RUNTIME[Java runtime reference]
+    RECIPES[Java integration recipes]
+
+    LOCAL --> DEPLOY --> CONFIG --> OBSERVE --> IAC --> CICD --> RELEASE
+    RELEASE --> RUNTIME
+    RELEASE --> RECIPES
 ```
+
+*Figure: The numbered tutorials form the common learning sequence. Runtime tuning and integration recipes are follow-on references rather than additional deployment stages.*
 
 !!! tip "Use this order for fastest production readiness"
     Complete tutorials `01` through `07` sequentially first, then use runtime and recipe pages for optimization and integration. This prevents configuration drift and keeps your revisions reproducible.

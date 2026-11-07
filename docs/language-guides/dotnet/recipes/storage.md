@@ -5,8 +5,9 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
         - https://learn.microsoft.com/en-us/dotnet/api/overview/azure/storage.blobs-readme
+        - https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Blob Storage Integration (Managed Identity)
 
@@ -17,15 +18,30 @@ Use this recipe to connect a .NET Container App to Azure Blob Storage with manag
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[.NET Container App]
-    APP --> BLOB[Azure Blob Storage]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> BLOB
+    accTitle: Passwordless Blob Storage request from an ASP.NET Core container app
+    accDescr: A client request reaches the app through managed ingress. DefaultAzureCredential obtains a Storage access token through the app's managed identity, then the Blob SDK sends a data request. Storage separately evaluates the identity's Blob data role assignment.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[ASP.NET Core app<br/>Blob SDK]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    BLOB[Azure Blob Storage]
+    AUTHZ{Blob data role<br/>allows operation?}
+    RESULT[Blob operation result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Storage token"| ENDPOINT
+    ENDPOINT ==>|"Token request and response"| ENTRA
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"Blob request + token"| BLOB
+    BLOB -->|"Evaluate Blob data role"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, Blob transport, and Storage data-plane authorization are separate steps. This SDK-access recipe does not depict an Azure Files or BlobFuse volume mount.*
 
 ## Prerequisites
 
@@ -161,5 +177,6 @@ az containerapp update \
 
 ## Sources
 
-- [Use storage mounts in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
 - [Azure Storage Blob client library for .NET](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/storage.blobs-readme)
+- [Assign an Azure role for Blob data access](https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

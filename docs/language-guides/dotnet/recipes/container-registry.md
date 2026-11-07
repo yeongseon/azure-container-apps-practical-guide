@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
 ---
 # Recipe: Container Registry in .NET Apps on Azure Container Apps
 
@@ -15,11 +16,33 @@ Deploy ASP.NET Core images from private ACR using a user-assigned managed identi
 <!-- diagram-id: deploy-asp-net-core-images-from-private -->
 ```mermaid
 flowchart TD
-    ACR[Azure Container Registry] --> APP[ASP.NET Core Container App]
-    APP -.-> UAMI[User-Assigned Managed Identity]
-    UAMI -.-> ENTRA[Microsoft Entra ID]
-    style APP fill:#107c10,color:#fff
+    accTitle: Private ACR image pull with a user-assigned managed identity
+    accDescr: During revision provisioning, Container Apps selects the configured user-assigned identity, obtains a registry token through Microsoft Entra ID, and asks ACR to authorize the pull with the role appropriate to the registry permission mode before downloading image layers.
+    APP[Container app configuration]
+    REVISION[New ASP.NET Core revision]
+    IDENTITY[User-assigned managed identity]
+    ENTRA[Microsoft Entra ID]
+    ACR[Azure Container Registry]
+    MODE{Registry permission mode}
+    RBAC[AcrPull<br/>RBAC-only registry]
+    ABAC[Container Registry Repository Reader<br/>ABAC-enabled registry]
+    LAYERS[Image layers]
+
+    APP -->|"Create revision"| REVISION
+    IDENTITY -.->|"Configured registry identity"| APP
+    REVISION ==>|"Request registry token as identity"| ENTRA
+    ENTRA ==>|"Return access token"| REVISION
+    REVISION ==>|"Authenticated pull request"| ACR
+    ACR -->|"Evaluate"| MODE
+    MODE -->|"RBAC Registry Permissions"| RBAC
+    MODE -->|"ABAC Repository Permissions"| ABAC
+    RBAC -.->|"Authorize pull"| ACR
+    ABAC -.->|"Authorize repository pull"| ACR
+    ACR ==>|"Download"| LAYERS
+    LAYERS ==>|"Provision container"| REVISION
 ```
+
+*Figure: Identity selection, token acquisition, registry authorization, and image transport are distinct. `AcrPull` applies only to RBAC-only registries; ABAC-enabled registries require `Container Registry Repository Reader`, optionally with a repository condition.*
 
 ## Prerequisites
 
@@ -55,6 +78,8 @@ az role assignment create \
 | Command | Why it is used |
 |---|---|
 | `az acr create ...` | Creates Azure Container Registry for container image storage. |
+
+The role assignment above is for an ACR using **RBAC Registry Permissions**. If `az acr show --name "$ACR_NAME" --query roleAssignmentMode --output tsv` returns `AbacRepositoryPermissions`, use `Container Registry Repository Reader` instead and add an ABAC repository condition when you need repository-level scope. ABAC-enabled registries do not honor `AcrPull`.
 
 ## Multi-stage Dockerfile for ASP.NET Core 8
 
@@ -117,3 +142,4 @@ az containerapp create \
 
 - [Managed identity image pull for Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [Create and manage Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli)
+- [Azure Container Registry RBAC and ABAC repository permissions](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)

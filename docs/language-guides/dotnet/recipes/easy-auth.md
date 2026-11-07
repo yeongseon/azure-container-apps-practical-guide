@@ -2,11 +2,11 @@
 content_sources:
   diagrams:
     - id: use-easy-auth-to-handle-identity
-      type: flowchart
+      type: sequenceDiagram
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
 ---
 # Recipe: Easy Auth in .NET Apps on Azure Container Apps
 
@@ -14,13 +14,34 @@ Use Easy Auth to handle identity at the edge, then map claims inside ASP.NET Cor
 
 <!-- diagram-id: use-easy-auth-to-handle-identity -->
 ```mermaid
-flowchart TD
-    C[Client] --> AUTH[Easy Auth]
-    AUTH --> IDP[Identity Provider]
-    AUTH --> APP[ASP.NET Core App]
-    APP -.-> HDR[x-ms-client-principal]
-    style APP fill:#107c10,color:#fff
+sequenceDiagram
+    accTitle: Easy Auth server-directed sign-in for an ASP.NET Core app
+    accDescr: A browser reaches an external ingress-enabled app. The per-replica authentication module redirects the browser to the configured identity provider, handles the callback and session, then forwards the authenticated request with identity headers to ASP.NET Core.
+    actor B as Browser
+    participant INGRESS as External ingress
+    participant AUTH as Auth module<br/>(per replica)
+    participant IDP as Microsoft Entra ID
+    participant APP as ASP.NET Core app
+
+    B->>INGRESS: HTTPS GET /protected
+    INGRESS->>AUTH: Route request
+    AUTH-->>B: Redirect to sign-in endpoint
+    B->>IDP: Sign in and consent
+    IDP-->>B: Redirect to auth callback
+    B->>INGRESS: HTTPS callback
+    INGRESS->>AUTH: Route callback
+    AUTH->>IDP: Validate provider response
+    IDP-->>AUTH: Identity and claims
+    AUTH-->>B: Set Container Apps session cookie
+    B->>INGRESS: HTTPS GET /protected + cookie
+    INGRESS->>AUTH: Route authenticated request
+    AUTH->>APP: Request + X-MS-* identity headers
+    APP-->>AUTH: Application response
+    AUTH-->>INGRESS: Return response
+    INGRESS-->>B: HTTPS response
 ```
+
+*Figure: Easy Auth authenticates the caller before the request reaches ASP.NET Core and supplies identity headers. Application code still enforces role, tenant, and resource authorization.*
 
 ## Prerequisites
 
@@ -99,4 +120,4 @@ app.Run();
 ## Sources
 
 - [Authentication in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Configure Microsoft Entra ID authentication](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra)

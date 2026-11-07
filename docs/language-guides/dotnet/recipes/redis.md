@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
         - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-dotnet-how-to-use-azure-redis-cache
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 
@@ -17,15 +18,30 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[.NET Container App]
-    APP --> REDIS[Azure Cache for Redis]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> REDIS
+    accTitle: Microsoft Entra authenticated Redis request from an ASP.NET Core app
+    accDescr: A client request reaches the app through managed ingress. The Redis client obtains a token through the app's managed identity, then opens a TLS connection. The cache separately evaluates its configured data access policy assignment.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[ASP.NET Core app<br/>Redis client]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    REDIS[Azure Cache for Redis]
+    AUTHZ{Redis access policy<br/>allows operation?}
+    RESULT[Cache operation result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Redis token"| ENDPOINT
+    ENDPOINT ==>|"Token request and response"| ENTRA
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"TLS Redis connection + token"| REDIS
+    REDIS -->|"Evaluate data access policy"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, TLS transport, and cache data authorization are separate steps. Confirm that the selected cache tier and client package support Microsoft Entra authentication.*
 
 ## Prerequisites
 
@@ -153,3 +169,4 @@ az containerapp update \
 
 - [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 - [Use Azure Cache for Redis with .NET](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-dotnet-how-to-use-azure-redis-cache)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

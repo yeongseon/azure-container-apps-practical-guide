@@ -28,6 +28,7 @@ export JOB_NAME="job-dotnet-manual"
 export EVENT_JOB_NAME="job-dotnet-servicebus"
 export SERVICEBUS_NAMESPACE="sb-aca-prod"
 export SERVICEBUS_QUEUE="orders"
+export JOB_IDENTITY_ID="<user-assigned-identity-resource-id>"
 ```
 
 ## What You'll Build
@@ -41,12 +42,31 @@ export SERVICEBUS_QUEUE="orders"
 <!-- diagram-id: dotnet-jobs-recipe-flow -->
 ```mermaid
 flowchart TD
-    A[Create console app] --> B[Build container image]
-    B --> C[Create manual job]
-    C --> D[Start execution]
-    D --> E[Switch to Service Bus consumer]
-    E --> F[Add dedup table]
+    accTitle: .NET Container Apps Jobs recipe flow
+    accDescr: Build one console image, run it first as a manual job, then adapt it to an authenticated Service Bus event-driven job. Each execution processes bounded work and records a durable deduplication decision before completing the message.
+    CODE[.NET console app]
+    IMAGE[Immutable container image]
+    MANUAL[Manual Container Apps Job]
+    START[Explicit start]
+    EXECUTION[Job execution<br/>bounded work then exit]
+    QUEUE[Azure Service Bus queue]
+    AUTH[Scaler and worker authentication]
+    EVENT[Event-driven Container Apps Job]
+    DEDUP[Shared durable deduplication store]
+    COMPLETE[Complete message after work]
+
+    CODE --> IMAGE --> MANUAL
+    START --> MANUAL
+    MANUAL --> EXECUTION
+    IMAGE --> EVENT
+    QUEUE -.->|"Scale signal"| EVENT
+    AUTH -.->|"Authorizes scaler and worker"| EVENT
+    EVENT --> EXECUTION
+    EXECUTION ==>|"Check or insert message ID"| DEDUP
+    DEDUP -->|"First processing"| COMPLETE
 ```
+
+*Figure: Manual and event-driven jobs reuse the image but have different triggers. The event-driven scaler and the worker both need an authenticated Service Bus path, and production deduplication must use shared durable storage rather than replica-local `/tmp`.*
 
 ### 1. Create a manual .NET Job
 
@@ -164,12 +184,16 @@ az containerapp job create \
   --scale-rule-name "orders-queue" \
   --scale-rule-type "azure-servicebus" \
   --scale-rule-metadata "queueName=$SERVICEBUS_QUEUE" "messageCount=1" "namespace=$SERVICEBUS_NAMESPACE.servicebus.windows.net" \
+  --mi-user-assigned "$JOB_IDENTITY_ID" \
+  --scale-rule-identity "$JOB_IDENTITY_ID" \
   --env-vars SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
 ```
 
 | Command | Why it is used |
 |---|---|
 | `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+
+Grant the same user-assigned identity the minimum Service Bus data role needed by the worker before creating the job. The scaler identity authorizes queue polling for scale decisions; the application worker independently uses `DefaultAzureCredential` for message receive and completion.
 
 ### 3. Add a dedup table
 

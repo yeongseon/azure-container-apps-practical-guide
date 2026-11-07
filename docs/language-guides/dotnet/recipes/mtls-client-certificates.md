@@ -16,12 +16,28 @@ Use ASP.NET Core middleware to parse `X-Forwarded-Client-Cert`, validate the lea
 <!-- diagram-id: aspnetcore-xfcc-validation-flow -->
 ```mermaid
 flowchart TD
-    Client[Client certificate] --> Ingress[ACA ingress]
-    Ingress --> Header[X-Forwarded-Client-Cert]
-    Header --> Middleware[ASP.NET Core middleware]
-    Middleware --> Validate[CN or thumbprint allowlist]
-    Middleware --> Calls[Dapr SDK or HttpClient]
+    accTitle: ASP.NET Core client-certificate presentation and trust validation
+    accDescr: In require mode, managed ingress rejects a request without a client certificate. When a certificate is presented, ingress forwards the request with X-Forwarded-Client-Cert. ASP.NET Core must parse the metadata, validate certificate trust and caller authorization, then allow or reject the request.
+    CLIENT[Client]
+    INGRESS[Managed ingress<br/>clientCertificateMode = require]
+    PRESENT{Client certificate<br/>presented?}
+    EDGE_REJECT[Ingress rejects request]
+    APP[ASP.NET Core middleware<br/>parse X-Forwarded-Client-Cert]
+    TRUST{Certificate trusted and<br/>caller authorized?}
+    ALLOW[Handle request]
+    DENY[Return HTTP 403]
+
+    CLIENT ==>|"HTTPS + client certificate"| INGRESS
+    INGRESS --> PRESENT
+    PRESENT -->|"No"| EDGE_REJECT
+    PRESENT -.->|"Yes: permit forwarding"| INGRESS
+    INGRESS ==>|"Request + X-Forwarded-Client-Cert"| APP
+    APP --> TRUST
+    TRUST -->|"Yes"| ALLOW
+    TRUST -->|"No"| DENY
 ```
+
+*Figure: Certificate presentation at ingress and application trust validation are separate gates. `X-Forwarded-Client-Cert` is request metadata, not a network hop, and its presence alone does not establish a trusted caller.*
 
 ## Prerequisites
 
@@ -39,7 +55,7 @@ dotnet add package Dapr.Client --version 1.14.0
 ## What You'll Build
 
 - ASP.NET Core middleware that reads and parses the leaf PEM certificate.
-- Validation against a CN or thumbprint allowlist.
+- Validation against a trusted issuer or chain plus an application-specific subject, SAN, or certificate fingerprint policy.
 - Outbound calls using Dapr .NET SDK and direct `HttpClient`.
 
 ## Steps
@@ -59,13 +75,7 @@ builder.Services.AddDaprClient();
 
 var app = builder.Build();
 
-var allowedCommonNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-{
-    "api-client.contoso.com",
-    "partner-gateway.contoso.com"
-};
-
-var allowedThumbprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+var allowedFingerprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 var certificatePattern = new Regex("Cert=\"([\\s\\S]*?)\"(?:;|$)", RegexOptions.Compiled);
 
 app.Use(async (context, next) =>
@@ -88,13 +98,14 @@ app.Use(async (context, next) =>
     var leafPem = match.Groups[1].Value.Replace("\\n", "\n");
     var certificate = X509Certificate2.CreateFromPem(leafPem);
     var commonName = certificate.GetNameInfo(X509NameType.SimpleName, false);
-    var thumbprint = Convert.ToHexString(SHA256.HashData(certificate.RawData));
+    var fingerprint = Convert.ToHexString(SHA256.HashData(certificate.RawData));
+    using var chain = new X509Chain();
+    var trustedChain = chain.Build(certificate);
 
-    if ((allowedThumbprints.Count > 0 && allowedThumbprints.Contains(thumbprint))
-        || allowedCommonNames.Contains(commonName))
+    if (trustedChain && allowedFingerprints.Contains(fingerprint))
     {
         context.Items["clientCommonName"] = commonName;
-        context.Items["clientThumbprint"] = thumbprint;
+        context.Items["clientFingerprint"] = fingerprint;
         await next();
         return;
     }
@@ -106,7 +117,7 @@ app.Use(async (context, next) =>
 app.MapGet("/cert-info", (HttpContext context) => Results.Ok(new
 {
     commonName = context.Items["clientCommonName"],
-    thumbprint = context.Items["clientThumbprint"]
+    fingerprint = context.Items["clientFingerprint"]
 }));
 
 app.MapGet("/call-backend/dapr", async (DaprClient daprClient) =>

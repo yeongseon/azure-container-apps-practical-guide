@@ -16,12 +16,28 @@ Use Key Vault references and Azure SDK integration to keep ASP.NET Core secrets 
 <!-- diagram-id: use-key-vault-references-and-azure -->
 ```mermaid
 flowchart TD
-    APP[ASP.NET Core App] -.-> MI[Managed Identity]
-    MI -.-> KV[Azure Key Vault]
-    KV -.-> SEC[Container Apps Secret Reference]
-    SEC -.-> APP
-    style APP fill:#107c10,color:#fff
+    accTitle: Key Vault reference and direct SDK access are separate secret paths
+    accDescr: For a Container Apps Key Vault reference, the platform uses the selected managed identity to resolve a vault secret into a Container Apps secret, which the revision consumes through secretRef. For direct SDK access, ASP.NET Core obtains a token and calls Key Vault at runtime.
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    KV[Azure Key Vault]
+    PLATFORM[Container Apps secret resolver]
+    SECRET[Container Apps secret<br/>Key Vault reference]
+    REVISION[ASP.NET Core revision<br/>environment secretRef]
+    SDK[ASP.NET Core<br/>Key Vault SDK client]
+
+    IDENTITY -.->|"Selected identity"| PLATFORM
+    PLATFORM ==>|"Resolve Key Vault secret"| KV
+    KV ==>|"Secret value"| PLATFORM
+    PLATFORM -->|"Populate reference"| SECRET
+    SECRET -.->|"Inject through secretRef"| REVISION
+    SDK ==>|"Request access token"| ENTRA
+    ENTRA ==>|"Return access token"| SDK
+    SDK ==>|"Runtime secret request + token"| KV
+    IDENTITY -.->|"Identity used by SDK credential"| SDK
 ```
+
+*Figure: A Container Apps Key Vault reference is platform-resolved configuration; direct SDK access is an application runtime call. Both require an identity with Key Vault secret permissions, but they have different consumers and rotation behavior.*
 
 ## Prerequisites
 

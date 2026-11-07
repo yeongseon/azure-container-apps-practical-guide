@@ -18,12 +18,28 @@ This reference summarizes practical runtime defaults for .NET workloads on Azure
 <!-- diagram-id: runtime-execution-model -->
 ```mermaid
 flowchart TD
-    IMG[Container Image] --> BOOT[Kestrel Startup]
-    BOOT --> PORT[Bind 0.0.0.0:8000]
-    PORT --> PROBE[Health Probes]
-    PROBE --> TRAFFIC[Ingress Traffic]
-    TRAFFIC --> LOGS[stdout/stderr to Log Analytics]
+    accTitle: ASP.NET Core runtime execution model in Container Apps
+    accDescr: A revision starts the container image and Kestrel listener. Platform health probes determine readiness, managed ingress routes requests to a ready replica, and console output is collected for logging.
+    IMAGE[ASP.NET Core container image]
+    START[Kestrel process starts]
+    LISTEN[HTTP listener<br/>0.0.0.0:8000]
+    PROBES[Container Apps health probes]
+    READY{Replica ready?}
+    INGRESS[Managed ingress]
+    REQUEST[Request handled by ASP.NET Core]
+    CONSOLE[stdout and stderr]
+    LOGS[Container Apps logging destination]
+
+    IMAGE --> START --> LISTEN
+    PROBES ==>|"Probe request"| LISTEN
+    PROBES -->|"Evaluate result"| READY
+    READY -.->|"Ready replicas are eligible"| INGRESS
+    INGRESS ==>|"Routed request"| REQUEST
+    REQUEST -.->|"Application writes"| CONSOLE
+    CONSOLE ==>|"Log transport"| LOGS
 ```
+
+*Figure: Runtime startup, health evaluation, request routing, and console-log collection are separate paths. The port and application process are repository defaults; configure ingress `targetPort` and probes to match them.*
 
 !!! tip "Treat runtime settings as deployment contracts"
     Keep port binding, process model, and logging behavior stable between revisions. Changing all three at once makes incident triage much harder.
