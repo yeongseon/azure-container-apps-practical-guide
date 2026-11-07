@@ -101,6 +101,14 @@ Signed decision record and owner.
         # When checking the issue, then the heading itself is not evidence.
         self.assertTrue(any(e.startswith("verification") for e in check_issue(issue(body))))
 
+    def test_verification_does_not_borrow_from_h1_section(self) -> None:
+        # Given an empty verification section followed directly by an unrelated H1 section.
+        body = GOOD.replace("python3 scripts/test_lab_gates.py, record exit result.", "# Unrelated\nRun tests elsewhere")
+        # When extracting sections, then the H1 ends the verification section.
+        self.assertEqual(dict(sections(body))["verification plan"], "")
+        # When checking the issue, then the later H1 cannot satisfy verification.
+        self.assertTrue(any(e.startswith("verification") for e in check_issue(issue(body))))
+
     def test_verification_does_not_borrow_from_shallower_section(self) -> None:
         # Given an empty verification section followed by unrelated content.
         body = GOOD.replace("python3 scripts/test_lab_gates.py, record exit result.", "## Unrelated\nRun tests elsewhere")

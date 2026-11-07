@@ -17,7 +17,7 @@ from typing import TypedDict
 # The 28-issue backlog and the umbrella issue predate this policy rollout.
 # Review them under #419; do not fail edits of historical issues.
 POLICY_START = datetime(2026, 10, 31, tzinfo=timezone.utc)
-HEADING = re.compile(r"^(#{2,6})\s+(.+?)\s*$", re.MULTILINE)
+HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
 
 REQUIRED = {
     "problem / context": ("summary", "problem", "context", "background", "details"),
