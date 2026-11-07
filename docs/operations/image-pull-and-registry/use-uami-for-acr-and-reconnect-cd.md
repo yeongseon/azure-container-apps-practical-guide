@@ -254,9 +254,6 @@ az role assignment create \
 | `--role` | Uses `Container Registry Repository Reader` for ABAC-enabled ACR or `AcrPull` for RBAC-only ACR. |
 | `--scope` | Limits the permission to the target registry. |
 
-!!! warning "Role Propagation Delay"
-    Role assignments can take time to propagate. If the next step fails with an authorization error, wait and retry rather than changing DNS or registry transport settings without evidence.
-
 ### Step 4: Configure the Container App Registry to Use the UAMI
 
 ```bash
@@ -292,6 +289,9 @@ az containerapp update \
 | `--resource-group` | Selects the resource group containing the Container App. |
 | `--name` | Selects the Container App to update. |
 | `--image` | Points the app to the private ACR image and tag. |
+
+!!! warning "Role Propagation Affects the Image Pull"
+    A newly created role assignment can take up to 10 minutes to be detected. The `registry set` operation selects the identity; authorization is exercised later, when the new revision pulls the image after this update. If that pull returns `401 Unauthorized`, wait for propagation and retry only after checking the registry identity, ARM-audience authentication setting, and mode-appropriate pull role.
 
 ## Verification
 
@@ -339,7 +339,7 @@ For GitHub Actions, prefer `azure/login` with OpenID Connect and a federated cre
 | Symptom | Likely Cause | Action |
 |---------|-------------|--------|
 | `ImagePullBackOff` after update | DNS, HTTPS transport, role propagation, wrong role for the ACR mode, or wrong UAMI | Verify each stage separately; do not treat network reachability as proof of authorization. |
-| `401 Unauthorized` | Registry not configured with UAMI | Re-run `az containerapp registry set` with `--identity` |
+| `401 Unauthorized` during image pull | Wrong or missing registry identity; ARM-audience authentication disabled; missing or mode-inappropriate pull role; or role assignment still propagating | Check `registries[].identity`, `authentication-as-arm`, and `roleAssignmentMode` in that order. Confirm `Container Registry Repository Reader` for ABAC-enabled ACR or `AcrPull` for RBAC-only ACR, then allow up to 10 minutes for a new assignment to be detected before retrying the image update. |
 | App shows old image | Revision not updated | Confirm `az containerapp update` created a new revision |
 | Pipeline can push but revision cannot start | Deployment principal works, but app pull identity or transport does not | Inspect the app registry identity and its mode-appropriate pull role. |
 
