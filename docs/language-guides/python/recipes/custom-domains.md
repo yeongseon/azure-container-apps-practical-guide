@@ -23,21 +23,49 @@ Azure Container Apps supports custom hostnames and TLS certificates so you can s
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    U[Client] --> DNS[Public DNS zone]
-    DNS --> INGRESS[Container Apps ingress]
-    DNS --> TXT[TXT record: asuid.<host>]
-    TXT --> ACA[Container Apps domain verification]
-    ACA --> DIGI[DigiCert domain validation]
-    DIGI --> CERT[Managed certificate issued]
+    accTitle: Validate a custom domain and issue a managed certificate
+    accDescr: The operator publishes routing and ownership records in public DNS. Container Apps validates the binding, and DigiCert must reach the running app through public HTTP ingress before Container Apps can assign the managed certificate.
+
+    OPERATOR[Domain operator]
+    DNS[Public DNS zone]
+    ROUTE[A record for apex<br/>or direct CNAME for subdomain]
+    TXT[TXT ownership record<br/>asuid or asuid subdomain]
+    ACA[Container Apps<br/>domain binding]
+    DIGICERT[DigiCert validation service]
+    INGRESS[Public HTTP ingress<br/>running container app]
+    CERT[Free managed certificate<br/>automatic renewal]
+
+    OPERATOR -->|Publishes| ROUTE
+    OPERATOR -->|Publishes| TXT
+    ROUTE --> DNS
+    TXT --> DNS
+    ACA -->|Validates DNS records| DNS
+    DIGICERT ==>|Domain validation request| INGRESS
+    ACA -.->|Requests issuance after validation| DIGICERT
+    DIGICERT -.->|Issues certificate| CERT
+    CERT -.->|Assigned to custom domain| ACA
 ```
+
+Thick arrows show the validation request path. Thin and dotted arrows show DNS, issuance, and binding relationships.
 
 <!-- diagram-id: digi-cert-managed-certificate-issued -->
 ```mermaid
 flowchart TD
-    U[Client HTTPS request] --> CDNS[Custom domain DNS]
-    CDNS --> INGRESS[Container Apps ingress]
-    INGRESS --> APP[Container App revision]
+    accTitle: Serve a secured custom domain
+    accDescr: Public DNS resolves the custom hostname to Container Apps. Managed ingress presents the bound server certificate, terminates TLS, and routes the request to the active revision.
+
+    CLIENT[Client]
+    DNS[Public DNS]
+    INGRESS[Managed ingress<br/>bound server certificate]
+    REVISION[Active container app revision]
+
+    CLIENT -->|Resolves custom hostname| DNS
+    DNS -->|Returns app endpoint| CLIENT
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request after TLS termination| REVISION
 ```
+
+Thick arrows show request transport; thin arrows show DNS resolution.
 
 ## Prerequisites
 

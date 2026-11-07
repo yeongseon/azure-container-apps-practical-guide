@@ -15,13 +15,29 @@ Build production-ready Python container images that start quickly, stay small, a
 <!-- diagram-id: build-production-ready-python-container-images-that -->
 ```mermaid
 flowchart TD
-    SRC[Source Code] --> BUILD["Docker Build (Multi-stage)"]
-    BUILD --> IMG[Container Image]
-    IMG --> ACR[Azure Container Registry]
-    ACR --> APP[Container App]
-    APP --> I[Container Apps Ingress]
-    I --> C[Client]
+    accTitle: Build and run a custom Python container image
+    accDescr: Source and pinned dependencies enter a multi-stage build. The builder produces wheels, the runtime stage creates a Linux amd64 image, the registry stores it, and Container Apps pulls the immutable tag to create a revision with probes and ingress.
+
+    SOURCE[Python source]
+    DEPS[Pinned dependencies]
+    BUILDER[Builder stage<br/>toolchain and wheels]
+    RUNTIME[Runtime stage<br/>non-root process]
+    IMAGE[Linux amd64 image<br/>unique tag]
+    REGISTRY[Container registry]
+    REVISION[Container app revision<br/>resources and probes]
+    INGRESS[Managed ingress]
+
+    SOURCE --> BUILDER
+    DEPS --> BUILDER
+    BUILDER -->|Copies wheels| RUNTIME
+    SOURCE -->|Copies app files| RUNTIME
+    RUNTIME --> IMAGE
+    IMAGE ==>|Push| REGISTRY
+    REGISTRY ==>|Image pull| REVISION
+    INGRESS ==>|Routed requests| REVISION
 ```
+
+Thick arrows show image or request transport. Thin arrows show build inputs and artifacts.
 
 ## Prerequisites
 
