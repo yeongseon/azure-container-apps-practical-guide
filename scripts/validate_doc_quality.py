@@ -228,6 +228,8 @@ def validate_tail_sections(findings: list[Finding], path: Path, text: str) -> No
     sources = re.search(r"^## Sources\s*$", text, re.M)
     if not see:
         add(findings, path, 1, "document is missing final '## See Also' section")
+    if not sources:
+        add(findings, path, 1, "document is missing final '## Sources' section")
     if see and sources and see.start() > sources.start():
         add(findings, path, line_of(text, sources.start()), "'## See Also' must appear before '## Sources'")
 
