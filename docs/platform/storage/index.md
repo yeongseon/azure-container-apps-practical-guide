@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps storage scopes, persistence boundaries, ephemeral-storage limits, EmptyDir and secret volumes, and Azure Files SMB or NFS mounts.
 content_sources:
   diagrams:
     - id: storage-types-overview
@@ -6,6 +7,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#mounting-secrets-in-a-volume
     - id: ephemeral-storage-scope
       type: flowchart
       source: mslearn-adapted
@@ -17,12 +19,13 @@ content_sources:
       justification: Decision tree synthesized from MSLearn storage-mounts article
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#mounting-secrets-in-a-volume
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
+  last_reviewed: 2026-11-07
   reviewer: agent
   core_claims:
-    - claim: 'Container Apps supports three storage types: container-scoped ephemeral, replica-scoped EmptyDir, and persistent Azure Files.'
+    - claim: Container Apps documents container-scoped ephemeral storage, replica-scoped EmptyDir storage, and persistent Azure Files mounts.
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
       verified: true
     - claim: 'Total ephemeral storage per replica is determined by the number of vCPUs allocated: 0.25 vCPU → 1 GiB, 0.5 vCPU → 2 GiB, 1 vCPU → 4 GiB, over 1 vCPU → 8 GiB.'
@@ -31,45 +34,77 @@ content_validation:
     - claim: EmptyDir volumes persist for the lifetime of the replica. If a container restarts, files in the EmptyDir volume remain.
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
       verified: true
-    - claim: Azure Container Apps does not support mounting file shares from Azure NetApp Files or Azure Blob Storage.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
+    - claim: Application secrets can be projected into a revision volume as files, with each selected secret represented by a file in the mounted volume.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#mounting-secrets-in-a-volume
       verified: true
-    - claim: Azure Files supports both SMB and NFS protocols for persistent volume mounts.
+    - claim: Azure Files supports SMB and NFS persistent volume mounts, and multiple containers can mount the same share across replicas, revisions, or container apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
       verified: true
 ---
 # Storage in Azure Container Apps
 
-Azure Container Apps supports three storage types for different lifecycle and sharing needs. Choosing the right type prevents data loss, reduces cost, and avoids common configuration errors such as writing persistent data to ephemeral volumes.
+Azure Container Apps provides temporary container and replica storage plus persistent Azure Files mounts. A revision can also project app secrets into a volume as files. Choose by lifecycle and sharing boundary, and use an external service through application code when a file-system mount is not the right interface.
 
 ## Main Content
 
 ### Storage Types at a Glance
 
-| Storage Type | Scope | Persistence | Typical Use |
+| Storage surface | Visibility | Lifecycle | Typical use |
 |---|---|---|---|
-| **Container-scoped** | Single container | Until container restarts | Local app cache, temp files |
-| **Replica-scoped (EmptyDir)** | All containers in one replica | Until replica shuts down | Sidecar log sharing, scratch space |
-| **Azure Files** | Shared across replicas/revisions | Persistent | File uploads, shared state |
+| **Container file system** | Processes in one container | Data disappears when that container shuts down or restarts | Local cache, temporary files |
+| **EmptyDir volume** | Init and app containers that mount it in one replica | Data remains across a container restart but disappears when the replica shuts down | Sidecar exchange, replica-local scratch space |
+| **Azure Files volume** | Every container that mounts the same share, including containers in other replicas, revisions, or apps | Files persist in the Azure file share independently of a container or replica lifecycle | Shared files and durable file-based state |
+| **Secret volume** | Containers in a revision that mount the volume | Projects selected app secrets as files; it is a configuration delivery mechanism, not general data storage | Certificates and secret files |
+| **External data service via an SDK or API** | Determined by the service and application authorization | Determined by the external service | Blob/object data, databases, queues, and other service-native data |
 
 !!! warning "Do not use ephemeral storage for persistent data"
-    Container-scoped and replica-scoped (EmptyDir) storage is lost when a container or replica stops. Any data that must survive restarts or scaling events must be written to Azure Files or an external store.
+    Container file-system data is lost when its container restarts. EmptyDir survives a container restart only while the same replica remains; it is lost when that replica shuts down. Data that must outlive a replica or be shared across replicas belongs in Azure Files or another external data service.
 
 <!-- diagram-id: storage-types-overview -->
 ```mermaid
 flowchart TD
-    A[Container App Replica] --> B[Container-Scoped Storage]
-    A --> C[EmptyDir Volume]
-    A --> D[Azure Files Volume]
+    accTitle: Azure Container Apps storage lifecycle and sharing boundaries
+    accDescr: A logical Container Apps revision has replicas. Each container has a temporary file system, containers in one replica can share an EmptyDir or secret volume, and containers across replicas or revisions can mount the same persistent Azure Files share. Blob and other external services are accessed through application code rather than mounted as Container Apps volumes.
 
-    B --> B1["Lost on container restart\nOnly visible to that container"]
-    C --> C1["Shared across containers\nin the same replica\nLost when replica stops"]
-    D --> D1["Persisted to Azure Files\nShared across replicas\nand revisions"]
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>volume definitions"]
+        subgraph REPLICAS["Revision replicas — running instances"]
+            subgraph R1["Replica A"]
+                C1["Container A<br/>temporary file system"]
+                C2["Sidecar<br/>temporary file system"]
+                EMPTY1["EmptyDir<br/>replica-local temporary volume"]
+                SECRET1["Secret volume<br/>selected secrets as files"]
+            end
+            subgraph R2["Replica B"]
+                C3["Container B<br/>temporary file system"]
+                EMPTY2["Separate EmptyDir<br/>not shared with Replica A"]
+            end
+        end
+    end
+
+    FILES["Azure Files share<br/>SMB or NFS"]
+    EXTERNAL["External data service<br/>Blob, database, or queue"]
+
+    APP -.->|"Logical membership"| REV_ACTIVE
+    REV_ACTIVE -.->|"Runs as"| REPLICAS
+    C1 -->|"Mount within replica"| EMPTY1
+    C2 -->|"Mount same EmptyDir"| EMPTY1
+    C1 -->|"Mount secret files"| SECRET1
+    C3 -->|"Mount within replica"| EMPTY2
+    REPLICAS ==>|"Write files through a volume mount"| FILES
+    FILES ==>|"Read files through a volume mount"| REPLICAS
+    REPLICAS ==>|"SDK or API request<br/>not a volume mount"| EXTERNAL
+    EXTERNAL ==>|"Service response"| REPLICAS
+
+    LEGEND["Arrow key<br/>thick = external data I/O<br/>solid = volume mount<br/>dotted = logical relationship"]
 ```
+
+*Figure: Storage boundaries consume the shared `ENV` → `APP` → `REV_ACTIVE` → `REPLICAS` logical vocabulary without claiming hidden platform internals. Azure Files is the documented persistent mount; Azure Blob Storage is not a supported Container Apps volume mount and is instead accessed through application code.*
 
 ### Ephemeral Storage
 
-Each replica receives a total ephemeral storage budget based on its vCPU allocation. This budget is shared across container-scoped and replica-scoped storage.
+Each replica receives a total ephemeral-storage budget based on the total vCPUs allocated to that replica. Container file-system storage and replica-scoped EmptyDir volumes draw from that total.
 
 | vCPUs allocated | Total ephemeral storage |
 |---|---|
@@ -81,13 +116,43 @@ Each replica receives a total ephemeral storage budget based on its vCPU allocat
 <!-- diagram-id: ephemeral-storage-scope -->
 ```mermaid
 flowchart TD
-    subgraph Replica ["Replica (0.25 vCPU → 1 GiB total ephemeral)"]
-        C1[Container A\nContainer-scoped storage]
-        C2[Container B\nContainer-scoped storage]
-        E[EmptyDir Volume\nShared by A and B]
+    accTitle: Per-replica ephemeral storage budget in Azure Container Apps
+    accDescr: The total vCPU allocation selects one documented ephemeral storage limit for each replica. Container file systems and EmptyDir volumes inside that replica consume the same total, while another replica receives its own separate budget and EmptyDir data.
+
+    CPU["Total vCPUs allocated<br/>to one replica"]
+    LIMIT["Documented total per replica<br/>0.25 or lower: 1 GiB<br/>0.5 or lower: 2 GiB<br/>1 or lower: 4 GiB<br/>over 1: 8 GiB"]
+
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        subgraph REPLICAS["Revision replicas — each has its own total"]
+            subgraph R1["Replica A — one ephemeral budget"]
+                B1["Shared ephemeral budget<br/>container file systems + EmptyDir"]
+                C1["Container A<br/>file system"]
+                C2["Container B<br/>file system"]
+                E1["EmptyDir volume<br/>shared only inside Replica A"]
+            end
+
+            subgraph R2["Replica B — separate budget and data"]
+                B2["Separate ephemeral budget<br/>container file system + EmptyDir"]
+                C3["Container A<br/>file system"]
+                E2["Separate EmptyDir volume"]
+            end
+        end
     end
-    C1 -- shares budget --> E
-    C2 -- shares budget --> E
+
+    CPU -->|"Select limit"| LIMIT
+    APP -.->|"Logical membership"| REV_ACTIVE
+    REV_ACTIVE -.->|"Runs as"| REPLICAS
+    LIMIT -.->|"Applies per replica"| B1
+    LIMIT -.->|"Applies per replica"| B2
+    C1 -->|"Consumes from"| B1
+    C2 -->|"Consumes from"| B1
+    E1 -->|"Consumes from"| B1
+    C3 -->|"Consumes from"| B2
+    E2 -->|"Consumes from"| B2
+
+    LEGEND["Boundary key<br/>budget and EmptyDir data are replica-scoped"]
 ```
 
 You can inspect the ephemeral storage limit for a running container app:
@@ -102,7 +167,11 @@ az containerapp show \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp show` | Shows the current container app resource. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--query "properties.template.containers[0].resources"` | Extracts the CPU, memory, and ephemeralStorage fields from the first container definition |
+| `--output yaml` | Formats the selected resource values as YAML. |
 
 <!-- Verified: real az CLI output from koreacentral, 2026-05-01 -->
 ```yaml
@@ -144,6 +213,9 @@ az containerapp show \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp show` | Shows the current container app resource. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--output yaml` | Exports the full app spec as YAML for editing |
 
 Edit `app.yaml` to add the volume and mount:
@@ -183,6 +255,9 @@ az containerapp update \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp update` | Updates the container app from the supplied YAML specification. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--yaml app.yaml` | Applies the edited spec including the new volume definition |
 | `--output yaml` | Returns the updated app spec for verification |
 
@@ -197,6 +272,9 @@ az containerapp show \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp show` | Shows the current container app resource. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--output yaml` | Returns the full app spec; inspect `volumes` and `volumeMounts` to confirm the EmptyDir is registered |
 
 <!-- Verified: real az CLI output from koreacentral, 2026-05-01 -->
@@ -222,6 +300,8 @@ az containerapp job start \
 | Command/Code | Purpose |
 |---|---|
 | `az containerapp job start` | Triggers a manual job execution; the job writes to and reads from the EmptyDir volume |
+| `--name $JOB_NAME` | Selects the Container Apps job. |
+| `--resource-group $RG` | Selects the resource group that contains the job. |
 
 The job command writes a file to `/mnt/cache`, reads it back, lists the directory, and reports disk usage:
 
@@ -242,36 +322,29 @@ DONE
 |---|---|
 | `WRITTEN` / `hello-emptydir` | Write and read succeeded — EmptyDir is writable |
 | `test.txt` 15 bytes | File persisted within the replica lifetime |
-| `148G … /mnt/cache` | Backed by node ephemeral disk, not a separate volume limit |
+| `148G … /mnt/cache` | Filesystem-reported capacity from this historical run; it does not establish or replace the documented Container Apps ephemeral-storage limit |
 
 !!! note "EmptyDir does not share data across replicas"
     Each replica has its own EmptyDir instance. Data written by one replica is not visible to another. For cross-replica sharing, use Azure Files.
 
 ### Azure Files (Persistent Storage)
 
-Azure Files provides persistent storage that survives container restarts, replica replacements, and revision rollbacks. Multiple containers across different replicas, revisions, or container apps can mount the same file share simultaneously.
+Azure Files provides persistent storage outside the container and replica lifecycle. Microsoft Learn documents that multiple containers can mount the same file share, including containers in another replica, revision, or container app. All mount clients can access files written to that share, subject to the configured access mode and file-share permissions.
 
 **Supported protocols:**
 
 | Protocol | storageType value | Use case |
 |---|---|---|
 | SMB | `AzureFile` | General-purpose file sharing, Windows-compatible |
-| NFS | `NfsAzureFile` | Linux-native workloads, high-throughput scenarios |
+| NFS | `NfsAzureFile` | NFS-compatible Linux file sharing |
 
-!!! warning "NFS requires a custom VNet"
-    NFS Azure Files requires the Container Apps environment to use a custom VNet. Ports 445 (SMB) and 2049 (NFS) must be open in the NSG associated with the environment subnet.
+!!! warning "Azure Files network prerequisites"
+    NFS Azure Files requires a Container Apps environment with a custom VNet, and the storage account must allow access from that VNet. For a custom-VNet environment, Microsoft Learn instructs you to allow ports 445 and 2049 in the NSG associated with the subnet. NFS mounts also fail when the storage account requires encrypted NFS connections because Container Apps does not support encryption in transit for NFS Azure file shares.
 
 !!! note "Unsupported storage backends"
     Azure Container Apps does not support mounting Azure NetApp Files or Azure Blob Storage as volumes.
 
-!!! warning "Azure Files SMB in Consumption environments"
-    Port 445 (SMB) outbound may be blocked in Consumption-only environments without a custom VNet.
-    If your job or app replica stays in `Activating` state after adding an Azure Files volume, the mount is failing silently.
-    Workarounds:
-
-    - Deploy into a **Workload Profiles environment** with a custom VNet and an NSG that allows port 445 outbound.
-    - Switch to **NFS** (`storageType: NfsAzureFile`) — requires a Premium FileStorage account and a custom VNet.
-    - Use **EmptyDir** for ephemeral scratch space and persist data to Azure Blob Storage via application code.
+For new SMB mounts, Microsoft Learn recommends managed identity authentication (preview). The identity belongs to the Container Apps **environment**, not the individual app. Storage account key authentication remains supported. NFS uses network-based access controls rather than SMB authentication settings.
 
 #### Register Azure Files with the Environment
 
@@ -279,7 +352,7 @@ Before mounting, register the file share at the environment level:
 
 ```bash
 az containerapp env storage set \
-  --name $ENV_NAME \
+  --name $ACA_ENV_NAME \
   --resource-group $RG \
   --storage-name my-files \
   --storage-type AzureFile \
@@ -291,15 +364,21 @@ az containerapp env storage set \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp env storage set` | Creates or updates a storage definition on the Container Apps environment. |
+| `--name $ACA_ENV_NAME` | Selects the Container Apps environment. |
+| `--resource-group $RG` | Selects the resource group that contains the environment. |
 | `--storage-name` | Logical name for the storage definition in the environment |
 | `--storage-type AzureFile` | Specifies SMB Azure Files |
+| `--azure-file-account-name $STORAGE_ACCOUNT` | Selects the storage account that contains the file share. |
+| `--azure-file-account-key $STORAGE_KEY` | Authenticates the storage definition with the storage account key. |
+| `--azure-file-share-name $SHARE_NAME` | Selects the Azure file share. |
 | `--access-mode ReadWrite` | Mounts with read and write permissions |
 
 Verify the registration:
 
 ```bash
 az containerapp env storage list \
-  --name $ENV_NAME \
+  --name $ACA_ENV_NAME \
   --resource-group $RG \
   --output table
 ```
@@ -307,6 +386,9 @@ az containerapp env storage list \
 | Command/Code | Purpose |
 |---|---|
 | `az containerapp env storage list` | Lists all storage definitions registered in the environment |
+| `--name $ACA_ENV_NAME` | Selects the Container Apps environment. |
+| `--resource-group $RG` | Selects the resource group that contains the environment. |
+| `--output table` | Formats the storage definitions as a table. |
 
 <!-- Verified: real az CLI output from koreacentral, 2026-05-01 -->
 ```text
@@ -345,16 +427,31 @@ properties:
 <!-- diagram-id: storage-decision-guide -->
 ```mermaid
 flowchart TD
-    Q1{Does data need to survive\na container restart?} -->|No| Q2{Is it shared between\ncontainers in same replica?}
-    Q1 -->|Yes| Q3{Is it shared across\nreplicas or revisions?}
+    accTitle: Choose an Azure Container Apps storage surface
+    accDescr: The decision starts with whether the workload needs secret files, a file-system mount, or a service API. Temporary file data can stay in one container or use EmptyDir inside one replica. Data that must outlive a replica or be shared across replicas uses Azure Files over SMB or NFS. Blob and other service-native data use an SDK or API rather than a volume mount.
 
-    Q2 -->|No| A1[Container-scoped storage\nNo config needed]
-    Q2 -->|Yes| A2[EmptyDir volume\nstorageType: EmptyDir]
+    PURPOSE{"What interface does<br/>the workload need?"}
+    SECRET["Secret volume<br/>selected app secrets as files"]
+    SERVICE["External service via SDK or API<br/>Blob, database, or queue<br/>not a Container Apps volume mount"]
+    OUTLIVE{"Must file data outlive<br/>a replica or be shared<br/>across replicas or revisions?"}
+    SAME{"Must containers in the<br/>same replica share it?"}
+    CONTAINER["Container file system<br/>lost on container restart"]
+    EMPTY["EmptyDir volume<br/>survives container restart<br/>lost when replica shuts down"]
+    PROTOCOL{"Which Azure Files<br/>protocol is required?"}
+    SMB["Azure Files SMB<br/>storageType: AzureFile"]
+    NFS["Azure Files NFS<br/>storageType: NfsAzureFile<br/>custom VNet required"]
 
-    Q3 -->|No| A2
-    Q3 -->|Yes| Q4{High-throughput\nor Linux-native?}
-    Q4 -->|No| A3[Azure Files SMB\nstorageType: AzureFile]
-    Q4 -->|Yes| A4[Azure Files NFS\nstorageType: NfsAzureFile\nRequires custom VNet]
+    PURPOSE -->|"Secret files"| SECRET
+    PURPOSE -->|"Service-native API"| SERVICE
+    PURPOSE -->|"File-system data"| OUTLIVE
+    OUTLIVE -->|"No"| SAME
+    OUTLIVE -->|"Yes"| PROTOCOL
+    SAME -->|"No"| CONTAINER
+    SAME -->|"Yes"| EMPTY
+    PROTOCOL -->|"SMB"| SMB
+    PROTOCOL -->|"NFS"| NFS
+
+    LEGEND["Decision key<br/>temporary = container or replica lifecycle<br/>persistent shared files = Azure Files"]
 ```
 
 ### Common Mistakes
@@ -363,9 +460,9 @@ flowchart TD
 |---|---|---|
 | Writing upload files to container-scoped storage | Files lost on container restart | Mount Azure Files at the upload path |
 | Using EmptyDir for cross-replica cache | Each replica has isolated storage; cache misses on every new replica | Use Redis Cache or Azure Files |
-| Mounting NFS without a custom VNet | Deployment fails silently | Configure custom VNet before creating the environment |
+| Mounting NFS without a custom VNet and storage-account network access | The mount fails | Use a custom VNet and allow the storage account to be reached from it |
 | Sub path starting with `/` | Container app fails to start | Use relative sub paths: `uploads`, not `/uploads` |
-| Exceeding ephemeral storage budget | `EphemeralStorageExceeded` crash loop | Reduce write volume, add log rotation, or increase vCPU allocation |
+| Treating filesystem-reported capacity as the Container Apps limit | Writes can exceed the documented per-replica budget even when `df` reports a larger backing filesystem | Design against the documented vCPU-based limit; reduce temporary writes, rotate logs, or allocate more vCPU when appropriate |
 
 ### Verify storage surfaces in Azure Portal
 
@@ -388,4 +485,5 @@ flowchart TD
 
 - [Use storage mounts in Azure Container Apps — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
 - [Create an Azure Files storage mount — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files)
+- [Manage secrets in Azure Container Apps — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#mounting-secrets-in-a-volume)
 - [Troubleshoot storage mount failures — Microsoft Learn](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures)

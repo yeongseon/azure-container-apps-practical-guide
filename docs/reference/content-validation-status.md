@@ -57,7 +57,7 @@ pie title In-Scope Document Validation Status
 | [Index](../platform/security/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/environments/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/networking/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Index](../platform/storage/index.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
+| [Index](../platform/storage/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/scaling/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/dapr/index.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
