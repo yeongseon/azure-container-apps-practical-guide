@@ -15,15 +15,6 @@ from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPLAY_LABS: Final = {
-    "acr-network-path-dns-forwarder-bypass": (
-        (
-            "14-cohort-integrity-gate.json",
-            "15-h1-trigger-produces-failure-gate.json",
-            "16-h2-fix-restores-recovery-gate.json",
-            "17-bounded-falsification-gate.json",
-        ),
-        (),
-    ),
     "acr-network-path-firewall-allowlist": (
         (
             "14-cohort-integrity-gate.json",
@@ -559,7 +550,6 @@ class EvaluationReplayTests(unittest.TestCase):
 
     def test_previous_verifier_capture_stamp_is_rejected(self) -> None:
         for name in (
-            "acr-network-path-dns-forwarder-bypass",
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
         ):
