@@ -93,14 +93,14 @@ pie title In-Scope Document Validation Status
 
 | Document | Has Sources | Status | Claims | Last Reviewed |
 |---|---|---|---|---|
-| [Anti Patterns](../best-practices/anti-patterns.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
-| [Availability And Non Guarantees](../best-practices/availability-and-non-guarantees.md) | ✅ | ✅ Verified | 5/5 | 2026-06-12 |
+| [Anti Patterns](../best-practices/anti-patterns.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
+| [Availability And Non Guarantees](../best-practices/availability-and-non-guarantees.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
 | [Blue Green Deployment](../best-practices/blue-green-deployment.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Canary Deployment](../best-practices/canary-deployment.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Compliance Baseline](../best-practices/compliance-baseline.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Container Design](../best-practices/container-design.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
-| [Cost](../best-practices/cost.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Environment Design](../best-practices/environment-design.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Cost](../best-practices/cost.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
+| [Environment Design](../best-practices/environment-design.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
 | [Identity And Secrets](../best-practices/identity-and-secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Image Security](../best-practices/image-security.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Job Design](../best-practices/job-design.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
@@ -108,7 +108,7 @@ pie title In-Scope Document Validation Status
 | [Landing Zone Accelerator](../best-practices/landing-zone-accelerator.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Mtls](../best-practices/mtls.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Reliability](../best-practices/reliability.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
+| [Reliability](../best-practices/reliability.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
 | [Revision Strategy](../best-practices/revision-strategy.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Scaling](../best-practices/scaling.md) | ✅ | ✅ Verified | 6/6 | 2026-09-11 |
 | [Security](../best-practices/security.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
