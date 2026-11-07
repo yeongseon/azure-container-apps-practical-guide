@@ -33,6 +33,31 @@ def check_replay(lab_name: str, gates: list[str], verify_args: list[str]) -> int
             return 1
         committed[name] = json.loads(show.stdout)
 
+    tracked = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "HEAD", "--", evidence.as_posix()],
+        capture_output=True, text=True, check=True,
+    )
+    gate_paths = {(evidence / name).as_posix() for name in gates}
+    raw_paths = [Path(name) for name in tracked.stdout.splitlines() if name not in gate_paths]
+    raw_failures: list[str] = []
+    for path in raw_paths:
+        committed_raw = subprocess.run(
+            ["git", "show", f"HEAD:{path.as_posix()}"],
+            capture_output=True, check=True,
+        ).stdout
+        try:
+            current_raw = path.read_bytes()
+        except OSError as error:
+            raw_failures.append(f"{path}: missing current raw input: {error}")
+            continue
+        if current_raw != committed_raw:
+            raw_failures.append(f"{path}: current raw input bytes differ from HEAD")
+    if raw_failures:
+        print("Replay anchors cannot be reused for a different raw cohort:", file=sys.stderr)
+        for failure in raw_failures:
+            print(f"  - {failure}", file=sys.stderr)
+        return 1
+
     for name in gates:
         (evidence / name).unlink(missing_ok=True)
     start = datetime.now(timezone.utc).replace(microsecond=0)
