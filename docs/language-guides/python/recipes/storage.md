@@ -25,12 +25,30 @@ Connect your Container App to Azure Storage — either by mounting an Azure File
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    MNT[Environment storage mount<br/>appfiles] --> FILES[Azure Files share]
-    APP[Container App] --> RW[Read/write on /mnt/appfiles]
-    RW --> MNT
+    accTitle: Choose persistent object or file storage for a Python app
+    accDescr: The Python app can use its managed identity with the Blob SDK for object storage, or mount a classic Azure Files share through an environment storage definition for shared filesystem access.
+
+    APP_ID[App managed identity]
+    ENV_ID[Environment managed identity<br/>recommended for new SMB mounts]
+    BLOB[Azure Blob Storage]
+    FILES[Classic Azure Files share]
+
+    subgraph ENV[Container Apps environment]
+        APP[Python container app]
+        STORAGE[Environment storage definition]
+        MOUNT[Mounted path<br/>/mnt/appfiles]
+    end
+
+    APP -.->|Uses for SDK authentication| APP_ID
+    APP_ID -.->|Blob data role| BLOB
+    APP ==>|Blob SDK requests| BLOB
+    ENV_ID -.->|Assigned to environment| STORAGE
+    STORAGE -.->|References share| FILES
+    APP ==>|Filesystem read and write| MOUNT
+    MOUNT ==>|SMB file operations| FILES
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show object or file transport. Dotted arrows show identity, authorization, and storage-definition associations.
 
 !!! note "Blob mounts are not supported in Container Apps"
     Unlike App Service, Azure Container Apps **cannot mount Blob Storage as a filesystem path**. Use the Azure Storage Blob SDK with Managed Identity for blob access. For shared filesystem access, use **Azure Files volume mounts**.
@@ -41,27 +59,29 @@ Container Apps containers are ephemeral by default — all writes to the local f
 
 <!-- diagram-id: container-apps-containers-are-ephemeral-by -->
 ```mermaid
-graph TD
-    CA[Container App<br/>Replica] -->|SDK + Managed Identity| BLOB[Azure Blob Storage<br/>Containers / Objects]
-    CA -->|Filesystem read/write<br/>/mnt/appfiles| MOUNT[Azure Files Volume Mount<br/>SMB share]
-    CA -->|Fast temp storage<br/>/tmp| EMPTY[EmptyDir Volume<br/>In-memory / local disk]
+flowchart TD
+    accTitle: Compare Container Apps storage lifetimes
+    accDescr: Container-scoped filesystem data lasts until that container stops or restarts. EmptyDir data is shared by containers in one replica and lasts for the replica lifetime, including individual container restarts. Azure Files persists outside replicas and can be shared across replicas, revisions, and apps.
 
-    subgraph ACA Environment
-        ENV[Container Apps Environment<br/>env storage: appfiles]
-        ENV --> MOUNT
-    end
+    WRITE[Application writes data]
+    CHOICE{Required lifetime and access?}
+    LOCAL[Container-scoped filesystem]
+    EMPTY[Replica-scoped EmptyDir]
+    FILES[Azure Files volume]
+    LOCAL_END[Removed when container<br/>stops or restarts]
+    EMPTY_END[Persists across container restart<br/>removed when replica stops]
+    FILES_KEEP[Persists in Azure Files<br/>shareable across replicas and apps]
 
-    subgraph Azure Storage
-        BLOB
-        MOUNT
-    end
-
-    style CA fill:#0078d4,color:#fff
-    style ENV fill:#e6f2fb,stroke:#0078d4
-    style BLOB fill:#f0f0f0,stroke:#888
-    style MOUNT fill:#f0f0f0,stroke:#888
-    style EMPTY fill:#f0f0f0,stroke:#888
+    WRITE --> CHOICE
+    CHOICE -->|Current container only| LOCAL
+    CHOICE -->|Containers in one replica| EMPTY
+    CHOICE -->|Persistent shared files| FILES
+    LOCAL --> LOCAL_END
+    EMPTY --> EMPTY_END
+    FILES --> FILES_KEEP
 ```
+
+Arrows show storage-selection and lifetime outcomes, not network transport.
 
 ### When to use which storage type
 
@@ -80,8 +100,8 @@ graph TD
 | Option | Persistence | Shared across replicas | Access type | Authentication |
 |--------|-------------|----------------------|-------------|----------------|
 | Container local disk | ❌ Ephemeral | ❌ No | Filesystem | N/A |
-| EmptyDir volume | ❌ Per-revision | ✅ Within replica only | Filesystem | N/A |
-| Azure Files mount | ✅ Persistent | ✅ Yes | Filesystem | Storage key (via env storage) |
+| EmptyDir volume | ❌ Replica lifetime | ✅ Between containers in one replica | Filesystem | N/A |
+| Azure Files mount | ✅ Persistent | ✅ Yes | Filesystem | Environment managed identity for new SMB mounts (preview), storage key alternative, or network controls for NFS |
 | Blob Storage SDK | ✅ Persistent | ✅ Yes | SDK / HTTP | Managed Identity or key |
 
 ### I/O performance
@@ -223,7 +243,7 @@ az containerapp logs show \
 
 Mount an Azure Files share into the container as a local directory. All replicas share the same mounted filesystem.
 
-!!! important "Volume mounts are registered at the Environment level"
+!!! important "Azure Files storage is registered at the environment level"
     In Container Apps, storage is registered on the **Environment**, not the app. Once registered, any app in that environment can reference it. A change to volume mounts creates a new **revision**.
 
 ### Step 1: Create an Azure Files share
@@ -506,9 +526,11 @@ template:
 
 ---
 
-## Security: Protecting the Storage Key
+## Security: Choose the Azure Files authentication mode
 
-The `az containerapp env storage set` command requires a storage account key. Avoid storing this key in scripts or CI pipelines — use Key Vault instead.
+For new SMB mounts, Microsoft recommends managed identity authentication in preview. The identity is assigned to the **Container Apps environment**, not the individual app. Existing storage-account-key mounts remain supported. NFS mounts use network-based access controls rather than SMB authentication settings.
+
+The key-based commands below document the alternative path. Avoid storing the key in scripts or CI pipelines.
 
 ### Store the storage key in Key Vault
 
@@ -545,8 +567,8 @@ resource environmentStorage 'Microsoft.App/managedEnvironments/storages@2023-05-
 }
 ```
 
-!!! note "Managed Identity not supported for volume mounts"
-    Azure Files volume mounts in Container Apps authenticate using a **storage account key** — Managed Identity is not supported for the mount mechanism itself. Use Key Vault to secure the key at rest. For blob access (SDK-based), Managed Identity is fully supported and preferred.
+!!! note "Managed identity scope differs by storage path"
+    Blob SDK access uses the **app** identity. New SMB Azure Files mounts can use a managed identity assigned to the **environment** when the storage account and RBAC prerequisites are configured. Do not combine `--azure-file-identity` with the storage-key authentication options.
 
 See [Key Vault Secrets Management](../../../platform/identity-and-secrets/key-vault.md) for the full setup.
 
@@ -557,9 +579,9 @@ See [Key Vault Secrets Management](../../../platform/identity-and-secrets/key-va
 !!! warning "Know these before relying on Azure Files mounts in production"
 
     - **Storage is registered at environment level.** All apps in the environment can reference the same storage name. Name your storages clearly (`appfiles-prod`, `appfiles-staging`) to avoid confusion.
-    - **Blob Storage cannot be mounted as a filesystem path.** Container Apps only supports `AzureFile`, `EmptyDir`, and `Secret` volume types — not `AzureBlob`. Use the SDK for blob access.
+    - **Blob Storage cannot be mounted as a filesystem path.** Use the SDK for blob access. Persistent file mounts use classic Azure Files shares over SMB (`AzureFile`) or NFS (`NfsAzureFile`).
     - **Volume mount changes create a new revision.** Updating `volumeMounts` or `volumes` in the app template triggers a revision rollout. Plan for this in production.
-    - **Azure Files uses SMB over network.** Expect ~10–50ms latency per I/O operation. Avoid patterns that do thousands of small reads/writes per request.
+    - **Azure Files is network storage.** Measure the selected share and protocol under your workload instead of relying on a universal latency estimate.
     - **SQLite and file-locking workloads are unreliable.** SMB file locks are not fully compatible with SQLite's locking model. Use Azure SQL or Cosmos DB instead.
     - **Scaling to zero disconnects the mount.** When a Container App scales to zero replicas, there is no active mount. On scale-up, the mount reconnects automatically — but do not assume the mount is always live.
     - **Storage account key in environment storage is not rotated automatically.** If you rotate the storage key, you must re-run `az containerapp env storage set` with the new key.
