@@ -3,58 +3,79 @@ content_sources:
   diagrams:
     - id: ingress-flow
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Operator deployment flow synthesized from Microsoft Learn; management configuration is separated from the accepted runtime request path through the managed ingress proxy, revision, and replica.
       based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
     - id: vnet-setup-flow
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Deployment topology synthesized from Microsoft Learn and the shared cross-guide private-dependency contract; it separates the dedicated ACA environment subnet, target-side private endpoint subnet, DNS, and transport.
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
     - id: diagnostic-flow
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Operator decision flow synthesized from Microsoft Learn; DNS, TCP transport, TLS, HTTP routing and response source, network-policy rejection, and application authorization are tested independently from the caller network context.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
-    - claim: Azure Container Apps supports both external and internal ingress.
+    - claim: A workload profiles environment requires a dedicated subnet of /27 or larger delegated to Microsoft.App/environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+      verified: true
+    - claim: A legacy Consumption-only environment requires a dedicated subnet of /23 or larger that is not delegated to Microsoft.App/environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+      verified: true
+    - claim: An internal Container Apps environment has no public endpoint and uses an internal load balancer IP from the custom virtual network.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
       verified: true
-    - claim: Internal ingress FQDNs for Azure Container Apps resolve only from within the environment virtual network.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+    - claim: An app's internal-ingress FQDN is directly reachable only from other apps in the same Container Apps environment, but an environment-level HTTP route can still forward outside traffic to that app.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
       verified: true
-    - claim: A subnet used for an Azure Container Apps environment must be delegated to Microsoft.App/environments.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
-      verified: true
-    - claim: Container apps in the same environment can communicate by using their ingress FQDNs.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - claim: Creating a private endpoint on a Container Apps environment requires a workload profiles environment and disabled public network access.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
       verified: true
 ---
 # Networking Operations
 
-This guide covers networking operations for Container Apps: ingress updates, VNet-related checks, and service discovery between apps.
+Use this runbook to deploy and verify Container Apps ingress, a custom virtual network, internal-environment DNS, and private dependency paths. Keep app ingress visibility, environment accessibility, DNS resolution, and packet transport as separate decisions.
 
 ## Prerequisites
 
-- Container Apps environment deployed with required network model
-- Ingress requirements documented (internal vs external)
+- Azure CLI with the current Container Apps extension.
+- Permission to read or change the Container App, its environment, and the customer-managed VNet.
+- A dedicated environment subnet sized for the selected environment type.
+- A caller in the same network context as the expected traffic path for data-plane verification.
 
 ```bash
 export RG="rg-myapp"
 export APP_NAME="ca-myapp"
 export ACA_ENV_NAME="cae-myapp"
+export VNET_NAME="vnet-aca-prod"
+export ENV_SUBNET_NAME="snet-containerapps"
 ```
 
-## Ingress Configuration Operations
+## When to Use
 
-Enable external ingress with explicit target port:
+Use this procedure before a networking change, after an environment deployment, or when DNS resolves but an application request still fails. Record the current ingress and environment JSON before changing either resource.
+
+## Procedure
+
+### Configure app ingress
+
+App-level **external** ingress publishes the app at the environment inbound boundary. It is internet-reachable only when the environment has a public inbound endpoint and public network access accepts the traffic. On an internal environment, external app ingress instead makes the app reachable through the environment's internal load balancer from the VNet.
 
 ```bash
 az containerapp ingress enable \
@@ -64,45 +85,15 @@ az containerapp ingress enable \
   --target-port 8000
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
+| `az containerapp ingress enable` | Enables ingress on the existing Container App. |
+| `--name "$APP_NAME"` | Selects the app to update. |
+| `--resource-group "$RG"` | Selects the resource group that contains the app. |
+| `--type external` | Publishes the app at the environment inbound boundary; it does not independently create internet reachability. |
+| `--target-port 8000` | Routes accepted ingress traffic to the container listener on port `8000`. |
 
-### Ingress Flow
-
-<!-- diagram-id: ingress-flow -->
-```mermaid
-flowchart TD
-    subgraph ControlPlane [Azure Control Plane]
-        CLI[Azure CLI: az containerapp ingress enable]
-        ARM[Azure Resource Manager]
-    end
-
-    subgraph DataPlane [Container Apps Data Plane]
-        ENV[Envoy Managed Ingress]
-        POD[App Revision]
-    end
-
-    CLI -- Update Request --> ARM
-    ARM -- Configure --> ENV
-    ENV -- Route Traffic --> POD
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp ingress enable] ...` | Enables ingress for workloads that must receive inbound traffic. |
-
-Switch to internal ingress for private-only access:
-
-```bash
-az containerapp ingress disable \
-  --name "$APP_NAME" \
-  --resource-group "$RG"
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp ingress disable ...` | Disables inbound access for workloads that should not expose an endpoint. |
+Use app-level **internal** ingress when only other apps in the same Container Apps environment should directly reach the app's own FQDN:
 
 ```bash
 az containerapp ingress enable \
@@ -112,389 +103,360 @@ az containerapp ingress enable \
   --target-port 8000
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
+| `az containerapp ingress enable` | Enables ingress on the existing Container App. |
+| `--name "$APP_NAME"` | Selects the app to update. |
+| `--resource-group "$RG"` | Selects the resource group that contains the app. |
+| `--type internal` | Limits direct access to other apps in the same Container Apps environment. |
+| `--target-port 8000` | Routes accepted ingress traffic to the container listener on port `8000`. |
 
-### Verify Ingress Configuration
+!!! warning "Internal ingress is not an absolute isolation boundary"
+    An environment-level HTTP route can target an internal-ingress app (`external: false`) and forward requests from the route FQDN. To keep the app unreachable from outside the environment, do not include it as an HTTP route target, or isolate it in an environment with no public routes.
 
-**Control-plane check** — confirm ingress type and target port:
+Disable ingress for workers and jobs that should expose no inbound endpoint:
 
 ```bash
-az containerapp show \
+az containerapp ingress disable \
   --name "$APP_NAME" \
-  --resource-group "$RG" \
-  --query "properties.configuration.ingress" \
-  --output json
+  --resource-group "$RG"
+```
 
+| Command/Parameter | Purpose |
+|---|---|
+| `az containerapp ingress disable` | Removes the app's inbound endpoint. |
+| `--name "$APP_NAME"` | Selects the app to update. |
+| `--resource-group "$RG"` | Selects the resource group that contains the app. |
+
+#### Ingress deployment flow
+
+**Takeaway:** The CLI changes desired configuration through Azure Resource Manager. Only an accepted runtime request follows the managed ingress → active revision → replica path.
+
+<!-- diagram-id: ingress-flow -->
+```mermaid
+flowchart TD
+    accTitle: Deploy and verify Container Apps ingress
+    accDescr: An operator sends an ingress update through Azure Resource Manager. The platform applies the desired app configuration. A separate caller request reaches an allowed environment entry, then the managed ingress proxy routes it to an active revision and a ready replica. Dotted arrows are management or logical relationships; thick arrows are request transport.
+
+    OPERATOR["Operator<br/>Azure CLI or IaC"]
+    CALLER["Expected caller<br/>through the configured<br/>environment entry"]
+
+    subgraph MGMT["Azure management plane"]
+        ARM["Azure Resource Manager"]
+        RP["Container Apps resource provider"]
+    end
+
+    subgraph ENV["Managed Container Apps environment"]
+        ENTRY["Allowed environment entry<br/>public or private"]
+        INGRESS["Managed ingress proxy<br/>TLS and request routing"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        REPLICAS["Ready revision replicas<br/>running instances"]
+    end
+
+    OPERATOR -->|"1  Submit ingress configuration"| ARM
+    ARM -->|"2  Resource operation"| RP
+    RP -.->|"3  Apply desired app state"| APP
+    APP -.->|"Logical membership"| REV_ACTIVE
+
+    CALLER ==>|"4  HTTPS through allowed boundary"| ENTRY
+    ENTRY ==>|"5  Accepted request"| INGRESS
+    INGRESS ==>|"6  Route by traffic rule"| REV_ACTIVE
+    REV_ACTIVE ==>|"7  Select ready replica"| REPLICAS
+
+    LEGEND["Arrow key<br/>thick = runtime request<br/>solid = management operation<br/>dotted = desired state or logical relationship"]
+```
+
+*Figure: Deployment and runtime flows share the reviewed ACA `ARM`, `RP`, `ENV`, `INGRESS`, `APP`, `REV_ACTIVE`, and `REPLICAS` vocabulary without presenting a management update as packet transport.*
+
+### Deploy a custom VNet environment
+
+Choose the environment type before creating the subnet. The network type and subnet size can't be changed after environment creation.
+
+| Environment type | Minimum dedicated subnet | Delegation | Relevant network features |
+|---|---:|---|---|
+| Workload profiles (default) | `/27` or larger | Required: `Microsoft.App/environments` | UDR, NAT Gateway egress, and environment private endpoints are supported. |
+| Consumption-only (legacy) | `/23` or larger | Must remain undelegated | UDR, NAT Gateway egress, and environment private endpoints are not supported. |
+
+The following Bicep fragment deliberately targets a workload profiles environment. It accepts address ranges as parameters instead of embedding reusable CIDRs:
+
+```bicep
+@description('Virtual network address prefix')
+param vnetAddressPrefix string
+
+@description('Dedicated workload profiles environment subnet prefix (/27 or larger)')
+param environmentSubnetPrefix string
+
+resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {
+  name: 'vnet-aca-prod'
+  location: resourceGroup().location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [vnetAddressPrefix]
+    }
+    subnets: [
+      {
+        name: 'snet-containerapps'
+        properties: {
+          addressPrefix: environmentSubnetPrefix
+          delegations: [
+            {
+              name: 'Microsoft.App.environments'
+              properties: {
+                serviceName: 'Microsoft.App/environments'
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+  name: 'cae-myapp'
+  location: resourceGroup().location
+  properties: {
+    workloadProfiles: [
+      {
+        name: 'Consumption'
+        workloadProfileType: 'Consumption'
+      }
+    ]
+    vnetConfiguration: {
+      infrastructureSubnetId: vnet.properties.subnets[0].id
+      internal: true
+    }
+  }
+}
+```
+
+For a legacy Consumption-only environment, use a separate template path with a `/23` or larger dedicated subnet and omit the delegation. Do not make the delegation conditional inside a shared topology without making the environment type equally explicit.
+
+#### VNet deployment topology
+
+**Takeaway:** ACA uses a dedicated environment subnet relationship, not an App Service-style integration NIC. A downstream Storage private endpoint occupies a separate target-side subnet, while DNS remains outside the transport path.
+
+<!-- diagram-id: vnet-setup-flow -->
+```mermaid
+flowchart TD
+    accTitle: Deploy Container Apps networking with separate subnet and DNS roles
+    accDescr: A workload profiles Container Apps environment is associated with a dedicated delegated environment subnet. Its logical revision replicas resolve an internal environment name through a private DNS zone and resolve a Storage Blob name through a separate linked private DNS zone. HTTPS to Storage uses a private endpoint NIC in a distinct target-side subnet. The Storage account and DNS zones are outside the virtual network.
+
+    ENV_DNS["Private DNS zone<br/>environment default domain<br/>wildcard A record to staticIp"]
+    STORAGE_DNS["Private DNS zone<br/>privatelink.blob.core.windows.net<br/>linked to customer VNet"]
+    STORAGE["Storage account<br/>outside customer VNet"]
+
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        INGRESS["Managed ingress proxy"]
+        APP["Container app — logical grouping"]
+        REV_ACTIVE["Active revision"]
+        REPLICAS["Revision replicas"]
+        INGRESS -.-> APP
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.-> REPLICAS
+    end
+
+    subgraph VNET["Customer-managed virtual network"]
+        subgraph ENV_SUBNET["Dedicated environment subnet"]
+            ADAPTER["ACA environment subnet relationship<br/>workload profiles: delegated<br/>Consumption-only: undelegated"]
+        end
+        subgraph PE_SUBNET["Target-side private endpoint subnet"]
+            STORAGE_PE["Storage private endpoint NIC<br/>Blob private IP"]
+        end
+    end
+
+    ADAPTER -.->|"Associates environment"| ENV
+    ENV_DNS -.->|"Internal environment name to staticIp"| INGRESS
+    REPLICAS -.->|"1  Resolve Storage service name"| STORAGE_DNS
+    STORAGE_DNS -.->|"2  Return private endpoint IP"| REPLICAS
+    REPLICAS ==>|"3  HTTPS to private IP"| STORAGE_PE
+    STORAGE_PE ==>|"4  Private Link"| STORAGE
+
+    LEGEND["Arrow key<br/>thick = HTTPS or data transport<br/>dotted = DNS, association, or logical relationship"]
+```
+
+*Figure: Internal-environment DNS and downstream dependency DNS are separate from transport. The Storage private endpoint NIC is not an inbound private endpoint to the Container Apps environment.*
+
+If the design instead creates an **inbound private endpoint to the Container Apps environment**, use a workload profiles environment, disable public network access, and use the regional `privatelink.<region>.azurecontainerapps.io` private DNS zone. That inbound endpoint is separate from both the dedicated environment subnet and the downstream Storage endpoint shown above.
+
+### Inspect the deployed environment and subnet
+
+```bash
+az containerapp env show \
+  --name "$ACA_ENV_NAME" \
+  --resource-group "$RG" \
+  --query "{defaultDomain:properties.defaultDomain,staticIp:properties.staticIp,vnetConfiguration:properties.vnetConfiguration,publicNetworkAccess:properties.publicNetworkAccess}" \
+  --output json
+```
+
+| Command/Parameter | Purpose |
+|---|---|
+| `az containerapp env show` | Reads the deployed environment configuration. |
+| `--name "$ACA_ENV_NAME"` | Selects the environment. |
+| `--resource-group "$RG"` | Selects its resource group. |
+| `--query "{...}"` | Returns only the default domain, static IP, VNet configuration, and public-network setting needed for verification. |
+| `--output json` | Preserves nested VNet configuration in structured output. |
+
+For an internal environment, `staticIp` is the internal load balancer address from the custom VNet. Create or verify a Private DNS zone named after `defaultDomain`, link it to the caller VNet, and point a wildcard A record to that `staticIp`. For an external environment, `staticIp` represents the environment ingress virtual IP and is not evidence that the endpoint is private.
+
+```bash
+az network vnet subnet show \
+  --resource-group "$RG" \
+  --vnet-name "$VNET_NAME" \
+  --name "$ENV_SUBNET_NAME" \
+  --query "{addressPrefix:addressPrefix,delegations:delegations[].serviceName,privateEndpointNetworkPolicies:privateEndpointNetworkPolicies}" \
+  --output json
+```
+
+| Command/Parameter | Purpose |
+|---|---|
+| `az network vnet subnet show` | Reads the dedicated environment subnet. |
+| `--resource-group "$RG"` | Selects the VNet resource group. |
+| `--vnet-name "$VNET_NAME"` | Selects the customer-managed VNet. |
+| `--name "$ENV_SUBNET_NAME"` | Selects the dedicated environment subnet. |
+| `--query "{...}"` | Returns the prefix, delegation, and private-endpoint policy fields needed for review. |
+| `--output json` | Emits structured output so an empty delegation is distinguishable from a display omission. |
+
+Expected delegation:
+
+- Workload profiles: `Microsoft.App/environments`.
+- Consumption-only: no service delegation.
+
+## Verification
+
+### Verify app ingress configuration
+
+```bash
 az containerapp ingress show \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp ingress show` | Reads app-wide ingress configuration without changing a revision. |
+| `--name "$APP_NAME"` | Selects the app. |
+| `--resource-group "$RG"` | Selects the app resource group. |
+| `--output json` | Shows exposure, transport, target port, FQDN, and traffic rules together. |
 
-Expected output (PII masked):
+Check that `external`, `targetPort`, and `transport` match the intended caller. Do not infer internet reachability from `external: true` without also checking environment accessibility and public network access.
 
-```json
-{
-  "allowInsecure": false,
-  "external": true,
-  "fqdn": "ca-myapp.<hash>.<region>.azurecontainerapps.io",
-  "targetPort": 8000,
-  "transport": "Auto",
-  "traffic": [
-    {
-      "latestRevision": true,
-      "weight": 100
-    }
-  ]
-}
-```
+### Verify from the caller network context
 
-**Data-plane check** — confirm the app responds on the FQDN:
+For external app ingress on an internal environment, test from a VM, Application Gateway, VPN, or ExpressRoute-connected client in the VNet. For direct access to an app-level internal-ingress FQDN, test from another app in the **same Container Apps environment**, for example by opening a shell in the calling app:
 
 ```bash
-# For external ingress
-FQDN=$(az containerapp show \
+az containerapp exec \
+  --resource-group "$RG" \
   --name "$APP_NAME" \
-  --resource-group "$RG" \
-  --query "properties.configuration.ingress.fqdn" \
-  --output tsv)
-
-curl --silent --output /dev/null --write-out "%{http_code}" "https://$FQDN/health"
+  --command "/bin/sh"
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `FQDN=$(az containerapp show ...)` | Reads the deployed ingress hostname from the Container App so the data-plane test uses the actual current endpoint instead of a copied URL that may be stale after redeployments. |
-| `--query "properties.configuration.ingress.fqdn" --output tsv` | Extracts only the FQDN string from the app configuration, which is the minimum value needed for the health probe and avoids manual JSON parsing during an incident. |
-| `curl --silent --output /dev/null --write-out "%{http_code}" "https://$FQDN/health"` | Issues a lightweight HTTPS request and returns only the status code, letting the operator quickly separate ingress reachability failures from healthy application responses. |
+| `az containerapp exec` | Opens a shell in a running replica so probes use the workload's network context. |
+| `--resource-group "$RG"` | Selects the app resource group. |
+| `--name "$APP_NAME"` | Selects the calling app. |
+| `--command "/bin/sh"` | Starts a shell when the image contains `/bin/sh`. |
 
-Expected result: `200`
-
-Example health payload:
-
-```json
-{"status":"healthy","timestamp":"2026-04-04T11:32:37.322216+00:00"}
-```
-
-!!! note "Internal ingress"
-    Internal ingress FQDNs resolve only from within the same VNet. Run the data-plane check from a VM or pod inside the environment's VNet.
-
-## VNet and Environment Checks
-
-### VNet Setup Flow
-
-<!-- diagram-id: vnet-setup-flow -->
-```mermaid
-flowchart TD
-    subgraph Infrastructure [Azure Infrastructure]
-        VNET[Virtual Network / Subnet]
-        DEL[Subnet Delegation]
-        CAE[Managed Environment]
-    end
-
-    VNET -- 1. Create Subnet (/23) --> DEL
-    DEL -- 2. Delegate to Microsoft.App/environments --> CAE
-    CAE -- 3. Assign infrastructureSubnetId --> VNET
-```
-
-Inspect managed environment network profile:
+Inside the caller, verify one layer at a time:
 
 ```bash
-az containerapp env show \
-  --name "$ACA_ENV_NAME" \
-  --resource-group "$RG" \
-  --output json
+nslookup <dependency-hostname>
+nc -zv <dependency-hostname> 443
+curl --connect-timeout 5 --verbose https://<dependency-hostname>/health
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+DNS success proves only name resolution. A TCP success proves only that a connection reached a listener, and a successful TLS handshake proves only that the client reached an endpoint presenting an acceptable certificate. An HTTP `401` or `403` confirms an HTTP responder, but it does not identify which boundary rejected the request. In particular, a service firewall or network policy can return `403` when DNS selected a public endpoint. Correlate the resolved IP, response source and body, and service logs before choosing network-policy, routing, or authorization remediation.
 
-Validate subnet details (Azure CLI network command):
+If an environment-level HTTP route targets the internal-ingress app, verify outside access through the **route FQDN and configured path**, not through the app's `.internal.` FQDN. Record the route configuration and response source so the route path is not mistaken for direct app-FQDN reachability.
 
-```bash
-az network vnet subnet show \
-  --resource-group "$RG" \
-  --vnet-name "vnet-aca-prod" \
-  --name "snet-containerapps" \
-  --output table
-```
+### Diagnostic decision flow
 
-| Command | Why it is used |
-|---|---|
-| `az network vnet subnet ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
-
-### Verify VNet Integration
-
-**Control-plane check** — confirm the environment is attached to a VNet:
-
-```bash
-az containerapp env show \
-  --name "$ACA_ENV_NAME" \
-  --resource-group "$RG" \
-  --query "{vnetConfig: properties.vnetConfiguration, staticIp: properties.staticIp}" \
-  --output json
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
-
-Expected output (PII masked):
-
-```json
-{
-  "vnetConfig": null,
-  "staticIp": "20.249.x.x"
-}
-```
-
-**Data-plane check** — confirm subnet delegation is correct:
-
-```bash
-az network vnet subnet show \
-  --resource-group "$RG" \
-  --vnet-name "vnet-aca-prod" \
-  --name "snet-containerapps" \
-  --query "delegations[].serviceName" \
-  --output tsv
-```
-
-| Command | Why it is used |
-|---|---|
-| `az network vnet subnet ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
-
-Expected result: `Microsoft.App/environments`
-
-## Service Discovery Operations
-
-For app-to-app calls in the same environment, use internal FQDN from ingress settings.
-
-```bash
-az containerapp show \
-  --name "$APP_NAME" \
-  --resource-group "$RG" \
-  --query "properties.configuration.ingress.fqdn" \
-  --output tsv
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
-
-### Verify Service Discovery
-
-**Control-plane check** — retrieve the internal FQDN of the target app:
-
-```bash
-az containerapp show \
-  --name "$APP_NAME" \
-  --resource-group "$RG" \
-  --query "properties.configuration.ingress.{fqdn: fqdn, external: external}" \
-  --output json
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
-
-Expected output (internal app):
-
-```json
-{
-  "fqdn": "ca-myapp.internal.<region>.azurecontainerapps.io",
-  "external": false
-}
-```
-
-**Data-plane check** — confirm DNS resolution from another app in the same environment using an exec session:
-
-```bash
-# Run from inside the calling container (exec into container)
-nslookup ca-myapp.internal.<region>.azurecontainerapps.io
-```
-
-Expected result: The FQDN resolves to the environment's internal IP (e.g., `10.0.x.x`).
-
-Microsoft Learn documents that internal ingress FQDNs are environment-scoped: internal FQDNs are reachable from the **same environment only**, and traffic between apps in the same environment never leaves that environment. Don't treat internal FQDNs as a cross-environment addressing mechanism.
-
-## Network Debugging Checklist
-
-When connectivity issues arise with privately networked resources, follow this systematic approach. Each step targets a specific OSI layer to isolate the problem.
-
-### Diagnostic Flow
+**Takeaway:** Test DNS, TCP, TLS, HTTP routing and response source, then authorization and health in order. Don't use ICMP ping as a required private-endpoint gate because many Azure services do not answer ICMP.
 
 <!-- diagram-id: diagnostic-flow -->
 ```mermaid
 flowchart TD
-    Start["Connectivity Issue"] --> DNS["1. nslookup hostname"]
-    DNS -->|"Resolves to public IP\nor NXDOMAIN"| DNSFix["❌ Check Private DNS Zone\nand VNet link"]
-    DNS -->|"Resolves to private IP\n(10.x.x.x)"| Ping["2. ping private-ip"]
-    Ping -->|"Timeout / unreachable"| PingFix["❌ Check NSG rules,\nroute tables, VNet peering"]
-    Ping -->|"Reachable"| Port["3. nc private-ip:port"]
-    Port -->|"Connection refused\nor timeout"| PortFix["❌ Check target service\nfirewall, port config"]
-    Port -->|"Port open"| App["4. curl https://endpoint"]
-    App -->|"HTTP error\n(401/403/5xx)"| AppFix["❌ Check auth config,\ncertificates, app health"]
-    App -->|"200 OK"| Done["✅ Connection working"]
+    accTitle: Diagnose a Container Apps network request by layer
+    accDescr: Start from the failing caller network context. Resolve the intended hostname and compare the answer with the design. Then test the required TCP port, TLS handshake, HTTP endpoint and route, response status and source, network-policy evidence, and finally application authorization and health. Each failed decision points to controls for that layer.
+
+    START["Reproduce from the expected caller<br/>same environment, VNet, or public path"]
+    DNS["Resolve the intended hostname<br/>nslookup or equivalent"]
+    DNS_OK{"Answer matches the design?<br/>public, internal ILB, or PE IP"}
+    DNS_FIX["DNS ACTION<br/>check zone, record, VNet link,<br/>and resolver forwarding"]
+    TCP["Probe the required TCP port<br/>nc or curl connect timeout"]
+    TCP_OK{"TCP connection succeeds?"}
+    TCP_FIX["TRANSPORT ACTION<br/>check NSG, UDR, firewall,<br/>peering, listener, and PE state"]
+    TLS["Perform TLS handshake<br/>with intended hostname"]
+    TLS_OK{"TLS handshake succeeds?"}
+    TLS_FIX["TLS ACTION<br/>check certificate name, trust chain,<br/>SNI, and TLS policy"]
+    HTTP["Send HTTP request<br/>with intended host and path"]
+    ROUTE_OK{"Response from intended<br/>endpoint and route?"}
+    ROUTE_FIX["HTTP ROUTING ACTION<br/>check resolved IP, response source,<br/>host header, ingress, path, target port"]
+    STATUS_OK{"Expected HTTP status<br/>and application result?"}
+    POLICY_REJECT{"Service firewall or<br/>network-policy rejection confirmed?"}
+    POLICY_FIX["NETWORK POLICY ACTION<br/>check public/private endpoint choice,<br/>service firewall, and allow rules"]
+    AUTH_REJECT{"Identity or authorization<br/>rejection confirmed?"}
+    AUTH_FIX["AUTHORIZATION ACTION<br/>check identity, RBAC,<br/>credentials, and audience"]
+    APP_FIX["APPLICATION ACTION<br/>check dependency health,<br/>application logs, and response body"]
+    DONE["PATH VERIFIED<br/>record DNS answer, endpoint,<br/>status code, and timestamp"]
+
+    START --> DNS
+    DNS --> DNS_OK
+    DNS_OK -->|"No"| DNS_FIX
+    DNS_OK -->|"Yes"| TCP
+    TCP --> TCP_OK
+    TCP_OK -->|"No"| TCP_FIX
+    TCP_OK -->|"Yes"| TLS
+    TLS --> TLS_OK
+    TLS_OK -->|"No"| TLS_FIX
+    TLS_OK -->|"Yes"| HTTP
+    HTTP --> ROUTE_OK
+    ROUTE_OK -->|"No or proxy 404"| ROUTE_FIX
+    ROUTE_OK -->|"Yes"| STATUS_OK
+    STATUS_OK -->|"Yes"| DONE
+    STATUS_OK -->|"No"| POLICY_REJECT
+    POLICY_REJECT -->|"Yes"| POLICY_FIX
+    POLICY_REJECT -->|"No"| AUTH_REJECT
+    AUTH_REJECT -->|"Yes"| AUTH_FIX
+    AUTH_REJECT -->|"No"| APP_FIX
 ```
 
-### Step 1: DNS Resolution (Layer 7 — Application/DNS)
-
-Run diagnostics from inside a running Container App revision.
-
-```bash
-az containerapp exec \
-  --resource-group "$RG" \
-  --name "$APP_NAME" \
-  --command "/bin/sh"
-
-# In the container shell
-nslookup your-private-resource.database.windows.net
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
-
-Expected: private hostname resolves to a private IP.
-
-If DNS fails (`NXDOMAIN`) or returns a public IP, fix private DNS configuration and VNet linkage.
-
-### Step 2: Network Reachability (Layer 3 — Network)
-
-Check basic IP-level reachability from the same container network context.
-
-```bash
-# In the container shell
-ping -c 4 10.0.2.4
-```
-
-If ping is unavailable in your image, install tooling in a debug session (for example, `apt-get update && apt-get install -y iputils-ping dnsutils netcat-openbsd curl`).
-
-### Step 3: Port Connectivity (Layer 4 — Transport)
-
-Because `tcpping` is not typically available in Container Apps, use `nc` or `curl --connect-timeout`.
-
-```bash
-# TCP port probe
-nc -zv 10.0.2.4 443
-
-# HTTPS connect timeout probe
-curl --connect-timeout 5 --verbose https://your-private-api.contoso.local/health
-```
-
-If port probe fails, investigate service-side firewall rules, listener ports, and NSG/UDR controls.
-
-### Step 4: Application Response (Layer 7 — Application)
-
-Validate application response after network and transport checks succeed.
-
-```bash
-curl --silent --show-error --include https://your-private-api.contoso.local/health
-```
-
-Expected: `HTTP/1.1 200 OK` (or service-specific success response).
-
-### Service-Specific Commands (Container Apps)
-
-```bash
-az containerapp exec \
-  --resource-group "$RG" \
-  --name "$APP_NAME" \
-  --command "/bin/sh"
-```
-
-| Command | Purpose |
-|---|---|
-| `az containerapp exec` | Opens an interactive shell inside a running replica so you can validate DNS, routing, and endpoint reachability from the same network context as the workload itself. |
-| `--resource-group "$RG"` / `--name "$APP_NAME"` | Selects the specific app that is experiencing the networking issue, which matters when multiple apps share the same environment or VNet. |
-| `--command "/bin/sh"` | Starts a minimal shell suitable for ad-hoc probes such as `nslookup`, `nc`, and `curl`, which are the next troubleshooting steps listed in this runbook. |
-
-Inside the container, use:
-- `nslookup <hostname>`
-- `ping -c 4 <private-ip>`
-- `nc -zv <host> <port>`
-- `curl --connect-timeout 5 https://<endpoint>`
-
-### Common Failures by Layer
-
-| Symptom | OSI Layer | Likely Cause | Fix |
-|---------|-----------|-------------|-----|
-| `NXDOMAIN` or public IP | L7 (DNS) | Private DNS Zone missing or not linked | Create/link Private DNS Zone to VNet |
-| Private IP but unreachable | L3 (Network) | NSG blocking, missing route, peering issue | Check NSG rules and route tables |
-| IP reachable, port closed | L4 (Transport) | Service firewall, wrong port, service stopped | Check target service network rules |
-| Port open, HTTP error | L7 (Application) | Auth failure, bad cert, app crash | Check credentials, TLS config, app logs |
-
-### Change Window Decision Matrix
-
-| Change Type | Risk Level | Recommended Window | Rollback Plan |
-|---|---|---|---|
-| Ingress external/internal toggle | Medium | Low-traffic period | Restore prior ingress type and re-validate FQDN |
-| Subnet/route/NSG update | High | Planned maintenance window | Reapply last known-good network policy from IaC |
-| Private DNS zone link update | High | Planned maintenance window | Re-link previous zone and flush DNS clients |
-| WAF or gateway routing change | Medium | Controlled release window | Revert listener/rule set and retest `/health` |
-
-!!! tip "Validate from caller network context"
-    Always run connectivity checks from the same network path as the failing caller (same VNet/subnet/peering boundary). Control-plane success does not guarantee data-plane reachability.
-
-!!! warning "Do not combine multiple network changes in one window"
-    Applying DNS, NSG, UDR, and ingress changes together makes root-cause isolation significantly harder during incidents.
-
-## Troubleshooting
-
-### Requests time out
-
-- Confirm ingress type matches caller location.
-- Verify application port and `targetPort` alignment.
-- Check NSG or route table updates affecting VNet path.
-
-```bash
-az network watcher test-connectivity \
-  --resource-group "$RG" \
-  --source-resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
-  --dest-address "<dependency-hostname>" \
-  --dest-port 443
-```
-
-| Command | Why it is used |
-|---|---|
-| `az network watcher test-connectivity ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
-
-## Advanced Topics
-
-- Use internal ingress plus Application Gateway for centralized WAF — see [Application Gateway Integration](../../platform/networking/application-gateway-integration.md) for VNet layout, workload profile subnet NSG design, and the AppGW-to-internal-CAE destination pattern.
-- Define egress allow-list controls with Azure Firewall or NVA.
-- Standardize DNS and naming for service-to-service resilience.
-
-## When to Use
-
-Use this procedure when the operational symptom or maintenance task matches the scenario described above.
-
-## Procedure
-
-Follow the commands and checks in this page in order, recording the before-and-after configuration for the incident or change record.
-
-## Verification
-
-Confirm the target app, revision, job, logs, or metric state matches the expected result before closing the task.
+*Figure: A decision flow preserves failure-domain boundaries. A private DNS answer is not proof of TCP transport, a TLS handshake is not proof of correct HTTP routing, and an HTTP `403` requires response-source evidence before it is classified as network policy or authorization.*
 
 ## Rollback / Troubleshooting
 
-If verification fails, revert only the last configuration change, capture the failing output, and use the linked troubleshooting guide before retrying.
+Before changing DNS, NSGs, UDRs, ingress, or public network access, save the current resource JSON and the failing probe output. If verification fails, revert only the last change and repeat the same probe from the same caller context.
+
+| Symptom | Most relevant evidence | First rollback or check |
+|---|---|---|
+| `NXDOMAIN` or unintended public answer | Resolver output and Private DNS VNet links | Restore the previous zone link or record; verify conditional forwarding. |
+| Correct private IP, TCP timeout | NSG flow, effective route, firewall logs, private endpoint state | Restore the last NSG/UDR/firewall change; don't alter DNS that already resolves correctly. |
+| TLS or host-routing error | Certificate name, SNI/Host header, app ingress mode, target port | Restore the previous ingress or gateway host configuration. |
+| HTTP `401` or `403` | Resolved IP, response source/body, service firewall logs, app/gateway logs, identity and RBAC evidence | Determine which boundary generated the response. A service firewall or network policy can return `403`; change identity or RBAC only when authorization evidence confirms that failure class. |
+| Internal app FQDN fails from a VM | Caller location, `.internal.` hostname, and environment HTTP-route configuration | Test the app's own internal FQDN from another app in the same environment. If an HTTP route targets the app, test outside access through the route FQDN and path; otherwise use external app ingress on an internal environment for direct VNet-client access. |
+
+!!! warning "Change one network layer at a time"
+    Combining DNS, NSG, UDR, private endpoint, and ingress changes destroys the evidence needed to identify which layer fixed or broke the path.
 
 ## See Also
+
+- [Ingress in Azure Container Apps](../../platform/networking/ingress.md)
+- [VNet Integration](../../platform/networking/vnet-integration.md)
+- [Private Endpoints](../../platform/networking/private-endpoints.md)
 - [Application Gateway Integration](../../platform/networking/application-gateway-integration.md)
-- [AppGW to Internal Azure Container Apps NSG Destination playbook](../../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md)
-- [Security](../../platform/identity-and-secrets/security-operations.md)
-- [Health and Recovery](../../platform/reliability/health-recovery.md)
+- [Service-to-Service Communication](../../platform/networking/service-to-service.md)
 
 ## Sources
-- [Container Apps networking](https://learn.microsoft.com/en-us/azure/container-apps/networking)
-- [VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal)
+
+- [Networking in an Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Configure virtual networks in Azure Container Apps environments](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
+- [Integrate a virtual network with an Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom)
+- [Configure ingress for your app in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
+- [Use rule-based routing in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/rule-based-routing)
 - [Communicate between container apps in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
+- [Use a private endpoint with an Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
+- [Azure Private Endpoint DNS configuration](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)
