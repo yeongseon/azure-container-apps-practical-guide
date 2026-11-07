@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -35,7 +37,16 @@ def check_replay(lab_name: str, gates: list[str], verify_args: list[str]) -> int
         (evidence / name).unlink(missing_ok=True)
     start = datetime.now(timezone.utc).replace(microsecond=0)
     timer = perf_counter()
-    result = subprocess.run(["bash", str(lab / "verify.sh"), *verify_args], check=False, timeout=60)
+    with tempfile.TemporaryDirectory(prefix="gate-replay-baseline-") as temporary:
+        baseline = Path(temporary)
+        for name, document in committed.items():
+            (baseline / name).write_text(json.dumps(document))
+        result = subprocess.run(
+            ["bash", str(lab / "verify.sh"), *verify_args],
+            env={**os.environ, "GATE_REPLAY_BASELINE_DIR": str(baseline)},
+            check=False,
+            timeout=60,
+        )
     end = datetime.now(timezone.utc).replace(microsecond=0)
     print(f"{lab_name}: replay took {perf_counter() - timer:.3f} seconds")
     if result.returncode:
