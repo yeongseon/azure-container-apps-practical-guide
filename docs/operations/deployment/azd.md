@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/overview
         - https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/get-started
+        - https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/container-apps-workflows
 content_validation:
   status: verified
   last_reviewed: '2026-07-18'
@@ -67,22 +68,32 @@ This page explains when to use `azd` for Azure Container Apps, how it relates to
 
 ## azd Workflow
 
-`azd` maps a small set of commands to the stages of a deployment lifecycle. `azd up` is a convenience command that runs package, provision, and deploy together.
+`azd` maps a small set of commands to the stages of a deployment lifecycle. `azd up` runs package, provision, and deploy together. For Container Apps, choose an image-based or revision-based strategy according to the rollout behavior you need.
 
 <!-- diagram-id: azd-workflow -->
 ```mermaid
 flowchart TD
-    A[azd init<br/>select or scaffold template] --> B[azd up]
-    B --> C[Package<br/>build container image]
-    C --> D[Provision<br/>Bicep or Terraform IaC]
-    D --> E[Deploy<br/>push app to Container Apps]
-    E --> F[Running Container App]
-    F --> G{Change type?}
-    G -->|App code| H[azd deploy]
-    G -->|Infrastructure| I[azd provision]
-    H --> F
-    I --> F
+    accTitle: Choose an azd Container Apps deployment strategy
+    accDescr: After initialization, the project chooses an image-based or revision-based strategy. azd up packages, provisions, and deploys the initial environment. Image-based deployment updates configuration during provision and the image during deploy; revision-based deployment applies the app definition and image together during deploy for advanced rollouts.
+    INIT["azd init<br/>template and azure.yaml"] --> STRATEGY{"Container Apps strategy?"}
+    STRATEGY -->|"Image-based"| IMAGE["Provision app configuration<br/>deploy image separately"]
+    STRATEGY -->|"Revision-based"| REVISION["Provision shared infrastructure<br/>deploy app definition and image together"]
+    IMAGE --> UP["azd up<br/>package, provision, deploy"]
+    REVISION --> UP
+    UP --> VERIFY["Verify endpoint,<br/>revision, and traffic state"]
+    VERIFY --> CHANGE{"Next change?"}
+    CHANGE -->|"Shared infrastructure"| PROVISION["azd provision<br/>then deploy if required"]
+    CHANGE -->|"Application release"| RELEASE{"Deployment strategy?"}
+    RELEASE -->|"Revision-based"| DEPLOY["azd deploy"]
+    RELEASE -->|"Image-based"| SCOPE{"Image-only change?"}
+    SCOPE -->|"Yes"| DEPLOY
+    SCOPE -->|"No; app configuration too"| BOTH["azd provision<br/>then azd deploy"]
+    DEPLOY --> VERIFY
+    BOTH --> VERIFY
+    PROVISION --> VERIFY
 ```
+
+*Figure: Image-based and revision-based strategies do not have the same rollout capability. Microsoft Learn documents blue-green and canary support for the revision-based strategy, not the image-based strategy.*
 
 | Command | Purpose |
 |---|---|
@@ -160,13 +171,13 @@ azd up
 
 ### 4. Iterate
 
-Redeploy only the application after code changes, without re-running infrastructure provisioning:
+For the image-based strategy, redeploy an image-only code change without re-running infrastructure provisioning. For the revision-based strategy, `azd deploy` applies the app definition and image together:
 
 ```bash
 azd deploy
 ```
 
-Apply infrastructure changes (for example, a modified Bicep module) without rebuilding the app:
+For the image-based strategy, app configuration changes such as environment variables, resources, or probes require `azd provision`; then run `azd deploy` when the same release also changes the image. Shared infrastructure changes also use `azd provision`:
 
 ```bash
 azd provision
@@ -195,10 +206,13 @@ az containerapp show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `azd env get-values` | Prints the environment outputs (resource group, service endpoints) captured after provisioning. |
-| `az containerapp show ...` | Verifies the deployed container app's running status and ingress endpoint. |
+| `az containerapp show` | Shows the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Selects the command output format. |
+| `--query` | Projects selected fields from the command response. |
+| `--resource-group` | Selects the resource group. |
 
 Expected result: `azd up` reports a successful deployment with the service endpoint URL, and the `az containerapp show` calls return a running status and a resolvable FQDN.
 
@@ -233,3 +247,4 @@ Expected result: `azd up` reports a successful deployment with the service endpo
 - [Azure Developer CLI's azure.yaml schema (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-schema)
 - [Install the Azure Developer CLI (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)
 - [Use Terraform as an IaC provider (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/use-terraform-for-azd)
+- [Azure Developer CLI Container Apps workflows (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/container-apps-workflows)
