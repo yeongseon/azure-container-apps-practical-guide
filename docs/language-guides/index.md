@@ -40,7 +40,7 @@ These guides are designed to help you build applications that are "platform-nati
 flowchart TD
     accTitle: Shared language-guide progression
     accDescr: Each runtime follows the same seven tutorial stages, then branches to its runtime reference and integration recipes. Select Python, Node.js, Java, or .NET before starting the shared sequence.
-    CHOOSE{Choose runtime}
+    CHOOSE[Choose runtime]
     PYTHON[Python<br/>Flask + Gunicorn]
     NODE[Node.js<br/>Express]
     JAVA[Java<br/>Spring Boot]

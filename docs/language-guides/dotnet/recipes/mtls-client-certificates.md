@@ -20,10 +20,10 @@ flowchart TD
     accDescr: In require mode, managed ingress rejects a request without a client certificate. When a certificate is presented, ingress forwards the request with X-Forwarded-Client-Cert. ASP.NET Core must parse the metadata, validate certificate trust and caller authorization, then allow or reject the request.
     CLIENT[Client]
     INGRESS[Managed ingress<br/>clientCertificateMode = require]
-    PRESENT{Client certificate<br/>presented?}
+    PRESENT[Client certificate presentation result]
     EDGE_REJECT[Ingress rejects request]
     APP[ASP.NET Core middleware<br/>parse X-Forwarded-Client-Cert]
-    TRUST{Certificate trusted and<br/>caller authorized?}
+    TRUST[Trust and caller authorization result]
     ALLOW[Handle request]
     DENY[Return HTTP 403]
 
@@ -55,7 +55,7 @@ dotnet add package Dapr.Client --version 1.14.0
 ## What You'll Build
 
 - ASP.NET Core middleware that reads and parses the leaf PEM certificate.
-- Validation against a trusted issuer or chain plus an application-specific subject, SAN, or certificate fingerprint policy.
+- Validation against the OS trust store plus forwarded intermediate certificates and an application-specific SHA-256 fingerprint allow-list.
 - Outbound calls using Dapr .NET SDK and direct `HttpClient`.
 
 ## Steps
@@ -65,6 +65,7 @@ dotnet add package Dapr.Client --version 1.14.0
 ```csharp
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Net;
 using System.Text.RegularExpressions;
 using Dapr.Client;
 
@@ -75,8 +76,21 @@ builder.Services.AddDaprClient();
 
 var app = builder.Build();
 
-var allowedFingerprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+var allowedFingerprints = (Environment.GetEnvironmentVariable("ALLOWED_CLIENT_CERT_SHA256") ?? "")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(value => value.Replace(":", "", StringComparison.Ordinal))
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+if (allowedFingerprints.Count == 0)
+{
+    throw new InvalidOperationException("ALLOWED_CLIENT_CERT_SHA256 must contain at least one SHA-256 fingerprint.");
+}
+
 var certificatePattern = new Regex("Cert=\"([\\s\\S]*?)\"(?:;|$)", RegexOptions.Compiled);
+var chainPattern = new Regex("Chain=\"([\\s\\S]*?)\"(?:;|$)", RegexOptions.Compiled);
+
+static string DecodeXfccPem(string value) => WebUtility.UrlDecode(value)
+    .Replace("\\n", "\n")
+    .Replace("\\t", "\t");
 
 app.Use(async (context, next) =>
 {
@@ -95,11 +109,21 @@ app.Use(async (context, next) =>
         return;
     }
 
-    var leafPem = match.Groups[1].Value.Replace("\\n", "\n");
+    var leafPem = DecodeXfccPem(match.Groups[1].Value);
     var certificate = X509Certificate2.CreateFromPem(leafPem);
     var commonName = certificate.GetNameInfo(X509NameType.SimpleName, false);
     var fingerprint = Convert.ToHexString(SHA256.HashData(certificate.RawData));
     using var chain = new X509Chain();
+    var chainMatch = chainPattern.Match(headerValue!);
+    if (chainMatch.Success)
+    {
+        var intermediatesPem = DecodeXfccPem(chainMatch.Groups[1].Value);
+        var intermediates = new X509Certificate2Collection();
+        intermediates.ImportFromPem(intermediatesPem);
+        chain.ChainPolicy.ExtraStore.AddRange(intermediates);
+    }
+    chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+    chain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
     var trustedChain = chain.Build(certificate);
 
     if (trustedChain && allowedFingerprints.Contains(fingerprint))
@@ -135,6 +159,8 @@ app.MapGet("/call-backend/direct", async (HttpClient httpClient) =>
 app.Run("http://0.0.0.0:8000");
 ```
 
+`ExtraStore` supplies intermediates forwarded in `Chain=` but does not trust them as roots. `X509Chain.Build` still anchors the path in the container's OS trust store. Install a private root into that trust store before using this sample with a private PKI.
+
 ### 2. Configure the app
 
 ```bash
@@ -143,12 +169,16 @@ az containerapp update \
   --resource-group "$RG" \
   --set-env-vars \
     DIRECT_BACKEND_URL="http://ca-backend" \
-    DAPR_TARGET_APP_ID="backend"
+    DAPR_TARGET_APP_ID="backend" \
+    ALLOWED_CLIENT_CERT_SHA256="<sha256-fingerprint-without-colons>"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ### 3. Test with curl
 

@@ -1,4 +1,5 @@
 ---
+description: Task-focused .NET recipes for identity, data services, networking, registry access, jobs, security, and Dapr on Azure Container Apps.
 content_sources:
   diagrams:
     - id: integration-dependency-map
@@ -24,10 +25,12 @@ az extension add --name containerapp --upgrade
 az login
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you run any recipe that depends on newer `containerapp` subcommands. |
-| `az login` | Starts an authenticated Azure CLI session so the recipe commands can read and update your app, environment, and supporting resources. |
+| `az extension add` | Installs or upgrades the CLI extension required by this page. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--upgrade` | Upgrades the extension if an older version is installed. |
+| `az login` | Supplies `az login` for the specific resource operation shown in this step. |
 
 ## Recipe Catalog
 
@@ -127,9 +130,13 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app property needed by this procedure. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
 
 ## See Also
 

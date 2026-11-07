@@ -1,4 +1,5 @@
 ---
+description: Build and operate Spring Boot applications on Azure Container Apps with guided tutorials, Java runtime advice, and integration recipes.
 content_sources:
   diagrams:
     - id: end-to-end-learning-flow

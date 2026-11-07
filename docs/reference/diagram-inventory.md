@@ -67,11 +67,11 @@ The following summary tables are generated directly from `docs/reference/diagram
 <!-- BEGIN GENERATED: diagram-inventory:type -->
 | Type | Count |
 |---|---:|
-| flowchart | 412 |
+| flowchart | 413 |
 | graph | 50 |
 | pie | 2 |
 | quadrantChart | 1 |
-| sequenceDiagram | 10 |
+| sequenceDiagram | 9 |
 | stateDiagram-v2 | 4 |
 
 <!-- END GENERATED: diagram-inventory:type -->

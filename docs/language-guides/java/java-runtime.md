@@ -26,7 +26,8 @@ flowchart TD
     START[Spring Boot JVM starts]
     LISTEN[HTTP listener<br/>0.0.0.0:8000]
     PROBES[Container Apps health probes]
-    READY{Replica ready?}
+    READY[Replica readiness result]
+    NOT_READY[Replica remains out of ingress routing]
     INGRESS[Managed ingress]
     REQUEST[Request handled by Spring Boot]
     CONSOLE[Logback to stdout and stderr]
@@ -36,6 +37,7 @@ flowchart TD
     PROBES ==>|"Probe request"| LISTEN
     PROBES -->|"Evaluate result"| READY
     READY -.->|"Ready replicas are eligible"| INGRESS
+    READY -->|"Not ready"| NOT_READY
     INGRESS ==>|"Routed request"| REQUEST
     REQUEST -.->|"Application writes"| CONSOLE
     CONSOLE ==>|"Log transport"| LOGS
@@ -68,9 +70,12 @@ az containerapp update \
   --set-env-vars "JAVA_TOOL_OPTIONS=-Xms512m -Xmx1024m"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## Multi-stage Docker Build Optimization
 
@@ -145,6 +150,9 @@ curl https://$FQDN/info
 - [Java on Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/java/)
 
 ## Sources
+- [Deploy from source to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)
+- [Containers in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Health probes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Eclipse Temurin Container Images](https://hub.docker.com/_/eclipse-temurin)
 - [JVM Memory Management in Containers (Eclipse Adoptium)](https://adoptium.net/blog/2021/11/jvm-container-awareness/)
 - [Spring Boot Production-ready features](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html)

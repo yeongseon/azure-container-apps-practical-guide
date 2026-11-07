@@ -24,7 +24,7 @@ flowchart TD
     IDENTITY[System- or user-assigned identity]
     ENTRA[Microsoft Entra ID]
     BLOB[Azure Blob Storage]
-    AUTHZ{Storage Blob data role<br/>allows operation?}
+    AUTHZ[Blob authorization result]
     RESULT[Blob list result]
     DENIED[Authorization failure]
 
@@ -32,12 +32,16 @@ flowchart TD
     APP ==>|"Acquire resource token"| CREDENTIAL
     CREDENTIAL ==>|"Local token request"| ENDPOINT
     IDENTITY -.->|"Selected identity"| ENDPOINT
-    ENDPOINT ==>|"Token request and response"| ENTRA
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
     ENDPOINT ==>|"Return token"| CREDENTIAL
     APP ==>|"Blob request + token"| BLOB
     BLOB -->|"Evaluate data role"| AUTHZ
     AUTHZ -->|"Allowed"| RESULT
     AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Blob list response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| CLIENT
 ```
 
 *Figure: Managed identity removes application credentials; it does not grant data access by itself. Blob Storage still requires a matching data-plane role assignment at the intended scope.*
@@ -69,9 +73,20 @@ az role assignment create \
   --scope "$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RG" --query id --output tsv)"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity used by this integration. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--system-assigned` | Enables the app's system-assigned managed identity. |
+| `az containerapp show` | Reads the app property needed by this procedure. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
+| `az role assignment create` | Grants the selected managed identity the role required by this step. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal for role assignment. |
+| `--role` | Selects the data-plane or registry role required by this integration. |
+| `--scope` | Sets the Azure or service data-plane scope of this role assignment. |
 
 ## ASP.NET Core 8 DI pattern
 

@@ -1,4 +1,5 @@
 ---
+description: Build and operate ASP.NET Core applications on Azure Container Apps with guided tutorials, runtime advice, and production integration recipes.
 content_sources:
   diagrams:
     - id: end-to-end-learning-flow

@@ -26,19 +26,24 @@ flowchart TD
     ENDPOINT[Container Apps identity endpoint]
     ENTRA[Microsoft Entra ID]
     COSMOS[Azure Cosmos DB for NoSQL]
-    AUTHZ{Data-plane role<br/>allows operation?}
+    AUTHZ[Data-plane authorization result]
     RESULT[Read or write result]
     DENIED[Authorization failure]
 
     CLIENT ==>|"HTTPS request"| INGRESS
     INGRESS ==>|"Routed request"| APP
     APP ==>|"Request Cosmos DB token"| ENDPOINT
-    ENDPOINT ==>|"Token request and response"| ENTRA
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
     ENDPOINT ==>|"Return access token"| APP
     APP ==>|"Cosmos DB request + token"| COSMOS
     COSMOS -->|"Evaluate data-plane role"| AUTHZ
     AUTHZ -->|"Allowed"| RESULT
     AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Data response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
 *Figure: Token acquisition, service transport, and Cosmos DB data-plane authorization are separate steps. A management-plane role alone does not grant document access.*
@@ -54,9 +59,11 @@ az extension add --name containerapp --upgrade
 az extension add --name cosmosdb-preview --upgrade
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the CLI extension required by this page. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--upgrade` | Upgrades the extension if an older version is installed. |
 
 ## Step 1: Enable managed identity on the Container App
 
@@ -73,29 +80,35 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity used by this integration. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--system-assigned` | Enables the app's system-assigned managed identity. |
+| `az containerapp show` | Reads the app property needed by this procedure. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
 
 ## Step 2: Grant Cosmos DB data-plane access
 
 ```bash
-export COSMOS_ACCOUNT_ID=$(az cosmosdb show \
-  --name "$COSMOS_ACCOUNT" \
+az cosmosdb sql role assignment create \
+  --account-name "$COSMOS_ACCOUNT" \
   --resource-group "$RG" \
-  --query "id" \
-  --output tsv)
-
-az role assignment create \
-  --assignee-object-id "$PRINCIPAL_ID" \
-  --assignee-principal-type ServicePrincipal \
-  --role "Cosmos DB Built-in Data Contributor" \
-  --scope "$COSMOS_ACCOUNT_ID"
+  --principal-id "$PRINCIPAL_ID" \
+  --role-definition-name "Cosmos DB Built-in Data Contributor" \
+  --scope "/"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az cosmosdb show ...` | Creates or inspects Cosmos DB resources used by the sample app. |
+| `az cosmosdb sql role assignment create` | Grants the app identity the documented Cosmos DB data-plane role. |
+| `--account-name` | Selects the Cosmos DB account used by the app. |
+| `--principal-id` | Identifies the managed identity receiving Cosmos DB data access. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--role-definition-name` | Selects the built-in Cosmos DB data contributor role. |
+| `--scope` | Sets the Azure or service data-plane scope of this role assignment. |
 
 ## Step 3: Configure non-secret settings in Container Apps
 
@@ -108,9 +121,12 @@ az containerapp update \
   --set-env-vars COSMOS_ENDPOINT="https://$COSMOS_ACCOUNT.documents.azure.com:443/" COSMOS_DATABASE="$COSMOS_DATABASE" COSMOS_CONTAINER="$COSMOS_CONTAINER"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## Step 4: .NET code (managed identity)
 
@@ -169,9 +185,14 @@ az containerapp update \
   --set-env-vars COSMOS_CONNECTION_STRING=secretref:cosmos-connection-string COSMOS_DATABASE="$COSMOS_DATABASE" COSMOS_CONTAINER="$COSMOS_CONTAINER"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Stores the fallback credential as a Container Apps secret. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--secrets` | Creates the named fallback secret consumed through `secretref:`. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## Verification
 

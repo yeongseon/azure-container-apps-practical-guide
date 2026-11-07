@@ -23,7 +23,8 @@ flowchart TD
     START[Gunicorn process starts]
     LISTEN[HTTP listener<br/>0.0.0.0:8000]
     PROBES[Container Apps health probes]
-    READY{Replica ready?}
+    READY[Replica readiness result]
+    NOT_READY[Replica remains out of ingress routing]
     INGRESS[Managed ingress]
     REQUEST[Request handled by Flask]
     CONSOLE[stdout and stderr]
@@ -33,6 +34,7 @@ flowchart TD
     PROBES ==>|"Probe request"| LISTEN
     PROBES -->|"Evaluate result"| READY
     READY -.->|"Ready replicas are eligible"| INGRESS
+    READY -->|"Not ready"| NOT_READY
     INGRESS ==>|"Routed request"| REQUEST
     REQUEST -.->|"Application writes"| CONSOLE
     CONSOLE ==>|"Log transport"| LOGS
@@ -108,10 +110,15 @@ python --version
 ps aux
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Streams Python app console logs so you can inspect Gunicorn startup, worker activity, and request handling in real time. |
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "/bin/bash"` | Opens a shell in the running container so you can verify the Python runtime and inspect the live process state from inside the replica. |
+| `az containerapp logs show` | Streams application console logs for this runtime check. |
+| `--follow` | Keeps the console-log stream open for new entries. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--type` | Selects application console logs rather than platform system logs. |
+| `az containerapp exec` | Opens a shell in a live replica for runtime diagnostics. |
+| `--command` | Starts the documented diagnostic shell inside the selected replica. |
 
 ## Frequent Runtime Failures
 

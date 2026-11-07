@@ -1,4 +1,5 @@
 ---
+description: Build and operate Flask applications on Azure Container Apps with guided tutorials, Python runtime advice, and integration recipes.
 content_sources:
   diagrams:
     - id: ideal-for-development-testing-and-public-facing
@@ -66,17 +67,18 @@ flowchart TD
     IDENTITY[Managed identity]
     ROLE[Mode-appropriate ACR pull role]
     LOGS[Logging destination]
-    subgraph ENV[Container Apps environment]
-        INGRESS[Managed external ingress]
-        APP[Python container app]
-        REVISION[Active revision]
-        REPLICA[Ready Flask + Gunicorn replica<br/>port 8000]
-        INGRESS -->|"Select active revision"| REVISION
-        REVISION -->|"Route to ready replica"| REPLICA
-        APP -->|"Contains"| REVISION
-    end
+    ENV[Container Apps environment]
+    INGRESS[Managed external ingress]
+    APP[Python container app]
+    REVISION[Active revision]
+    REPLICA[Ready Flask + Gunicorn replica<br/>port 8000]
 
     CLIENT ==>|"HTTPS request"| INGRESS
+    ENV -.->|"Hosts managed ingress and app"| INGRESS
+    ENV -.->|"Hosts"| APP
+    INGRESS -->|"Select active revision"| REVISION
+    REVISION -->|"Route to ready replica"| REPLICA
+    APP -->|"Contains"| REVISION
     REPLICA ==>|"HTTPS response via ingress"| CLIENT
     IDENTITY -.->|"Assigned for image pull"| APP
     ROLE -.->|"Authorizes identity"| ACR
@@ -100,20 +102,23 @@ flowchart TD
     KV[Azure Key Vault resource]
     STORAGE[Storage account resource]
     ACR[Azure Container Registry Premium]
-    subgraph VNET[Customer virtual network]
-        subgraph INFRA[Dedicated infrastructure subnet]
-            ENV[Managed Container Apps environment]
-            APP[Python container app]
-            ENV -->|"Runs"| APP
-        end
-        subgraph PE_SUBNET[Private endpoint subnet]
-            KVPE[Key Vault private endpoint NIC]
-            STORAGEPE[Storage private endpoint NIC]
-            ACRPE[ACR private endpoint NIC]
-        end
-    end
+    VNET[Customer virtual network]
+    INFRA[Dedicated infrastructure subnet]
+    ENV[Managed Container Apps environment]
+    APP[Python container app]
+    PE_SUBNET[Private endpoint subnet]
+    KVPE[Key Vault private endpoint NIC]
+    STORAGEPE[Storage private endpoint NIC]
+    ACRPE[ACR private endpoint NIC]
 
     DNS -.->|"Private name resolution"| APP
+    VNET -.->|"Contains"| INFRA
+    VNET -.->|"Contains"| PE_SUBNET
+    INFRA -.->|"Delegated for"| ENV
+    ENV -->|"Runs"| APP
+    PE_SUBNET -.->|"Contains"| KVPE
+    PE_SUBNET -.->|"Contains"| STORAGEPE
+    PE_SUBNET -.->|"Contains"| ACRPE
     IDENTITY -.->|"Selected by app or platform"| APP
     APP ==>|"Service request"| KVPE
     APP ==>|"Blob request"| STORAGEPE
@@ -234,6 +239,7 @@ By completing this guide, you will gain the following capabilities:
 - [Python on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Managed identity image pulls in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [Custom virtual networks in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
 - [Private endpoints in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
 - [Private endpoint DNS configuration (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)
