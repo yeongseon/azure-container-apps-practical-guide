@@ -1,4 +1,5 @@
 ---
+description: Operate Azure Container Apps health probes through revision activation, traffic readiness, failure detection, and replica recovery.
 content_sources:
   diagrams:
     - id: probe-lifecycle-during-revision-activation
@@ -71,21 +72,57 @@ az containerapp update \
   --yaml "./infra/containerapp-health.yaml"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected container app. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--yaml` | Applies configuration from the specified YAML file. |
 
-Microsoft Learn now documents the current probe behavior: Container Apps supports **startup**, **liveness**, and **readiness** probes; probes use **HTTP(S)** or **TCP** only; `exec` probes aren't supported; and the portal automatically adds default TCP probes to the main app container when ingress is enabled and you don't define that probe type yourself.
+Microsoft Learn documents the current probe behavior: Container Apps supports **startup**, **liveness**, and **readiness** probes; probes use **HTTP(S)** or **TCP** only; and `exec` probes aren't supported. When ingress is enabled and you don't define a probe type, the portal automatically adds default TCP probes to the main app container, except for dedicated or consumption GPU workload profiles. The portal doesn't add these defaults to sidecars. Startup succeeds before liveness and readiness checks begin. Readiness determines whether replicas receive routed requests, while liveness continues checking a running replica.
+
+!!! note "Current readiness behavior"
+    The health-probes reference says that one replica failing readiness makes the revision appear unhealthy and that Container Apps restarts that replica until it becomes healthy or the failure threshold is exceeded. The troubleshooting article describes the same symptom more narrowly as a container that might be marked not ready for traffic. This guide follows the explicit health-probes reference and does not substitute generic Kubernetes readiness behavior.
 
 <!-- diagram-id: probe-lifecycle-during-revision-activation -->
 ```mermaid
 flowchart TD
-    A[New revision created] --> B[Startup probe passes]
-    B --> C[Readiness probe passes]
-    C --> D[Revision can receive traffic]
-    D --> E[Liveness probe continues monitoring]
-    E --> F[Restart or keep serving]
+    accTitle: Probe lifecycle during revision activation
+    accDescr: Shows startup gating readiness and liveness, ingress routing requests only to ready replicas, and probe failures driving replica recovery.
+
+    REV[New revision]
+    REPLICA[Replica starts]
+    STARTUP[Evaluate startup probe]
+    STARTUP_BUDGET{Startup failureThreshold exhausted?}
+    READY[Evaluate readiness probe]
+    ROUTE[Managed ingress routes requests]
+    SERVE[Ready replica serves request]
+    READY_FAILURE[Source-conflicted unhealthy or not-ready<br/>recovery behavior]
+    RECOVER[Platform restarts affected replica]
+    LIVE[Evaluate liveness probe]
+    LIVE_BUDGET{Liveness failureThreshold exceeded?}
+    MONITOR[Continue liveness monitoring]
+
+    REV --> REPLICA
+    REPLICA --> STARTUP
+    STARTUP -->|Failure| STARTUP_BUDGET
+    STARTUP_BUDGET -->|No| STARTUP
+    STARTUP_BUDGET -->|Yes| RECOVER
+    STARTUP -->|Success| READY
+    STARTUP -->|Success| LIVE
+    READY -->|Yes| ROUTE
+    ROUTE ==>|Request| SERVE
+    SERVE ==>|Response| ROUTE
+    READY -->|No| READY_FAILURE
+    RECOVER --> REPLICA
+    LIVE -->|Yes| MONITOR
+    MONITOR --> LIVE
+    LIVE -->|No| LIVE_BUDGET
+    LIVE_BUDGET -->|No| LIVE
+    LIVE_BUDGET -->|Yes| RECOVER
 ```
+
+The thick arrows are the runtime request and response path through managed ingress. Probe evaluation and restart recovery are platform actions, not user request traffic. The readiness-failure branch deliberately stops at a source-conflicted recovery node: the health-probes reference documents a restart loop until the replica is healthy or the failure threshold is exceeded, while the troubleshooting article only says the container might be marked not ready. The available sources do not establish a threshold-before-restart ordering.
 
 ## Verification
 
@@ -98,9 +135,12 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions for the selected container app. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--output` | Selects the command output format. |
 
 Review system logs for probe failures:
 
@@ -112,9 +152,13 @@ az containerapp logs show \
   --follow false
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Shows logs for the selected container app. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--type` | Selects the requested log type. |
+| `--follow` | Controls whether log output streams continuously. |
 
 ## Rollback / Troubleshooting
 

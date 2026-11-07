@@ -1,10 +1,11 @@
 ---
+description: Operate Azure Container Apps Jobs by inspecting executions, stopping unsafe runs, replaying work safely, and monitoring outcomes.
 content_sources:
   diagrams:
     - id: jobs-day-2-operations-flow
       type: flowchart
       source: self-generated
-      justification: Synthesized from repository job runbooks and Microsoft Learn Jobs guidance while exact CLI/log-schema quotes remained pending.
+      justification: Synthesized from the documented Container Apps Jobs execution commands and repository observability runbooks.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
@@ -57,9 +58,12 @@ az containerapp job execution list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job execution list` | Lists executions of the selected job. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--output` | Selects the command output format. |
 
 ### 2. Inspect a specific execution
 
@@ -71,22 +75,29 @@ az containerapp job execution show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job execution show` | Shows one selected job execution. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--job-execution-name` | Selects a specific job execution. |
+| `--output` | Selects the command output format. |
 
 ### 3. Stop an in-flight execution when needed
 
 ```bash
-az containerapp job execution stop \
+az containerapp job stop \
   --name "$JOB_NAME" \
   --resource-group "$RG" \
   --job-execution-name "$EXECUTION_NAME"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job stop` | Stops the selected in-flight job execution. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--job-execution-name` | Selects a specific job execution. |
 
 !!! warning "Confirm CLI command availability against your installed extension"
     The `execution list`, `show`, and `stop` patterns above reflect the expected long-form command group for current Container Apps Jobs operations.
@@ -102,9 +113,11 @@ az containerapp job start \
   --resource-group "$RG"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job start ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job start` | Starts a new job execution. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
 
 Before replaying, confirm whether you also need to:
 
@@ -177,14 +190,36 @@ Use the control loop below after any replay or stop action.
 <!-- diagram-id: jobs-day-2-operations-flow -->
 ```mermaid
 flowchart TD
-    A[List executions] --> B[Inspect failed or long-running execution]
-    B --> C{Stop or replay needed?}
-    C -->|Stop| D[Stop execution]
-    C -->|Replay| E[Start new execution]
-    D --> F[Query logs and metrics]
-    E --> F
-    F --> G[Confirm success rate and duration return to baseline]
+    accTitle: Jobs day-2 operations flow
+    accDescr: Shows operators listing and inspecting executions, choosing observation, stop, or replay actions, and verifying the outcome through execution status, logs, and metrics.
+
+    LIST[List recent executions]
+    INSPECT[Inspect status, duration, and logs]
+    DECIDE{Which action is justified?}
+    QUERY[Query logs and metrics]
+    STOP[Stop selected execution]
+    SAFE{Replay safe and input ready?}
+    FIX[Quarantine input or repair partial output]
+    START[Start a new execution]
+    VERIFY{Status and indicators healthy?}
+    CLOSE[Close or continue monitoring]
+
+    LIST --> INSPECT
+    INSPECT --> DECIDE
+    DECIDE -->|Observe| QUERY
+    DECIDE -->|Stop| STOP
+    DECIDE -->|Replay| SAFE
+    SAFE -->|No| FIX
+    FIX --> INSPECT
+    SAFE -->|Yes| START
+    STOP --> QUERY
+    START --> QUERY
+    QUERY --> VERIFY
+    VERIFY -->|No| INSPECT
+    VERIFY -->|Yes| CLOSE
 ```
+
+A replay creates a new execution from the job definition; it does not resume the failed execution. Verify idempotency, input state, and partial outputs before replaying.
 
 Basic verification commands:
 
@@ -195,9 +230,12 @@ az containerapp job execution list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job execution list` | Lists executions of the selected job. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--output` | Selects the command output format. |
 
 ## Rollback / Troubleshooting
 

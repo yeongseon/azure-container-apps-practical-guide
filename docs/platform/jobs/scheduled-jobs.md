@@ -4,7 +4,7 @@ content_sources:
     - id: scheduled-job-run-window
       type: flowchart
       source: self-generated
-      justification: Synthesized from Microsoft Learn Jobs guidance and repository schedule examples while exact cron/TZ semantics were not re-quoted successfully.
+      justification: Synthesized from the documented five-field UTC cron schedule and advanced job settings.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
@@ -47,10 +47,15 @@ az containerapp job create \
 
 | Command | Purpose |
 |---|---|
-| `export RG=...`, `ACA_ENV_NAME=...`, `JOB_NAME=...`, `IMAGE_NAME=...` | Defines the environment, recurring job name, and image reference used by the scheduled-job example. |
-| `az containerapp job create --trigger-type "Schedule"` | Creates a job whose executions are driven by a cron schedule instead of human action or event backlog. |
-| `--cron-expression "0 2 * * *"` | Schedules the run for 02:00 UTC every day, which matches the nightly reconciliation scenario discussed in the surrounding text. |
-| `--replica-timeout 3600` / `--replica-retry-limit 1` | Keeps long-running batch work bounded while still allowing a single retry for transient failures. |
+| `az containerapp job create` | Creates a Container Apps job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--environment` | Selects the Container Apps environment for the job. |
+| `--trigger-type` | Selects the job trigger type. |
+| `--cron-expression` | Sets the five-field UTC cron schedule. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--replica-retry-limit` | Sets how many times a failed replica can be retried. |
+| `--image` | Selects the container image for the job template. |
 
 ### Cron expression examples
 
@@ -63,23 +68,17 @@ Use readable schedules and document them in the runbook:
 | Weekly | `0 6 * * 1` | 06:00 every Monday |
 | Business-hours-only | `0 8-18 * * 1-5` | Top of the hour, weekdays, 08:00-18:00 |
 
-!!! warning "Cron syntax needs current-source confirmation"
-    Azure CLI examples for Container Apps Jobs use a five-field cron expression, and this guide follows that model.
-    Confirm the latest Microsoft Learn syntax before depending on macros, seconds fields, or provider-specific extensions.
+Container Apps scheduled jobs use the standard five-field cron format: minute, hour, day of month, month, and day of week. The Jobs reference does not document seconds fields or provider-specific macros.
 
 ### Time zone handling
 
-Schedule docs and operations runbooks should treat the job schedule as UTC unless you have explicitly verified another supported time-zone control in the current product documentation.
+Cron expressions for scheduled jobs are evaluated in UTC.
 
 Recommended practice:
 
 - Author cron in UTC.
 - Document the equivalent local-business time.
 - Re-check schedules before daylight-saving transitions and regional policy changes.
-
-!!! warning "Time-zone configurability was not independently verified in this run"
-    No authoritative quote was recovered for alternate time-zone configuration on Container Apps Jobs.
-    Treat UTC as the safe default until you verify otherwise in current Microsoft Learn documentation.
 
 ### Overlap and missed runs
 
@@ -109,13 +108,33 @@ Before production rollout, answer:
 <!-- diagram-id: scheduled-job-run-window -->
 ```mermaid
 flowchart TD
-    A[Cron expression reaches next window] --> B[Container Apps creates execution]
-    B --> C[Replicas start]
-    C --> D[Work completes or times out]
-    D --> E{Success?}
-    E -->|Yes| F[Record successful run]
-    E -->|No| G[Apply retry policy]
-    G --> H[Alert or replay if needed]
+    accTitle: Scheduled job run window
+    accDescr: Shows a five-field cron expression evaluated in UTC, the platform creating an execution, replicas running within timeout, and failed replicas being retried before a terminal result.
+
+    CRON[Five-field cron expression]
+    WINDOW[Scheduled run window]
+    CONTROL[Container Apps Jobs control]
+    EXEC[Create job execution]
+    REPLICAS[Run replicas up to parallelism]
+    RESULT{Required replicas complete successfully?}
+    SUCCESS[Execution succeeds]
+    RETRY{Retry limit and timeout allow?}
+    RETRY_FAILED[Retry failed replica<br/>Preserve successes]
+    FAIL[Execution fails]
+    MONITOR[Record and monitor result]
+
+    CRON -->|Evaluated in UTC| WINDOW
+    WINDOW --> CONTROL
+    CONTROL --> EXEC
+    EXEC --> REPLICAS
+    REPLICAS --> RESULT
+    RESULT -->|Yes| SUCCESS
+    RESULT -->|Failed replica| RETRY
+    RETRY -->|Yes| RETRY_FAILED
+    RETRY_FAILED --> RESULT
+    RETRY -->|No| FAIL
+    SUCCESS --> MONITOR
+    FAIL --> MONITOR
 ```
 
 ## Portal View: Schedule Trigger Type and Cron Expression Field

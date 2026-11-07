@@ -1,10 +1,11 @@
 ---
+description: Azure Container Apps Jobs concepts and reading paths for manual, scheduled, and event-driven triggers, execution lifecycle, design, and operations.
 content_sources:
   diagrams:
     - id: jobs-document-map
       type: flowchart
       source: self-generated
-      justification: Synthesized from existing repository Jobs content and Microsoft Learn Jobs/scale guidance while quote collection remained incomplete.
+      justification: Navigation map synthesized from the repository Jobs content and the documented manual, schedule, and event trigger taxonomy.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
@@ -59,24 +60,40 @@ Choose Container Apps instead when:
 4. Apply [Job Design](../../best-practices/job-design.md) before production rollout.
 5. Use [Jobs Operations](../../operations/jobs/index.md) for replay, inspection, and monitoring.
 
-!!! warning "Advanced Jobs details need final source re-verification"
-    During this update, background source collection for exact schema/property quotes did not complete.
-    This section keeps verified high-level concepts, but pages that discuss exact cron semantics, execution state labels, Log Analytics columns, or event-scaler coverage call out those areas explicitly before you automate against them.
+The trigger taxonomy and advanced execution settings on these pages are aligned with the current Jobs reference. Workspace-specific Log Analytics columns and scaler-specific capabilities still require validation against the operator's environment and selected scaler.
 
 ### Jobs document map
 
 <!-- diagram-id: jobs-document-map -->
 ```mermaid
 flowchart TD
-    A[Container Apps Jobs] --> B[Manual Jobs]
-    A --> C[Scheduled Jobs]
-    A --> D[Event-Driven Jobs]
-    A --> E[Execution Lifecycle]
-    A --> F[Jobs vs Apps]
-    E --> G[Job Design]
-    E --> H[Jobs Operations]
-    H --> I[Troubleshooting]
-    F --> J[Language Recipes]
+    accTitle: Container Apps Jobs document map
+    accDescr: Routes readers from workload selection to one of three documented trigger types, then through execution lifecycle, design, operations, and troubleshooting guidance.
+
+    CHOOSE[Choose workload model]
+    COMPARE[Jobs vs Apps]
+    TRIGGER[Choose documented trigger type]
+    APP[Container Apps guidance]
+    MANUAL[Manual Jobs]
+    SCHEDULED[Scheduled Jobs]
+    EVENT[Event-Driven Jobs]
+    LIFE[Execution Lifecycle]
+    DESIGN[Job Design]
+    OPERATE[Jobs Operations]
+    TROUBLE[Troubleshooting and KQL]
+
+    CHOOSE --> COMPARE
+    COMPARE -->|Finite work| TRIGGER
+    COMPARE -->|Continuous service or worker| APP
+    TRIGGER -->|On demand| MANUAL
+    TRIGGER -->|Five-field UTC cron| SCHEDULED
+    TRIGGER -->|Event source| EVENT
+    MANUAL --> LIFE
+    SCHEDULED --> LIFE
+    EVENT --> LIFE
+    LIFE --> DESIGN
+    DESIGN --> OPERATE
+    OPERATE --> TROUBLE
 ```
 
 ## Portal View: Job Resource with Trigger and Lifecycle Fields

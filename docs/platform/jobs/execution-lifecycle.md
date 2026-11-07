@@ -8,6 +8,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
+        - https://learn.microsoft.com/en-us/rest/api/resource-manager/containerapps/job-execution/job-execution
 content_validation:
   status: verified
   last_reviewed: '2026-07-18'
@@ -26,21 +27,21 @@ Understanding the execution lifecycle is the key to sizing parallelism, handling
 
 ## Main Content
 
-### Conceptual execution states
+### Execution states
 
 At a high level, a Job execution moves through trigger, runtime, and terminal phases.
 
 | Phase | Operator meaning |
 |---|---|
-| Triggered / Created | The platform has registered a new execution |
+| Processing | The execution is being processed before or between active runtime work |
 | Running | One or more replicas are executing |
 | Succeeded | Completion criteria were met |
 | Failed | Retries were exhausted or the execution could not complete |
 | Stopped | An operator or platform action ended the run before successful completion |
+| Degraded | The execution reports a degraded running state |
+| Unknown | The service can't report a more specific current state |
 
-!!! warning "State labels below are conceptual unless re-verified against the live API"
-    Use this page to understand transitions, not to hard-code enum values.
-    Before parsing execution status in automation, verify the exact current labels exposed by Azure CLI or the management API.
+The labels above match the current `JobExecutionRunningState` management API enumeration. The arrows below are an operator-oriented lifecycle interpretation; the API enumeration defines status values, not a complete transition contract.
 
 ### Replica fan-out: `parallelism` and `replicaCompletionCount`
 
@@ -91,16 +92,32 @@ Operational implications:
 <!-- diagram-id: job-execution-state-model -->
 ```mermaid
 stateDiagram-v2
-    [*] --> Triggered
-    Triggered --> Running
-    Running --> Succeeded: completion count met
-    Running --> Failed: retries exhausted
-    Running --> Stopped: operator/platform stop
-    Failed --> Running: retry permitted
+    accTitle: Job execution state model
+    accDescr: Uses exact management API status names and shows common progress from processing to running and then to succeeded, failed, stopped, degraded, or unknown.
+
+    state "Processing" as Processing
+    state "Running" as Running
+    state "Degraded" as Degraded
+    state "Stopped" as Stopped
+    state "Failed" as Failed
+    state "Succeeded" as Succeeded
+    state "Unknown" as Unknown
+
+    [*] --> Processing
+    Processing --> Running
+    Processing --> Unknown
+    Running --> Succeeded
+    Running --> Failed
+    Running --> Stopped
+    Running --> Degraded
+    Running --> Unknown
+    Degraded --> Running
     Succeeded --> [*]
     Failed --> [*]
     Stopped --> [*]
 ```
+
+`replicaRetryLimit` retries a failed replica within the execution; it does not add a `Retrying` execution status. `replicaCompletionCount` determines how many replicas must complete successfully for the execution to succeed, and `replicaTimeout` can end the opportunity to finish retries. `Unknown` is not treated as terminal: keep polling the execution API until it reports a more specific state. Only `Succeeded`, `Failed`, and `Stopped` terminate the lifecycle presented here.
 
 ### Portal view of execution history
 
@@ -108,7 +125,7 @@ stateDiagram-v2
 
 **[Observed]** `Container App Job`. `Execution history`. `Logs`. `Execution history`. `Metrics`. `Refresh`. `The most recent job executions are shown here. For older executions or more advanced analysis, see Logs`. `Recent executions`. `Filter by name`. `Name`. `Status`. `Duration`. `Start time (UTC)`. `End time (UTC)`. `Logs`. `Succeeded`. `31 seconds`. `2026-06-04 04:23:41`. `2026-06-04 04:24:12`. `Console`. `System`.
 
-**[Inferred]** The `Status` column of `Succeeded` appears consistent with the `Succeeded` terminal state in the [Conceptual execution states](#conceptual-execution-states) table. The `Duration`, `Start time (UTC)`, and `End time (UTC)` columns appear to surface the runtime window referenced by `replicaTimeout` in [Retry and timeout controls](#retry-and-timeout-controls). The presence of a single row alongside the `For older executions or more advanced analysis, see Logs` text is consistent with the bounded-retention point made in [History retention](#history-retention).
+**[Inferred]** The `Status` column of `Succeeded` appears consistent with the `Succeeded` terminal state in the [Execution states](#execution-states) table. The `Duration`, `Start time (UTC)`, and `End time (UTC)` columns appear to surface the runtime window referenced by `replicaTimeout` in [Retry and timeout controls](#retry-and-timeout-controls). The presence of a single row alongside the `For older executions or more advanced analysis, see Logs` text is consistent with the bounded-retention point made in [History retention](#history-retention).
 
 **[Not Proven]** Additional execution history detail, replica detail, retry detail, and trigger detail are not shown on this blade.
 
@@ -124,3 +141,4 @@ stateDiagram-v2
 
 - [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
 - [Scale jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs)
+- [Job Execution resource and status enumeration](https://learn.microsoft.com/en-us/rest/api/resource-manager/containerapps/job-execution/job-execution)

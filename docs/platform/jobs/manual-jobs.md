@@ -4,7 +4,7 @@ content_sources:
     - id: manual-job-trigger-to-completion
       type: flowchart
       source: self-generated
-      justification: Synthesized from Microsoft Learn Jobs guidance and existing repository job examples while exact schema quotes remained pending.
+      justification: Synthesized from the documented manual trigger, advanced job settings, and execution commands.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
@@ -54,10 +54,17 @@ az containerapp job start \
 
 | Command | Purpose |
 |---|---|
-| `export RG=...`, `ACA_ENV_NAME=...`, `JOB_NAME=...`, `IMAGE_NAME=...` | Establishes the resource group, environment, job name, and immutable image that the manual-run example uses. |
-| `az containerapp job create --trigger-type "Manual"` | Registers the reusable manual job definition that operators can invoke for backfills, repair work, or maintenance tasks. |
-| `--parallelism 2` / `--replica-completion-count 2` | Shows a fan-out pattern where both replicas must complete, which fits partitioned manual jobs rather than single-threaded repair scripts. |
-| `az containerapp job start --name "$JOB_NAME" --resource-group "$RG"` | Launches an execution on demand from the saved job template, which is the core operational difference between manual jobs and scheduled/event-driven ones. |
+| `az containerapp job create` | Creates a Container Apps job definition. |
+| `az containerapp job start` | Starts a new job execution. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--environment` | Selects the Container Apps environment for the job. |
+| `--trigger-type` | Selects the job trigger type. |
+| `--parallelism` | Sets the maximum replicas that run concurrently per execution. |
+| `--replica-completion-count` | Sets the successful replica count required for execution success. |
+| `--replica-retry-limit` | Sets how many times a failed replica can be retried. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--image` | Selects the container image for the job template. |
 
 ### Execution lifecycle for operator-driven runs
 
@@ -67,9 +74,7 @@ Manual triggering creates a job execution, then the platform starts one or more 
 - Replicas are the actual container instances that run the work.
 - Success or failure is determined by completion rules and retry/timeout policy.
 
-!!! warning "Exact execution state strings need current-source verification"
-    This guide uses operator-friendly labels such as `Running`, `Succeeded`, `Failed`, and `Stopped`.
-    Before you build automation around API or CLI output, confirm the exact state names currently emitted by Microsoft Learn, Azure CLI, or the ARM/management API.
+The current management API status enumeration includes `Processing`, `Running`, `Degraded`, `Stopped`, `Failed`, `Succeeded`, and `Unknown`. See [Execution Lifecycle](execution-lifecycle.md) before parsing those values in automation.
 
 ### Parallelism and `replicaCompletionCount`
 
@@ -115,19 +120,38 @@ Manual Jobs work best when the operator can answer three questions before starti
 <!-- diagram-id: manual-job-trigger-to-completion -->
 ```mermaid
 flowchart TD
-    A[Operator runs az containerapp job start] --> B[Job execution created]
-    B --> C[Platform schedules replicas]
-    C --> D[Replicas run in parallel up to parallelism]
-    D --> E{replicaCompletionCount reached?}
-    E -->|Yes| F[Execution succeeds]
-    E -->|No and retries remain| G[Retry failed replicas]
-    G --> D
-    E -->|No and retries exhausted| H[Execution fails]
+    accTitle: Manual job trigger to completion
+    accDescr: Shows an operator starting a saved manual job definition, the platform creating an execution, replicas running in parallel, and failed replicas being retried within timeout and retry limits.
+
+    OPERATOR[Operator]
+    CONTROL[Container Apps Jobs control]
+    EXEC[Create job execution]
+    REPLICAS[Run replicas up to parallelism]
+    RESULT{Replica result}
+    COUNT{replicaCompletionCount reached?}
+    SUCCESS[Execution succeeds]
+    RETRY{Retry failed replica?}
+    RETRY_FAILED[Retry failed replica<br/>Preserve successes]
+    FAIL[Execution fails]
+
+    OPERATOR -->|az containerapp job start| CONTROL
+    CONTROL --> EXEC
+    EXEC --> REPLICAS
+    REPLICAS --> RESULT
+    RESULT -->|Succeeded| COUNT
+    COUNT -->|Yes| SUCCESS
+    COUNT -->|No| REPLICAS
+    RESULT -->|Failed| RETRY
+    RETRY -->|Allowed| RETRY_FAILED
+    RETRY_FAILED --> RESULT
+    RETRY -->|No| FAIL
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp job start] ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job start` | Starts a new execution from the saved manual job definition. |
+| `--name` | Selects the job definition. |
+| `--resource-group` | Selects the resource group that contains the job. |
 
 ## Portal View: Manual Trigger Type and Run Now Action
 
