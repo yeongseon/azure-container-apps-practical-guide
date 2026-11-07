@@ -6,31 +6,9 @@ EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 REPO_RELATIVE_EVIDENCE_DIR="labs/dapr-integration/evidence"
 LAB_README_PATH="${SCRIPT_DIR}/README.md"
 LAB_GUIDE_PATH="${SCRIPT_DIR}/../../docs/troubleshooting/lab-guides/dapr-integration.md"
-UTC_NOW="${UTC_NOW:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH UTC_NOW
-
-declare -a CANONICAL_RAW_FILES=(
-    "01-app-spec-pre-fix.json"
-    "02-revision-list-pre-fix.json"
-    "03-dapr-config-pre-fix.json"
-    "04-http-response-pre-fix.json"
-    "05-dapr-invoke-pre-fix.json"
-    "06-system-logs-pre-fix.json"
-    "07-containerapp-spec-pre-fix.yaml"
-    "08-kql-console-logs-pre-fix.json"
-    "09-dapr-config-post-fix.json"
-    "10-http-response-post-fix.json"
-    "11-revision-list-post-fix.json"
-    "12-kql-recovery-summary-post-fix.json"
-)
-
-declare -a PHASE_B_GATE_OUTPUTS=(
-    "14-cohort-integrity-gate.json"
-    "15-h1-trigger-produces-failure-gate.json"
-    "16-h2-fix-restores-recovery-gate.json"
-    "17-bounded-falsification-gate.json"
-)
+export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH EVALUATED_AT_UTC
 
 pass_gate() {
     local gate_number="$1"
@@ -295,29 +273,7 @@ EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
 LAB_README_PATH = Path(os.environ["LAB_README_PATH"])
 LAB_GUIDE_PATH = Path(os.environ["LAB_GUIDE_PATH"])
-UTC_NOW = os.environ["UTC_NOW"]
-
-# Determinism contract: when the four Phase B gate JSONs already exist, pin UTC_NOW
-# to the earliest committed utc_captured so reruns against an unchanged corpus produce
-# byte-identical gate outputs. Only the first generation consumes the runtime timestamp.
-_existing_captures = []
-for _gate_file in [
-    "14-cohort-integrity-gate.json",
-    "15-h1-trigger-produces-failure-gate.json",
-    "16-h2-fix-restores-recovery-gate.json",
-    "17-bounded-falsification-gate.json",
-]:
-    _gate_path = EVIDENCE_DIR / _gate_file
-    if _gate_path.exists():
-        try:
-            _gate_data = json.loads(_gate_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        _existing = _gate_data.get("utc_captured")
-        if isinstance(_existing, str) and _existing:
-            _existing_captures.append(_existing)
-if _existing_captures:
-    UTC_NOW = min(_existing_captures)
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 RAW_FILES = [
     "01-app-spec-pre-fix.json",
@@ -568,7 +524,9 @@ fallback_temporal = span_seconds <= 5400
 path_used = "strong" if strong_temporal else "fallback"
 
 readme_text = (EVIDENCE_DIR / "README.md").read_text(encoding="utf-8")
-observed_files_on_disk = sorted(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file())
+observed_files_on_disk = sorted(
+    set(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file()) | set(GATE_FILES)
+)
 non_junk_files = [name for name in observed_files_on_disk if name not in JUNK_NAMES]
 unexpected_non_junk = [name for name in non_junk_files if name not in EXPECTED_EVIDENCE_FILES]
 expected_xrefs = GATE_FILES
@@ -846,7 +804,7 @@ gate14 = {
         "temporal_span_fallback_seconds_max": 5400,
         "temporal_span_strong_seconds_max": 1800,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate15 = {
@@ -943,7 +901,7 @@ gate15 = {
         "expected_pre_fix_app_port": 8081,
         "expected_pre_fix_ingress_status": 200,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate16 = {
@@ -1029,7 +987,7 @@ gate16 = {
         "expected_post_fix_app_port": 8000,
         "post_fix_status_code_expected": 200,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate17 = {
@@ -1127,7 +1085,7 @@ gate17 = {
         "post_fix_status_code_expected": 200,
         "pre_fix_status_code_expected": 200,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gates = [
