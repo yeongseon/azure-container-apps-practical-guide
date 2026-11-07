@@ -5,14 +5,17 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
-        - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
     - id: ci-cd-pipeline-flow
       type: flowchart
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
         - https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 validation:
   az_cli:
     last_tested:
@@ -34,53 +37,87 @@ Automate build and deployment so every commit can produce a new Container App re
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
+    accTitle: Production-ready Container Apps context for the Node.js tutorial
+    accDescr: A caller reaches managed ingress and an active Node.js revision. The app uses managed identity for an Azure Container Registry image pull and reaches backend services through private endpoints whose DNS zones are linked to the virtual network.
 
-    subgraph VNET["VNet 10.0.0.0/16"]
-        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-            CAE[Container Apps Environment]
-            CA
-        end
-        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-            PE_ACR[PE: ACR]
-            PE_KV[PE: Key Vault]
-            PE_ST[PE: Storage]
+    CALLER["Request caller"]
+    ACR["Azure Container Registry"]
+    KV["Azure Key Vault"]
+    STORAGE["Storage account"]
+    ENTRA["Microsoft Entra ID"]
+    DNS["Private DNS zones<br/>linked to the VNet"]
+
+    subgraph VNET["Customer virtual network"]
+        INFRA["Dedicated Container Apps<br/>infrastructure subnet"]
+        subgraph PESUBNET["Private endpoint subnet"]
+            PE_ACR["ACR private endpoint"]
+            PE_KV["Key Vault private endpoint"]
+            PE_STORAGE["Storage private endpoint"]
         end
     end
 
-    PE_ACR --> ACR[Azure Container Registry]
-    PE_KV --> KV[Key Vault]
-    PE_ST --> ST[Storage Account]
-
-    subgraph DNS[Private DNS Zones]
-        DNS_ACR[privatelink.azurecr.io]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+        APP["Container app<br/>Node.js"]
+        REVISION["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
     end
 
-    PE_ACR -.-> DNS_ACR
-    PE_KV -.-> DNS_KV
-    PE_ST -.-> DNS_ST
+    CALLER ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| REVISION
+    INFRA -.->|"Environment VNet integration"| APP
+    APP -.-> REVISION
+    REVISION ==>|"Serve request"| REPLICAS
+    REPLICAS -.->|"Managed identity"| ENTRA
+    ENTRA -.->|"Registry authorization"| ACR
+    ACR ==>|"Image pull"| PE_ACR
+    PE_ACR ==>|"Private connection"| REPLICAS
+    REPLICAS ==>|"Private connection"| PE_KV
+    PE_KV ==>|"Secret retrieval"| KV
+    REPLICAS ==>|"Private connection"| PE_STORAGE
+    PE_STORAGE ==>|"Data access"| STORAGE
+    DNS -.->|"Name resolution"| PE_ACR
+    DNS -.->|"Name resolution"| PE_KV
+    DNS -.->|"Name resolution"| PE_STORAGE
 
-    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-    CAE --> LOG[Log Analytics]
-    CA --> AI[Application Insights]
-
-    style CA fill:#107c10,color:#fff
-    style VNET fill:#E8F5E9,stroke:#4CAF50
-    style DNS fill:#E3F2FD
+    LEGEND["Arrow key<br/>thick = request or data transport<br/>dotted = identity, authorization, DNS, or logical association"]
 ```
+
+*Figure: The tutorial's shared production context. The Container Apps environment is a managed logical boundary integrated with a dedicated subnet; ACR, Key Vault, Storage, private DNS zones, and Microsoft Entra ID remain separate Azure resources.*
 
 ## CI/CD Pipeline Flow
 
 <!-- diagram-id: ci-cd-pipeline-flow -->
 ```mermaid
-graph TD
-    PUSH[Push to main] --> GHA[GitHub Actions]
-    GHA --> ACR[ACR Build]
-    ACR --> DEPLOY[Deploy Revision]
-    DEPLOY --> HEALTH[Health Check]
+flowchart TD
+    accTitle: GitHub Actions delivery flow for the Node.js container app
+    accDescr: A commit starts a workflow that tests the Node.js source, builds an immutable container image, pushes it to Azure Container Registry, updates the container app, and verifies the new revision before release completion.
+
+    COMMIT["Commit to the configured branch"]
+    WORKFLOW["GitHub Actions workflow"]
+    TEST["Build and test<br/>Node.js source"]
+    IMAGE["Build container image<br/>tagged with commit SHA"]
+    ACR["Azure Container Registry"]
+    DEPLOY["Azure Container Apps<br/>deploy action"]
+    REVISION["New immutable revision"]
+    VERIFY["Verify revision readiness<br/>and health checks"]
+    COMPLETE["Release complete"]
+    INVESTIGATE["Keep prior serving revision<br/>and inspect workflow or revision"]
+
+    COMMIT -->|"Trigger"| WORKFLOW
+    WORKFLOW --> TEST
+    TEST --> IMAGE
+    IMAGE -->|"Push image"| ACR
+    ACR --> DEPLOY
+    DEPLOY -->|"Update image reference"| REVISION
+    REVISION --> VERIFY
+    VERIFY -->|"Release criteria pass"| COMPLETE
+    VERIFY -.->|"Failure path"| INVESTIGATE
+
+    LEGEND["Arrow key<br/>solid = delivery path<br/>dotted = failed verification path"]
 ```
+
+*Figure: The runtime-specific test step differs, but every language uses the same commit, image, registry, deploy, revision, and verification semantics.*
 
 ## Prerequisites
 
@@ -231,5 +268,10 @@ graph TD
 - [Managed Identity Recipe](../../../platform/identity-and-secrets/managed-identity.md)
 
 ## Sources
+- [Networking in an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Azure Container Apps image pull from ACR with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Private endpoints and DNS for Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
 - [GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
 - [Connect GitHub Actions to Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure)
+- [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Health probes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
