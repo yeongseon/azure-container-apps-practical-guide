@@ -9,7 +9,7 @@ The claim ceiling is deliberately narrow: this pack proves only what one live `k
 1. **Baseline-presence proof.** `05-baseline-success-window.json` proves the healthy `v1` pull emitted successful pull markers before the allowlist entry was removed.
 2. **H1 failure surface.** `01` through `08` capture the broken window after the firewall public IP was removed from the ACR allowlist and `v-broken` failed with a DENIED/403 surface while the old `v1` revision kept serving.
 3. **H2 recovery surface.** `09` through `12` capture the restored allowlist, healthy `v-recover` revision, and successful post-fix pull markers.
-4. **Phase B overlay.** `verify.sh` re-parses the raw files and deterministically writes Gate 14 through Gate 17.
+4. **Phase B overlay.** `verify.sh` re-parses the raw files and writes Gate 14 through Gate 17. The gates were originally emitted on 2026-06-29 and later re-evaluated offline from unchanged raw files. Every replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture date and does not establish a current Azure replay or validation date.
 
 ## Gate overview
 

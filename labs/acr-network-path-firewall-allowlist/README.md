@@ -82,6 +82,8 @@ The lab is reproduced when all of the following hold:
 
 The committed Phase B cohort lives in [`evidence/`](evidence/README.md).
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-29 and later re-evaluated offline from the unchanged raw cohort. Each replay records its own invocation time in top-level `evaluated_at_utc`; that value is not a capture date and implies no current Azure replay or validation.
+
 - The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
 - Gate 14 proves cohort integrity: canonical files present, parseable, bounded in one UTC window, same lineage, and all four cohort anchors consistent.
 - Gate 15 proves H1: baseline-presence, pre-fix allowlist removal, DENIED/403 naming the firewall public IP, failed `v-broken`, and cached `v1` silence.
