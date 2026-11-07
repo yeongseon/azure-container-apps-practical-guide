@@ -15,12 +15,28 @@ Mount Azure Files into your Python Container App when you need shared, persisten
 <!-- diagram-id: mount-azure-files-into-your-python -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> VOL["Azure Files Mount (/mnt/shared)"]
-    VOL --> SA[Azure Storage Account]
-    SA -.-> KEY["Storage Account Key"]
+    accTitle: Mount an Azure Files share in a Python container app
+    accDescr: An Azure Files share is registered as environment storage, referenced by an app revision, and mounted into the Python container. New SMB mounts can authenticate with an identity assigned to the Container Apps environment, while storage account keys remain an alternative.
+
+    FILES[Classic Azure Files share]
+    ENV_ID[Environment managed identity<br/>recommended for new SMB mounts]
+
+    subgraph ENV[Container Apps environment]
+        STORAGE[Environment storage definition]
+        REVISION[Container app revision]
+        APP[Python container]
+        MOUNT[Mounted path<br/>/mnt/shared]
+    end
+
+    ENV_ID -.->|Assigned to environment| STORAGE
+    STORAGE -.->|References share| FILES
+    REVISION -->|Defines volume| STORAGE
+    REVISION -->|Runs| APP
+    APP ==>|Filesystem read and write| MOUNT
+    MOUNT ==>|SMB file operations| FILES
 ```
+
+Thick arrows show file transport. Thin and dotted arrows show configuration and identity associations; the mount identity belongs to the environment, not the app.
 
 ## Prerequisites
 
@@ -150,7 +166,7 @@ resource storage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
 
 ## Performance considerations
 
-- Azure Files adds network latency versus local ephemeral disk.
+- Azure Files adds network latency versus local ephemeral storage.
 - Many small file operations can be slower than blob/object access patterns.
 - Use mounted shares for coordination/state handoff, not high-throughput analytics pipelines.
 
@@ -169,7 +185,7 @@ resource storage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
 ## Advanced Topics
 
 - Combine mount access with queue-based processing for resilient workflows.
-- Store storage keys in Key Vault and rotate periodically.
+- Prefer environment managed identity for new SMB mounts. If you use the storage-key alternative, protect and rotate the key.
 - For high-scale binary workloads, prefer Blob SDK over filesystem semantics.
 
 ## See Also

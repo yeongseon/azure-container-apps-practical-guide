@@ -25,15 +25,24 @@ Pull container images from Azure Container Registry over a private network path 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    ACR[Azure Container Registry] --> APP
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> ACR
+    accTitle: Pull a private image from Azure Container Registry
+    accDescr: A container app uses its configured pull identity for authorization and resolves the registry through private DNS before downloading image content through an Azure Container Registry private endpoint.
+
+    APP[Container app revision]
+    IDENTITY[Configured pull identity]
+    DNS[Private DNS zone<br/>privatelink.azurecr.io]
+    PE[Registry private endpoint]
+    ACR[Azure Container Registry]
+
+    APP -.->|Uses for image pull| IDENTITY
+    IDENTITY -.->|Registry authorization| ACR
+    APP -->|Resolves registry names| DNS
+    DNS -->|Returns private endpoint addresses| APP
+    APP ==>|Registry and layer requests| PE
+    PE ==>|Private Link transport| ACR
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show image transport. Thin arrows show DNS exchange, and dotted arrows show identity and authorization associations.
 
 !!! note "Private Endpoint requires ACR Premium SKU"
     Private Endpoints for ACR are only available on the **Premium** tier. Basic and Standard ACR cannot use Private Endpoints.
@@ -49,39 +58,30 @@ By default, Container Apps pulls images from a public ACR endpoint. In a private
 
 <!-- diagram-id: configure-the-container-app-to-reference -->
 ```mermaid
-graph TD
-    subgraph VNet["Virtual Network (10.0.0.0/16)"]
-        subgraph CASubnet["Container Apps Subnet (10.0.0.0/23)"]
-            CAE[Container Apps Environment]
-            CA[Container App<br/>+ User-Assigned MI]
-        end
-        subgraph PESubnet["Private Endpoints Subnet (10.0.2.0/24)"]
-            PE_ACR[Private Endpoint<br/>ACR login server<br/>10.0.2.10]
-            PE_DATA[Private Endpoint<br/>ACR data endpoint<br/>10.0.2.11]
-        end
+flowchart TD
+    accTitle: Private ACR image-pull dependencies
+    accDescr: The Container Apps environment reaches a registry private endpoint through its virtual network. Private DNS resolves both registry login and regional data names. A user-assigned managed identity is associated with the app and authorized on the registry separately from the network path.
+
+    IDENTITY[User-assigned managed identity]
+    DNS[Private DNS zone<br/>privatelink.azurecr.io]
+    ACR[Azure Container Registry<br/>Premium, public access disabled]
+
+    subgraph VNET[Customer virtual network]
+        ENV[Container Apps environment]
+        APP[Container app revision]
+        PE[ACR private endpoint]
     end
 
-    subgraph DNS["Private DNS Zone<br/>privatelink.azurecr.io"]
-        DNS_LOGIN["myregistry.azurecr.io → 10.0.2.10"]
-        DNS_DATA["myregistry.koreacentral.data.azurecr.io → 10.0.2.11"]
-    end
-
-    subgraph ACR["Azure Container Registry<br/>(Premium, public disabled)"]
-        LOGIN[Login server]
-        DATA[Data endpoint]
-    end
-
-    CA -->|"1. Token request (ARM audience)"| AAD[Microsoft Entra ID]
-    AAD -->|"2. Access token"| CA
-    CA -->|"3. Pull via private IP"| PE_ACR --> LOGIN
-    CA -->|"4. Layer download"| PE_DATA --> DATA
-    DNS_LOGIN -.-> PE_ACR
-    DNS_DATA -.-> PE_DATA
-
-    style CA fill:#0078d4,color:#fff
-    style ACR fill:#f0f0f0,stroke:#888
-    style DNS fill:#e6f2fb,stroke:#0078d4
+    ENV -->|Hosts| APP
+    APP -.->|Configured pull identity| IDENTITY
+    IDENTITY -.->|Registry pull authorization| ACR
+    APP -->|Queries login and data names| DNS
+    DNS -->|Returns private endpoint addresses| APP
+    APP ==>|Registry login and layer requests| PE
+    PE ==>|Private Link transport| ACR
 ```
+
+Thick arrows show image transport. Thin arrows show hosting and DNS exchange; dotted arrows show identity and authorization associations.
 
 !!! warning "Two DNS records are required"
     ACR image pulls use **two endpoints**: the login server (`myregistry.azurecr.io`) for authentication and the regional data endpoint (`myregistry.<region>.data.azurecr.io`) for layer downloads. Both must resolve to private IPs through the Private DNS Zone. Missing the data endpoint causes pull failures that are not obvious from the error message.
