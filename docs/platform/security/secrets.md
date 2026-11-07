@@ -85,7 +85,7 @@ For a user-assigned identity, Microsoft Learn documents replacing `system` with 
 A revision can expose an application-level secret to a container in two documented ways:
 
 - An environment variable uses `secretRef`; the container reads a process environment value.
-- A secret volume uses `secretRef`; the container reads the secret from a mounted file. The volume can mount all application secrets or a selected set with chosen file paths.
+- A secret volume exposes application secrets as mounted files. **Mount all secrets** needs no per-entry `secretRef`; when you select individual secrets or rename their files, each volume entry uses `secretRef` with an optional `path`.
 
 **Takeaway:** Choosing environment variable or file consumption does not change where the secret is defined. Inline values and Key Vault references both become application-level Container Apps secrets before a revision consumes them.
 
@@ -93,7 +93,7 @@ A revision can expose an application-level secret to a container in two document
 ```mermaid
 flowchart TD
     accTitle: Resolve and consume an Azure Container Apps secret
-    accDescr: A decision flow starts with an application-level secret definition. An inline value is stored by Container Apps. For a Key Vault reference, the Container Apps secret resolver uses the selected managed identity, requests authorization from Key Vault, returns a failure when access is denied, and retrieves the value only after authorization succeeds. A revision then consumes the resolved app secret through either a secretRef environment variable or a mounted secret file.
+    accDescr: A decision flow starts with an application-level secret definition. An inline value is stored by Container Apps. For a Key Vault reference, the Container Apps secret resolver uses the selected managed identity, requests authorization from Key Vault, returns a failure when access is denied, and retrieves the value only after authorization succeeds. A revision then consumes the resolved app secret through either a secretRef environment variable or a secret volume that mounts all app secrets or selected secretRef entries.
 
     DEFINE{"Application-level<br/>secret definition?"}
     INLINE["Inline Container Apps secret<br/>name and value"]
@@ -108,7 +108,7 @@ flowchart TD
 
     CONSUME{"How does the revision<br/>consume the secret?"}
     ENV_REF["Environment variable<br/>secretRef"]
-    VOLUME_REF["Secret volume<br/>secretRef file"]
+    VOLUME_REF["Secret volume<br/>mount all, or selected<br/>secretRef and path entries"]
     PROCESS["Revision container process"]
     FILE["Mounted secret file"]
 

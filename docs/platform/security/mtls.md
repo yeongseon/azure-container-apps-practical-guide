@@ -37,20 +37,30 @@ Azure Container Apps has three distinct mTLS-related planes: environment-interna
 ```mermaid
 flowchart TD
     accTitle: Three distinct mTLS-related planes in Azure Container Apps
-    accDescr: A topology separates client certificate presentation at managed ingress, application validation of forwarded certificate material, environment peer-to-peer encryption for traffic within one managed environment, and Dapr mutual TLS between sidecars. Thick arrows are request transport. Dotted arrows are settings, metadata, trust evaluation, or authorization relationships rather than transport.
+    accDescr: A topology separates client certificate presentation at managed ingress, application validation of forwarded certificate material, two documented peer-encrypted paths within one managed environment, and Dapr mutual TLS between sidecars. The FQDN path first reaches edge ingress; the app-name path is sent toward the target app without traversing edge ingress. Thick arrows are request transport. Dotted arrows are settings, metadata, trust evaluation, or authorization relationships rather than transport.
 
     CLIENT["External or private client<br/>client certificate optional or required"]
-    AUTHZ["Application authorization<br/>still required where applicable"]
-    CERT_REJECT["Reject untrusted certificate<br/>for example, 403"]
 
     subgraph ENV["Managed Container Apps environment"]
         INGRESS["Managed ingress proxy<br/>TLS and client certificate mode"]
-        APP_EDGE["Ingress-enabled app"]
-        CERT_VALIDATION{"Certificate trusted by<br/>application policy?"}
+
+        subgraph EDGE_APP["Ingress-enabled application behavior"]
+            APP_EDGE["Application request handler"]
+            CERT_VALIDATION{"Certificate trusted by<br/>application policy?"}
+            AUTHZ["Application authorization<br/>still required where applicable"]
+            CERT_REJECT["Reject untrusted certificate<br/>for example, 403"]
+        end
 
         APP_A["App A<br/>same-environment caller"]
-        APP_B["App B<br/>same environment"]
+        FQDN["App B FQDN"]
+        APP_NAME["App B app name"]
         PEER_SETTING["Peer encryption setting<br/>environment scope, opt-in"]
+
+        subgraph PEER_TARGET["Target App B behavior"]
+            APP_B_FQDN["FQDN path arrives"]
+            APP_B_NAME["App-name path arrives"]
+            TARGET_AUTHZ["Application authorization<br/>still required"]
+        end
 
         APP_DAPR_A["App A<br/>localhost call"]
         DAPR_A["Dapr sidecar A"]
@@ -70,19 +80,24 @@ flowchart TD
     CERT_VALIDATION -.->|"Trusted identity input"| AUTHZ
     CERT_VALIDATION -.->|"Not trusted"| CERT_REJECT
 
-    APP_A ==>|"3  Same-environment request"| INGRESS
-    INGRESS ==>|"4  Peer-encrypted traffic"| APP_B
-    PEER_SETTING -.->|"Encrypts environment traffic"| INGRESS
-    APP_B -.->|"Authorization not supplied<br/>by peer encryption"| AUTHZ
+    APP_A -->|"Choose address"| FQDN
+    APP_A -->|"Choose address"| APP_NAME
+    FQDN ==>|"3  FQDN request<br/>to edge ingress"| INGRESS
+    INGRESS ==>|"4  Peer-encrypted delivery"| APP_B_FQDN
+    APP_NAME ==>|"5  Peer-encrypted app-name path<br/>sent toward target app"| APP_B_NAME
+    PEER_SETTING -.->|"Encrypts both peer paths"| FQDN
+    PEER_SETTING -.->|"Encrypts both peer paths"| APP_NAME
+    APP_B_FQDN -.->|"Peer encryption does not authorize"| TARGET_AUTHZ
+    APP_B_NAME -.->|"Peer encryption does not authorize"| TARGET_AUTHZ
 
-    APP_DAPR_A ==>|"5  Local HTTP or gRPC"| DAPR_A
-    DAPR_A ==>|"6  Automatic Dapr mTLS"| DAPR_B
-    DAPR_B ==>|"7  Local HTTP or gRPC"| APP_DAPR_B
+    APP_DAPR_A ==>|"6  Local HTTP or gRPC"| DAPR_A
+    DAPR_A ==>|"7  Automatic Dapr mTLS"| DAPR_B
+    DAPR_B ==>|"8  Local HTTP or gRPC"| APP_DAPR_B
 
     LEGEND["Arrow key<br/>thick = request transport<br/>dotted = setting, metadata,<br/>trust, or authorization relationship"]
 ```
 
-*Figure: The three planes share one managed environment but solve different problems. Client certificate mode controls certificate presentation and forwarding; the application must validate the forwarded leaf certificate against its trust policy before authorization. Peer encryption protects transport within the environment, and Dapr provides authenticated and encrypted sidecar-to-sidecar invocation.*
+*Figure: The three planes share one managed environment but solve different problems. Client certificate mode controls certificate presentation and forwarding; application validation, rejection, and authorization stay inside the application behavior boundary. For peer encryption, a same-environment FQDN call first reaches edge ingress, while an app-name call is sent toward the target app without traversing edge ingress; both paths remain platform-managed and encrypted when the environment setting is enabled. Dapr provides authenticated and encrypted sidecar-to-sidecar invocation.*
 
 | Plane | Primary purpose | Scope |
 |---|---|---|
@@ -112,7 +127,7 @@ What this plane does:
 
 - Encrypts network traffic within the Azure Container Apps environment with platform-managed private certificates.
 - Applies at the environment boundary, not as application code middleware.
-- Helps protect east-west traffic when apps communicate by app name or FQDN through the environment's proxy-managed routing.
+- Helps protect east-west traffic on both documented same-environment paths: FQDN calls first reach edge ingress, while app-name calls are sent toward the target app. Container Apps manages service discovery and routing for both paths; peer encryption protects transport but does not add application authorization.
 
 What it does not do:
 
@@ -185,7 +200,7 @@ Key points:
 
 ## Design Guidance
 
-- Use environment peer encryption when you want proxy-managed app-to-app traffic inside the environment protected without re-implementing TLS in each service.
+- Use environment peer encryption when you want both documented app-to-app paths inside the environment protected without re-implementing TLS in each service. Keep the distinction visible during diagnosis: FQDN calls first reach edge ingress; app-name calls are sent toward the target app without traversing edge ingress.
 - Use ingress client certificates when ingress should require or accept certificate presentation, and implement the trust decision in application policy before authorization.
 - Use Dapr service invocation when both apps are in the same environment and you want mTLS, retries, and service discovery together.
 - Do not assume one plane automatically enables the others.
