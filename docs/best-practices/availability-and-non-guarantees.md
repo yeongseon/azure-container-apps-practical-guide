@@ -13,13 +13,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: '2026-06-12'
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Microsoft Learn documents that Container Apps performs replica placement via a platform scheduler across physical hosts, but does not document any per-replica node-placement contract or operator-facing control that would let an operator pin N replicas to N distinct physical nodes.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: Zone redundancy in Container Apps is implemented by the platform scheduler and is described as a best-effort distribution across physical hosts in different zones while meeting the minimum replica count; it is not an absolute guarantee.
+    - claim: In a zone-redundant environment, Container Apps automatically schedules app replicas across availability zones, and Microsoft recommends at least two minimum replicas to ensure distribution across multiple zones.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: Microsoft Learn documents Container Apps planned-maintenance scheduling and windowing, but does not publish a per-app guarantee that the restarts triggered by a given maintenance event will be spread out in time; combined with the absence of a per-replica node-placement contract (Claim 1), an operator cannot point at a Microsoft Learn page that rules out the possibility that multiple replicas of the same app are restarted within a short time window during a maintenance event that affects a shared physical host.
@@ -28,21 +28,21 @@ content_validation:
     - claim: A new revision is considered ready only after it provisions successfully, scales to match the previous revision's replica count, and all replicas pass startup and readiness probes; rolling rollout depends on correctly-configured probes to mask client-visible transients.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
-    - claim: Microsoft Learn directs operators to multi-region designs fronted by Azure Front Door when the availability target exceeds what a single zone-redundant environment provides.
+    - claim: Container Apps is a single-region service; regional resilience requires separate environments in multiple regions plus customer-configured load balancing and failover policies such as Azure Front Door or Traffic Manager.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
 ---
 # Availability and Non-Guarantees
 
-Use this page to align operator expectations with what Azure Container Apps **explicitly does not promise**. Most production incidents traced to "Azure Container Apps outage" are actually operator assumptions that exceed the platform's documented best-effort contracts. This page enumerates the five most-commonly-violated assumptions, cites the Microsoft Learn statement that disclaims each, and points to a falsifiable lab when one exists.
+Use this page to align operator expectations with the exact availability behaviors and limits that Azure Container Apps documents. It distinguishes automatic platform behavior from customer-owned configuration and regional-resilience responsibilities, and points to a falsifiable lab when one exists.
 
 ## Why This Matters
 
-Container Apps is a managed platform that abstracts away node placement, zone distribution, replica scheduling, and rolling-rollout transitions. Each abstraction is a **best-effort contract**, not a hard guarantee. Microsoft Learn is explicit about every one of these contracts, but the disclaimers are spread across multiple articles and are easy to miss when reading the marketing-facing landing pages.
+Container Apps is a managed platform that abstracts away physical-host placement, replica scheduling, maintenance sequencing, and rolling-rollout transitions. These contracts differ: current Microsoft Learn explicitly says zone-redundant environments automatically schedule app replicas across zones, while planned-maintenance windows are an optional best-effort feature and cross-region failover remains the customer's responsibility. Treat each incident against the exact published contract instead of applying one blanket “best-effort” label.
 
-When an operator's mental model assumes a hard guarantee where the platform offers best-effort, the failure mode is predictable:
+When an operator's mental model exceeds the documented contract, the failure mode is predictable:
 
-- "My zone-redundant app went down during an AZ fault — Container Apps must be broken." (Claim 2: zone redundancy is best-effort.)
+- "My zone-redundant app had dropped requests during an AZ fault — Container Apps must be broken." (Claim 2: automatic zone distribution does not prevent every in-flight request from timing out.)
 - "I set `minReplicas=3` so I should always have 3 replicas running across 3 nodes." (Claim 1: node spread is not guaranteed.)
 - "All my replicas restarted at the same time — that can't be normal." (Claim 3: planned maintenance can cluster restarts.)
 - "I have probes configured, so my rolling rollout should produce zero 5xx." (Claim 4: probe correctness gates transients, not the rollout mechanism alone.)
@@ -53,18 +53,33 @@ The remediation in every case is the same shape: **add a compensating control at
 <!-- diagram-id: is-this-a-bug-or-a-non-guarantee-or-a-misconfig -->
 ```mermaid
 flowchart TD
-    A[Observed availability incident<br/>on Container Apps] --> B{Is the symptom reproducible<br/>against a falsifiable lab?}
-    B -->|No| C[Treat as one-off incident<br/>capture logs, file support ticket,<br/>and proceed with caution]
-    B -->|Yes| D{Does the symptom match a<br/>documented Microsoft Learn<br/>non-guarantee?}
-    D -->|No| E{Is the symptom traceable to<br/>an operator misconfiguration<br/>e.g. wrong probe path?}
-    E -->|Yes| F[Misconfiguration<br/>Fix the config<br/>see Validation Checklist]
-    E -->|No| G[Possible platform bug<br/>collect evidence,<br/>file support ticket with<br/>KQL bucket data]
-    D -->|Yes| H{Have you added the<br/>recommended compensating<br/>control for that contract?}
-    H -->|No| I[Add compensating control<br/>see Recommended Practices<br/>for that claim]
-    H -->|Yes| J{Is the residual risk within<br/>the documented best-effort envelope?}
-    J -->|Yes| K[Accept the residual risk<br/>document the trade-off<br/>monitor with bucketed alerting]
-    J -->|No| L[Escalate to multi-region<br/>see Claim 5<br/>Front Door + secondary region]
+    accTitle: Classify a Container Apps availability incident
+    accDescr: Uses documented platform behavior, configuration evidence, and compensating controls to distinguish expected behavior, operator misconfiguration, and a possible platform defect.
+
+    INCIDENT["Observed availability incident"]
+    CONTRACT{"Does current Learn document<br/>this behavior or limitation?"}
+    CONFIG{"Does configuration evidence<br/>explain the symptom?"}
+    CONTROL{"Is the documented<br/>compensating control present?"}
+    RESIDUAL{"Is impact within the accepted<br/>and monitored residual risk?"}
+    EXPECTED["Documented behavior<br/>retain evidence and monitor"]
+    FIX["Operator misconfiguration<br/>correct and validate"]
+    ADD["Add the missing control<br/>then test the failure path"]
+    ESCALATE["Possible platform defect<br/>collect evidence and contact support"]
+    REGIONAL["Regional-risk requirement<br/>use separate regional environments<br/>with global routing"]
+
+    INCIDENT --> CONTRACT
+    CONTRACT -->|"Yes"| CONTROL
+    CONTRACT -->|"No"| CONFIG
+    CONFIG -->|"Yes"| FIX
+    CONFIG -->|"No"| ESCALATE
+    CONTROL -->|"No"| ADD
+    CONTROL -->|"Yes"| RESIDUAL
+    RESIDUAL -->|"Yes"| EXPECTED
+    RESIDUAL -->|"No; region-scale risk"| REGIONAL
+    RESIDUAL -->|"No; unexplained behavior"| ESCALATE
 ```
+
+*Figure: Classify the symptom against current Learn first, then use configuration and control evidence before escalating an unexplained result.*
 
 ## Recommended Practices
 
@@ -85,15 +100,15 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 
 **Lab evidence**: A focused lab for Claim 1 is tracked separately in [issue #202](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/202) and is not yet published. The planned lab uses `boot_id` and uptime monotonicity as proxy signals to compare Consumption-profile and Dedicated-D8-profile replica distribution at scale. When the lab ships, this cross-link will land here and the page-level `content_sources` justification will be updated to list it.
 
-### Claim 2: Zone redundancy is best-effort, not absolute
+### Claim 2: Zone redundancy distributes replicas, but does not eliminate transient impact
 
-**Practice**: Set `zoneRedundant=true` on the Container Apps environment, use `minReplicas >= 3` so the platform has at least one replica per zone to work with, set resource requests and limits explicitly, and design the application to tolerate transient unavailability of one zone.
+**Practice**: Set `zoneRedundant=true` when creating the Container Apps environment, use at least two minimum replicas as Microsoft recommends, set resource requests and limits explicitly, and design clients to tolerate transient failures during a zone event.
 
-**Non-guarantee disclosure**: The Microsoft Learn article on [reliability in Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) documents that zone redundancy is implemented by the platform scheduler as a best-effort distribution across physical hosts in different zones while still meeting the minimum replica count. The article does not publish a per-app guarantee of zone-spread under all conditions; the operator-side implication is that under capacity pressure, planned maintenance, or replica resource constraints, the scheduler can land more than the expected number of replicas in any given zone. Setting `zoneRedundant=true` does not change the best-effort contract; it changes the scheduler's preference.
+**Documented contract and limit**: Current Microsoft Learn says Container Apps automatically schedules app replicas across zones when zone redundancy is enabled. It also says in-flight requests to the failed zone might be dropped, time out, or return connection errors; rerouting typically occurs in about 30 seconds depending on probe configuration. “Typically” is not a maximum-time guarantee. This current wording supersedes the older best-effort interpretation retained in the historical lab title and playbook name.
 
 **Remediation pattern**:
 
-1. Set `minReplicas` to the number of zones you want covered (at least 3 in a 3-zone region). With `minReplicas=2`, the scheduler has only 2 replicas to distribute across 3 zones, so one zone always has zero coverage.
+1. Set `minReplicas` to at least 2, the documented minimum recommendation for distribution across multiple zones. Increase it when peak load, simultaneous-zone resilience, or replacement headroom requires more capacity; do not infer a one-replica-per-zone placement API.
 2. Set CPU and memory `requests` and `limits` explicitly. Underspecified resource requirements force the scheduler into conservative placement decisions that can collapse the zone spread.
 3. Implement client-side retry with jitter for all calls into the Container App. A transient zone-level outage during a planned maintenance event is invisible to the app code but visible to the client.
 4. Configure bucketed alerting on `err_pct` at 10-second granularity (see the [Startup-Degraded Bucketed 5xx KQL Pack](../troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md) for the bucket-aggregation pattern). Minute-granularity alerting is too coarse to detect sub-minute zone-level transients.
@@ -141,7 +156,7 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 
 1. Deploy the application to two regions. The secondary region can be lower-capacity (warm-standby pattern) or equal-capacity (active-active pattern) depending on the recovery time objective (RTO) and recovery point objective (RPO).
 2. Front both regions with [Azure Front Door](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview) using a health-probe-based routing rule. Front Door's regional failover is the operator-side control that compensates for any single-region availability ceiling.
-3. Ensure stateful dependencies (databases, queues, caches) are also configured for cross-region replication or failover. A multi-region Container Apps deployment fronted by Front Door fails over to the secondary region in seconds; if the database is single-region, the Container Apps failover is meaningless.
+3. Ensure stateful dependencies (databases, queues, caches) are also configured for cross-region replication or failover. Microsoft Learn does not publish one universal cross-region failover duration for this customer-built topology; measure the complete routing, application, and data recovery path against your RTO.
 4. Test the failover regularly with a chaos exercise. An untested DR path is not a DR path. See the [multi-region failover playbook](../troubleshooting/playbooks/platform-features/multi-region-failover.md) for the operational pattern.
 
 **Lab evidence**: This claim is a Microsoft Learn explicit non-guarantee statement (no falsifiable reproduction is needed — the documentation itself caps single-region availability). The corroborating cross-link is the [multi-region failover playbook](../troubleshooting/playbooks/platform-features/multi-region-failover.md), which describes the failover topology that compensates for the cap.
@@ -158,13 +173,13 @@ Each anti-pattern below maps to one of the five claims above. The pattern is **a
 
 **Fix**: Set `requests` and `limits` explicitly (improves scheduler placement), set `minReplicas` to at least one more than the failure-domain budget you require, and add a client-side retry layer.
 
-### Mistake 2: Treating zone redundancy as a hard guarantee
+### Mistake 2: Treating zone redundancy as zero-impact failover
 
 **Assumption**: `zoneRedundant=true` means an AZ-level fault has zero customer impact.
 
-**Consequence**: An AZ-level event correlates with measurable customer 5xx; the operator escalates to Azure support expecting a platform bug, and is directed to the best-effort disclosure in Microsoft Learn instead.
+**Consequence**: An AZ-level event correlates with measurable customer 5xx even though replicas were distributed across zones, because in-flight requests can fail before health-probe-driven rerouting completes.
 
-**Fix**: Treat zone redundancy as a probabilistic improvement, not a guarantee. Add bucket-granularity alerting (sub-minute), implement client-side retry, and document the residual risk against the application's SLO.
+**Fix**: Rely on automatic zone distribution, but plan for dropped in-flight requests and probe-dependent rerouting. Add client retries, sufficient healthy-zone capacity, and monitoring that can reveal the transient impact.
 
 ### Mistake 3: Conflating clustered replica restart with platform outage
 
@@ -205,9 +220,9 @@ Run this checklist before depending on any of the five contracts in production.
 ### For Claim 2 (zone redundancy):
 
 - [ ] Environment is created with `zoneRedundant=true`.
-- [ ] `minReplicas` is at least 3 in a 3-zone region (so the scheduler has at least one replica per zone to distribute).
+- [ ] `minReplicas` is at least 2, with a higher value justified by load and failure-tolerance requirements.
 - [ ] Bucket-level (10-second) alerting on `err_pct` is configured.
-- [ ] The application's SLO is documented as a best-effort improvement, not an absolute guarantee.
+- [ ] The application's SLO accounts for possible in-flight request failures and probe-dependent rerouting during a zone event.
 - [ ] The corresponding playbook [Zone Redundancy Is Best-Effort](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) has been reviewed.
 
 ### For Claim 3 (clustered restart):

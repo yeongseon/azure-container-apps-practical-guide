@@ -13,8 +13,8 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
+        - https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview
     - id: dapr-resiliency-high-level-flow
       type: flowchart
       source: self-generated
@@ -24,7 +24,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency
 content_validation:
   status: verified
-  last_reviewed: 2026-11-07
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: If ingress is enabled in single revision mode, the existing revision continues to receive 100% of the traffic until the new revision is ready.
@@ -33,10 +33,10 @@ content_validation:
     - claim: A new revision is considered ready only after it provisions successfully, scales to match the previous revision's replica count, and all replicas pass startup and readiness probes.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
-    - claim: In single revision mode, if an update fails, traffic remains pointed to the old revision.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+    - claim: Zone redundancy is selected when the environment is created; Container Apps automatically schedules app replicas across zones and Microsoft recommends at least two minimum replicas for multi-zone distribution.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: Zone redundancy is selected when the environment is created, and Microsoft recommends at least two minimum replicas to distribute replicas across multiple availability zones.
+    - claim: Container Apps is a single-region service, so region-wide resilience requires separate regional environments and customer-configured load balancing and failover policies such as Azure Front Door or Traffic Manager.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: Dapr component resiliency is a preview feature that supports timeouts, HTTP retries, and circuit breakers for Dapr component operations.
@@ -160,12 +160,12 @@ az containerapp update \
   --yaml "./infra/containerapp-reliability.yaml"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration without recreating the app. |
-| `--name` | Selects the Container App. |
-| `--resource-group` | Selects the resource group containing the app. |
-| `--yaml` | Applies the probe configuration from the specified YAML file. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--yaml` | Applies the app template from the selected YAML file. |
 
 ### Graceful shutdown with SIGTERM and termination grace
 
@@ -195,12 +195,12 @@ az containerapp update \
   --yaml "./infra/containerapp-termination.yaml"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration without recreating the app. |
-| `--name` | Selects the Container App. |
-| `--resource-group` | Selects the resource group containing the app. |
-| `--yaml` | Applies the termination-grace configuration from the specified YAML file. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--yaml` | Applies the app template from the selected YAML file. |
 
 !!! note "Coordinate grace period with upstream timeout"
     If load balancer, gateway, or client timeout is shorter than termination grace, requests may still fail despite clean SIGTERM handling.
@@ -220,8 +220,8 @@ Trade-offs:
 - Regional capability constraints.
 - Additional architecture validation required for dependencies.
 
-!!! warning "Zone placement is best-effort, not a per-replica guarantee"
-    Microsoft Learn describes zone-redundant Container Apps as relying on a scheduler that "ensures optimal distribution across physical hosts while meeting your minimum replica count requirements." That is a **best-effort** behavior — setting `minReplicas=N` in a zone-redundant environment does **not** guarantee one replica in each of N distinct zones at every moment. Underspecified resource requests, host capacity, and maintenance events can all skew distribution. When your SLO depends on stronger zonal guarantees than this, combine zone redundancy with the four-layer mitigation matrix in the [Zone Redundancy Best-Effort playbook](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) — explicit resource requests, app-layer retries and circuit breakers, multi-region or AKS topology escalation, and replica-inventory observability.
+!!! warning "Zone redundancy does not eliminate transient request impact"
+    Current Microsoft Learn says a zone-redundant environment automatically schedules app replicas across zones. During a zone failure, however, in-flight requests to the failed zone might be dropped, time out, or return connection errors, and rerouting typically takes about 30 seconds depending on probe configuration. Treat that duration as descriptive, not a guaranteed maximum. Use retries, adequate healthy-zone capacity, and the mitigation matrix in the [Zone Redundancy Best-Effort playbook](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md).
 
 Check environment profile:
 
@@ -232,31 +232,50 @@ az containerapp env show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Reads managed environment settings for zone-redundancy verification. |
-| `--name` | Selects the Container Apps environment. |
-| `--resource-group` | Selects the resource group containing the environment. |
-| `--output` | Emits the complete environment configuration as JSON. |
+| `az containerapp env show` | Reads the selected Container Apps environment configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### Multi-region deployment pattern for critical APIs
 
-For high-availability public services, run active-passive or active-active across regions.
+Container Apps environments are regional. For regional-outage resilience, deploy separate environments and dependencies in multiple regions, then configure customer-managed global routing. The diagram shows an active-passive example; Traffic Manager can provide DNS-based routing, while Front Door provides an HTTP(S) global entry path.
 
 <!-- diagram-id: for-high-availability-public-services-run-active-passive -->
 ```mermaid
-graph TD
-    C[Client] --> DNS[Traffic Manager / Front Door]
-    DNS --> R1[Region A - Container Apps]
-    DNS --> R2[Region B - Container Apps]
-    R1 --> D1[(Regional Data Path)]
-    R2 --> D2[(Regional Data Path)]
+flowchart TD
+    accTitle: Active-passive Container Apps regional topology
+    accDescr: Client requests enter a customer-configured global router, which sends traffic to a primary regional Container Apps environment and fails over to a separately deployed secondary environment when policy and health evaluation require it.
+
+    CLIENT["Client"]
+    ROUTER["Azure Front Door or Traffic Manager<br/>health-based routing policy"]
+    PRIMARY_ENV["Primary region<br/>Container Apps environment"]
+    PRIMARY_APP["Primary app revision and replicas"]
+    PRIMARY_DATA[("Primary regional data service")]
+    SECONDARY_ENV["Secondary region<br/>separate Container Apps environment"]
+    SECONDARY_APP["Standby app revision and replicas"]
+    SECONDARY_DATA[("Replicated or failover-ready data service")]
+    POLICY["Customer-owned failover policy<br/>and tested runbook"]
+
+    CLIENT ==>|"Application request"| ROUTER
+    ROUTER ==>|"Normal route"| PRIMARY_ENV
+    PRIMARY_ENV ==>|"Routed request"| PRIMARY_APP
+    PRIMARY_APP ==>|"Data operation"| PRIMARY_DATA
+    ROUTER -.->|"Failover route"| SECONDARY_ENV
+    SECONDARY_ENV ==>|"Routed request after failover"| SECONDARY_APP
+    SECONDARY_APP ==>|"Data operation"| SECONDARY_DATA
+    POLICY -.-> ROUTER
+    PRIMARY_DATA -.->|"Replication or failover relationship"| SECONDARY_DATA
 ```
+
+*Figure: Regional resilience uses two independent Container Apps environments; the global routing and data-failover policies are customer-configured rather than built into one environment.*
 
 Choose pattern by dependency model:
 
-- **Active-passive**: simpler operations, slower failover switch.
-- **Active-active**: faster failover, requires strict data and idempotency design.
+- **Active-passive**: one region normally serves requests while the other is kept ready according to your capacity and recovery plan.
+- **Active-active**: both regions serve requests and require stricter data consistency, routing, and idempotency design.
 
 Operational baseline:
 
@@ -342,12 +361,12 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp revision list` | Lists revisions so rollout state, traffic, and health can be verified. |
-| `--name` | Selects the Container App. |
-| `--resource-group` | Selects the resource group containing the app. |
-| `--output` | Formats the revision list as a table. |
+| `az containerapp revision list` | Lists revisions for the selected Container App. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Immediate rollback example:
 
@@ -358,12 +377,12 @@ az containerapp ingress traffic set \
   --revision-weight "${APP_NAME}--stable=100"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress traffic set` | Replaces the app's revision traffic weights with the specified allocation. |
-| `--name` | Selects the Container App. |
-| `--resource-group` | Selects the resource group containing the app. |
-| `--revision-weight` | Assigns 100 percent traffic to the known-good revision. |
+| `az containerapp ingress traffic set` | Sets revision traffic weights for the selected Container App. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--revision-weight` | Assigns traffic percentages by revision name. |
 
 !!! warning "Do not deactivate stable revision too early"
     Keeping at least one proven revision active dramatically reduces mean time to recover during bad deployments.
@@ -411,13 +430,13 @@ az containerapp logs show \
   --follow false
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp logs show` | Reads platform system logs for incident triage. |
-| `--name` | Selects the Container App. |
-| `--resource-group` | Selects the resource group containing the app. |
-| `--type` | Selects system logs. |
-| `--follow` | Returns current logs without continuously streaming. |
+| `az containerapp logs show` | Reads Container App logs for incident triage. |
+| `--follow` | Controls whether log output continues streaming. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--type` | Selects console or system logs. |
 
 ### Disaster recovery considerations for Container Apps
 
@@ -498,14 +517,14 @@ az containerapp ingress traffic show \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the latest ready revision name. |
-| `az containerapp ingress traffic show` | Reads the current revision traffic allocation. |
-| `--name` | Selects the Container App. |
-| `--resource-group` | Selects the resource group containing the app. |
-| `--query` | Extracts the latest ready revision name. |
-| `--output` | Selects TSV or table output for containment review. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp ingress traffic show` | Shows the current revision traffic allocation. |
 
 ### Verify reliability surfaces in Azure Portal
 
@@ -550,17 +569,17 @@ az monitor metrics list \
   --aggregation "Average"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp revision list` | Lists revisions so rollout state, traffic, and health can be verified. |
-| `az monitor metrics list` | Reads selected Container App resource metrics. |
-| `--name` | Selects the Container App for revision listing. |
-| `--resource-group` | Selects the resource group containing the app. |
-| `--resource` | Selects the Container App resource for metric queries. |
-| `--metric` | Selects CPU and memory metrics. |
-| `--interval` | Sets five-minute metric granularity. |
-| `--aggregation` | Requests average metric values. |
-| `--output` | Emits the revision list as JSON. |
+| `az containerapp revision list` | Lists revisions for the selected Container App. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `az monitor metrics list` | Reads selected Azure Monitor metrics for the Container App resource. |
+| `--aggregation` | Selects the aggregation applied to metric values. |
+| `--interval` | Sets the metric time-grain interval. |
+| `--metric` | Selects the metric names to return. |
+| `--resource` | Selects the complete Azure resource ID for the metric query. |
 
 ## Common Mistakes / Anti-Patterns
 
@@ -594,3 +613,5 @@ az monitor metrics list \
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Dapr component resiliency (preview) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency)
+- [Azure Front Door overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview)
+- [Azure Traffic Manager overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview)

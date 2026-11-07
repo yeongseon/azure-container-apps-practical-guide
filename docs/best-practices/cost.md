@@ -6,31 +6,29 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/billing
-        - https://learn.microsoft.com/en-us/azure/container-apps/environment
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
     - id: choose-profile-type-by-workload-shape
       type: flowchart
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/billing
-        - https://learn.microsoft.com/en-us/azure/container-apps/environment
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
-    - claim: You aren't billed usage charges if your container app scales to zero.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - claim: When a Consumption-plan revision scales to zero replicas, no resource-consumption charges are incurred.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/billing
       verified: true
-    - claim: Replicas that aren't processing but remain in memory might be billed at a lower idle rate.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - claim: Eligible Consumption-plan replicas at the minimum replica count can be billed at reduced idle rates only when all documented request, CPU, network, and running-container conditions are met.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/billing
       verified: true
-    - claim: Azure Container Apps uses minimum and maximum replica limits per revision as part of scale definition.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - claim: Azure Container Apps supports Consumption, Dedicated, and Flexible workload profile types.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
       verified: true
-    - claim: If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to 1 or higher.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+    - claim: Apps on the Flexible profile cannot scale to zero and are billed like Consumption plus the Dedicated plan management fee.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
       verified: true
 ---
 # Cost-Aware Best Practices
@@ -59,9 +57,13 @@ az extension add --name "containerapp" --upgrade
 az account show --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the Container Apps extension used by the examples. |
+| `--name` | Selects the named Azure resource. |
+| `--upgrade` | Upgrades the extension if an older version is installed. |
+| `az account show` | Shows the active subscription and tenant before the review commands run. |
+| `--output` | Chooses the output format for review or scripting. |
 
 ## Recommended Practices
 
@@ -80,54 +82,72 @@ If you optimize only one meter (for example, CPU), your total cost can still inc
 <!-- diagram-id: if-you-optimize-only-one-meter -->
 ```mermaid
 flowchart TD
-    A[Workload Characteristics] --> B[Container Apps Runtime Cost]
-    A --> C[Registry Pull/Storage Cost]
-    A --> D[Observability Cost]
-    A --> E[Environment Overhead]
+    accTitle: Container Apps cost review flow
+    accDescr: Reviews workload shape, compute profile, replica behavior, observability, registry, and networking costs before accepting a cost optimization.
 
-    B --> B1[Consumption profile]
-    B --> B2[Workload profile]
-    B --> B3[minReplicas and maxReplicas]
+    SHAPE["Workload demand and SLO"]
+    PROFILE["Profile cost model<br/>Consumption, Dedicated, or Flexible"]
+    REPLICAS["Replica or profile-instance usage"]
+    PLATFORM["Container Apps compute and requests"]
+    LOGS["Logging ingestion and retention"]
+    REGISTRY["Registry storage and image pulls"]
+    NETWORK["VNet and managed networking resources"]
+    TOTAL["Review total cost<br/>against reliability outcome"]
 
-    C --> C1[ACR SKU]
-    C --> C2[Image size and pull frequency]
-
-    D --> D1[Log Analytics ingestion]
-    D --> D2[Retention policy]
-
-    E --> E1[Environment sharing]
-    E --> E2[Networking topology]
+    SHAPE --> PROFILE
+    PROFILE --> REPLICAS
+    REPLICAS --> PLATFORM
+    PLATFORM --> TOTAL
+    LOGS --> TOTAL
+    REGISTRY --> TOTAL
+    NETWORK --> TOTAL
+    SHAPE --> LOGS
+    SHAPE --> REGISTRY
+    PROFILE --> NETWORK
 ```
+
+*Figure: Optimize the complete workload cost path; compute tuning alone does not account for logging, registry, or networking charges.*
 
 !!! note "Optimization sequence"
     Start with architecture-level choices (profile, environment boundary, image strategy), then tune per-app resources and scale rules. Reversing this order usually creates local optimizations but higher total spend.
 
-### Consumption profile vs workload profiles
+### Choose among Consumption, Dedicated, and Flexible profiles
 
 Choose profile type by workload shape, not team preference:
 
-| Factor | Consumption | Workload Profiles |
-|---|---|---|
-| Billing model | Pay per vCPU-second and GiB-second | Reserved node capacity |
-| Scale-to-zero | ✅ Supported | ✅ Supported (on Consumption nodes) |
-| Burst handling | Automatic, platform-managed | Bounded by node pool size |
-| Cost predictability | Variable with traffic | More predictable baseline |
-| Best for | Bursty, intermittent, unknown traffic | Stable baseline, GPU, large memory |
-| Cold start | Platform-managed, possible delay | Faster if nodes pre-provisioned |
+| Factor | Consumption | Dedicated | Flexible (preview) |
+|---|---|---|---|
+| Billing model | Per-replica resource use and external HTTP requests | Per workload-profile instance plus a management fee when Dedicated profiles are used | Consumption-style billing plus the Dedicated plan management fee |
+| Scale-to-zero | Supported | Profile instances scale within configured bounds; billing follows running instances | Not supported for apps |
+| Isolation | Serverless multitenant compute | Dedicated compute pool | Single-tenant compute pool |
+| Best fit | Bursty or unpredictable demand | Steady workloads, larger compute, memory-optimized, or dedicated GPU needs | Consumption-like sizing with dedicated characteristics and planned maintenance windows |
 
 <!-- diagram-id: choose-profile-type-by-workload-shape -->
 ```mermaid
 flowchart TD
-    Q{Traffic pattern known?}
-    Q -->|No| C[Start with Consumption]
-    Q -->|Yes| Q2{Stable baseline > 60% of time?}
-    Q2 -->|Yes| WP[Workload Profiles]
-    Q2 -->|No| Q3{Need GPU or large memory?}
-    Q3 -->|Yes| WP
-    Q3 -->|No| C
-    C --> OBS[Observe 2-4 weeks]
-    OBS --> Q
+    accTitle: Choose a Container Apps workload profile type
+    accDescr: Selects Consumption, Dedicated, or Flexible from documented scaling, isolation, hardware, and maintenance requirements without invented utilization thresholds.
+
+    START{"Need dedicated hardware,<br/>memory-optimized, or dedicated GPU compute?"}
+    FLEX{"Need a single-tenant pool,<br/>planned maintenance windows,<br/>or larger replica sizes?"}
+    ZERO{"Must the app be able<br/>to scale to zero?"}
+    DEDICATED["Choose Dedicated"]
+    FLEXIBLE["Choose Flexible (preview)<br/>no scale-to-zero"]
+    CONSUMPTION["Choose Consumption"]
+    VALIDATE["Validate regional availability,<br/>subnet, scale, and cost requirements"]
+
+    START -->|"Yes"| DEDICATED
+    START -->|"No"| FLEX
+    FLEX -->|"No"| CONSUMPTION
+    FLEX -->|"Yes"| ZERO
+    ZERO -->|"Yes"| CONSUMPTION
+    ZERO -->|"No"| FLEXIBLE
+    DEDICATED --> VALIDATE
+    FLEXIBLE --> VALIDATE
+    CONSUMPTION --> VALIDATE
 ```
+
+*Figure: Profile selection follows documented capability requirements; measure the deployed workload before changing profiles rather than relying on a universal utilization threshold.*
 
 Inspect current environment profile configuration:
 
@@ -139,9 +159,13 @@ az containerapp env show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads the selected Container Apps environment configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Inspect an app's active profile and requested resources:
 
@@ -153,16 +177,20 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Practical decision pattern:
 
-1. Start in consumption for unknown traffic.
-2. Observe p50/p95 baseline replica hours over 2-4 weeks.
-3. Move stable high-baseline services to workload profiles.
-4. Keep burst-only APIs and async edges on consumption.
+1. Start with Consumption when demand is bursty or unpredictable and no dedicated capability is required.
+2. Measure replica usage, latency, and cost over a representative business cycle.
+3. Evaluate Dedicated when steady demand can use reserved profile instances efficiently or hardware requirements demand it.
+4. Evaluate Flexible only when its preview status, regional availability, `/25` subnet minimum, no-scale-to-zero behavior, and management fee fit the workload.
 
 ### Scale-to-zero and billing impact
 
@@ -176,9 +204,13 @@ az containerapp update \
   --max-replicas 5
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--max-replicas` | Caps scale-out at the selected replica count. |
+| `--min-replicas` | Sets the minimum replica count and therefore the warm baseline. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 When min replicas are zero:
 
@@ -196,9 +228,13 @@ az containerapp update \
   --max-replicas 10
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--max-replicas` | Caps scale-out at the selected replica count. |
+| `--min-replicas` | Sets the minimum replica count and therefore the warm baseline. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 !!! warning "Do not optimize cost by breaking SLO"
     If your API has hard latency objectives, forcing `--min-replicas 0` can make tail latency unacceptable. Optimize elsewhere first (resource sizing, image startup, scaling thresholds).
@@ -229,9 +265,13 @@ az containerapp show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### Right-size CPU and memory intentionally
 
@@ -253,11 +293,13 @@ az containerapp show \
   --output json
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show --query "properties.template.containers[0].resources"` | Reads the current CPU and memory limits on the deployed container so you can compare configured size against observed utilization before making cost cuts. |
-| `--name "$APP_NAME"` / `--resource-group "$RG"` | Targets the exact workload whose right-sizing decision you are about to make, rather than a different app in the same subscription. |
-| `--output json` | Keeps both CPU and memory fields intact for review and scripting, which is more useful than a formatted table when tuning replica resources. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Apply a smaller footprint safely:
 
@@ -269,11 +311,13 @@ az containerapp update \
   --memory "1Gi"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Applies a deliberate resource reduction to the running app so you can lower steady-state cost without rebuilding the image. |
-| `--cpu 0.5` | Cuts the per-replica CPU reservation to a smaller baseline, which directly reduces spend if telemetry shows the app is over-provisioned. |
-| `--memory "1Gi"` | Reduces reserved memory to a measured target instead of carrying a larger idle buffer that continuously costs money. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--cpu` | Sets the CPU allocated to each replica. |
+| `--memory` | Sets the memory allocated to each replica. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Then validate health and throughput before further reduction.
 
@@ -297,11 +341,13 @@ az acr show \
   --output json
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr show --query "{name:name,sku:sku.name,loginServer:loginServer}"` | Summarizes the registry identity, SKU tier, and login server so you can verify whether current ACR throughput and feature cost match this workload's pull pattern. |
-| `--name "$ACR_NAME"` | Uses the registry variable shared across the cost examples so the SKU review stays tied to the images this guide deploys. |
-| `--output json` | Returns structured fields that are easy to compare across environments when deciding whether Basic, Standard, or Premium is justified. |
+| `az acr show` | Reads the selected Azure Container Registry configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Operational implications:
 
@@ -320,9 +366,14 @@ az acr repository show-tags \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr repository show-tags ...` | Inspects or manages repositories and tags inside Azure Container Registry. |
+| `az acr repository show-tags` | Lists image tags in the selected registry repository. |
+| `--name` | Selects the named Azure resource. |
+| `--orderby` | Sorts the returned tags by the selected field and direction. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--repository` | Selects the registry repository whose tags are listed. |
+| `--top` | Limits the number of records returned. |
 
 ### Reduce log ingestion cost without losing diagnostic value
 
@@ -345,9 +396,13 @@ az containerapp env show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads the selected Container Apps environment configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Example KQL to estimate noisy categories:
 
@@ -385,9 +440,12 @@ az containerapp list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp list ...` | Lists Container Apps in the selected resource group for inventory or verification. |
+| `az containerapp list` | Lists Container Apps in the selected resource-group scope. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### Understand idle environment cost
 
@@ -409,9 +467,13 @@ az containerapp env show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads the selected Container Apps environment configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### Budget guardrails with Azure Cost Management
 
@@ -429,10 +491,11 @@ az consumption usage list \
   --output table
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az consumption usage list --top 50 --output table` | Gives a quick recent usage sample so you can spot which billed services are currently driving spend before you build more formal budgets and dashboards. |
-| `--top 50` | Limits the first look to a manageable set of records, which is useful for a fast operator review instead of dumping the full usage history. |
+| `az consumption usage list` | Lists recent subscription usage records for an initial cost review. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--top` | Limits the number of records returned. |
 
 Export cost data regularly and tag resources for cost allocation:
 
@@ -442,11 +505,11 @@ az group update \
   --set "tags.CostCenter=platform" "tags.Environment=prod"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az group update` | Applies cost-allocation metadata at the resource-group boundary so downstream cost reports can attribute shared Container Apps resources correctly. |
-| `--name "$RG"` | Tags the same resource group used throughout the page, which is usually the cheapest place to stamp consistent ownership metadata across related ACA resources. |
-| `--set "tags.CostCenter=platform" "tags.Environment=prod"` | Adds governance tags that let finance and engineering split spend by owner and lifecycle stage when reviewing Container Apps bills. |
+| `az group update` | Updates resource-group metadata such as cost-allocation tags. |
+| `--name` | Selects the named Azure resource. |
+| `--set` | Updates the specified resource properties or tags. |
 
 !!! tip "Governance pattern"
     Pair technical guardrails (`--max-replicas`, right-sized resources, log controls) with financial guardrails (budgets, alerts, owner review cadence). Either one without the other is incomplete.
@@ -483,9 +546,13 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### Cost anti-patterns to avoid during optimization
 
@@ -501,7 +568,7 @@ az containerapp show \
 
 **[Observed]** `cae-basics-d38538` `Container Apps Environment` `Refresh` `Delete` `Essentials` `View Cost` `JSON View` `Resource group (move)` `rg-aca-basics-d38538` `Status` `Succeeded` `Location (move)` `Korea Central` `Subscription (move)` `Visual Studio Enterprise Subscription` `Subscription ID` `00000000-0000-0000-0000-000000000000` `Aspire Dashboard` `Not yet active (set up)` `Tags (edit)` `Add tags` `Environment type` `Workload profiles` `Static IP` `4.230.156.3` `Applications` `1` `KEDA version` `2.18.1` `Dapr version` `1.16.4-msft.7` `Applications` `Get started` `Monitoring` `Tutorials` `Name` `App Type` `Resource Group` `ca-sample-d38538` `Container App` `rg-aca-basics-d38538`.
 
-**[Inferred]** The `Environment type` value `Workload profiles` appears to map to the profile-selection decision discussed in [Consumption profile vs workload profiles](#consumption-profile-vs-workload-profiles), which trades pay-per-second consumption billing against reserved node capacity. The `Applications` count `1` on this environment is consistent with the consolidation-vs-isolation question in [Share environments strategically to reduce overhead](#share-environments-strategically-to-reduce-overhead), which evaluates how many workloads should sit behind one environment boundary. The `KEDA version` `2.18.1`, `Dapr version` `1.16.4-msft.7`, and `Static IP` `4.230.156.3` are consistent with the environment-managed components discussed in [Understand idle environment cost](#understand-idle-environment-cost), which warns that environment-related services continue to incur charges even with minimal workload activity. The `Resource group (move)` value `rg-aca-basics-d38538` and `Subscription (move)` value `Visual Studio Enterprise Subscription` are consistent with the cost-allocation scope discussed in [Budget guardrails with Azure Cost Management](#budget-guardrails-with-azure-cost-management), which sets budgets per environment and tags resources for cost allocation.
+**[Inferred]** The `Environment type` value `Workload profiles` appears to map to the profile-selection decision discussed in [Choose among Consumption, Dedicated, and Flexible profiles](#choose-among-consumption-dedicated-and-flexible-profiles). The `Applications` count `1` on this environment is consistent with the consolidation-vs-isolation question in [Share environments strategically to reduce overhead](#share-environments-strategically-to-reduce-overhead), which evaluates how many workloads should sit behind one environment boundary. The `KEDA version` `2.18.1`, `Dapr version` `1.16.4-msft.7`, and `Static IP` `4.230.156.3` are consistent with the environment-managed components discussed in [Understand idle environment cost](#understand-idle-environment-cost), which warns that environment-related services continue to incur charges even with minimal workload activity. The `Resource group (move)` value `rg-aca-basics-d38538` and `Subscription (move)` value `Visual Studio Enterprise Subscription` are consistent with the cost-allocation scope discussed in [Budget guardrails with Azure Cost Management](#budget-guardrails-with-azure-cost-management), which sets budgets per environment and tags resources for cost allocation.
 
 **[Not Proven]** Additional workload sizing detail, workspace cost detail, registry cost detail, and budget detail are not visible on this view.
 
@@ -538,3 +605,4 @@ az containerapp show \
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/environment)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
 - [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Workload profiles in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview)

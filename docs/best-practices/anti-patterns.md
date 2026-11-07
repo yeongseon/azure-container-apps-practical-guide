@@ -11,8 +11,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: A revision is an immutable snapshot of your container app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -23,8 +23,8 @@ content_validation:
     - claim: If you want to ensure that an instance of your revision is always running, set the minimum number of replicas to 1 or higher.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
-    - claim: Internal environments have no public endpoints and are deployed with a virtual IP mapped to an internal IP address.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - claim: Workload-profile custom virtual network subnets require a /27 or larger range and delegation to Microsoft.App/environments, while consumption-only custom virtual network subnets require a /23 or larger range and must not be delegated.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
       verified: true
     - claim: You can use managed identity to authenticate with a private Azure Container Registry without a username and password.
       source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
@@ -55,11 +55,13 @@ az extension add --name "containerapp" --upgrade
 az account show --output table
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `export RG=...`, `APP_NAME=...`, `ACA_ENV_NAME=...`, `ACR_NAME=...`, `LOCATION=...` | Defines the resource group, app, environment, registry, and region variables reused by the anti-pattern examples so each later command points at the same production-like deployment context. |
-| `az extension add --name "containerapp" --upgrade` | Ensures the Container Apps CLI extension is installed and current before you validate revision, scale, ingress, identity, or job settings from this checklist. |
-| `az account show --output table` | Confirms which subscription and tenant the audit commands will run against so you do not review the wrong environment. |
+| `az extension add` | Installs or upgrades the Container Apps extension used by the examples. |
+| `--name` | Selects the named Azure resource. |
+| `--upgrade` | Upgrades the extension if an older version is installed. |
+| `az account show` | Shows the active subscription and tenant before the review commands run. |
+| `--output` | Chooses the output format for review or scripting. |
 
 ## Recommended Practices
 
@@ -96,9 +98,12 @@ az containerapp update \
   --image "$ACR_NAME.azurecr.io/orders-api:latest"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--image` | Selects the immutable container image to deploy. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Better pattern:
 
@@ -109,9 +114,12 @@ az containerapp update \
   --image "$ACR_NAME.azurecr.io/orders-api:v1.9.4"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--image` | Selects the immutable container image to deploy. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### 2) Fat container images larger than 1 GB
 
@@ -149,9 +157,12 @@ az containerapp update \
         "properties.template.containers[0].probes[0].httpGet.port=8000"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--set` | Updates the specified resource properties or tags. |
 
 !!! note "Probe design"
     Readiness should represent dependency readiness for serving traffic. Liveness should represent process health, not external dependency state.
@@ -169,9 +180,12 @@ az containerapp update \
   --set-env-vars "DATABASE_URL=Server=tcp:db.example;User Id=admin;Password=<plaintext>"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--set-env-vars` | Adds or updates environment variables; a `secretref:` value references a Container Apps secret. |
 
 Better pattern using platform secret abstraction:
 
@@ -187,9 +201,14 @@ az containerapp update \
   --set-env-vars "DATABASE_URL=secretref:db-connection"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Creates or updates named Container Apps secrets. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--secrets` | Supplies the secret names and values to create or update. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--set-env-vars` | Adds or updates environment variables; a `secretref:` value references a Container Apps secret. |
 
 ### 5) Using ACR admin credentials instead of managed identity
 
@@ -210,9 +229,12 @@ az containerapp identity assign \
   --system-assigned
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns a managed identity to the Container App. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--system-assigned` | Enables the app-owned system-assigned managed identity. |
 
 ### 6) `minReplicas=0` on latency-sensitive APIs
 
@@ -227,9 +249,12 @@ az containerapp update \
   --min-replicas 0
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--min-replicas` | Sets the minimum replica count and therefore the warm baseline. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Better pattern:
 
@@ -241,9 +266,13 @@ az containerapp update \
   --max-replicas 20
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration. |
+| `--max-replicas` | Caps scale-out at the selected replica count. |
+| `--min-replicas` | Sets the minimum replica count and therefore the warm baseline. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### 7) Single revision mode in production
 
@@ -309,9 +338,15 @@ az containerapp create \
   --target-port 8000
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+| `az containerapp create` | Creates the Container App in the selected environment. |
+| `--environment` | Selects the Container Apps environment for the app or job. |
+| `--image` | Selects the immutable container image to deploy. |
+| `--ingress` | Sets whether ingress is external or internal. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--target-port` | Sets the application port reached by managed ingress. |
 
 Validate ingress state:
 
@@ -323,9 +358,13 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### 11) Using Container Apps for persistent local-state workloads
 
@@ -356,9 +395,13 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 Better approach:
 
@@ -411,9 +454,16 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/orders-migration:v1.9.4"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job create` | Creates a Container Apps job with the specified execution settings. |
+| `--environment` | Selects the Container Apps environment for the app or job. |
+| `--image` | Selects the immutable container image to deploy. |
+| `--name` | Selects the named Azure resource. |
+| `--replica-retry-limit` | Sets how many times a failed job replica can retry. |
+| `--replica-timeout` | Limits how long a job replica may run. |
+| `--resource-group` | Selects the resource group that contains the resource. |
+| `--trigger-type` | Selects the job trigger model. |
 
 ### 15) Ignoring scale rule interaction and precedence
 
@@ -441,11 +491,13 @@ az containerapp show \
   --output json
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show --query "properties.template.scale"` | Pulls the app's full scale block so you can review min/max replicas and every configured scaler together instead of diagnosing scale-rule conflicts from memory. |
-| `--name "$APP_NAME"` / `--resource-group "$RG"` | Reuses the app and resource group variables defined at the top of the page so the inspection targets the same production candidate discussed in the anti-pattern checklist. |
-| `--output json` | Preserves the nested scale configuration, which is easier to inspect than a flattened table when multiple rules may be interacting. |
+| `az containerapp show` | Reads the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--output` | Chooses the output format for review or scripting. |
+| `--query` | Projects the fields needed for the documented verification. |
+| `--resource-group` | Selects the resource group that contains the resource. |
 
 ### Anti-pattern severity and impact matrix
 
@@ -471,33 +523,55 @@ az containerapp show \
 
 <!-- diagram-id: anti-pattern-relationship-map -->
 ```mermaid
-graph TD
-    A[Anti-Patterns] --> B[Release Safety]
-    A --> C[Runtime Reliability]
-    A --> D[Security and Identity]
-    A --> E[Cost Control]
-    A --> F[Architecture Fit]
+flowchart TD
+    accTitle: Container Apps anti-pattern review areas
+    accDescr: Groups common release, runtime, security, cost, and architecture anti-patterns so a reviewer can trace each configuration smell to its primary impact area.
 
-    B --> B1[:latest tag]
-    B --> B2[Single revision mode]
-    B --> B3[Startup migrations]
+    ROOT["Container Apps<br/>anti-pattern review"]
+    RELEASE["Release safety"]
+    RUNTIME["Runtime reliability"]
+    SECURITY["Security and identity"]
+    COST["Cost control"]
+    FIT["Architecture fit"]
+    MUTABLE["Mutable image tag"]
+    CUTOVER["No staged rollout"]
+    MIGRATION["Migration in app startup"]
+    PROBES["Missing or incorrect probes"]
+    SHUTDOWN["No graceful shutdown"]
+    SCALERS["Unvalidated scale rules"]
+    SECRETS["Plaintext credentials"]
+    REGISTRY["Shared registry credentials"]
+    ACCESS["Over-broad dependency access"]
+    SIZE["Unmeasured resource sizing"]
+    BASELINE["Unjustified minimum replicas"]
+    LOGS["Unbounded log ingestion"]
+    STATE["Durable state on replicas"]
+    BOUNDARY["Mismatched environment boundary"]
+    INGRESS["Ingress does not match exposure need"]
 
-    C --> C1[No probes]
-    C --> C2[Ignoring SIGTERM]
-    C --> C3[Scale rule conflicts]
-
-    D --> D1[Secrets in plain env]
-    D --> D2[ACR admin credentials]
-    D --> D3[Hardcoded connection strings]
-
-    E --> E1[Over-provisioning resources]
-    E --> E2[minReplicas misconfiguration]
-    E --> E3[Fat images]
-
-    F --> F1[Persistent workload mismatch]
-    F --> F2[No environment separation]
-    F --> F3[Ingress misconfiguration]
+    ROOT --> RELEASE
+    ROOT --> RUNTIME
+    ROOT --> SECURITY
+    ROOT --> COST
+    ROOT --> FIT
+    RELEASE --> MUTABLE
+    RELEASE --> CUTOVER
+    RELEASE --> MIGRATION
+    RUNTIME --> PROBES
+    RUNTIME --> SHUTDOWN
+    RUNTIME --> SCALERS
+    SECURITY --> SECRETS
+    SECURITY --> REGISTRY
+    SECURITY --> ACCESS
+    COST --> SIZE
+    COST --> BASELINE
+    COST --> LOGS
+    FIT --> STATE
+    FIT --> BOUNDARY
+    FIT --> INGRESS
 ```
+
+*Figure: Review categories associate each configuration smell with its primary risk; an item can affect more than one category in a real workload.*
 
 ### Pre-production anti-pattern review checklist
 

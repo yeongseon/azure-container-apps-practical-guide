@@ -29,10 +29,20 @@ Use this section as the bridge between platform knowledge and implementation dec
 <!-- diagram-id: language-guides-show-how-to-implement -->
 ```mermaid
 flowchart TD
-    A[Platform Understanding<br/>How Container Apps works] --> B[Best Practices<br/>Design judgment and trade-offs]
-    B --> C[Implementation<br/>Language Guides and recipes]
-    C --> D[Operations<br/>Run, monitor, and improve]
+    accTitle: Reader path from platform concepts to operations
+    accDescr: Guides readers from understanding Container Apps platform behavior through design decisions and language implementation to production operations.
+
+    PLATFORM["Platform<br/>Understand service behavior"]
+    PRACTICES["Best Practices<br/>Choose patterns and trade-offs"]
+    GUIDES["Language Guides<br/>Implement the decisions"]
+    OPERATIONS["Operations<br/>Run, verify, and improve"]
+
+    PLATFORM --> PRACTICES
+    PRACTICES --> GUIDES
+    GUIDES --> OPERATIONS
 ```
+
+*Figure: Use platform behavior to make design decisions, implement those decisions in the language guides, and verify them through operations.*
 
 ### Document map
 
