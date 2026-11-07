@@ -5,8 +5,9 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
         - https://learn.microsoft.com/en-us/dotnet/api/overview/azure/storage.blobs-readme
+        - https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Blob Storage Integration (Managed Identity)
 
@@ -17,15 +18,35 @@ Use this recipe to connect a .NET Container App to Azure Blob Storage with manag
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[.NET Container App]
-    APP --> BLOB[Azure Blob Storage]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> BLOB
+    accTitle: Passwordless Blob Storage request from an ASP.NET Core container app
+    accDescr: A client request reaches the app through managed ingress. DefaultAzureCredential obtains a Storage access token through the app's managed identity, then the Blob SDK sends a data request. Storage separately evaluates the identity's Blob data role assignment.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[ASP.NET Core app<br/>Blob SDK]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    BLOB[Azure Blob Storage]
+    AUTHZ[Blob authorization result]
+    RESULT[Blob operation result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Storage token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"Blob request + token"| BLOB
+    BLOB -->|"Evaluate Blob data role"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Blob response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, Blob transport, and Storage data-plane authorization are separate steps. This SDK-access recipe does not depict an Azure Files or BlobFuse volume mount.*
 
 ## Prerequisites
 
@@ -37,9 +58,11 @@ Solid arrows show runtime data flow. Dashed arrows show identity and authenticat
 az extension add --name containerapp --upgrade
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the CLI extension required by this page. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--upgrade` | Upgrades the extension if an older version is installed. |
 
 ## Step 1: Enable managed identity on the Container App
 
@@ -56,9 +79,15 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity used by this integration. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--system-assigned` | Enables the app's system-assigned managed identity. |
+| `az containerapp show` | Reads the app property needed by this procedure. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
 
 ## Step 2: Grant Blob data access
 
@@ -76,9 +105,18 @@ az role assignment create \
   --scope "$STORAGE_ID"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az storage account ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+| `az storage account show` | Reads the storage account ID used as the Blob role scope. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `az role assignment create` | Grants the selected managed identity the role required by this step. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal for role assignment. |
+| `--role` | Selects the data-plane or registry role required by this integration. |
+| `--scope` | Sets the Azure or service data-plane scope of this role assignment. |
 
 ## Step 3: Configure non-secret settings
 
@@ -89,9 +127,12 @@ az containerapp update \
   --set-env-vars STORAGE_ACCOUNT_URL="https://$STORAGE_ACCOUNT.blob.core.windows.net" STORAGE_CONTAINER="$STORAGE_CONTAINER"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## Step 4: .NET code (managed identity)
 
@@ -143,9 +184,14 @@ az containerapp update \
   --set-env-vars AZURE_STORAGE_CONNECTION_STRING=secretref:storage-connection-string STORAGE_CONTAINER="$STORAGE_CONTAINER"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Stores the fallback credential as a Container Apps secret. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--secrets` | Creates the named fallback secret consumed through `secretref:`. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## Verification
 
@@ -161,5 +207,6 @@ az containerapp update \
 
 ## Sources
 
-- [Use storage mounts in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
 - [Azure Storage Blob client library for .NET](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/storage.blobs-readme)
+- [Assign an Azure role for Blob data access](https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

@@ -1,4 +1,5 @@
 ---
+description: Task-focused .NET recipes for identity, data services, networking, registry access, jobs, security, and Dapr on Azure Container Apps.
 content_sources:
   diagrams:
     - id: integration-dependency-map
@@ -7,6 +8,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/
         - https://learn.microsoft.com/en-us/dotnet/azure/sdk/azure-sdk-for-dotnet
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Recipes: Integration Patterns for Azure Container Apps (.NET)
 
@@ -23,10 +25,12 @@ az extension add --name containerapp --upgrade
 az login
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you run any recipe that depends on newer `containerapp` subcommands. |
-| `az login` | Starts an authenticated Azure CLI session so the recipe commands can read and update your app, environment, and supporting resources. |
+| `az extension add` | Installs or upgrades the CLI extension required by this page. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--upgrade` | Upgrades the extension if an older version is installed. |
+| `az login` | Supplies `az login` for the specific resource operation shown in this step. |
 
 ## Recipe Catalog
 
@@ -59,18 +63,28 @@ These recipes are intentionally task-oriented: each page solves a specific produ
 <!-- diagram-id: integration-dependency-map -->
 ```mermaid
 flowchart TD
-    BASE[Baseline app deployed<br/>Steps 01-07] --> ID[Managed Identity]
-    BASE --> REV[Revision Validation]
-    ID --> KV[Key Vault Reference]
-    ID --> COSMOS[Cosmos DB]
-    ID --> SQL[Azure SQL]
-    ID --> ACR[Container Registry]
-    BASE --> REDIS[Redis]
-    BASE --> STORAGE[Storage]
-    STORAGE --> BYOS[Bring Your Own Storage]
-    BASE --> DAPR[Dapr Integration]
-    REV --> DOMAIN[Custom Domains]
+    accTitle: .NET recipe selection by prerequisite
+    accDescr: Start from a deployed baseline app, then choose a recipe family. Managed identity is a shared prerequisite for private ACR pulls, Key Vault, and passwordless data SDK recipes. Arrows show prerequisites, not runtime network traffic.
+    BASE[Baseline app deployed<br/>tutorials 01-07]
+    ID[Managed identity +<br/>target authorization]
+    DEPLOY[Deployment<br/>ACR + revisions]
+    DATA[Data SDKs<br/>SQL + Cosmos + Redis]
+    STORAGE[Storage<br/>Blob SDK + mounts]
+    EDGE[Ingress<br/>domains + Easy Auth + mTLS]
+    WORK[Workload patterns<br/>Jobs + Dapr]
+
+    BASE --> ID
+    BASE --> DEPLOY
+    BASE --> DATA
+    BASE --> STORAGE
+    BASE --> EDGE
+    BASE --> WORK
+    ID -.->|"Required by passwordless paths"| DEPLOY
+    ID -.->|"Required by passwordless paths"| DATA
+    ID -.->|"Required by passwordless paths"| STORAGE
 ```
+
+*Figure: The map groups recipes by prerequisite. Managed identity provides an identity, but every target service still requires its own data-plane role or service-specific authorization.*
 
 !!! warning "Apply prerequisites before recipe commands"
     Most recipe failures come from missing baseline resources or missing role assignments. Confirm `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, and (when needed) `$ACR_NAME` are already set and valid in your current subscription context before you run recipe commands.
@@ -116,9 +130,13 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app property needed by this procedure. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
 
 ## See Also
 
@@ -130,4 +148,5 @@ az containerapp show \
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
 - [Azure SDK for .NET Documentation](https://learn.microsoft.com/en-us/dotnet/azure/sdk/azure-sdk-for-dotnet)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [Dapr documentation](https://docs.dapr.io/)

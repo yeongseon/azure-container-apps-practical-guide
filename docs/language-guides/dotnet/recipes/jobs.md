@@ -28,7 +28,67 @@ export JOB_NAME="job-dotnet-manual"
 export EVENT_JOB_NAME="job-dotnet-servicebus"
 export SERVICEBUS_NAMESPACE="sb-aca-prod"
 export SERVICEBUS_QUEUE="orders"
+export JOB_IDENTITY_ID="<user-assigned-identity-resource-id>"
 ```
+
+Grant the user-assigned identity permission to pull from the existing registry. The branch selects the role supported by the registry's permission mode:
+
+```bash
+export JOB_IDENTITY_PRINCIPAL_ID=$(az identity show \
+  --ids "$JOB_IDENTITY_ID" \
+  --query principalId \
+  --output tsv)
+export ACR_ID=$(az acr show \
+  --name "$ACR_NAME" \
+  --resource-group "$RG" \
+  --query id \
+  --output tsv)
+export ACR_ROLE_ASSIGNMENT_MODE=$(az acr show \
+  --name "$ACR_NAME" \
+  --resource-group "$RG" \
+  --query roleAssignmentMode \
+  --output tsv)
+
+if [[ "$ACR_ROLE_ASSIGNMENT_MODE" == "AbacRepositoryPermissions" ]]; then
+  export ACR_PULL_ROLE="Container Registry Repository Reader"
+else
+  export ACR_PULL_ROLE="AcrPull"
+fi
+
+az role assignment create \
+  --assignee-object-id "$JOB_IDENTITY_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "$ACR_PULL_ROLE" \
+  --scope "$ACR_ID"
+
+export SERVICEBUS_NAMESPACE_ID=$(az servicebus namespace show \
+  --name "$SERVICEBUS_NAMESPACE" \
+  --resource-group "$RG" \
+  --query id \
+  --output tsv)
+
+az role assignment create \
+  --assignee-object-id "$JOB_IDENTITY_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "Azure Service Bus Data Receiver" \
+  --scope "$SERVICEBUS_NAMESPACE_ID"
+```
+
+| Command / Parameter | Purpose |
+|---|---|
+| `az identity show` | Reads the managed identity resource or principal ID needed by role assignments. |
+| `--ids` | Selects the user-assigned identity by its full resource ID. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
+| `az acr show` | Reads the registry ID or permission mode needed by this procedure. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `az role assignment create` | Grants the selected managed identity the role required by this step. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal for role assignment. |
+| `--role` | Selects the data-plane or registry role required by this integration. |
+| `--scope` | Sets the Azure or service data-plane scope of this role assignment. |
+| `az servicebus namespace show` | Reads the Service Bus namespace ID used as the receiver-role scope. |
 
 ## What You'll Build
 
@@ -41,12 +101,31 @@ export SERVICEBUS_QUEUE="orders"
 <!-- diagram-id: dotnet-jobs-recipe-flow -->
 ```mermaid
 flowchart TD
-    A[Create console app] --> B[Build container image]
-    B --> C[Create manual job]
-    C --> D[Start execution]
-    D --> E[Switch to Service Bus consumer]
-    E --> F[Add dedup table]
+    accTitle: .NET Container Apps Jobs recipe flow
+    accDescr: Build one console image, run it first as a manual job, then adapt it to an authenticated Service Bus event-driven job. Each execution processes bounded work and records a durable deduplication decision before completing the message.
+    CODE[.NET console app]
+    IMAGE[Immutable container image]
+    MANUAL[Manual Container Apps Job]
+    START[Explicit start]
+    EXECUTION[Job execution<br/>bounded work then exit]
+    QUEUE[Azure Service Bus queue]
+    AUTH[Scaler and worker authentication]
+    EVENT[Event-driven Container Apps Job]
+    DEDUP[Shared durable deduplication store]
+    COMPLETE[Complete message after work]
+
+    CODE --> IMAGE --> MANUAL
+    START --> MANUAL
+    MANUAL --> EXECUTION
+    IMAGE --> EVENT
+    QUEUE -.->|"Scale signal"| EVENT
+    AUTH -.->|"Authorizes scaler and worker"| EVENT
+    EVENT --> EXECUTION
+    EXECUTION ==>|"Check or insert message ID"| DEDUP
+    DEDUP -->|"First processing"| COMPLETE
 ```
+
+*Figure: Manual and event-driven jobs reuse the image but have different triggers. The event-driven scaler and the worker both need an authenticated Service Bus path, and production deduplication must use shared durable storage rather than replica-local `/tmp`.*
 
 ### 1. Create a manual .NET Job
 
@@ -109,13 +188,29 @@ az containerapp job create \
   --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --image "$ACR_NAME.azurecr.io/dotnet-jobs/manual:v1" \
+  --registry-server "$ACR_NAME.azurecr.io" \
+  --registry-identity "$JOB_IDENTITY_ID" \
+  --mi-user-assigned "$JOB_IDENTITY_ID" \
   --replica-timeout 600 \
   --replica-retry-limit 1
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Builds the documented image in ACR and pushes the selected tag. |
+| `--file` | Selects the Dockerfile used for the ACR build. |
+| `--image` | Selects the image tag to build or deploy in this step. |
+| `--registry` | Selects the ACR instance that builds and stores the image. |
+| `az containerapp job create` | Creates the manual or event-driven job described in this step. |
+| `--environment` | Selects the Container Apps environment for this app or job. |
+| `--mi-user-assigned` | Attaches the identity used by the job worker and registry pull. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--registry-identity` | Selects the attached identity used to authenticate the private image pull. |
+| `--registry-server` | Supplies the private ACR login server for the job or app. |
+| `--replica-retry-limit` | Limits retries for a failed job replica. |
+| `--replica-timeout` | Limits how long a job replica may run. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--trigger-type` | Selects manual or event-driven execution for the job. |
 
 ### 2. Process one Service Bus message and exit
 
@@ -161,15 +256,37 @@ az containerapp job create \
   --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --image "$ACR_NAME.azurecr.io/dotnet-jobs/servicebus:v1" \
+  --registry-server "$ACR_NAME.azurecr.io" \
+  --registry-identity "$JOB_IDENTITY_ID" \
   --scale-rule-name "orders-queue" \
   --scale-rule-type "azure-servicebus" \
-  --scale-rule-metadata "queueName=$SERVICEBUS_QUEUE" "messageCount=1" "namespace=$SERVICEBUS_NAMESPACE.servicebus.windows.net" \
+  --scale-rule-metadata "queueName=$SERVICEBUS_QUEUE" "messageCount=1" "namespace=$SERVICEBUS_NAMESPACE" \
+  --mi-user-assigned "$JOB_IDENTITY_ID" \
+  --scale-rule-identity "$JOB_IDENTITY_ID" \
   --env-vars SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Builds the documented image in ACR and pushes the selected tag. |
+| `--file` | Selects the Dockerfile used for the ACR build. |
+| `--image` | Selects the image tag to build or deploy in this step. |
+| `--registry` | Selects the ACR instance that builds and stores the image. |
+| `az containerapp job create` | Creates the manual or event-driven job described in this step. |
+| `--env-vars` | Supplies the Service Bus settings to the event-driven worker. |
+| `--environment` | Selects the Container Apps environment for this app or job. |
+| `--mi-user-assigned` | Attaches the identity used by the job worker and registry pull. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--registry-identity` | Selects the attached identity used to authenticate the private image pull. |
+| `--registry-server` | Supplies the private ACR login server for the job or app. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--scale-rule-identity` | Uses the attached identity to authenticate Service Bus scaler polling. |
+| `--scale-rule-metadata` | Configures the Service Bus namespace, queue, and message threshold. |
+| `--scale-rule-name` | Names the event-driven Service Bus scale rule. |
+| `--scale-rule-type` | Selects the Azure Service Bus KEDA scaler. |
+| `--trigger-type` | Selects manual or event-driven execution for the job. |
+
+The scaler identity authorizes queue polling for scale decisions; the application worker independently uses the same identity through `DefaultAzureCredential` for message receive and completion.
 
 ### 3. Add a dedup table
 
@@ -223,9 +340,12 @@ az containerapp job execution list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job execution list` | Lists executions for the selected job during verification. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
 
 ## Next Steps / Clean Up
 

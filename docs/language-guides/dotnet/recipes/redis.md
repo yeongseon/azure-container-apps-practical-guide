@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
         - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-dotnet-how-to-use-azure-redis-cache
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 
@@ -17,15 +18,35 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[.NET Container App]
-    APP --> REDIS[Azure Cache for Redis]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> REDIS
+    accTitle: Microsoft Entra authenticated Redis request from an ASP.NET Core app
+    accDescr: A client request reaches the app through managed ingress. The Redis client obtains a token through the app's managed identity, then opens a TLS connection. The cache separately evaluates its configured data access policy assignment.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[ASP.NET Core app<br/>Redis client]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    REDIS[Azure Cache for Redis]
+    AUTHZ[Redis authorization result]
+    RESULT[Cache operation result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Redis token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"TLS Redis connection + token"| REDIS
+    REDIS -->|"Evaluate data access policy"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Cache response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, TLS transport, and cache data authorization are separate steps. Confirm that the selected cache tier and client package support Microsoft Entra authentication.*
 
 ## Prerequisites
 
@@ -48,9 +69,15 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity used by this integration. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--system-assigned` | Enables the app's system-assigned managed identity. |
+| `az containerapp show` | Reads the app property needed by this procedure. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
 
 ## Step 2: Assign Redis data access
 
@@ -58,14 +85,21 @@ export PRINCIPAL_ID=$(az containerapp show \
 az redis access-policy-assignment create \
   --name "$REDIS_NAME" \
   --resource-group "$RG" \
+  --policy-assignment-name "$APP_NAME-data-owner" \
   --access-policy-name "Data Owner" \
   --object-id "$PRINCIPAL_ID" \
   --object-id-alias "$APP_NAME"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+| `az redis access-policy-assignment create` | Creates the Redis data access assignment for the app identity. |
+| `--access-policy-name` | Selects the Redis data access policy granted to the app. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--object-id` | Identifies the managed identity receiving Redis data access. |
+| `--object-id-alias` | Sets the Redis username associated with the managed identity. |
+| `--policy-assignment-name` | Sets a stable name for the Redis access-policy assignment. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
 
 ## Step 3: Configure non-secret Redis settings
 
@@ -76,9 +110,12 @@ az containerapp update \
   --set-env-vars REDIS_HOST="$REDIS_NAME.redis.cache.windows.net" REDIS_PORT="6380"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## Step 4: .NET code (Microsoft Entra token authentication)
 
@@ -133,9 +170,14 @@ az containerapp update \
   --set-env-vars REDIS_HOST="$REDIS_NAME.redis.cache.windows.net" REDIS_PORT="6380" REDIS_ACCESS_KEY=secretref:redis-access-key
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Stores the fallback credential as a Container Apps secret. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--secrets` | Creates the named fallback secret consumed through `secretref:`. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## Verification
 
@@ -153,3 +195,4 @@ az containerapp update \
 
 - [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 - [Use Azure Cache for Redis with .NET](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-dotnet-how-to-use-azure-redis-cache)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

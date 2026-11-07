@@ -16,12 +16,28 @@ Use Key Vault references and Azure SDK integration to keep ASP.NET Core secrets 
 <!-- diagram-id: use-key-vault-references-and-azure -->
 ```mermaid
 flowchart TD
-    APP[ASP.NET Core App] -.-> MI[Managed Identity]
-    MI -.-> KV[Azure Key Vault]
-    KV -.-> SEC[Container Apps Secret Reference]
-    SEC -.-> APP
-    style APP fill:#107c10,color:#fff
+    accTitle: Key Vault reference and direct SDK access are separate secret paths
+    accDescr: For a Container Apps Key Vault reference, the platform uses the selected managed identity to resolve a vault secret into a Container Apps secret, which the revision consumes through secretRef. For direct SDK access, ASP.NET Core obtains a token and calls Key Vault at runtime.
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    KV[Azure Key Vault]
+    PLATFORM[Container Apps secret resolver]
+    SECRET[Container Apps secret<br/>Key Vault reference]
+    REVISION[ASP.NET Core revision<br/>environment secretRef]
+    SDK[ASP.NET Core<br/>Key Vault SDK client]
+
+    IDENTITY -.->|"Selected identity"| PLATFORM
+    PLATFORM ==>|"Resolve Key Vault secret"| KV
+    KV ==>|"Secret value"| PLATFORM
+    PLATFORM -->|"Populate reference"| SECRET
+    SECRET -.->|"Inject through secretRef"| REVISION
+    SDK ==>|"Request access token"| ENTRA
+    ENTRA ==>|"Return access token"| SDK
+    SDK ==>|"Runtime secret request + token"| KV
+    IDENTITY -.->|"Identity used by SDK credential"| SDK
 ```
+
+*Figure: A Container Apps Key Vault reference is platform-resolved configuration; direct SDK access is an application runtime call. Both require an identity with Key Vault secret permissions, but they have different consumers and rotation behavior.*
 
 ## Prerequisites
 
@@ -60,9 +76,24 @@ az containerapp update \
   --set-env-vars "DB_PASSWORD=secretref:db-password"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity used by this integration. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--system-assigned` | Enables the app's system-assigned managed identity. |
+| `az containerapp show` | Reads the app property needed by this procedure. |
+| `--output` | Returns the queried value as plain text or displays the verification list as a table. |
+| `--query` | Extracts the exact resource property consumed by the next step. |
+| `az role assignment create` | Grants the selected managed identity the role required by this step. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal for role assignment. |
+| `--role` | Selects the data-plane or registry role required by this integration. |
+| `--scope` | Sets the Azure or service data-plane scope of this role assignment. |
+| `az containerapp secret set` | Stores the fallback credential as a Container Apps secret. |
+| `--secrets` | Creates the named fallback secret consumed through `secretref:`. |
+| `az containerapp update` | Updates the selected app with this step's environment or integration settings. |
+| `--set-env-vars` | Sets the non-secret service settings or secret references used by the app. |
 
 ## ASP.NET Core configuration with Key Vault provider
 

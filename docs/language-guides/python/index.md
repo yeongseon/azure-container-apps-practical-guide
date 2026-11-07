@@ -1,18 +1,21 @@
 ---
+description: Build and operate Flask applications on Azure Container Apps with guided tutorials, Python runtime advice, and integration recipes.
 content_sources:
   diagrams:
     - id: ideal-for-development-testing-and-public-facing
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/
-        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
     - id: for-production-environments-requiring-network-isolation
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/
-        - https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
     - id: end-to-end-learning-flow
       type: flowchart
       source: mslearn-adapted
@@ -56,16 +59,34 @@ Ideal for development, testing, and public-facing applications. The Container Ap
 
 <!-- diagram-id: ideal-for-development-testing-and-public-facing -->
 ```mermaid
-graph TB
-    Internet["🌐 Internet"] -->|HTTP/HTTPS| CAApp["Container App<br/>(Public Ingress, Port 8000)"]
-    CAApp -->|Managed Identity| LA["Log Analytics<br/>Workspace"]
-    CAApp -->|Monitoring| AI["Application<br/>Insights"]
-    CAApp -->|Pull Image| ACR["Azure Container Registry<br/>(Basic SKU)"]
-    CAEnv["Container Apps<br/>Environment"] -->|Hosts| CAApp
-    CAApp -->|System-Assigned| SAMI["Managed Identity"]
-    CAApp -->|Scaling 0-3| HSM["HTTP Scale Metrics"]
+flowchart TD
+    accTitle: Public Python app deployment model
+    accDescr: Internet requests enter managed external ingress and are routed to a ready Python replica. Image-pull identity and registry authorization are separate from request traffic, while console logs are sent to the environment logging destination.
+    CLIENT[Internet client]
+    ACR[Azure Container Registry]
+    IDENTITY[Managed identity]
+    ROLE[Mode-appropriate ACR pull role]
+    LOGS[Logging destination]
+    ENV[Container Apps environment]
+    INGRESS[Managed external ingress]
+    APP[Python container app]
+    REVISION[Active revision]
+    REPLICA[Ready Flask + Gunicorn replica<br/>port 8000]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    ENV -.->|"Hosts managed ingress and app"| INGRESS
+    ENV -.->|"Hosts"| APP
+    INGRESS -->|"Select active revision"| REVISION
+    REVISION -->|"Route to ready replica"| REPLICA
+    APP -->|"Contains"| REVISION
+    REPLICA ==>|"HTTPS response via ingress"| CLIENT
+    IDENTITY -.->|"Assigned for image pull"| APP
+    ROLE -.->|"Authorizes identity"| ACR
+    ACR ==>|"Image layers during provisioning"| REVISION
+    REPLICA ==>|"stdout and stderr"| LOGS
 ```
 
+*Figure: Public ingress request flow is separate from image provisioning, managed-identity authorization, and log transport. The registry SKU and replica limits are deployment choices, not requirements of this model.*
 
 ### Private VNet-Integrated Mode
 
@@ -73,23 +94,44 @@ For production environments requiring network isolation. The Container Apps Envi
 
 <!-- diagram-id: for-production-environments-requiring-network-isolation -->
 ```mermaid
-graph TB
-    VNet["Virtual Network"] --> CASub["Container Apps<br/>Subnet"]
-    VNet --> PESub["Private Endpoints<br/>Subnet"]
-    CASub -->|Hosts| CAEnv["Container Apps<br/>Environment<br/>(VNet-Integrated)"]
-    CAEnv -->|Hosts| CAApp["Container App<br/>(Optional Internal<br/>Ingress)"]
-    CAApp -->|User-Assigned| UAMI["User-Assigned<br/>Managed Identity"]
-    UAMI -->|Access| KV["Key Vault<br/>+ Private Endpoint"]
-    UAMI -->|Access| Storage["Storage Account<br/>(Blob) +<br/>Private Endpoint"]
-    UAMI -->|Pull via PE| ACRPriv["ACR Premium<br/>+ Private Endpoint"]
-    PESub -->|Hosts| KVPE["KV PE"]
-    PESub -->|Hosts| StorPE["Storage PE"]
-    PESub -->|Hosts| ACRPE["ACR PE"]
-    CAApp -->|Scaling 0-3| HSM["HTTP Scale Metrics"]
-    CAApp -->|Monitoring| LA["Log Analytics<br/>Workspace"]
-    CAApp -->|Traces| AI["Application<br/>Insights"]
-    DNS["Private DNS Zones<br/>(ACR, KV, Storage)"] -.->|Name Resolution| KVPE
+flowchart TD
+    accTitle: VNet-integrated Python app with private service endpoints
+    accDescr: The managed Container Apps environment uses a dedicated infrastructure subnet. The app resolves dependency names through linked private DNS zones and sends service traffic to private endpoint network interfaces in a separate subnet. Managed identity authorization remains distinct from DNS and transport.
+    DNS[Private DNS zones<br/>linked to VNet]
+    IDENTITY[User-assigned managed identity]
+    KV[Azure Key Vault resource]
+    STORAGE[Storage account resource]
+    ACR[Azure Container Registry Premium]
+    VNET[Customer virtual network]
+    INFRA[Dedicated infrastructure subnet]
+    ENV[Managed Container Apps environment]
+    APP[Python container app]
+    PE_SUBNET[Private endpoint subnet]
+    KVPE[Key Vault private endpoint NIC]
+    STORAGEPE[Storage private endpoint NIC]
+    ACRPE[ACR private endpoint NIC]
+
+    DNS -.->|"Private name resolution"| APP
+    VNET -.->|"Contains"| INFRA
+    VNET -.->|"Contains"| PE_SUBNET
+    INFRA -.->|"Delegated for"| ENV
+    ENV -->|"Runs"| APP
+    PE_SUBNET -.->|"Contains"| KVPE
+    PE_SUBNET -.->|"Contains"| STORAGEPE
+    PE_SUBNET -.->|"Contains"| ACRPE
+    IDENTITY -.->|"Selected by app or platform"| APP
+    APP ==>|"Service request"| KVPE
+    APP ==>|"Blob request"| STORAGEPE
+    ACRPE ==>|"Image layers during provisioning"| APP
+    KVPE -.->|"Private Link association"| KV
+    STORAGEPE -.->|"Private Link association"| STORAGE
+    ACRPE -.->|"Private Link association"| ACR
+    IDENTITY -.->|"Target-specific authorization"| KV
+    IDENTITY -.->|"Target-specific authorization"| STORAGE
+    IDENTITY -.->|"Mode-appropriate pull authorization"| ACR
 ```
+
+*Figure: The Container Apps environment is associated with its infrastructure subnet; Key Vault, Storage, ACR, managed identity, and Private DNS zones remain separate Azure resources. Private DNS, private transport, and authorization are independent requirements.*
 
 !!! tip "Which mode to choose?"
     Start with **Public Consumption** for development and PoC. Move to **Private VNet-Integrated** when your security policy requires private-only access to dependent services or you need to comply with corporate network isolation requirements.
@@ -125,14 +167,24 @@ Follow these step-by-step guides to master the deployment of Python applications
 <!-- diagram-id: end-to-end-learning-flow -->
 ```mermaid
 flowchart TD
-    A[Local Docker Validation] --> B[Azure First Deployment]
-    B --> C[Configuration and Secrets]
-    C --> D[Logs, Metrics, Traces]
-    D --> E[Bicep-Driven Infrastructure]
-    E --> F[GitHub Actions CI/CD]
-    F --> G[Revisions and Traffic Splits]
-    G --> H[Runtime Tuning and Recipes]
+    accTitle: Python guide learning path
+    accDescr: Follow seven ordered tutorials from local Docker validation through revision traffic management, then branch to the Flask and Gunicorn runtime reference and integration recipes.
+    LOCAL[01 Local development<br/>Flask + Docker]
+    DEPLOY[02 First deployment<br/>image to Container Apps]
+    CONFIG[03 Configuration and secrets]
+    OBSERVE[04 Logs, metrics, and traces]
+    IAC[05 Bicep-driven infrastructure]
+    CICD[06 GitHub Actions CI/CD]
+    RELEASE[07 Revisions and traffic]
+    RUNTIME[Python runtime reference]
+    RECIPES[Python integration recipes]
+
+    LOCAL --> DEPLOY --> CONFIG --> OBSERVE --> IAC --> CICD --> RELEASE
+    RELEASE --> RUNTIME
+    RELEASE --> RECIPES
 ```
+
+*Figure: The numbered tutorials form the common learning sequence. Runtime tuning and integration recipes are follow-on references rather than additional deployment stages.*
 
 !!! tip "Use this order for fastest production readiness"
     Complete tutorials `01` through `07` sequentially first, then use runtime and recipe pages for optimization and integration. This prevents configuration drift and keeps your revisions reproducible.
@@ -185,3 +237,9 @@ By completing this guide, you will gain the following capabilities:
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
 - [Python on Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-code-to-cloud)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Managed identity image pulls in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Custom virtual networks in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
+- [Private endpoints in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
+- [Private endpoint DNS configuration (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)

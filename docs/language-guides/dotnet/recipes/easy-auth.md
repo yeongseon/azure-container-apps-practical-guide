@@ -6,7 +6,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
 ---
 # Recipe: Easy Auth in .NET Apps on Azure Container Apps
 
@@ -15,12 +15,38 @@ Use Easy Auth to handle identity at the edge, then map claims inside ASP.NET Cor
 <!-- diagram-id: use-easy-auth-to-handle-identity -->
 ```mermaid
 flowchart TD
-    C[Client] --> AUTH[Easy Auth]
-    AUTH --> IDP[Identity Provider]
-    AUTH --> APP[ASP.NET Core App]
-    APP -.-> HDR[x-ms-client-principal]
-    style APP fill:#107c10,color:#fff
+    accTitle: Easy Auth server-directed sign-in for an ASP.NET Core app
+    accDescr: A browser reaches an external ingress-enabled app. The per-replica authentication module redirects the browser to the configured identity provider, handles the callback and session, then forwards the authenticated request with identity headers to ASP.NET Core.
+    B[Browser]
+    INGRESS[External ingress]
+    AUTH[Authentication module<br/>per replica]
+    IDP[Microsoft Entra ID]
+    APP[ASP.NET Core app]
+    REDIRECT[Sign-in redirect]
+    CALLBACK[Authentication callback]
+    SESSION[Container Apps session cookie]
+
+    B ==>|"HTTPS GET /protected"| INGRESS
+    INGRESS ==>|"Route request"| AUTH
+    AUTH ==>|"Return redirect"| REDIRECT
+    REDIRECT ==>|"Browser follows redirect"| B
+    B ==>|"Sign in and consent"| IDP
+    IDP ==>|"Redirect with provider response"| CALLBACK
+    CALLBACK ==>|"HTTPS callback"| INGRESS
+    INGRESS ==>|"Route callback"| AUTH
+    AUTH ==>|"Validate provider response"| IDP
+    IDP ==>|"Identity and claims"| AUTH
+    AUTH ==>|"Set cookie"| SESSION
+    SESSION ==>|"Session cookie"| B
+    B ==>|"HTTPS GET /protected + cookie"| INGRESS
+    INGRESS ==>|"Route authenticated request"| AUTH
+    AUTH ==>|"Request + X-MS-* identity headers"| APP
+    APP ==>|"Application response"| AUTH
+    AUTH ==>|"Return response"| INGRESS
+    INGRESS ==>|"HTTPS response"| B
 ```
+
+*Figure: Easy Auth authenticates the caller before the request reaches ASP.NET Core and supplies identity headers. Application code still enforces role, tenant, and resource authorization.*
 
 ## Prerequisites
 
@@ -35,13 +61,22 @@ az containerapp auth update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --enabled true \
-  --platform runtimeVersion "~1" \
-  --global-validation unauthenticatedClientAction RedirectToLoginPage
+  --runtime-version "~1" \
+  --unauthenticated-client-action RedirectToLoginPage \
+  --redirect-provider azureactivedirectory \
+  --require-https true
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth update` | Configures Easy Auth for the selected Container App. |
+| `--enabled` | Turns on the authentication feature for this app. |
+| `--name` | Selects the app, job, deployment, registry, identity, or service used by this command. |
+| `--redirect-provider` | Chooses Microsoft Entra ID for unauthenticated redirects. |
+| `--require-https` | Requires HTTPS for authentication responses and callbacks. |
+| `--resource-group` | Selects the resource group containing the resources in this step. |
+| `--runtime-version` | Selects the Easy Auth runtime version used by the app. |
+| `--unauthenticated-client-action` | Redirects callers without an authenticated session. |
 
 ## ASP.NET Core middleware for claims mapping
 
@@ -99,4 +134,4 @@ app.Run();
 ## Sources
 
 - [Authentication in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Configure Microsoft Entra ID authentication](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra)
