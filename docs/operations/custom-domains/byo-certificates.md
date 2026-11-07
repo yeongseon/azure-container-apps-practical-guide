@@ -41,6 +41,11 @@ export APP_NAME="app-python-api-prod"
 export ACA_ENV_NAME="aca-env-prod"
 export HOSTNAME="api.contoso.com"
 export CERTIFICATE_FILE="./certs/api-contoso-com.pfx"
+export CERTIFICATE_NAME="api-contoso-com"
+export VALIDATION_METHOD="CNAME"
+read -r -s -p "Certificate password: " CERTIFICATE_PASSWORD
+export CERTIFICATE_PASSWORD
+printf '\n'
 ```
 
 ## When to Use
@@ -58,7 +63,8 @@ az containerapp env certificate upload \
   --name "$ACA_ENV_NAME" \
   --resource-group "$RG" \
   --certificate-file "$CERTIFICATE_FILE" \
-  --certificate-password "$CERTIFICATE_PASSWORD"
+  --password "$CERTIFICATE_PASSWORD" \
+  --certificate-name "$CERTIFICATE_NAME"
 ```
 
 | Command | Why it is used |
@@ -67,7 +73,8 @@ az containerapp env certificate upload \
 | `--name` | Identifies the Container Apps environment. |
 | `--resource-group` | Identifies the resource group that contains the environment. |
 | `--certificate-file` | Supplies the local PFX file. |
-| `--certificate-password` | Supplies the PFX password without embedding it in the document. |
+| `--password` | Supplies the PFX password captured without echoing it to the terminal. |
+| `--certificate-name` | Sets the lowercase certificate name used by the hostname binding. |
 
 Bind the uploaded certificate to the hostname:
 
@@ -76,7 +83,9 @@ az containerapp hostname bind \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --hostname "$HOSTNAME" \
-  --certificate "api-contoso-com"
+  --environment "$ACA_ENV_NAME" \
+  --certificate "$CERTIFICATE_NAME" \
+  --validation-method "$VALIDATION_METHOD"
 ```
 
 | Command | Why it is used |
@@ -85,7 +94,11 @@ az containerapp hostname bind \
 | `--name` | Identifies the container app. |
 | `--resource-group` | Identifies the resource group that contains the app. |
 | `--hostname` | Selects the custom hostname to secure. |
+| `--environment` | Identifies the Container Apps environment that holds the certificate. |
 | `--certificate` | Selects the uploaded environment certificate by name. |
+| `--validation-method` | Uses `CNAME` for a subdomain or `HTTP` for an apex domain. |
+
+The example uses a subdomain, so `$VALIDATION_METHOD` is `CNAME`. Set it to `HTTP` when `$HOSTNAME` is an apex domain, after creating the documented A and TXT records.
 
 For a Key Vault source, import the certificate from the environment's **Certificates** pane after granting the environment identity the documented Key Vault access. Container Apps keeps the imported environment certificate synchronized when that Key Vault certificate rotates; the updated certificate can take up to 12 hours to apply.
 
