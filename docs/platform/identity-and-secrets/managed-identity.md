@@ -14,10 +14,11 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
         - https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview
+        - https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: A system-assigned identity is tied to the container app and is deleted when the container app is deleted.
       source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
@@ -31,33 +32,56 @@ content_validation:
     - claim: When a managed identity is added, deleted, or modified on a running container app, the app does not automatically restart and a new revision is not created.
       source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
       verified: true
+    - claim: Container Apps exposes an internally accessible identity endpoint through IDENTITY_ENDPOINT and requires the rotating IDENTITY_HEADER value when requesting a token.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+      verified: true
 ---
 # Passwordless Access with Managed Identity
 
-Azure Container Apps supports managed identities, allowing your Python application to securely access other Azure services without managing credentials like connection strings or API keys.
+Azure Container Apps supports managed identities, allowing your Python application to access supported Microsoft Entra-protected services without storing service credentials in the app.
 
 ## Architecture
 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> COSMOS[Azure Cosmos DB]
-    APP --> SQL[Azure SQL Database]
-    APP --> REDIS[Azure Cache for Redis]
-    APP --> KV[Azure Key Vault]
-    APP --> STG[Azure Storage]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> COSMOS
-    MI -.-> SQL
-    MI -.-> REDIS
-    MI -.-> KV
-    MI -.-> STG
+    accTitle: Container Apps managed identity token acquisition and resource access
+    accDescr: Application code requests a token from the local Container Apps identity endpoint. The endpoint uses either the app-owned system-assigned identity or a separately owned user-assigned identity. Microsoft Entra ID issues a resource-scoped token. The application presents that token through the target service's supported protocol, and the target independently permits or denies the operation.
+
+    subgraph OWNERSHIP["Identity ownership"]
+        APP_RESOURCE["Container app resource"]
+        SYSTEM["System-assigned identity<br/>one per app; deleted with app"]
+        USER["User-assigned identity resource<br/>independent; reusable"]
+        APP_RESOURCE -->|"owns lifecycle"| SYSTEM
+        USER -->|"assigned to"| APP_RESOURCE
+    end
+
+    subgraph RUNTIME["Container app — running main container"]
+        CODE["Application code<br/>Azure Identity or HTTP client"]
+        ENDPOINT["Local identity endpoint<br/>IDENTITY_ENDPOINT + IDENTITY_HEADER"]
+        CODE ==>|"1  Request token"| ENDPOINT
+        ENDPOINT ==>|"4  Return token"| CODE
+    end
+
+    ENTRA["Microsoft Entra ID<br/>token issuer"]
+    TARGET["Target Azure service<br/>Key Vault, Storage, SQL, or other Entra-protected API"]
+    AUTHZ{"Target authorization<br/>allows operation?"}
+    RESULT["Requested resource operation"]
+    DENIED["Authorization failure"]
+
+    SYSTEM -.->|"default when no user identity selector"| ENDPOINT
+    USER -.->|"client ID, principal ID,<br/>or resource ID selector"| ENDPOINT
+    ENDPOINT ==>|"2  Request resource token"| ENTRA
+    ENTRA ==>|"3  Issue scoped token"| ENDPOINT
+    CODE ==>|"5  Authenticated service request + access token"| TARGET
+    TARGET -->|"evaluate role or service policy"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+
+    LEGEND["Arrow key<br/>thick = token or service transport<br/>solid = ownership or authorization processing<br/>dotted = identity selection or denied result"]
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Managed identity separates identity ownership, token acquisition, service transport, and target authorization. A valid Microsoft Entra token proves **who** the app is; the target's Azure RBAC role or service-specific policy determines **what** that identity may do.*
 
 ## How RBAC Connects Identity to Resources
 
@@ -66,12 +90,31 @@ A managed identity alone does not grant access. Azure RBAC binds three elements 
 <!-- diagram-id: rbac-structure -->
 ```mermaid
 flowchart TD
-    P[Principal<br/>Who: Managed Identity or Service Principal] --> RA[Role Assignment<br/>Unique GUID per binding]
-    RD[Role Definition<br/>What: AcrPush, Key Vault Secrets User, etc.] --> RA
-    S[Scope<br/>Where: Subscription, Resource Group, or Resource] --> RA
-    RA --> ACCESS[Access Granted]
+    accTitle: Azure RBAC role assignment structure
+    accDescr: An administrator creates a role assignment that binds a managed identity security principal, a role definition, and a scope. At request time, the target service evaluates the token identity and matching assignments before allowing or denying an operation. Key Vault can instead use its legacy access policy model, but Azure RBAC is recommended.
 
-    style RA fill:#f5c542,stroke:#333,color:#000
+    PRINCIPAL["Security principal<br/>WHO: managed identity"]
+    ROLE["Role definition<br/>WHAT: allowed actions"]
+    SCOPE["Scope<br/>WHERE: subscription,<br/>resource group, or resource"]
+    ASSIGNMENT["Role assignment<br/>principal + role + scope"]
+    TOKEN["Bearer token<br/>identity claim"]
+    REQUEST["Requested operation<br/>on target resource"]
+    EVALUATE{"Authorization evaluation"}
+    ALLOW["Allowed operation"]
+    DENY["Denied operation"]
+    ACCESS_POLICY["Key Vault access policy<br/>legacy alternative, not RBAC"]
+
+    PRINCIPAL -->|"bind"| ASSIGNMENT
+    ROLE -->|"bind"| ASSIGNMENT
+    SCOPE -->|"bind"| ASSIGNMENT
+    TOKEN -.->|"who"| EVALUATE
+    REQUEST -->|"what + where"| EVALUATE
+    ASSIGNMENT -.->|"matching authorization"| EVALUATE
+    ACCESS_POLICY -.->|"alternative Key Vault model"| EVALUATE
+    EVALUATE -->|"matching permission"| ALLOW
+    EVALUATE -.->|"no matching permission"| DENY
+
+    LEGEND["Arrow key<br/>solid = binding, request, or allow result<br/>dotted = identity, authorization input, alternative model, or deny result"]
 ```
 
 | Element | Question it answers | Example |
@@ -81,7 +124,7 @@ flowchart TD
 | **Scope** | On which resource? | A specific ACR, Key Vault, or resource group |
 | **Role Assignment** | The binding itself | Unique GUID — one per (principal + role + scope) combination |
 
-Azure RBAC enforces a uniqueness constraint: only one role assignment can exist for the same `(principal, role definition, scope)` triple. Attempting to create a duplicate with a different assignment GUID results in a `RoleAssignmentExists` conflict.
+For Key Vault, Azure RBAC is the recommended data-plane authorization model. The legacy access policy model grants secret, key, and certificate permissions directly to a security principal at vault scope; it is an alternative authorization model, not an additional role assignment.
 
 ## Types of Managed Identity
 
@@ -95,7 +138,7 @@ Azure RBAC enforces a uniqueness constraint: only one role assignment can exist 
 
 !!! warning "Role assignment propagation is eventually consistent"
     Newly assigned RBAC roles can take time to become effective.
-    Build retries into startup checks for first-time deployments.
+    Retry the operation that exercises the new role assignment. Token back-end caching can also delay effective permission changes for a resource URI.
 
 ## Enabling Managed Identity
 
@@ -103,14 +146,17 @@ To enable a system-assigned managed identity for your app:
 
 ```bash
 az containerapp identity assign \
-  --name my-python-app \
-  --resource-group my-aca-rg \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
   --system-assigned
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables a managed identity on the container app. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group. |
+| `--system-assigned` | Creates or enables the app-owned identity. |
 
 ### Portal view: Identity blade
 
@@ -128,18 +174,32 @@ Assign roles to the managed identity to grant access to other resources (e.g., A
 
 ```bash
 # Get the principal ID of the system-assigned identity
-principalId=$(az containerapp show --name my-python-app --resource-group my-aca-rg --query identity.principalId --output tsv)
+PRINCIPAL_ID=$(az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query identity.principalId \
+  --output tsv)
 
 # Assign the 'Storage Blob Data Reader' role
 az role assignment create \
-  --assignee $principalId \
+  --assignee-object-id "$PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
   --role "Storage Blob Data Reader" \
-  --scope /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/my-aca-rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount
+  --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.Storage/storageAccounts/mystorageaccount"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app's system-assigned identity principal ID. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group for both commands. |
+| `--query identity.principalId` | Selects the managed identity object ID. |
+| `--output tsv` | Returns the ID as an unquoted shell value. |
+| `az role assignment create` | Binds the identity, role definition, and storage-account scope. |
+| `--assignee-object-id "$PRINCIPAL_ID"` | Selects the managed identity security principal. |
+| `--assignee-principal-type ServicePrincipal` | Identifies the managed identity's principal type. |
+| `--role "Storage Blob Data Reader"` | Grants blob data read operations. |
+| `--scope "/subscriptions/.../storageAccounts/mystorageaccount"` | Limits the role to the target storage account. |
 
 ## Python Implementation
 
@@ -164,9 +224,9 @@ blob_service_client = BlobServiceClient(
 
 ## Why use Managed Identity?
 
-- **Zero Secret Management:** No need to rotate passwords or API keys.
-- **Improved Security:** Access is granted based on the identity of the application itself.
-- **Simplified Configuration:** No more connection strings in environment variables or secrets.
+- **Fewer service credentials:** Supported Microsoft Entra-authenticated dependencies no longer require stored passwords, access keys, or client secrets.
+- **Scoped authorization:** The target service authorizes the application identity through Azure RBAC or its documented service-specific policy.
+- **Configuration still required:** Endpoint, database, and other non-secret connection settings remain part of application configuration, and unrelated application secrets still need their own lifecycle controls.
 
 ## See Also
 - [Cosmos DB](../../language-guides/python/recipes/cosmosdb.md)
@@ -177,3 +237,4 @@ blob_service_client = BlobServiceClient(
 ## Sources
 - [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [What are managed identities for Azure resources? (Microsoft Learn)](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview)
+- [Azure RBAC versus Key Vault access policies](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy)

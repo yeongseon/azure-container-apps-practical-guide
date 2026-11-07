@@ -5,12 +5,13 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps supports both system-assigned and user-assigned managed identities.
       source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
@@ -18,14 +19,17 @@ content_validation:
     - claim: When a managed identity is added, deleted, or modified on a running container app, the app does not automatically restart and a new revision is not created.
       source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
       verified: true
-    - claim: The authentication and authorization middleware runs as a sidecar container on each replica in the application.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - claim: A managed identity alone does not grant resource access; the target resource must authorize the identity, for example through an Azure RBAC role assignment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
       verified: true
-    - claim: When authentication is enabled, the platform middleware injects identity information into HTTP request headers.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - claim: Updating an inline Container Apps secret requires a new revision or an existing-revision restart before running revisions use the updated value.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
       verified: true
-    - claim: Require authentication can reject unauthenticated traffic by redirecting to a configured identity provider or by returning HTTP 401 or HTTP 403 responses.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - claim: Before deleting a Container Apps secret, an operator must deploy a revision without its reference and deactivate every revision that still references it.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+      verified: true
+    - claim: Azure RBAC is the recommended Key Vault data-plane authorization model, while Key Vault access policies remain a legacy alternative.
+      source: https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy
       verified: true
 ---
 # Security Operations
@@ -50,11 +54,55 @@ Enable system-assigned managed identity:
 <!-- diagram-id: enable-system-assigned-managed-identity -->
 ```mermaid
 flowchart TD
-    A[Container App] --> B[Managed Identity]
-    B --> C[Microsoft Entra ID]
-    C --> D[Access Token]
-    D --> E[Key Vault/Storage/SQL]
+    accTitle: Enable and verify a system-assigned managed identity
+    accDescr: An operator enables the app-owned identity and records its principal ID. A security administrator grants a least-privilege role at the target scope. Application code then requests a resource-scoped token from the local identity endpoint and sends it to the target service. The target separately evaluates authorization. Changing identity configuration does not restart the app or create a revision.
+
+    subgraph CONTROL["Configuration and authorization"]
+        OPERATOR["Operator"]
+        APP_RESOURCE["Container app resource"]
+        SYSTEM["System-assigned identity<br/>app-owned lifecycle"]
+        PRINCIPAL["Principal ID<br/>security principal"]
+        ROLE_DEF["Role definition<br/>allowed operations"]
+        TARGET_SCOPE["Target scope<br/>resource or resource group"]
+        ROLE["Role assignment<br/>principal + role + scope"]
+        OPERATOR -->|"1  Enable identity"| APP_RESOURCE
+        APP_RESOURCE -->|"2  Create or expose"| SYSTEM
+        SYSTEM -->|"3  Record"| PRINCIPAL
+        PRINCIPAL -->|"4  Bind principal"| ROLE
+        ROLE_DEF -->|"Bind permissions"| ROLE
+        TARGET_SCOPE -->|"Bind boundary"| ROLE
+    end
+
+    subgraph IDENTITY_SERVICE["External identity service"]
+        ENTRA["Microsoft Entra ID<br/>token issuer"]
+    end
+
+    subgraph RUNTIME["Runtime verification"]
+        CODE["Application code"]
+        ENDPOINT["Local identity endpoint"]
+        TARGET["Target Azure service"]
+        AUTHZ{"Role or service policy<br/>allows operation?"}
+        SUCCESS["Operation succeeds"]
+        FAILURE["Authorization failure"]
+        CODE ==>|"5  Local token request"| ENDPOINT
+        ENDPOINT ==>|"6  Token acquisition"| ENTRA
+        ENTRA ==>|"7  Access token"| ENDPOINT
+        ENDPOINT ==>|"8  Token response"| CODE
+        CODE ==>|"9  Authenticated service request + token"| TARGET
+        TARGET -->|"evaluate"| AUTHZ
+        AUTHZ -->|"Allowed"| SUCCESS
+        AUTHZ -.->|"Denied"| FAILURE
+    end
+
+    SYSTEM -.->|"selected identity"| ENDPOINT
+    ROLE -.->|"authorization input"| AUTHZ
+    NO_REV["Identity configuration change<br/>no automatic restart or new revision"]
+    APP_RESOURCE -.-> NO_REV
+
+    LEGEND["Arrow key<br/>thick = token or service transport<br/>solid = configuration or authorization result<br/>dotted = identity, policy, lifecycle note, or denied result"]
 ```
+
+*Figure: Operational separation between configuring **who** the app is, authorizing **what** it may do at a target scope, and verifying token/service transport. Identity assignment itself does not restart the app or create a revision.*
 
 !!! warning "Identity and secret changes must be auditable"
     Apply security operations through automation and change records.
@@ -69,7 +117,10 @@ az containerapp identity assign \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables the system-assigned identity. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group. |
+| `--system-assigned` | Creates or enables the app-owned identity. |
 
 Check principal details:
 
@@ -82,7 +133,10 @@ az containerapp identity show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity show ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity show` | Reads assigned identity details. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group. |
+| `--output json` | Preserves the identity object structure for review. |
 
 Example output (PII masked):
 
@@ -108,6 +162,7 @@ az role assignment create \
 |---|---|
 | `az role assignment create` | Grants the app identity the Azure RBAC permission required to read secrets from Key Vault during runtime or rotation workflows. |
 | `--assignee-object-id "<object-id>"` | Targets the managed identity object directly so access is bound to the workload, not to an operator account. |
+| `--assignee-principal-type ServicePrincipal` | Identifies the managed identity's Microsoft Entra principal type. |
 | `--role "Key Vault Secrets User"` | Chooses the least-privilege read role needed for secret retrieval rather than a broader vault management role. |
 | `--scope "/subscriptions/.../vaults/<key-vault-name>"` | Restricts access to one vault, which contains blast radius if other vaults exist in the same resource group. |
 
@@ -125,17 +180,22 @@ az containerapp secret set \
 | Command | Purpose |
 |---|---|
 | `az containerapp secret set` | Adds or rotates an app-level secret in the Container Apps secret store without hardcoding it in the revision template. |
-| `--name "$APP_NAME"` / `--resource-group "$RG"` | Applies the change to the intended workload so later revision updates can reference the new secret value safely. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group. |
 | `--secrets "db-connection=<redacted-secret>"` | Defines the secret by name, which is the identifier your environment variables or scale-rule auth mappings will reference later. |
 
 Reference the secret as an environment variable in app template updates.
+
+After rotating an inline Container Apps secret, deploy a new revision or restart an existing revision before expecting running replicas to use the new value. For a versionless Key Vault reference used by an environment variable, Container Apps instead retrieves a newer version within 30 minutes and restarts active referencing revisions.
+
+Before deleting any Container Apps secret, deploy a revision that no longer references the secret, then deactivate every older revision that still references it. Delete the secret only after those dependencies are removed.
 
 ## Security Operations Cadence
 
 | Operation | Suggested Frequency | Validation Signal |
 |---|---|---|
 | Managed identity review | Monthly | Unused roles removed |
-| Secret rotation | Per policy (for example, 30-90 days) | Apps remain healthy after rotation |
+| Secret rotation | Per organization policy | Apps remain healthy after the required revision deployment, restart, or Key Vault reference refresh |
 | Easy Auth policy review | Monthly or after app route changes | Unauthorized access paths denied |
 | RBAC scope audit | Quarterly | Least-privilege posture maintained |
 
@@ -165,7 +225,10 @@ az containerapp auth show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp auth show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth show` | Reads the app's authentication configuration. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group. |
+| `--output json` | Preserves the authentication configuration structure. |
 
 Update auth to require login by default:
 
@@ -179,7 +242,11 @@ az containerapp auth update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth update` | Updates the app's unauthenticated-request behavior. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group. |
+| `--enabled true` | Enables the platform authentication module. |
+| `--unauthenticated-client-action Return401` | Rejects unauthenticated requests with HTTP 401 instead of redirecting them. |
 
 ## Verification Steps
 
@@ -187,27 +254,41 @@ az containerapp auth update \
 az containerapp show \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --query "{identity:identity,auth:properties.configuration.auth}" \
+  --query identity \
+  --output json
+
+az containerapp auth show \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
   --output json
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the container app resource for identity verification. |
+| `--name "$APP_NAME"` | Selects the container app for each command. |
+| `--resource-group "$RG"` | Selects the resource group for each command. |
+| `--query identity` | Limits the first command to the app's managed identity configuration. |
+| `--output json` | Preserves structured output for each command. |
+| `az containerapp auth show` | Reads the separate Easy Auth child-resource configuration. |
 
 Example output (PII masked):
 
 ```json
 {
-  "identity": {
-    "type": "SystemAssigned",
-    "principalId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "tenantId": "<tenant-id>"
+  "type": "SystemAssigned",
+  "principalId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "tenantId": "<tenant-id>"
+}
+```
+
+```json
+{
+  "platform": {
+    "enabled": true
   },
-  "auth": {
-    "platform": {
-      "enabled": true
-    }
+  "globalValidation": {
+    "unauthenticatedClientAction": "Return401"
   }
 }
 ```
@@ -240,3 +321,4 @@ Example output (PII masked):
 ## Sources
 - [Container Apps security](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
 - [Managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Azure RBAC versus Key Vault access policies](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy)
