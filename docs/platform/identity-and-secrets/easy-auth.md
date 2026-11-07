@@ -6,46 +6,75 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-user-identities
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps provides built-in authentication and authorization features to secure external ingress-enabled container apps with minimal or no code.
       source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
       verified: true
-    - claim: The authentication and authorization middleware runs as a sidecar container on each replica in the application.
+    - claim: The authentication and authorization module runs as a separate sidecar container on each application replica and processes incoming HTTP requests before the application.
       source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
       verified: true
     - claim: The platform middleware injects identity information into HTTP request headers.
       source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
       verified: true
-    - claim: Built-in authentication supports Microsoft Entra ID, Facebook, GitHub, Google, X, and custom OpenID Connect providers.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/authentication
+    - claim: With the token store enabled, authenticated callers can use the /.auth/me endpoint and the app can receive provider-token headers.
+      source: https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-user-identities
       verified: true
 ---
 # Built-in Authentication (Easy Auth)
 
-Azure Container Apps provides built-in authentication and authorization, often referred to as "Easy Auth." This allows you to secure your Python application without writing complex authentication code.
+Azure Container Apps provides built-in authentication and authorization, often referred to as "Easy Auth," for **external ingress-enabled** container apps. The platform module can authenticate callers and enforce a coarse unauthenticated-request policy before a request reaches your application; your code remains responsible for business authorization.
 
 ## How it Works
 
-When you enable authentication, the platform's built-in authentication middleware intercepts incoming requests and validates the user's identity before forwarding the request to your application container.
+When you enable authentication, each application replica includes a separate platform authentication module. For the server-directed browser flow, that module redirects an unauthenticated browser to the configured identity provider, establishes a Container Apps session after the callback, and then injects identity headers into requests sent to the application container.
 
 <!-- diagram-id: when-you-enable-authentication-the-platform-s -->
 ```mermaid
 sequenceDiagram
-    participant U as User Browser
-    participant P as Easy Auth Middleware
-    participant I as Identity Provider
-    participant A as Container App
-    U->>P: Request /protected
-    P->>I: Redirect for sign-in
-    I-->>P: Token/claims
-    P->>A: Forward request with X-MS-* headers
-    A-->>U: Authenticated response
+    accTitle: Easy Auth server-directed sign-in and authenticated request
+    accDescr: A browser reaches an external ingress-enabled container app. The per-replica authentication module redirects the browser to an identity provider, handles the callback, establishes a session, and sends identity headers to the application. When the optional token store is enabled, the authenticated browser can also request user details from the auth endpoint.
+    actor U as User browser
+    participant INGRESS as External ingress
+    participant AUTH as Auth module<br/>(per replica)
+    participant IDP as Identity provider
+    participant STORE as Token store<br/>(optional)
+    participant APP as Application container
+
+    U->>INGRESS: 1. HTTPS GET /protected
+    INGRESS->>AUTH: Route request
+    AUTH-->>U: 2. Redirect to /.auth/login/provider
+    U->>INGRESS: 3. HTTPS GET /.auth/login/provider
+    INGRESS->>AUTH: Route sign-in endpoint
+    AUTH-->>U: 4. Redirect to provider authorization endpoint
+    U->>IDP: 5. HTTPS sign-in
+    IDP-->>U: 6. Redirect to /.auth/login/provider/callback
+    U->>INGRESS: 7. HTTPS callback
+    INGRESS->>AUTH: Route callback
+    AUTH->>IDP: Validate provider response
+    IDP-->>AUTH: Valid identity and claims
+    opt Token store enabled
+        AUTH->>STORE: Store provider tokens
+    end
+    AUTH-->>U: 8. Set Container Apps session cookie
+    U->>INGRESS: 9. HTTPS GET /protected + cookie
+    INGRESS->>AUTH: Route authenticated request
+    AUTH->>APP: 10. Request with X-MS-* identity headers
+    APP-->>AUTH: 11. Application response
+    AUTH-->>INGRESS: Return response
+    INGRESS-->>U: 12. HTTPS response
+    opt Token store enabled
+        U->>INGRESS: GET /.auth/me + session cookie
+        INGRESS->>AUTH: Route auth endpoint request
+        AUTH-->>U: Authenticated user details
+    end
 ```
+
+*Figure: Server-directed sign-in for an external ingress-enabled app. Arrows are HTTP request, redirect, callback, or response messages; identity-provider validation establishes **who** the caller is, while application authorization still decides **what** that caller may do.*
 
 !!! warning "Easy Auth does not replace app authorization"
     Easy Auth authenticates users, but your application still must enforce role/tenant/resource-level authorization rules.
@@ -69,12 +98,18 @@ az containerapp auth microsoft update \
   --client-id "$CLIENT_ID" \
   --client-secret "$CLIENT_SECRET" \
   --tenant-id "$TENANT_ID" \
-  --action RedirectToLoginPage
+  --yes
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp auth microsoft ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth microsoft update` | Configures the Microsoft identity provider for the container app. |
+| `--name "$APP_NAME"` | Selects the container app. |
+| `--resource-group "$RG"` | Selects the resource group that contains the app. |
+| `--client-id "$CLIENT_ID"` | Sets the application registration client ID used for sign-in. |
+| `--client-secret "$CLIENT_SECRET"` | Supplies the application registration credential; prefer a secure automation input. |
+| `--tenant-id "$TENANT_ID"` | Selects the Microsoft Entra tenant. |
+| `--yes` | Accepts the command confirmation non-interactively. |
 
 !!! note "Use secret references for client secrets"
     Avoid storing raw client secrets directly in scripts. Use secure secret handling workflows and rotate credentials regularly.
@@ -91,7 +126,7 @@ az containerapp auth microsoft update \
 
 ## Accessing User Information
 
-Once a user is authenticated, the platform middleware adds headers to the request that your Python application can use:
+Once a user is authenticated, the platform module adds headers to the request that your Python application can use. External requests cannot set these protected headers; Container Apps removes or replaces them before the request reaches the app.
 
 - `X-MS-CLIENT-PRINCIPAL-NAME`: The user's username or email.
 - `X-MS-CLIENT-PRINCIPAL-ID`: The user's unique identifier.
@@ -103,6 +138,7 @@ Once a user is authenticated, the platform middleware adds headers to the reques
 import base64
 import json
 from flask import Flask, request
+from markupsafe import escape
 
 app = Flask(__name__)
 
@@ -112,15 +148,16 @@ def home():
     if principal_header:
         # Decode the principal header
         principal = json.loads(base64.b64decode(principal_header).decode('utf-8'))
-        user_name = principal.get('name', 'Unknown User')
-        return f"Hello, {user_name}!"
+        claims = {item['typ']: item['val'] for item in principal.get('claims', [])}
+        user_name = claims.get(principal.get('name_typ'), 'Unknown User')
+        return f"Hello, {escape(user_name)}!"
     return "Hello, anonymous user!"
 ```
 
 ## Why use Easy Auth?
 
 - **Simplicity:** No need to implement OAuth/OpenID Connect flows in your Python code.
-- **Security:** Managed by Azure, ensuring it's always up to date with the latest security standards.
+- **Platform integration:** The authentication module, session handling, and protected identity-header injection are managed by Container Apps.
 - **Flexibility:** Supports multiple identity providers, including Google, Facebook, and GitHub.
 
 ## Easy Auth Capability Matrix
@@ -128,7 +165,8 @@ def home():
 | Capability | Easy Auth Coverage | App Responsibility |
 |---|---|---|
 | Authentication handshake | Built-in | Configure provider correctly |
-| Token/header injection | Built-in (`X-MS-*`) | Validate claim assumptions |
+| Identity-header injection | Built-in (`X-MS-*`) | Validate claim assumptions |
+| Provider-token headers and `/.auth/me` | Built-in when the token store is enabled | Enable the store only when the app needs provider tokens |
 | Business authorization | Partial | Enforce route/resource policies |
 | Session/user experience | Partial | Handle app-specific redirects and UX |
 
@@ -139,4 +177,4 @@ def home():
 
 ## Sources
 - [Container Apps authentication and authorization](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
-- [Enable authentication with a custom OpenID Connect provider (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Work with user identities in built-in authentication](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-user-identities)
