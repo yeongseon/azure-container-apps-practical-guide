@@ -92,8 +92,10 @@ flowchart TD
     C2 -->|"Mount same EmptyDir"| EMPTY1
     C1 -->|"Mount secret files"| SECRET1
     C3 -->|"Mount within replica"| EMPTY2
-    REPLICAS ==>|"Containers with a volume mount<br/>persistent file I/O"| FILES
-    REPLICAS ==>|"Application SDK or API call<br/>not a volume mount"| EXTERNAL
+    REPLICAS ==>|"Write files through a volume mount"| FILES
+    FILES ==>|"Read files through a volume mount"| REPLICAS
+    REPLICAS ==>|"SDK or API request<br/>not a volume mount"| EXTERNAL
+    EXTERNAL ==>|"Service response"| REPLICAS
 
     LEGEND["Arrow key<br/>thick = external data I/O<br/>solid = volume mount<br/>dotted = logical relationship"]
 ```
@@ -125,12 +127,14 @@ flowchart TD
         REV_ACTIVE["Active revision<br/>immutable app version"]
         subgraph REPLICAS["Revision replicas — each has its own total"]
             subgraph R1["Replica A — one ephemeral budget"]
+                B1["Shared ephemeral budget<br/>container file systems + EmptyDir"]
                 C1["Container A<br/>file system"]
                 C2["Container B<br/>file system"]
                 E1["EmptyDir volume<br/>shared only inside Replica A"]
             end
 
             subgraph R2["Replica B — separate budget and data"]
+                B2["Separate ephemeral budget<br/>container file system + EmptyDir"]
                 C3["Container A<br/>file system"]
                 E2["Separate EmptyDir volume"]
             end
@@ -140,11 +144,13 @@ flowchart TD
     CPU -->|"Select limit"| LIMIT
     APP -.->|"Logical membership"| REV_ACTIVE
     REV_ACTIVE -.->|"Runs as"| REPLICAS
-    LIMIT -.->|"Applies per replica"| R1
-    LIMIT -.->|"Applies per replica"| R2
-    C1 -->|"Consumes total"| E1
-    C2 -->|"Consumes total"| E1
-    C3 -->|"Consumes separate total"| E2
+    LIMIT -.->|"Applies per replica"| B1
+    LIMIT -.->|"Applies per replica"| B2
+    C1 -->|"Consumes from"| B1
+    C2 -->|"Consumes from"| B1
+    E1 -->|"Consumes from"| B1
+    C3 -->|"Consumes from"| B2
+    E2 -->|"Consumes from"| B2
 
     LEGEND["Boundary key<br/>budget and EmptyDir data are replica-scoped"]
 ```
@@ -161,7 +167,11 @@ az containerapp show \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp show` | Shows the current container app resource. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--query "properties.template.containers[0].resources"` | Extracts the CPU, memory, and ephemeralStorage fields from the first container definition |
+| `--output yaml` | Formats the selected resource values as YAML. |
 
 <!-- Verified: real az CLI output from koreacentral, 2026-05-01 -->
 ```yaml
@@ -203,6 +213,9 @@ az containerapp show \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp show` | Shows the current container app resource. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--output yaml` | Exports the full app spec as YAML for editing |
 
 Edit `app.yaml` to add the volume and mount:
@@ -242,6 +255,9 @@ az containerapp update \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp update` | Updates the container app from the supplied YAML specification. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--yaml app.yaml` | Applies the edited spec including the new volume definition |
 | `--output yaml` | Returns the updated app spec for verification |
 
@@ -256,6 +272,9 @@ az containerapp show \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp show` | Shows the current container app resource. |
+| `--name $APP_NAME` | Selects the container app. |
+| `--resource-group $RG` | Selects the resource group that contains the app. |
 | `--output yaml` | Returns the full app spec; inspect `volumes` and `volumeMounts` to confirm the EmptyDir is registered |
 
 <!-- Verified: real az CLI output from koreacentral, 2026-05-01 -->
@@ -281,6 +300,8 @@ az containerapp job start \
 | Command/Code | Purpose |
 |---|---|
 | `az containerapp job start` | Triggers a manual job execution; the job writes to and reads from the EmptyDir volume |
+| `--name $JOB_NAME` | Selects the Container Apps job. |
+| `--resource-group $RG` | Selects the resource group that contains the job. |
 
 The job command writes a file to `/mnt/cache`, reads it back, lists the directory, and reports disk usage:
 
@@ -331,7 +352,7 @@ Before mounting, register the file share at the environment level:
 
 ```bash
 az containerapp env storage set \
-  --name $ENV_NAME \
+  --name $ACA_ENV_NAME \
   --resource-group $RG \
   --storage-name my-files \
   --storage-type AzureFile \
@@ -343,15 +364,21 @@ az containerapp env storage set \
 
 | Command/Code | Purpose |
 |---|---|
+| `az containerapp env storage set` | Creates or updates a storage definition on the Container Apps environment. |
+| `--name $ACA_ENV_NAME` | Selects the Container Apps environment. |
+| `--resource-group $RG` | Selects the resource group that contains the environment. |
 | `--storage-name` | Logical name for the storage definition in the environment |
 | `--storage-type AzureFile` | Specifies SMB Azure Files |
+| `--azure-file-account-name $STORAGE_ACCOUNT` | Selects the storage account that contains the file share. |
+| `--azure-file-account-key $STORAGE_KEY` | Authenticates the storage definition with the storage account key. |
+| `--azure-file-share-name $SHARE_NAME` | Selects the Azure file share. |
 | `--access-mode ReadWrite` | Mounts with read and write permissions |
 
 Verify the registration:
 
 ```bash
 az containerapp env storage list \
-  --name $ENV_NAME \
+  --name $ACA_ENV_NAME \
   --resource-group $RG \
   --output table
 ```
@@ -359,6 +386,9 @@ az containerapp env storage list \
 | Command/Code | Purpose |
 |---|---|
 | `az containerapp env storage list` | Lists all storage definitions registered in the environment |
+| `--name $ACA_ENV_NAME` | Selects the Container Apps environment. |
+| `--resource-group $RG` | Selects the resource group that contains the environment. |
+| `--output table` | Formats the storage definitions as a table. |
 
 <!-- Verified: real az CLI output from koreacentral, 2026-05-01 -->
 ```text
