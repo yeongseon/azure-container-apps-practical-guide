@@ -11,8 +11,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Microsoft Learn's customer-managed keys support matrix does not list Azure Container Apps as a CMK-supported service for encryption at rest.
       source: https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-customer-managed-keys-support
@@ -55,15 +55,28 @@ These are security controls around secret and certificate lifecycle, but they ar
 <!-- diagram-id: current-encryption-and-key-management-scope -->
 ```mermaid
 flowchart TD
-    A[Container Apps environment] --> B[Encryption at rest]
-    B --> C[Platform-managed keys documented]
-    A --> D[Key Vault integrations]
-    D --> E[Key Vault-backed secrets]
-    D --> F[Key Vault-imported certificates]
-    E --> G[Managed identity access]
-    F --> G
-    C --> H[No documented ACA CMK environment setting]
+    accTitle: Separate encryption-at-rest keys from Key Vault integrations
+    accDescr: A scope map distinguishes the Azure platform-managed encryption default from app secrets and environment certificates retrieved from Key Vault. Neither Key Vault integration establishes a Container Apps environment CMK setting; the cited support matrix does not list Container Apps.
+
+    SCOPE["Which security requirement?"]
+    REST["Environment encryption at rest"]
+    DEFAULT["Azure default<br/>platform-managed keys"]
+    CMK["ACA environment CMK<br/>not documented in cited matrix"]
+    SECRET["App secret reference<br/>app managed identity"]
+    CERT["Environment certificate import<br/>environment managed identity"]
+    KV["Azure Key Vault<br/>secrets and certificates"]
+    LEGEND["Thin arrows = scope classification<br/>Dotted = identity-based integration<br/>Not a transport or encryption-key trace"]
+
+    SCOPE --> REST
+    REST --> DEFAULT
+    REST --> CMK
+    SCOPE --> SECRET
+    SCOPE --> CERT
+    SECRET -.->|"Read secret permission"| KV
+    CERT -.->|"Read certificate secret permission"| KV
 ```
+
+*Figure: Encryption-key ownership and Key Vault retrieval are different controls. This scope map does not consume the architecture topology base or infer feature support from a Portal blade.*
 
 ## What is not documented
 
@@ -76,15 +89,21 @@ The current Microsoft Learn documentation does **not** document the following Co
 
 Because those items are not documented, this guide takes the conservative position that **Container Apps environment CMK is not currently a supported feature surface**.
 
-## Portal View: Secrets Surface Without CMK Controls
+## Verify the scope of a security control
 
-![ca-sample-d38538 | Secrets Add Refresh Send us your feedback Secrets are key/value pairs that can be used to protect sensitive data like passwords and connection strings. Secrets that you store here will be valid across all your revisions. Note that changing secrets will not create a new revision. Key Value Edit Delete No secrets to display. Add your first secret. Add](../../assets/platform/identity-and-secrets/03-secrets-blade.png)
+Use the cited support matrix and service-specific documentation for CMK decisions. The app's Secrets blade manages app secrets; the presence or absence of a field there cannot establish environment encryption-at-rest support.
 
-**[Observed]** `ca-sample-d38538 | Secrets`. `Container App`. `Add`. `Refresh`. `Send us your feedback`. `Secrets are key/value pairs that can be used to protect sensitive data like passwords and connection strings. Secrets that you store here will be valid across all your revisions. Note that changing secrets will not create a new revision.` `Key`. `Value`. `Edit`. `Delete`. `No secrets to display.` `Add your first secret.` `Add`.
+![Container App Secrets blade with an empty secrets table](../../assets/platform/identity-and-secrets/03-secrets-blade.png)
 
-**[Inferred]** The table headers `Key`, `Value`, `Edit`, `Delete` appear to map to a secret-entry management surface, which is consistent with the documented [Key Vault-backed secrets](#key-vault-backed-secrets) alternative on this page. The body sentence `Secrets that you store here will be valid across all your revisions` is consistent with the [Scope guidance for architecture reviews](#scope-guidance-for-architecture-reviews) row stating Container Apps can use Key Vault for app secrets.
+Purpose: Distinguish app-secret management from environment encryption-key configuration.
+Look for: The Container App scope, Secrets title, and empty secrets table.
+Expected result: This capture shows app-secret configuration only, not a CMK support test.
+Next step: Use the documented support matrix for an encryption-key decision.
 
-**[Not Proven]** Additional CMK field detail, encryption configuration detail, and environment-level CMK surface detail are not visible on this blade.
+??? note "Evidence notes"
+    [Observed] The app Secrets table is empty.
+
+    [Not Proven] This app-scoped blade does not establish environment CMK support or its absence.
 
 ## What you can use instead
 
@@ -96,6 +115,7 @@ Relevant documented behaviors:
 
 - The container app can resolve secrets from Key Vault by using managed identity.
 - If a Key Vault secret URI does not pin a version, Container Apps retrieves the latest version within 30 minutes.
+- Active revisions that consume that versionless secret in an environment variable are automatically restarted to pick up the new value. Do not generalize that behavior to every secret-consumption pattern.
 
 ### Key Vault-imported certificates
 
