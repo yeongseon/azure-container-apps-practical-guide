@@ -917,14 +917,129 @@ class TreeTests(unittest.TestCase):
     def build(self) -> inventory.Record:
         return inventory.build(self.root, self.rules, '0' * 40)
 
+    def completed_manifest(self) -> inventory.Record:
+        page = '\n'.join((
+            '---', 'content_sources:', '  diagrams:', '    - id: x',
+            '      type: flowchart', '      source: mslearn-adapted',
+            '      based_on:',
+            '        - https://learn.microsoft.com/en-us/azure/container-apps/',
+            '---', '<!-- diagram-id: x -->', '```mermaid', 'flowchart LR',
+            'A-->B', '```', ''))
+        _ = (self.root / 'docs/x.md').write_text(page)
+        manifest = self.build()
+        manifest['diagrams'][0]['migration']['state'] = 'completed'
+        return manifest
+
+    def test_completed_diagram_rejects_duplicate_ownership(self) -> None:
+        # Given a completed diagram and two equal-priority rules owned by different batches.
+        manifest = self.completed_manifest()
+        self.rules['batches'].append({'issue': 2, 'title': 'Other', 'phase': 'P0',
+                                      'scope': 'Other diagrams', 'owns_diagrams': True})
+        self.rules['ownership_rules'].append({'id': 'other', 'paths': ['docs/**'],
+                                              'priority': 1, 'batch_issue': 2,
+                                              'rationale': 'Competing fixture scope'})
+        _ = (self.root / inventory.RULES).write_text(inventory.encoded(self.rules))
+        manifest['baseline']['rules_sha256'] = inventory.digest(self.root / inventory.RULES)
+        manifest['batches'].append({**self.rules['batches'][1], 'count': 0})
+        # When the committed manifest is checked against current ownership rules.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then the migrated entry reports competing owners.
+        self.assertTrue(any('completed diagram has duplicate owners' in error for error in errors), errors)
+
+    def test_completed_diagram_rejects_missing_ownership(self) -> None:
+        # Given a completed diagram whose current rules no longer assign an owner.
+        manifest = self.completed_manifest()
+        self.rules['ownership_rules'] = []
+        _ = (self.root / inventory.RULES).write_text(inventory.encoded(self.rules))
+        manifest['baseline']['rules_sha256'] = inventory.digest(self.root / inventory.RULES)
+        # When the manifest is checked.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then ownership drift is blocking only because the entry is completed.
+        self.assertTrue(any('completed diagram has no owner' in error for error in errors), errors)
+
+    def test_completed_diagram_rejects_owner_drift(self) -> None:
+        # Given a completed diagram reassigned to a different owner by current rules.
+        manifest = self.completed_manifest()
+        self.rules['batches'].append({'issue': 2, 'title': 'Other', 'phase': 'P0',
+                                      'scope': 'Other diagrams', 'owns_diagrams': True})
+        self.rules['ownership_rules'][0]['batch_issue'] = 2
+        _ = (self.root / inventory.RULES).write_text(inventory.encoded(self.rules))
+        manifest['baseline']['rules_sha256'] = inventory.digest(self.root / inventory.RULES)
+        manifest['batches'].append({**self.rules['batches'][1], 'count': 0})
+        # When the manifest is checked against the changed assignment.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then the recorded owner cannot silently drift.
+        self.assertTrue(any('completed diagram owner drifted from 1 to 2' in error
+                            for error in errors), errors)
+
+    def test_completed_diagram_rejects_bad_component_and_source_references(self) -> None:
+        # Given a completed diagram with an absent component key and no declared source URL.
+        manifest = self.completed_manifest()
+        diagram = manifest['diagrams'][0]
+        diagram['target']['extensions'] = ['docs/missing.md#component']
+        diagram['provenance']['declared'] = {'id': 'x', 'type': 'flowchart',
+                                             'source': 'self-generated'}
+        # When the manifest is checked.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then both references are rejected without introducing a second validator.
+        self.assertTrue(any('unknown target component' in error for error in errors), errors)
+        self.assertTrue(any('declared provenance has no source reference' in error for error in errors), errors)
+
+    def test_completed_diagram_rejects_provisional_id(self) -> None:
+        # Given an ID-less diagram marked completed before it receives a stable identifier.
+        page = '\n'.join(('---', 'content_sources:', '  diagrams: []', '---',
+                          '```mermaid', 'flowchart LR', 'A-->B', '```', ''))
+        _ = (self.root / 'docs/x.md').write_text(page)
+        manifest = self.build()
+        manifest['diagrams'][0]['migration']['state'] = 'completed'
+        # When the manifest is checked.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then completion cannot rely on a content-anchored provisional key.
+        self.assertTrue(any('completed diagram requires a stable diagram-id' in error
+                            for error in errors), errors)
+
+    def test_completed_diagram_rejects_stale_literal_component_output(self) -> None:
+        # Given a completed manifest whose direct Mermaid fence changes afterward.
+        manifest = self.completed_manifest()
+        path = self.root / 'docs/x.md'
+        _ = path.write_text(path.read_text().replace('A-->B', 'A-->C'))
+        # When --check compares the migrated entry with the source-visible output.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then the stale output hash is blocking.
+        self.assertTrue(any('completed diagram output is stale' in error for error in errors), errors)
+
+    def test_completed_diagram_rejects_id_drift(self) -> None:
+        # Given a completed diagram whose source-visible ID is renamed.
+        manifest = self.completed_manifest()
+        path = self.root / 'docs/x.md'
+        _ = path.write_text(path.read_text().replace('diagram-id: x', 'diagram-id: renamed')
+                            .replace('    - id: x', '    - id: renamed'))
+        # When the old manifest entry is checked against the page.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then the missing key reports ID drift distinctly from body-hash drift.
+        self.assertTrue(any('completed diagram ID is absent from its page' in error
+                            for error in errors), errors)
+
+    def test_incomplete_diagram_allows_incremental_contract_gaps(self) -> None:
+        # Given a legacy not-started diagram with no current owner, source reference, or target component.
+        manifest = self.build()
+        manifest['diagrams'][0]['target']['extensions'] = ['docs/missing.md#component']
+        self.rules['ownership_rules'] = []
+        _ = (self.root / inventory.RULES).write_text(inventory.encoded(self.rules))
+        manifest['baseline']['rules_sha256'] = inventory.digest(self.root / inventory.RULES)
+        # When the manifest is checked during incremental migration.
+        errors = inventory.check(self.root, manifest, self.rules)
+        # Then the completed-only ownership and reference contract remains inactive.
+        self.assertEqual(errors, [])
+
     def test_provisional_plan_stays_with_content_when_a_fence_is_inserted(self) -> None:
-        # Given an ID-less diagram with completed migration and a distinct target.
+        # Given an ID-less diagram with active migration and a distinct target.
         path = self.root / 'docs/x.md'
         original = '```mermaid\nflowchart LR\nA[Original]-->B\n```\n'
         _ = path.write_text(original)
         previous = self.build()
         prior = previous['diagrams'][0]
-        prior['migration']['state'] = 'completed'
+        prior['migration']['state'] = 'in-progress'
         prior['target']['base'] = 'Original target'
         prior['context']['reader_intent'] = 'Original intent'
         _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(previous))
@@ -996,7 +1111,7 @@ class TreeTests(unittest.TestCase):
         for state, reason in (('in-progress', None), ('completed', None),
                               ('exception', 'Owner deferred conversion')):
             with self.subTest(state=state):
-                previous = self.build()
+                previous = self.completed_manifest() if state == 'completed' else self.build()
                 migration = {'state': state, 'exception': reason}
                 previous['diagrams'][0]['migration'] = migration
                 _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(previous))

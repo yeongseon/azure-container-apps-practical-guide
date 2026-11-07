@@ -1053,6 +1053,61 @@ def generated_page(root: Path, manifest: Record) -> tuple[str | None, str | None
     return original, updated
 
 
+def migrated_contract_errors(root: Path, manifest: Record, rules: Record) -> list[str]:
+    """Validate owner-maintained contracts only after a diagram is completed."""
+    diagrams: list[Record] = manifest['diagrams']
+    migrated = [diagram for diagram in diagrams if diagram['migration']['state'] == 'completed']
+    if not migrated:
+        return []
+    keys = {diagram['key'] for diagram in diagrams}
+    current: dict[str, Record] = {}
+    for page in sorted({diagram['page'] for diagram in migrated}):
+        path = local(root, page)
+        if not path.exists():
+            continue
+        try:
+            records, _, _ = page_records(page, path.read_text(encoding='utf-8-sig'))
+        except UnicodeDecodeError:
+            continue
+        current.update((record['key'], record) for record in records)
+    errors: list[str] = []
+    for diagram in migrated:
+        key = diagram['key']
+        if diagram['id_provisional'] or diagram['diagram_id'] is None:
+            errors.append(f'{key}: completed diagram requires a stable diagram-id')
+        override = rules.get('overrides', {}).get(key)
+        matching = [rule for rule in rules['ownership_rules'] if matches(rule, diagram)]
+        highest = max((rule['priority'] for rule in matching), default=None)
+        owners = {rule['batch_issue'] for rule in matching if rule['priority'] == highest}
+        if override is None and not owners:
+            errors.append(f'{key}: completed diagram has no owner in current rules')
+        elif override is None and len(owners) > 1:
+            errors.append(f'{key}: completed diagram has duplicate owners {sorted(owners)}')
+        else:
+            owner = override['batch_issue'] if override is not None else next(iter(owners))
+            if diagram['assignment']['batch_issue'] != owner:
+                errors.append(f'{key}: completed diagram owner drifted from {diagram["assignment"]["batch_issue"]} to {owner}')
+        references = [diagram['target']['base'], *diagram['target']['extensions'],
+                      *diagram['target']['overlays']]
+        for reference in (value for value in references if value is not None):
+            if reference not in keys:
+                errors.append(f'{key}: unknown target component {reference}')
+        declared = diagram['provenance']['declared'] or {}
+        source_references = [declared.get('mslearn_url'), declared.get('url')]
+        based_on = declared.get('based_on', [])
+        if isinstance(based_on, list):
+            source_references.extend(based_on)
+        if not any(isinstance(reference, str) and reference.strip()
+                   for reference in source_references):
+            errors.append(f'{key}: declared provenance has no source reference')
+        observed = current.get(key)
+        if observed is None:
+            errors.append(f'{key}: completed diagram ID is absent from its page')
+        elif observed['baseline']['source_sha256'] != diagram['baseline']['source_sha256']:
+            errors.append(f'{key}: completed diagram output is stale; regenerate the manifest')
+    return errors
+
+
 def check(root: Path, manifest: Record, rules: Record) -> list[str]:
     schema: Record = json.loads(local(root, SCHEMA).read_text())
     errors = structural(manifest, schema, schema.get('$defs', {}))
@@ -1065,6 +1120,7 @@ def check(root: Path, manifest: Record, rules: Record) -> list[str]:
                       jsonschema.Draft202012Validator(schema).iter_errors(manifest))
     if errors:
         return errors
+    errors.extend(migrated_contract_errors(root, manifest, rules))
     diagrams: list[Record] = manifest['diagrams']
     keys = [d['key'] for d in diagrams]
     if len(set(keys)) != len(keys):
