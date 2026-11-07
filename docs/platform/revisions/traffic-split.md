@@ -11,8 +11,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Traffic weights in Azure Container Apps can target a revision name, a label, or the latest revision.
       source: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2026-01-01/containerapps
@@ -41,13 +41,45 @@ Each traffic entry also includes a `weight` percentage.
 <!-- diagram-id: weighted-traffic-routing -->
 ```mermaid
 flowchart TD
-    U[Client request] --> I[Container Apps ingress]
-    I --> T{Traffic rules}
-    T -->|90| R1[stable revision]
-    T -->|10| R2[canary revision]
-    T -->|label route| L[label endpoint]
-    L --> R3[candidate revision]
+    accTitle: Choose weighted main URL routing or a revision label URL
+    accDescr: Requests to the main application URL follow weights that total 100 across active revisions. Requests to a label-specific URL bypass the main split and route to the one revision holding that label.
+
+    REQUEST{"Which URL did<br/>the caller use?"}
+    MAIN["Main application URL"]
+    LABEL_URL["Label-specific URL<br/>stable validation endpoint"]
+    INGRESS["Managed Envoy ingress<br/>request routing"]
+    CONFIG["Traffic configuration update"]
+    WEIGHTS{"Configured weights<br/>total 100 percent?"}
+    APPLY["Apply valid traffic rules"]
+    REJECT["Correct traffic configuration<br/>before promotion"]
+    STABLE["Stable active revision"]
+    CANARY["Canary active revision"]
+    LABEL["Revision holding label<br/>one revision per label"]
+    STABLE_REPLICAS["Stable revision replicas"]
+    CANARY_REPLICAS["Canary revision replicas"]
+    LABEL_REPLICAS["Label-target revision replicas"]
+
+    CONFIG --> WEIGHTS
+    WEIGHTS -->|No| REJECT
+    WEIGHTS -->|Yes| APPLY
+    APPLY -.->|Configure routing| INGRESS
+
+    REQUEST -->|Main URL| MAIN
+    MAIN ==>|HTTPS request| INGRESS
+    INGRESS ==>|Stable weight| STABLE
+    INGRESS ==>|Canary weight| CANARY
+    STABLE ==>|Route request| STABLE_REPLICAS
+    CANARY ==>|Route request| CANARY_REPLICAS
+
+    REQUEST -->|Label URL| LABEL_URL
+    LABEL_URL ==>|HTTPS request| INGRESS
+    INGRESS ==>|Direct label route| LABEL
+    LABEL ==>|Route request| LABEL_REPLICAS
+
+    LEGEND["Arrow key<br/>thick = runtime request transport<br/>solid = configuration validation<br/>dotted = apply configuration"]
 ```
+
+*Figure: Label routing and weighted routing share managed ingress but answer different caller URLs. A label route targets one revision independently of the percentages on the main application URL.*
 
 ### Core constraints
 
@@ -97,9 +129,15 @@ az containerapp revision label add \
   --label "green"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision label ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision label add` | Assigns a label URL to the selected revision. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision` | Selects the exact revision to manage. |
+| `--label` | Specifies the revision label. |
+
 
 Labels are movable. Reassigning a label changes which revision answers requests for that label URL.
 
@@ -114,10 +152,14 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--stable=95" "$APP_NAME--canary=5"
 ```
 
+
 | Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic set` | Applies a weighted rollout so a small portion of live requests can validate the canary revision before full promotion. |
-| `--revision-weight "$APP_NAME--stable=95" "$APP_NAME--canary=5"` | Keeps 95 percent of traffic on the stable revision while exposing only 5 percent to the candidate, which is the core canary safety control. |
+| `az containerapp ingress traffic set` | Updates ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision-weight` | Assigns main-URL traffic percentages to named revisions. |
+
 
 ### Route traffic by label
 
@@ -128,10 +170,14 @@ az containerapp ingress traffic set \
   --label-weight "blue=100"
 ```
 
+
 | Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic set --label-weight "blue=100"` | Sends all production traffic to the revision currently holding the `blue` label, which is a clean fit for blue/green swaps where labels represent release roles. |
-| `--label-weight` | Routes by movable label instead of by raw revision name, allowing you to repoint the role later without changing client-facing terminology. |
+| `az containerapp ingress traffic set` | Updates ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--label-weight` | Supplies the `--label-weight` value used by this command. |
+
 
 ### Send all traffic to the latest stable revision
 

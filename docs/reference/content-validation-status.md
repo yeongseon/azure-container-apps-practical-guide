@@ -61,13 +61,13 @@ pie title In-Scope Document Validation Status
 | [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/scaling/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/dapr/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Index](../platform/revisions/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
+| [Index](../platform/revisions/index.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Index](../platform/jobs/index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Jobs Vs Apps](../platform/jobs/jobs-vs-apps.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Lifecycle](../platform/revisions/lifecycle.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
+| [Lifecycle](../platform/revisions/lifecycle.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Limits And Quotas](../platform/environments/limits-and-quotas.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Manual Jobs](../platform/jobs/manual-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
@@ -78,14 +78,14 @@ pie title In-Scope Document Validation Status
 | [Plans And Workload Profiles](../platform/environments/plans-and-workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Private Endpoints](../platform/networking/private-endpoints.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Scheduled Jobs](../platform/jobs/scheduled-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 6/6 | 2026-11-07 |
 | [Service To Service](../platform/networking/service-to-service.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Sidecars And Init Containers](../platform/architecture/sidecars-and-init-containers.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
-| [Traffic Split](../platform/revisions/traffic-split.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
+| [Traffic Split](../platform/revisions/traffic-split.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Vnet Integration](../platform/networking/vnet-integration.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Workload Profiles](../platform/environments/workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 
@@ -109,7 +109,7 @@ pie title In-Scope Document Validation Status
 | [Mtls](../best-practices/mtls.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Reliability](../best-practices/reliability.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Revision Strategy](../best-practices/revision-strategy.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
+| [Revision Strategy](../best-practices/revision-strategy.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Scaling](../best-practices/scaling.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Security](../best-practices/security.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 

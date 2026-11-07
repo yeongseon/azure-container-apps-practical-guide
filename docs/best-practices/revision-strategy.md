@@ -24,8 +24,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Revisions are immutable snapshots of each version of a container app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -39,7 +39,7 @@ content_validation:
     - claim: Labels provide unique URLs that route traffic to specific revisions.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
-    - claim: Container Apps doesn't charge for inactive revisions, and by default it keeps up to 100 inactive revisions.
+    - claim: Container Apps doesn't charge for inactive revisions and purges the oldest inactive revisions after the available revision count exceeds 100.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
 ---
@@ -66,9 +66,17 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or updates the Container Apps Azure CLI extension. |
+| `--name` | Selects the target container app or extension. |
+| `--upgrade` | Updates the extension when an older version is installed. |
+| `az containerapp show` | Shows the selected container app configuration. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--output` | Selects the command output format. |
+| `az containerapp revision list` | Lists revisions and their current operational fields. |
+
 
 ## Recommended Practices
 
@@ -86,11 +94,27 @@ Revision-first release means:
 <!-- diagram-id: shift-traffic-only-when-release-criteria -->
 ```mermaid
 flowchart TD
-    I[Immutable Image Tag] --> C[Create New Revision]
-    C --> V[Validate Revision]
-    V -->|Pass| S[Shift Traffic]
-    V -->|Fail| R[Rollback to Prior Revision]
+    accTitle: Release gate for a revision candidate
+    accDescr: An immutable image creates a candidate revision. Readiness and release evidence decide whether production traffic shifts or remains on the stable revision.
+
+    IMAGE["Immutable image<br/>release identifier"]
+    CANDIDATE["Candidate revision<br/>immutable app version"]
+    READY["Gate 1<br/>startup and readiness probes"]
+    EVIDENCE["Gate 2<br/>errors, latency, dependencies"]
+    PROMOTE["Shift production traffic<br/>to candidate"]
+    HOLD["Keep traffic on<br/>stable revision"]
+    INVESTIGATE["Inspect candidate logs,<br/>probes, and dependencies"]
+
+    IMAGE -->|Deploy revision-scope change| CANDIDATE
+    CANDIDATE --> READY
+    READY -->|Pass| EVIDENCE
+    READY -->|Fail| HOLD
+    EVIDENCE -->|Pass| PROMOTE
+    EVIDENCE -->|Fail| HOLD
+    HOLD --> INVESTIGATE
 ```
+
+*Figure: Readiness is necessary but not sufficient for promotion. Traffic remains on the known-good revision until both platform readiness and the release team's explicit evidence gates pass.*
 
 ### Decide single vs multiple revision mode by release complexity
 
@@ -123,9 +147,14 @@ az containerapp revision set-mode \
   --mode multiple
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision set-mode` | Sets stable single or multiple active revision mode. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--mode` | Specifies the active revision mode. |
+
 
 !!! warning "Switching revision mode changes release behavior"
     In single mode, old revisions are automatically deactivated after successful replacement. In multiple mode, you must manage deactivation and traffic intentionally to avoid drift and unnecessary cost.
@@ -150,11 +179,15 @@ az containerapp update \
   --revision-suffix "20260404-1"
 ```
 
+
 | Command | Purpose |
 |---|---|
-| `az containerapp update` | Creates a new revision from a specifically versioned image so rollout history can be tied to a distinct release artifact. |
-| `--image "$ACR_NAME.azurecr.io/$APP_NAME:20260404-1"` | Pins the revision to an immutable image tag rather than a moving target, which is essential for rollback and forensic traceability. |
-| `--revision-suffix "20260404-1"` | Makes the Azure-generated revision name human-meaningful and machine-sortable so operators can quickly map portal/CLI revision lists back to release chronology. |
+| `az containerapp update` | Updates the app and creates a revision when revision-scope settings change. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--image` | Specifies the container image for the revision. |
+| `--revision-suffix` | Sets a release-specific suffix on the new revision. |
+
 
 Naming policy recommendations:
 
@@ -183,11 +216,15 @@ az containerapp revision label add \
   --label "candidate"
 ```
 
+
 | Command | Purpose |
 |---|---|
-| `az containerapp revision label add` | Binds a stable label URL to one specific revision so you can run smoke tests and partner validation without affecting production traffic weights. |
-| `--revision "$APP_NAME--20260404-1"` | Targets the exact candidate revision you want to validate, which avoids ambiguity when multiple active revisions exist. |
-| `--label "candidate"` | Creates a memorable endpoint role name that can move later, separating validation routing from raw revision IDs. |
+| `az containerapp revision label add` | Assigns a label URL to the selected revision. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision` | Selects the exact revision to manage. |
+| `--label` | Specifies the revision label. |
+
 
 Traffic weighting example:
 
@@ -198,9 +235,14 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--20260404-1=10" "$APP_NAME--20260403-4=90"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Updates ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision-weight` | Assigns main-URL traffic percentages to named revisions. |
+
 
 ### Apply repeatable traffic splitting patterns
 
@@ -217,11 +259,34 @@ Typical progression:
 
 <!-- diagram-id: when-slo-and-dependency-metrics -->
 ```mermaid
-graph TD
-    U[Users] --> I[Ingress]
-    I --> O[Old Revision 95%]
-    I --> N[New Revision 5%]
+flowchart TD
+    accTitle: Canary traffic and evidence decision
+    accDescr: The main application URL reaches managed ingress, which applies configured weights to active stable and canary revisions. Revision-scoped evidence decides whether to increase canary traffic or restore stable traffic.
+
+    CLIENT["Request callers<br/>main application URL"]
+    INGRESS["Managed Envoy ingress<br/>weighted request routing"]
+    STABLE["Stable active revision<br/>example: 95 percent"]
+    CANARY["Canary active revision<br/>example: 5 percent"]
+    STABLE_REPLICAS["Stable revision replicas"]
+    CANARY_REPLICAS["Canary revision replicas"]
+    GATE["Evaluate SLO and<br/>dependency evidence"]
+    ADVANCE["Increase canary weight<br/>in a controlled stage"]
+    RESTORE["Restore stable revision<br/>to 100 percent"]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Configured stable weight| STABLE
+    INGRESS ==>|Configured canary weight| CANARY
+    STABLE ==>|Route request| STABLE_REPLICAS
+    CANARY ==>|Route request| CANARY_REPLICAS
+    STABLE_REPLICAS -->|Baseline evidence| GATE
+    CANARY_REPLICAS -->|Candidate evidence| GATE
+    GATE -->|Healthy| ADVANCE
+    GATE -->|Unhealthy| RESTORE
+
+    LEGEND["Arrow key<br/>thick = request transport<br/>solid = evidence or release decision"]
 ```
+
+*Figure: The percentages are an example, not a required progression. Compare stable and candidate evidence before changing the configured weights.*
 
 Promotion criteria examples:
 
@@ -248,9 +313,14 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--green=100" "$APP_NAME--blue=0"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Updates ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision-weight` | Assigns main-URL traffic percentages to named revisions. |
+
 
 #### A/B pattern
 
@@ -280,9 +350,14 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--20260403-4=100" "$APP_NAME--20260404-1=0"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Updates ingress traffic routing rules. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--revision-weight` | Assigns main-URL traffic percentages to named revisions. |
+
 
 !!! warning "Do not rollback by rebuilding old image"
     Rebuild-based rollback is slower and may not reproduce the same artifact. Route traffic back to an existing known-good revision whenever possible.
@@ -303,16 +378,52 @@ Recommended workflow:
 <!-- diagram-id: deactivate-stale-revisions-after-confidence-window -->
 ```mermaid
 sequenceDiagram
-    participant CI as CI/CD
-    participant ACA as Container Apps
+    accTitle: Health-gated revision promotion and cleanup sequence
+    accDescr: The release pipeline creates a candidate, validates it through its label URL, changes main application traffic only after the gate passes, observes a confidence window, and then deactivates the stale revision.
+
+    actor OP as Release pipeline
+    participant CONTROL as Container Apps control plane
+    actor CLIENT as Request caller
+    participant LABEL as Candidate label URL
+    participant INGRESS as Managed ingress
+    participant CANDIDATE as Candidate replica
+    participant STABLE as Stable replica
     participant OBS as Monitoring
-    CI->>ACA: Deploy image + revision suffix
-    ACA-->>CI: Revision created
-    CI->>OBS: Validate health and error signals
-    OBS-->>CI: Gate decision
-    CI->>ACA: Shift traffic weights
-    CI->>OBS: Confirm post-shift stability
+
+    OP->>CONTROL: Deploy immutable image as candidate revision
+    CONTROL-->>OP: Candidate provisioned and active
+    OP->>LABEL: Resolve candidate validation endpoint
+    OP->>INGRESS: HTTPS request to candidate label URL
+    INGRESS->>CANDIDATE: Route to labeled revision
+    CANDIDATE-->>INGRESS: Candidate response
+    INGRESS-->>OP: Return validation response
+    CANDIDATE-->>OBS: Emit candidate logs and metrics
+    OBS-->>OP: Readiness and release evidence
+    alt Release gate passes
+        OP->>CONTROL: Update main URL traffic weights
+        alt Representative request selects stable weight
+            CLIENT->>INGRESS: Production request to main URL
+            INGRESS->>STABLE: Route request to stable revision
+            STABLE-->>INGRESS: Stable response
+            INGRESS-->>CLIENT: Return stable response
+        else Representative request selects candidate weight
+            CLIENT->>INGRESS: Production request to main URL
+            INGRESS->>CANDIDATE: Route request to candidate revision
+            CANDIDATE-->>INGRESS: Candidate response
+            INGRESS-->>CLIENT: Return candidate response
+        end
+        STABLE-->>OBS: Emit stable runtime telemetry
+        CANDIDATE-->>OBS: Emit candidate runtime telemetry
+        OBS-->>OP: Confidence window remains healthy
+        OP->>CONTROL: Deactivate superseded revision
+        CONTROL-->>OP: Superseded revision is inactive
+    else Release gate fails
+        OP->>CONTROL: Keep or restore stable traffic
+        OP->>CONTROL: Deactivate failed candidate when evidence is captured
+    end
 ```
+
+*Figure: Label-based validation and main-URL traffic weights are separate controls. Deactivation happens only after the confidence window or after a failed candidate has been investigated.*
 
 ### Manage revision lifecycle to control cost and cognitive load
 
@@ -339,9 +450,16 @@ az containerapp revision deactivate \
   --revision "$APP_NAME--20260328-2"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions and their current operational fields. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--output` | Selects the command output format. |
+| `az containerapp revision deactivate` | Deactivates the selected revision and stops its replicas. |
+| `--revision` | Selects the exact revision to manage. |
+
 
 ### Avoid schema-coupled rollouts without compatibility windows
 
@@ -382,9 +500,15 @@ az containerapp update \
   --revision-suffix "$IMAGE_TAG"
 ```
 
-| Command | Why it is used |
+
+| Command | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the app and creates a revision when revision-scope settings change. |
+| `--name` | Selects the target container app or extension. |
+| `--resource-group` | Selects the resource group that contains the app. |
+| `--image` | Specifies the container image for the revision. |
+| `--revision-suffix` | Sets a release-specific suffix on the new revision. |
+
 
 ### Operational checklist for every release
 

@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps revision concepts — immutable app versions, active and inactive lifecycle checkpoints, revision modes, and traffic routing.
 content_sources:
   diagrams:
     - id: when-you-deploy-a-change-the
@@ -15,8 +16,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: A revision is an immutable snapshot of a Container App version.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -30,7 +31,7 @@ content_validation:
 ---
 # Revision Lifecycle in Azure Container Apps
 
-A revision is an immutable snapshot of a Container App version. Every change to the configuration or container image creates a new revision, enabling safe deployments and easy rollbacks.
+A revision is an immutable snapshot of a Container App version. Changes to revision-scope settings create a new revision; application-scope settings can change without creating one.
 
 Use this overview page as the entry point, then go deeper with [Revision Modes](revision-modes.md), [Traffic Split](traffic-split.md), and [Revision Lifecycle](lifecycle.md) for property-level behavior.
 
@@ -40,14 +41,35 @@ When you deploy a change, the platform creates a new revision. Depending on your
 
 <!-- diagram-id: when-you-deploy-a-change-the -->
 ```mermaid
-graph TD
-    U[User] --> IN[Envoy Ingress]
-    subgraph App[Container App]
-      IN --> R1[Revision v1\n90% Traffic]
-      IN --> R2[Revision v2\n10% Traffic]
-      R3[Revision v0\nInactive]
+flowchart TD
+    accTitle: Container app revision traffic topology
+    accDescr: A caller reaches managed Envoy ingress in the Container Apps environment. The main application URL routes configured weights to active revisions and their replicas. An inactive revision is retained without replicas or traffic.
+
+    CALLER["Request caller<br/>main application URL"]
+
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and weighted request routing"]
+        subgraph APP["Container app<br/>logical grouping"]
+            STABLE["Stable active revision<br/>immutable app version"]
+            CANARY["Canary active revision<br/>immutable app version"]
+            INACTIVE["Inactive revision<br/>retained, no replicas"]
+            STABLE_REPLICAS["Stable revision replicas<br/>running instances"]
+            CANARY_REPLICAS["Canary revision replicas<br/>running instances"]
+            RETENTION["Revision inventory<br/>logical retention"]
+        end
     end
+
+    CALLER ==>|HTTPS request| INGRESS
+    INGRESS ==>|Configured stable weight| STABLE
+    INGRESS ==>|Configured canary weight| CANARY
+    STABLE ==>|Route request| STABLE_REPLICAS
+    CANARY ==>|Route request| CANARY_REPLICAS
+    RETENTION -.->|Retained record| INACTIVE
+
+    LEGEND["Arrow key<br/>thick = request transport<br/>dotted = logical retention relationship"]
 ```
+
+*Figure: This revision-focused extension uses the base architecture's managed environment, ingress, revision, and replica vocabulary. Revisions and replicas are logical platform objects, not separately managed Azure resources.*
 
 !!! warning "Treat revisions as immutable deployment artifacts"
     Avoid manual drift between revisions; configuration and image updates should flow through repeatable pipelines.
@@ -59,18 +81,47 @@ Revisions progress through a lifecycle managed by the Container Apps platform.
 <!-- diagram-id: revisions-progress-through-a-lifecycle-managed -->
 ```mermaid
 stateDiagram-v2
+    accTitle: Documented revision lifecycle checkpoints
+    accDescr: Provisioning status reaches provisioned or provisioning failed. An active revision has one documented running status at a time, including provisioning and deprovisioning. Inactive revisions have neither provisioning nor running status.
+
     [*] --> Provisioning
-    Provisioning --> Active: Health Check Pass
-    Provisioning --> Failed: Timeout / Error
-    Active --> Inactive: Deactivated / 0% Traffic
-    Inactive --> Active: Reactivated / >0% Traffic
-    Inactive --> [*]: Garbage Collection
+    Provisioning --> Provisioned: checks pass
+    Provisioning --> ProvisioningFailed: verification fails
+    Provisioned --> Active: activate revision
+    state Active {
+        [*] --> RunningStatus
+        state "Running status" as RunningStatus
+        state "Provisioning" as RunningProvisioning
+        state "Scale to 0" as ScaleToZero
+        state "Activating" as Activating
+        state "Activation failed" as ActivationFailed
+        state "Scaling / Processing" as ScalingProcessing
+        state "Running" as Running
+        state "Running (at max)" as RunningAtMax
+        state "Deprovisioning" as Deprovisioning
+        state "Degraded" as Degraded
+        state "Failed" as Failed
+        RunningStatus --> RunningProvisioning: verification in progress
+        RunningStatus --> ScaleToZero: zero replicas
+        RunningStatus --> Activating: first replica provisioning
+        RunningStatus --> ActivationFailed: first replica fails
+        RunningStatus --> ScalingProcessing: scale operation
+        RunningStatus --> Running: replicas healthy
+        RunningStatus --> RunningAtMax: maximum replicas healthy
+        RunningStatus --> Deprovisioning: removing runtime resources
+        RunningStatus --> Degraded: replica failure
+        RunningStatus --> Failed: critical error
+    }
+    Active --> Inactive: deprovisioning completes
+    Inactive --> Provisioning: reactivate revision
+    Inactive --> Purged: inactive limit exceeded
+    Purged --> [*]
 ```
 
-- **Provisioning**: The platform allocates resources and pulls container images.
-- **Active**: The revision is healthy and can receive traffic or process events.
-- **Inactive**: The revision exists but has no replicas and receives no traffic.
-- **Failed**: The revision could not start (e.g., image pull error or failing health probes).
+- **Provisioning state**: The platform verifies and provisions a revision; documented outcomes include provisioning, provisioned, and provisioning failed.
+- **Active status**: An active revision is operational. Its separate running status can report provisioning, scale to zero, activating, activation failed, scaling/processing, running, running at max, deprovisioning, degraded, or failed.
+- **Inactive status**: The revision remains listed but has no provisioning or running state and no running replicas.
+- **Purged**: The oldest inactive revision is removed after the available revision count exceeds the documented cap.
 
 ## Single vs Multiple Revision Mode
 
@@ -78,7 +129,7 @@ The revision mode determines how many revisions can be active at the same time.
 
 | Mode | Active Revisions | Best For |
 |---|---|---|
-| **Single** | Exactly one | Standard web apps, simple updates |
+| **Single** | One | Standard web apps, simple updates |
 | **Multiple** | One or more | Canary, blue-green, A/B testing |
 
 In **Single mode**, the platform automatically deactivates the old revision when the new one becomes healthy. In **Multiple mode**, you manually control deactivation and traffic weights.
@@ -89,8 +140,8 @@ In **Single mode**, the platform automatically deactivates the old revision when
 |---|---|---|
 | Image Update | Single | Creates new revision; replaces old one once healthy |
 | Traffic Split | Multiple | Shifts percentage of requests between active revisions |
-| Deactivation | Multiple | Stops all replicas of a revision without deleting it |
-| Reactivation | Multiple | Re-provisions replicas for a previously inactive revision |
+| Deactivation | Multiple | Shuts down the revision's containers and makes the revision inactive |
+| Reactivation | Multiple | Returns an inactive revision to provisioning and active operation |
 
 ## Deep-Dive Topics
 
@@ -118,7 +169,7 @@ In the left navigation of any Container App, open **Application** → **Revision
 
 - **Sticky Sessions**: Traffic splitting may disrupt session state if not handled at the app layer.
 - **Database Schema**: Revisions share the same backing services; ensure backward compatibility.
-- **Max Revisions**: The platform limits the number of revisions; inactive ones are eventually purged.
+- **Inactive revision cap**: Inactive revisions are retained without runtime cost, and the oldest are purged after the available revision count exceeds 100. Treat the current limit as a service contract to recheck before hard-coding automation.
 
 !!! tip "Use canary windows with explicit success criteria"
     Define rollback thresholds (error rate, latency, saturation) before shifting traffic.
