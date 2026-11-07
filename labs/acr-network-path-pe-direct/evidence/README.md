@@ -8,7 +8,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 
 1. **H1 failure surface.** `01-app-spec-pre-fix.json` through `08-kql-imagepull-events-pre-fix.json` capture the broken `v-broken` window after the VNet link is removed and a fresh pull is forced.
 2. **H2 recovery surface.** `09-private-dns-link-list-post-fix.json` through `12-kql-imagepull-events-post-fix.json` capture the restored VNet link, healthy `v-recover` revision, and the recovery pull events.
-3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure.
+3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure. The gates were originally emitted on 2026-06-26 and later re-evaluated offline from unchanged raw files. Every replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture date and does not establish a current Azure replay or validation date.
 
 ## Gate overview
 
