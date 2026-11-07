@@ -479,10 +479,8 @@
       "legacy": true,
       "manifest_id": null,
       "path": "docs/assets/language-guides/python/tutorial/05-resource-group-overview-blade.png",
-      "reference_count": 1,
-      "referenced_by": [
-        "docs/language-guides/python/tutorial/05-infrastructure-as-code.md"
-      ]
+      "reference_count": 0,
+      "referenced_by": []
     },
     {
       "caption_alt_review_candidates": [],
@@ -5309,12 +5307,15 @@
     "caption_match_verification": "not_collected; candidates are heuristic review queues, not mismatch findings",
     "portal_instruction_terms": [
       "azure portal",
+      "in the portal",
       "portal blade",
       "portal evidence",
+      "portal view",
       "portal screenshot",
       "portal capture"
     ],
     "read_only": true,
+    "scan_scope": "docs/** and scripts/capture/manifest.yaml as stored at pinned_base_commit; rules come from the current generator revision",
     "stale_after_days": 180,
     "tracked_files_only": true,
     "visual_verification": "not_collected"
@@ -5639,6 +5640,18 @@
       "manifest_assets": [],
       "path": "docs/contributing/index.md",
       "portal_instruction": false,
+      "raw_image_references": [],
+      "shot_ids": [],
+      "state": "excluded",
+      "state_reason": "rule exclusion"
+    },
+    {
+      "broken_references": [],
+      "caption_alt_review_candidates": [],
+      "legacy_assets": [],
+      "manifest_assets": [],
+      "path": "docs/contributing/lab-gate-evaluation-time-audit.md",
+      "portal_instruction": true,
       "raw_image_references": [],
       "shot_ids": [],
       "state": "excluded",
@@ -6863,18 +6876,14 @@
     {
       "broken_references": [],
       "caption_alt_review_candidates": [],
-      "legacy_assets": [
-        "docs/assets/language-guides/python/tutorial/05-resource-group-overview-blade.png"
-      ],
+      "legacy_assets": [],
       "manifest_assets": [],
       "path": "docs/language-guides/python/tutorial/05-infrastructure-as-code.md",
-      "portal_instruction": true,
-      "raw_image_references": [
-        "docs/assets/language-guides/python/tutorial/05-resource-group-overview-blade.png"
-      ],
+      "portal_instruction": false,
+      "raw_image_references": [],
       "shot_ids": [],
-      "state": "manual-blocked",
-      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
+      "state": "excluded",
+      "state_reason": "no Portal-instruction term"
     },
     {
       "broken_references": [],
@@ -7171,14 +7180,14 @@
       ],
       "manifest_assets": [],
       "path": "docs/operations/logging/diagnostic-settings.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/operations/diagnostic-settings/01-logging-options-blade.png",
         "docs/assets/operations/diagnostic-settings/02-activity-log-diagnostic-setting-created.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7213,14 +7222,14 @@
       ],
       "manifest_assets": [],
       "path": "docs/operations/logging/log-streaming.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/operations/log-streaming/01-log-stream-blade.png",
         "docs/assets/operations/log-streaming/02-log-analytics-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7340,13 +7349,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/architecture/resource-relationships.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/architecture/02-resource-group-overview.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7436,13 +7445,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/environments/dedicated-gpu-profiles.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/02-workload-profiles.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7490,13 +7499,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/environments/migration.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/03-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7506,13 +7515,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/environments/networking-and-cidr.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/03-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7522,13 +7531,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/environments/plans-and-workload-profiles.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/02-workload-profiles.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7538,13 +7547,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/environments/workload-profiles.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/02-workload-profiles.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7566,13 +7575,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/identity-and-secrets/easy-auth.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/02-authentication-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7582,13 +7591,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/identity-and-secrets/key-vault.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/03-secrets-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7598,13 +7607,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/identity-and-secrets/managed-identity.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/01-identity-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7614,13 +7623,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/identity-and-secrets/security-operations.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/04-iam-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7646,13 +7655,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/jobs/event-driven-jobs.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/jobs/04-event-driven-job-overview.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7662,13 +7671,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/jobs/execution-lifecycle.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/jobs/02-job-execution-history.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7678,13 +7687,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/jobs/index.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/jobs/01-job-overview.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7694,13 +7703,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/jobs/jobs-vs-apps.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/jobs/01-job-overview.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7710,13 +7719,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/jobs/manual-jobs.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/jobs/01-job-overview.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7726,13 +7735,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/jobs/scheduled-jobs.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/jobs/03-scheduled-job-overview.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7766,13 +7775,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/networking/egress-control.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/03-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7814,13 +7823,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/networking/private-endpoints.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/03-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7830,13 +7839,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/networking/service-to-service.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/networking/01-ingress-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7846,13 +7855,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/networking/vnet-integration.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/environments/03-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7894,13 +7903,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/revisions/index.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/revisions/01-revisions-list-traffic-split.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7910,13 +7919,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/revisions/lifecycle.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/revisions/01-revisions-replicas-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7926,13 +7935,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/revisions/revision-modes.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/revisions/01-revisions-replicas-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7942,13 +7951,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/revisions/traffic-split.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/revisions/01-revisions-replicas-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7958,13 +7967,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/scaling/cpu-memory-scaler.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/scaling/01-scale-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7974,13 +7983,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/scaling/custom-scalers.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/scaling/01-scale-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -7990,13 +7999,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/scaling/event-scalers.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/scaling/01-scale-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8006,13 +8015,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/scaling/http-scaler.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/scaling/01-scale-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8022,13 +8031,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/scaling/index.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/scaling/01-scale-blade-overview.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8038,13 +8047,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/scaling/scaling-rules-reference.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/scaling/01-scale-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8054,13 +8063,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/security/customer-managed-keys.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/03-secrets-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8070,13 +8079,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/security/image-security.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/01-identity-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8086,13 +8095,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/security/index.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/04-iam-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8102,13 +8111,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/security/ingress-client-certificates.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/networking/02-environment-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8118,13 +8127,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/security/mtls.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/networking/02-environment-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8134,13 +8143,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/security/network-isolation.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/networking/02-environment-networking.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8150,13 +8159,13 @@
       ],
       "manifest_assets": [],
       "path": "docs/platform/security/secrets.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/platform/identity-and-secrets/03-secrets-blade.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -8364,11 +8373,11 @@
       "legacy_assets": [],
       "manifest_assets": [],
       "path": "docs/reference/metrics/dimensions.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "missing",
+      "state_reason": "Portal-instruction page has no local raster or shot() reference"
     },
     {
       "broken_references": [],
@@ -8421,7 +8430,7 @@
       ],
       "manifest_assets": [],
       "path": "docs/reference/metrics/managed-environment-metrics.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [
         "docs/assets/reference/metrics-cores-quota-limit-deprecated.png",
         "docs/assets/reference/metrics-ingress-cpu-percentage-baseline.png",
@@ -8433,8 +8442,8 @@
         "docs/assets/reference/metrics-percentage-cores-used-deprecated.png"
       ],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "manual-blocked",
+      "state_reason": "legacy image bytes exist but final-image and caption verification are not recorded"
     },
     {
       "broken_references": [],
@@ -9050,11 +9059,11 @@
       "legacy_assets": [],
       "manifest_assets": [],
       "path": "docs/troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md",
-      "portal_instruction": false,
+      "portal_instruction": true,
       "raw_image_references": [],
       "shot_ids": [],
-      "state": "excluded",
-      "state_reason": "no Portal-instruction term"
+      "state": "missing",
+      "state_reason": "Portal-instruction page has no local raster or shot() reference"
     },
     {
       "broken_references": [],
@@ -11205,7 +11214,7 @@
       "state_reason": "no Portal-instruction term"
     }
   ],
-  "pinned_base_commit": "de59e3e27aaa8c78714a23704f8f123d0830fd3d",
+  "pinned_base_commit": "1d77b1869134ec7cfca20b13e4a3b1039d0b6392",
   "schema_version": 1,
   "summary": {
     "caption_alt_review_candidates": 13,
@@ -11214,24 +11223,24 @@
     "labs_without_portal_evidence": 37,
     "legacy_assets": 435,
     "manifest_ids": 0,
-    "markdown_pages": 393,
+    "markdown_pages": 394,
     "page_states_all": {
       "captured": 0,
-      "excluded": 250,
-      "manual-blocked": 86,
-      "missing": 57,
+      "excluded": 210,
+      "manual-blocked": 125,
+      "missing": 59,
       "stale": 0
     },
-    "portal_instruction_pages": 143,
+    "portal_instruction_pages": 184,
     "portal_page_states": {
       "captured": 0,
       "excluded": 0,
-      "manual-blocked": 86,
-      "missing": 57,
+      "manual-blocked": 125,
+      "missing": 59,
       "stale": 0
     },
     "raster_assets": 435,
-    "raw_image_references": 458,
+    "raw_image_references": 457,
     "reused_assets": 13,
     "shot_references": 0
   },

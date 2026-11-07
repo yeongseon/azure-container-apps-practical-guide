@@ -35,7 +35,7 @@ HTML_IMAGE_RE = re.compile(
     r'''<img\b[^>]*?\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>''', re.I
 )
 HTML_ALT_RE = re.compile(r'''\balt\s*=\s*(?:"([^"]*)"|'([^']*)')''', re.I)
-FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+FENCE_RE = re.compile(r"^(\s*)(`{3,}|~{3,})")
 GENERIC_ALT = re.compile(r"^(?:image|screenshot|portal|capture|figure|diagram|photo)?\s*$", re.I)
 
 
@@ -47,10 +47,26 @@ def load_rules(root: Path = ROOT) -> dict[str, Any]:
     return json.loads((root / RULES_PATH.relative_to(ROOT)).read_text(encoding="utf-8"))
 
 
-def tracked_files(root: Path) -> list[str]:
-    if (root / ".git").exists():
+def git_snapshot(root: Path, base_commit: str) -> bool:
+    if not (root / ".git").exists():
+        return False
+    commit = subprocess.run(
+        ["git", "cat-file", "-e", f"{base_commit}^{{commit}}"], cwd=root, capture_output=True
+    )
+    if commit.returncode != 0:
+        raise InventoryError(f"base commit does not exist: {base_commit}")
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", base_commit, "HEAD"], cwd=root, capture_output=True
+    )
+    if ancestor.returncode != 0:
+        raise InventoryError(f"base commit is not an ancestor of HEAD: {base_commit}")
+    return True
+
+
+def tracked_files(root: Path, base_commit: str) -> list[str]:
+    if git_snapshot(root, base_commit):
         result = subprocess.run(
-            ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+            ["git", "ls-tree", "-r", "--name-only", "-z", base_commit, "--", "docs", "scripts/capture/manifest.yaml"],
             cwd=root,
             check=True,
             capture_output=True,
@@ -63,18 +79,33 @@ def tracked_files(root: Path) -> list[str]:
     )
 
 
+def read_snapshot_text(root: Path, base_commit: str, path: str) -> str:
+    if not (root / ".git").exists():
+        return (root / path).read_text(encoding="utf-8")
+    result = subprocess.run(
+        ["git", "show", f"{base_commit}:{path}"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+    )
+    return result.stdout.decode("utf-8")
+
+
 def without_fences(text: str) -> str:
     output: list[str] = []
     marker: str | None = None
+    indent = ""
     for line in text.splitlines():
         match = FENCE_RE.match(line)
         if marker is None and match:
-            marker = match.group(1)
+            indent = match.group(1)
+            marker = match.group(2)
             output.append("")
             continue
         if marker is not None:
-            if re.fullmatch(r" {0,3}" + re.escape(marker[0]) + "{" + str(len(marker)) + r",}\s*", line):
+            if re.fullmatch(re.escape(indent) + re.escape(marker[0]) + "{" + str(len(marker)) + r",}\s*", line):
                 marker = None
+                indent = ""
             output.append("")
             continue
         output.append(line)
@@ -135,9 +166,9 @@ def markdown_references(root: Path, page_path: str, text: str) -> list[dict[str,
     return references
 
 
-def manifest_records(root: Path) -> tuple[dict[str, dict[str, Any]], list[str]]:
-    path = root / MANIFEST_PATH.relative_to(ROOT)
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+def manifest_records(root: Path, base_commit: str) -> tuple[dict[str, dict[str, Any]], list[str]]:
+    path = MANIFEST_PATH.relative_to(ROOT).as_posix()
+    data = yaml.safe_load(read_snapshot_text(root, base_commit, path)) or {}
     screenshots = data.get("screenshots", [])
     if not isinstance(screenshots, list):
         raise InventoryError("scripts/capture/manifest.yaml screenshots is not a list")
@@ -170,7 +201,7 @@ def is_excluded(path: str, patterns: list[str]) -> bool:
 
 def build_inventory(root: Path, base_commit: str, as_of: dt.date) -> dict[str, Any]:
     rules = load_rules(root)
-    tracked = tracked_files(root)
+    tracked = tracked_files(root, base_commit)
     tracked_set = set(tracked)
     extensions = {suffix.lower() for suffix in rules["image_extensions"]}
     excluded_assets = set(rules["excluded_assets"])
@@ -180,7 +211,7 @@ def build_inventory(root: Path, base_commit: str, as_of: dt.date) -> dict[str, A
         and Path(path).suffix.lower() in extensions
         and path not in excluded_assets
     ]
-    manifest, duplicate_ids = manifest_records(root)
+    manifest, duplicate_ids = manifest_records(root, base_commit)
     manifest_paths = {
         str(item.get("file", "")).lstrip("/"): shot_id
         for shot_id, item in manifest.items()
@@ -197,7 +228,7 @@ def build_inventory(root: Path, base_commit: str, as_of: dt.date) -> dict[str, A
             continue
         if path == PAGE_PATH.relative_to(ROOT).as_posix():
             continue
-        text = (root / path).read_text(encoding="utf-8")
+        text = read_snapshot_text(root, base_commit, path)
         clean = without_fences(text)
         refs = markdown_references(root, path, text)
         local_raster = []
@@ -213,6 +244,10 @@ def build_inventory(root: Path, base_commit: str, as_of: dt.date) -> dict[str, A
                 refs_by_shot[shot_id].append(record)
                 if shot_id not in manifest:
                     broken.append({"kind": "unknown_shot_id", "value": shot_id, "line": ref["line"]})
+                else:
+                    file_path = str(manifest[shot_id].get("file", "")).lstrip("/")
+                    if not file_path or file_path not in tracked_set:
+                        broken.append({"kind": "missing_manifest_asset", "value": file_path, "line": ref["line"]})
                 continue
             resolved = ref.get("resolved_path")
             if resolved and Path(resolved).suffix.lower() in extensions:
@@ -227,8 +262,10 @@ def build_inventory(root: Path, base_commit: str, as_of: dt.date) -> dict[str, A
         portal_instruction = any(term in clean.casefold() for term in portal_terms)
         legacy = sorted({asset for asset in local_raster if asset not in manifest_paths})
         registered = sorted({asset for asset in local_raster if asset in manifest_paths})
+        referenced_manifest_ids = set(shot_ids)
+        referenced_manifest_ids.update(manifest_paths[asset] for asset in registered)
         stale_ids = []
-        for shot_id in shot_ids:
+        for shot_id in referenced_manifest_ids:
             item = manifest.get(shot_id)
             if not item:
                 continue
@@ -346,6 +383,7 @@ def build_inventory(root: Path, base_commit: str, as_of: dt.date) -> dict[str, A
         "method": {
             "read_only": True,
             "tracked_files_only": True,
+            "scan_scope": "docs/** and scripts/capture/manifest.yaml as stored at pinned_base_commit; rules come from the current generator revision",
             "portal_instruction_terms": rules["portal_terms"],
             "stale_after_days": rules["stale_after_days"],
             "visual_verification": "not_collected",
@@ -377,6 +415,7 @@ def build_inventory(root: Path, base_commit: str, as_of: dt.date) -> dict[str, A
 
 def render_page(data: dict[str, Any]) -> str:
     summary = data["summary"]
+    portal_terms = ", ".join(f"`{term}`" for term in data["method"]["portal_instruction_terms"])
     state_rows = "\n".join(
         f"| `{state}` | {count} |" for state, count in data["summary"]["page_states_all"].items()
     )
@@ -404,6 +443,8 @@ description: Current Azure Container Apps Portal capture inventory, including ma
 # Portal Capture Inventory
 
 This inventory is generated from tracked repository files at `{data['pinned_base_commit']}`. It records file and reference presence only; no image was opened, captured, changed, or independently re-verified.
+
+The scan reads `docs/**` and `scripts/capture/manifest.yaml` directly from that pinned commit. The current generator rules classify Portal instructions with these phrases: {portal_terms}. The vocabulary intentionally uses specific phrases rather than the bare word `portal` to avoid classifying incidental mentions as capture instructions.
 
 ## Reproduce the inventory
 
@@ -433,7 +474,7 @@ The detailed machine-readable inventory is [`portal-capture-inventory.json`](por
 |---|---:|
 {state_rows}
 
-`manual-blocked` means legacy bytes exist but final-image PII and caption accuracy were **not collected**. `missing` means a Portal-instruction page has no local capture, or has a broken reference. `stale` applies only to manifest-backed captures whose `verified` date is absent or older than {data['method']['stale_after_days']} days. `excluded` means no Portal-instruction term matched or an explicit rule excluded the page. The JSON includes the same five states for every page and a separate Portal-only state count.
+`manual-blocked` means legacy bytes exist but final-image PII and caption accuracy were **not collected**. `missing` means a Portal-instruction page has no local capture, or has a broken reference. `stale` applies to `shot()` and direct image references backed by manifest entries whose `verified` date is absent or older than {data['method']['stale_after_days']} days. `excluded` means no Portal-instruction term matched or an explicit rule excluded the page. The JSON includes the same five states for every page and a separate Portal-only state count.
 
 ## Legacy image reuse
 
@@ -473,10 +514,7 @@ Cross-repo issue `yeongseon/azure-functions-practical-guide#389` was checked dir
 
 - [Lab Portal Capture Briefs](../contributing/lab-portal-capture-briefs.md)
 - [Troubleshooting Labs](../troubleshooting/lab-guides/index.md)
-
-## Sources
-
-- [Capture manifest workflow](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/de59e3e27aaa8c78714a23704f8f123d0830fd3d/scripts/capture/README.md)
+- [Capture manifest workflow](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/{data['pinned_base_commit']}/scripts/capture/README.md)
 - [Issue #570 acceptance checklist](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/570)
 """
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -48,6 +49,11 @@ class PortalCaptureInventoryTests(unittest.TestCase):
             + ("".join(f"  - {json.dumps(item)}\n" for item in screenshots) if screenshots else "  []\n")
         )
 
+    def git(self, *args: str) -> str:
+        return subprocess.run(
+            ["git", *args], cwd=self.root, check=True, capture_output=True, text=True
+        ).stdout.strip()
+
     def test_inventory_separates_legacy_missing_and_manifest_captures(self) -> None:
         self.write_manifest(
             [{"id": "registered", "file": "docs/assets/troubleshooting/demo/registered.webp", "verified": "2026-10-01"}]
@@ -68,6 +74,39 @@ class PortalCaptureInventoryTests(unittest.TestCase):
         self.assertEqual(states["docs/registered.md"], "captured")
         self.assertEqual(data["summary"]["legacy_assets"], 1)
 
+    def test_production_rules_classify_portal_view_heading_as_instruction(self) -> None:
+        production_rules = inventory.load_rules(inventory.ROOT)
+        (self.root / "scripts/portal_capture_inventory_rules.json").write_text(
+            json.dumps(production_rules)
+        )
+        self.write_manifest()
+        (self.root / "docs/portal-view.md").write_text(
+            "# Scaling\n\n## Portal view\n\nInspect the replica count.\n"
+        )
+
+        data = inventory.build_inventory(self.root, "abc123", dt.date(2026, 11, 7))
+
+        page = next(page for page in data["pages"] if page["path"] == "docs/portal-view.md")
+        self.assertTrue(page["portal_instruction"])
+        self.assertEqual(page["state"], "missing")
+
+    def test_pinned_commit_ignores_untracked_files(self) -> None:
+        self.write_manifest()
+        (self.root / "docs/tracked.md").write_text("# Tracked\n\nNo capture instructions.\n")
+        self.git("init")
+        self.git("config", "user.name", "Inventory Test")
+        self.git("config", "user.email", "inventory@example.com")
+        self.git("add", "docs", "scripts/capture/manifest.yaml")
+        self.git("commit", "-m", "test: add tracked inventory fixture")
+        base_commit = self.git("rev-parse", "HEAD")
+        (self.root / "docs/untracked.md").write_text("# Untracked\n\n## Portal view\n")
+        (self.root / "docs/assets/troubleshooting/demo/untracked.png").write_bytes(b"untracked")
+
+        data = inventory.build_inventory(self.root, base_commit, dt.date(2026, 11, 7))
+
+        self.assertEqual(data["summary"]["markdown_pages"], 1)
+        self.assertEqual(data["summary"]["raster_assets"], 0)
+
     def test_unknown_shot_and_stale_manifest_are_not_captured(self) -> None:
         self.write_manifest(
             [{"id": "old", "file": "docs/assets/troubleshooting/demo/old.webp", "verified": "2025-01-01"}]
@@ -82,6 +121,33 @@ class PortalCaptureInventoryTests(unittest.TestCase):
         self.assertEqual(pages["docs/unknown.md"]["state"], "missing")
         self.assertEqual(pages["docs/stale.md"]["state"], "stale")
 
+    def test_known_shot_with_missing_manifest_file_is_missing(self) -> None:
+        self.write_manifest(
+            [{"id": "absent", "file": "docs/assets/troubleshooting/demo/absent.webp", "verified": "2026-10-01"}]
+        )
+        (self.root / "docs/absent.md").write_text(
+            '# Absent\n\nPortal evidence: [[[ shot("absent") ]]]\n'
+        )
+
+        data = inventory.build_inventory(self.root, "abc123", dt.date(2026, 11, 7))
+
+        page = next(page for page in data["pages"] if page["path"] == "docs/absent.md")
+        self.assertEqual(page["state"], "missing")
+
+    def test_direct_manifest_backed_reference_uses_manifest_staleness(self) -> None:
+        self.write_manifest(
+            [{"id": "old-direct", "file": "docs/assets/troubleshooting/demo/old-direct.webp", "verified": "2025-01-01"}]
+        )
+        (self.root / "docs/assets/troubleshooting/demo/old-direct.webp").write_bytes(b"old")
+        (self.root / "docs/direct.md").write_text(
+            "# Direct\n\n## Portal evidence\n\n![State](assets/troubleshooting/demo/old-direct.webp)\n"
+        )
+
+        data = inventory.build_inventory(self.root, "abc123", dt.date(2026, 11, 7))
+
+        page = next(page for page in data["pages"] if page["path"] == "docs/direct.md")
+        self.assertEqual(page["state"], "stale")
+
     def test_fenced_examples_do_not_create_references(self) -> None:
         self.write_manifest()
         (self.root / "docs/example.md").write_text(
@@ -89,6 +155,18 @@ class PortalCaptureInventoryTests(unittest.TestCase):
         )
         data = inventory.build_inventory(self.root, "abc123", dt.date(2026, 11, 7))
         page = next(page for page in data["pages"] if page["path"] == "docs/example.md")
+        self.assertEqual(page["state"], "missing")
+        self.assertEqual(page["broken_references"], [])
+
+    def test_admonition_fenced_examples_do_not_create_references(self) -> None:
+        self.write_manifest()
+        (self.root / "docs/admonition.md").write_text(
+            '# Admonition\n\nPortal evidence:\n\n!!! note\n    ```markdown\n    ![Example](assets/missing.png)\n    ```\n'
+        )
+
+        data = inventory.build_inventory(self.root, "abc123", dt.date(2026, 11, 7))
+
+        page = next(page for page in data["pages"] if page["path"] == "docs/admonition.md")
         self.assertEqual(page["state"], "missing")
         self.assertEqual(page["broken_references"], [])
 

@@ -3,7 +3,9 @@ description: Current Azure Container Apps Portal capture inventory, including ma
 ---
 # Portal Capture Inventory
 
-This inventory is generated from tracked repository files at `de59e3e27aaa8c78714a23704f8f123d0830fd3d`. It records file and reference presence only; no image was opened, captured, changed, or independently re-verified.
+This inventory is generated from tracked repository files at `1d77b1869134ec7cfca20b13e4a3b1039d0b6392`. It records file and reference presence only; no image was opened, captured, changed, or independently re-verified.
+
+The scan reads `docs/**` and `scripts/capture/manifest.yaml` directly from that pinned commit. The current generator rules classify Portal instructions with these phrases: `azure portal`, `in the portal`, `portal blade`, `portal evidence`, `portal view`, `portal screenshot`, `portal capture`. The vocabulary intentionally uses specific phrases rather than the bare word `portal` to avoid classifying incidental mentions as capture instructions.
 
 ## Reproduce the inventory
 
@@ -17,13 +19,13 @@ The detailed machine-readable inventory is [`portal-capture-inventory.json`](por
 
 | Measure | Count |
 |---|---:|
-| Markdown pages scanned | 393 |
-| Portal-instruction pages | 143 |
+| Markdown pages scanned | 394 |
+| Portal-instruction pages | 184 |
 | Raster assets | 435 |
 | Legacy assets outside the manifest | 435 |
 | Manifest IDs | 0 |
 | `shot()` references | 0 |
-| Raw local image references | 458 |
+| Raw local image references | 457 |
 | Assets reused across pages | 13 |
 | Caption/alt review candidates | 13 |
 | Lab guides with Portal evidence | 24 |
@@ -32,12 +34,12 @@ The detailed machine-readable inventory is [`portal-capture-inventory.json`](por
 | Page state | Count |
 |---|---:|
 | `captured` | 0 |
-| `missing` | 57 |
+| `missing` | 59 |
 | `stale` | 0 |
-| `manual-blocked` | 86 |
-| `excluded` | 250 |
+| `manual-blocked` | 125 |
+| `excluded` | 210 |
 
-`manual-blocked` means legacy bytes exist but final-image PII and caption accuracy were **not collected**. `missing` means a Portal-instruction page has no local capture, or has a broken reference. `stale` applies only to manifest-backed captures whose `verified` date is absent or older than 180 days. `excluded` means no Portal-instruction term matched or an explicit rule excluded the page. The JSON includes the same five states for every page and a separate Portal-only state count.
+`manual-blocked` means legacy bytes exist but final-image PII and caption accuracy were **not collected**. `missing` means a Portal-instruction page has no local capture, or has a broken reference. `stale` applies to `shot()` and direct image references backed by manifest entries whose `verified` date is absent or older than 180 days. `excluded` means no Portal-instruction term matched or an explicit rule excluded the page. The JSON includes the same five states for every page and a separate Portal-only state count.
 
 ## Legacy image reuse
 
@@ -137,8 +139,5 @@ Cross-repo issue `yeongseon/azure-functions-practical-guide#389` was checked dir
 
 - [Lab Portal Capture Briefs](../contributing/lab-portal-capture-briefs.md)
 - [Troubleshooting Labs](../troubleshooting/lab-guides/index.md)
-
-## Sources
-
-- [Capture manifest workflow](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/de59e3e27aaa8c78714a23704f8f123d0830fd3d/scripts/capture/README.md)
+- [Capture manifest workflow](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/1d77b1869134ec7cfca20b13e4a3b1039d0b6392/scripts/capture/README.md)
 - [Issue #570 acceptance checklist](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/570)
