@@ -1,4 +1,5 @@
 ---
+description: Evidence-led Azure Container Apps decision trees that route incidents by revision health, HTTP outcomes, replicas, dependencies, and scaling signals.
 content_sources:
   diagrams:
     - id: main-triage-decision-tree
@@ -10,6 +11,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
     - id: 5xx-branch-deep-dive-tree
       type: flowchart
       source: mslearn-adapted
@@ -19,13 +22,15 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
-    - claim: Azure Container Apps provides both system logs and console logs for troubleshooting.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - claim: ContainerAppHTTPLogs includes status, duration, revision, replica, and upstream fields for ingress-request diagnosis.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
       verified: true
     - claim: Health probe failures can prevent a revision from becoming healthy in Azure Container Apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
@@ -48,65 +53,79 @@ The tree is intentionally symptom-first and optimized for the first 10–15 minu
 <!-- diagram-id: main-triage-decision-tree -->
 ```mermaid
 flowchart TD
-    S[Incident starts: user-visible impact] --> Q1{Is it a 5xx issue?}
+    START[User-visible incident]
+    REVISION{Latest active revision healthy?}
+    SYSTEM{System logs identify pull,<br/>startup, or probe failure?}
+    IMAGE[Image Pull Failure]
+    PROBE[Probe Failure and Slow Start]
+    PROVISION[Revision Provisioning Failure]
+    HTTP{HTTP ingress record exists<br/>for the failed request?}
+    STATUS{Response status and details?}
+    APP[Application or console-log investigation]
+    INGRESS[Ingress Not Reachable]
+    REPLICAS{Healthy replicas available<br/>during the failure window?}
+    RUNTIME[CrashLoop OOM and Resource Pressure]
+    SCALE[HTTP Scaling Not Triggering]
+    DEPENDENCY{Failure isolated to a<br/>downstream dependency?}
+    NETWORK[DNS or Service Connectivity playbook]
+    IDENTITY[Identity or Secret playbook]
+    METHOD[Methodology: build competing hypotheses]
 
-    Q1 -->|Yes| Q1A{Intermittent or constant?}
-    Q1 -->|No| Q2{Is startup failing?}
-
-    Q1A -->|Intermittent under load| P1[Playbook: HTTP Scaling Not Triggering]
-    Q1A -->|Constant after deploy| Q3{Was there a recent revision update?}
-    Q1A -->|Constant, no deploy| P2[Playbook: CrashLoop OOM and Resource Pressure]
-
-    Q3 -->|Yes, image pull error| P3[Playbook: Image Pull Failure]
-    Q3 -->|Yes, probe failures| P4[Playbook: Probe Failure and Slow Start]
-    Q3 -->|Yes, revision not healthy| P5[Playbook: Revision Provisioning Failure]
-    Q3 -->|No clear deploy signal| P6[Playbook: Container Start Failure]
-
-    Q2 -->|Yes| Q2A{Image pull or container crash?}
-    Q2 -->|No| Q4{Is outbound dependency failing?}
-
-    Q2A -->|Image pull failure| P3
-    Q2A -->|Container crash or exit| P6
-    Q2A -->|Probe timeout| P4
-
-    Q4 -->|Yes| Q4A{DNS, VNet, or private endpoint?}
-    Q4 -->|No| Q5{Is it a scaling issue?}
-
-    Q4A -->|DNS| P9[Playbook: Internal DNS and Private Endpoint Failure]
-    Q4A -->|Service-to-service| P10[Playbook: Service-to-Service Connectivity Failure]
-    Q4A -->|Private endpoint| P9
-
-    Q5 -->|Yes| Q5A{HTTP scaling or event-driven?}
-    Q5 -->|No| P12[Use Methodology: build hypotheses from evidence]
-
-    Q5A -->|HTTP scaling issues| P1
-    Q5A -->|Event scaler mismatch| P13[Playbook: Event Scaler Mismatch]
-    Q5A -->|Memory or resource pressure| P2
+    START --> REVISION
+    REVISION -->|No| SYSTEM
+    REVISION -->|Yes| HTTP
+    SYSTEM -->|Image pull evidence| IMAGE
+    SYSTEM -->|Probe evidence| PROBE
+    SYSTEM -->|Neither| PROVISION
+    HTTP -->|Yes| STATUS
+    HTTP -->|No| INGRESS
+    STATUS -->|500 or app exception| APP
+    STATUS -->|502 or 503| REPLICAS
+    REPLICAS -->|No, restarts or exits| RUNTIME
+    REPLICAS -->|No, demand exceeds supply| SCALE
+    REPLICAS -->|Yes| DEPENDENCY
+    DEPENDENCY -->|DNS, route, or refusal| NETWORK
+    DEPENDENCY -->|401, 403, or secret error| IDENTITY
+    DEPENDENCY -->|No| METHOD
 ```
+
+The main tree asks for a distinguishing signal at every branch: revision health, system-log evidence, an HTTP ingress record, replica availability, or a dependency-specific error.
 
 ## 5xx branch deep-dive tree
 
 <!-- diagram-id: 5xx-branch-deep-dive-tree -->
 ```mermaid
 flowchart TD
-    A[Observed 5xx] --> B{Status pattern}
-    B -->|Mostly 500| C[Check application exceptions and console logs]
-    B -->|Mostly 502| D[Check ingress and probe failures]
-    B -->|Mostly 503| E[Check replica availability and scaling]
+    ERROR[Observed 5xx]
+    RECORD{Matching ContainerAppHTTPLogs<br/>record available?}
+    DETAILS{StatusCode and<br/>ResponseCodeDetails}
+    NORECORD[Check front door, DNS,<br/>and ingress reachability]
+    UPSTREAM{Upstream attempt or<br/>replica recorded?}
+    APP[Correlate console logs<br/>for the same revision and replica]
+    REPLICAS{Healthy replica count<br/>dropped in the same window?}
+    PROBES{Probe or container-exit<br/>event in system logs?}
+    SCALE{Demand rose while<br/>replica count stayed low?}
+    STARTUP[Probe Failure or Container Start playbook]
+    AUTOSCALE[HTTP Scaling Not Triggering]
+    ROUTING[Ingress or Revision Routing playbook]
+    METHOD[Collect more evidence;<br/>status code alone is insufficient]
 
-    C --> F{Startup related?}
-    F -->|Yes| G[Container Start Failure]
-    F -->|No| H[CrashLoop OOM and Resource Pressure]
-
-    D --> I{Probe failures present?}
-    I -->|Yes| J[Probe Failure and Slow Start]
-    I -->|No| K[Ingress Not Reachable]
-
-    E --> L{Recent revision update?}
-    L -->|Yes| M[Revision Provisioning Failure]
-    L -->|Scaling events| N[HTTP Scaling Not Triggering]
-    L -->|No| O[Event Scaler Mismatch]
+    ERROR --> RECORD
+    RECORD -->|Yes| DETAILS
+    RECORD -->|No| NORECORD
+    DETAILS -->|Application 500| APP
+    DETAILS -->|Upstream 502 or 503| UPSTREAM
+    UPSTREAM -->|No upstream selected| ROUTING
+    UPSTREAM -->|Replica identified| REPLICAS
+    REPLICAS -->|Yes| PROBES
+    REPLICAS -->|No| METHOD
+    PROBES -->|Yes| STARTUP
+    PROBES -->|No| SCALE
+    SCALE -->|Yes| AUTOSCALE
+    SCALE -->|No| METHOD
 ```
+
+This deep dive avoids assigning a root cause from 500, 502, or 503 alone; it uses the HTTP record, routed upstream, replica availability, and time-correlated system or console evidence.
 
 ## Playbook leaves (direct links)
 
@@ -209,9 +228,21 @@ az containerapp show --name $APP_NAME --resource-group $RG --query "properties.l
 az monitor activity-log list --resource-group $RG --offset 24h
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revision state so the decision tree can distinguish rollout failures from runtime failures. |
+| `--name` | Selects the container app being triaged across revision, log, and configuration checks. |
+| `--output` | Formats the revision inventory as a table for rapid comparison. |
+| `--resource-group` | Scopes the triage bundle to the resource group containing the app. |
+| `az containerapp logs show` | Retrieves both platform system events and application console output for branch selection. |
+| `--tail` | Limits each log stream to the 50 most recent lines for first-pass triage. |
+| `--type` | Selects `system` events for platform branches or `console` output for application branches. |
+| `az containerapp show` | Reads the current app resource to identify its latest revision. |
+| `--query` | Extracts only `properties.latestRevisionName` for timestamp correlation. |
+| `az monitor activity-log list` | Lists recent management-plane changes that could explain the symptom onset. |
+| `--offset` | Restricts Activity Log results to the preceding 24 hours. |
+
 
 !!! warning "Avoid branch bias"
     Do not choose a branch only because it matches a familiar past issue.
@@ -273,3 +304,5 @@ az monitor activity-log list --resource-group $RG --offset 24h
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Scale rules in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Monitor logs with Log Analytics](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [ContainerAppHTTPLogs table](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs)

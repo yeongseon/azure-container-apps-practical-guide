@@ -1,4 +1,5 @@
 ---
+description: Classify Azure Container Apps failures by provisioning, startup, networking, scaling, identity, or runtime evidence before selecting a playbook.
 content_sources:
   diagrams:
     - id: classification-flowchart
@@ -12,8 +13,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps provides observability through logs and monitoring integration.
       source: https://learn.microsoft.com/en-us/azure/container-apps/observability
@@ -50,32 +51,51 @@ This classification helps you avoid looking at the wrong logs from the start.
 <!-- diagram-id: classification-flowchart -->
 ```mermaid
 flowchart TD
-    A[Observed symptom] --> B{Primary failure signal}
-    B -->|Revision stuck, image errors| C[Category 1: Provisioning issue]
-    B -->|Container crashes, probe fails| D[Category 2: Startup issue]
-    B -->|502/503, DNS errors, connectivity| E[Category 3: Networking issue]
-    B -->|No scaling, wrong replica count| F[Category 4: Scaling issue]
-    B -->|401/403, secret not found| G[Category 5: Identity / Config issue]
-    B -->|OOM, slow response, resource exhaustion| H[Category 6: Runtime degradation]
+    SYMPTOM[Observed symptom and time window]
+    REVISION{Revision healthy?}
+    PULL{Image pull or template<br/>validation evidence?}
+    PROVISION[Provisioning category<br/>system logs and deployment state]
+    STARTUP[Startup category<br/>console logs and probes]
+    HTTP{Ingress request reaches<br/>a healthy replica?}
+    NETWORK[Networking category<br/>HTTP, DNS, route, and policy evidence]
+    SCALE{Replica count tracks<br/>demand or event backlog?}
+    SCALING[Scaling category<br/>rules, authentication, and metrics]
+    AUTH{Dependency returns<br/>authentication or secret error?}
+    IDENTITY[Identity or configuration category<br/>assignment, RBAC, and secret state]
+    RESOURCE{Exit, restart, or resource<br/>trend correlated with impact?}
+    RUNTIME[Runtime degradation category<br/>metrics plus termination evidence]
+    RECLASSIFY[Reclassify and collect<br/>a different distinguishing signal]
 
-    C --> C1[Start with ContainerAppSystemLogs - pull/provision]
-    D --> D1[Start with ContainerAppConsoleLogs - startup errors]
-    E --> E1[Start with ingress and DNS evidence]
-    F --> F1[Start with scale rules and KEDA metrics]
-    G --> G1[Start with identity assignment and RBAC]
-    H --> H1[Start with resource limits and memory trends]
+    SYMPTOM --> REVISION
+    REVISION -->|No| PULL
+    PULL -->|Yes| PROVISION
+    PULL -->|No| STARTUP
+    REVISION -->|Yes| HTTP
+    HTTP -->|No| NETWORK
+    HTTP -->|Yes| SCALE
+    SCALE -->|No| SCALING
+    SCALE -->|Yes| AUTH
+    AUTH -->|Yes| IDENTITY
+    AUTH -->|No| RESOURCE
+    RESOURCE -->|Yes| RUNTIME
+    RESOURCE -->|No| RECLASSIFY
 ```
+
+The classifier uses evidence that separates platform stages; if the expected evidence is absent, reclassify instead of forcing the symptom into a familiar category.
 
 ## Category summary matrix
 
 | Category | Typical Symptoms | First Signal to Check | Common Mistake |
 |---|---|---|---|
-| Provisioning issue | Revision stuck "Provisioning", image pull errors | `ContainerAppSystemLogs` - pull/auth errors | Assuming app code is broken |
-| Startup issue | Container crashes, probe timeout, unhealthy | `ContainerAppConsoleLogs` - startup sequence | Checking only system logs |
+| Provisioning issue | Revision stuck "Provisioning", image pull errors | `ContainerAppSystemLogs_CL` - pull/auth errors | Assuming app code is broken |
+| Startup issue | Container crashes, probe timeout, unhealthy | `ContainerAppConsoleLogs_CL` - startup sequence | Checking only system logs |
 | Networking issue | 502/503, DNS failures, connectivity errors | Ingress config + DNS resolution | Restarting app without validating network |
 | Scaling issue | No scale-out, stuck at min/max replicas | Scale rules + KEDA scaler logs | Looking at application logs only |
 | Identity / Config issue | 401/403 to Azure services, secret not found | Identity assignment + RBAC roles | Assuming network block |
 | Runtime degradation | OOM restarts, slow response, resource pressure | Resource limits + memory/CPU trends | Looking only at error logs |
+
+!!! note "Choose the table schema for the logging destination"
+    The queries below use the legacy direct Log Analytics destination: `ContainerAppSystemLogs_CL`, `ContainerAppConsoleLogs_CL`, and suffixed columns such as `Log_s` and `RevisionName_s`. Environments that route logs through Azure Monitor diagnostic settings use `ContainerAppSystemLogs`, `ContainerAppConsoleLogs`, and unsuffixed columns such as `Log` and `RevisionName`. `ContainerAppHTTPLogs` never uses an `_CL` suffix.
 
 ## 1) Category: Provisioning Issue
 
@@ -91,7 +111,7 @@ Provisioning issues occur when a new revision cannot be created or deployed succ
 ### First signal to check
 
 ```kusto
-ContainerAppSystemLogs
+ContainerAppSystemLogs_CL
 | where TimeGenerated > ago(1h)
 | where Log_s has_any ("pull", "image", "manifest", "auth", "401", "403", "provision", "failed")
 | project TimeGenerated, Log_s
@@ -123,7 +143,7 @@ Startup issues occur when the container image is pulled successfully but the app
 ### First signal to check
 
 ```kusto
-ContainerAppConsoleLogs
+ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(1h)
 | where Log_s has_any ("error", "exception", "traceback", "failed", "exit", "bind", "listen", "port")
 | project TimeGenerated, RevisionName_s, Log_s
@@ -155,7 +175,7 @@ Networking issues occur when the container is running but cannot be reached or c
 ### First signal to check
 
 ```kusto
-ContainerAppSystemLogs
+ContainerAppSystemLogs_CL
 | where TimeGenerated > ago(1h)
 | where Log_s has_any ("ingress", "upstream", "502", "503", "DNS", "resolve", "connection refused")
 | project TimeGenerated, Log_s
@@ -188,7 +208,7 @@ Scaling issues occur when KEDA autoscaling does not respond correctly to load or
 ### First signal to check
 
 ```kusto
-ContainerAppSystemLogs
+ContainerAppSystemLogs_CL
 | where TimeGenerated > ago(2h)
 | where Log_s has_any ("scale", "replica", "KEDA", "scaler", "metric", "trigger")
 | project TimeGenerated, Log_s
@@ -220,7 +240,7 @@ Identity issues occur when the application cannot authenticate to Azure services
 ### First signal to check
 
 ```kusto
-ContainerAppConsoleLogs
+ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(1h)
 | where Log_s has_any ("401", "403", "Unauthorized", "Forbidden", "AADSTS", "ManagedIdentity", "secret", "keyvault")
 | project TimeGenerated, Log_s
@@ -252,7 +272,7 @@ Runtime degradation means the app starts correctly but performance deteriorates 
 ### First signal to check
 
 ```kusto
-ContainerAppSystemLogs
+ContainerAppSystemLogs_CL
 | where TimeGenerated > ago(6h)
 | where Log_s has_any ("OOM", "killed", "memory", "evicted", "resource", "throttle")
 | project TimeGenerated, Log_s
@@ -279,7 +299,7 @@ ContainerAppSystemLogs
 
 ## Anti-patterns this model prevents
 
-- **Wrong-table bias**: querying `ContainerAppConsoleLogs` for image pull issues.
+- **Wrong-table bias**: querying the console-log table for image pull issues instead of the destination-appropriate system-log table.
 - **Single-signal bias**: assuming all 502s are application bugs.
 - **Identity blind spot**: treating auth failures as network problems.
 - **Scaling assumption**: assuming KEDA is broken without checking configuration.

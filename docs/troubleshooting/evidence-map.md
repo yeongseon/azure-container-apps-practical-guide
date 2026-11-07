@@ -1,4 +1,5 @@
 ---
+description: Match Azure Container Apps investigation questions to HTTP, platform, application, activity, configuration, and metric evidence.
 content_sources:
   diagrams:
     - id: use-it-when-you-know-what
@@ -10,10 +11,12 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics
         - https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps can send application console logs and system logs to Azure Monitor Log Analytics.
       source: https://learn.microsoft.com/en-us/azure/container-apps/observability
@@ -27,6 +30,9 @@ content_validation:
     - claim: Azure Container Apps troubleshooting guidance uses logs and events as key evidence sources.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
       verified: true
+    - claim: Azure Monitor diagnostic settings and the legacy Log Analytics destination use different system and console table names.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor
+      verified: true
 ---
 # Evidence Map for Container Apps Troubleshooting
 
@@ -37,16 +43,42 @@ Use it when you know **what you need to answer** but not **where to collect proo
 <!-- diagram-id: use-it-when-you-know-what -->
 ```mermaid
 flowchart TD
-    Q["Investigation Question"] --> SRC{"Best Evidence Source?"}
-    SRC --> SYS["System Logs (ContainerAppSystemLogs_CL)"]
-    SRC --> CON["Console Logs (ContainerAppConsoleLogs_CL)"]
-    SRC --> ACT["Activity Log"]
-    SRC --> CFG["App Configuration"]
-    SYS --> CLI["az containerapp logs show --type system"]
-    CON --> CLI2["az containerapp logs show --type console"]
-    ACT --> CLI3["az monitor activity-log list"]
-    CFG --> CLI4["az containerapp show"]
+    QUESTION[Investigation question]
+    REQUEST{Need one ingress<br/>request outcome?}
+    PLATFORM{Need a platform event?}
+    APPLICATION{Need application output?}
+    CHANGE{Need management or<br/>configuration history?}
+    HTTP[ContainerAppHTTPLogs<br/>status, duration, revision, replica]
+    SYSTEM[System log category<br/>revision, probe, scale, image]
+    CONSOLE[Console log category<br/>stdout and stderr]
+    ACTIVITY[Azure Activity Log]
+    CONFIG[Current resource configuration]
+    DESTINATION[Confirm logging destination]
+    LEGACY[Direct Log Analytics<br/>SystemLogs_CL and ConsoleLogs_CL]
+    DIAGNOSTIC[Azure Monitor diagnostic settings<br/>SystemLogs and ConsoleLogs]
+    CORRELATE[Correlate time, revision,<br/>replica, and operation]
+
+    QUESTION --> REQUEST
+    REQUEST -->|Yes| HTTP
+    REQUEST -->|No| PLATFORM
+    PLATFORM -->|Yes| SYSTEM
+    PLATFORM -->|No| APPLICATION
+    APPLICATION -->|Yes| CONSOLE
+    APPLICATION -->|No| CHANGE
+    CHANGE -->|Past management event| ACTIVITY
+    CHANGE -->|Current state| CONFIG
+    SYSTEM --> DESTINATION
+    CONSOLE --> DESTINATION
+    DESTINATION -->|Legacy destination| LEGACY
+    DESTINATION -->|Diagnostic settings| DIAGNOSTIC
+    HTTP --> CORRELATE
+    LEGACY --> CORRELATE
+    DIAGNOSTIC --> CORRELATE
+    ACTIVITY --> CORRELATE
+    CONFIG --> CORRELATE
 ```
+
+Select the evidence category first, then use the environment's logging destination to choose the correct system or console table name.
 
 ## Why an evidence map
 
@@ -90,9 +122,16 @@ az containerapp revision list --name $APP_NAME --resource-group $RG --output tab
 az monitor activity-log list --resource-group $RG --offset 24h
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revision state to identify restarts and correlate affected revisions. |
+| `--name` | Selects the container app whose revisions may be restarting. |
+| `--output` | Formats the revision inventory as a readable table. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `az monitor activity-log list` | Lists management-plane changes that may coincide with revision restarts. |
+| `--offset` | Restricts Activity Log evidence to the preceding 24 hours. |
+
 
 ### KQL
 
@@ -113,9 +152,15 @@ ContainerAppSystemLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves platform events that report health-probe failures. |
+| `--name` | Selects the container app whose probe behavior is being checked. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits the probe evidence to the 100 most recent system-log lines. |
+| `--type` | Selects system logs, where the platform records probe failures. |
+
 
 ### KQL
 
@@ -136,9 +181,15 @@ ContainerAppSystemLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type console --tail 100
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves application output that exposes startup exceptions and port-binding errors. |
+| `--name` | Selects the container app with the suspected startup failure. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits startup evidence to the 100 most recent console-log lines. |
+| `--type` | Selects console logs emitted by the starting application process. |
+
 
 ### KQL
 
@@ -159,9 +210,15 @@ ContainerAppConsoleLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves platform events that expose registry authentication, manifest, and pull failures. |
+| `--name` | Selects the container app whose image could not be pulled. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits image-pull evidence to the 100 most recent system-log lines. |
+| `--type` | Selects system logs, where image-pull lifecycle events are recorded. |
+
 
 ### KQL
 
@@ -183,9 +240,16 @@ az containerapp revision list --name $APP_NAME --resource-group $RG --output tab
 az containerapp show --name $APP_NAME --resource-group $RG --query "properties.template.scale"
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revision state to compare scaling symptoms across active revisions. |
+| `--name` | Selects the container app whose scaling behavior is being investigated. |
+| `--output` | Formats the revision inventory as a readable table. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `az containerapp show` | Reads the deployed scale configuration for the app. |
+| `--query` | Returns only `properties.template.scale` for rule and replica-limit inspection. |
+
 
 ### KQL
 
@@ -207,9 +271,17 @@ az monitor activity-log list --resource-group $RG --offset 24h --status Succeede
 az containerapp revision list --name $APP_NAME --resource-group $RG --output table
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az monitor activity-log ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+| `az monitor activity-log list` | Lists successful management operations that can prove a deployment occurred. |
+| `--offset` | Restricts deployment evidence to the preceding 24 hours. |
+| `--resource-group` | Scopes activity and revision evidence to the app's resource group. |
+| `--status` | Keeps only successful management operations in the deployment timeline. |
+| `az containerapp revision list` | Lists revisions created by recent deployments for timestamp correlation. |
+| `--name` | Selects the deployed container app. |
+| `--output` | Formats the revision timeline as a readable table. |
+
 
 ### KQL
 
@@ -230,9 +302,15 @@ ContainerAppSystemLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves termination events that expose exit codes and OOM-kill evidence. |
+| `--name` | Selects the container app with the suspected killed container. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits termination evidence to the 100 most recent system-log lines. |
+| `--type` | Selects system logs, where container termination events are recorded. |
+
 
 ### KQL
 
@@ -254,9 +332,15 @@ ContainerAppSystemLogs_CL
 az containerapp logs show --name $APP_NAME --resource-group $RG --type console --tail 100
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves application output containing DNS, timeout, and connection errors. |
+| `--name` | Selects the container app reporting network failures. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits network evidence to the 100 most recent console-log lines. |
+| `--type` | Selects console logs emitted by the application's outbound calls. |
+
 
 ### KQL
 
@@ -278,9 +362,15 @@ az containerapp show --name $APP_NAME --resource-group $RG --query "properties.c
 az containerapp show --name $APP_NAME --resource-group $RG --query "properties.configuration.ingress.fqdn" --output tsv
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app's ingress configuration and resolved ingress FQDN. |
+| `--name` | Selects the container app whose ingress path is being verified. |
+| `--output` | Emits full ingress settings as JSON and the FQDN alone as TSV. |
+| `--query` | Selects either the ingress object or its `fqdn` property for the two checks. |
+| `--resource-group` | Selects the resource group containing the app. |
+
 
 ### KQL
 
@@ -302,9 +392,16 @@ az containerapp logs show --name $APP_NAME --resource-group $RG --type console -
 az containerapp identity show --name $APP_NAME --resource-group $RG
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves application authentication errors for correlation with identity assignment. |
+| `--name` | Selects the container app whose managed identity is being tested. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits authentication evidence to the 100 most recent console-log lines. |
+| `--type` | Selects console logs emitted by the application's credential flow. |
+| `az containerapp identity show` | Displays the identities assigned to the app so missing or incorrect assignments can be detected. |
+
 
 ### KQL
 
@@ -326,9 +423,17 @@ az containerapp logs show --name $APP_NAME --resource-group $RG --type system --
 az containerapp secret list --name $APP_NAME --resource-group $RG --output table
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves platform events that report missing or unresolved secret references. |
+| `--name` | Selects the container app whose secret inventory is being checked. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits secret-reference evidence to the 100 most recent system-log lines. |
+| `--type` | Selects system logs, where secret resolution failures appear. |
+| `az containerapp secret list` | Lists configured secret names without exposing secret values. |
+| `--output` | Formats the secret-name inventory as a readable table. |
+
 
 ### KQL
 
@@ -347,12 +452,21 @@ ContainerAppSystemLogs_CL
 
 ```bash
 az containerapp logs show --name $APP_NAME --resource-group $RG --type system --tail 100
-az containerapp dapr show --name $APP_NAME --resource-group $RG
+az containerapp show --name $APP_NAME --resource-group $RG --query "properties.configuration.dapr" --output json
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves platform events for Dapr sidecar and component failures. |
+| `--name` | Selects the container app whose Dapr integration is being inspected. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits Dapr evidence to the 100 most recent system-log lines. |
+| `--type` | Selects system logs, where Dapr sidecar lifecycle events appear. |
+| `az containerapp show` | Reads the deployed Dapr configuration for comparison with the log evidence. |
+| `--output` | Emits the selected Dapr configuration as JSON. |
+| `--query` | Returns only `properties.configuration.dapr` for this check. |
+
 
 ### KQL
 
@@ -390,3 +504,5 @@ ContainerAppSystemLogs_CL
 - [Azure Monitor metrics overview](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-platform-metrics)
 - [Azure Activity Log overview](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log)
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Migrate logging to Azure Monitor](https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor)
+- [ContainerAppHTTPLogs table](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs)

@@ -1,62 +1,64 @@
 ---
+description: Map Azure Container Apps request, replica, revision, outbound-network, and observability paths to the evidence that distinguishes common failures.
 content_sources:
   diagrams:
     - id: 1-request-path-architecture-where-5xx-can-originate
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
     - id: 2-runtime-replica-model-memory-pressure-oom-timeout
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
     - id: 3-deployment-path-revision-failures-and-config-drift
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
     - id: 4-outbound-network-path-dns-private-endpoints
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
     - id: 5-observability-coverage-map
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
         - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps revisions are immutable snapshots of a container app version.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
-    - claim: Azure Container Apps supports startup, liveness, and readiness probes for containers.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+    - claim: Revision-scope template changes create a new immutable revision, while application-scope configuration changes apply without creating a revision.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
-    - claim: Azure Container Apps can send system logs and console logs to a Log Analytics workspace.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/observability
+    - claim: Built-in ingress uses Envoy for traffic splitting and load balancing before requests reach revision replicas.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
       verified: true
-    - claim: Azure Container Apps supports ingress for HTTP and TCP traffic to applications.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
+    - claim: Azure Monitor diagnostic settings use ContainerAppConsoleLogs and ContainerAppSystemLogs, while the legacy Log Analytics destination uses the corresponding _CL tables.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor
+      verified: true
+    - claim: ContainerAppHTTPLogs records ingress request, response, revision, replica, upstream, and duration fields without an _CL suffix.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
       verified: true
 ---
 # Troubleshooting Architecture Overview
@@ -81,22 +83,33 @@ Use this architecture map to route quickly to the right playbook.
 <!-- diagram-id: 1-request-path-architecture-where-5xx-can-originate -->
 ```mermaid
 flowchart TD
-    A[Client Browser or API Caller] --> B[Container Apps Ingress]
-    B --> C[Environment Load Balancer]
-    C --> D[Revision Replica]
-    D --> E[Your Container]
-    E --> F[Response]
+    CLIENT[Client]
+    INGRESS[Managed Envoy ingress<br/>TLS termination and routing]
+    TRAFFIC[Traffic rule<br/>selects active revision]
+    REPLICA[Revision replica]
+    CONTAINER[Application container]
+    RESPONSE[Client response]
+    HTTPLOG[ContainerAppHTTPLogs<br/>status, duration, revision, replica]
+    SYSLOG[System logs<br/>revision and replica events]
+    CONSOLE[Console logs<br/>application stdout and stderr]
 
-    B -. FP-REQ-01 .-> B1[Failure Point: Ingress routing or TLS issue]
-    C -. FP-REQ-02 .-> C1[Failure Point: No healthy replicas]
-    D -. FP-REQ-03 .-> D1[Failure Point: Probe failure or container crash]
-    E -. FP-REQ-04 .-> E1[Failure Point: Unhandled exception or timeout]
+    CLIENT ==>|HTTP request| INGRESS
+    INGRESS ==>|Routed request| TRAFFIC
+    TRAFFIC ==>|Weighted route| REPLICA
+    REPLICA ==>|Request| CONTAINER
+    CONTAINER ==>|Response| INGRESS
+    INGRESS ==>|HTTP response| RESPONSE
+    INGRESS -. records request outcome .-> HTTPLOG
+    REPLICA -. emits platform events .-> SYSLOG
+    CONTAINER -. emits application evidence .-> CONSOLE
 ```
+
+The request path separates transport from evidence: HTTP logs identify the routed revision and replica, system logs describe platform events, and console logs carry application output.
 
 ### Typical interpretation
 
 - **HTTP 5xx is not one thing**.
-- A 5xx can originate at Ingress, Environment, Revision startup, or app code.
+- A 5xx response alone does not identify whether ingress, replica availability, or application handling failed.
 - If the environment is internal and fronted by Application Gateway, APIM, or Azure Front Door, treat the front-door layer as its own hypothesis first — a gateway can report backend "Unhealthy" or return 502 without any log entry on the Container Apps side when subnet NSGs block the workload profile subnet on the correct ports.
 - Treat each layer as a competing hypothesis until logs disprove it.
 
@@ -105,7 +118,7 @@ flowchart TD
 | Failure Point | Typical Symptom | First Evidence | Playbook |
 |---|---|---|---|
 | FP-REQ-00 Front door (AppGW / APIM / Front Door) | Gateway backend "Unhealthy" or 502 at the gateway with no matching Container Apps ingress or system log entry | AppGW backend health blade, workload profile subnet NSG rules, NSG flow logs | [AppGW to Internal Azure Container Apps NSG Destination](playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) |
-| FP-REQ-01 Ingress | 502/503 bursts, routing issues | `ContainerAppSystemLogs_CL` + HTTP status trend | [Ingress Not Reachable](playbooks/ingress-and-networking/ingress-not-reachable.md) |
+| FP-REQ-01 Ingress | 502/503 bursts, routing issues | `ContainerAppHTTPLogs` response details + system logs | [Ingress Not Reachable](playbooks/ingress-and-networking/ingress-not-reachable.md) |
 | FP-REQ-02 No healthy replicas | Intermittent 5xx during scaling | Replica count, KEDA events | [HTTP Scaling Not Triggering](playbooks/scaling-and-runtime/http-scaling-not-triggering.md) |
 | FP-REQ-03 Probe failure | App marked unhealthy, startup failures | Console startup logs + probe messages | [Probe Failure and Slow Start](playbooks/startup-and-provisioning/probe-failure-and-slow-start.md) |
 | FP-REQ-04 Application code | 500 with stack traces or long latency | App/console logs + endpoint-level HTTP logs | [CrashLoop OOM and Resource Pressure](playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) |
@@ -115,22 +128,36 @@ flowchart TD
 <!-- diagram-id: 2-runtime-replica-model-memory-pressure-oom-timeout -->
 ```mermaid
 flowchart TD
-    A[Container Apps Environment] --> B[Revision]
-    B --> C[Replica Instances]
-    C --> D[Container Process]
-    D --> E[Dependency Calls]
+    REPLICA[Revision replica]
+    PROCESS[Container process]
+    MEMORY{Memory limit exceeded?}
+    EXIT137[Termination evidence<br/>exit code 137 or OOM signal]
+    RUNNING[Process remains running]
+    READY{Readiness probe succeeds?}
+    ROUTE[Replica can receive traffic]
+    UNREADY[Replica is not ready for traffic]
+    LIVE{Liveness probe succeeds?}
+    CONTINUE[Container continues]
+    RESTART[Container restart evidence]
+    SYSLOG[System logs and exit detector]
+    METRICS[Memory and restart metrics]
 
-    D --> F{Memory growth trend}
-    F -->|steady growth| G[Pressure: GC churn and degraded latency]
-    F -->|exceeds limit| H[OOM Kill]
-
-    C --> I{Probe fails}
-    I -->|yes| J[Replica marked unhealthy]
-    I -->|no| K[Request completes]
-
-    H --> L[Platform restarts container]
-    J --> M[Traffic shifted to healthy replicas]
+    REPLICA --> PROCESS
+    PROCESS --> MEMORY
+    MEMORY -->|Yes| EXIT137
+    MEMORY -->|No| RUNNING
+    RUNNING --> READY
+    READY -->|Yes| ROUTE
+    READY -->|No| UNREADY
+    RUNNING --> LIVE
+    LIVE -->|Yes| CONTINUE
+    LIVE -->|No| RESTART
+    EXIT137 -. verify .-> SYSLOG
+    RESTART -. verify .-> SYSLOG
+    PROCESS -. correlate .-> METRICS
 ```
+
+The two decisions answer different questions: readiness controls whether a replica receives traffic, while liveness can trigger a container restart; memory evidence must be correlated with termination and restart signals.
 
 ### Runtime failure mapping
 
@@ -146,17 +173,33 @@ flowchart TD
 <!-- diagram-id: 3-deployment-path-revision-failures-and-config-drift -->
 ```mermaid
 flowchart TD
-    A[Image push or config change] --> B[New Revision created]
-    B --> C[Image pull from registry]
-    C --> D[Container start command executes]
-    D --> E[Probe evaluation]
-    E --> F[Traffic shifted to new revision]
+    CHANGE[Configuration change]
+    TEMPLATE[Revision-scope template change<br/>image, containers, scale rules]
+    APP[Application-scope configuration change<br/>secrets, ingress, traffic rules]
+    REVISION[New immutable revision]
+    PULL[Image pull]
+    START[Container start]
+    PROBES[Startup and readiness evaluation]
+    ACTIVE[Healthy active revision]
+    GLOBAL[Configuration applies to the app<br/>without a new revision]
+    TRAFFIC[Ingress traffic weights]
+    EVIDENCE[Compare revision template,<br/>app configuration, and Activity Log]
 
-    C -. FP-DEP-01 .-> C1[Image pull failure]
-    D -. FP-DEP-02 .-> D1[Startup command or port mismatch]
-    E -. FP-DEP-03 .-> E1[Probe path failure]
-    F -. FP-DEP-04 .-> F1[Traffic split misconfiguration]
+    CHANGE --> TEMPLATE
+    CHANGE --> APP
+    TEMPLATE --> REVISION
+    REVISION --> PULL
+    PULL --> START
+    START --> PROBES
+    PROBES --> ACTIVE
+    APP --> GLOBAL
+    GLOBAL --> TRAFFIC
+    ACTIVE --> TRAFFIC
+    TEMPLATE -. drift evidence .-> EVIDENCE
+    APP -. drift evidence .-> EVIDENCE
 ```
+
+This path distinguishes revision drift from application-scope drift before investigating image pull, startup, probe, or traffic configuration.
 
 ### Deployment path failure mapping
 
@@ -172,17 +215,32 @@ flowchart TD
 <!-- diagram-id: 4-outbound-network-path-dns-private-endpoints -->
 ```mermaid
 flowchart TD
-    A[Container Replica] --> B[DNS Resolver Path]
-    B --> C[Resolved target IP]
-    C --> D[Outbound via Environment VNet]
-    D --> E[Internet or Private Endpoint]
-    E --> F[Dependency Service]
+    REPLICA[Container replica]
+    DNS[DNS resolver path]
+    ANSWER[Resolved destination IP]
+    ROUTE[Effective route from infrastructure subnet]
+    CONTROL[NSG and firewall policy evaluation]
+    ENDPOINT[Public endpoint or private endpoint NIC]
+    SERVICE[Dependency service]
+    DNSZONE[Private DNS zone and VNet link]
+    UDR[Route table]
+    POLICY[NSG or firewall policy]
+    APPLOG[Application connection evidence]
 
-    B -. FP-NET-01 .-> B1[DNS resolution failure]
-    D -. FP-NET-02 .-> D1[VNet routing or NSG issue]
-    E -. FP-NET-03 .-> E1[Private endpoint unreachable]
-    F -. FP-NET-04 .-> F1[Dependency timeout or refusal]
+    REPLICA ==>|DNS query| DNS
+    DNS ==>|DNS answer| ANSWER
+    ANSWER ==>|Outbound packet| ROUTE
+    ROUTE -->|Selected next hop| CONTROL
+    CONTROL ==>|Allowed transport| ENDPOINT
+    ENDPOINT ==>|Protocol-neutral request| SERVICE
+    SERVICE ==>|Response| REPLICA
+    DNSZONE -. supplies private records .-> DNS
+    UDR -. selects route .-> ROUTE
+    POLICY -. allows or denies .-> CONTROL
+    REPLICA -. records timeout or refusal .-> APPLOG
 ```
+
+DNS, route selection, policy evaluation, transport, and dependency response are separate checkpoints; a correct DNS answer does not prove that transport or authorization succeeds.
 
 ### Outbound path failure mapping
 
@@ -198,15 +256,34 @@ flowchart TD
 <!-- diagram-id: 5-observability-coverage-map -->
 ```mermaid
 flowchart TD
-    A[Component] --> B[Best First Log Source]
+    QUESTION[Investigation question]
+    HTTP[Ingress request outcome]
+    PLATFORM[Revision, replica, probe, or scale event]
+    APPLICATION[Application startup or dependency error]
+    CHANGE[Management-plane configuration change]
+    HTTPLOG[ContainerAppHTTPLogs]
+    LEGACY[Legacy Log Analytics destination<br/>SystemLogs_CL and ConsoleLogs_CL]
+    DIAG[Azure Monitor diagnostic settings<br/>SystemLogs and ConsoleLogs]
+    ACTIVITY[Azure Activity Log]
+    CORRELATE[Correlate timestamp, revision,<br/>replica, and operation]
 
-    C[Ingress and routing] --> D[ContainerAppSystemLogs_CL]
-    E[Revision lifecycle and scaling] --> F[ContainerAppSystemLogs_CL]
-    G[Container startup and runtime stderr/stdout] --> H[ContainerAppConsoleLogs_CL]
-    I[App-level business errors] --> J[Structured app logs in ContainerAppConsoleLogs_CL]
-    K[Deployment and config changes] --> L[Azure Activity Log]
-    M[Dependency failures] --> N[App logs + Container logs correlation]
+    QUESTION --> HTTP
+    QUESTION --> PLATFORM
+    QUESTION --> APPLICATION
+    QUESTION --> CHANGE
+    HTTP --> HTTPLOG
+    PLATFORM --> LEGACY
+    PLATFORM --> DIAG
+    APPLICATION --> LEGACY
+    APPLICATION --> DIAG
+    CHANGE --> ACTIVITY
+    HTTPLOG --> CORRELATE
+    LEGACY --> CORRELATE
+    DIAG --> CORRELATE
+    ACTIVITY --> CORRELATE
 ```
+
+Choose table names from the environment's logging destination: direct Log Analytics uses the legacy `_CL` tables, while Azure Monitor diagnostic settings use resource-specific tables without `_CL`; HTTP ingress records use `ContainerAppHTTPLogs`.
 
 ### Quick evidence commands by component
 
@@ -218,9 +295,20 @@ az containerapp revision list --name $APP_NAME --resource-group $RG --output tab
 az containerapp show --name $APP_NAME --resource-group $RG --query "properties.configuration.ingress"
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves platform system events and application console output for the app. |
+| `--name` | Selects the container app whose logs, revisions, and ingress configuration are being correlated. |
+| `--resource-group` | Scopes every evidence command to the resource group containing the app. |
+| `--type` | Chooses `system` platform events or `console` application output for separate failure layers. |
+| `az monitor activity-log list` | Lists management-plane changes that can be correlated with the incident window. |
+| `--offset` | Limits Activity Log evidence to the preceding 24 hours. |
+| `az containerapp revision list` | Lists revision health and state for comparison with log timestamps. |
+| `--output` | Formats the revision inventory as a readable table. |
+| `az containerapp show` | Reads the current container app configuration for ingress-path inspection. |
+| `--query` | Returns only the ingress configuration needed for this architecture check. |
+
 
 ```kusto
 ContainerAppConsoleLogs_CL
@@ -280,6 +368,18 @@ ContainerAppConsoleLogs_CL
 ## Sources
 
 - [Azure Container Apps overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
 - [Monitor Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/observability)
 - [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Connect applications in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
+- [Traffic splitting](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
+- [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Troubleshoot container start failures](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures)
+- [Troubleshoot image pull failures](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures)
+- [Azure Container Apps networking](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [User-defined routes](https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes)
+- [Private endpoints with DNS](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Monitor logs with Log Analytics](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Migrate logging to Azure Monitor](https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor)
+- [ContainerAppHTTPLogs table](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs)

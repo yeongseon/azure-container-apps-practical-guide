@@ -11,7 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: '2026-07-05'
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Azure Container Apps surfaces container termination reasons and exit codes through system logs and the Diagnose-and-Solve Container Exit Events detector.
@@ -29,6 +29,18 @@ content_validation:
 Symptom-first index of every reproduction lab in this guide. Use this page when you already know the error string, exit code, or user-visible symptom and want to jump straight to the matching lab.
 
 If you do not yet know which symptom cluster applies, start with the [Quick Decision Tree](index.md#quick-decision-tree) or the [First 10 Minutes runbook](first-10-minutes/index.md) instead — this page assumes the cluster is already narrowed.
+
+## Symptom
+
+You have a concrete error string, exit code, metric shape, or user-visible behavior and need the lab that reproduces it.
+
+## Possible Causes
+
+The same symptom can arise from provisioning, networking, scaling, storage, identity, observability, revision, job, Dapr, resource-pressure, cost, or failover paths. Treat the cluster as a routing aid rather than proof of root cause.
+
+## Diagnosis Steps
+
+Use the routing diagram and cluster tables below to match the first observed evidence. During an active incident, open the linked playbook before using a lab for controlled reproduction.
 
 ---
 
@@ -50,13 +62,27 @@ Every row below cites the *first evidence signal* an on-caller would observe (lo
 <!-- diagram-id: lab-finder-routing -->
 ```mermaid
 flowchart TD
-    A[Symptom Observed] --> B{Cluster known?}
-    B -->|No| C[Quick Decision Tree]
-    B -->|Yes| D[This page: pick cluster below]
-    D --> E[Match error string or metric shape]
-    E --> F[Open lab guide]
-    F --> G[Deploy lab infra + trigger + verify + fix]
+    SYMPTOM[Observed symptom]
+    CLUSTER[Determine whether the<br/>symptom cluster is known]
+    TRIAGE[Quick Decision Tree<br/>collect distinguishing evidence]
+    SIGNAL{Documented error,<br/>exit code, or metric shape?}
+    PLAYBOOK[Open playbook first<br/>during an active incident]
+    LAB[Open matching lab guide]
+    EXPERIMENT[Deploy, trigger, capture,<br/>fix, and falsify]
+    NOVEL[No match: preserve evidence<br/>and propose a new lab]
+
+    SYMPTOM --> CLUSTER
+    CLUSTER -->|Unknown| TRIAGE
+    TRIAGE --> SIGNAL
+    CLUSTER -->|Known| SIGNAL
+    SIGNAL -->|Active incident| PLAYBOOK
+    SIGNAL -->|Known reproducible pattern| LAB
+    SIGNAL -->|Unmatched| NOVEL
+    PLAYBOOK -. controlled reproduction .-> LAB
+    LAB --> EXPERIMENT
 ```
+
+The finder routes known signals to a playbook for incident diagnosis or to a lab for controlled reproduction; unmatched evidence remains a candidate for a new lab rather than a forced fit.
 
 ---
 
@@ -231,6 +257,14 @@ If none of the 54 labs above match:
 2. Check [Representative Log Patterns](index.md#representative-log-patterns) for KQL fragments that may narrow the cluster.
 3. Search the [KQL Query Library](kql/index.md) by service (`ContainerAppSystemLogs_CL`, `ContainerAppConsoleLogs_CL`) — a query pack may already match the signal.
 4. If the symptom is genuinely new, open an issue against this repo describing the signal and suggested cluster.
+
+## Resolution
+
+Run the selected lab's trigger, evidence-capture, fix, and falsification steps in an isolated environment. Apply production mitigation only through the corresponding playbook and change controls.
+
+## Prevention
+
+Keep the first observed signal, incident window, and selected cluster in the incident record. Add a new lab only when existing clusters and evidence packs do not represent the behavior.
 
 ## See Also
 

@@ -1,4 +1,5 @@
 ---
+description: Route Azure Container Apps symptoms to playbooks by testing revision, replica, ingress, scaling, identity, and platform-feature evidence.
 content_sources:
   diagrams:
     - id: symptom-routing-flow
@@ -10,8 +11,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps troubleshooting guidance includes common startup, networking, and runtime failure scenarios.
       source: https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
@@ -53,35 +54,61 @@ Use this detector map to move from first symptom to the most likely troubleshoot
 <!-- diagram-id: symptom-routing-flow -->
 ```mermaid
 flowchart TD
-    A[Start: user-visible symptom] --> B{Revision created and healthy?}
-    B -->|No| C{System logs show pull or auth?}
-    C -->|Yes| P1[Image Pull Failure]
-    C -->|No| C2{Probe or startup timeout?}
-    C2 -->|Yes| P4[Probe Failure and Slow Start]
-    C2 -->|No| P2[Revision Provisioning Failure]
+    START[User-visible symptom]
+    REVISION{Revision healthy?}
+    SYSTEM{System-log reason?}
+    IMAGE[Image Pull Failure]
+    PROBE[Probe Failure and Slow Start]
+    PROVISION[Revision Provisioning Failure]
+    REPLICA{Replica stable?}
+    EXIT{Exit or restart evidence?}
+    OOM[CrashLoop OOM and Resource Pressure]
+    CONTAINER[Container Start Failure]
+    REQUEST{Ingress request evidence?}
+    INGRESS[Ingress Not Reachable]
+    DEP{Dependency-specific failure?}
+    DNS[Internal DNS and Private Endpoint Failure]
+    SERVICE[Service-to-Service Connectivity Failure]
+    SCALE{Demand and replica count diverge?}
+    HTTPSCALE[HTTP Scaling Not Triggering]
+    EVENTSCALE[Event Scaler Mismatch]
+    AUTH{Auth or secret evidence?}
+    IDENTITY[Managed Identity Auth Failure]
+    SECRET[Secret and Key Vault Reference Failure]
+    FEATURE{Feature-specific evidence?}
+    DAPR[Dapr Sidecar or Component Failure]
+    JOB[Container App Job Execution Failure]
+    ROLLOUT[Bad Revision Rollout and Rollback]
+    METHOD[General evidence collection<br/>and troubleshooting methodology]
 
-    B -->|Yes| D{Replica stable and running?}
-    D -->|No| D1{OOM or restart signals?}
-    D1 -->|Yes| P11[CrashLoop OOM and Resource Pressure]
-    D1 -->|No| P3[Container Start Failure]
-
-    D -->|Yes| E{Ingress or client path failing?}
-    E -->|Yes| E1{Public or internal endpoint issue?}
-    E1 -->|Public| P5[Ingress Not Reachable]
-    E1 -->|Internal DNS| P6[Internal DNS and Private Endpoint Failure]
-    E1 -->|Service-to-service| P7[Service-to-Service Connectivity Failure]
-
-    E -->|No| F{Scaling behavior unexpected?}
-    F -->|HTTP load not scaling| P8[HTTP Scaling Not Triggering]
-    F -->|Event backlog not scaling| P9[Event Scaler Mismatch]
-    F -->|No| G{Identity or secrets failing?}
-    G -->|Identity token or RBAC| P10[Managed Identity Auth Failure]
-    G -->|Secret or Key Vault reference| P12[Secret and Key Vault Reference Failure]
-    G -->|No| H{Platform feature path}
-    H -->|Dapr sidecar or component| P13[Dapr Sidecar or Component Failure]
-    H -->|Container App job| P14[Container App Job Execution Failure]
-    H -->|Post-deploy regression| P15[Bad Revision Rollout and Rollback]
+    START --> REVISION
+    REVISION -->|No| SYSTEM
+    SYSTEM -->|Pull or registry| IMAGE
+    SYSTEM -->|Probe timeout| PROBE
+    SYSTEM -->|Neither| PROVISION
+    REVISION -->|Yes| REPLICA
+    REPLICA -->|No| EXIT
+    EXIT -->|OOM or exit 137| OOM
+    EXIT -->|Other startup exit| CONTAINER
+    REPLICA -->|Yes| REQUEST
+    REQUEST -->|No matching ingress record| INGRESS
+    REQUEST -->|Request reached app| DEP
+    DEP -->|DNS or private endpoint| DNS
+    DEP -->|Connection or TLS| SERVICE
+    DEP -->|No| SCALE
+    SCALE -->|HTTP demand| HTTPSCALE
+    SCALE -->|Event backlog| EVENTSCALE
+    SCALE -->|No| AUTH
+    AUTH -->|Token or RBAC| IDENTITY
+    AUTH -->|Secret reference| SECRET
+    AUTH -->|No| FEATURE
+    FEATURE -->|Dapr| DAPR
+    FEATURE -->|Job| JOB
+    FEATURE -->|Post-deploy regression| ROLLOUT
+    FEATURE -->|No matching feature evidence| METHOD
 ```
+
+Every route is keyed to evidence from revision state, logs, HTTP ingress records, replica behavior, dependency failures, or feature-specific signals.
 
 ## Error String Mapping
 
