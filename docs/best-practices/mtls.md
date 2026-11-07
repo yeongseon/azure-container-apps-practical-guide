@@ -3,7 +3,8 @@ content_sources:
   diagrams:
     - id: aca-mtls-best-practice-pattern
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Three-path security decision view synthesized from Microsoft Learn to keep environment peer encryption, ingress client certificate handling, and Dapr service invocation mTLS distinct from application authorization.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
         - https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
@@ -11,10 +12,10 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
-    - claim: Azure Container Apps supports peer-to-peer TLS encryption within the environment.
+    - claim: Azure Container Apps supports opt-in peer-to-peer TLS encryption within the environment, but the built-in feature does not provide app-to-app authorization.
       source: https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
       verified: true
     - claim: Ingress passes the client certificate to the app when clientCertificateMode is set to require or accept.
@@ -26,7 +27,7 @@ content_validation:
 ---
 # mTLS Best Practices
 
-Use mTLS in Azure Container Apps as a layered control: edge client authentication at ingress, peer encryption for direct environment traffic, and Dapr sidecar mTLS for service invocation.
+Use the Container Apps mTLS-related features as layered controls: ingress client certificate handling for external callers, peer TLS encryption for environment traffic, and Dapr sidecar mTLS for service invocation. None of these transport controls replaces application authorization.
 
 ## Why This Matters
 
@@ -39,29 +40,55 @@ mTLS helps you answer three different trust questions:
 <!-- diagram-id: aca-mtls-best-practice-pattern -->
 ```mermaid
 flowchart TD
-    Ext[External clients] --> Edge[Ingress mTLS]
-    Edge --> Api[Public API app]
-    Api --> Dapr[Dapr invocation with built-in mTLS]
-    Api --> Direct[Direct internal traffic with peer encryption]
-    Dapr --> Svc[Internal service]
-    Direct --> Worker[Internal worker or API]
+    accTitle: Choose the Container Apps mTLS-related control for each traffic path
+    accDescr: External callers can present client certificates to managed ingress, which forwards certificate details to the application for authorization. Direct traffic in the environment can use opt-in peer TLS encryption, which does not provide application authorization. Dapr service invocation uses built-in sidecar-to-sidecar mutual TLS.
+
+    PATH{"Which traffic path<br/>needs protection?"}
+
+    subgraph EDGE["External caller to app ingress"]
+        CLIENT["Client with certificate"]
+        INGRESS["Managed ingress proxy<br/>clientCertificateMode"]
+        APP_AUTH["Application authorization<br/>validate forwarded certificate"]
+        CLIENT ==>|"Two-way TLS"| INGRESS
+        INGRESS ==>|"Request plus XFCC"| APP_AUTH
+    end
+
+    subgraph PEER["Direct environment traffic"]
+        PEER_TLS["Peer TLS encryption<br/>opt-in environment setting"]
+        PEER_AUTH["Application authorization<br/>still required"]
+        PEER_TLS ==>|"Encrypted traffic"| PEER_AUTH
+    end
+
+    subgraph DAPR["Dapr service invocation"]
+        CALLER["Caller app and<br/>local Dapr sidecar"]
+        CALLEE["Target Dapr sidecar<br/>and app"]
+        CALLER ==>|"Built-in Dapr mTLS"| CALLEE
+    end
+
+    PATH -->|"External client"| CLIENT
+    PATH -->|"Direct internal call"| PEER_TLS
+    PATH -->|"Dapr invocation"| CALLER
+
+    LEGEND["Arrow key<br/>thick = request transport<br/>solid = design choice<br/>encryption is stated on each protected edge"]
 ```
+
+*Figure: The three paths are complementary, not interchangeable. Ingress certificate handling and peer encryption protect transport, while the application still decides whether an identified caller may perform an operation.*
 
 ## Recommended Practices
 
 ### Enable peer encryption for production environments
 
-Use environment peer encryption when services communicate directly inside the same managed environment and you want the platform to handle east-west encryption.
+Use environment peer encryption when services communicate inside the same managed environment and you want the platform to encrypt environment traffic. The feature is disabled by default, can increase latency and reduce maximum throughput at high load, and does not provide authorization between applications.
 
 ### Terminate external mTLS at ingress
 
-Prefer `clientCertificateMode=require` or `clientCertificateMode=accept` at ingress instead of rebuilding TLS termination inside each application container.
+Use `clientCertificateMode=require` when every request must present a certificate. Use `accept` only when certificates are optional and the application explicitly enforces certificate presence where needed. Container Apps passes certificate details to the app for `require` or `accept`; application code must validate and authorize the caller.
 
 Why:
 
 - The platform already terminates TLS at Envoy.
 - Your app receives a normalized `X-Forwarded-Client-Cert` header.
-- App code can focus on authorization policy instead of low-level certificate exchange.
+- App code remains responsible for certificate validation and authorization policy rather than the TLS exchange itself.
 
 ### Prefer Dapr for same-environment service-to-service calls
 
@@ -69,7 +96,7 @@ When both apps live in the same environment and Dapr already fits your architect
 
 - Built-in mTLS
 - Service discovery through Dapr App IDs
-- Retry and observability features alongside transport security
+- Automatic retries and observability alongside transport security
 
 ### Rotate and store certificates deliberately
 
