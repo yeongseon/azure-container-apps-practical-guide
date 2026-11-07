@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps deployment technologies, source-to-revision paths, configuration scopes, and revision behavior.
 hide:
   - toc
 content_sources:
@@ -10,6 +11,9 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact
         - https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli
+        - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
+        - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+        - https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/container-apps-workflows
     - id: change-scope-decision
       type: flowchart
       source: mslearn-adapted
@@ -36,39 +40,51 @@ content_validation:
 
 # Deployment Technologies
 
-Azure Container Apps uses a revision-based deployment model where every meaningful change creates an immutable snapshot of your application. This page explains the available deployment methods, what triggers new revisions, and how deployments behave at the platform level.
+Azure Container Apps uses a revision-based deployment model where initial creation and revision-scope changes create immutable snapshots of the application template, while application-scope changes update the app without creating a revision. This page explains the available deployment methods, what triggers new revisions, and how deployments behave at the platform level.
 
 ## Deployment Methods
 
-Container Apps supports multiple deployment paths. Each method ultimately creates or updates a revision.
+Container Apps supports interactive, declarative, and pipeline deployment paths. These tools submit desired app configuration through the Azure management plane. An initial deployment creates the app's first revision; a later update creates a new revision only when it changes revision-scope configuration.
 
 <!-- diagram-id: deployment-methods-flow -->
 ```mermaid
-flowchart LR
-    subgraph Sources["Deployment Source"]
-        A[Source Code]
-        B[Container Image]
-        C[Artifact JAR/WAR]
-    end
+flowchart TD
+    accTitle: Deployment inputs and tools converge on Container Apps desired state
+    accDescr: Source code, Java artifacts, container images and declarative definitions enter through Azure CLI, Azure Developer CLI, Bicep or ARM templates, or GitHub Actions. These management paths update a container app. Initial creation produces the first revision; later revision-scope changes produce a new immutable revision, while application-scope changes update the app without a new revision.
 
-    subgraph Methods["Deployment Method"]
-        D["az containerapp up<br/>--source"]
-        E["az containerapp update<br/>--image"]
-        F["az containerapp up<br/>--artifact"]
-        G[Bicep / ARM]
-        H[GitHub Actions]
-    end
+    SOURCE["Source code"]
+    ARTIFACT["Java artifact<br/>JAR or WAR"]
+    IMAGE["Versioned container image"]
+    DECLARATION["Declarative desired state<br/>Bicep or ARM template"]
 
-    subgraph Target["Container Apps Platform"]
-        I[New Revision Created]
-    end
+    CLI["Azure CLI<br/>az containerapp up/create/update"]
+    AZD["Azure Developer CLI<br/>azd provision and deploy"]
+    IAC["Azure Resource Manager<br/>Bicep or ARM deployment"]
+    GHA["GitHub Actions<br/>build and deployment workflow"]
 
-    A --> D --> I
-    B --> E --> I
-    C --> F --> I
-    B --> G --> I
-    B --> H --> I
+    APP["Container app resource<br/>desired configuration"]
+    SCOPE{"Initial deployment or<br/>which update scope?"}
+    REVISION["First or new revision<br/>immutable template snapshot"]
+    GLOBAL["Application configuration updated<br/>no new revision"]
+
+    SOURCE --> CLI
+    SOURCE --> AZD
+    SOURCE --> GHA
+    ARTIFACT --> CLI
+    IMAGE --> CLI
+    IMAGE --> GHA
+    DECLARATION --> IAC
+
+    CLI -->|"Management operation"| APP
+    AZD -->|"Provision and deploy"| APP
+    IAC -->|"Declarative deployment"| APP
+    GHA -->|"Workflow deployment"| APP
+    APP --> SCOPE
+    SCOPE -->|"Initial or revision-scope"| REVISION
+    SCOPE -->|"Application-scope update"| GLOBAL
 ```
+
+*Figure: Deployment inputs and tools converge on the same Container Apps resource model. Thin arrows are build or management relationships, not runtime request traffic. Tool choice does not determine revision creation; the initial-create versus update scope decision does.*
 
 ### Method Comparison
 
@@ -79,6 +95,7 @@ flowchart LR
 | `az containerapp update --image` | External (you build) | Automatic | Update to previous tag | Standard CI/CD |
 | `az containerapp create` | External | Manual | Traffic re-routing | Initial provisioning |
 | Bicep / ARM template | External | Declarative | Redeploy previous template | Infrastructure-as-code |
+| Azure Developer CLI (`azd`) | Project or pipeline-defined | Declarative project workflow | Redeploy a previous project state | Application plus infrastructure lifecycle |
 | GitHub Actions | Pipeline | Pipeline-controlled | Re-run previous workflow | Team-wide CI/CD |
 | Azure DevOps | Pipeline | Pipeline-controlled | Re-run previous pipeline | Enterprise CI/CD |
 
@@ -96,7 +113,11 @@ az containerapp up \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp up --source` | Deploys directly from source code; the platform auto-detects the runtime and builds the container image. |
+| `az containerapp up` | Creates or updates the app from source code. |
+| `--name` | Selects the container app name. |
+| `--resource-group` | Selects the resource group. |
+| `--environment` | Selects the Container Apps environment. |
+| `--source` | Supplies the source directory for build and deployment. |
 
 The platform:
 
@@ -124,7 +145,13 @@ az containerapp up \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp up --artifact` | Deploys a Java artifact (JAR/WAR) without requiring a Dockerfile. |
+| `az containerapp up` | Creates or updates the app from a Java artifact. |
+| `--name` | Selects the container app name. |
+| `--resource-group` | Selects the resource group. |
+| `--environment` | Selects the Container Apps environment. |
+| `--artifact` | Supplies the JAR or WAR file without requiring a Dockerfile. |
+| `--ingress` | Enables external app ingress. |
+| `--target-port` | Sets the port on which the generated container listens. |
 
 This command:
 
@@ -154,8 +181,16 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
-| `az containerapp update --image` | Updates the app with a new container image, creating a new revision. |
+| `az acr build` | Builds and pushes the container image to Azure Container Registry. |
+| `--registry` | Selects the registry. |
+| `--image` | Assigns the image repository and tag. |
+| `--file` | Selects the Dockerfile. |
+| `git rev-parse` | Resolves the current commit identifier for the immutable image tag. |
+| `--short` | Uses the abbreviated commit identifier in the image tag. |
+| `az containerapp update` | Updates the existing container app. |
+| `--name` | Selects the container app name. |
+| `--resource-group` | Selects the resource group. |
+| `--image` | Changes the revision template's image and therefore creates a revision. |
 
 ## Change Types
 
@@ -164,12 +199,30 @@ Changes to a Container App fall into two categories that determine whether a new
 <!-- diagram-id: change-scope-decision -->
 ```mermaid
 flowchart TD
-    A[Configuration Change] --> B{Change Scope?}
-    B -->|Revision-scope| C[New Revision Created]
-    B -->|Application-scope| D[Applied to All Revisions]
-    C --> E[Traffic Routing Decision]
-    D --> F[No New Revision]
+    accTitle: Decide whether a Container Apps change creates a revision
+    accDescr: First determine whether this is initial app creation. Initial creation produces the first revision. For an update, changes under properties.template are revision-scope and create an immutable revision. Changes under properties.configuration are application-scope, apply to the app without creating a revision, and may still require an operational action such as restarting revisions after a secret value update.
+
+    CHANGE["Create or change a container app"]
+    INITIAL{"Initial app creation?"}
+    SCOPE{"For an update, which ARM scope changes?"}
+    FIRST["Create first revision"]
+    TEMPLATE["properties.template<br/>image, containers, scale rules,<br/>probes, revision suffix"]
+    CONFIG["properties.configuration<br/>ingress, secrets, registries,<br/>revision mode, traffic"]
+    NEWREV["Create new immutable revision"]
+    GLOBAL["Update application configuration<br/>no new revision"]
+    FOLLOWUP["Apply required operational follow-up<br/>for example restart after secret update"]
+
+    CHANGE --> INITIAL
+    INITIAL -->|"Yes"| FIRST
+    INITIAL -->|"No"| SCOPE
+    SCOPE -->|"Revision scope"| TEMPLATE
+    SCOPE -->|"Application scope"| CONFIG
+    TEMPLATE --> NEWREV
+    CONFIG --> GLOBAL
+    GLOBAL --> FOLLOWUP
 ```
+
+*Figure: Revision creation depends on initial creation or ARM configuration scope, not on whether the caller used CLI, IaC, or a pipeline. The follow-up branch does not mean every application-scope update requires a restart; secret value changes are the example that does.*
 
 ### Revision-Scope Changes
 
@@ -238,6 +291,10 @@ az containerapp revision label add \
 | Command | Why it is used |
 |---|---|
 | `az containerapp revision label add` | Assigns a named label to a specific revision for dedicated URL routing. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--revision` | Selects the revision that receives the label. |
+| `--label` | Defines the stable label name. |
 
 Common label patterns:
 
@@ -260,7 +317,10 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update --max-inactive-revisions` | Sets the maximum number of inactive revisions to retain. |
+| `az containerapp update` | Updates application-level configuration. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects the resource group. |
+| `--max-inactive-revisions` | Sets the maximum number of inactive revisions to retain. |
 
 Inactive revisions:
 
@@ -281,5 +341,8 @@ Inactive revisions:
 - [Update and deploy changes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Deploy an artifact file to Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact)
 - [Deploy your first container app (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-deploy-first-app-cli)
+- [Azure Resource Manager API specification for Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec)
+- [Deploy to Azure Container Apps with GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
+- [Deploy to Azure Container Apps with Azure Developer CLI (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/container-apps-workflows)
 - [Blue-green deployment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment)
 - [Traffic splitting in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
