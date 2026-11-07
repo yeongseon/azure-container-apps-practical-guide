@@ -6,9 +6,9 @@ EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 REPO_RELATIVE_EVIDENCE_DIR="labs/acr-network-path-record-split-brain/evidence"
 LAB_README_PATH="${SCRIPT_DIR}/README.md"
 LAB_GUIDE_PATH="${SCRIPT_DIR}/../../docs/troubleshooting/lab-guides/acr-network-path-record-split-brain.md"
-UTC_NOW="${UTC_NOW:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH UTC_NOW
+export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH EVALUATED_AT_UTC
 
 declare -a CANONICAL_RAW_FILES=(
     "01-app-spec-pre-fix.json"
@@ -283,34 +283,17 @@ EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
 LAB_README_PATH = Path(os.environ["LAB_README_PATH"])
 LAB_GUIDE_PATH = Path(os.environ["LAB_GUIDE_PATH"])
-UTC_NOW = os.environ["UTC_NOW"]
-
-_existing_captures = []
-for _gate_file in [
-    "14-cohort-integrity-gate.json",
-    "15-h1-trigger-produces-failure-gate.json",
-    "16-h2-fix-restores-recovery-gate.json",
-    "17-bounded-falsification-gate.json",
-]:
-    _gate_path = EVIDENCE_DIR / _gate_file
-    if _gate_path.exists():
-        try:
-            _gate_data = json.loads(_gate_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        _existing = _gate_data.get("utc_captured")
-        if isinstance(_existing, str) and _existing:
-            _existing_captures.append(_existing)
-if _existing_captures:
-    UTC_NOW = min(_existing_captures)
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
+BASELINE_EVIDENCE_DIR = os.environ.get("GATE_REPLAY_BASELINE_DIR")
 
 EXISTING_GATE14 = None
-_existing_gate14_path = EVIDENCE_DIR / "14-cohort-integrity-gate.json"
-if _existing_gate14_path.exists():
-    try:
-        EXISTING_GATE14 = json.loads(_existing_gate14_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        EXISTING_GATE14 = None
+if BASELINE_EVIDENCE_DIR:
+    existing_gate14_path = Path(BASELINE_EVIDENCE_DIR) / "14-cohort-integrity-gate.json"
+    if existing_gate14_path.exists():
+        try:
+            EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            EXISTING_GATE14 = None
 
 RAW_FILES = [
     "01-app-spec-pre-fix.json",
@@ -390,6 +373,30 @@ def load_yaml(name: str):
 
 
 def resolve_anchor_timestamp(name: str, anchor_class: str):
+    payload_anchors = {
+        "06-system-logs-pre-fix.json": (system_pre.get("window_end_utc"), "payload.window_end_utc"),
+        "08-probe-response-pre-fix.json": (probe_pre_payload.get("captured_after_utc"), "payload.captured_after_utc"),
+        "11-probe-response-post-fix.json": (probe_post_payload.get("captured_after_utc"), "payload.captured_after_utc"),
+        "12-pe-nic-config-post-fix.json": (post_payload.get("capture_metadata", {}).get("post_window_start_utc"), "capture_metadata.post_window_start_utc"),
+    }
+    payload_value, payload_source = payload_anchors.get(name, (None, None))
+    if not payload_value:
+        if anchor_class == "pre":
+            payload_value = probe_pre_payload.get("captured_after_utc")
+            payload_source = "cohort.pre.probe_capture.captured_after_utc"
+        else:
+            payload_value = post_payload.get("capture_metadata", {}).get("post_window_start_utc")
+            payload_source = "cohort.post.capture_metadata.post_window_start_utc"
+    if isinstance(payload_value, str) and payload_value:
+        dt = parse_iso(payload_value)
+        anchor_kind = "direct_payload" if name in payload_anchors else "phase_proxy"
+        return {
+            "timestamp": dt,
+            "timestamp_utc": dt.isoformat(),
+            "time_source": payload_source,
+            "raw_epoch": payload_value,
+            "anchor_kind": anchor_kind,
+        }
     if EXISTING_GATE14 is not None:
         observed = EXISTING_GATE14.get("sub_gates", [{} ,{}])[1].get("observed_values", {})
         prior_map = observed.get("pre_anchor_timestamps" if anchor_class == "pre" else "post_anchor_timestamps", {})
@@ -401,6 +408,7 @@ def resolve_anchor_timestamp(name: str, anchor_class: str):
                 "timestamp_utc": prior["timestamp_utc"],
                 "time_source": prior.get("time_source", "mtime"),
                 "raw_epoch": prior.get("raw_epoch"),
+                "anchor_kind": "guarded_historical",
             }
     stat = (EVIDENCE_DIR / name).stat()
     birthtime = getattr(stat, "st_birthtime", None)
@@ -411,6 +419,7 @@ def resolve_anchor_timestamp(name: str, anchor_class: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "birthtime",
             "raw_epoch": birthtime,
+            "anchor_kind": "filesystem_fallback",
         }
     dt = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
     return {
@@ -418,6 +427,7 @@ def resolve_anchor_timestamp(name: str, anchor_class: str):
         "timestamp_utc": dt.isoformat(),
         "time_source": "mtime",
         "raw_epoch": stat.st_mtime,
+        "anchor_kind": "filesystem_fallback",
     }
 
 
@@ -608,7 +618,9 @@ strong_temporal = monotonic_ordering_holds and utc_window_span_seconds <= 1800
 fallback_temporal = monotonic_ordering_holds and utc_window_span_seconds <= 5400
 path_used = "strong" if strong_temporal else "fallback"
 
-observed_files_on_disk = sorted(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file())
+observed_files_on_disk = sorted(
+    set(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file()) | set(GATE_FILES)
+)
 non_junk_files = [name for name in observed_files_on_disk if name not in JUNK_NAMES]
 unexpected_non_junk = [name for name in non_junk_files if name not in EXPECTED_EVIDENCE_FILES]
 readme_text = (EVIDENCE_DIR / "README.md").read_text(encoding="utf-8")
@@ -907,7 +919,7 @@ gate14 = {
             "sub_gate": "a_canonical_raw_files_present_and_parse",
         },
         {
-            "claim": "Every per-file UTC anchor stays inside one coherent capture window and every post-fix anchor is later than every pre-fix anchor.",
+            "claim": "Direct payload timestamps plus phase-boundary proxies place every raw file inside one coherent capture envelope; guarded historical fallback is used only when explicitly supplied and no current payload anchor is available.",
             "claim_level": "Measured",
             "evidence_files": [repo_rel(name) for name in RAW_FILES],
             "observed_values": {
@@ -915,15 +927,15 @@ gate14 = {
                 "utc_window_end": utc_window_end.isoformat(),
                 "utc_window_span_seconds": utc_window_span_seconds,
                 "monotonic_ordering_holds": monotonic_ordering_holds,
-                "pre_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"]} for name, info in pre_anchor_infos.items()},
-                "post_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"]} for name, info in post_anchor_infos.items()},
+                "pre_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"], "anchor_kind": info["anchor_kind"]} for name, info in pre_anchor_infos.items()},
+                "post_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"], "anchor_kind": info["anchor_kind"]} for name, info in post_anchor_infos.items()},
                 "sorted_anchor_sequence": sorted_anchor_sequence,
                 "strict_pairwise_order_checks": monotonic_pairs,
                 "strong": {"holds": strong_temporal, "max_span_seconds": 1800},
                 "fallback": {"holds": fallback_temporal, "max_span_seconds": 5400},
                 "time_source_summary": time_source_summary,
             },
-            "predicate": "All configured post-fix file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix file anchors, and the total window is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+            "predicate": "Every post-fix direct payload timestamp or phase-boundary proxy is strictly later than every pre-fix anchor; guarded historical fallback is eligible only through an explicitly supplied replay baseline, and the total envelope is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
             "result": "pass" if subgate_14b_pass else "fail",
             "sub_gate": "b_every_per_file_utc_anchor_falls_within_one_bounded_window",
         },
@@ -989,7 +1001,7 @@ gate14 = {
         "utc_window_span_strong_seconds_max": 1800,
         "utc_window_span_fallback_seconds_max": 5400,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate15 = {
@@ -1087,7 +1099,7 @@ gate15 = {
     "thresholds": {
         "expected_broken_pull_failure_rows": 0,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate16 = {
@@ -1172,7 +1184,7 @@ gate16 = {
     "thresholds": {
         "expected_post_fix_data_record_count": 1,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate17 = {
@@ -1270,7 +1282,7 @@ gate17 = {
         "held_constant_field_count": len(held_constant_checks),
         "expected_broken_pull_failure_rows": 0,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gates = [

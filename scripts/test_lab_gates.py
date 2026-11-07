@@ -15,6 +15,15 @@ from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPLAY_LABS: Final = {
+    "acr-network-path-dns-forwarder-bypass": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
     "acr-network-path-firewall-allowlist": (
         (
             "14-cohort-integrity-gate.json",
@@ -25,6 +34,15 @@ REPLAY_LABS: Final = {
         (),
     ),
     "acr-network-path-pe-direct": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
+    "acr-network-path-record-split-brain": (
         (
             "14-cohort-integrity-gate.json",
             "15-h1-trigger-produces-failure-gate.json",
@@ -594,6 +612,20 @@ class KedaGateTests(unittest.TestCase):
 
 
 class EvaluationReplayTests(unittest.TestCase):
+    batch_b_payload_anchors: Final = {
+        "acr-network-path-dns-forwarder-bypass": {
+            "07-system-logs-pre-fix.json": ("pre_anchor_timestamps", "2026-06-29T00:52:42+00:00", "payload.window_end_utc"),
+            "08-probe-response-pre-fix.json": ("pre_anchor_timestamps", "2026-06-29T00:49:37+00:00", "payload.captured_after_utc"),
+            "12-recovery-surface-post-fix.json": ("post_anchor_timestamps", "2026-06-29T00:52:56+00:00", "capture_metadata.post_window_start_utc"),
+        },
+        "acr-network-path-record-split-brain": {
+            "06-system-logs-pre-fix.json": ("pre_anchor_timestamps", "2026-06-28T22:34:36+00:00", "payload.window_end_utc"),
+            "08-probe-response-pre-fix.json": ("pre_anchor_timestamps", "2026-06-28T22:34:36+00:00", "payload.captured_after_utc"),
+            "11-probe-response-post-fix.json": ("post_anchor_timestamps", "2026-06-28T22:36:42+00:00", "payload.captured_after_utc"),
+            "12-pe-nic-config-post-fix.json": ("post_anchor_timestamps", "2026-06-28T22:37:05+00:00", "capture_metadata.post_window_start_utc"),
+        },
+    }
+
     @contextlib.contextmanager
     def replay_fixture(self, name: str) -> Iterator[Path]:
         with fixture_lab(name) as lab:
@@ -673,8 +705,10 @@ class EvaluationReplayTests(unittest.TestCase):
 
     def test_previous_verifier_capture_stamp_is_rejected(self) -> None:
         for name in (
+            "acr-network-path-dns-forwarder-bypass",
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
+            "acr-network-path-record-split-brain",
         ):
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 verify = lab / "verify.sh"
@@ -691,6 +725,143 @@ class EvaluationReplayTests(unittest.TestCase):
 
                 with self.assertRaisesRegex(AssertionError, "utc_captured"):
                     self.assert_replay(lab)
+
+    def test_acr_replay_rejects_changed_embedded_raw_timestamp(self) -> None:
+        timestamp_files = {
+            "acr-network-path-dns-forwarder-bypass": "08-probe-response-pre-fix.json",
+            "acr-network-path-record-split-brain": "08-probe-response-pre-fix.json",
+        }
+        for name, raw_name in timestamp_files.items():
+            with self.subTest(lab=name), tempfile.TemporaryDirectory(prefix="lab-gate-tamper-") as tmp:
+                root = Path(tmp)
+                lab = root / "labs" / name
+                _ = shutil.copytree(REPO_ROOT / "labs" / name, lab)
+                guide = Path("docs/troubleshooting/lab-guides") / f"{name}.md"
+                destination = root / guide
+                destination.parent.mkdir(parents=True)
+                _ = shutil.copy2(REPO_ROOT / guide, destination)
+                scripts = root / "scripts"
+                scripts.mkdir()
+                _ = shutil.copy2(REPO_ROOT / "scripts" / "check_gate_replay.py", scripts)
+                for command in (
+                    ["git", "init", "--quiet"],
+                    ["git", "add", "."],
+                    [
+                        "git", "-c", "user.name=Replay fixture",
+                        "-c", "user.email=fixture@example.com",
+                        "-c", "core.hooksPath=/dev/null", "commit", "--quiet", "-m", "test: fixture",
+                    ],
+                ):
+                    _ = subprocess.run(command, cwd=root, check=True, capture_output=True)
+                raw = lab / "evidence" / raw_name
+                original = raw.read_text()
+                changed = original.replace("2026-06-", "2026-07-", 1)
+                self.assertNotEqual(changed, original)
+                _ = raw.write_text(changed)
+
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(scripts / "check_gate_replay.py"),
+                        name,
+                        *REPLAY_LABS[name][0],
+                    ],
+                    cwd=root,
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("current raw input bytes differ from HEAD", result.stderr)
+
+    def test_batch_b_payload_timestamps_override_shifted_baseline_anchors(self) -> None:
+        for name, anchors in self.batch_b_payload_anchors.items():
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                gate14 = lab.parent / "committed-gates" / REPLAY_LABS[name][0][0]
+                baseline = json.loads(gate14.read_text())
+                observed = baseline["sub_gates"][1]["observed_values"]
+                for anchor_class in ("pre_anchor_timestamps", "post_anchor_timestamps"):
+                    for anchor in observed[anchor_class].values():
+                        anchor["timestamp_utc"] = "2026-07-30T00:00:00+00:00"
+                _ = gate14.write_text(json.dumps(baseline))
+                for output in REPLAY_LABS[name][0]:
+                    (lab / "evidence" / output).unlink(missing_ok=True)
+
+                result = subprocess.run(
+                    ["bash", "verify.sh"],
+                    cwd=lab,
+                    env={**os.environ, "GATE_REPLAY_BASELINE_DIR": str(lab.parent / "committed-gates")},
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                emitted = json.loads((lab / "evidence" / REPLAY_LABS[name][0][0]).read_text())
+                observed = emitted["sub_gates"][1]["observed_values"]
+                for raw_name, (anchor_class, expected, source) in anchors.items():
+                    with self.subTest(lab=name, raw=raw_name):
+                        actual = observed[anchor_class][raw_name]
+                        self.assertEqual(actual["timestamp_utc"], expected)
+                        self.assertEqual(actual["time_source"], source)
+
+    def test_batch_b_direct_invocation_ignores_local_gate_anchors(self) -> None:
+        for name, anchors in self.batch_b_payload_anchors.items():
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                gate14 = lab / "evidence" / REPLAY_LABS[name][0][0]
+                local = json.loads(gate14.read_text())
+                observed = local["sub_gates"][1]["observed_values"]
+                for anchor_class in ("pre_anchor_timestamps", "post_anchor_timestamps"):
+                    for anchor in observed[anchor_class].values():
+                        anchor["timestamp_utc"] = "2026-07-30T00:00:00+00:00"
+                _ = gate14.write_text(json.dumps(local))
+
+                result = subprocess.run(
+                    ["bash", "verify.sh"],
+                    cwd=lab,
+                    env={key: value for key, value in os.environ.items() if key != "GATE_REPLAY_BASELINE_DIR"},
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                emitted = json.loads(gate14.read_text())
+                observed = emitted["sub_gates"][1]["observed_values"]
+                for raw_name, (anchor_class, expected, source) in anchors.items():
+                    with self.subTest(lab=name, raw=raw_name):
+                        actual = observed[anchor_class][raw_name]
+                        self.assertEqual(actual["timestamp_utc"], expected)
+                        self.assertEqual(actual["time_source"], source)
+
+    def test_batch_b_gate_14_describes_mixed_anchor_semantics(self) -> None:
+        for name, anchors in self.batch_b_payload_anchors.items():
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                result = subprocess.run(
+                    ["bash", "verify.sh"],
+                    cwd=lab,
+                    env={key: value for key, value in os.environ.items() if key != "GATE_REPLAY_BASELINE_DIR"},
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                gate14 = json.loads((lab / "evidence" / REPLAY_LABS[name][0][0]).read_text())
+                subgate = gate14["sub_gates"][1]
+                self.assertIn("Direct payload timestamps plus phase-boundary proxies", subgate["claim"])
+                self.assertIn("guarded historical fallback", subgate["predicate"])
+                observed = subgate["observed_values"]
+                for anchor_class in ("pre_anchor_timestamps", "post_anchor_timestamps"):
+                    for raw_name, anchor in observed[anchor_class].items():
+                        expected_kind = "direct_payload" if raw_name in anchors else "phase_proxy"
+                        with self.subTest(lab=name, raw=raw_name):
+                            self.assertEqual(anchor["anchor_kind"], expected_kind)
 
 
 def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,

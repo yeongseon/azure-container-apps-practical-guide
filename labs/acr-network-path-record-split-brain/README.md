@@ -236,6 +236,8 @@ evidence.
 
 The reusable Phase B cohort lives in [`evidence/`](evidence/README.md).
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-28 and later re-evaluated offline from the unchanged raw cohort. Each replay records its invocation time in top-level `evaluated_at_utc`; that value is not a capture date and implies no current Azure replay or validation.
+
 - It captures one live Azure reproduction in `koreacentral` where the already-running revision stays `Healthy` while the regional data A record is deleted and later restored.
 - The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
 - Gate 14 proves the cohort is structurally coherent: canonical files present, parseable, bounded in one UTC window, same lineage, unchanged PE NIC IPs, and deterministic gate outputs.
@@ -248,7 +250,7 @@ For offline reruns:
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-record-split-brain/` | Enters the lab directory so relative evidence paths resolve correctly. |
-| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 hermetically from current raw evidence without touching Azure or reading existing gate files as anchor sources. |
 
 ```bash
 cd labs/acr-network-path-record-split-brain/

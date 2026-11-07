@@ -166,6 +166,8 @@ Tear down with `cleanup.sh` immediately after capturing evidence.
 
 The reusable Phase B cohort lives in [`evidence/`](evidence/README.md).
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-29 and later re-evaluated offline from the unchanged raw cohort. Each replay records its invocation time in top-level `evaluated_at_utc`; that value is not a capture date and implies no current Azure replay or validation.
+
 - It captures one live `koreacentral` reproduction where the dnsmasq VM is switched from Azure DNS (`168.63.129.16`) to public DNS (`8.8.8.8`) and then restored, while the already-running revision stays `Healthy` throughout.
 - The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
 - Gate 14 proves the cohort is structurally coherent: canonical files present, parseable, bounded in one UTC window, same lineage, and unchanged PE NIC + Private DNS surfaces.
@@ -178,7 +180,7 @@ For offline reruns:
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-dns-forwarder-bypass/` | Enters the lab directory so relative evidence paths resolve correctly. |
-| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. This is the Phase B offline verifier, not the live post-deploy health check. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 hermetically from current raw evidence without touching Azure or reading existing gate files as anchor sources. This is the Phase B offline verifier, not the live post-deploy health check. |
 
 ```bash
 cd labs/acr-network-path-dns-forwarder-bypass/

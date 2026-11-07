@@ -6,9 +6,9 @@ EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 REPO_RELATIVE_EVIDENCE_DIR="labs/acr-network-path-dns-forwarder-bypass/evidence"
 LAB_README_PATH="${SCRIPT_DIR}/README.md"
 LAB_GUIDE_PATH="${SCRIPT_DIR}/../../docs/troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md"
-UTC_NOW="${UTC_NOW:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH UTC_NOW
+export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH EVALUATED_AT_UTC
 
 declare -a CANONICAL_RAW_FILES=(
     "01-app-spec-pre-fix.json"
@@ -261,29 +261,17 @@ from pathlib import Path
 
 EVIDENCE_DIR = Path(os.environ['EVIDENCE_DIR'])
 REL = os.environ['REPO_RELATIVE_EVIDENCE_DIR']
-UTC_NOW = os.environ['UTC_NOW']
-
-_existing_captures = []
-for _gate_file in ['14-cohort-integrity-gate.json', '15-h1-trigger-produces-failure-gate.json', '16-h2-fix-restores-recovery-gate.json', '17-bounded-falsification-gate.json']:
-    _path = EVIDENCE_DIR / _gate_file
-    if _path.exists():
-        try:
-            _data = json.loads(_path.read_text(encoding='utf-8'))
-        except (OSError, json.JSONDecodeError):
-            continue
-        _existing = _data.get('utc_captured')
-        if isinstance(_existing, str) and _existing:
-            _existing_captures.append(_existing)
-if _existing_captures:
-    UTC_NOW = min(_existing_captures)
+EVALUATED_AT_UTC = os.environ['EVALUATED_AT_UTC']
+BASELINE_EVIDENCE_DIR = os.environ.get('GATE_REPLAY_BASELINE_DIR')
 
 EXISTING_GATE14 = None
-_existing_gate14_path = EVIDENCE_DIR / '14-cohort-integrity-gate.json'
-if _existing_gate14_path.exists():
-    try:
-        EXISTING_GATE14 = json.loads(_existing_gate14_path.read_text(encoding='utf-8'))
-    except (OSError, json.JSONDecodeError):
-        EXISTING_GATE14 = None
+if BASELINE_EVIDENCE_DIR:
+    existing_gate14_path = Path(BASELINE_EVIDENCE_DIR) / '14-cohort-integrity-gate.json'
+    if existing_gate14_path.exists():
+        try:
+            EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            EXISTING_GATE14 = None
 
 RAW_FILES = [
     '01-app-spec-pre-fix.json', '02-revision-list-pre-fix.json', '03-dnsmasq-config-pre-fix.json',
@@ -316,7 +304,7 @@ SANITIZER_RULES = [
     (re.compile(r'Yeongseon\s+Choe', re.I), 'Demo User'),
     (re.compile(r'\byeongseon\b', re.I), 'demouser'),
     (re.compile(r'https://ms\.portal\.azure\.com/#@[^/]+/', re.I), 'https://ms.portal.azure.com/#@contoso.onmicrosoft.com/'),
-    (re.compile(r'https://ms\.portal\.azure\.com[^\s"\']*', re.I), 'https://ms.portal.azure.com/#@contoso.onmicrosoft.com/'),
+    (re.compile(r"https://ms\.portal\.azure\.com[^\s\"']*", re.I), 'https://ms.portal.azure.com/#@contoso.onmicrosoft.com/'),
 ]
 
 def sanitize_text(text: str) -> str:
@@ -347,20 +335,37 @@ def parse_iso(text: str):
     return value.astimezone(timezone.utc)
 
 def resolve_anchor_timestamp(name: str, anchor_class: str):
+    payload_anchors = {
+        '07-system-logs-pre-fix.json': (system_pre.get('window_end_utc'), 'payload.window_end_utc'),
+        '08-probe-response-pre-fix.json': (probe_pre_payload.get('captured_after_utc'), 'payload.captured_after_utc'),
+        '12-recovery-surface-post-fix.json': (post_payload.get('capture_metadata', {}).get('post_window_start_utc'), 'capture_metadata.post_window_start_utc'),
+    }
+    payload_value, payload_source = payload_anchors.get(name, (None, None))
+    if not payload_value:
+        if anchor_class == 'pre':
+            payload_value = probe_pre_payload.get('captured_after_utc')
+            payload_source = 'cohort.pre.probe_capture.captured_after_utc'
+        else:
+            payload_value = post_payload.get('capture_metadata', {}).get('post_window_start_utc')
+            payload_source = 'cohort.post.capture_metadata.post_window_start_utc'
+    if isinstance(payload_value, str) and payload_value:
+        dt = parse_iso(payload_value)
+        anchor_kind = 'direct_payload' if name in payload_anchors else 'phase_proxy'
+        return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': payload_source, 'raw_epoch': payload_value, 'anchor_kind': anchor_kind}
     if EXISTING_GATE14 is not None:
         observed = EXISTING_GATE14.get('sub_gates', [{}, {}])[1].get('observed_values', {})
         prior_map = observed.get('pre_anchor_timestamps' if anchor_class == 'pre' else 'post_anchor_timestamps', {})
         prior = prior_map.get(name)
         if isinstance(prior, dict) and prior.get('timestamp_utc'):
             dt = parse_iso(prior['timestamp_utc'])
-            return {'timestamp': dt, 'timestamp_utc': prior['timestamp_utc'], 'time_source': prior.get('time_source', 'mtime'), 'raw_epoch': prior.get('raw_epoch')}
+            return {'timestamp': dt, 'timestamp_utc': prior['timestamp_utc'], 'time_source': prior.get('time_source', 'mtime'), 'raw_epoch': prior.get('raw_epoch'), 'anchor_kind': 'guarded_historical'}
     stat = (EVIDENCE_DIR / name).stat()
     birthtime = getattr(stat, 'st_birthtime', None)
     if birthtime is not None and birthtime > 0:
         dt = datetime.fromtimestamp(birthtime, tz=timezone.utc)
-        return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': 'birthtime', 'raw_epoch': birthtime}
+        return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': 'birthtime', 'raw_epoch': birthtime, 'anchor_kind': 'filesystem_fallback'}
     dt = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
-    return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': 'mtime', 'raw_epoch': stat.st_mtime}
+    return {'timestamp': dt, 'timestamp_utc': dt.isoformat(), 'time_source': 'mtime', 'raw_epoch': stat.st_mtime, 'anchor_kind': 'filesystem_fallback'}
 
 def parse_revision_id(revision_id: str):
     match = REVISION_ID_RE.match(revision_id or '')
@@ -487,7 +492,9 @@ strong_temporal = monotonic_ordering_holds and utc_window_span_seconds <= 1800
 fallback_temporal = monotonic_ordering_holds and utc_window_span_seconds <= 5400
 path_used = 'strong' if strong_temporal else 'fallback'
 
-observed_files_on_disk = sorted(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file())
+observed_files_on_disk = sorted(
+    set(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file()) | set(GATE_FILES)
+)
 non_junk_files = [name for name in observed_files_on_disk if name not in JUNK_NAMES]
 unexpected_non_junk = [name for name in non_junk_files if name not in EXPECTED_EVIDENCE_FILES]
 readme_text = (EVIDENCE_DIR / 'README.md').read_text(encoding='utf-8')
@@ -655,13 +662,13 @@ gate14 = {
     'scenario': 'acr_network_path_dns_forwarder_bypass',
     'sub_gates': [
         {'claim': 'All 12 canonical raw evidence files exist and parse as JSON.', 'claim_level': 'Observed', 'evidence_files': [repo_rel(name) for name in RAW_FILES], 'observed_values': {'observed_missing': [name for name in RAW_FILES if not (EVIDENCE_DIR / name).is_file()], 'observed_present_count': sum((EVIDENCE_DIR / name).is_file() for name in RAW_FILES), 'parse_errors': parse_errors, 'strong': {'expected_count': 12, 'holds': not parse_errors}, 'fallback': {'expected_count': 12, 'holds': not parse_errors}}, 'predicate': 'Strong and fallback both require the full 12-file raw cohort to exist and parse as JSON.', 'result': 'pass' if subgate_14a_pass else 'fail', 'sub_gate': 'a_canonical_raw_files_present_and_parse'},
-        {'claim': 'Every per-file UTC anchor stays inside one coherent capture window and every post-fix anchor is later than every pre-fix anchor.', 'claim_level': 'Measured', 'evidence_files': [repo_rel(name) for name in RAW_FILES], 'observed_values': {'utc_window_start': utc_window_start.isoformat(), 'utc_window_end': utc_window_end.isoformat(), 'utc_window_span_seconds': utc_window_span_seconds, 'monotonic_ordering_holds': monotonic_ordering_holds, 'pre_anchor_timestamps': {name: {'timestamp_utc': info['timestamp_utc'], 'time_source': info['time_source'], 'raw_epoch': info['raw_epoch']} for name, info in pre_anchor_infos.items()}, 'post_anchor_timestamps': {name: {'timestamp_utc': info['timestamp_utc'], 'time_source': info['time_source'], 'raw_epoch': info['raw_epoch']} for name, info in post_anchor_infos.items()}, 'sorted_anchor_sequence': sorted_anchor_sequence, 'strict_pairwise_order_checks': monotonic_pairs, 'strong': {'holds': strong_temporal, 'max_span_seconds': 1800}, 'fallback': {'holds': fallback_temporal, 'max_span_seconds': 5400}, 'time_source_summary': time_source_summary}, 'predicate': 'All configured post-fix file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix file anchors, and the total window is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.', 'result': 'pass' if subgate_14b_pass else 'fail', 'sub_gate': 'b_every_per_file_utc_anchor_falls_within_one_bounded_window'},
+        {'claim': 'Direct payload timestamps plus phase-boundary proxies place every raw file inside one coherent capture envelope; guarded historical fallback is used only when explicitly supplied and no current payload anchor is available.', 'claim_level': 'Measured', 'evidence_files': [repo_rel(name) for name in RAW_FILES], 'observed_values': {'utc_window_start': utc_window_start.isoformat(), 'utc_window_end': utc_window_end.isoformat(), 'utc_window_span_seconds': utc_window_span_seconds, 'monotonic_ordering_holds': monotonic_ordering_holds, 'pre_anchor_timestamps': {name: {'timestamp_utc': info['timestamp_utc'], 'time_source': info['time_source'], 'raw_epoch': info['raw_epoch'], 'anchor_kind': info['anchor_kind']} for name, info in pre_anchor_infos.items()}, 'post_anchor_timestamps': {name: {'timestamp_utc': info['timestamp_utc'], 'time_source': info['time_source'], 'raw_epoch': info['raw_epoch'], 'anchor_kind': info['anchor_kind']} for name, info in post_anchor_infos.items()}, 'sorted_anchor_sequence': sorted_anchor_sequence, 'strict_pairwise_order_checks': monotonic_pairs, 'strong': {'holds': strong_temporal, 'max_span_seconds': 1800}, 'fallback': {'holds': fallback_temporal, 'max_span_seconds': 5400}, 'time_source_summary': time_source_summary}, 'predicate': 'Every post-fix direct payload timestamp or phase-boundary proxy is strictly later than every pre-fix anchor; guarded historical fallback is eligible only through an explicitly supplied replay baseline, and the total envelope is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.', 'result': 'pass' if subgate_14b_pass else 'fail', 'sub_gate': 'b_every_per_file_utc_anchor_falls_within_one_bounded_window'},
         {'claim': 'The pre-fix and post-fix live revision IDs parse to the same resource-group/container-app lineage.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('02-revision-list-pre-fix.json'), repo_rel('11-revision-list-post-fix.json')], 'observed_values': {'pre_revision_id': pre_revision_id, 'post_revision_id': post_revision_id, 'pre_parse_ok': pre_parse_ok, 'post_parse_ok': post_parse_ok, 'both_parse_ok': both_parse_ok, 'pre_resource_group': pre_revision_parts['resource_group'], 'post_resource_group': post_revision_parts['resource_group'], 'pre_container_app': pre_revision_parts['container_app'], 'post_container_app': post_revision_parts['container_app'], 'pre_post_rg_equal': pre_post_rg_equal, 'pre_post_app_equal': pre_post_app_equal, 'pre_post_lineage_equal': pre_post_lineage_equal, 'pre_post_revision_equal': pre_post_revision_equal}, 'predicate': 'The live revision ID selected from 02 and the live revision ID selected from 11 both match the /subscriptions/.../resourceGroups/.../containerApps/.../revisions/... regex, and the parsed resourceGroup + containerApp + revision components compare equal only when both parses succeed.', 'result': 'pass' if subgate_14c_pass else 'fail', 'sub_gate': 'c_revision_id_lineage_parses_and_compares_equal'},
         {'claim': 'The PE NIC IP map and private DNS records are unchanged across H1 and H2, no unexpected non-junk extras exist, and evidence/README.md literally names all four Phase B outputs.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('04-private-dns-record-list-pre-fix.json'), repo_rel('05-pe-nic-config-pre-fix.json'), repo_rel('10-private-dns-record-list-post-fix.json'), repo_rel('12-recovery-surface-post-fix.json'), repo_rel('README.md')], 'observed_values': {'expected_xrefs': expected_xrefs, 'ignored_junk': sorted(JUNK_NAMES), 'observed_files_on_disk': observed_files_on_disk, 'observed_non_junk_extras': unexpected_non_junk, 'observed_xrefs': observed_xrefs, 'pre_nic_map': pre_nic_map, 'post_nic_map': post_nic_map, 'pre_registry_records': pre_registry_records, 'post_registry_records': post_registry_records, 'pre_data_records': pre_data_records, 'post_data_records': post_data_records, 'pe_nic_unchanged': pe_nic_unchanged}, 'predicate': 'The normalized PE NIC ipConfigurations captured in 05 and 12.pe_nic compare equal, the normalized private DNS record summaries captured in 04 and 10 compare equal, extras == [], and evidence/README.md contains the four gate filenames literally.', 'result': 'pass' if subgate_14d_pass else 'fail', 'sub_gate': 'd_pe_nic_private_dns_and_readme_xrefs_stay_constant'},
         {'claim': 'The cohort records one consistent UTC reference window and the span math is computed from that same anchor set.', 'claim_level': 'Measured', 'evidence_files': [repo_rel(name) for name in RAW_FILES], 'observed_values': {'utc_window_start': utc_window_start.isoformat(), 'utc_window_end': utc_window_end.isoformat(), 'utc_window_span_seconds': utc_window_span_seconds, 'time_source_summary': time_source_summary}, 'predicate': 'utc_window_start <= utc_window_end AND utc_window_span_seconds is computed from the same anchor set disclosed in pre_anchor_timestamps + post_anchor_timestamps.', 'result': 'pass' if subgate_14e_pass else 'fail', 'sub_gate': 'e_utc_reference_and_span_math_stay_consistent'},
     ],
     'thresholds': {'canonical_count_strong': 12, 'canonical_count_fallback_floor': 12, 'utc_window_span_strong_seconds_max': 1800, 'utc_window_span_fallback_seconds_max': 5400},
-    'utc_captured': UTC_NOW,
+    'evaluated_at_utc': EVALUATED_AT_UTC,
 }
 
 gate15 = {
@@ -678,7 +685,7 @@ gate15 = {
         {'claim': 'The captured H1+H2 failure-event query stays empty, proving that the failure is silent at the revision-health and pull-failure observability layer.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('07-system-logs-pre-fix.json')], 'observed_values': {'query': system_pre.get('query'), 'window_start_utc': system_pre.get('window_start_utc'), 'window_end_utc': system_pre.get('window_end_utc'), 'row_count': pre_failure_row_count, 'rows': pre_rows}, 'predicate': 'len(07.rows) == 0.', 'result': 'pass' if subgate_15d_pass else 'fail', 'sub_gate': 'd_h1_h2_window_contains_no_failure_events'},
         {'claim': 'ACR publicNetworkAccess and the private DNS record surfaces stay constant during the broken window, so the H1 outcome is not explained by an ACR or zone-content toggle.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('04-private-dns-record-list-pre-fix.json'), repo_rel('06-acr-public-access-pre-fix.json'), repo_rel('10-private-dns-record-list-post-fix.json'), repo_rel('12-recovery-surface-post-fix.json')], 'observed_values': {'pre_public_network_access': acr_pre.get('publicNetworkAccess'), 'post_public_network_access': post_acr.get('publicNetworkAccess'), 'pre_registry_records': pre_registry_records, 'post_registry_records': post_registry_records, 'pre_data_records': pre_data_records, 'post_data_records': post_data_records}, 'predicate': '06.publicNetworkAccess == 12.acr.publicNetworkAccess AND the normalized registry/data record summaries captured in 04 and 10 compare equal.', 'result': 'pass' if subgate_15e_pass else 'fail', 'sub_gate': 'e_acr_and_private_dns_surfaces_stay_constant'},
     ],
-    'thresholds': {'expected_failure_event_rows': 0}, 'utc_captured': UTC_NOW,
+    'thresholds': {'expected_failure_event_rows': 0}, 'evaluated_at_utc': EVALUATED_AT_UTC,
 }
 
 gate16 = {
@@ -694,7 +701,7 @@ gate16 = {
         {'claim': 'The same already-running revision stays Healthy after the fix and no new revision was created during the lab.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('02-revision-list-pre-fix.json'), repo_rel('11-revision-list-post-fix.json'), repo_rel('12-recovery-surface-post-fix.json')], 'observed_values': {'pre_live_revision': pre_live_revision, 'post_live_revision': post_live_revision, 'pre_post_revision_equal': pre_post_revision_equal, 'all_post_revision_healthy': all_post_revision_healthy}, 'predicate': "The live revision selected from 11 has healthState == 'Healthy' and active == true, every revision captured in 11 has healthState == 'Healthy', and the selected revision name in 11 equals the selected revision name in 02.", 'result': 'pass' if subgate_16c_pass else 'fail', 'sub_gate': 'c_same_revision_stays_healthy_without_a_new_revision'},
         {'claim': 'ACR public access, private DNS records, and PE topology stay constant across H1 and H2.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('04-private-dns-record-list-pre-fix.json'), repo_rel('05-pe-nic-config-pre-fix.json'), repo_rel('06-acr-public-access-pre-fix.json'), repo_rel('10-private-dns-record-list-post-fix.json'), repo_rel('12-recovery-surface-post-fix.json')], 'observed_values': {'pre_publicNetworkAccess': acr_pre.get('publicNetworkAccess'), 'post_publicNetworkAccess': post_acr.get('publicNetworkAccess'), 'pre_nic_map': pre_nic_map, 'post_nic_map': post_nic_map, 'pre_registry_records': pre_registry_records, 'post_registry_records': post_registry_records, 'pre_data_records': pre_data_records, 'post_data_records': post_data_records}, 'predicate': '06.publicNetworkAccess == 12.acr.publicNetworkAccess AND the normalized PE NIC ipConfigurations captured in 05 and 12.pe_nic compare equal AND the normalized registry/data record summaries captured in 04 and 10 compare equal.', 'result': 'pass' if subgate_16d_pass else 'fail', 'sub_gate': 'd_acr_private_dns_and_pe_topology_stay_constant'},
     ],
-    'thresholds': {'expected_post_fix_failure_event_rows': 0}, 'utc_captured': UTC_NOW,
+    'thresholds': {'expected_post_fix_failure_event_rows': 0}, 'evaluated_at_utc': EVALUATED_AT_UTC,
 }
 
 gate17 = {
@@ -712,7 +719,7 @@ gate17 = {
         {'claim': 'The bounded-falsification gate explicitly lists the documented ceilings and unsupported inferences.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('17-bounded-falsification-gate.json')], 'observed_values': {'documented_ceiling_ids': sorted(DOCUMENTED_EXPLICIT_DROPS_CEILING), 'observed_drop_ids': [item['id'] for item in explicit_drops]}, 'predicate': 'cohort_binding_note.explicit_drops ids equal the static documented ceiling {acr_control_plane_fresh_pull, dns_resolution_timing, exact_http_body_bytes, image_layer_cache_state, probe_retry_attempt_count, resource_provider_poll_latency, system_log_ingestion_latency, tls_cipher_suite} with no additions and no omissions.', 'result': 'pass' if subgate_17c_pass else 'fail', 'sub_gate': 'c_explicit_drops_match_the_documented_ceiling'},
         {'claim': 'The workload-path silence invariant is checked actively: the same revision stays Healthy on both sides, H1 shows first_class=public, H2 shows first_class=private, and the H1+H2 failure-event query stays empty.', 'claim_level': 'Observed', 'evidence_files': [repo_rel('02-revision-list-pre-fix.json'), repo_rel('07-system-logs-pre-fix.json'), repo_rel('11-revision-list-post-fix.json'), repo_rel('12-recovery-surface-post-fix.json')], 'observed_values': {'pre_live_revision_name': pre_live_revision.get('name') if pre_live_revision else None, 'post_live_revision_name': post_live_revision.get('name') if post_live_revision else None, 'pre_health_state': pre_live_props.get('healthState'), 'post_health_state': post_live_props.get('healthState'), 'pre_first_class': pre_probe_response.get('first_class'), 'post_first_class': post_probe_response.get('first_class'), 'failure_event_row_count': pre_failure_row_count}, 'predicate': "02.selected live revision name == 11.selected live revision name AND both selected live revisions have healthState == 'Healthy' AND 08.response.first_class == 'public' AND 12.probe_capture.response.first_class == 'private' AND len(07.rows) == 0.", 'result': 'pass' if subgate_17d_pass else 'fail', 'sub_gate': 'd_workload_path_silence_invariant_is_checked'},
     ],
-    'thresholds': {'held_constant_field_count': len(held_constant_checks), 'expected_failure_event_rows': 0}, 'utc_captured': UTC_NOW,
+    'thresholds': {'held_constant_field_count': len(held_constant_checks), 'expected_failure_event_rows': 0}, 'evaluated_at_utc': EVALUATED_AT_UTC,
 }
 
 gates = [(14, gate14, 'cohort integrity verified'), (15, gate15, 'H1 trigger produces failure verified'), (16, gate16, 'H2 fix restores recovery verified'), (17, gate17, 'bounded falsification verified')]
