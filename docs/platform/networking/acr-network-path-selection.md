@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
 content_validation:
   status: verified
@@ -52,7 +53,7 @@ This is not a one-time architecture decision. It is exercised every time a node 
 | B | ACR Private Endpoint, default routing | PE private IP / PE private IP | Replica → ACR Private Endpoint over Azure backbone | No (data path bypasses firewall by default) | Entra ID for MI, platform DNS | Production default; aligns with Microsoft baseline for ACR | Firewall logs will not show ACR pulls; treat that as expected, not as evidence of breakage |
 | C | ACR Private Endpoint, forced inspection | PE private IP / PE private IP | Replica → Firewall (inspecting PE traffic) → ACR Private Endpoint | Yes (explicit allow for PE destination) | Entra ID for MI, platform DNS, SNAT planning for return symmetry | Regulated environments that mandate inspection of all egress, including Private Link | Requires private endpoint network policies and a deliberate UDR override; default routing does not give you this |
 | D | Record-level zone authority misconfiguration | PE private IP / **NXDOMAIN or public IP** | Login over Private Link; data endpoint is unaddressable or silently flips public depending on resolver topology | Yes for data when it flips public; not applicable when it returns NXDOMAIN | Entra ID for MI | Never intentional — appears when the registry record (`<registry>`) exists in `privatelink.azurecr.io` but the per-region data record (`<registry>.<region>.data`) is missing | With default Azure DNS the missing record returns **NXDOMAIN** (zone is authoritative); with a custom DNS server that falls back to public on NXDOMAIN the data record silently flips to the public IP. See [the lab](../../troubleshooting/lab-guides/acr-network-path-record-split-brain.md). |
-| E | Geo-replicated ACR missing regional data record | PE private IP for some regions, public IP for others | Mixed — depends on which region the client is pulling from | Yes if any data endpoint resolves public | Entra ID for MI | Never intentional — appears after adding a geo-replica without creating the matching `<registry>.<region>.data` record in `privatelink.azurecr.io` | Pulls work from one client region/environment and fail from another, depending on which data endpoint each client resolves |
+| E | Custom DNS forwarder bypass | Public IP / Public IP, even though PE records exist | Resolver bypasses the linked private zone; subsequent transport targets the public ACR endpoint | Yes if the public path is intentionally allowed; otherwise ACR rejects it | Entra ID for MI | Never intentional — appears when a VNet custom DNS server forwards ACR queries to a resolver that cannot see the linked private zone | PE and zone health can remain green while workload DNS resolves the entire ACR namespace publicly |
 
 Rows A, B, and C are intentional designs. Rows D and E are common misconfigurations that produce mixed behavior; this page documents them so they are recognizable, not so they are picked.
 
@@ -61,35 +62,45 @@ Rows A, B, and C are intentional designs. Rows D and E are common misconfigurati
 <!-- diagram-id: acr-path-choice -->
 ```mermaid
 flowchart TD
-    REPLICA[Container App replica]
-    REPLICA -->|FQDN lookup| DNS[DNS resolver chain]
+    accTitle: Choose the Container Apps to ACR network path
+    accDescr: The decision starts with whether a private endpoint is intended, then separates resolver topology, private-zone record completeness, and private-endpoint route inspection. It identifies public firewall Path A, direct private endpoint Path B, inspected private endpoint Path C, record-level DNS failure Path D, and custom resolver bypass Path E.
 
-    DNS -->|resolves to public IP| PATHA[Path A: public ACR]
-    DNS -->|resolves to PE private IP| ROUTE{Routing and PE network policy}
+    START["Container Apps image-pull dependency"]
+    PE_INTENT{"Is ACR Private Endpoint<br/>the intended data path?"}
+    RESOLVER{"Does the resolver reach Azure DNS<br/>for the linked private zone?"}
+    RECORDS{"Do login and regional data records<br/>return PE private IPs?"}
+    INSPECT{"Do PE network policies and explicit<br/>PE-destination UDRs select a firewall?"}
 
-    ROUTE -->|default| PATHB[Path B: PE direct]
-    ROUTE -->|policies + UDR override| PATHC[Path C: PE inspected]
+    PATH_A["Path A<br/>public ACR through firewall and SNAT"]
+    PATH_B["Path B<br/>Private Endpoint direct"]
+    PATH_C["Path C<br/>Private Endpoint through inspection"]
+    PATH_D["Path D<br/>record-level zone authority failure"]
+    PATH_E["Path E<br/>custom DNS forwarder bypass"]
 
-    PATHA --> FW1[Firewall / NVA<br/>ACR egress rules required]
-    FW1 --> ACRPUB[ACR public endpoint]
+    AUTH["Separate authorization check<br/>admin credential or managed identity role"]
+    RESULT["Network path selected<br/>transport success still not proven"]
 
-    PATHB --> ACRPE[ACR Private Endpoint<br/>over Azure backbone]
+    START --> PE_INTENT
+    PE_INTENT -->|No| PATH_A
+    PE_INTENT -->|Yes| RESOLVER
+    RESOLVER -->|No| PATH_E
+    RESOLVER -->|Yes| RECORDS
+    RECORDS -->|No or partial| PATH_D
+    RECORDS -->|Yes| INSPECT
+    INSPECT -->|No| PATH_B
+    INSPECT -->|Yes| PATH_C
 
-    PATHC --> FW2[Firewall / NVA<br/>inspecting PE traffic]
-    FW2 --> ACRPE
+    PATH_A --> RESULT
+    PATH_B --> RESULT
+    PATH_C --> RESULT
+    PATH_D --> RESULT
+    PATH_E --> RESULT
+    AUTH -.->|required independently| RESULT
 
-    REPLICA -.->|platform MI token acquisition<br/>port 443| ENTRA[Microsoft Entra ID<br/>login.microsoftonline.com]
-
-    classDef path fill:#fff4e6,stroke:#ca5010
-    classDef infra fill:#e1f5ff,stroke:#0078d4
-    classDef registry fill:#e5f5e5,stroke:#107c10
-
-    class PATHA,PATHB,PATHC path
-    class DNS,ROUTE,FW1,FW2,ENTRA infra
-    class ACRPUB,ACRPE registry
+    LEGEND["Arrow key<br/>solid = decision progression<br/>dotted = independent requirement"]
 ```
 
-The solid arrows are the image-data paths. The dashed arrow is the identity path: it is the platform acquiring the registry pull token on behalf of the Container App's managed identity. It is present in every scenario where the Container App uses managed identity to pull from ACR, and it is **not** routed through the Private Endpoint, regardless of how the ACR data path is configured.
+The solid arrows are decision progression, not packet transport. The dotted relationship keeps authorization separate: selecting a DNS and routing path does not prove that the configured credential or managed identity is authorized. For managed identity, use `AcrPull` on an RBAC-only registry or `Container Registry Repository Reader` on an ABAC-enabled registry; legacy `AcrPull` is not honored when the registry uses ABAC repository permissions.
 
 ## Path A: Public ACR via Firewall / NVA
 
@@ -152,7 +163,7 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 ## ACR-Specific Gotchas
 
 - **One sub-resource, multiple endpoints.** ACR's Private Endpoint exposes a single `registry` sub-resource, but the PE NIC holds separate private IPs for the global/login endpoint and for each region's dedicated data endpoint. The corresponding records (`<registry>` and `<registry>.<region>.data`) must both exist in `privatelink.azurecr.io` for Path B to actually be Path B end to end. Resolving only the login record privately is **Scenario D** (record-level zone-authority failure), not Path B. The [ACR Network Path D lab](../../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) reproduces this exactly: it deletes only the `<registry>.<region>.data` A record from `privatelink.azurecr.io` and shows the 4-layer (DNS → TCP → TLS → HTTP) probe flip from `topology_class=both_private` (registry private/HTTP 401, data private/HTTP 403) to `topology_class=data_nxdomain` (registry stays private/HTTP 401, data returns NXDOMAIN as `socket.gaierror: [Errno -2] Name or service not known`). The lab also documents that true "registry private, data public" split-brain only appears in a different topology — a custom DNS server (BIND with views, systemd-resolved with multi-domain fallback, etc.) configured to fall back to public DNS on NXDOMAIN. In the default Azure DNS topology that most production environments run, the linked Private DNS Zone is **authoritative** for that namespace and a missing record returns NXDOMAIN, not a public IP.
-- **Scenario E is the DNS-topology failure class.** When a custom DNS server (Private DNS Resolver, dnsmasq on a VM, Windows DNS, on-prem cache, etc.) sits between Container Apps and Azure DNS but does **not** forward `privatelink.azurecr.io` to Azure DNS at `168.63.129.16`, the entire ACR namespace resolves publicly even though the Private Endpoint and Private DNS Zone are correctly provisioned. The PE plumbing is healthy; the resolver path simply never asks Azure DNS about the private zone. Geo-replication missing one region's `<registry>.<region>.data` record is a **special case of Scenario E** scoped to a single regional endpoint rather than the whole namespace.
+- **Scenario E is the DNS-topology failure class.** When a custom DNS server (Private DNS Resolver, dnsmasq on a VM, Windows DNS, on-prem cache, etc.) sits between Container Apps and Azure DNS but does **not** forward the applicable ACR namespace to Azure DNS, the entire ACR namespace resolves publicly even though the Private Endpoint and Private DNS Zone are correctly provisioned. The PE plumbing is healthy; the resolver path simply never asks Azure DNS about the private zone. A missing regional data record is instead a record-content failure in Scenario D, whether it produces NXDOMAIN or a public fallback through a separately configured resolver.
 - **In Azure Container Apps, Scenarios D and E may surface at the workload layer first.** Both record-level (Scenario D) and resolver-topology (Scenario E) DNS failures can surface as workload-path failures rather than as `ImagePullBackOff`, because the platform-managed image puller can continue to succeed on an already-pulled image while application and runtime DNS follow the broken path. The reproduction in the [ACR Network Path E lab](../../troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md) shows the revision staying `Healthy` while `socket.getaddrinfo("<acr>.azurecr.io")` from inside the replica returns the public registry IP after the dnsmasq upstream is swapped from Azure DNS to `8.8.8.8`. The reproduction in the [ACR Network Path D lab](../../troubleshooting/lab-guides/acr-network-path-record-split-brain.md) shows the same operator-facing silence after deleting only the `<registry>.<region>.data` record: revision stays `Healthy`, no platform pull events, but the 4-layer in-replica probe flips to `topology_class=data_nxdomain` with `socket.gaierror` on the data endpoint. Treat pull-path health as **not** a reliable early-warning signal for DNS failures (record-level or topology-level) in Container Apps; instrument workload-side DNS resolution explicitly.
 - **Successful app startup is not proof of a working ACR path.** Container Apps caches image layers on the underlying nodes. An app that started yesterday on a cached image will keep running even if the current ACR path is broken. The next cold start, scale-out to an uncached node, or revision rollout is when the real path is exercised.
 - **The Private Endpoint NIC has a private IP from its own subnet.** When you read `100.x.x.x`-style addresses inside a replica's network trace, those are platform-internal observed addresses, not the authoritative IP of the ACR Private Endpoint itself. Design discussions should anchor on the PE NIC's private IP, not on overlay-NAT addresses seen from inside the replica.
@@ -189,6 +200,7 @@ For Container Apps that integrate into an existing customer network, the Azure-n
 - [Configure a private link for an Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints)
 - [Configure dedicated data endpoints for Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
 - [Configure rules to access an Azure Container Registry behind a firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-firewall-rules)
+- [Azure Container Registry roles and repository permissions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)
 - [Use Azure Firewall to inspect Private Endpoint traffic (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall)
 - [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/disable-private-endpoint-network-policy)
 - [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview)
