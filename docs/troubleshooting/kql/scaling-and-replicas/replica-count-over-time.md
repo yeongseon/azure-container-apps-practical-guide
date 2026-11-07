@@ -28,15 +28,23 @@ Use this query to visualize how many replicas are active per revision over time 
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app and time] --> B[Keep replica lifecycle events] --> C[Distinct replica count by bin] --> D[Trend output]
+    accTitle: Estimate replica activity over time from system logs
+    accDescr: The query selects one app and time window from legacy system logs, keeps rows with replica names, counts distinct replica identifiers in five-minute bins by revision, and orders the estimates chronologically.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> SCOPE[Select app and time window]
+    SCOPE --> REPLICAS[Keep rows with ReplicaName_s]
+    REPLICAS --> COUNT[Count distinct replica IDs<br/>per five-minute bin and revision]
+    COUNT --> RESULT[Order estimates by time]
 ```
+
+*Figure: Distinct log-active replica identifiers provide an ingestion-dependent estimate, not the exact live replica count. Confirm operational decisions with the platform replica metric.*
 
 ## Query
 

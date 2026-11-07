@@ -28,15 +28,24 @@ Use this query to show how active replicas are distributed across revisions so y
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter recent replica logs] --> B[Deduplicate replicas per revision] --> C[Count replicas by revision] --> D[Calculate replica share]
+    accTitle: Estimate recent replica distribution by revision
+    accDescr: The query selects recent legacy system-log rows for one app, keeps revision and replica identifiers, reduces each revision-replica pair to its latest event, counts distinct replicas by revision, and calculates each revision's share of the observed set.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> SCOPE[Select app and recent window]
+    SCOPE --> IDS[Keep revision and replica IDs]
+    IDS --> LATEST[Retain latest log time<br/>per revision-replica pair]
+    LATEST --> COUNT[Count observed replicas<br/>by revision]
+    COUNT --> SHARE[Calculate share of<br/>the observed replica set]
 ```
+
+*Figure: The distribution is inferred from replicas that emitted recent system logs. It is not a traffic-weight measurement or an exact inventory of currently running replicas.*
 
 ## Query
 

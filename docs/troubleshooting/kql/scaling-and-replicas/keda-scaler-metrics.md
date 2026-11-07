@@ -28,15 +28,23 @@ Use this query to track KEDA scaler activation, deactivation, and related scale 
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app and window] --> B[Keep KEDA or scale signals] --> C[Classify scaler state and decision] --> D[Summarize by time bin]
+    accTitle: Classify log-derived KEDA and scaling signals
+    accDescr: The query selects an app and time window from legacy system logs, keeps KEDA and replica-scale text, classifies lifecycle observations separately from scale decisions, and summarizes matching rows by time bin and revision.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> SCOPE[Select app and time window]
+    SCOPE --> SIGNALS[Keep KEDA, scaler,<br/>replica, and scale terms]
+    SIGNALS --> CLASSIFY[Classify lifecycle text and<br/>log-derived scale decision text]
+    CLASSIFY --> SUMMARY[Summarize by five-minute bin,<br/>revision, signal, and decision]
 ```
+
+*Figure: The pipeline classifies text in platform logs; it does not read the scaler's raw source metric or expose a dedicated KEDA event stream.*
 
 ## Query
 
