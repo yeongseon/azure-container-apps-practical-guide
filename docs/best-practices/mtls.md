@@ -69,7 +69,7 @@ flowchart TD
     PATH -->|"Direct internal call"| PEER_TLS
     PATH -->|"Dapr invocation"| CALLER
 
-    LEGEND["Arrow key<br/>thick = encrypted request transport<br/>solid = design choice"]
+    LEGEND["Arrow key<br/>thick = request transport<br/>solid = design choice<br/>encryption is stated on each protected edge"]
 ```
 
 *Figure: The three paths are complementary, not interchangeable. Ingress certificate handling and peer encryption protect transport, while the application still decides whether an identified caller may perform an operation.*

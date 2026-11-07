@@ -274,39 +274,44 @@ Dapr resiliency high-level flow:
 ```mermaid
 flowchart TD
     accTitle: Dapr component resiliency decision flow
-    accDescr: An application calls its Dapr sidecar. Before a Dapr component operation, a timeout and circuit breaker policy decide whether to attempt transport. A failed operation may be retried within a bounded budget. An open circuit fails fast so the application can use fallback or return a controlled error.
+    accDescr: An application calls its Dapr sidecar. Before each Dapr component attempt, the circuit state is checked. A failed operation can retry up to maxRetries using configured backoff, while responseTimeoutInSeconds separately limits response waiting. An open circuit or exhausted retry count returns a controlled failure to the application.
 
     APP["Application"]
-    DAPR["Dapr sidecar"]
+    DAPR_API["Dapr sidecar<br/>component API"]
+    DAPR_OUT["Dapr sidecar<br/>outbound operation"]
+    DAPR_RETURN["Dapr sidecar<br/>return path"]
     POLICY["Component resiliency policy<br/>timeout, retry, circuit breaker"]
     OPEN{"Circuit open?"}
     COMPONENT["Dapr component dependency<br/>state, pub/sub, secret, or binding"]
     RESULT{"Operation succeeds?"}
-    BUDGET{"Retry budget remains?"}
+    RETRIES{"Retries remain<br/>under maxRetries?"}
     SUCCESS["Return successful result"]
     FALLBACK["Fail fast<br/>fallback or controlled error"]
+    APP_RESULT["Application receives<br/>success or controlled failure"]
 
-    APP ==>|"Component API request"| DAPR
-    DAPR -->|"Evaluate policy"| POLICY
+    APP ==>|"Component API request"| DAPR_API
+    DAPR_API -->|"Evaluate policy"| POLICY
     POLICY --> OPEN
-    OPEN -->|"No"| COMPONENT
-    OPEN -.->|"Yes"| FALLBACK
-    COMPONENT ==>|"Operation attempt"| RESULT
-    RESULT ==>|"Yes"| SUCCESS
-    RESULT -->|"No"| BUDGET
-    BUDGET -->|"Yes, after backoff"| COMPONENT
-    BUDGET -.->|"No; trip breaker when configured"| FALLBACK
-    SUCCESS ==>|"Response"| APP
-    FALLBACK ==>|"Failure result"| APP
+    OPEN -->|"No"| DAPR_OUT
+    OPEN -.->|"Yes; no attempt"| DAPR_RETURN
+    DAPR_OUT ==>|"Component operation attempt"| COMPONENT
+    COMPONENT ==>|"Operation response"| RESULT
+    RESULT -->|"Yes"| SUCCESS
+    RESULT -->|"No"| RETRIES
+    RETRIES -->|"Yes, after configured backoff"| OPEN
+    RETRIES -.->|"No"| FALLBACK
+    SUCCESS --> DAPR_RETURN
+    FALLBACK --> DAPR_RETURN
+    DAPR_RETURN ==>|"Return result"| APP_RESULT
 
-    LEGEND["Arrow key<br/>thick = request or response transport<br/>solid = policy decision<br/>dotted = fail-fast outcome"]
+    LEGEND["Arrow key<br/>thick = request or response transport<br/>solid = policy decision<br/>dotted = no-attempt or exhausted-retry outcome"]
 ```
 
-*Figure: The policy governs whether and when transport is attempted; it is not a network hop and does not forward packets. Retry attempts remain bounded by the request timeout and retry budget.*
+*Figure: The policy governs whether and when Dapr attempts component transport; it is not a network hop and does not forward packets. Every retry returns through the circuit-state decision before Dapr sends another component operation.*
 
 Operational checks:
 
-- Ensure retry budget does not exceed request timeout budget.
+- Bound retries with `maxRetries` and the configured initial and maximum backoff intervals. Configure `responseTimeoutInSeconds` separately for response waiting; Microsoft Learn does not define one combined request-timeout budget for these settings.
 - Track retry and breaker metrics in telemetry.
 - Validate behavior during dependency outage game day.
 
