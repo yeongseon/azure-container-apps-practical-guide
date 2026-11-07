@@ -80,7 +80,11 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## Configure Custom Domain
 
@@ -100,10 +104,16 @@ export APP_FQDN=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `export ENV_STATIC_IP=$(az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.staticIp" --output tsv)` | Captures the environment static IP used for the apex-domain `A` record when binding a Python app to a custom domain. |
-| `export APP_FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Captures the app's current ingress hostname so you can create the correct `CNAME` or validate the existing endpoint before cutover. |
+| `az containerapp env show` | Reads the Container Apps environment property needed for DNS configuration. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 2. Get the domain verification value (`asuid`) from the app:
 
@@ -115,9 +125,15 @@ export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.customDomainVerificationId" --output tsv)` | Extracts the verification token that must be published in DNS before Container Apps will allow the custom domain to be attached. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 3. Create DNS records (example with Azure DNS):
 
@@ -146,7 +162,17 @@ az network dns record-set txt add-record \
 
 | Command | Why it is used |
 |---|---|
-| `az network dns record-set ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network dns record-set a add-record` | Adds the apex-domain address record required for the custom domain. |
+| `az network dns record-set cname set-record` | Sets the subdomain alias that targets the Container App hostname. |
+| `az network dns record-set txt add-record` | Adds the domain-ownership verification record. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--zone-name` | Selects or names the DNS zone association used by the endpoint. |
+| `--record-set-name` | Selects the DNS record set updated for this hostname. |
+| `--ipv4-address` | Sets the apex-domain record to the environment's ingress address. |
+| `--cname` | Points the custom subdomain at the Container App hostname. |
+| `--value` | Sets the recipe's named secret or DNS verification value. |
+
+
 
 4. Add hostname to the Container App:
 
@@ -159,7 +185,12 @@ az containerapp hostname add \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp hostname add ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname add` | Adds the custom hostname to the selected Container App. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--hostname` | Selects the custom hostname being added or bound. |
+
+
 
 ## Create Managed Certificate
 
@@ -176,7 +207,14 @@ az containerapp hostname bind \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp hostname bind ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname bind` | Binds the custom hostname and managed certificate to the app. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--hostname` | Selects the custom hostname being added or bound. |
+| `--environment` | Places the app or job in the specified Container Apps environment. |
+| `--validation-method` | Uses the documented certificate validation method for the hostname. |
+
+
 
 If you bring your own certificate instead of managed issuance, upload it to the environment with `az containerapp env certificate upload` and then bind it with `az containerapp hostname bind --certificate <cert-name>`.
 
@@ -194,7 +232,11 @@ az containerapp ingress update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp ingress update ...` | Updates ingress settings on an existing Container App. |
+| `az containerapp ingress update` | Enforces secure HTTP ingress settings on the existing Container App. |
+| `--name` | Selects the Container App that serves the custom domain. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--transport` | Uses automatic HTTP transport negotiation for the ingress endpoint. |
+| `--allow-insecure` | Disables insecure HTTP access to the custom domain. |
 
 ## Verification
 
@@ -212,7 +254,13 @@ az containerapp env certificate list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp env certificate list` | Lists managed certificates for the selected Container Apps environment. |
+| `az containerapp hostname list` | Lists the custom hostnames configured on the Container App. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 Then verify HTTPS from a client:
 

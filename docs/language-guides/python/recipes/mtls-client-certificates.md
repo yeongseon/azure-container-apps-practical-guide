@@ -23,7 +23,7 @@ flowchart TD
     INGRESS[Managed ingress<br/>require or accept mode]
     XFCC[X-Forwarded-Client-Cert<br/>Hash, Cert, and Chain]
     PARSE[Flask middleware<br/>parse forwarded fields]
-    VALIDATE{Certificate and<br/>caller policy valid?}
+    VALIDATE[Validate certificate<br/>and caller policy]
     ALLOW[Serve protected route]
     DENY[Return 403]
 
@@ -31,8 +31,8 @@ flowchart TD
     INGRESS ==>|Request with XFCC header| XFCC
     XFCC --> PARSE
     PARSE --> VALIDATE
-    VALIDATE -->|Yes| ALLOW
-    VALIDATE -->|No| DENY
+    VALIDATE -->|Policy passes| ALLOW
+    VALIDATE -->|Policy fails| DENY
 ```
 
 Thick arrows show request transport. The decision remains in the application: certificate presentation and forwarding alone do not prove that the caller satisfies your authorization policy.
@@ -175,7 +175,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
+
 
 ### 3. Test from outside the app
 

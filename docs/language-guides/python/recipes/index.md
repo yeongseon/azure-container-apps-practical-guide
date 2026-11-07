@@ -23,10 +23,14 @@ az extension add --name containerapp --upgrade
 az login
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you run any Python recipe commands. |
-| `az login` | Starts an authenticated Azure CLI session so the recipe commands can read and update your Azure resources. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `az login` | Authenticates the local Azure CLI session used for the recipes. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## Recipe Catalog
 
@@ -132,7 +136,13 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 ## See Also
 

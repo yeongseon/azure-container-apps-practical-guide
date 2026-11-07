@@ -21,14 +21,15 @@ flowchart TD
     FILES[Classic Azure Files share]
     ENV_ID[Environment managed identity<br/>recommended for new SMB mounts]
 
-    subgraph ENV[Container Apps environment]
-        STORAGE[Environment storage definition]
-        REVISION[Container app revision]
-        APP[Python container]
-        MOUNT[Mounted path<br/>/mnt/shared]
-    end
+    ENV[Container Apps environment]
+    STORAGE[Environment storage definition]
+    REVISION[Container app revision]
+    APP[Python container]
+    MOUNT[Mounted path<br/>/mnt/shared]
 
-    ENV_ID -.->|Assigned to environment| STORAGE
+    ENV_ID -.->|Assigned to| ENV
+    ENV -->|Contains storage definition| STORAGE
+    ENV -->|Hosts| REVISION
     STORAGE -.->|References share| FILES
     REVISION -->|Defines volume| STORAGE
     REVISION -->|Runs| APP
@@ -51,7 +52,11 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## Create an Azure Files share
 
@@ -70,7 +75,16 @@ export STORAGE_KEY=$(az storage account keys list \
 
 | Command | Why it is used |
 |---|---|
-| `az storage share-rm ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+| `az storage share-rm create` | Creates the Azure Files share mounted by the Container App. |
+| `az storage account keys list` | Reads the storage key used by the Azure Files storage definition. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--storage-account` | Selects the storage account that hosts the new file share. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--account-name` | Selects the storage account used by this storage operation. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 ## Configure the storage mount in Container Apps
 
@@ -89,7 +103,16 @@ az containerapp env storage set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env storage ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp env storage set` | Registers the Azure Files share as environment-level storage. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--storage-name` | Names or selects the environment storage definition. |
+| `--azure-file-account-name` | Selects the storage account that hosts the mounted share. |
+| `--azure-file-account-key` | Supplies the storage key for the environment's Azure Files connection. |
+| `--azure-file-share-name` | Selects the Azure Files share exposed to the app. |
+| `--access-mode` | Sets the mounted Azure Files share to the required read/write mode. |
+
+
 
 Attach it to the app.
 
@@ -102,7 +125,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--yaml` | Applies the volume or container configuration from the referenced YAML file. |
+
+
 
 Example YAML fragment:
 

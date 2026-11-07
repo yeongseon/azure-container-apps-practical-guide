@@ -33,12 +33,13 @@ flowchart TD
     BLOB[Azure Blob Storage]
     FILES[Classic Azure Files share]
 
-    subgraph ENV[Container Apps environment]
-        APP[Python container app]
-        STORAGE[Environment storage definition]
-        MOUNT[Mounted path<br/>/mnt/appfiles]
-    end
+    ENV[Container Apps environment]
+    APP[Python container app]
+    STORAGE[Environment storage definition]
+    MOUNT[Mounted path<br/>/mnt/appfiles]
 
+    ENV -->|Hosts| APP
+    ENV -->|Contains| STORAGE
     APP -.->|Uses for SDK authentication| APP_ID
     APP_ID -.->|Blob data role| BLOB
     APP ==>|Blob SDK requests| BLOB
@@ -64,13 +65,19 @@ flowchart TD
     accDescr: Container-scoped filesystem data lasts until that container stops or restarts. EmptyDir data is shared by containers in one replica and lasts for the replica lifetime, including individual container restarts. Azure Files persists outside replicas and can be shared across replicas, revisions, and apps.
 
     WRITE[Application writes data]
-    CHOICE{Required lifetime and access?}
+    CHOICE[Choose required lifetime and access]
     LOCAL[Container-scoped filesystem]
     EMPTY[Replica-scoped EmptyDir]
     FILES[Azure Files volume]
     LOCAL_END[Removed when container<br/>stops or restarts]
     EMPTY_END[Persists across container restart<br/>removed when replica stops]
     FILES_KEEP[Persists in Azure Files<br/>shareable across replicas and apps]
+
+    subgraph OPTIONS[Storage lifetime options]
+        LOCAL
+        EMPTY
+        FILES
+    end
 
     WRITE --> CHOICE
     CHOICE -->|Current container only| LOCAL
@@ -141,7 +148,14 @@ export PRINCIPAL_ID=$(az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity required by this recipe. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--system-assigned` | Enables the system identity used by the app, job, or scaler. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
 
 ### Step 2: Assign Storage Blob Data Contributor role
 
@@ -161,7 +175,17 @@ az role assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az storage account ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+| `az storage account show` | Reads the storage account resource ID used as the role scope. |
+| `az role assignment create` | Grants the managed identity the data-plane role required by this step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal. |
+| `--role` | Selects the least-privilege data-plane role required by this identity. |
+| `--scope` | Limits the role or policy assignment to the resource used by this recipe. |
+
 
 ### Step 3: Configure the Blob endpoint
 
@@ -174,7 +198,11 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
 
 ### Step 4: Python code for Blob operations
 
@@ -222,7 +250,12 @@ az storage blob list \
 
 | Command | Why it is used |
 |---|---|
-| `az storage blob ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+| `az storage blob list` | Lists blobs by using the signed-in identity to verify Blob access. |
+| `--account-name` | Selects the storage account used by this storage operation. |
+| `--container-name` | Selects the Blob container inspected by the verification step. |
+| `--auth-mode` | Uses the signed-in Microsoft Entra identity instead of a storage account key. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
 
 Check app logs:
 
@@ -235,7 +268,11 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Streams or retrieves logs from the selected app or revision for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--follow` | Continues streaming new log records during verification. |
+
 
 ---
 
@@ -257,7 +294,11 @@ az storage share-rm create \
 
 | Command | Why it is used |
 |---|---|
-| `az storage share-rm ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+| `az storage share-rm create` | Creates the Azure Files share mounted by the Container App. |
+| `--storage-account` | Selects the storage account that hosts the new file share. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+
 
 ### Step 2: Register storage in the Container Apps Environment
 
@@ -282,7 +323,19 @@ az containerapp env storage set \
 
 | Command | Why it is used |
 |---|---|
-| `az storage account ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+| `az storage account keys list` | Reads the storage key used by the Azure Files storage definition. |
+| `az containerapp env storage set` | Registers the Azure Files share as environment-level storage. |
+| `--account-name` | Selects the storage account used by this storage operation. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--storage-name` | Names or selects the environment storage definition. |
+| `--azure-file-account-name` | Selects the storage account that hosts the mounted share. |
+| `--azure-file-account-key` | Supplies the storage key for the environment's Azure Files connection. |
+| `--azure-file-share-name` | Selects the Azure Files share exposed to the app. |
+| `--access-mode` | Sets the mounted Azure Files share to the required read/write mode. |
+
 
 Verify the environment storage was registered:
 
@@ -295,7 +348,11 @@ az containerapp env storage show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env storage ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp env storage show` | Reads the registered environment storage definition for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--storage-name` | Names or selects the environment storage definition. |
+
 
 Expected output:
 
@@ -348,7 +405,11 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
 
 Edit `app-volume.yaml` to add volumes and volumeMounts under `template`:
 
@@ -377,7 +438,11 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--yaml` | Applies the volume or container configuration from the referenced YAML file. |
+
 
 This creates a **new revision**. Traffic will shift to the new revision automatically unless you are using manual revision mode.
 
@@ -451,7 +516,11 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
 
 ### Verification
 
@@ -466,7 +535,11 @@ az containerapp exec \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Runs the verification command inside the selected Container App replica. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--command` | Runs the stated in-container verification command. |
+
 
 Expected output (if the share has files):
 
@@ -495,7 +568,15 @@ az storage file list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Runs the verification command inside the selected Container App replica. |
+| `az storage file list` | Lists files in the mounted Azure Files share for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--command` | Runs the stated in-container verification command. |
+| `--account-name` | Selects the storage account used by this storage operation. |
+| `--share-name` | Selects the Azure Files share inspected during verification. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
 
 ---
 
@@ -543,7 +624,11 @@ az keyvault secret set \
 
 | Command | Why it is used |
 |---|---|
-| `az keyvault secret ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+| `az keyvault secret set` | Creates or updates the named Key Vault secret. |
+| `--vault-name` | Selects the Key Vault that stores the recipe secret. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--value` | Sets the recipe's named secret or DNS verification value. |
+
 
 ### Reference from Bicep (secure parameter)
 

@@ -21,12 +21,13 @@ flowchart TD
     APP_ID[App managed identity]
     KV[Azure Key Vault]
 
-    subgraph APP[Container app]
-        CONFIG[Secret definition<br/>Key Vault URL and identity reference]
-        ENVVAR[Environment variable<br/>secretRef]
-        PYTHON[Python container]
-    end
+    APP[Container app]
+    CONFIG[Secret definition<br/>Key Vault URL and identity reference]
+    ENVVAR[Environment variable<br/>secretRef]
+    PYTHON[Python container]
 
+    APP -->|Contains| CONFIG
+    APP -->|Runs| PYTHON
     CONFIG -.->|Uses| APP_ID
     APP_ID -.->|Key Vault role assignment| KV
     CONFIG ==>|Platform resolves secret| KV
@@ -49,7 +50,11 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## Create Key Vault and add secrets
 
@@ -67,7 +72,15 @@ az keyvault secret set \
 
 | Command | Why it is used |
 |---|---|
-| `az keyvault create ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+| `az keyvault create` | Creates the Key Vault used for the recipe's secret. |
+| `az keyvault secret set` | Creates or updates the named Key Vault secret. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--location` | Creates the resource in the recipe's selected Azure region. |
+| `--vault-name` | Selects the Key Vault that stores the recipe secret. |
+| `--value` | Sets the recipe's named secret or DNS verification value. |
+
+
 
 ## Configure managed identity for Key Vault access
 
@@ -92,7 +105,21 @@ az role assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity required by this recipe. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `az role assignment create` | Grants the managed identity the data-plane role required by this step. |
+| `az keyvault show` | Reads the Key Vault resource ID used as the role-assignment scope. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--system-assigned` | Enables the system identity used by the app, job, or scaler. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal. |
+| `--role` | Selects the least-privilege data-plane role required by this identity. |
+| `--scope` | Limits the role or policy assignment to the resource used by this recipe. |
+
+
 
 ## Add a Container Apps secret with Key Vault reference
 
@@ -118,7 +145,14 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Creates the Key Vault-backed Container Apps secret reference. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--secrets` | Creates or updates the named Container Apps secret reference. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
+
 
 ## Access referenced secrets in Python
 
@@ -193,7 +227,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Streams or retrieves logs from the selected app or revision for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--follow` | Continues streaming new log records during verification. |
+
+
 
 ## Advanced Topics
 

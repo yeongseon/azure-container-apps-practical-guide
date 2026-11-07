@@ -53,7 +53,12 @@ az acr login --name "$ACR_NAME"
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `az acr login` | Authenticates the local container client to the selected registry. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## Multi-stage Docker builds for Python
 

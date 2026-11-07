@@ -44,9 +44,13 @@ Thick arrows show service transport. Thin arrows show token exchange, and dotted
 az extension add --name containerapp --upgrade
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and up to date before you enable managed identities or attach them to the app. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## System-assigned vs user-assigned identity
 
@@ -66,9 +70,14 @@ az containerapp identity assign \
   --system-assigned
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `az containerapp identity assign --name "$APP_NAME" --resource-group "$RG" --system-assigned` | Enables a system-assigned managed identity on the Python app so it can authenticate to Azure services without embedded secrets. |
+| `az containerapp identity assign` | Assigns the managed identity required by this recipe. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--system-assigned` | Enables the system identity used by the app, job, or scaler. |
+
+
 
 User-assigned:
 
@@ -92,7 +101,17 @@ az containerapp identity assign \
 
 | Command | Why it is used |
 |---|---|
-| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+| `az identity create` | Creates the user-assigned managed identity used by the recipe. |
+| `az identity show` | Reads the managed identity resource, principal, or client ID. |
+| `az containerapp identity assign` | Assigns the managed identity required by this recipe. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--location` | Creates the resource in the recipe's selected Azure region. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--user-assigned` | Attaches the specified user-assigned identity to the app. |
+
+
 
 ## Enable identity via Bicep
 
@@ -137,7 +156,19 @@ az role assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `az role assignment create` | Grants the managed identity the data-plane role required by this step. |
+| `az storage account show` | Reads the storage account resource ID used as the role scope. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal. |
+| `--role` | Selects the least-privilege data-plane role required by this identity. |
+| `--scope` | Limits the role or policy assignment to the resource used by this recipe. |
+
+
 
 ## Use `DefaultAzureCredential` in Python
 
@@ -184,7 +215,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
+
 
 ## Common service patterns
 
@@ -203,7 +239,13 @@ python -m flask --app src.app run --port 8000
 
 | Command | Why it is used |
 |---|---|
-| `az login ...` | Authenticates the CLI session before Azure resource operations. |
+| `az login` | Authenticates the local Azure CLI session used for development. |
+| `az account set` | Selects the Azure subscription used by the local development session. |
+| `--subscription` | Selects the Azure subscription used by this recipe. |
+| `--app` | Starts the local sign-in callback listener for the development credential flow. |
+| `--port` | Uses this local callback port for development authentication. |
+
+
 
 `DefaultAzureCredential` will use Azure CLI token locally and managed identity in Container Apps.
 

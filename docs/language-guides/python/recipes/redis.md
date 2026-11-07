@@ -61,7 +61,15 @@ export PRINCIPAL_ID=$(az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity required by this recipe. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--system-assigned` | Enables the system identity used by the app, job, or scaler. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 ## Step 2: Assign Redis data access policy
 
@@ -74,9 +82,14 @@ export OBJECT_ID=$(az ad sp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `export OBJECT_ID=$(az ad sp show --id "$PRINCIPAL_ID" --query "id" --output tsv)` | Resolves the service principal object ID used by Azure Managed Redis as the ACL username for managed-identity authentication. |
+| `az ad sp show` | Reads the enterprise application's object ID for the Redis assignment. |
+| `--id` | Selects the resource or application by its full identifier. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 Create an access policy assignment (for example, Data Owner):
 
@@ -91,7 +104,14 @@ az redis access-policy-assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+| `az redis access-policy-assignment create` | Grants the app identity the selected Redis data access policy. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--access-policy-name` | Selects the Redis data access policy granted to the app identity. |
+| `--object-id` | Targets the enterprise application's object ID for Redis access. |
+| `--object-id-alias` | Provides the readable identity label shown in the Redis assignment. |
+
+
 
 ## Step 3: Configure Redis endpoint for the app
 
@@ -104,7 +124,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
+
 
 ## Step 4: Python code (Entra token auth)
 
@@ -154,7 +179,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
+
 
 ## Container Apps specifics
 
@@ -175,7 +205,12 @@ az redis access-policy-assignment list \
 
 | Command | Why it is used |
 |---|---|
-| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+| `az redis access-policy-assignment list` | Lists Redis access-policy assignments for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 2. Confirm app logs show successful Redis `SET`/`GET`:
 
@@ -188,7 +223,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Streams or retrieves logs from the selected app or revision for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--follow` | Continues streaming new log records during verification. |
+
+
 
 ## See Also
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)

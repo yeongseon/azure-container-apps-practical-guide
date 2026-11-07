@@ -21,10 +21,9 @@ flowchart TD
     CLIENT[Client]
     INGRESS[Managed ingress]
 
-    subgraph APP_BOUNDARY[Container app replica]
-        APP[Python app]
-        DAPR[Dapr sidecar]
-    end
+    REPLICA[Container app replica]
+    APP[Python app]
+    DAPR[Dapr sidecar]
 
     STATE[State store component]
     BROKER[Publish and subscribe component]
@@ -32,6 +31,9 @@ flowchart TD
     SERVICE[Target Dapr-enabled app]
 
     CLIENT ==>|HTTPS request| INGRESS
+    INGRESS -->|Routes to| REPLICA
+    REPLICA -->|Runs| APP
+    REPLICA -->|Runs| DAPR
     INGRESS ==>|Routed request| APP
     APP ==>|HTTP or gRPC on localhost| DAPR
     DAPR ==>|State API| STATE
@@ -56,7 +58,13 @@ az containerapp dapr enable \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
+| `az containerapp dapr enable` | Enables and configures the Dapr sidecar for the Python app. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--dapr-app-id` | Sets the Dapr application ID used for service invocation. |
+| `--dapr-app-port` | Routes Dapr calls to the Python process on its listening port. |
+
+
 
 ## How Dapr Works
 

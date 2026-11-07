@@ -23,7 +23,7 @@ flowchart TD
     CANDIDATE[Candidate revision<br/>0 percent production traffic]
     LABEL[Label URL<br/>direct revision endpoint]
     TEST[Smoke and dependency tests]
-    DECISION{Release criteria pass?}
+    DECISION[Evaluate release criteria]
     CANARY[Shift a small traffic weight]
     PROMOTE[Promote candidate]
     ROLLBACK[Keep or return traffic<br/>to stable revision]
@@ -32,9 +32,9 @@ flowchart TD
     CANDIDATE -->|Assign label| LABEL
     LABEL ==>|Direct test requests| TEST
     TEST --> DECISION
-    DECISION -->|Yes| CANARY
+    DECISION -->|Criteria pass| CANARY
     CANARY -->|Telemetry remains healthy| PROMOTE
-    DECISION -->|No| ROLLBACK
+    DECISION -->|Criteria fail| ROLLBACK
     CANARY -->|Regression| ROLLBACK
 ```
 
@@ -55,7 +55,11 @@ az containerapp revision set-mode \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision set-mode ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision set-mode` | Enables multiple revision mode for controlled traffic testing. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--mode` | Selects multiple revision mode for controlled promotion. |
+
 
 ## Deploy a new revision at 0% traffic
 
@@ -80,7 +84,17 @@ az containerapp ingress traffic set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `az containerapp revision list` | Finds the newly created candidate revision. |
+| `az containerapp ingress traffic set` | Applies the specified revision traffic weights. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--image` | Selects or tags the container image used by this recipe step. |
+| `--revision-suffix` | Gives the candidate revision a recognizable immutable suffix. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--revision-weight` | Applies the documented production traffic percentage to each revision. |
+
 
 ## Revision labels and direct URL testing
 
@@ -104,7 +118,16 @@ curl --fail "https://canary---$LABEL_URL/health"
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision label ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp revision label add` | Assigns a stable label URL to the candidate revision. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--label` | Names the stable direct URL assigned to the candidate revision. |
+| `--revision` | Selects the candidate revision used for labels, logs, or verification. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--fail` | Makes the smoke test fail on an HTTP error response. |
+
 
 ## Health check validation before traffic shift
 
@@ -124,7 +147,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Streams or retrieves logs from the selected app or revision for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--revision` | Selects the candidate revision used for labels, logs, or verification. |
+| `--follow` | Continues streaming new log records during verification. |
+
 
 ## Weighted traffic splitting (canary)
 
@@ -152,7 +180,14 @@ az containerapp ingress traffic set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Finds the newly created candidate revision. |
+| `az containerapp ingress traffic set` | Applies the specified revision traffic weights. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--revision-weight` | Applies the documented production traffic percentage to each revision. |
+
 
 ## Automated revision validation script
 
@@ -178,9 +213,17 @@ done
 echo "Revision validation passed"
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Reads the app's current ingress hostname so the validation script targets the live labeled revision endpoint instead of a hardcoded hostname. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--silent` | Suppresses progress output so the smoke-test result stays concise. |
+| `--show-error` | Prints the HTTP error when the otherwise-silent smoke test fails. |
+| `--fail` | Makes the smoke test fail on an HTTP error response. |
+
 
 ## Rollback patterns
 
@@ -197,7 +240,11 @@ az containerapp ingress traffic set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Applies the specified revision traffic weights. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--revision-weight` | Applies the documented production traffic percentage to each revision. |
+
 
 ## Advanced Topics
 
