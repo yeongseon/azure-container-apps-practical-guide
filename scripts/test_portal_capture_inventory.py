@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import datetime as dt
 import importlib.util
+import io
 import json
 import subprocess
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 from typing import Any, final
 
@@ -106,6 +108,35 @@ class PortalCaptureInventoryTests(unittest.TestCase):
 
         self.assertEqual(data["summary"]["markdown_pages"], 1)
         self.assertEqual(data["summary"]["raster_assets"], 0)
+
+    def test_cli_reports_invalid_base_commits_without_traceback(self) -> None:
+        self.write_manifest()
+        (self.root / "docs/tracked.md").write_text("# Tracked\n")
+        self.git("init")
+        self.git("config", "user.name", "Inventory Test")
+        self.git("config", "user.email", "inventory@example.com")
+        self.git("add", "docs", "scripts/capture/manifest.yaml")
+        self.git("commit", "-m", "test: add main fixture")
+        main_branch = self.git("branch", "--show-current")
+        self.git("checkout", "--orphan", "divergent")
+        self.git("commit", "--allow-empty", "-m", "test: add divergent fixture")
+        divergent_commit = self.git("rev-parse", "HEAD")
+        self.git("checkout", main_branch)
+
+        cases = (
+            ("not-a-commit", "base commit does not exist: not-a-commit"),
+            (divergent_commit, f"base commit is not an ancestor of HEAD: {divergent_commit}"),
+        )
+        for base_commit, expected_error in cases:
+            with self.subTest(base_commit=base_commit), redirect_stderr(io.StringIO()) as stderr:
+                result = inventory.run(
+                    ["--summary", "--base-commit", base_commit, "--as-of", "2026-11-07"],
+                    self.root,
+                )
+
+            self.assertEqual(result, 1)
+            self.assertEqual(stderr.getvalue(), expected_error + "\n")
+            self.assertNotIn("Traceback", stderr.getvalue())
 
     def test_unknown_shot_and_stale_manifest_are_not_captured(self) -> None:
         self.write_manifest(

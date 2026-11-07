@@ -3,7 +3,7 @@ description: Current Azure Container Apps Portal capture inventory, including ma
 ---
 # Portal Capture Inventory
 
-This inventory is generated from tracked repository files at `1d77b1869134ec7cfca20b13e4a3b1039d0b6392`. It records file and reference presence only; no image was opened, captured, changed, or independently re-verified.
+This inventory is generated from tracked repository files at `9cbf725392ae262dadf3553005172d7eda88c6a0`. It records file and reference presence only; no image was opened, captured, changed, or independently re-verified.
 
 The scan reads `docs/**` and `scripts/capture/manifest.yaml` directly from that pinned commit. The current generator rules classify Portal instructions with these phrases: `azure portal`, `in the portal`, `portal blade`, `portal evidence`, `portal view`, `portal screenshot`, `portal capture`. The vocabulary intentionally uses specific phrases rather than the bare word `portal` to avoid classifying incidental mentions as capture instructions.
 
@@ -139,5 +139,8 @@ Cross-repo issue `yeongseon/azure-functions-practical-guide#389` was checked dir
 
 - [Lab Portal Capture Briefs](../contributing/lab-portal-capture-briefs.md)
 - [Troubleshooting Labs](../troubleshooting/lab-guides/index.md)
-- [Capture manifest workflow](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/1d77b1869134ec7cfca20b13e4a3b1039d0b6392/scripts/capture/README.md)
+
+## Sources
+
+- [Capture manifest workflow](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/9cbf725392ae262dadf3553005172d7eda88c6a0/scripts/capture/README.md)
 - [Issue #570 acceptance checklist](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/570)

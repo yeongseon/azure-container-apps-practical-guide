@@ -514,6 +514,9 @@ Cross-repo issue `yeongseon/azure-functions-practical-guide#389` was checked dir
 
 - [Lab Portal Capture Briefs](../contributing/lab-portal-capture-briefs.md)
 - [Troubleshooting Labs](../troubleshooting/lab-guides/index.md)
+
+## Sources
+
 - [Capture manifest workflow](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/{data['pinned_base_commit']}/scripts/capture/README.md)
 - [Issue #570 acceptance checklist](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/570)
 """
@@ -550,7 +553,11 @@ def run(argv: list[str] | None = None, root: Path = ROOT) -> int:
     else:
         base_commit = args.base_commit or current_head(root)
         as_of = args.as_of or dt.date.today()
-    data = build_inventory(root, base_commit, as_of)
+    try:
+        data = build_inventory(root, base_commit, as_of)
+    except InventoryError as error:
+        print(error, file=sys.stderr)
+        return 1
     if args.summary:
         print(json.dumps(data["summary"], indent=2, sort_keys=True))
         return 0
