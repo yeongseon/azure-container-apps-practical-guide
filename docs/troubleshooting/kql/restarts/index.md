@@ -1,4 +1,5 @@
 ---
+description: KQL queries for correlating Azure Container Apps restart signals with application startup and shutdown evidence across supported log schemas.
 content_sources:
   diagrams:
     - id: query-pipeline-overview
@@ -21,7 +22,7 @@ Queries for analyzing container and replica restart patterns in Azure Container 
 | `ContainerAppConsoleLogs_CL` | Application logs showing shutdown/startup sequences |
 
 !!! note "Schema Variation"
-    If `_CL` tables are empty, try the non-`_CL` variants.
+    The queries in this pack use the legacy direct Log Analytics schema: `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL`, with fields such as `Log_s`, `RevisionName_s`, and `ContainerGroupName_s`. Azure Monitor diagnostic settings instead populate the resource-specific `ContainerAppConsoleLogs` and `ContainerAppSystemLogs` tables, whose corresponding fields include `Log`, `RevisionName`, and `ReplicaName`. Choose the query variant for the ingestion path; do not only remove the `_CL` suffix because the column names also differ.
 
 ## Query Pipeline Overview
 
