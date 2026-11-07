@@ -8,7 +8,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/private-link/manage-private-endpoint
         - https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
-        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+        - https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall
         - https://learn.microsoft.com/en-us/azure/firewall/firewall-diagnostics
 validation:
   az_cli:
@@ -88,47 +89,44 @@ The unique structural feature of this lab is that **the v-bypass pull SUCCEEDS**
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    REPLICA[Container App replica<br/>snet-aca 10.90.0.0/23<br/>egress source IP 10.90.1.160]
-    DNS[Azure DNS resolution<br/>via linked privatelink.azurecr.io zone]
-    PEIPS[PE NIC IPs<br/>10.90.2.4 data endpoint<br/>10.90.2.5 login endpoint]
-    RTABLE{Route table on snet-aca<br/>longest-prefix match}
-    UDR_DEFAULT[default-via-afw<br/>0.0.0.0/0 -> AFW private IP 10.90.3.4]
-    UDR_PE_PRESENT[pe-10-90-2-4 + pe-10-90-2-5<br/>10.90.2.4/32 + 10.90.2.5/32 -> AFW]
-    SYSTEM_PE[System /32 route for PE<br/>injected automatically by Azure]
-    AFW[Azure Firewall Basic<br/>private IP 10.90.3.4<br/>application rules:<br/>Allow ACR login + data + MCR + acs-mirror]
-    AZFW_LOG[AZFWApplicationRule<br/>logs FQDN match]
-    PE[PE NIC pe-acracrpefcinhh4rw<br/>snet-pe 10.90.2.0/26]
-    ACR[ACR Premium<br/>publicNetworkAccess=Disabled<br/>PE-only access]
+    accTitle: Path C route decision for inspected or bypassed ACR Private Endpoint transport
+    accDescr: ACR names resolve privately in every state. The route decision asks whether private endpoint network policies and explicit destination routes for both private endpoint NIC IPs are active. If yes, image transport crosses Azure Firewall and produces application-rule evidence. If no, the private endpoint system route bypasses the firewall while the pull still succeeds.
 
-    REPLICA -->|docker login + image pull| DNS
-    DNS -->|FQDN to PE NIC IP| PEIPS
-    PEIPS -->|TCP SYN to 10.90.2.x| RTABLE
+    subgraph ENV["Managed Container Apps environment"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        PULL["Fresh image pull<br/>workload-subnet source"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.-> PULL
+    end
 
-    RTABLE -.->|WITH /32 routes: customer UDR wins<br/>by customer-route-precedence rule| UDR_PE_PRESENT
-    RTABLE -.->|WITHOUT /32 routes: system /32 wins<br/>by longest-prefix match over 0.0.0.0/0| SYSTEM_PE
+    DNS["Azure DNS and linked private zone<br/>login and data return PE IPs"]
+    ROUTE{"PE network policies enabled<br/>and explicit PE-IP routes active?"}
+    DEFAULT["Default route to firewall<br/>insufficient for PE destinations"]
+    FW["Azure Firewall Basic<br/>application rules and SNAT"]
+    POLICY["Firewall policy<br/>allow login and data FQDNs"]
+    LOGS["AZFWApplicationRule<br/>new ACR rows"]
+    SYSTEM["Private Endpoint system route<br/>firewall bypass"]
+    PE["ACR Private Endpoint NIC<br/>login and data private IPs"]
+    ACR["ACR Premium<br/>public network access disabled"]
 
-    UDR_PE_PRESENT --> AFW
-    AFW --> AZFW_LOG
-    AFW -->|forwards to PE NIC<br/>after application-rule allow| PE
-    SYSTEM_PE -.->|firewall bypassed<br/>NO entry in AZFWApplicationRule| PE
+    PULL -->|query login and data FQDNs| DNS
+    DNS -.->|private IP answers| PULL
+    PULL -->|route lookup for PE IP| ROUTE
+    DEFAULT -.->|does not decide PE route| ROUTE
+    ROUTE -->|Yes: explicit destination routes| FW
+    POLICY -.->|allow decision and SNAT| FW
+    FW ==>|inspected HTTPS image transport| PE
+    FW -.->|emit allow evidence| LOGS
+    ROUTE -->|No: system route wins| SYSTEM
+    SYSTEM ==>|direct HTTPS image transport| PE
+    SYSTEM -.->|no new firewall row| LOGS
+    PE ==>|Private Link transport| ACR
 
-    PE --> ACR
-
-    UDR_DEFAULT -.->|loses to system /32 for PE<br/>covers ONLY non-PE egress| AFW
-
-    classDef workload fill:#e1f5ff,stroke:#0078d4
-    classDef routing fill:#fff4e6,stroke:#ca5010
-    classDef inspect fill:#e5f5e5,stroke:#107c10
-    classDef bypass fill:#fde7e9,stroke:#a4262c
-    classDef registry fill:#f3f2f1,stroke:#605e5c
-
-    class REPLICA,DNS,PEIPS workload
-    class RTABLE,UDR_DEFAULT,UDR_PE_PRESENT,SYSTEM_PE routing
-    class AFW,AZFW_LOG inspect
-    class PE,ACR registry
+    LEGEND["Arrow key<br/>thick = image transport<br/>solid = DNS or route decision<br/>dotted = answer, policy, or evidence"]
 ```
 
-The solid arrows are the image-pull data path in the **inspected** (baseline + recover) state: replica → DNS → PE NIC IP → route table → customer-defined `/32` UDR route wins → firewall → firewall's application rule allows the ACR FQDN → `AZFWApplicationRule` records the row → firewall forwards to PE NIC → ACR backend serves the layer. The dotted arrows on the right are what happens in the **bypass** state after `az network route-table route delete` removes the two `/32` UDR routes for the PE NIC IPs: the system-injected `/32` route for the PE wins by longest-prefix match, the packet goes directly to the PE NIC, the firewall is bypassed, and `AZFWApplicationRule` has no record of the connection. The dotted arrow at the bottom shows the `0.0.0.0/0` UDR's actual scope: it covers non-PE egress (Entra ID, MCR, acs-mirror) but is **not** sufficient to cover PE traffic on its own. DNS is not the controlled variable in this lab — both ACR FQDNs resolve to PE NIC IPs via the linked Private DNS Zone in every state. The controlled variable is the presence or absence of the two `/32` UDR routes, and the falsification signal is the firewall's log stream.
+The thick arrows show the two successful image-transport alternatives. In the **inspected** baseline and recovery states, private endpoint network policies plus explicit routes for both PE NIC destination IPs select Azure Firewall; its application rule and SNAT preserve the stateful path, and the firewall emits ACR rows. In the **bypass** state, removing those routes lets the Private Endpoint system route win over the default route, so the same pull succeeds directly and produces no new firewall row. DNS is held constant throughout.
 
 ## 2) Hypothesis
 
@@ -624,7 +622,8 @@ Azure Firewall Basic + its two public IPs is the dominant cost (~$24/day) — do
 - [Manage network policies for Private Endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/disable-private-endpoint-network-policy) — the `privateEndpointNetworkPolicies` property on the PE subnet, which is the prerequisite for UDRs to apply to PE traffic. Lab 5's Bicep sets this to `'Enabled'` on `snet-pe`.
 - [Virtual network traffic routing (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview) — longest-prefix-match semantics and the customer-route-precedence rule. The lab's central thesis (that a `0.0.0.0/0` UDR loses to system `/32` routes for Private Endpoints) is a direct consequence of these rules.
 - [Use Azure Firewall with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall) — official guidance for the forced-egress-through-firewall pattern, including the UDR + firewall private-IP-as-next-hop requirement.
-- [Connect privately to an Azure container registry using Azure Private Link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link) — ACR Private Endpoint topology, including the fact that the PE NIC holds separate IPs for the login endpoint and each region's data endpoint.
+- [Connect privately to an Azure container registry using Azure Private Link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints) — ACR Private Endpoint topology, including the fact that the PE NIC holds separate IPs for the login endpoint and each region's data endpoint.
+- [Inspect Private Endpoint traffic with Azure Firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall) — direct source for Private Endpoint system routes, network-policy prerequisites, destination-prefix UDR overrides, firewall application rules, SNAT, and symmetric return-path requirements represented in the diagram.
 - [Azure Firewall structured logs (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/firewall/firewall-structured-logs) — the `AZFWApplicationRule` resource-specific table and the `logAnalyticsDestinationType: 'Dedicated'` requirement on the diagnostic settings resource.
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking) — Container Apps VNet integration, workload-profile subnet requirements (delegation, `/23` minimum), and inheritance of UDRs.
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions) — revision lifecycle, including the cached-image-layer behavior that lets an already-running revision survive a routing change.

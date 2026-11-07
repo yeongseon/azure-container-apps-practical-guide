@@ -6,6 +6,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-endpoints
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
 validation:
@@ -68,30 +69,42 @@ Two non-obvious properties make this lab worth running:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    REPLICA[Container App replica<br/>workload profile subnet]
-    DNS[Azure DNS<br/>168.63.129.16]
-    ZONE[Private DNS Zone<br/>privatelink.azurecr.io]
-    PE[ACR Private Endpoint NIC<br/>RFC1918 private IP]
-    ACR[Azure Container Registry<br/>Premium<br/>publicNetworkAccess=Disabled]
-    ENTRA[Microsoft Entra ID<br/>login.microsoftonline.com]
+    accTitle: Path B direct ACR Private Endpoint image transport
+    accDescr: The Container Apps environment uses Azure DNS and a VNet-linked privatelink.azurecr.io zone to resolve ACR login and regional data names to private endpoint NIC addresses. Fresh image transport goes directly to the private endpoint without a firewall hop. Managed identity authorization remains a separate requirement.
 
-    REPLICA -->|1 resolve registry FQDN| DNS
-    DNS -->|2 zone is linked to VNet| ZONE
-    ZONE -->|3 returns private IP| REPLICA
-    REPLICA -->|4 pull image over Azure backbone| PE
-    PE --> ACR
-    REPLICA -.->|MI token acquisition<br/>port 443| ENTRA
+    subgraph ENV["Managed Container Apps environment"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        PULL["Fresh image pull<br/>workload-subnet source"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.-> PULL
+    end
 
-    classDef path fill:#e1f5ff,stroke:#0078d4
-    classDef registry fill:#e5f5e5,stroke:#107c10
-    classDef identity fill:#fff4e6,stroke:#ca5010
+    subgraph VNET["Customer virtual network"]
+        ACA_SUBNET["ACA infrastructure subnet<br/>environment association"]
+        subgraph PE_SUBNET["Private Endpoint subnet"]
+            PE["ACR Private Endpoint NIC<br/>login and data private IPs"]
+        end
+    end
 
-    class REPLICA,DNS,ZONE,PE path
-    class ACR registry
-    class ENTRA identity
+    DNS["Azure DNS"]
+    ZONE["Private DNS zone<br/>privatelink.azurecr.io"]
+    ACR["ACR Premium<br/>public network access disabled"]
+    AUTH["Managed identity authorization<br/>registry role assignment"]
+
+    ACA_SUBNET -.->|infrastructure subnet| ENV
+    ZONE -.->|VNet link| VNET
+    PULL -->|query login and data FQDNs| DNS
+    DNS -->|consult linked zone| ZONE
+    ZONE -.->|private IP answers| PULL
+    PULL ==>|HTTPS image transport| PE
+    PE ==>|Private Link transport| ACR
+    AUTH -.->|required independently| PULL
+
+    LEGEND["Arrow key<br/>thick = image transport<br/>solid = DNS query<br/>dotted = answer, association, or authorization"]
 ```
 
-The solid arrows are the image data path. The dashed arrow is the platform acquiring an Entra ID token for the Container App's managed identity. Even though the data path is fully private, **Entra ID egress is still required** — this is the most commonly forgotten outbound dependency when locking down a Container Apps environment for ACR pulls. See the `AzureActiveDirectory` requirement in [Egress Control](../../platform/networking/egress-control.md#required-outbound-dependencies).
+The thick arrows are the image transport. Solid and dotted arrows keep DNS queries, private-zone answers, subnet/zone associations, and authorization distinct from transport. This lab uses an RBAC-only registry with the system-assigned identity granted `AcrPull`; an ABAC-enabled registry would instead require `Container Registry Repository Reader`. Even with the ACR data path private, managed-identity token acquisition still needs its documented outbound dependency. See [Egress Control](../../platform/networking/egress-control.md#required-outbound-dependencies).
 
 ## 2) Hypothesis
 
@@ -423,3 +436,4 @@ ACR Premium is the dominant cost (~$1.67/day), so do not leave the lab running b
 - [Use Azure Firewall to inspect Private Endpoint traffic (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/inspect-traffic-with-azure-firewall) — explains why default routing keeps PE traffic off the firewall
 - [Securing a custom VNET in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration) — egress requirements for Container Apps environments, including why AzureContainerRegistry service tag egress is not required when ACR is reached via PE
 - [Authenticate with an Azure container registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)
+- [Azure Container Registry roles and repository permissions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)

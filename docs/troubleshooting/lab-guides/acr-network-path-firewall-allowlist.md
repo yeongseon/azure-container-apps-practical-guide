@@ -136,37 +136,43 @@ The lab's outcome taxonomy enumerates the observable states across the baseline 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    REPLICA[Container App replica<br/>snet-aca 10.80.0.0/23<br/>RFC1918 internal IP]
-    DOCKER[docker login + image pull<br/>over public ACR FQDN<br/>auth: ACR admin creds]
-    UDR[UDR 0.0.0.0/0<br/>next-hop = AFW privateIPAddress<br/>10.80.2.4 in this layout]
-    AFW[Azure Firewall Basic<br/>private IP 10.80.2.4<br/>application rules<br/>Allow: ACR login + data + MCR + acs-mirror]
-    SNAT[SNAT to firewall public IP<br/>20.196.208.15]
-    ACRFW[ACR firewall layer<br/>networkRuleSet.defaultAction=Deny<br/>networkRuleBypassOptions=None<br/>ipRules=AFW PIP <- controlled variable]
-    ACR[ACR Premium<br/>publicNetworkAccess=Enabled<br/>adminUserEnabled=true<br/>dataEndpointEnabled=true]
-    DENIED[HTTP 403 with body:<br/>client with IP AFW-PIP<br/>is not allowed access]
-    CACHED[Already-cached image layers<br/>v1 revision stays Healthy<br/>during broken window]
+    accTitle: Path A public ACR through Azure Firewall and SNAT
+    accDescr: A fresh Container Apps image pull resolves public ACR login and data endpoints. The workload subnet route table selects Azure Firewall, whose application policy allows the FQDNs and whose public IP becomes the source observed by the ACR public firewall. Removing that public IP from the ACR allowlist produces the lab's HTTP 403 evidence while the cached revision stays healthy.
 
-    REPLICA --> DOCKER
-    REPLICA --> CACHED
-    DOCKER -->|0.0.0.0/0 default route| UDR
-    UDR --> AFW
-    AFW -->|application rule allow<br/>HTTPS to ACR FQDN| SNAT
-    SNAT --> ACRFW
-    ACRFW -->|HEALTHY: AFW PIP in ipRules| ACR
-    ACRFW -.->|BROKEN: AFW PIP NOT in ipRules<br/>403 with PIP named in body| DENIED
+    subgraph ENV["Managed Container Apps environment"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        PULL["Fresh image pull<br/>workload-subnet source"]
+        CACHED["Cached revision<br/>keeps serving"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.-> PULL
+        REV_ACTIVE -.-> CACHED
+    end
 
-    classDef workload fill:#e1f5ff,stroke:#0078d4
-    classDef brokenpath fill:#fde7e9,stroke:#a4262c
-    classDef registry fill:#e5f5e5,stroke:#107c10
-    classDef neutral fill:#f3f2f1,stroke:#605e5c
+    DNS["Azure DNS<br/>public ACR answers"]
+    RT["Route table on ACA subnet<br/>default route to firewall"]
+    FW["Azure Firewall Basic<br/>HTTPS transport and SNAT"]
+    FWP["Firewall policy<br/>allow login and data FQDNs"]
+    PIP["Firewall public IP"]
+    ACRFW{"ACR public firewall<br/>is firewall public IP allowed?"}
+    ACR["ACR Premium public endpoint<br/>login and dedicated data endpoints"]
+    DENIED["HTTP 403 DENIED<br/>response names observed source IP"]
 
-    class REPLICA,DOCKER workload
-    class DENIED brokenpath
-    class ACR,ACRFW registry
-    class UDR,AFW,SNAT,CACHED neutral
+    PULL -->|query login and data FQDNs| DNS
+    DNS -.->|public IP answers| PULL
+    PULL -->|route lookup| RT
+    RT -.->|firewall next hop| PULL
+    PULL ==>|HTTPS image transport| FW
+    FWP -.->|allow decision| FW
+    PIP -.->|SNAT address| FW
+    FW ==>|SNAT source is firewall public IP| ACRFW
+    ACRFW ==>|Yes: serve manifest and layers| ACR
+    ACRFW -.->|No: reject| DENIED
+
+    LEGEND["Arrow key<br/>thick = image transport<br/>solid = DNS query or route lookup<br/>dotted = answer, policy, association, or failure"]
 ```
 
-The solid arrows are the image-pull data path in the **HEALTHY** baseline state: replica → UDR-forced default route → Azure Firewall → SNAT to firewall public IP → ACR firewall layer (allow because AFW PIP is in `ipRules`) → ACR backend serves the layer. The dotted arrow is what happens in the **BROKEN** state after `az acr network-rule remove` removes the firewall PIP from `ipRules`: ACR's firewall layer rejects the inbound flow with HTTP 403 *before* the request reaches the registry backend, and the response body contains the literal text `client with IP '<AFW-PIP>' is not allowed access`. Note that DNS is NOT the controlled variable in this lab — the VNet uses default Azure DNS, both ACR FQDNs (login and data) resolve to public IPs, and the firewall's application rule allows them by FQDN. The neutral-colored "Already-cached image layers" node captures the lab's central Container Apps finding: during the broken window, the v1 revision continues to serve `/` from already-cached layers without re-pulling, and revision `healthState` stays `Healthy`. Only fresh pulls (the v-broken revision deployment) actually exercise the broken path.
+The thick arrows are the fresh image transport in the **HEALTHY** baseline. Ordinary and dotted arrows keep DNS, route selection, firewall policy, and SNAT association distinct from transport. In the **BROKEN** state, `az acr network-rule remove` removes the firewall public IP from `ipRules`; the ACR public firewall rejects the connection before the registry serves the image and returns the observed source IP in the DENIED body. DNS is held constant, and the cached revision branch records why the already-running v1 revision remains `Healthy` without another pull.
 
 ## 2) Hypothesis
 

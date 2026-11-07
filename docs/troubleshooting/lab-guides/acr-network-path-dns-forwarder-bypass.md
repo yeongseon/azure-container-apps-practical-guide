@@ -73,41 +73,46 @@ Three properties make Scenario E worth reproducing as a hands-on lab:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    REPLICA[Container App replica<br/>workload profile subnet 10.60.3.0/24]
-    PROBE[Workload /probe endpoint<br/>socket.getaddrinfo ACR FQDN]
-    CACHED[Already-cached image layers<br/>no pull during broken window]
-    DNSMASQ[dnsmasq VM<br/>10.60.5.4<br/>HEALTHY: server=168.63.129.16<br/>BROKEN: server=8.8.8.8]
-    AZDNS[Azure DNS<br/>168.63.129.16]
-    PUBDNS[Public recursive DNS<br/>8.8.8.8]
-    ZONE[Private DNS Zone<br/>privatelink.azurecr.io<br/>linked to VNet]
-    PE[ACR Private Endpoint NIC<br/>10.60.4.5 registry<br/>10.60.4.4 data]
-    ACR[Azure Container Registry<br/>Premium<br/>publicNetworkAccess=Disabled]
-    PUBIP[Public ACR IP<br/>e.g. 20.41.69.142]
+    accTitle: Path E custom DNS forwarder bypass of the ACR private zone
+    accDescr: A workload probe in a running Container Apps revision sends its ACR query to the VNet custom DNS server. When dnsmasq forwards to Azure DNS, the linked private zone returns the private endpoint IP. When dnsmasq forwards to public DNS, the same name returns the public ACR IP and bypasses the private zone. The private endpoint and zone stay healthy in both states.
 
-    REPLICA --> PROBE
-    REPLICA --> CACHED
-    PROBE -->|workload DNS goes through VNet custom DNS| DNSMASQ
-    DNSMASQ -->|HEALTHY path| AZDNS
-    DNSMASQ -.->|BROKEN path| PUBDNS
-    AZDNS --> ZONE
-    ZONE -->|returns PE NIC IP| PROBE
-    PUBDNS -.->|returns public IP| PROBE
-    PROBE -->|TLS to resolved IP| PE
-    PROBE -.->|TLS to resolved IP| PUBIP
-    PE --> ACR
+    subgraph ENV["Managed Container Apps environment"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        PROBE["Workload DNS probe<br/>ACR login FQDN"]
+        CACHED["Cached image layers<br/>no fresh pull in broken window"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.->|hosts| PROBE
+        REV_ACTIVE -.-> CACHED
+    end
 
-    classDef workload fill:#e1f5ff,stroke:#0078d4
-    classDef brokenpath fill:#fde7e9,stroke:#a4262c
-    classDef registry fill:#e5f5e5,stroke:#107c10
-    classDef neutral fill:#f3f2f1,stroke:#605e5c
+    subgraph VNET["Customer virtual network"]
+        DNSMASQ{"dnsmasq VM<br/>which upstream is configured?"}
+        PE["ACR Private Endpoint NIC<br/>login and data private IPs"]
+    end
 
-    class REPLICA,PROBE workload
-    class PUBDNS,PUBIP brokenpath
-    class ACR,PE registry
-    class CACHED neutral
+    AZDNS["Azure DNS"]
+    PUBDNS["Public recursive DNS"]
+    ZONE["Private DNS zone<br/>privatelink.azurecr.io"]
+    PUBEND["ACR public endpoint<br/>public network access disabled"]
+    ACR["ACR Premium"]
+
+    ZONE -.->|VNet link| VNET
+    PROBE -->|VNet custom-DNS query| DNSMASQ
+    DNSMASQ -->|Healthy: Azure DNS upstream| AZDNS
+    AZDNS -->|consult linked zone| ZONE
+    ZONE -.->|private IP answer| PROBE
+    PROBE ==>|healthy HTTPS probe| PE
+    PE ==>|Private Link transport| ACR
+    DNSMASQ -->|Broken: public DNS upstream| PUBDNS
+    PUBDNS -.->|public IP answer| PROBE
+    PROBE ==>|broken-path HTTPS probe| PUBEND
+    PUBEND -.->|registry policy rejects public path| ACR
+
+    LEGEND["Arrow key<br/>thick = workload request or probe transport<br/>solid = DNS query and forwarding<br/>dotted = answer, association, policy, or cached state"]
 ```
 
-The solid arrows are the workload DNS path and image data path in the **HEALTHY** state. The dotted arrows are what the workload sees in the **BROKEN** state after dnsmasq is swapped to `server=8.8.8.8`. The neutral-colored `Already-cached image layers` node captures the lab's central finding: during the broken window, the lab does not trigger a fresh pull, so the replica continues to run from the already-cached layers without re-pulling, and revision `healthState` stays `Healthy`. See [§"Why we do not script a broken-window fresh pull"](#why-we-do-not-script-a-broken-window-fresh-pull) for the scope boundary.
+The thick arrows are workload probe transport, not a fresh image pull. In the **HEALTHY** state, dnsmasq forwards to Azure DNS, which can consult the VNet-linked private zone and return the PE NIC address. In the **BROKEN** state, dnsmasq forwards to public DNS; the private zone is never consulted, the workload receives the public ACR address, and ACR's disabled public surface rejects that path. The Private Endpoint and zone are unchanged. The cached-state relation preserves the lab's explicit scope: no fresh pull occurs during the broken window, so the existing revision stays `Healthy`.
 
 ## 2) Hypothesis
 
