@@ -180,7 +180,7 @@ For offline reruns:
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-dns-forwarder-bypass/` | Enters the lab directory so relative evidence paths resolve correctly. |
-| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. This is the Phase B offline verifier, not the live post-deploy health check. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 hermetically from current raw evidence without touching Azure or reading existing gate files as anchor sources. This is the Phase B offline verifier, not the live post-deploy health check. |
 
 ```bash
 cd labs/acr-network-path-dns-forwarder-bypass/
