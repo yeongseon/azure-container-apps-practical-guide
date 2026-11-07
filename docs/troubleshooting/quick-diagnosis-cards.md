@@ -1,17 +1,18 @@
 ---
+description: Rapid Azure Container Apps diagnosis cards that connect symptoms to evidence, platform segments, and focused troubleshooting playbooks.
 content_sources:
   diagrams:
     - id: card-1-image-pull-failure
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/observability
-        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
-        - https://learn.microsoft.com/en-us/azure/container-apps/logging
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps provides system logs and console logs for diagnosis and troubleshooting.
       source: https://learn.microsoft.com/en-us/azure/container-apps/observability
@@ -32,22 +33,46 @@ One-page reference cards for rapid incident triage. Each card maps: **Symptom â†
 
 Use these when you have 60 seconds to identify the failure category.
 
+!!! note "Choose the table schema for the logging destination"
+    The card queries use the legacy direct Log Analytics destination: `ContainerAppSystemLogs_CL`, `ContainerAppConsoleLogs_CL`, and suffixed columns such as `Log_s` and `RevisionName_s`. Environments that route logs through Azure Monitor diagnostic settings use `ContainerAppSystemLogs`, `ContainerAppConsoleLogs`, and unsuffixed columns such as `Log` and `RevisionName`. `ContainerAppHTTPLogs` never uses an `_CL` suffix.
+
 ---
 
 ## Card 1: Image Pull Failure
 
 <!-- diagram-id: card-1-image-pull-failure -->
 ```mermaid
-graph TD
-    A[Revision stuck Provisioning] --> B[First Query]
-    B --> C[Platform Segment]
-    C --> D[Playbook]
+flowchart TD
+    SYMPTOM[Revision fails to provision]
+    SYSTEM[System-log image-pull evidence]
+    REASON[Classify the failure reason]
+    AUTH[Authentication or authorization]
+    IMAGE[Image, tag, or manifest]
+    NETWORK[Registry DNS or network reachability]
+    FIX[Apply one matching correction]
+    VERIFY[Verify a fresh revision pulls the image<br/>and reaches healthy state]
+    RETURN[Return to competing hypotheses]
+    CLOSE[Record image-pull evidence<br/>and recovery]
+
+    SYMPTOM --> SYSTEM
+    SYSTEM --> REASON
+    REASON -->|Unauthorized or denied| AUTH
+    REASON -->|Not found or manifest unknown| IMAGE
+    REASON -->|Timeout or DNS failure| NETWORK
+    AUTH --> FIX
+    IMAGE --> FIX
+    NETWORK --> FIX
+    FIX --> VERIFY
+    VERIFY -->|Still failing| RETURN
+    VERIFY -->|Healthy| CLOSE
 ```
+
+The card distinguishes registry authorization, image reference, and network failures before applying a fix, then requires a fresh healthy revision as falsification evidence.
 
 | Step | Action |
 |---|---|
 | **Symptom** | New revision stuck in "Provisioning" state, never becomes "Running" |
-| **First Query** | `ContainerAppSystemLogs \| where TimeGenerated > ago(15m) \| where Log_s has_any ("pull", "image", "auth", "401", "403", "manifest") \| take 50` |
+| **First Query** | `ContainerAppSystemLogs_CL \| where TimeGenerated > ago(15m) \| where Log_s has_any ("pull", "image", "auth", "401", "403", "manifest") \| take 50` |
 | **What to Look For** | `unauthorized`, `manifest unknown`, `connection refused`. Check ACR name and credentials. |
 | **Platform Segment** | Startup / Provisioning |
 | **Playbook** | [Image Pull Failure](playbooks/startup-and-provisioning/image-pull-failure.md) |
@@ -58,13 +83,14 @@ graph TD
 az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}" --output table
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp revision list` | Lists revision running states to identify the revision blocked by an image-pull failure. |
+| `--name` | Selects the container app whose revision rollout is stuck. |
+| `--output` | Formats the revision names and running states as a table. |
+| `--query` | Projects only each revision name and running state for rapid diagnosis. |
+| `--resource-group` | Selects the resource group containing the app. |
 
 ---
 
@@ -73,7 +99,7 @@ az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].
 | Step | Action |
 |---|---|
 | **Symptom** | Container starts but crashes repeatedly, revision never healthy |
-| **First Query** | `ContainerAppConsoleLogs \| where TimeGenerated > ago(30m) \| where Log_s has_any ("error", "exception", "traceback", "failed", "exit") \| take 100` |
+| **First Query** | `ContainerAppConsoleLogs_CL \| where TimeGenerated > ago(30m) \| where Log_s has_any ("error", "exception", "traceback", "failed", "exit") \| take 100` |
 | **What to Look For** | Application exceptions, missing environment variables, port binding issues (`EADDRINUSE`). |
 | **Platform Segment** | Startup / Provisioning |
 | **Playbook** | [Container Start Failure](playbooks/startup-and-provisioning/container-start-failure.md) |
@@ -84,9 +110,15 @@ az containerapp revision list --resource-group $RG --name $APP_NAME --query "[].
 az containerapp logs show --resource-group $RG --name $APP_NAME --type console --tail 100
 ```
 
-| Command | Purpose |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show --resource-group $RG --name $APP_NAME --type console --tail 100` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
+| `az containerapp logs show` | Retrieves application output that exposes the exception causing repeated starts. |
+| `--name` | Selects the container app with the suspected start failure. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--tail` | Limits the check to the 100 most recent console-log lines. |
+| `--type` | Selects application console output rather than platform system events. |
+
 
 ---
 
@@ -95,7 +127,7 @@ az containerapp logs show --resource-group $RG --name $APP_NAME --type console -
 | Step | Action |
 |---|---|
 | **Symptom** | Container starts but probe times out, revision marked unhealthy |
-| **First Query** | `ContainerAppSystemLogs \| where TimeGenerated > ago(30m) \| where Log_s has_any ("probe", "health", "liveness", "readiness", "unhealthy") \| take 50` |
+| **First Query** | `ContainerAppSystemLogs_CL \| where TimeGenerated > ago(30m) \| where Log_s has_any ("probe", "health", "liveness", "readiness", "unhealthy") \| take 50` |
 | **What to Look For** | Probe timeout, wrong port, path returning non-2xx. Check `targetPort` vs actual listening port. |
 | **Platform Segment** | Startup / Provisioning |
 | **Playbook** | [Probe Failure and Slow Start](playbooks/startup-and-provisioning/probe-failure-and-slow-start.md) |
@@ -106,9 +138,14 @@ az containerapp logs show --resource-group $RG --name $APP_NAME --type console -
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].probes"
 ```
 
-| Command | Purpose |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].probes"` | Reads the Container App resource and extracts the configured probe definitions, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show` | Reads configured probes for comparison with the container's actual port and startup behavior. |
+| `--name` | Selects the container app with the failing or slow probe. |
+| `--query` | Returns only the first container's probe configuration. |
+| `--resource-group` | Selects the resource group containing the app. |
+
 
 ---
 
@@ -117,7 +154,7 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 | Step | Action |
 |---|---|
 | **Symptom** | External requests return 502/503, app appears running |
-| **First Query** | `ContainerAppSystemLogs \| where TimeGenerated > ago(1h) \| where Log_s has_any ("ingress", "upstream", "502", "503", "connection refused") \| take 50` |
+| **First Query** | `ContainerAppSystemLogs_CL \| where TimeGenerated > ago(1h) \| where Log_s has_any ("ingress", "upstream", "502", "503", "connection refused") \| take 50` |
 | **What to Look For** | No healthy replicas, ingress disabled, port mismatch between ingress and container. |
 | **Platform Segment** | Ingress / Networking |
 | **Playbook** | [Ingress Not Reachable](playbooks/ingress-and-networking/ingress-not-reachable.md) |
@@ -129,15 +166,14 @@ az containerapp ingress show --resource-group $RG --name $APP_NAME
 az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}"
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp ingress show --resource-group $RG --name $APP_NAME` | Reads the ingress resource view so you can verify how the app is exposed and whether ingress-level settings match the symptom. |
-| `az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}"` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp ingress show --resource-group $RG --name $APP_NAME` | Reads the ingress resource view so you can verify how the app is exposed and whether ingress-level settings match the symptom. |
-| `az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{name:name, status:properties.runningState}"` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp ingress show` | Reads the app's exposure and target-port settings for the 502/503 path. |
+| `--name` | Selects the container app whose ingress and replicas are being checked. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `az containerapp replica list` | Lists current replicas to determine whether ingress has a running backend. |
+| `--query` | Projects only replica names and running states for rapid comparison. |
 
 ---
 
@@ -146,7 +182,7 @@ az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{
 | Step | Action |
 |---|---|
 | **Symptom** | App cannot reach private resources, DNS errors in logs |
-| **First Query** | `ContainerAppConsoleLogs \| where TimeGenerated > ago(1h) \| where Log_s has_any ("getaddrinfo", "Name or service not known", "NXDOMAIN", "DNS", "resolve") \| take 50` |
+| **First Query** | `ContainerAppConsoleLogs_CL \| where TimeGenerated > ago(1h) \| where Log_s has_any ("getaddrinfo", "Name or service not known", "NXDOMAIN", "DNS", "resolve") \| take 50` |
 | **What to Look For** | Private DNS zone not linked to VNet, incorrect custom DNS server, missing Private Endpoint. |
 | **Platform Segment** | Ingress / Networking |
 | **Playbook** | [Internal DNS and Private Endpoint Failure](playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md) |
@@ -158,9 +194,14 @@ az containerapp replica list --resource-group $RG --name $APP_NAME --query "[].{
 az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "properties.vnetConfiguration"
 ```
 
-| Command | Purpose |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "properties.vnetConfiguration"` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+| `az containerapp env show` | Reads the environment VNet configuration used by private DNS and private endpoint traffic. |
+| `--name` | Selects the Container Apps environment with the DNS failure. |
+| `--query` | Returns only `properties.vnetConfiguration` for network-path inspection. |
+| `--resource-group` | Selects the resource group containing the environment. |
+
 
 ---
 
@@ -169,7 +210,7 @@ az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "prop
 | Step | Action |
 |---|---|
 | **Symptom** | Traffic increases but replica count stays at minimum |
-| **First Query** | `ContainerAppSystemLogs \| where TimeGenerated > ago(2h) \| where Log_s has_any ("scale", "replica", "KEDA", "concurrency") \| summarize count() by bin(TimeGenerated, 5m)` |
+| **First Query** | `ContainerAppSystemLogs_CL \| where TimeGenerated > ago(2h) \| where Log_s has_any ("scale", "replica", "KEDA", "concurrency") \| summarize count() by bin(TimeGenerated, 5m)` |
 | **What to Look For** | Scale rule misconfiguration, concurrency threshold too high, minReplicas = maxReplicas. |
 | **Platform Segment** | Scaling / Runtime |
 | **Playbook** | [HTTP Scaling Not Triggering](playbooks/scaling-and-runtime/http-scaling-not-triggering.md) |
@@ -180,9 +221,14 @@ az containerapp env show --resource-group $RG --name $ACA_ENV_NAME --query "prop
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale"
 ```
 
-| Command | Purpose |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale"` | Reads the Container App resource and extracts the full scale configuration, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show` | Reads replica limits and HTTP scale settings that may prevent scale-out. |
+| `--name` | Selects the container app that is not scaling with HTTP traffic. |
+| `--query` | Returns only the app's scale configuration. |
+| `--resource-group` | Selects the resource group containing the app. |
+
 
 ---
 
@@ -191,7 +237,7 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 | Step | Action |
 |---|---|
 | **Symptom** | Event-driven scaling not responding to queue depth or event rate |
-| **First Query** | `ContainerAppSystemLogs \| where TimeGenerated > ago(2h) \| where Log_s has_any ("scaler", "queue", "kafka", "servicebus", "trigger", "metric") \| take 50` |
+| **First Query** | `ContainerAppSystemLogs_CL \| where TimeGenerated > ago(2h) \| where Log_s has_any ("scaler", "queue", "kafka", "servicebus", "trigger", "metric") \| take 50` |
 | **What to Look For** | Wrong connection string, permission denied, scaler metadata mismatch. |
 | **Platform Segment** | Scaling / Runtime |
 | **Playbook** | [Event Scaler Mismatch](playbooks/scaling-and-runtime/event-scaler-mismatch.md) |
@@ -202,9 +248,14 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale.rules"
 ```
 
-| Command | Purpose |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.scale.rules"` | Reads the Container App resource and extracts the scale rules array, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show` | Reads event-driven scale rules for metadata and authentication comparison. |
+| `--name` | Selects the container app whose event scaler is not activating. |
+| `--query` | Returns only `properties.template.scale.rules` for scaler inspection. |
+| `--resource-group` | Selects the resource group containing the app. |
+
 
 ---
 
@@ -213,7 +264,7 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 | Step | Action |
 |---|---|
 | **Symptom** | Container restarts repeatedly, often under load |
-| **First Query** | `ContainerAppSystemLogs \| where TimeGenerated > ago(6h) \| where Log_s has_any ("OOM", "killed", "memory", "evicted", "resource") \| take 50` |
+| **First Query** | `ContainerAppSystemLogs_CL \| where TimeGenerated > ago(6h) \| where Log_s has_any ("OOM", "killed", "memory", "evicted", "resource") \| take 50` |
 | **What to Look For** | Memory limit too low, memory leak in application, CPU throttling. |
 | **Platform Segment** | Scaling / Runtime |
 | **Playbook** | [CrashLoop OOM and Resource Pressure](playbooks/scaling-and-runtime/crashloop-oom-and-resource-pressure.md) |
@@ -224,9 +275,14 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].resources"
 ```
 
-| Command | Purpose |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --resource-group $RG --name $APP_NAME --query "properties.template.containers[0].resources"` | Reads the current CPU and memory limits for the crashing container so you can tell quickly whether the incident fits an OOM or resource-pressure pattern. |
+| `az containerapp show` | Reads configured CPU and memory values for comparison with OOM or throttling evidence. |
+| `--name` | Selects the container app experiencing resource pressure. |
+| `--query` | Returns only the first container's resource configuration. |
+| `--resource-group` | Selects the resource group containing the app. |
+
 
 ---
 
@@ -235,7 +291,7 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 | Step | Action |
 |---|---|
 | **Symptom** | App cannot authenticate to Azure services (Key Vault, Storage, SQL) |
-| **First Query** | `ContainerAppConsoleLogs \| where TimeGenerated > ago(1h) \| where Log_s has_any ("401", "403", "Unauthorized", "AADSTS", "ManagedIdentity", "DefaultAzureCredential") \| take 50` |
+| **First Query** | `ContainerAppConsoleLogs_CL \| where TimeGenerated > ago(1h) \| where Log_s has_any ("401", "403", "Unauthorized", "AADSTS", "ManagedIdentity", "DefaultAzureCredential") \| take 50` |
 | **What to Look For** | Identity not assigned, missing RBAC role, wrong resource scope. |
 | **Platform Segment** | Identity / Configuration |
 | **Playbook** | [Managed Identity Auth Failure](playbooks/identity-and-configuration/managed-identity-auth-failure.md) |
@@ -246,9 +302,13 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "properties.t
 az containerapp identity show --resource-group $RG --name $APP_NAME
 ```
 
-| Command | Purpose |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp identity show --resource-group $RG --name $APP_NAME` | Reads the app's managed identity assignment so the first triage step can confirm whether the workload even has an identity before chasing RBAC or token-audience issues. |
+| `az containerapp identity show` | Displays assigned identities so a missing or incorrect managed identity can be detected. |
+| `--name` | Selects the container app with the authentication failure. |
+| `--resource-group` | Selects the resource group containing the app. |
+
 
 ---
 
@@ -257,7 +317,7 @@ az containerapp identity show --resource-group $RG --name $APP_NAME
 | Step | Action |
 |---|---|
 | **Symptom** | Revision fails to provision, secrets not populated |
-| **First Query** | `ContainerAppSystemLogs \| where TimeGenerated > ago(1h) \| where Log_s has_any ("secret", "keyvault", "reference", "403", "not found") \| take 50` |
+| **First Query** | `ContainerAppSystemLogs_CL \| where TimeGenerated > ago(1h) \| where Log_s has_any ("secret", "keyvault", "reference", "403", "not found") \| take 50` |
 | **What to Look For** | Key Vault access policy missing, secret name typo, managed identity not authorized. |
 | **Platform Segment** | Identity / Configuration |
 | **Playbook** | [Secret and Key Vault Reference Failure](playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md) |
@@ -268,9 +328,14 @@ az containerapp identity show --resource-group $RG --name $APP_NAME
 az containerapp show --resource-group $RG --name $APP_NAME --query "properties.configuration.secrets"
 ```
 
-| Command | Why it is used |
+
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --resource-group ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads configured secret references for comparison with the provisioning error. |
+| `--name` | Selects the container app whose secret or Key Vault reference failed. |
+| `--query` | Returns only `properties.configuration.secrets` for reference inspection. |
+| `--resource-group` | Selects the resource group containing the app. |
+
 
 ---
 
@@ -281,7 +346,7 @@ When you don't know where to start, run these three queries to establish baselin
 ### Query 1: System Events (Provisioning, Scaling, Health)
 
 ```kusto
-ContainerAppSystemLogs
+ContainerAppSystemLogs_CL
 | where TimeGenerated > ago(2h)
 | where Log_s has_any ("provision", "scale", "replica", "health", "probe", "ingress", "pull")
 | project TimeGenerated, Log_s
@@ -292,7 +357,7 @@ ContainerAppSystemLogs
 ### Query 2: Application Errors
 
 ```kusto
-ContainerAppConsoleLogs
+ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(2h)
 | where Log_s has_any ("error", "exception", "failed", "timeout", "refused", "denied")
 | project TimeGenerated, RevisionName_s, Log_s
@@ -303,7 +368,7 @@ ContainerAppConsoleLogs
 ### Query 3: Revision Status Timeline
 
 ```kusto
-ContainerAppSystemLogs
+ContainerAppSystemLogs_CL
 | where TimeGenerated > ago(24h)
 | where Log_s has_any ("revision", "running", "failed", "degraded", "provisioning")
 | summarize count() by bin(TimeGenerated, 15m), tostring(extract("revision[^\\s]*", 0, Log_s))
@@ -338,4 +403,6 @@ ContainerAppSystemLogs
 
 - [Azure Container Apps monitoring overview](https://learn.microsoft.com/en-us/azure/container-apps/observability)
 - [Azure Container Apps troubleshooting](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
-- [Container Apps logging](https://learn.microsoft.com/en-us/azure/container-apps/logging)
+- [Troubleshoot image pull failures](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-image-pull-failures)
+- [Monitor logs with Log Analytics](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

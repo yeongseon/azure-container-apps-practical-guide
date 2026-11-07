@@ -1,5 +1,5 @@
 ---
-description: Provenance-first catalog of every reproducible lab evidence pack in this guide — raw Azure captures, gate verdicts, provenance READMEs, and PII-scrubbing guarantees for each of the 30 evidence-bearing labs.
+description: Provenance-first catalog of 29 reproducible lab evidence packs — raw Azure captures, gate verdicts, provenance READMEs, and PII-scrubbing guarantees.
 content_sources:
   diagrams:
     - id: evidence-pack-anatomy
@@ -9,9 +9,10 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor
 content_validation:
   status: verified
-  last_reviewed: '2026-07-14'
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Azure Container Apps streams container and system logs to a Log Analytics workspace configured on the Container Apps environment, which is the source of the KQL captures in these evidence packs.
@@ -39,18 +40,30 @@ Every evidence pack is captured in a single live-Azure window by the lab's own `
 <!-- diagram-id: evidence-pack-anatomy -->
 ```mermaid
 flowchart TD
-    A[Lab trigger.sh + fix-and-capture.sh] --> B[Raw captures]
-    B --> C[Deployment + CLI JSON]
-    B --> D[System + Console log excerpts]
-    B --> E[KQL result sets]
-    B --> F[Gate verdict JSON]
-    C --> G[PII scrub]
-    D --> G
-    E --> G
-    F --> G
-    G --> H[evidence/ directory + provenance README.md]
-    H --> I[Lab guide references pack as falsification evidence]
+    QUESTION[Lab question and hypothesis]
+    FAILURE[Failure trigger]
+    FAILURECAP[Failure-cohort captures<br/>resource state, logs, KQL, probes]
+    FIX[Single candidate fix]
+    RECOVERY[Recovery-cohort captures<br/>same signals and time window]
+    SCRUB[PII scrub and schema validation]
+    PROVENANCE[Provenance README<br/>time, tools, substitutions, JSONPaths]
+    GATE[Gate verdict<br/>predicate, inputs, evaluation time]
+    INDEX[Evidence pack index]
+    GUIDE[Lab falsification section]
+
+    QUESTION --> FAILURE
+    FAILURE --> FAILURECAP
+    FAILURECAP --> FIX
+    FIX --> RECOVERY
+    FAILURECAP --> SCRUB
+    RECOVERY --> SCRUB
+    SCRUB --> PROVENANCE
+    PROVENANCE --> GATE
+    GATE --> INDEX
+    GATE --> GUIDE
 ```
+
+The evidence pack preserves comparable failure and recovery cohorts, records how the artifacts were captured and scrubbed, and exposes the gate predicate used to test falsification.
 
 | Artifact class | Typical files | Purpose |
 |---|---|---|
@@ -78,7 +91,7 @@ If you find a raw Azure identifier in any evidence artifact, treat it as a P0 le
 
 ## Evidence pack catalog
 
-All 30 evidence-bearing labs, alphabetical. **Files / JSON / Gates** are current artifact counts. **Provenance** marks whether the pack carries a dedicated `evidence/README.md`. **Captured** is the live-Azure capture date (from the provenance README, or the gate verdict timestamp where no README exists yet).
+The table catalogs 29 reproducible or in-progress lab packs, alphabetical. **Files / JSON / Gates** count git-tracked files under each `labs/<lab>/evidence/` directory, then the `.json` and `*-gate.json` subsets. **Provenance** marks whether the pack carries a dedicated `evidence/README.md`. **Captured** is the live-Azure capture date (from the provenance README, or the gate verdict timestamp where no README exists yet).
 
 | Lab | Evidence pack | Provenance | Files / JSON / Gates | Captured | Lab guide |
 |---|---|---|---:|---|---|
@@ -108,12 +121,13 @@ All 30 evidence-bearing labs, alphabetical. **Files / JSON / Gates** are current
 | revision-history-limit | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/revision-history-limit/evidence) | Yes | 19 / 14 / 4 | 2026-06-22 | [guide](lab-guides/revision-history-limit.md) |
 | revision-provisioning-failure | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/revision-provisioning-failure/evidence) | Yes | 17 / 15 / 4 | 2026-06-20 | [guide](lab-guides/revision-provisioning-failure.md) |
 | scale-rule-mismatch | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/scale-rule-mismatch/evidence) | No | 26 / 22 / 2 | 2026-06-22 | [guide](lab-guides/scale-rule-mismatch.md) |
-| startup-degraded-transient-failure | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/startup-degraded-transient-failure/evidence) | Yes | 96 / 41 / 4 | 2026-06-12 | [guide](lab-guides/startup-degraded-transient-failure.md) |
+| startup-degraded-transient-failure | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/startup-degraded-transient-failure/evidence) | Yes | 90 / 41 / 4 | 2026-06-12 | [guide](lab-guides/startup-degraded-transient-failure.md) |
 | traffic-routing-canary | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/traffic-routing-canary/evidence) | Yes | 28 / 21 / 2 | 2026-06-24 | [guide](lab-guides/traffic-routing-canary.md) |
-| zone-redundancy-best-effort | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/evidence) | Yes | 60 / 18 / 4 | 2026-06-12 | [guide](lab-guides/zone-redundancy-best-effort.md) |
+| zone-redundancy-best-effort | [evidence/](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/evidence) | Yes | 55 / 18 / 4 | 2026-06-12 | [guide](lab-guides/zone-redundancy-best-effort.md) |
 
 !!! note "Special-case packs"
     - **`metrics-load-test`** is intentionally omitted from the catalog above. It is the data source for the [metrics reference](../reference/index.md) rather than a trigger/fix/falsification lab, so it has no lab guide and emits no gate verdicts (47 files, 46 JSON, 0 gates).
+    - **`aca-secret-kv-ref-mi-network-path-h4b` through `h4g`** are reader-generated Phase B packs. Each variant initially tracks only an `evidence/README.md`; running its trigger and falsification scripts produces the raw cohort, so these variants are omitted from the pre-captured catalog.
     - **`aca-secret-kv-ref-mi-network-path`** is an in-progress reproducer (single provenance file, no cohort captured yet). Its evidence pack will be populated when the reproduction lands.
     - **`cd-reconnect-rbac-conflict`**, **`revision-failover`**, and **`scale-rule-mismatch`** carry full gate-verdict cohorts but do not yet ship a dedicated `evidence/README.md`. Their capture dates above are read from the gate verdict timestamps; a provenance README is a tracked follow-up.
 
@@ -142,3 +156,4 @@ All 30 evidence-bearing labs, alphabetical. **Files / JSON / Gates** are current
 - [Monitor logs in Azure Container Apps with Log Analytics](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
 - [Troubleshoot container start failures](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures)
 - [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Migrate logging to Azure Monitor](https://learn.microsoft.com/en-us/azure/container-apps/migrate-logs-azure-monitor)

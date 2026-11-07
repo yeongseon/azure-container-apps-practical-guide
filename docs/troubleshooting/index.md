@@ -6,12 +6,31 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
     - id: quick-decision-tree
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
+content_validation:
+  status: verified
+  last_reviewed: 2026-11-08
+  reviewer: agent
+  core_claims:
+    - claim: Azure Container Apps revisions are immutable snapshots whose health can be investigated independently.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Startup, liveness, and readiness probes expose different container-health signals.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+      verified: true
+    - claim: ContainerAppHTTPLogs records ingress status, revision, replica, and request-duration fields.
+      source: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs
+      verified: true
 ---
 # Container Apps Troubleshooting
 
@@ -29,15 +48,28 @@ This is a hypothesis-driven troubleshooting guide built around repeatable incide
 
 <!-- diagram-id: how-it-works -->
 ```mermaid
-graph TD
-    A[Observe Symptom] --> B[List Hypotheses]
-    B --> C[Collect Evidence]
-    C --> D[Validate / Disprove]
-    D --> E[Identify Root Cause]
-    E --> F[Mitigate]
+flowchart TD
+    OBSERVE[Observe symptom and impact]
+    HYPOTHESES[Name competing hypotheses]
+    EVIDENCE[Collect time-correlated evidence]
+    TEST[Evaluate whether evidence<br/>distinguishes a hypothesis]
+    REFINE[Refine hypotheses or collect<br/>a different signal]
+    FIX[Apply one targeted mitigation]
+    VERIFY[Verify symptom and evidence<br/>return to expected state]
+    CLOSE[Record root cause and closure evidence]
+
+    OBSERVE --> HYPOTHESES
+    HYPOTHESES --> EVIDENCE
+    EVIDENCE --> TEST
+    TEST -->|Insufficient| REFINE
+    REFINE --> EVIDENCE
+    TEST -->|Distinguishes| FIX
+    FIX --> VERIFY
+    VERIFY -->|Not restored| HYPOTHESES
+    VERIFY -->|Restored| CLOSE
 ```
 
-Every playbook uses this 6-step flow: observe symptoms, enumerate likely causes, gather targeted evidence, validate or disprove each hypothesis, isolate the root cause, then apply mitigation.
+Every playbook uses this loop: observe, enumerate hypotheses, gather targeted evidence, apply one mitigation, and falsify the original failure before closure.
 
 ## Scope
 
@@ -72,38 +104,43 @@ When something goes wrong, ask these questions in order:
 
 <!-- diagram-id: quick-decision-tree -->
 ```mermaid
-graph TD
-    A[Symptom Observed] --> B{App returns HTTP errors?}
-    B -->|503 on all requests| C[Startup / Provisioning Failure]
-    B -->|Intermittent 5xx| D[Scaling / Runtime]
-    B -->|No HTTP response| E[Networking / Ingress]
-    B -->|200 but wrong behavior| F[Config / Identity]
+flowchart TD
+    START[Symptom observed]
+    REVISION{Active revision healthy?}
+    STARTUP{System logs show image,<br/>startup, or probe failure?}
+    IMAGE[Image Pull Failure]
+    PROBE[Probe Failure or Container Start Failure]
+    PROVISION[Revision Provisioning Failure]
+    HTTP{Failed request present in<br/>ContainerAppHTTPLogs?}
+    REPLICA{Healthy replica available<br/>at the request time?}
+    INGRESS[Ingress or front-door path]
+    RUNTIME[CrashLoop OOM or resource pressure]
+    SCALE{Demand and replica count diverge?}
+    AUTOSCALE[HTTP or Event Scaler playbook]
+    DEP{Dependency-specific error?}
+    NETWORK[DNS or Service Connectivity]
+    AUTH[Managed Identity or Secret failure]
+    METHOD[Use methodology and collect<br/>another distinguishing signal]
 
-    C --> C1{Image pull succeeded?}
-    C1 -->|No, ImagePullBackOff| C2[Image Pull Failure]
-    C1 -->|Yes, but revision failed| C3{Health probe passing?}
-    C3 -->|No| C4[Probe Failure / Slow Start]
-    C3 -->|Yes, container crashing| C5[Container Start Failure]
-
-    D --> D1{Replica count correct?}
-    D1 -->|Stuck at 0| D2[HTTP Scaling Not Triggering]
-    D1 -->|Scaling but crashing| D3[CrashLoop / OOM]
-    D1 -->|Scale rule mismatch| D4[Event Scaler Mismatch]
-
-    E --> E1{Ingress enabled?}
-    E1 -->|No| E2[Ingress Not Reachable]
-    E1 -->|Yes, internal DNS fail| E3[DNS / Private Endpoint]
-    E1 -->|Yes, svc-to-svc fail| E4[Service Connectivity]
-
-    F --> F1{Managed identity error?}
-    F1 -->|Yes| F2[MI Auth Failure]
-    F1 -->|No, secret/KV error| F3[Secret / Key Vault Failure]
-
-    style C fill:#c62828,color:#fff
-    style D fill:#ef6c00,color:#fff
-    style E fill:#1565c0,color:#fff
-    style F fill:#6a1b9a,color:#fff
+    START --> REVISION
+    REVISION -->|No| STARTUP
+    REVISION -->|Yes| HTTP
+    STARTUP -->|Image pull| IMAGE
+    STARTUP -->|Probe or exit| PROBE
+    STARTUP -->|Neither| PROVISION
+    HTTP -->|No| INGRESS
+    HTTP -->|Yes| REPLICA
+    REPLICA -->|No, exits or restarts| RUNTIME
+    REPLICA -->|No, insufficient count| SCALE
+    REPLICA -->|Yes| DEP
+    SCALE -->|Yes| AUTOSCALE
+    SCALE -->|No| METHOD
+    DEP -->|DNS, timeout, refusal| NETWORK
+    DEP -->|401, 403, secret| AUTH
+    DEP -->|No| METHOD
 ```
+
+Each branch names the evidence that distinguishes it; a status code or familiar error string is a starting observation, not proof of root cause.
 
 ## Representative Log Patterns
 
@@ -199,3 +236,9 @@ Deploy reproduction environments and observe real symptoms:
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
+- [Monitor logs with Log Analytics](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Health probes](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Scaling in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [ContainerAppHTTPLogs table](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerapphttplogs)

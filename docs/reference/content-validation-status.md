@@ -16,16 +16,16 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 475 | 475 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 160 | 0 | 0 | 4 |
+| In-Scope Factual-Claim Documents | 164 | 161 | 0 | 0 | 3 |
 
 !!! warning "Validation In Progress"
-    4 in-scope document(s) need `content_validation` metadata added.
+    3 in-scope document(s) need `content_validation` metadata added.
 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 160
-    "No Metadata" : 4
+    "Verified" : 161
+    "No Metadata" : 3
 ```
 
 ## By Section
@@ -141,7 +141,7 @@ pie title In-Scope Document Validation Status
 | [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-11-08 |
 | [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
-| [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
+| [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ✅ Verified | 3/3 | 2026-11-08 |
 | [Use Uami For Acr And Reconnect Cd](../operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Zone Redundancy](../operations/disaster-recovery/zone-redundancy.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 
@@ -151,7 +151,7 @@ pie title In-Scope Document Validation Status
 |---|---|---|---|---|
 | [Appgw To Internal Aca Nsg Destination](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) | ✅ | ✅ Verified | 4/4 | 2026-07-03 |
 | [Appinsights Connection String Missing](../troubleshooting/playbooks/observability/appinsights-connection-string-missing.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
-| [Architecture Overview](../troubleshooting/architecture-overview.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Architecture Overview](../troubleshooting/architecture-overview.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
 | [Azure Files Mount Failure](../troubleshooting/playbooks/storage-and-volumes/azure-files-mount-failure.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Bad Revision Rollout And Rollback](../troubleshooting/playbooks/platform-features/bad-revision-rollout-and-rollback.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Bicep Deployment Timeout](../troubleshooting/playbooks/deployment-and-cicd/bicep-deployment-timeout.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
@@ -165,8 +165,8 @@ pie title In-Scope Document Validation Status
 | [Dapr Pubsub Failure](../troubleshooting/playbooks/platform-features/dapr-pubsub-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Dapr Sidecar Or Component Failure](../troubleshooting/playbooks/platform-features/dapr-sidecar-or-component-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Dapr State Store Failure](../troubleshooting/playbooks/platform-features/dapr-state-store-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
-| [Decision Tree](../troubleshooting/decision-tree.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Detector Map](../troubleshooting/methodology/detector-map.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Decision Tree](../troubleshooting/decision-tree.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
+| [Detector Map](../troubleshooting/methodology/detector-map.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Diagnostic Settings Missing](../troubleshooting/playbooks/observability/diagnostic-settings-missing.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Docker Hub Rate Limit](../troubleshooting/playbooks/startup-and-provisioning/docker-hub-rate-limit.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Easyauth Entra Id Failure](../troubleshooting/playbooks/platform-features/easyauth-entra-id-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
@@ -175,22 +175,22 @@ pie title In-Scope Document Validation Status
 | [Environment Variables](../troubleshooting/first-10-minutes/environment-variables.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Event Job Storm](../troubleshooting/playbooks/platform-features/event-job-storm.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Event Scaler Mismatch](../troubleshooting/playbooks/scaling-and-runtime/event-scaler-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
-| [Evidence Map](../troubleshooting/evidence-map.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Evidence Pack Index](../troubleshooting/evidence-pack-index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-14 |
+| [Evidence Map](../troubleshooting/evidence-map.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
+| [Evidence Pack Index](../troubleshooting/evidence-pack-index.md) | ✅ | ✅ Verified | 3/3 | 2026-11-08 |
 | [Github Actions Oidc Failure](../troubleshooting/playbooks/deployment-and-cicd/github-actions-oidc-failure.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Http Scaling Not Triggering](../troubleshooting/playbooks/scaling-and-runtime/http-scaling-not-triggering.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Image Pull Failure](../troubleshooting/playbooks/startup-and-provisioning/image-pull-failure.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Image Size Startup Delay](../troubleshooting/playbooks/startup-and-provisioning/image-size-startup-delay.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
-| [Index](../troubleshooting/methodology/index.md) | ✅ | ❓ No Metadata | — | — |
+| [Index](../troubleshooting/methodology/index.md) | ✅ | ✅ Verified | 3/3 | 2026-11-08 |
 | [Ingress Not Reachable](../troubleshooting/playbooks/ingress-and-networking/ingress-not-reachable.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Internal Dns And Private Endpoint Failure](../troubleshooting/playbooks/ingress-and-networking/internal-dns-and-private-endpoint-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Keda No Metrics Returned](../troubleshooting/playbooks/scaling-and-runtime/keda-no-metrics-returned.md) | ✅ | ✅ Verified | 3/3 | 2026-06-05 |
-| [Lab Finder](../troubleshooting/lab-finder.md) | ✅ | ✅ Verified | 3/3 | 2026-07-05 |
+| [Lab Finder](../troubleshooting/lab-finder.md) | ✅ | ✅ Verified | 3/3 | 2026-11-08 |
 | [Log Analytics Ingestion Gap](../troubleshooting/playbooks/observability/log-analytics-ingestion-gap.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Managed Identity Auth Failure](../troubleshooting/playbooks/identity-and-configuration/managed-identity-auth-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Memory Leak Oomkilled](../troubleshooting/playbooks/scaling-and-runtime/memory-leak-oomkilled.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Memory Percentage Vs Keda Utilization](../troubleshooting/playbooks/scaling-and-runtime/memory-percentage-vs-keda-utilization.md) | ✅ | ✅ Verified | 4/4 | 2026-06-02 |
-| [Mental Model](../troubleshooting/mental-model.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Mental Model](../troubleshooting/mental-model.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Min Replicas Cost Surprise](../troubleshooting/playbooks/cost-and-quota/min-replicas-cost-surprise.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Mtls Failures](../troubleshooting/playbooks/mtls-failures.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Multi Arch Image Mismatch](../troubleshooting/playbooks/startup-and-provisioning/multi-arch-image-mismatch.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
@@ -198,7 +198,7 @@ pie title In-Scope Document Validation Status
 | [Platform Limits](../troubleshooting/first-10-minutes/platform-limits.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Private Endpoint Dns Failure](../troubleshooting/playbooks/networking-advanced/private-endpoint-dns-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Probe Failure And Slow Start](../troubleshooting/playbooks/startup-and-provisioning/probe-failure-and-slow-start.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
-| [Quick Diagnosis Cards](../troubleshooting/quick-diagnosis-cards.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Quick Diagnosis Cards](../troubleshooting/quick-diagnosis-cards.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Replica Load Imbalance](../troubleshooting/playbooks/scaling-and-runtime/replica-load-imbalance.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Revision History Limit](../troubleshooting/playbooks/deployment-and-cicd/revision-history-limit.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Revision Provisioning Failure](../troubleshooting/playbooks/startup-and-provisioning/revision-provisioning-failure.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
