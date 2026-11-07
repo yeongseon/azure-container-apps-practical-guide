@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-10-30T01:35:03Z",
+  "evaluated_at_utc": "2026-11-07T04:05:57Z",
   "scenario": "rolling_rollout_with_probes_masked_by_readiness",
   "hypothesis": "H0_preconditions",
   "claim": "canonical_evidence_pack_internally_consistent",
@@ -14,7 +14,7 @@
   },
   "sub_gate_a_predicate": "All seven canonical qA-qG files exist on disk; fallback requires at least five files present.",
   "sub_gate_b_predicate": "All qA-qG filename timestamps stay inside the canonical 2026-06-20T22:39Z-22:51Z capture window; fallback allows the extended 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
-  "sub_gate_c_predicate": "qF explicitly maps the canonical baseline and perturbation runs via run_id prefixes; fallback requires at least two distinct run_id values.",
+  "sub_gate_c_predicate": "qF explicitly maps at least one baseline run and at least one perturbation run via the documented run_id prefixes.",
   "required_canonical_file_count": 7,
   "minimum_fallback_file_count": 5,
   "strong_window_start_utc": "2026-06-20T22:39:00Z",
@@ -112,7 +112,7 @@
       }
     ],
     "c_strong_path_baseline_and_perturbation_present": true,
-    "c_fallback_path_at_least_2_distinct_run_ids": true,
+    "c_path_tier": "baseline_and_perturbation_prefixes",
     "c_pass": true
   },
   "startup_degraded_transient_failure_h0_preconditions_sub_gates": {
