@@ -19,6 +19,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks#azure-nat-gateway-integration
         - https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview
+        - https://learn.microsoft.com/en-us/azure/firewall/integrate-with-nat-gateway
     - id: managed-identity-acr-egress-dependencies
       type: flowchart
       source: self-generated
@@ -26,10 +27,12 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
         - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Workload profiles environments support user-defined routes and egress through NAT Gateway.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
@@ -110,20 +113,23 @@ flowchart TD
     subgraph VNET["Customer-managed virtual network"]
         subgraph ENV_SUBNET["Dedicated environment subnet"]
             SUBNET_LINK["ACA environment subnet relationship"]
-            NSG{"NSG outbound rule<br/>allows destination?"}
-            ROUTE{"Route table<br/>matching UDR?"}
         end
 
         subgraph FW_SUBNET["Firewall subnet — AzureFirewallSubnet"]
             FW["Azure Firewall<br/>private next hop"]
-            POLICY{"Firewall policy<br/>allows destination?"}
         end
     end
 
+    NSG{"NSG outbound rule<br/>allows destination?"}
+    ROUTE{"Route table<br/>matching UDR?"}
+    POLICY{"Firewall policy<br/>allows destination?"}
     DEST["Approved public dependency"]
     DENY["DENY<br/>blocked before destination"]
 
     ENV -.->|"uses dedicated subnet"| SUBNET_LINK
+    NSG -.->|"associated with subnet"| ENV_SUBNET
+    ROUTE -.->|"associated with subnet"| ENV_SUBNET
+    POLICY -.->|"associated with firewall"| FW
     REPLICAS -.->|"1  Resolve name"| DNS_NAME
     DNS_NAME -.-> DNS
     DNS -.->|"2  Return destination IP"| REPLICAS
@@ -156,73 +162,6 @@ resource routeTable 'Microsoft.Network/routeTables@2023-05-01' = {
         }
       }
     ]
-  }
-}
-```
-
-## Azure Firewall Rules
-
-Allow required outbound traffic:
-
-### NAT Gateway Architecture
-
-**Takeaway:** Associating NAT Gateway with the dedicated environment subnet gives supported workload-profiles environments a predictable public source address for internet egress, but it does not perform DNS resolution, application-layer filtering, or destination authorization.
-
-<!-- diagram-id: nat-gateway-architecture -->
-```mermaid
-flowchart TD
-    accTitle: Container Apps egress through NAT Gateway
-    accDescr: A logical Container Apps replica resolves a public dependency name, then sends a packet through subnet network controls. A NAT Gateway associated with the dedicated environment subnet translates the source to its public IP before the packet reaches the internet dependency. DNS and destination authorization are independent.
-
-    DNS_NAME["Dependency FQDN"]
-    DNS["DNS resolver<br/>name to destination IP"]
-
-    subgraph ENV["Managed Container Apps environment — logical boundary"]
-        APP["Container app — logical grouping"]
-        REV_ACTIVE["Active revision — immutable app version"]
-        REPLICAS["Revision replicas — running instances"]
-        APP -.-> REV_ACTIVE
-        REV_ACTIVE -.-> REPLICAS
-    end
-
-    subgraph VNET["Customer-managed virtual network"]
-        subgraph ENV_SUBNET["Dedicated environment subnet"]
-            SUBNET_LINK["ACA environment subnet relationship"]
-            NSG{"NSG outbound rule<br/>allows destination?"}
-        end
-
-        NAT["Azure NAT Gateway<br/>associated with subnet"]
-        PIP["Public IP address<br/>predictable SNAT source"]
-    end
-
-    DEST["Public dependency"]
-    AUTH{"Destination authorization<br/>accepts request?"}
-    DENY["DENY<br/>blocked by NSG or destination"]
-
-    ENV -.->|"uses dedicated subnet"| SUBNET_LINK
-    NAT -.->|"subnet association"| ENV_SUBNET
-    NAT -->|"uses for SNAT"| PIP
-    REPLICAS -.->|"1  Resolve name"| DNS_NAME
-    DNS_NAME -.-> DNS
-    DNS -.->|"2  Return destination IP"| REPLICAS
-    REPLICAS ==>|"3  Outbound packet"| NSG
-    NSG ==>|"Allow"| NAT
-    NSG -.->|"Deny"| DENY
-    PIP ==>|"4  SNAT source to internet"| DEST
-    DEST -->|"5  Evaluate request"| AUTH
-    AUTH ==>|"Accept; response flow"| NAT
-    AUTH -.->|"Reject"| DENY
-
-    LEGEND["Arrow key<br/>thick = packet transport<br/>solid = evaluation or resource use<br/>dotted = DNS, association, logical relationship, or denied branch"]
-```
-
-*Figure: NAT Gateway extension of the same logical ACA runtime vocabulary. The NAT resource is associated with the customer-managed subnet; it is not drawn as an App Service-style integration NIC or as an Azure-managed component inside the environment.*
-
-```bicep
-resource firewallPolicy 'Microsoft.Network/firewallPolicies@2023-05-01' = {
-  name: 'fw-policy'
-  properties: {
-    sku: { tier: 'Standard' }
   }
 }
 ```
@@ -269,6 +208,60 @@ resource appRuleCollection 'Microsoft.Network/firewallPolicies/ruleCollectionGro
 
 Assign static IP for outbound traffic:
 
+### NAT Gateway Architecture
+
+**Takeaway:** Associating NAT Gateway with the dedicated environment subnet gives supported workload-profiles environments a predictable public source address for internet egress, but it does not perform DNS resolution, application-layer filtering, or destination authorization.
+
+<!-- diagram-id: nat-gateway-architecture -->
+```mermaid
+flowchart TD
+    accTitle: Container Apps egress through NAT Gateway
+    accDescr: A logical Container Apps replica resolves a public dependency name, then sends a packet through subnet network controls. A NAT Gateway associated with the dedicated environment subnet translates the source to its public IP before the packet reaches the internet dependency. The NAT Gateway, public IP, NSG, and authorization decision are outside the virtual network boundary.
+
+    DNS_NAME["Dependency FQDN"]
+    DNS["DNS resolver<br/>name to destination IP"]
+
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        APP["Container app — logical grouping"]
+        REV_ACTIVE["Active revision — immutable app version"]
+        REPLICAS["Revision replicas — running instances"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.-> REPLICAS
+    end
+
+    subgraph VNET["Customer-managed virtual network"]
+        subgraph ENV_SUBNET["Dedicated environment subnet"]
+            SUBNET_LINK["ACA environment subnet relationship"]
+        end
+    end
+
+    NSG{"NSG outbound rule<br/>allows destination?"}
+    NAT["Azure NAT Gateway"]
+    PIP["Public IP address<br/>predictable SNAT source"]
+    DEST["Public dependency"]
+    AUTH{"Destination authorization<br/>accepts request?"}
+    DENY["DENY<br/>blocked by NSG or destination"]
+
+    ENV -.->|"uses dedicated subnet"| SUBNET_LINK
+    NSG -.->|"associated with subnet"| ENV_SUBNET
+    NAT -.->|"associated with subnet"| ENV_SUBNET
+    NAT -->|"uses for SNAT"| PIP
+    REPLICAS -.->|"1  Resolve name"| DNS_NAME
+    DNS_NAME -.-> DNS
+    DNS -.->|"2  Return destination IP"| REPLICAS
+    REPLICAS ==>|"3  Outbound packet"| NSG
+    NSG ==>|"Allow"| NAT
+    NSG -.->|"Deny"| DENY
+    NAT ==>|"4  SNAT to public IP"| DEST
+    DEST -->|"5  Evaluate request"| AUTH
+    AUTH ==>|"Accept; response flow"| NAT
+    AUTH -.->|"Reject"| DENY
+
+    LEGEND["Arrow key<br/>thick = packet transport<br/>solid = evaluation or resource use<br/>dotted = DNS, association, logical relationship, or denied branch"]
+```
+
+*Figure: NAT Gateway extension of the same logical ACA runtime vocabulary. NAT Gateway and its public IP are Azure resources associated with the customer-managed subnet, not resources contained by that subnet or an App Service-style integration NIC.*
+
 ```bicep
 resource natGateway 'Microsoft.Network/natGateways@2023-05-01' = {
   name: 'nat-containerapp'
@@ -282,15 +275,14 @@ resource natGateway 'Microsoft.Network/natGateways@2023-05-01' = {
 resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-05-01' = {
   name: 'snet-containerapp'
   properties: {
-    addressPrefix: '10.0.0.0/23'
+    addressPrefix: environmentSubnetPrefix
     natGateway: { id: natGateway.id }
   }
 }
 ```
 
-!!! tip "Combine NAT and firewall when needed"
-    Use NAT Gateway for predictable source IP and Azure Firewall for destination governance
-    when both compliance and partner allow-list requirements exist.
+!!! tip "Choose the direct or inspected egress pattern deliberately"
+    A NAT Gateway associated with the Container Apps environment subnet provides direct SNAT for that subnet. If a UDR instead sends workload traffic to Azure Firewall for inspection, integrate NAT Gateway with `AzureFirewallSubnet` when the firewall needs NAT Gateway SNAT scale or its public IP addresses. A NAT Gateway on the application environment subnet is not automatically used after the UDR selects the firewall.
 
 ## Verify Outbound IP
 
@@ -337,46 +329,56 @@ Use service tags where Azure provides them, and use private endpoints or FQDN-aw
 ```mermaid
 flowchart TD
     accTitle: Managed-identity ACR image-pull dependencies
-    accDescr: A logical Container Apps revision requires DNS answers, a managed-identity token from Microsoft Entra ID, ACR authorization, and allowed HTTPS transport to registry and image-layer dependencies. Network controls evaluate transport separately. Failure labels distinguish DNS, routing or filtering, authorization, and image download symptoms.
+    accDescr: A logical Container Apps revision asks a platform image-pull function to resolve endpoints and make separately controlled HTTPS requests to Microsoft Entra ID, the ACR login server, and the redirected layer data endpoint. Token and ACR role authorization are non-transport outcomes. Microsoft Artifact Registry is a parallel platform dependency.
 
     subgraph ENV["Managed Container Apps environment — logical boundary"]
         APP["Container app — logical grouping"]
         REV_ACTIVE["Active revision<br/>image reference and identity"]
-        REPLICAS["Revision replicas<br/>start after image is available"]
+        PULLER["Platform image-pull function<br/>logical actor"]
+        REPLICAS["Revision replicas<br/>start after image pull"]
         APP -.-> REV_ACTIVE
-        REV_ACTIVE -.-> REPLICAS
+        REV_ACTIVE -.->|"requires image"| PULLER
     end
 
-    DNS["DNS resolver<br/>dependency names to IPs"]
-    NET{"Customer egress controls<br/>NSG, route, firewall policy"}
-    ENTRA["Microsoft Entra ID<br/>managed-identity token"]
-    MCR["Microsoft Artifact Registry<br/>required system dependencies"]
-    ACR_AUTH{"Azure Container Registry<br/>authorize image pull?"}
-    ACR_DATA["ACR login and data endpoints<br/>HTTPS transport"]
-    STORAGE["Regional storage dependency<br/>image layers"]
+    DNS{"Endpoint names resolve?"}
+    NET_TOKEN{"Token HTTPS allowed?"}
+    ENTRA["Microsoft Entra ID<br/>token endpoint"]
+    TOKEN["Managed-identity token"]
+    ACR_AUTH{"AcrPull authorization succeeds?"}
+    NET_LOGIN{"Registry HTTPS allowed?"}
+    ACR_LOGIN["ACR login server<br/>authentication and discovery"]
+    REDIRECT["307 redirect<br/>layer endpoint location"]
+    NET_LAYER{"Layer HTTPS allowed?"}
+    ACR_DATA["Layer data endpoint<br/>dedicated endpoint or regional storage"]
+    NET_MCR{"Platform HTTPS allowed?"}
+    MCR["Microsoft Artifact Registry<br/>parallel system dependency"]
+    READY["Image layers available<br/>revision can start"]
+    FAIL["FAILED IMAGE PULL<br/>classify DNS, transport, or authorization"]
 
-    DNS_FAIL["DNS FAILURE<br/>name does not resolve"]
-    NET_FAIL["TRANSPORT FAILURE<br/>route or policy blocks HTTPS"]
-    AUTH_FAIL["AUTHORIZATION FAILURE<br/>token or role rejected"]
-    PULL_FAIL["OBSERVED OUTCOME<br/>image pull or revision start fails"]
+    PULLER -.->|"Resolve endpoints"| DNS
+    DNS -.->|"No"| FAIL
+    DNS -.->|"Resolved"| NET_TOKEN
 
-    REV_ACTIVE -.->|"1  DNS query"| DNS
-    DNS -.->|"DNS answer"| REV_ACTIVE
-    DNS -.->|"No answer"| DNS_FAIL
+    PULLER ==>|"Token HTTPS"| NET_TOKEN
+    NET_TOKEN ==>|"Allow"| ENTRA
+    NET_TOKEN -.->|"Block"| FAIL
+    ENTRA --> TOKEN
+    TOKEN --> ACR_AUTH
+    ACR_AUTH -.->|"No"| FAIL
 
-    REV_ACTIVE ==>|"2  HTTPS token request"| NET
-    NET ==>|"Allowed transport"| ENTRA
-    NET ==>|"Required platform HTTPS"| MCR
-    NET -.->|"Blocked transport"| NET_FAIL
-    ENTRA -->|"3  Token"| ACR_AUTH
-    ACR_AUTH ==>|"4  Authorized pull"| ACR_DATA
-    ACR_AUTH -.->|"Rejected"| AUTH_FAIL
-    ACR_DATA ==>|"5  Download image data"| STORAGE
-    STORAGE ==>|"6  Image available"| REV_ACTIVE
+    ACR_AUTH -->|"Authorized pull context"| NET_LOGIN
+    NET_LOGIN ==>|"Registry HTTPS allowed"| ACR_LOGIN
+    NET_LOGIN -.->|"Block"| FAIL
+    ACR_LOGIN --> REDIRECT
+    REDIRECT --> NET_LAYER
+    NET_LAYER ==>|"Layer HTTPS allowed"| ACR_DATA
+    NET_LAYER -.->|"Block"| FAIL
+    ACR_DATA ==>|"Image layer bytes"| READY
+    READY -.->|"image ready"| REPLICAS
 
-    DNS_FAIL -.-> PULL_FAIL
-    NET_FAIL -.-> PULL_FAIL
-    AUTH_FAIL -.-> PULL_FAIL
+    PULLER ==>|"Platform HTTPS"| NET_MCR
+    NET_MCR ==>|"Allow"| MCR
+    NET_MCR -.->|"Block"| FAIL
 
     LEGEND["Arrow key<br/>thick = HTTPS or image-data transport<br/>solid = identity or authorization result<br/>dotted = DNS, logical relationship, or fault correlation"]
 ```
@@ -403,3 +405,6 @@ The same egress dependency applies to control-plane operations that authenticate
 - [User-defined routes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes)
 - [Firewall integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
 - [Use Azure Firewall with Azure Container Apps — outbound FQDNs (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)
+- [Azure Firewall integration with NAT Gateway (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/firewall/integrate-with-nat-gateway)
+- [Pull ACR images with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [ACR dedicated data endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
