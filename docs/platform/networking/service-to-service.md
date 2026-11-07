@@ -3,14 +3,15 @@ content_sources:
   diagrams:
     - id: internal-resolution-flow
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Same-environment service discovery flow synthesized from Microsoft Learn; DNS resolution to the managed proxy, request transport, revision selection, and replica routing are represented as separate logical steps without exposing managed Kubernetes internals.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps supports internal ingress and service discovery for secure internal-only endpoints with built-in DNS-based service discovery.
       source: https://learn.microsoft.com/en-us/azure/container-apps/overview
@@ -44,39 +45,48 @@ For the broader ingress decision model, including how internal-only app ingress 
 
 ## Internal DNS
 
-Each Container App gets an internal FQDN:
+When HTTP ingress is enabled, the app receives an FQDN. An app configured with internal ingress uses this pattern:
 ```
 <app-name>.internal.<environment-unique-id>.<region>.azurecontainerapps.io
 ```
 
-Or simply use the app name within the same environment:
+With ingress enabled, a caller in the same environment can also use the app name:
 ```
 http://<app-name>
 ```
 
+A Dapr-enabled app can omit HTTP ingress and still receive Dapr service-invocation calls. In that case, the app is not reachable by its app name or FQDN; callers use the Dapr invocation API and Dapr App ID instead.
+
 ### Internal Resolution Flow
+
+**Takeaway:** The app name or internal FQDN resolves to the environment's managed proxy path; the caller does not connect directly to a target replica.
 
 <!-- diagram-id: internal-resolution-flow -->
 ```mermaid
 flowchart TD
-    subgraph Env [Managed Environment]
-        subgraph Calling [Calling App]
-            APP1[Frontend]
-        end
-        
-        subgraph Target [Target App]
-            APP2[Backend]
-        end
+    accTitle: Same-environment Container Apps service resolution and routing
+    accDescr: A frontend replica resolves a backend app name through environment service discovery. DNS returns the managed proxy address, then the frontend sends an HTTP request carrying the target host name. The managed Envoy proxy selects an active backend revision according to traffic rules and routes to a ready replica.
 
-        DNS[Internal DNS Resolver]
-        INV[Envoy Ingress]
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        direction TB
+        CALL_REPLICA["1  Frontend revision replica<br/>starts the call"]
+        DISCOVERY["2  Environment service discovery<br/>returns managed proxy address"]
+        REQUEST["3  HTTP request<br/>carries target host name"]
+        INGRESS["4  Managed Envoy proxy<br/>internal routing and load balancing"]
+        TARGET_REV["5  Active backend revision<br/>chosen by traffic rules"]
+        TARGET_REPLICAS["6  Ready backend replica<br/>serves the request"]
     end
 
-    APP1 -- 1. Resolve 'ca-backend' --> DNS
-    DNS -- 2. Returns Private IP --> APP1
-    APP1 -- 3. Request (Port 80/443) --> INV
-    INV -- 4. Route to Revision --> APP2
+    CALL_REPLICA -.->|"DNS query"| DISCOVERY
+    DISCOVERY -.->|"Resolved proxy address"| REQUEST
+    REQUEST ==>|"Send request"| INGRESS
+    INGRESS ==>|"Continue request to chosen revision"| TARGET_REV
+    TARGET_REV ==>|"Continue request to ready replica"| TARGET_REPLICAS
+
+    LEGEND["Arrow key<br/>thick = request transport<br/>dotted = DNS or logical relationship"]
 ```
+
+*Figure: Same-environment calls use managed service discovery and the proxy routing layer. Revision and replica nodes are logical platform abstractions, not customer-managed pods or direct DNS targets.*
 
 ## Example: Frontend + Backend
 
