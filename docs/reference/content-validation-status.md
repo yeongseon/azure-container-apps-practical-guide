@@ -139,7 +139,7 @@ pie title In-Scope Document Validation Status
 | [Metric Alerts By Incident Question](../operations/alerts/metric-alerts-by-incident-question.md) | ✅ | ✅ Verified | 3/3 | 2026-06-05 |
 | [Min Replica Change Impact](../operations/scaling/min-replica-change-impact.md) | ✅ | ✅ Verified | 3/3 | 2026-05-18 |
 | [Multi Region Deployment](../operations/disaster-recovery/multi-region-deployment.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
-| [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Networking](../operations/deployment/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Probe Tuning](../operations/health-probes/probe-tuning.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Troubleshooting](../operations/jobs/troubleshooting.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Use Uami For Acr And Reconnect Cd](../operations/image-pull-and-registry/use-uami-for-acr-and-reconnect-cd.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |

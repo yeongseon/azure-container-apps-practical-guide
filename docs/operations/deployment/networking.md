@@ -21,7 +21,7 @@ content_sources:
     - id: diagnostic-flow
       type: flowchart
       source: self-generated
-      justification: Operator decision flow synthesized from Microsoft Learn; DNS, TCP transport, TLS and HTTP behavior, and application authorization are tested independently from the caller network context.
+      justification: Operator decision flow synthesized from Microsoft Learn; DNS, TCP transport, TLS, HTTP routing and response source, network-policy rejection, and application authorization are tested independently from the caller network context.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
@@ -213,6 +213,12 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   name: 'cae-myapp'
   location: resourceGroup().location
   properties: {
+    workloadProfiles: [
+      {
+        name: 'Consumption'
+        workloadProfileType: 'Consumption'
+      }
+    ]
     vnetConfiguration: {
       infrastructureSubnetId: vnet.properties.subnets[0].id
       internal: true
@@ -359,17 +365,17 @@ nc -zv <dependency-hostname> 443
 curl --connect-timeout 5 --verbose https://<dependency-hostname>/health
 ```
 
-DNS success proves only name resolution. A TCP success proves only that a connection reached a listener. An HTTP `401` or `403` proves transport reached an application or gateway that rejected authorization; it is not a DNS or routing failure.
+DNS success proves only name resolution. A TCP success proves only that a connection reached a listener, and a successful TLS handshake proves only that the client reached an endpoint presenting an acceptable certificate. An HTTP `401` or `403` confirms an HTTP responder, but it does not identify which boundary rejected the request. In particular, a service firewall or network policy can return `403` when DNS selected a public endpoint. Correlate the resolved IP, response source and body, and service logs before choosing network-policy, routing, or authorization remediation.
 
 ### Diagnostic decision flow
 
-**Takeaway:** Test DNS, TCP, TLS/HTTP, and authorization in order. Don't use ICMP ping as a required private-endpoint gate because many Azure services do not answer ICMP.
+**Takeaway:** Test DNS, TCP, TLS, HTTP routing and response source, then authorization and health in order. Don't use ICMP ping as a required private-endpoint gate because many Azure services do not answer ICMP.
 
 <!-- diagram-id: diagnostic-flow -->
 ```mermaid
 flowchart TD
     accTitle: Diagnose a Container Apps network request by layer
-    accDescr: Start from the failing caller network context. Resolve the intended hostname and compare the answer with the design. Then test the required TCP port, TLS and HTTP behavior, and finally application authorization and health. Each failed decision points to controls for that layer.
+    accDescr: Start from the failing caller network context. Resolve the intended hostname and compare the answer with the design. Then test the required TCP port, TLS handshake, HTTP endpoint and route, response status and source, network-policy evidence, and finally application authorization and health. Each failed decision points to controls for that layer.
 
     START["Reproduce from the expected caller<br/>same environment, VNet, or public path"]
     DNS["Resolve the intended hostname<br/>nslookup or equivalent"]
@@ -378,11 +384,18 @@ flowchart TD
     TCP["Probe the required TCP port<br/>nc or curl connect timeout"]
     TCP_OK{"TCP connection succeeds?"}
     TCP_FIX["TRANSPORT ACTION<br/>check NSG, UDR, firewall,<br/>peering, listener, and PE state"]
-    HTTP["Send TLS and HTTP request<br/>with intended hostname"]
-    HTTP_OK{"TLS and HTTP response received?"}
-    HTTP_FIX["TLS OR ROUTING ACTION<br/>check certificate, host header,<br/>ingress visibility, and target port"]
-    APP_OK{"Expected authorization<br/>and health result?"}
-    APP_FIX["APPLICATION ACTION<br/>check identity, RBAC, credentials,<br/>and dependency health"]
+    TLS["Perform TLS handshake<br/>with intended hostname"]
+    TLS_OK{"TLS handshake succeeds?"}
+    TLS_FIX["TLS ACTION<br/>check certificate name, trust chain,<br/>SNI, and TLS policy"]
+    HTTP["Send HTTP request<br/>with intended host and path"]
+    ROUTE_OK{"Response from intended<br/>endpoint and route?"}
+    ROUTE_FIX["HTTP ROUTING ACTION<br/>check resolved IP, response source,<br/>host header, ingress, path, target port"]
+    STATUS_OK{"Expected HTTP status<br/>and application result?"}
+    POLICY_REJECT{"Service firewall or<br/>network-policy rejection confirmed?"}
+    POLICY_FIX["NETWORK POLICY ACTION<br/>check public/private endpoint choice,<br/>service firewall, and allow rules"]
+    AUTH_REJECT{"Identity or authorization<br/>rejection confirmed?"}
+    AUTH_FIX["AUTHORIZATION ACTION<br/>check identity, RBAC,<br/>credentials, and audience"]
+    APP_FIX["APPLICATION ACTION<br/>check dependency health,<br/>application logs, and response body"]
     DONE["PATH VERIFIED<br/>record DNS answer, endpoint,<br/>status code, and timestamp"]
 
     START --> DNS
@@ -391,15 +404,22 @@ flowchart TD
     DNS_OK -->|"Yes"| TCP
     TCP --> TCP_OK
     TCP_OK -->|"No"| TCP_FIX
-    TCP_OK -->|"Yes"| HTTP
-    HTTP --> HTTP_OK
-    HTTP_OK -->|"No"| HTTP_FIX
-    HTTP_OK -->|"Yes"| APP_OK
-    APP_OK -->|"No"| APP_FIX
-    APP_OK -->|"Yes"| DONE
+    TCP_OK -->|"Yes"| TLS
+    TLS --> TLS_OK
+    TLS_OK -->|"No"| TLS_FIX
+    TLS_OK -->|"Yes"| HTTP
+    HTTP --> ROUTE_OK
+    ROUTE_OK -->|"No or proxy 404"| ROUTE_FIX
+    ROUTE_OK -->|"Yes"| STATUS_OK
+    STATUS_OK -->|"Yes"| DONE
+    STATUS_OK -->|"No"| POLICY_REJECT
+    POLICY_REJECT -->|"Yes"| POLICY_FIX
+    POLICY_REJECT -->|"No"| AUTH_REJECT
+    AUTH_REJECT -->|"Yes"| AUTH_FIX
+    AUTH_REJECT -->|"No"| APP_FIX
 ```
 
-*Figure: A decision flow preserves failure-domain boundaries. A private DNS answer is not proof of TCP transport, and TCP transport is not proof of authorization or application health.*
+*Figure: A decision flow preserves failure-domain boundaries. A private DNS answer is not proof of TCP transport, a TLS handshake is not proof of correct HTTP routing, and an HTTP `403` requires response-source evidence before it is classified as network policy or authorization.*
 
 ## Rollback / Troubleshooting
 
@@ -410,7 +430,7 @@ Before changing DNS, NSGs, UDRs, ingress, or public network access, save the cur
 | `NXDOMAIN` or unintended public answer | Resolver output and Private DNS VNet links | Restore the previous zone link or record; verify conditional forwarding. |
 | Correct private IP, TCP timeout | NSG flow, effective route, firewall logs, private endpoint state | Restore the last NSG/UDR/firewall change; don't alter DNS that already resolves correctly. |
 | TLS or host-routing error | Certificate name, SNI/Host header, app ingress mode, target port | Restore the previous ingress or gateway host configuration. |
-| HTTP `401` or `403` | App/gateway logs, managed identity, RBAC assignment | Restore the previous authorization policy or identity binding; don't treat it as a transport failure. |
+| HTTP `401` or `403` | Resolved IP, response source/body, service firewall logs, app/gateway logs, identity and RBAC evidence | Determine which boundary generated the response. A service firewall or network policy can return `403`; change identity or RBAC only when authorization evidence confirms that failure class. |
 | Internal app FQDN fails from a VM | Caller location and `.internal.` hostname | Test from another app in the same environment, or use external app ingress on an internal environment for VNet clients. |
 
 !!! warning "Change one network layer at a time"
