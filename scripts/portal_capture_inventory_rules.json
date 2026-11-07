@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "image_extensions": [".gif", ".jpeg", ".jpg", ".png", ".webp"],
+  "excluded_assets": [
+    "docs/assets/favicon.svg",
+    "docs/assets/logo.svg"
+  ],
+  "excluded_page_globs": [
+    "docs/contributing/**",
+    "docs/reference/portal-capture-inventory.md"
+  ],
+  "portal_terms": [
+    "azure portal",
+    "in the portal",
+    "portal blade",
+    "portal evidence",
+    "portal view",
+    "portal screenshot",
+    "portal capture"
+  ],
+  "stale_after_days": 180,
+  "tracked_batches": [
+    {
+      "repo": "yeongseon/azure-container-apps-practical-guide",
+      "issue": 308,
+      "title": "docs(labs): add Portal captures for Key Vault identity path",
+      "state": "OPEN",
+      "lab_slug": "aca-secret-kv-ref-mi-network-path",
+      "asset_prefix": "docs/assets/troubleshooting/aca-secret-kv-ref-mi-network-path/"
+    },
+    {
+      "repo": "yeongseon/azure-container-apps-practical-guide",
+      "issue": 362,
+      "title": "docs(labs): add Portal captures for Firewall logging gaps",
+      "state": "OPEN",
+      "lab_slug": "aca-secret-kv-ref-mi-network-path-h4b",
+      "asset_prefix": "docs/assets/troubleshooting/aca-secret-kv-ref-mi-network-path-h4b/"
+    },
+    {
+      "repo": "yeongseon/azure-container-apps-practical-guide",
+      "issue": 364,
+      "title": "docs(labs): add Portal captures for custom DNS override",
+      "state": "OPEN",
+      "lab_slug": "aca-secret-kv-ref-mi-network-path-h4e",
+      "asset_prefix": "docs/assets/troubleshooting/aca-secret-kv-ref-mi-network-path-h4e/"
+    },
+    {
+      "repo": "yeongseon/azure-container-apps-practical-guide",
+      "issue": 366,
+      "title": "docs(labs): add Portal captures for Virtual WAN routing",
+      "state": "OPEN",
+      "lab_slug": "aca-secret-kv-ref-mi-network-path-h4d",
+      "asset_prefix": "docs/assets/troubleshooting/aca-secret-kv-ref-mi-network-path-h4d/"
+    },
+    {
+      "repo": "yeongseon/azure-container-apps-practical-guide",
+      "issue": 368,
+      "title": "docs(labs): add Portal captures for NSG deny path",
+      "state": "OPEN",
+      "lab_slug": "aca-secret-kv-ref-mi-network-path-h4c",
+      "asset_prefix": "docs/assets/troubleshooting/aca-secret-kv-ref-mi-network-path-h4c/"
+    },
+    {
+      "repo": "yeongseon/azure-container-apps-practical-guide",
+      "issue": 370,
+      "title": "docs(labs): add Portal captures for Firewall TLS inspection",
+      "state": "OPEN",
+      "lab_slug": "aca-secret-kv-ref-mi-network-path-h4g",
+      "asset_prefix": "docs/assets/troubleshooting/aca-secret-kv-ref-mi-network-path-h4g/"
+    },
+    {
+      "repo": "yeongseon/azure-container-apps-practical-guide",
+      "issue": 372,
+      "title": "docs(labs): add Portal captures for third-party NVA path",
+      "state": "OPEN",
+      "lab_slug": "aca-secret-kv-ref-mi-network-path-h4f",
+      "asset_prefix": "docs/assets/troubleshooting/aca-secret-kv-ref-mi-network-path-h4f/"
+    },
+    {
+      "repo": "yeongseon/azure-functions-practical-guide",
+      "issue": 389,
+      "title": "docs(golden): specify Queue trigger retry and poison-message assertions",
+      "state": "CLOSED",
+      "lab_slug": null,
+      "asset_prefix": null,
+      "deduplication_result": "No ACA Portal capture path or batch is named; no duplicate assignment."
+    }
+  ]
+}

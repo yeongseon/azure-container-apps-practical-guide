@@ -745,6 +745,7 @@ The captures committed under `docs/assets/troubleshooting/zone-redundancy-best-e
 
 ## See Also
 
+- [Portal Capture Inventory](../reference/portal-capture-inventory.md) — generated inventory of capture coverage, manifest registration, legacy reuse, and lab gaps.
 - [AGENTS.md → Portal Screenshot Capture (PII Replacement Rules)](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/AGENTS.md#portal-screenshot-capture-pii-replacement-rules) — authoritative PII replacement rules and the inline `browser_run_code_unsafe` snippet for MCP Playwright captures.
 - [`scripts/portal-capture-helpers.js`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/scripts/portal-capture-helpers.js) — the reusable helper that applies PII replacement and masks the Account-menu avatar in one call.
 - [`scripts/portal-capture-helpers.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/scripts/portal-capture-helpers.md) — usage instructions for both standalone Playwright and the MCP `browser_run_code_unsafe` tool.
