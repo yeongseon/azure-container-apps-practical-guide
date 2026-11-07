@@ -11,21 +11,21 @@ This page tracks `content_validation` metadata for **in-scope factual-claim docu
 
 ## Summary
 
-*Generated: 2026-09-11*
+*Generated: 2026-11-07*
 
 | Content Type | Total | Verified | Pending | Unverified | No Metadata |
 |---|---:|---:|---:|---:|---:|
 | Mermaid Diagrams | 475 | 475 | 0 | 0 | 0 |
-| In-Scope Factual-Claim Documents | 164 | 154 | 0 | 0 | 10 |
+| In-Scope Factual-Claim Documents | 164 | 155 | 0 | 0 | 9 |
 
 !!! warning "Validation In Progress"
-    10 in-scope document(s) need `content_validation` metadata added.
+    9 in-scope document(s) need `content_validation` metadata added.
 
 <!-- diagram-id: content-validation-status-pie -->
 ```mermaid
 pie title In-Scope Document Validation Status
-    "Verified" : 154
-    "No Metadata" : 10
+    "Verified" : 155
+    "No Metadata" : 9
 ```
 
 ## By Section
@@ -47,23 +47,23 @@ pie title In-Scope Document Validation Status
 | [Deployment](../platform/deployment.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
+| [Egress Control](../platform/networking/egress-control.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Event Driven Jobs](../platform/jobs/event-driven-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Event Scalers](../platform/scaling/event-scalers.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Execution Lifecycle](../platform/jobs/execution-lifecycle.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Health Recovery](../platform/reliability/health-recovery.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Http Scaler](../platform/scaling/http-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Image Security](../platform/security/image-security.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Index](../platform/security/index.md) | ✅ | ❓ No Metadata | — | — |
+| [Index](../platform/security/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/environments/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/networking/index.md) | ✅ | ❓ No Metadata | — | — |
 | [Index](../platform/storage/index.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
-| [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/scaling/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/dapr/index.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
 | [Index](../platform/revisions/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/jobs/index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
-| [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
+| [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Jobs Vs Apps](../platform/jobs/jobs-vs-apps.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
@@ -73,7 +73,7 @@ pie title In-Scope Document Validation Status
 | [Manual Jobs](../platform/jobs/manual-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Migration](../platform/environments/migration.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Network Isolation](../platform/security/network-isolation.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Network Isolation](../platform/security/network-isolation.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Networking And Cidr](../platform/environments/networking-and-cidr.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Plans And Workload Profiles](../platform/environments/plans-and-workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Private Endpoints](../platform/networking/private-endpoints.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
