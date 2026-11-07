@@ -28,15 +28,23 @@ Use this query to inspect scale-out and scale-in related system signals for KEDA
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter scale terms] --> C[Project scale context] --> D[Sort by time]
+    accTitle: Find scale-related signals in legacy system logs
+    accDescr: The query selects one app, keeps scale, KEDA, replica, autoscale, and trigger terms, projects revision and replica context, and sorts the matching platform messages from newest to oldest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep scale, KEDA, replica,<br/>autoscale, and trigger terms]
+    SIGNALS --> CONTEXT[Project timestamp, revision,<br/>replica, reason, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: This keyword pipeline surfaces log-derived scaling signals. It does not expose every trigger's source metric or prove that a matching message caused a replica-count change.*
 
 ## Query
 

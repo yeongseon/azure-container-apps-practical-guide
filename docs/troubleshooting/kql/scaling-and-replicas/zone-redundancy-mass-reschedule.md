@@ -43,18 +43,15 @@ content_validation:
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Audit Job stdout<br/>ReplicaInventorySample JSON] --> B[ContainerAppConsoleLogs_CL]
-    C[Platform events<br/>ContainerStarted, ContainerTerminated, ProbeFailed] --> D[ContainerAppSystemLogs_CL]
-    B --> E[Q1 Ingestion check]
-    B --> F[Q2 Per-app baseline]
-    D --> G[Q3 Clustered churn detection]
-    D --> H[Q4 Recovery duration]
-    P[App Insights instrumentation<br/>provisioned by lab<br/>requires opt-in custom image] --> Q[AppRequests / requests table]
-    Q --> I[Q5 app-handled 5xx correlation - opt-in]
-    D --> J[Q6 Baseline vs perturbation]
-    D --> K[Q7 Multi-app comparison]
-    B --> J
+    accTitle: Build the zone-redundancy churn evidence set
+    accDescr: Audit Job observations enter legacy console logs, platform lifecycle events enter legacy system logs, and an optional instrumented application writes request telemetry to Application Insights. Seven queries test ingestion, baselines, clustered churn, recovery, app-handled 5xx correlation, perturbation differences, and multi-app patterns.
+
+    SOURCES[Evidence sources<br/>audit Job, platform events,<br/>optional instrumented app] --> STORES[Legacy console and system logs<br/>plus optional AppRequests]
+    STORES --> PIPELINES[Q1-Q7<br/>ingestion, baseline, churn, recovery,<br/>5xx, perturbation, and multi-app views]
+    PIPELINES --> BOUNDS[Bounded result<br/>churn and app-handled 5xx evidence]
 ```
+
+*Figure: The optional request stream records only requests that reached the instrumented app. Ingress-generated 503 responses and per-replica availability-zone placement remain outside this evidence path.*
 
 ## Q1 — Ingestion Check
 

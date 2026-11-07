@@ -52,20 +52,18 @@ content_validation:
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[k6 Job stdout<br/>req + bucket JSON<br/>embedded client ts] --> B[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'k6']
-    C[perturbation-sampler stdout<br/>RevisionStateSample every 5s<br/>PerturbationWindowMarker] --> D[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'sampler']
-    E[audit Job stdout<br/>ReplicaInventorySample every 5min] --> F[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'audit']
-    G[Platform events<br/>ContainerStarted, AssigningReplica, RevisionReady] --> H[ContainerAppSystemLogs_CL]
-    B --> I[Q1 per-run summary<br/>err_pct, percentiles]
-    B --> J[Q2 10s bucket time series<br/>sum across VUs]
-    D --> K[Q3 RevisionStateSample timeline<br/>5s cadence]
-    F --> L[Q4 ReplicaInventory snapshot<br/>5min audit]
-    B --> M[Q5 falsification check<br/>3+ consecutive bad buckets]
-    B --> N[Q6 baseline vs perturbation<br/>vs supplemental restart]
-    H --> O[Q7 system-event timeline<br/>rollout milestones]
-    J --> P[Manual overlay:<br/>perturbation_id windows<br/>vs bucket err_pct]
-    K --> P
+    accTitle: Build the startup-degraded falsification evidence set
+    accDescr: Three lab containers write structured observations to the legacy console-log table, while platform lifecycle events enter the legacy system-log table. Seven queries summarize requests, buckets, revision state, replica inventory, falsification windows, phase comparisons, and rollout milestones. A manual overlay aligns client error buckets with perturbation windows.
+
+    SOURCES[Lab sources<br/>k6, perturbation sampler, audit Job] --> CONSOLE[Legacy console logs<br/>separated by ContainerName_s]
+    PLATFORM[Container Apps<br/>platform lifecycle events] --> SYSTEMLOG[Legacy system logs]
+    CONSOLE --> QUERIES[Q1-Q6<br/>run, bucket, state, inventory,<br/>falsification, and phase analyses]
+    SYSTEMLOG --> Q7[Q7 rollout milestone timeline]
+    QUERIES --> SYNTHESIS[Align error buckets,<br/>perturbation windows, and state]
+    Q7 --> SYNTHESIS
 ```
+
+*Figure: Lab-emitted observations and platform-emitted events remain separate evidence streams. Their time alignment can strengthen attribution, but client-visible errors alone do not prove which rollout mechanism caused them.*
 
 ## Why bucket sum-across-VUs is mandatory
 
