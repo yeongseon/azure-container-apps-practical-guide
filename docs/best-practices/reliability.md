@@ -17,19 +17,16 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
     - id: dapr-resiliency-high-level-flow
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Dapr component dependency decision flow synthesized from Microsoft Learn; it keeps timeout, bounded retry, circuit-breaker state, transport attempts, and application fallback behavior distinct.
       based_on:
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
-    - claim: When you deploy a container app for the first time, an initial revision is automatically created.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: true
     - claim: If ingress is enabled in single revision mode, the existing revision continues to receive 100% of the traffic until the new revision is ready.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
@@ -38,6 +35,12 @@ content_validation:
       verified: true
     - claim: In single revision mode, if an update fails, traffic remains pointed to the old revision.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Zone redundancy is selected when the environment is created, and Microsoft recommends at least two minimum replicas to distribute replicas across multiple availability zones.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
+      verified: true
+    - claim: Dapr component resiliency is a preview feature that supports timeouts, HTTP retries, and circuit breakers for Dapr component operations.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency
       verified: true
 ---
 # Azure Container Apps Reliability Best Practices
@@ -152,7 +155,10 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration without recreating the app. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--yaml` | Applies the probe configuration from the specified YAML file. |
 
 ### Graceful shutdown with SIGTERM and termination grace
 
@@ -184,14 +190,17 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the existing Container App configuration without recreating the app. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--yaml` | Applies the termination-grace configuration from the specified YAML file. |
 
 !!! note "Coordinate grace period with upstream timeout"
     If load balancer, gateway, or client timeout is shorter than termination grace, requests may still fail despite clean SIGTERM handling.
 
 ### Zone redundancy in Container Apps Environments
 
-Use zone-redundant environment options when region and SKU support aligns with your SLO.
+Enable zone redundancy when you create the environment when regional support and your SLO require zonal resilience. The setting cannot be enabled or disabled on an existing environment; migrating requires a new environment. Set `minReplicas` to at least two to support distribution across multiple zones, and increase it when load or failure tolerance requires more capacity.
 
 Benefits:
 
@@ -200,7 +209,7 @@ Benefits:
 
 Trade-offs:
 
-- Potential cost increase.
+- No separate zone-redundancy fee, but the minimum replicas and over-provisioning you choose still incur normal compute charges.
 - Regional capability constraints.
 - Additional architecture validation required for dependencies.
 
@@ -218,7 +227,10 @@ az containerapp env show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads managed environment settings for zone-redundancy verification. |
+| `--name` | Selects the Container Apps environment. |
+| `--resource-group` | Selects the resource group containing the environment. |
+| `--output` | Emits the complete environment configuration as JSON. |
 
 ### Multi-region deployment pattern for critical APIs
 
@@ -247,7 +259,7 @@ Operational baseline:
 
 ### Retry and circuit breaker patterns with Dapr resiliency
 
-Apply retries and circuit breakers to control transient and persistent failures.
+Use Dapr component resiliency policies when Dapr calls state stores, pub/sub brokers, secret stores, or bindings. This feature is currently preview and supports timeouts, HTTP retries, and circuit breakers for component operations. For ordinary external dependencies that do not use Dapr components, implement equivalent bounded retry and circuit-breaker behavior in the application or its client library.
 
 Reliability policy guidance:
 
@@ -261,11 +273,36 @@ Dapr resiliency high-level flow:
 <!-- diagram-id: dapr-resiliency-high-level-flow -->
 ```mermaid
 flowchart TD
-    A[App] --> D[Dapr Sidecar]
-    D --> P[Resiliency Policy]
-    P --> S[Downstream Service]
-    P --> B[Breaker Open State]
+    accTitle: Dapr component resiliency decision flow
+    accDescr: An application calls its Dapr sidecar. Before a Dapr component operation, a timeout and circuit breaker policy decide whether to attempt transport. A failed operation may be retried within a bounded budget. An open circuit fails fast so the application can use fallback or return a controlled error.
+
+    APP["Application"]
+    DAPR["Dapr sidecar"]
+    POLICY["Component resiliency policy<br/>timeout, retry, circuit breaker"]
+    OPEN{"Circuit open?"}
+    COMPONENT["Dapr component dependency<br/>state, pub/sub, secret, or binding"]
+    RESULT{"Operation succeeds?"}
+    BUDGET{"Retry budget remains?"}
+    SUCCESS["Return successful result"]
+    FALLBACK["Fail fast<br/>fallback or controlled error"]
+
+    APP ==>|"Component API request"| DAPR
+    DAPR -->|"Evaluate policy"| POLICY
+    POLICY --> OPEN
+    OPEN -->|"No"| COMPONENT
+    OPEN -.->|"Yes"| FALLBACK
+    COMPONENT ==>|"Operation attempt"| RESULT
+    RESULT ==>|"Yes"| SUCCESS
+    RESULT -->|"No"| BUDGET
+    BUDGET -->|"Yes, after backoff"| COMPONENT
+    BUDGET -.->|"No; trip breaker when configured"| FALLBACK
+    SUCCESS ==>|"Response"| APP
+    FALLBACK ==>|"Failure result"| APP
+
+    LEGEND["Arrow key<br/>thick = request or response transport<br/>solid = policy decision<br/>dotted = fail-fast outcome"]
 ```
+
+*Figure: The policy governs whether and when transport is attempted; it is not a network hop and does not forward packets. Retry attempts remain bounded by the request timeout and retry budget.*
 
 Operational checks:
 
@@ -295,7 +332,10 @@ az containerapp revision list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--output` | Formats the revision list as a table. |
 
 Immediate rollback example:
 
@@ -308,7 +348,10 @@ az containerapp ingress traffic set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Replaces the app's revision traffic weights with the specified allocation. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--revision-weight` | Assigns 100 percent traffic to the known-good revision. |
 
 !!! warning "Do not deactivate stable revision too early"
     Keeping at least one proven revision active dramatically reduces mean time to recover during bad deployments.
@@ -358,7 +401,11 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Reads platform system logs for incident triage. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--type` | Selects system logs. |
+| `--follow` | Returns current logs without continuously streaming. |
 
 ### Disaster recovery considerations for Container Apps
 
@@ -441,7 +488,12 @@ az containerapp ingress traffic show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the latest ready revision name. |
+| `az containerapp ingress traffic show` | Reads the current revision traffic allocation. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--query` | Extracts the latest ready revision name. |
+| `--output` | Selects TSV or table output for containment review. |
 
 ### Verify reliability surfaces in Azure Portal
 
@@ -488,7 +540,15 @@ az monitor metrics list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az monitor metrics list` | Reads selected Container App resource metrics. |
+| `--name` | Selects the Container App for revision listing. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--resource` | Selects the Container App resource for metric queries. |
+| `--metric` | Selects CPU and memory metrics. |
+| `--interval` | Sets five-minute metric granularity. |
+| `--aggregation` | Requests average metric values. |
+| `--output` | Emits the revision list as JSON. |
 
 ## Common Mistakes / Anti-Patterns
 
@@ -521,3 +581,4 @@ az monitor metrics list \
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Dapr component resiliency (preview) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency)
