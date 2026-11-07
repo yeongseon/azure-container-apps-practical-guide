@@ -261,6 +261,66 @@ class StartupGateTests(unittest.TestCase):
                 self.assertIs(sub["b_pass"], False)
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_gate_10_scenario_mapping_requires_named_run_prefixes(self) -> None:
+        with fixture_lab(self.lab_name) as lab:
+            path = lab / "evidence" / "qF-run-summary-20260620T224149Z.json"
+            records: list[dict[str, object]] = [*json.loads(path.read_text())]
+            for index, record in enumerate(records):
+                record["run_id"] = f"unmapped-{index}"
+            _ = path.write_text(json.dumps(records))
+
+            result = run_verify(lab)
+
+            data: dict[str, dict[str, object]] = {**json.loads((lab / "evidence" / GATE_OUTPUTS[self.lab_name][0]).read_text())}
+            sub = data["sub_gate_c_scenario_mapping_explicit"]
+            self.assertEqual(sub["observed_distinct_run_id_count"], 2)
+            self.assertEqual(sub["c_path_tier"], "failed_scenario_mapping")
+            self.assertIs(sub["c_pass"], False)
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_missing_perturbation_run_emits_all_failed_gate_reports(self) -> None:
+        with fixture_lab(self.lab_name) as lab:
+            path = lab / "evidence" / "qF-run-summary-20260620T224149Z.json"
+            records: list[dict[str, object]] = [*json.loads(path.read_text())]
+            _ = path.write_text(json.dumps([
+                record for record in records
+                if not str(record.get("run_id", "")).startswith("perturbation-")
+            ]))
+
+            result = run_verify(lab)
+
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+            for name in GATE_OUTPUTS[self.lab_name]:
+                with self.subTest(gate=name):
+                    self.assertTrue((lab / "evidence" / name).exists())
+            gate_12: dict[str, dict[str, object]] = {**json.loads(
+                (lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text()
+            )}
+            self.assertIs(gate_12["sub_gate_a_k6_client_observed_error_rate_zero"]["a_pass"], False)
+            self.assertIs(gate_12["sub_gate_b_falsification_rule_not_triggered"]["b_pass"], False)
+
+    def test_empty_qa_emits_all_failed_gate_reports(self) -> None:
+        with fixture_lab(self.lab_name) as lab:
+            path = lab / "evidence" / "qA-revision-state-20260620T223951Z.json"
+            _ = path.write_text("[]")
+
+            result = run_verify(lab)
+
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+            for name in GATE_OUTPUTS[self.lab_name]:
+                with self.subTest(gate=name):
+                    self.assertTrue((lab / "evidence" / name).exists())
+            gate_12: dict[str, object] = {**json.loads(
+                (lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text()
+            )}
+            self.assertIs(gate_12["startup_degraded_transient_failure_h0_partb_recovery_no_client_impact_all_subgates_pass"], True)
+            gate_13: dict[str, dict[str, object]] = {**json.loads(
+                (lab / "evidence" / GATE_OUTPUTS[self.lab_name][3]).read_text()
+            )}
+            self.assertIs(gate_13["sub_gate_b_perturbation_ids_consistent"]["b_pass"], False)
+
     def test_disjoint_ids_fail_even_with_three_qe_ids(self) -> None:
         with fixture_lab(self.lab_name) as lab:
             path = lab / "evidence" / "qA-revision-state-20260620T223951Z.json"
@@ -460,6 +520,69 @@ class KedaGateTests(unittest.TestCase):
             sub = data["sub_gate_c_health_state_matches_outcome"]
             self.assertIs(sub["c_strong_path_exact_state_pattern"], False)
             self.assertIs(sub["c_fallback_path_crash_not_healthy_and_one_healthy"], False)
+            self.assertIs(sub["c_pass"], False)
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_gate_11_sidecar_requires_explicit_unhealthy_state(self) -> None:
+        with fixture_lab(self.lab_name) as lab:
+            report = next((lab / "evidence" / "ca-nometrics-crash").glob("report-*.txt"))
+            _ = report.write_text(
+                report.read_text()
+                .replace('"provisioningState": "Failed"', '"provisioningState": "Succeeded"')
+                .replace('"runningState": "Failed"', '"runningState": "Running"')
+            )
+            revisions = next((lab / "evidence" / "ca-nometrics-crash").glob("revisions-*.json"))
+            records: list[dict[str, object]] = [*json.loads(revisions.read_text())]
+            records[0]["healthState"] = "Degraded"
+            _ = revisions.write_text(json.dumps(records))
+
+            result = run_verify(lab)
+
+            data: dict[str, dict[str, object]] = {**json.loads(
+                (lab / "evidence" / GATE_OUTPUTS[self.lab_name][1]).read_text()
+            )}
+            sub = data["sub_gate_b_unready_state"]
+            self.assertEqual(sub["sidecar_first_health_state"], "Degraded")
+            self.assertIs(sub["b_fallback_path_sidecar_unhealthy_or_provisioning_failed"], False)
+            self.assertEqual(sub["b_path_tier"], "failed_unready_state")
+            self.assertIs(sub["b_pass"], False)
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_gate_12_zero_parsed_bins_fails_closed(self) -> None:
+        with fixture_lab(self.lab_name) as lab:
+            report = next((lab / "evidence" / "ca-nometrics-healthy").glob("report-*.txt"))
+            before, rest = report.read_text().split("=== 6. Metric error count timeline (5-min bins) ===", 1)
+            _, after = rest.split("=== 7.", 1)
+            _ = report.write_text(before + "=== 6. Metric error count timeline (5-min bins) ===\n=== 7." + after)
+
+            result = run_verify(lab)
+
+            data: dict[str, dict[str, object]] = {**json.loads(
+                (lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text()
+            )}
+            sub = data["sub_gate_b_single_bin"]
+            self.assertEqual(sub["section_6_bin_count"], 0)
+            self.assertIs(sub["b_fallback_path_few_bins_le_2"], False)
+            self.assertEqual(sub["b_path_tier"], "failed_bounded_bin_count")
+            self.assertIs(sub["b_pass"], False)
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_gate_12_zero_parsed_signal_lines_fails_closed(self) -> None:
+        with fixture_lab(self.lab_name) as lab:
+            report = next((lab / "evidence" / "ca-nometrics-healthy").glob("report-*.txt"))
+            before, rest = report.read_text().split("=== 5. System logs: metric errors ===", 1)
+            _, after = rest.split("=== 6.", 1)
+            _ = report.write_text(before + "=== 5. System logs: metric errors ===\n=== 6." + after)
+
+            result = run_verify(lab)
+
+            data: dict[str, dict[str, object]] = {**json.loads(
+                (lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text()
+            )}
+            sub = data["sub_gate_c_silent_after_warmup"]
+            self.assertEqual(sub["signal_line_count_section_5"], 0)
+            self.assertIs(sub["c_fallback_path_few_lines_le_threshold"], False)
+            self.assertEqual(sub["c_path_tier"], "failed_bounded_signal_window")
             self.assertIs(sub["c_pass"], False)
             self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
 
