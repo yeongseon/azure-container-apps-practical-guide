@@ -28,15 +28,23 @@ Use this query to isolate registry pull failures and authentication errors durin
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter pull and auth terms] --> C[Project revision and reason] --> D[Sort by time]
+    accTitle: Find image-pull and registry-authentication signals
+    accDescr: The query selects one app from legacy system logs, keeps image-pull, manifest, unauthorized, and denied terms, projects revision and reason context, and sorts matching rows from newest to oldest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep image-pull, manifest,<br/>unauthorized, and denied terms]
+    SIGNALS --> CONTEXT[Project timestamp, revision,<br/>reason, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: Container Apps system logs establish the provisioning symptom. Distinguishing a missing image, registry network failure, or authorization failure can require ACR and identity evidence outside this table.*
 
 ## Query
 
