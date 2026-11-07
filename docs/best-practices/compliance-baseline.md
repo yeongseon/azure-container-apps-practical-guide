@@ -3,9 +3,11 @@ content_sources:
   diagrams:
     - id: production-security-baseline-control-stack
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Layered control and governance decision view synthesized from current Microsoft Learn security guidance; it separates workload configuration, external dependency controls, monitoring, and Azure Policy rather than implying that one Container Apps setting enforces the complete baseline.
       based_on:
         - https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/azure-container-apps-security-baseline
+        - https://learn.microsoft.com/en-us/azure/container-apps/secure-deployment
         - https://learn.microsoft.com/en-us/azure/container-apps/security
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
@@ -13,13 +15,13 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
-    - claim: Microsoft publishes an Azure security baseline for Azure Container Apps that maps benchmark controls to the service.
+    - claim: Microsoft publishes a version 1.0 cloud security benchmark baseline for Azure Container Apps and directs readers to Secure your Azure Container Apps deployment for current guidance.
       source: https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/azure-container-apps-security-baseline
       verified: true
-    - claim: Azure Container Apps supports managed identity, Key Vault-backed secrets, and revision-based configuration updates.
+    - claim: Azure Container Apps supports Key Vault secret references that authenticate with a managed identity assigned to the app.
       source: https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
       verified: true
     - claim: Container Apps networking documentation supports internal environments, custom VNets, private endpoints, and supported egress control patterns.
@@ -41,7 +43,7 @@ Compliance reviews usually fail because teams mix together supported service con
 
 ### Start from the Microsoft baseline, then map to your platform standard
 
-Microsoft publishes an Azure security baseline for Azure Container Apps. Use it as the control reference point, then convert it into a deployment checklist for your own environment.
+Microsoft publishes an Azure security baseline for Azure Container Apps based on Microsoft cloud security benchmark version 1.0. Microsoft now directs readers to **Secure your Azure Container Apps deployment** for current guidance. Use both as source material, then convert the applicable controls into a deployment checklist for your own environment; do not treat the older baseline as a current all-in-one standard.
 
 Common benchmark areas you can verify directly on Microsoft Learn include:
 
@@ -55,13 +57,48 @@ Common benchmark areas you can verify directly on Microsoft Learn include:
 <!-- diagram-id: production-security-baseline-control-stack -->
 ```mermaid
 flowchart TD
-    A[Identity controls] --> B[Network controls]
-    B --> C[Data and secret controls]
-    C --> D[Image and supply-chain controls]
-    D --> E[Logging and audit controls]
-    E --> F[Policy and governance controls]
-    F --> G[Production approval]
+    accTitle: Layered production security baseline controls
+    accDescr: A production approval decision depends on separately verified identity, network, data and secret, image supply chain, and logging controls. Azure Policy and Defender for Cloud assess or enforce supported resource configurations but do not replace workload authorization or dependency controls.
+
+    STANDARD["Organization security standard"]
+
+    subgraph WORKLOAD["Container Apps workload controls"]
+        ID["Identity and least privilege<br/>managed identity and RBAC"]
+        NET["Network exposure<br/>environment and app ingress"]
+        DATA["Data and secrets<br/>TLS and Key Vault references"]
+    end
+
+    subgraph DEPENDENCIES["External dependency controls"]
+        IMAGE["Image supply chain<br/>approved ACR and scanning"]
+        LOGS["Logging and audit<br/>resource and activity logs"]
+    end
+
+    subgraph GOVERNANCE["Governance layer"]
+        POLICY["Azure Policy and<br/>Defender for Cloud"]
+        REVIEW{"All applicable controls<br/>verified with evidence?"}
+    end
+
+    APPROVE["Production approval"]
+    REMEDIATE["Remediate gap or<br/>record exception"]
+
+    STANDARD -->|"defines requirements"| ID
+    STANDARD -->|"defines requirements"| NET
+    STANDARD -->|"defines requirements"| DATA
+    STANDARD -->|"defines requirements"| IMAGE
+    STANDARD -->|"defines requirements"| LOGS
+    ID --> REVIEW
+    NET --> REVIEW
+    DATA --> REVIEW
+    IMAGE --> REVIEW
+    LOGS --> REVIEW
+    POLICY -.->|"audit or enforce supported settings"| REVIEW
+    REVIEW -->|"Yes"| APPROVE
+    REVIEW -->|"No"| REMEDIATE
+
+    LEGEND["Arrow key<br/>solid = control requirement or decision<br/>dotted = governance assessment or enforcement"]
 ```
+
+*Figure: Control layers converge on an evidence-based approval decision. Azure Policy and Defender for Cloud are governance surfaces; they do not carry application traffic or substitute for app authorization, registry permissions, or dependency configuration.*
 
 ### Production baseline checklist by category
 
@@ -88,7 +125,12 @@ az role assignment list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity show ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity show` | Inspects managed identity configuration for the Container App. |
+| `az role assignment list` | Lists role assignments for the selected principal. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--assignee-object-id` | Filters assignments to the managed identity principal. |
+| `--output` | Selects JSON or table output for review. |
 
 #### Network
 
@@ -117,7 +159,12 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads the managed environment networking configuration. |
+| `az containerapp show` | Reads the Container App ingress configuration. |
+| `--name` | Selects the environment or app. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--query` | Extracts the environment-internal or app-ingress setting. |
+| `--output` | Emits the selected value as TSV. |
 
 #### Data and secrets
 
@@ -125,7 +172,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**, **DP-6**, **DP-7**
 
 - Use **TLS in transit** for exposed application paths.
 - Use **Key Vault-backed secrets** for centralized lifecycle and auditability.
-- Use **Key Vault certificate integration** where certificate lifecycle must be governed centrally.
+- Store and rotate application-managed certificates through your approved PKI or Key Vault workflow, while recording that the cited Container Apps baseline does not document native Key Vault certificate integration for this control.
 
 !!! warning "Do not assume Azure Container Apps environment CMK support"
     Microsoft Learn currently documents Key Vault-backed secrets and certificate integration, but not customer-managed keys for Container Apps environment encryption at rest. If your control framework requires environment-level CMK, record this as a gap or platform selection constraint.
@@ -147,7 +194,12 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret list` | Lists secret metadata without returning secret values. |
+| `az containerapp show` | Reads the Container App ingress transport configuration. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--query` | Extracts the configured ingress transport. |
+| `--output` | Selects table or TSV output for review. |
 
 #### Image
 
@@ -176,7 +228,13 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp registry show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp registry show` | Reads the app's configuration for the selected registry server. |
+| `az containerapp show` | Reads image references from the app template. |
+| `--name` | Selects the Container App. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--server` | Selects the ACR login server in the app registry configuration. |
+| `--query` | Extracts configured container image references. |
+| `--output` | Selects JSON or table output for review. |
 
 #### Logging and audit
 
@@ -197,6 +255,8 @@ az monitor diagnostic-settings list \
 | Command | Purpose |
 |---|---|
 | `az monitor diagnostic-settings list` | Lists the diagnostic-settings configured on the Container Apps environment so logging/audit destinations can be verified. |
+| `--resource` | Selects the managed environment resource whose diagnostic settings are listed. |
+| `--output` | Emits the complete result as JSON. |
 
 ```kusto
 ContainerAppSystemLogs_CL
@@ -210,7 +270,7 @@ ContainerAppSystemLogs_CL
 Mapped benchmark themes: **DP-3**, **DP-4**
 
 - Use standard TLS for ingress and private dependency calls.
-- Use **peer-to-peer mTLS** where documented for your workload pattern.
+- Use **peer-to-peer TLS encryption** for direct environment traffic where its latency and throughput trade-offs are acceptable; this control does not provide app-to-app authorization.
 - Record that **environment-level CMK** is not a documented Container Apps feature surface today.
 
 ### Verify compliance baseline surfaces in Azure Portal
@@ -230,7 +290,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 | Treating undocumented features as approved controls | Audit finding and architecture drift | Cite only what Microsoft Learn documents |
 | External ingress on every app | Excessive attack surface | Edge-only public exposure |
 | Secrets stored directly in environment variables without lifecycle control | Weak secret governance | Key Vault references |
-| Registry passwords used where MI is available | Credential management risk | Managed identity + AcrPull |
+| Registry passwords used where managed identity is available | Credential management risk | Managed identity plus `Container Registry Repository Reader` for ABAC-enabled ACR, or `AcrPull` for RBAC-only ACR |
 | No diagnostic settings on environments | Weak investigation trail | Log Analytics + retention policy |
 | Assuming CMK is available for Container Apps environment encryption | Incorrect compliance assertion | Record as unsupported/not documented |
 
@@ -262,6 +322,7 @@ Mapped benchmark themes: **DP-3**, **DP-4**
 ## Sources
 
 - [Azure security baseline for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/azure-container-apps-security-baseline)
+- [Secure your Azure Container Apps deployment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/secure-deployment)
 - [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/security)
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
