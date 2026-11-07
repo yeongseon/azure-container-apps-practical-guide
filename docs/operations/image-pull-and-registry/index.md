@@ -186,7 +186,7 @@ flowchart TD
     DATA_HTTPS ==>|"Reachable"| LAYERS
     DATA_HTTPS -.->|"Blocked"| FAIL
     LAYERS ==>|"Image layer bytes"| REPLICAS
-    PULLER ==>|"Required with firewall-controlled egress"| MCR
+    PULLER -.->|"Allowlist dependency with firewall-controlled egress"| MCR
 
     LEGEND["Arrow key<br/>thick = HTTPS or image-data transport<br/>solid = decision or registry step<br/>dotted = DNS, authorization, logical relation, or failure"]
 ```
