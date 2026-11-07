@@ -221,7 +221,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LAB_DIR="$SCRIPT_DIR"
 EVIDENCE_DIR="$LAB_DIR/evidence"
-REPO_ROOT="$(cd "$LAB_DIR/../.." && pwd)"
 REPO_RELATIVE_EVIDENCE_DIR="labs/startup-degraded-transient-failure/evidence"
 UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
@@ -342,7 +341,7 @@ baseline_records = [record for record in qf_records if str(record.get("run_id", 
 perturbation_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("perturbation-")]
 distinct_run_ids = sorted({str(record.get("run_id", "")) for record in qf_records if record.get("run_id")})
 c_strong = len(baseline_records) >= 1 and len(perturbation_records) >= 1
-c_fallback = len(distinct_run_ids) >= 2
+c_path_tier = "baseline_and_perturbation_prefixes" if c_strong else "failed_scenario_mapping"
 
 result = {
     "evaluated_at_utc": os.environ["UTC_NOW"],
@@ -360,7 +359,7 @@ result = {
     },
     "sub_gate_a_predicate": "All seven canonical qA-qG files exist on disk; fallback requires at least five files present.",
     "sub_gate_b_predicate": "All qA-qG filename timestamps stay inside the canonical 2026-06-20T22:39Z-22:51Z capture window; fallback allows the extended 2026-06-20T21:30Z-22:51Z execution-plus-capture window.",
-    "sub_gate_c_predicate": "qF explicitly maps the canonical baseline and perturbation runs via run_id prefixes; fallback requires at least two distinct run_id values.",
+    "sub_gate_c_predicate": "qF explicitly maps at least one baseline run and at least one perturbation run via the documented run_id prefixes.",
     "required_canonical_file_count": 7,
     "minimum_fallback_file_count": 5,
     "strong_window_start_utc": "2026-06-20T22:39:00Z",
@@ -385,8 +384,8 @@ result = {
         "observed_distinct_run_id_count": len(distinct_run_ids),
         "observed_first_5": sample(qf_records),
         "c_strong_path_baseline_and_perturbation_present": c_strong,
-        "c_fallback_path_at_least_2_distinct_run_ids": c_fallback,
-        "c_pass": c_strong or c_fallback,
+        "c_path_tier": c_path_tier,
+        "c_pass": c_strong,
     },
 }
 result["startup_degraded_transient_failure_h0_preconditions_sub_gates"] = {
@@ -599,8 +598,11 @@ qf_records = load_json(qf)
 
 perturbation_run_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("perturbation-")]
 baseline_run_records = [record for record in qf_records if str(record.get("run_id", "")).startswith("baseline-")]
-perturbation_run = perturbation_run_records[0]
-perturbation_err_pct, err_pct_problem = read_error_rate(perturbation_run)
+perturbation_run = perturbation_run_records[0] if perturbation_run_records else None
+if perturbation_run is None:
+    perturbation_err_pct, err_pct_problem = None, "qF has no perturbation run"
+else:
+    perturbation_err_pct, err_pct_problem = read_error_rate(perturbation_run)
 a_strong = perturbation_err_pct is not None and perturbation_err_pct == 0
 a_fallback = perturbation_err_pct is not None and perturbation_err_pct < Decimal("0.5")
 observed_err_pct = None
@@ -616,11 +618,12 @@ b_strong = (
     and all(strong_false_runs)
 )
 
-latest_qb_timestamp = max(record.get("TimeGenerated") for record in qb_records)
+latest_qb_timestamp = max((record.get("TimeGenerated") for record in qb_records), default=None)
 latest_qb_records = [record for record in qb_records if record.get("TimeGenerated") == latest_qb_timestamp]
-latest_revision = max(latest_qb_records, key=lambda item: item.get("revision", "")).get("revision")
+latest_revision_record = max(latest_qb_records, key=lambda item: item.get("revision", ""), default=None)
+latest_revision = latest_revision_record.get("revision") if latest_revision_record else None
 latest_revision_records = [record for record in qb_records if record.get("revision") == latest_revision]
-latest_revision_latest_ts = max(record.get("TimeGenerated") for record in latest_revision_records)
+latest_revision_latest_ts = max((record.get("TimeGenerated") for record in latest_revision_records), default=None)
 latest_revision_snapshot = [record for record in latest_revision_records if record.get("TimeGenerated") == latest_revision_latest_ts]
 all_running_latest_revision = all(str(record.get("state", "")) == "Running" for record in latest_revision_snapshot)
 c_strong = len(latest_revision_snapshot) >= 1 and all_running_latest_revision
@@ -628,9 +631,10 @@ c_strong = len(latest_revision_snapshot) >= 1 and all_running_latest_revision
 latest_active_qa_record = max(
     [record for record in qa_records if str(record.get("active", "")) == "True"],
     key=lambda item: item.get("TimeGenerated", ""),
+    default=None,
 )
-latest_active_replicas = as_int(latest_active_qa_record.get("replicas", 0))
-c_fallback = latest_active_replicas >= 3
+latest_active_replicas = as_int(latest_active_qa_record.get("replicas", 0)) if latest_active_qa_record else None
+c_fallback = latest_active_replicas is not None and latest_active_replicas >= 3
 
 result = {
     "evaluated_at_utc": os.environ["UTC_NOW"],

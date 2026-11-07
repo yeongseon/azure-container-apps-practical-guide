@@ -745,20 +745,27 @@ b_strong_path_section_2_unhealthy_and_failed = (
     and section_2_running_state == "Failed"
 )
 
-# Fallback: sidecar healthState != "Healthy" OR §2 provisioningState
-# == "Failed". The OR captures the case where §2 was captured during
-# a transient state but the sidecar reflects the chronic outcome.
+# Fallback: sidecar healthState is explicitly "Unhealthy" OR §2
+# provisioningState=="Failed". Any other sidecar value is unreported
+# evidence rather than proof of an unhealthy revision.
 sidecar_health_state = (
     revisions_json[0].get("healthState")
     if isinstance(revisions_json, list) and revisions_json else None
 )
 b_fallback_path_sidecar_unhealthy_or_provisioning_failed = (
-    (sidecar_health_state is not None and sidecar_health_state != "Healthy")
+    sidecar_health_state == "Unhealthy"
     or section_2_provisioning_state == "Failed"
 )
 b_unready_state = (
     b_strong_path_section_2_unhealthy_and_failed
     or b_fallback_path_sidecar_unhealthy_or_provisioning_failed
+)
+b_path_tier = (
+    "section_2_unhealthy_and_failed"
+    if b_strong_path_section_2_unhealthy_and_failed
+    else "explicit_unhealthy_or_failed_provisioning"
+    if b_fallback_path_sidecar_unhealthy_or_provisioning_failed
+    else "failed_unready_state"
 )
 
 # ---------- c) persistent pattern (NOT just deployment spike) ----------
@@ -821,6 +828,7 @@ print(json.dumps({
         "sidecar_first_health_state": sidecar_health_state,
         "b_strong_path_section_2_unhealthy_and_failed": b_strong_path_section_2_unhealthy_and_failed,
         "b_fallback_path_sidecar_unhealthy_or_provisioning_failed": b_fallback_path_sidecar_unhealthy_or_provisioning_failed,
+        "b_path_tier": b_path_tier,
         "b_pass": b_unready_state,
     },
     "sub_gate_c_persistent_pattern": {
@@ -1004,8 +1012,15 @@ a_healthy_and_running = (
 section_6_bins = parse_section_6_bins(section_6)
 bin_count = len(section_6_bins)
 b_strong_path_single_bin = bin_count == 1
-b_fallback_path_few_bins = bin_count <= 2
+b_fallback_path_few_bins = 1 <= bin_count <= 2
 b_single_bin = b_strong_path_single_bin or b_fallback_path_few_bins
+b_path_tier = (
+    "single_bin"
+    if b_strong_path_single_bin
+    else "one_or_two_bins"
+    if b_fallback_path_few_bins
+    else "failed_bounded_bin_count"
+)
 
 # ---------- c) silent after warm-up ----------
 # Strong: §5 signal-line timestamps span ≤ HEALTHY_DURATION_MAX_SECONDS.
@@ -1032,9 +1047,16 @@ c_strong_path_short_duration = (
 
 # Fallback: §5 line count ≤ HEALTHY_LINES_MAX_FALLBACK (20). The
 # captured baseline has 16 lines.
-c_fallback_path_few_lines = signal_line_count <= HEALTHY_LINES_MAX_FALLBACK
+c_fallback_path_few_lines = 1 <= signal_line_count <= HEALTHY_LINES_MAX_FALLBACK
 c_silent_after_warmup = (
     c_strong_path_short_duration or c_fallback_path_few_lines
+)
+c_path_tier = (
+    "short_duration"
+    if c_strong_path_short_duration
+    else "one_to_twenty_signal_lines"
+    if c_fallback_path_few_lines
+    else "failed_bounded_signal_window"
 )
 
 # ---------- compose gate ----------
@@ -1073,6 +1095,7 @@ print(json.dumps({
         "section_6_bins": section_6_bins,
         "b_strong_path_single_bin": b_strong_path_single_bin,
         "b_fallback_path_few_bins_le_2": b_fallback_path_few_bins,
+        "b_path_tier": b_path_tier,
         "b_pass": b_single_bin,
     },
     "sub_gate_c_silent_after_warmup": {
@@ -1080,6 +1103,7 @@ print(json.dumps({
         "signal_duration_seconds_section_5": signal_duration_seconds,
         "c_strong_path_short_duration_le_threshold": c_strong_path_short_duration,
         "c_fallback_path_few_lines_le_threshold": c_fallback_path_few_lines,
+        "c_path_tier": c_path_tier,
         "c_pass": c_silent_after_warmup,
     },
     "h2_healthy_sub_gates": h2_healthy_sub_gates,

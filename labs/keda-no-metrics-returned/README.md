@@ -107,6 +107,8 @@ Validation targets the historical `az` table format; a row that does not match i
 
 Offline Gate 13(c) retains two evidence tiers: the exact Healthy/Healthy/Unhealthy pattern, or a lower-evidence fallback with all three states reported as `Healthy` or `Unhealthy`, crash `Unhealthy` and at least one of healthy/slow `Healthy`. Only `Healthy`/`Unhealthy` count as reported; anything else is unreported evidence and fails both tiers. `c_evidence_level` identifies the passing tier.
 
+Offline Gate 11(b) applies the same closed vocabulary to its sidecar fallback: only an explicit `Unhealthy` sidecar state proves unhealthy state; absent, `Degraded`, `Unknown`, or other values do not. The independent §2 `provisioningState: Failed` path remains valid. Gate 12(b) and 12(c) also require at least one parsed bin or signal line respectively, so empty or unparsable input cannot satisfy an at-most threshold.
+
 The lab is considered reproduced when **all** of the following hold
 (validated 2026-06-05, Korea Central):
 

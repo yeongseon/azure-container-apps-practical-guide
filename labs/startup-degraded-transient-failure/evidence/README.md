@@ -51,7 +51,7 @@ The differential proof in this lab is therefore **between phases, not between sc
 
 1. All seven canonical files exist.
 2. Their filename timestamps belong to the single canonical 22:39-22:51Z capture cohort (with a wider execution fallback window only as backup).
-3. `qF` explicitly maps a baseline run and a perturbation run.
+3. `qF` explicitly maps at least one baseline run and one perturbation run through the documented prefixes. There is no distinct-ID fallback because arbitrary IDs do not prove that mapping.
 
 Without Gate 10, a reviewer could unknowingly blend historical runs or misread an incomplete evidence pack as a valid null result.
 
@@ -72,6 +72,8 @@ This is the crucial transient-state nuance: the system **did** enter a degraded 
 1. The perturbation run's `err_pct` is exactly zero on the strong tier; the lower-evidence fallback tier allows `err_pct < 0.5` under D6.
 2. The D6 falsification rule did not trigger: qF holds exactly one baseline run and one perturbation run, and both must report `False` on the single path.
 3. The post-rollout healthy snapshots show the newest revision running on the strong tier; the lower-evidence fallback tier requires the latest active qA row to report at least 3 replicas (3 observed).
+
+Missing perturbation rows and empty qA input fail their owning predicates while the verifier still emits the complete Gate 10-13 report set. Gate 12(a)'s missing/malformed `err_pct` handling was already tightened by #432 and its exact-decimal comparison was completed by #433; this replay preserves those rules rather than adding a second defaulting path.
 
 Gate 12 is intentionally the **H0-held gate**. Its PASS state does **not** mean "nothing happened." It means "something happened internally, but ACA masked it from the client." That interpretation only becomes correct when Gate 12 is read together with Gate 11.
 
