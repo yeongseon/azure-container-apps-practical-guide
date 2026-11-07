@@ -31,6 +31,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/role-based-access-control/overview
         - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/support-matrix-defender-for-containers
     - id: apply-least-privilege-role-assignments
       type: flowchart
       source: mslearn-adapted
@@ -43,6 +44,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/role-based-access-control/overview
         - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/best-practices
 content_validation:
   status: verified
   last_reviewed: '2026-11-07'
@@ -383,19 +386,35 @@ az containerapp update \
 
 #### Enable vulnerability scanning
 
+Defender for Containers assesses supported registry images and publishes findings and recommendations. It does not provide an admission controller for Azure Container Apps. Make the release pipeline or an explicit operator approval step consume the assessment before deployment.
+
 <!-- diagram-id: enable-vulnerability-scanning -->
 ```mermaid
 flowchart TD
-    DEV[Developer] -- "Push" --> ACR[ACR]
-    ACR -- "Scan on push" --> DEF[Defender for Containers]
-    DEF -- "Critical CVE found" --> ALERT[Security Alert]
-    DEF -- "No critical CVEs" --> APPROVED[Approved for Deploy]
-    APPROVED --> ENV[Container Apps]
+    accTitle: Registry vulnerability assessment and release control
+    accDescr: A build pipeline pushes an image to Azure Container Registry. Defender for Containers assesses the registry image and publishes findings and recommendations. A separate pipeline or operator release control evaluates those findings before configuring Container Apps, which then pulls the authorized image from the registry.
+    PIPELINE["Build and release pipeline"]
+    ACR["Azure Container Registry"]
+    DEFENDER["Defender for Containers<br/>registry image assessment"]
+    FINDINGS["Findings and recommendations"]
+    RELEASE["Pipeline or operator release control"]
+    ACA["Azure Container Apps<br/>new revision configuration"]
+    AUTHZ["Registry role assignment<br/>allows image pull"]
+    PIPELINE ==>|"Push image"| ACR
+    ACR -.->|"Image available for assessment"| DEFENDER
+    DEFENDER -.-> FINDINGS
+    FINDINGS -.->|"Policy input; not admission enforcement"| RELEASE
+    RELEASE -->|"Approved by release process"| ACA
+    AUTHZ -.->|"Authorization result"| ACA
+    ACA ==>|"Pull image after allow"| ACR
+    ACR ==>|"Image layers"| ACA
 ```
+
+*Figure: Defender supplies assessment evidence; the release system owns the deployment decision. Thick arrows carry image data, ordinary arrows are workflow, and dotted arrows are assessment or authorization results. Defender gated deployment and sensor-based runtime protection are documented for supported Kubernetes resources, not Azure Container Apps.*
 
 Enable Defender for Containers at the subscription level:
 
-The diagram above expresses a desired release policy, not an automatic Defender deployment gate. Configure pipeline checks separately. Registry vulnerability assessment does not provide Container Apps runtime threat protection.
+Configure the pipeline checks separately. Registry vulnerability assessment does not provide Container Apps runtime threat protection.
 
 ```bash
 az security pricing create \
@@ -480,20 +499,18 @@ Expected output:
 #### Enable Dapr mTLS for service-to-service encryption
 
 ```bash
-az containerapp update \
+az containerapp dapr enable \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --enable-dapr true \
   --dapr-app-id "api-service" \
   --dapr-app-port 8000
 ```
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Runs this resource-specific configuration or inspection step. |
+| `az containerapp dapr enable` | Enables and configures the Dapr sidecar for the existing Container App. |
 | `--name` | Selects the named resource for this operation. |
 | `--resource-group` | Selects the resource group containing the resource. |
-| `--enable-dapr` | Enables the Dapr sidecar for this app. |
 | `--dapr-app-id` | Sets the Dapr service invocation identifier. |
 | `--dapr-app-port` | Sets the port the Dapr sidecar uses to reach the app. |
 
@@ -504,16 +521,51 @@ az containerapp update \
 
 #### Apply least-privilege role assignments
 
+Every Azure role assignment joins exactly three elements: a security principal, one role definition, and one scope. Create separate assignments when a principal needs different permissions at different resources; a label such as "Container Apps Contributor + AcrPush" is not one role definition.
+
 <!-- diagram-id: apply-least-privilege-role-assignments -->
 ```mermaid
 flowchart TD
-    subgraph Roles ["Production RBAC Model"]
-        ADMIN[Platform Admin] -- "Contributor" --> RG[Resource Group]
-        DEV[Developer] -- "Reader" --> RG
-        CI[CI/CD Service Principal] -- "Container Apps Contributor + AcrPush" --> RG
-        SRE[SRE] -- "Monitoring Reader + Log Analytics Reader" --> RG
+    accTitle: Least-privilege Azure role assignment topology
+    accDescr: Separate security principals, role definitions, and resource scopes connect through individual role assignment records. CI deployment, registry push, application secret read, monitoring, and log query permissions are independent assignments rather than composite roles.
+    CI["CI workload identity"]
+    APP_ID["Container app managed identity"]
+    SRE["SRE group"]
+    ROLE_DEPLOY["Reviewed deployment role"]
+    ROLE_PUSH["AcrPush"]
+    ROLE_SECRET["Key Vault Secrets User"]
+    ROLE_MONITOR["Monitoring Reader"]
+    ROLE_LOGS["Log Analytics Reader"]
+    APP_SCOPE["Target Container Apps resources"]
+    ACR_SCOPE["Target registry"]
+    KV_SCOPE["Target Key Vault"]
+    MONITOR_SCOPE["Monitored resource group"]
+    LOG_SCOPE["Log Analytics workspace"]
+    subgraph ASSIGNMENTS["Independent role assignment records"]
+        RA_DEPLOY["Deployment assignment"]
+        RA_PUSH["Registry push assignment"]
+        RA_SECRET["Secret read assignment"]
+        RA_MONITOR["Monitoring assignment"]
+        RA_LOGS["Log query assignment"]
     end
+    CI -.-> RA_DEPLOY
+    ROLE_DEPLOY -.-> RA_DEPLOY
+    APP_SCOPE -.-> RA_DEPLOY
+    CI -.-> RA_PUSH
+    ROLE_PUSH -.-> RA_PUSH
+    ACR_SCOPE -.-> RA_PUSH
+    APP_ID -.-> RA_SECRET
+    ROLE_SECRET -.-> RA_SECRET
+    KV_SCOPE -.-> RA_SECRET
+    SRE -.-> RA_MONITOR
+    ROLE_MONITOR -.-> RA_MONITOR
+    MONITOR_SCOPE -.-> RA_MONITOR
+    SRE -.-> RA_LOGS
+    ROLE_LOGS -.-> RA_LOGS
+    LOG_SCOPE -.-> RA_LOGS
 ```
+
+*Figure: Each dotted three-way association forms one role assignment: principal + role definition + scope. Key Vault and ACR are separate Azure resources, and the app's managed identity is a principal rather than a component contained by the Container Apps runtime. Confirm the actions in every role definition before assignment and prefer the smallest resource scope that meets the task.*
 
 The following is a resource-group-scoped Contributor example, **not** the minimal role set shown above. Replace it with narrower deployment and registry role assignments after reviewing their full permissions; do not assume an `AcrPush` assignment on the app resource group covers a registry elsewhere.
 
@@ -718,3 +770,6 @@ Use this checklist before promoting to production:
 - [Log monitoring (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
 - [Dapr overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
 - [Mtls (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/mtls)
+- [Defender for Containers support matrix (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/support-matrix-defender-for-containers)
+- [Azure role assignments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments)
+- [Azure RBAC best practices (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/role-based-access-control/best-practices)

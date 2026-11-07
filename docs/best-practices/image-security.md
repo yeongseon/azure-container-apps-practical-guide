@@ -8,7 +8,9 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/support-matrix-defender-for-containers
         - https://learn.microsoft.com/en-us/azure/container-registry/policy-reference
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -20,8 +22,8 @@ content_validation:
     - claim: Image changes are revision-scope changes in Azure Container Apps.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
-    - claim: Defender for Containers provides vulnerability assessment for images in Azure Container Registry.
-      source: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
+    - claim: Defender for Containers provides vulnerability assessment and recommendations for images in Azure Container Registry; those findings do not create an Azure Container Apps admission gate.
+      source: https://learn.microsoft.com/en-us/azure/defender-for-cloud/support-matrix-defender-for-containers
       verified: true
 ---
 # Azure Container Apps Image Security Best Practices
@@ -41,7 +43,7 @@ An image reference is both a deployment input and a security boundary. Weak imag
 
 ### Use Azure Container Registry with managed identity
 
-Make ACR the default production registry and let the container app authenticate with managed identity plus `AcrPull`.
+Make ACR the default production registry and let the container app authenticate with managed identity. Use `AcrPull` for an RBAC-only registry. For an ABAC-enabled registry, use `Container Registry Repository Reader` and add a repository condition when narrower access is required; ABAC-enabled registries do not honor `AcrPull`.
 
 Why this is the preferred default:
 
@@ -63,18 +65,44 @@ This is especially important because image changes create new revisions. Immutab
 
 ### Scan images before promotion
 
-Enable Defender for Containers for vulnerability assessment on Azure Container Registry and review findings before promotion.
+Enable Defender for Containers for vulnerability assessment on Azure Container Registry and make your CI/CD or release process evaluate its findings before promotion. Defender produces assessments and recommendations for ACR images; it does not enforce an Azure Container Apps admission decision.
 
 <!-- diagram-id: secure-image-promotion-path -->
 ```mermaid
 flowchart TD
-    A[Build image] --> B[Push to ACR]
-    B --> C[Defender for Containers scan]
-    C --> D{Approved for deploy?}
-    D -->|Yes| E[Update Container Apps image reference]
-    D -->|No| F[Block or remediate]
-    E --> G[New ACA revision]
+    accTitle: Secure image assessment and promotion decision
+    accDescr: A pipeline builds and pushes an immutable image to Azure Container Registry. Defender for Containers reports vulnerability findings. A release policy owned by the pipeline or operators decides whether to remediate or configure a new Container Apps revision. After the registry role permits access, Container Apps pulls the image.
+    SOURCE["Reviewed source and build inputs"]
+    BUILD["CI build<br/>produce immutable image"]
+    ACR["Azure Container Registry<br/>immutable tag or digest"]
+    DEFENDER["Defender for Containers<br/>vulnerability assessment"]
+    POLICY{"Release policy satisfied?"}
+    REMEDIATE["Block promotion<br/>patch and rebuild"]
+    CONFIGURE["Update Container Apps<br/>image reference"]
+    REVISION["New Container Apps revision"]
+    ROLE{"Registry role model?"}
+    RBAC["RBAC-only registry<br/>AcrPull"]
+    ABAC["ABAC-enabled registry<br/>Repository Reader + condition"]
+    ALLOW["Image-pull authorization allowed"]
+    SOURCE --> BUILD
+    BUILD ==>|"Push image"| ACR
+    ACR -.->|"Image available for assessment"| DEFENDER
+    DEFENDER -.->|"Findings and recommendations"| POLICY
+    POLICY -->|"No"| REMEDIATE
+    REMEDIATE --> BUILD
+    POLICY -->|"Yes: release-system decision"| CONFIGURE
+    CONFIGURE --> REVISION
+    REVISION --> ROLE
+    ROLE -->|"RBAC Registry Permissions"| RBAC
+    ROLE -->|"RBAC + ABAC Repository Permissions"| ABAC
+    RBAC -.-> ALLOW
+    ABAC -.-> ALLOW
+    ALLOW -.->|"Authorization result"| REVISION
+    REVISION ==>|"Pull image after allow"| ACR
+    ACR ==>|"Image layers"| REVISION
 ```
+
+*Figure: The assessment and the release gate are separate controls. Thick arrows carry image content; ordinary arrows are build and release workflow; dotted arrows carry assessment, role, or authorization results. Defender for Containers does not admit or reject Container Apps revisions, and its Kubernetes runtime-protection features do not make Azure Container Apps a sensor-protected Kubernetes workload.*
 
 ### Restrict image sources with governance
 
@@ -102,7 +130,7 @@ Conservative guidance:
 |---|---|---|
 | `:latest` in production | Mutable deploy target and weak rollback traceability | Versioned tag or digest |
 | Public images in production without governance review | Weak supply-chain control | Approved private registry workflow |
-| ACR admin user enabled for routine production pulls | Shared credential and broad access | Managed identity + AcrPull |
+| ACR admin user enabled for routine production pulls | Shared credential and broad access | Managed identity + the registry-mode-appropriate pull role |
 | Service principal or PAT used when MI is available | Credential rotation burden | Managed identity |
 | Shipping unscanned images | Vulnerabilities reach active revisions | Scan in ACR before promotion |
 
@@ -110,10 +138,10 @@ Conservative guidance:
 
 - [ ] Production images are stored in Azure Container Registry.
 - [ ] Container Apps uses managed identity for ACR pulls.
-- [ ] `AcrPull` is scoped to the right registry.
+- [ ] The pull role matches the registry mode: `AcrPull` for RBAC-only, or `Container Registry Repository Reader` with an optional condition for ABAC-enabled registries.
 - [ ] Deployed image references are immutable tags or digests.
 - [ ] Defender for Containers is enabled for ACR image scanning.
-- [ ] CI/CD blocks or flags high-severity image findings.
+- [ ] CI/CD or an operator-owned release control blocks or flags findings according to the documented policy; the workflow does not assume Defender gates Container Apps deployments.
 - [ ] Approved registry policy is documented and enforced.
 - [ ] No production app relies on the ACR admin user.
 
@@ -129,4 +157,6 @@ Conservative guidance:
 - [Pull images from Azure Container Registry with managed identity in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Microsoft Defender for Containers overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview)
+- [Defender for Containers support matrix (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/support-matrix-defender-for-containers)
+- [Authenticate to ACR with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity)
 - [Policy reference for Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/policy-reference)
