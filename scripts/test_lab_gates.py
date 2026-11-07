@@ -15,6 +15,15 @@ from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPLAY_LABS: Final = {
+    "dapr-integration": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
     "image-size-startup-delay": (
         (
             "10-h1-a-large-cold-pull-gate.json",
@@ -519,6 +528,20 @@ class EvaluationReplayTests(unittest.TestCase):
                 (lab / "verify.sh").write_text("#!/usr/bin/env bash\nexit 0\n")
                 with self.assertRaisesRegex(AssertionError, "missing newly emitted output"):
                     self.assert_replay(lab)
+
+    def test_stale_capture_stamp_is_rejected(self) -> None:
+        with self.replay_fixture("dapr-integration") as lab:
+            verify = lab / "verify.sh"
+            original = verify.read_text()
+            stale = original.replace(
+                '"evaluated_at_utc": EVALUATED_AT_UTC,',
+                '"utc_captured": EVALUATED_AT_UTC,',
+            )
+            self.assertNotEqual(stale, original)
+            _ = verify.write_text(stale)
+
+            with self.assertRaisesRegex(AssertionError, "utc_captured"):
+                self.assert_replay(lab)
 
 
 def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,
