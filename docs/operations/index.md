@@ -9,11 +9,17 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/
 content_validation:
   status: verified
-  last_reviewed: '2026-07-18'
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps supports monitoring logs, autoscaling, and multiple revisions for application lifecycle management.
       source: https://learn.microsoft.com/en-us/azure/container-apps/overview
+      verified: true
+    - claim: Container Apps revisions are immutable snapshots, and multiple revision mode supports traffic allocation between active revisions.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
+    - claim: Container Apps integrates with Azure Monitor Log Analytics for querying system and application log data.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
       verified: true
 ---
 # Operations
@@ -40,9 +46,11 @@ az account show --output table
 
 | Command | Purpose |
 |---|---|
-| `export RG=...`, `APP_NAME=...`, `ACA_ENV_NAME=...` | Defines the production-style resource group, app, and environment variables reused throughout the operations runbooks so later commands target one consistent operational scope. |
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension and its newer operations subcommands are available before you follow any deployment, monitoring, or recovery procedure in this section. |
-| `az account show --output table` | Confirms the active subscription and tenant before you inspect or change production resources, which is a basic but critical guardrail for operations work. |
+| `az extension add` | Installs the Container Apps extension required by the operations commands in this guide. |
+| `--name` | Identifies `containerapp` as the extension to install before operating the app. |
+| `--upgrade` | Updates an existing Container Apps extension so the documented subcommands are available. |
+| `az account show` | Confirms the active subscription and tenant before production operations. |
+| `--output` | Formats the active account context as a table for a quick pre-operation check. |
 
 ## Main Content
 
@@ -69,14 +77,23 @@ az account show --output table
 
 ```bash
 az containerapp show --resource-group $RG --name $APP_NAME --output json
-az containerapp restart --resource-group $RG --name $APP_NAME
+az containerapp revision restart --name "$APP_NAME" --resource-group "$RG" --revision "<revision-name>"
 az containerapp revision list --resource-group $RG --name $APP_NAME --output table
 az containerapp logs show --resource-group $RG --name $APP_NAME --type system --follow
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show --resource-group ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app configuration for the initial operational inspection. |
+| `az containerapp revision restart` | Restarts the specified revision when an operator needs to recycle its replicas. |
+| `az containerapp revision list` | Lists revision health and state after the restart. |
+| `az containerapp logs show` | Streams platform events that explain revision and replica behavior. |
+| `--resource-group` | Scopes each app operation to the resource group stored in `$RG`. |
+| `--name` | Targets the Container App stored in `$APP_NAME`. |
+| `--output` | Returns full JSON for app inspection and a table for the revision check. |
+| `--type` | Chooses system logs because the check concerns platform and revision events. |
+| `--follow` | Keeps the system-log session open while the operator watches new events. |
+| `--revision` | Identifies the exact revision to restart rather than recycling an unspecified deployment. |
 
 ### Verification Steps
 
@@ -92,7 +109,11 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App configuration so the documented setting can be verified. |
+| `--name` | Targets the Container App whose baseline is being captured. |
+| `--resource-group` | Scopes the baseline lookup to the app's resource group. |
+| `--query` | Projects the environment, provisioning, and running-state fields needed for the baseline. |
+| `--output` | Preserves the projected baseline as structured JSON evidence. |
 
 Example output (PII masked):
 
@@ -112,14 +133,26 @@ Use a repeatable control loop so every operational change is observable, reversi
 <!-- diagram-id: use-a-repeatable-control-loop-so -->
 ```mermaid
 flowchart TD
-    A[Baseline Health Check] --> B[Apply Change]
-    B --> C[Validate Revision and Replicas]
-    C --> D[Observe Metrics and Logs]
-    D --> E{SLO Healthy?}
-    E -->|Yes| F[Record Outcome and Close]
-    E -->|No| G[Rollback and Escalate]
-    G --> A
+    BASELINE[Capture health and configuration baseline]
+    CHANGE[Apply one controlled change]
+    RUNTIME[Validate revision and replicas]
+    SIGNALS[Observe metrics, logs, and transactions]
+    HEALTHY{Release criteria met?}
+    RECORD[Record evidence and close]
+    ROLLBACK[Roll back the failed change]
+    ESCALATE[Escalate with preserved evidence]
+
+    BASELINE --> CHANGE
+    CHANGE --> RUNTIME
+    RUNTIME --> SIGNALS
+    SIGNALS -. evaluation evidence .-> HEALTHY
+    HEALTHY -->|Yes| RECORD
+    HEALTHY -->|No| ROLLBACK
+    ROLLBACK --> ESCALATE
+    ESCALATE --> BASELINE
 ```
+
+The control loop returns a failed change to a fresh baseline rather than applying additional mitigations without verification.
 
 ### Operational Cadence Matrix
 
@@ -153,9 +186,12 @@ az containerapp ingress traffic show \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp show --query "{name:name,latestRevision:...,provisioningState:...,runningStatus:...}"` | Captures the app's current identity, latest revision, provisioning state, and runtime state in one JSON snapshot so you have a pre-change baseline to diff after an operational update. |
-| `az containerapp ingress traffic show --output json` | Records the exact revision traffic weights before any rollout or rollback action, which is essential for restoring the previous state if the change needs to be undone. |
-| `--output json` | Preserves the full structured snapshot for incident notes, automation, or post-change comparison instead of flattening away details. |
+| `az containerapp show` | Captures the app's current revision and runtime state before an operational change. |
+| `az containerapp ingress traffic show` | Records the pre-change revision traffic weights needed for rollback. |
+| `--name` | Targets the Container App whose pre-change state is being recorded. |
+| `--resource-group` | Scopes both snapshots to the app's resource group. |
+| `--query` | Projects the latest revision, provisioning state, and running state for baseline comparison. |
+| `--output` | Preserves both snapshots as structured JSON for comparison and rollback evidence. |
 
 ### Operational Ownership Checklist
 
@@ -199,3 +235,5 @@ For language-specific operational guidance, see:
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Monitor logs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)

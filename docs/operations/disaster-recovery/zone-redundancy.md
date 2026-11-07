@@ -1,11 +1,12 @@
 ---
+description: Configure and verify Azure Container Apps zone redundancy, and decide when a workload also requires a separate multi-region recovery design.
 content_sources:
   diagrams:
     - id: zone-redundancy-vs-multi-region
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
     - id: zone-redundancy-best-effort-decision
       type: flowchart
       source: self-generated
@@ -15,17 +16,17 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
 content_validation:
   status: verified
-  last_reviewed: '2026-06-08'
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Azure reliability guidance for Container Apps should be used when evaluating zone redundancy.
-      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: Zone redundancy is available to all Container Apps plans, must be enabled during environment creation, and can't be changed afterward.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: "The platform scheduler distributes replicas across physical hosts while meeting your minimum replica count requirements, but per-replica zone placement is a best-effort outcome rather than a guarantee."
-      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+    - claim: Container Apps automatically schedules app replicas across availability zones when zone redundancy is enabled, without requiring per-replica zone placement.
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: "Underspecified resource requests can lead to uneven distribution across zones, so set resource requests and limits to help the scheduler make optimal placement decisions."
       source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
@@ -33,10 +34,10 @@ content_validation:
 ---
 # Zone Redundancy
 
-Zone redundancy improves resilience within a single region, but it is not a substitute for full multi-region disaster recovery, and the per-replica zone placement it delivers is **best-effort** rather than a contractual guarantee.
+Zone redundancy improves resilience within a single region, but it is not a substitute for full multi-region disaster recovery. Container Apps manages zone placement and traffic redistribution; operators configure sufficient replicas, health probes, and application-level transient-fault handling.
 
-!!! warning "Best-effort placement, not a per-replica zone guarantee"
-    Microsoft Learn describes zone-redundant Container Apps environments as follows: *"The platform scheduler ensures optimal distribution across physical hosts while meeting your minimum replica count requirements."* This is a best-effort behavior. Setting `minReplicas=3` in a zone-redundant environment does **not** guarantee that you will always observe one replica in each of three distinct availability zones. The actual distribution depends on host capacity, resource requests, scheduler decisions, and platform maintenance events at any given moment. Treat zone-redundant environments as one layer of a defense-in-depth strategy; do not rely on it alone to meet zonal SLOs.
+!!! warning "Zone redundancy is regional, not cross-region recovery"
+    Current Microsoft Learn guidance says Container Apps automatically schedules replicas across zones when zone redundancy is enabled. It also recommends a minimum replica count of at least two for distribution across multiple zones. This managed placement does not make the environment resilient to a full regional outage; use separate regional environments and global routing when the workload requires regional failover.
 
 ## Prerequisites
 
@@ -80,41 +81,64 @@ Microsoft Learn now documents the current zone-redundancy rules: zone redundancy
 <!-- diagram-id: zone-redundancy-vs-multi-region -->
 ```mermaid
 flowchart TD
-    A[Need higher availability] --> B{Failure domain}
-    B -->|Single-zone failure| C[Zone redundancy]
-    B -->|Regional outage| D[Multi-region design]
-    C --> E[Lower complexity]
-    D --> F[Stronger failover posture]
+    REQUIREMENT[Define availability objective]
+    FAILURE{Failure domain to survive?}
+    ZONE[Create a zone-redundant environment]
+    REPLICAS[Run at least two replicas and validate probes]
+    REGION[Deploy independent regional environments]
+    GLOBAL[Configure global routing and replicated state]
+    BOTH[Use zone redundancy in each regional environment]
+
+    REQUIREMENT --> FAILURE
+    FAILURE -->|Availability-zone outage| ZONE
+    ZONE --> REPLICAS
+    FAILURE -->|Region-wide outage| REGION
+    REGION --> GLOBAL
+    GLOBAL --> BOTH
 ```
+
+The decision separates an availability-zone failure from a region-wide outage so the resilience control matches the intended failure domain.
 
 ## What Zone Redundancy Does Not Guarantee
 
-Zone redundancy is best understood as a platform-level **disposition**, not a per-replica contract. The Container Apps scheduler attempts to spread replicas across zones, but several conditions can cause a zone-redundant environment to run with fewer occupied zones than your `minReplicas` count would suggest.
+Zone redundancy is a platform-managed capability. Container Apps schedules replicas across zones transparently, while operators remain responsible for enough healthy capacity, explicit resource requirements, and resilient dependencies.
 
 | Situation | What Microsoft Learn says | Operator implication |
 |---|---|---|
 | Underspecified resource requests | "Underspecified resource requirements can lead to uneven distribution..." | Set explicit CPU and memory requests to give the scheduler a stable basis for placement. |
 | Image pull on cold zones | "Container images are pulled from your container register into each zone as needed when replicas are created." | First replica in a previously cold zone may experience extra start latency; do not interpret this as zone failure. |
 | Maintenance, host failure, or autoscale churn | "The platform scheduler ensures optimal distribution across physical hosts while meeting your minimum replica count requirements." | Brief windows of skewed distribution are expected; correlate with platform events before treating as an outage. |
-| Per-replica zone identity | Not exposed by the Container Apps management API. | You **cannot** verify exact zone of each replica from outside the platform. Treat any such mapping as `[Not Proven]`. |
+| Per-replica zone placement | Container Apps schedules replicas across zones transparently; operators don't specify placement for individual replicas. | Verify the environment's zone-redundancy setting and application behavior rather than inventing a per-replica placement control. |
 
 <!-- diagram-id: zone-redundancy-best-effort-decision -->
 ```mermaid
 flowchart TD
-    A[Need zonal resilience SLO] --> B{Is best-effort placement sufficient?}
-    B -->|Yes| C[Enable zoneRedundant on environment]
-    B -->|No - need stronger guarantee| D[Combine layers]
-    C --> E[Set resource requests/limits]
-    C --> F[Set adequate minReplicas]
-    D --> G[App-layer retries and circuit breakers]
-    D --> H[Multi-region active/passive or active/active]
-    D --> I[Consider AKS for explicit topologySpreadConstraints]
-    E --> J[Monitor replica inventory over time]
-    F --> J
-    G --> J
-    H --> J
-    I --> J
+    OBJECTIVE[Define zonal availability objective]
+    REGION{Region supports zones and Container Apps?}
+    RECREATE{Can the environment be created or replaced?}
+    CREATE[Create zone-redundant VNet-integrated environment]
+    CAPACITY[Set explicit resources and at least two replicas]
+    RESILIENCE[Configure probes, retries, and dependency resilience]
+    TEST[Exercise replica and dependency failures]
+    MEETS{Objective met?}
+    MULTI_REGION[Add independent regional deployment and global routing]
+    READY[Record evidence and operate]
+
+    OBJECTIVE --> REGION
+    REGION -->|No| MULTI_REGION
+    REGION -->|Yes| RECREATE
+    RECREATE -->|No| MULTI_REGION
+    RECREATE -->|Yes| CREATE
+    CREATE --> CAPACITY
+    CAPACITY --> RESILIENCE
+    RESILIENCE --> TEST
+    TEST --> MEETS
+    MEETS -->|No| MULTI_REGION
+    MEETS -->|Yes| READY
+    MULTI_REGION --> READY
 ```
+
+The operator flow tests the regional design and escalates to multi-region deployment only when the measured objective requires a larger failure domain.
 
 For the full decision tree, the four-layer mitigation matrix (in-Azure Container Apps inputs, app-layer resilience, topology escalation, observability), and a falsifiable lab that quantifies best-effort behavior under load, see the [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) and the [Zone Redundancy Best-Effort lab](../../troubleshooting/lab-guides/zone-redundancy-best-effort.md).
 
@@ -123,7 +147,7 @@ For the full decision tree, the four-layer mitigation matrix (in-Azure Container
 - Confirm the environment reports the expected zone-redundancy state.
 - Confirm the region and environment type support the configuration.
 - Confirm your DR plan does not treat zone redundancy as a regional failover solution.
-- Confirm that your zonal SLO is consistent with **best-effort** placement: if you depend on N replicas being on N distinct zones at all times, escalate to the four-layer matrix in the [Zone Redundancy Best-Effort playbook](../../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md).
+- Confirm the design uses at least two replicas when distribution across multiple zones is required, then test application behavior under replica and dependency failures.
 
 ## Rollback / Troubleshooting
 

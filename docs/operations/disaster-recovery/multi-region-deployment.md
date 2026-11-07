@@ -1,4 +1,5 @@
 ---
+description: Deploy and validate Azure Container Apps across two regions with independent environments, replicated dependencies, and global traffic routing.
 content_sources:
   diagrams:
     - id: multi-region-deployment-steps
@@ -7,10 +8,10 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
         - https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Azure Front Door and Traffic Manager are Microsoft routing services commonly used for multi-region entry points.
@@ -69,12 +70,30 @@ param secondaryLocation string = 'centralus'
 <!-- diagram-id: multi-region-deployment-steps -->
 ```mermaid
 flowchart TD
-    A[Deploy primary region] --> B[Deploy secondary region]
-    B --> C[Apply matching app config]
-    C --> D[Configure global routing]
-    D --> E[Publish DNS]
-    E --> F[Run failover test]
+    OBJECTIVES[Confirm regional RTO and RPO]
+    DEPENDENCIES[Prepare cross-region images and data]
+    PRIMARY[Deploy and validate primary environment]
+    SECONDARY[Deploy and validate secondary environment]
+    ROUTING[Configure Front Door or Traffic Manager]
+    PROBES[Validate origin health probes]
+    CUTOVER[Evaluate failover drill result]
+    FIX[Correct the failed regional unit]
+    DNS[Publish the global endpoint]
+    RUNBOOK[Record failover and failback evidence]
+
+    OBJECTIVES --> DEPENDENCIES
+    DEPENDENCIES --> PRIMARY
+    PRIMARY --> SECONDARY
+    SECONDARY --> ROUTING
+    ROUTING --> PROBES
+    PROBES --> CUTOVER
+    CUTOVER -->|Failed| FIX
+    FIX --> PROBES
+    CUTOVER -->|Passed| DNS
+    DNS --> RUNBOOK
 ```
+
+The deployment flow does not publish the global endpoint until both regional origins and the failover policy pass a controlled drill.
 
 ## Verification
 

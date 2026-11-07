@@ -1,19 +1,20 @@
 ---
+description: Disaster recovery patterns for Azure Container Apps, including zone-resilient environments and multi-region routing through independent deployments.
 content_sources:
   diagrams:
     - id: multi-region-front-door-topology
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
         - https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Reliability guidance for Azure Container Apps should be used when planning zonal or regional resilience.
-      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: Azure Front Door provides a global entry point that can be used in front of regional origins.
       source: https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview
@@ -63,12 +64,28 @@ Microsoft Learn explicitly documents that "Container Apps is a single-region ser
 <!-- diagram-id: multi-region-front-door-topology -->
 ```mermaid
 flowchart TD
-    A[Client] --> B[Azure Front Door]
-    B --> C[Primary region ACA environment]
-    B --> D[Secondary region ACA environment]
-    C --> E[Replicated backend services]
-    D --> E
+    CLIENT[Client]
+    FRONT_DOOR[Azure Front Door]
+    BACKEND[Cross-region data services]
+    REGISTRY[Geo-replicated container registry]
+
+    ENV_PRIMARY[Primary region<br/>Container Apps environment]
+    APP_PRIMARY[Primary app and revisions]
+    ENV_SECONDARY[Secondary region<br/>Container Apps environment]
+    APP_SECONDARY[Secondary app and revisions]
+
+    CLIENT ==>|Application request| FRONT_DOOR
+    FRONT_DOOR ==>|Primary route| APP_PRIMARY
+    FRONT_DOOR ==>|Secondary route| APP_SECONDARY
+    ENV_PRIMARY --> APP_PRIMARY
+    ENV_SECONDARY --> APP_SECONDARY
+    APP_PRIMARY ==>|Data request| BACKEND
+    APP_SECONDARY ==>|Data request| BACKEND
+    REGISTRY -.-> APP_PRIMARY
+    REGISTRY -.-> APP_SECONDARY
 ```
+
+The topology keeps each regional environment independent while global routing, image availability, and data replication provide cross-region continuity.
 
 ## Verification
 
@@ -98,7 +115,6 @@ flowchart TD
 
 ## Sources
 
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps)
 - [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
 - [Azure Front Door overview](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview)
 - [Azure Traffic Manager overview](https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview)

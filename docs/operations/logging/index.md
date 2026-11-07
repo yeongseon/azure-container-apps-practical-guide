@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps logging operations for console, system, and HTTP logs, including live streaming, retained analysis, and diagnostic export.
 content_sources:
   diagrams:
     - id: logging-architecture-overview
@@ -6,14 +7,18 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-options
         - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs
         - https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
+  last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
     - claim: Azure Container Apps exposes console logs and system logs for operations workflows.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
+      verified: true
+    - claim: Container Apps can emit HTTP ingress logs when HTTP logging is enabled through diagnostic settings.
       source: https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
       verified: true
     - claim: Azure Monitor publishes table references for ContainerAppConsoleLogs and ContainerAppSystemLogs.
@@ -43,7 +48,9 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs the Container Apps extension required for the logging checks on this page. |
+| `--name` | Identifies `containerapp` as the extension needed to inspect environment logging. |
+| `--upgrade` | Updates an existing installation so current logging commands and flags are available. |
 
 ## When to Use
 
@@ -56,12 +63,13 @@ az extension add --name containerapp --upgrade
 1. Confirm the environment log destination.
 2. Treat console logs and system logs as separate operational streams.
 3. Query the active workspace tables before automating alerts.
-4. Add diagnostic settings only when you need extra destinations or longer retention patterns.
+4. To use diagnostic settings for log export, select Azure Monitor as the environment logs destination, then configure the environment-level categories and destinations.
 
-Container Apps operationally produces two useful streams:
+Container Apps operationally produces three useful log types:
 
 - **Console logs** for application stdout and stderr
 - **System logs** for revision lifecycle, probe, scale, replica, and platform events
+- **HTTP logs** for ingress request and response details when enabled through diagnostic settings
 
 For workspace queries, use the table names that exist in your environment. Microsoft Learn currently documents both naming patterns:
 
@@ -73,13 +81,29 @@ Check your workspace schema before standardizing KQL. Microsoft Learn's Containe
 <!-- diagram-id: logging-architecture-overview -->
 ```mermaid
 flowchart TD
-    A[App stdout and stderr] --> B[Container Apps logging pipeline]
-    C[Platform system events] --> B
-    B --> D[Log Analytics workspace]
-    B --> E[Diagnostic settings export]
-    D --> F[KQL queries and alerts]
-    E --> F
+    CONSOLE[Containers and Dapr sidecars<br/>stdout and stderr]
+    SYSTEM[Container Apps service<br/>system events]
+    HTTP[Managed ingress<br/>HTTP logs when enabled]
+    LIVE[Live log stream]
+    DESTINATION[Environment logs destination selection]
+    LOG_ANALYTICS[Log Analytics workspace]
+    AZURE_MONITOR[Azure Monitor destination<br/>with diagnostic settings]
+    EXTERNAL[Storage, Event Hubs, or partner]
+    ANALYSIS[KQL, alerts, and incident analysis]
+
+    CONSOLE ==>|Console records| LIVE
+    SYSTEM ==>|System records| LIVE
+    CONSOLE ==>|Console records| DESTINATION
+    SYSTEM ==>|System records| DESTINATION
+    HTTP ==>|Ingress records| AZURE_MONITOR
+    DESTINATION -->|Log Analytics| LOG_ANALYTICS
+    DESTINATION -->|Azure Monitor| AZURE_MONITOR
+    LOG_ANALYTICS --> ANALYSIS
+    AZURE_MONITOR --> LOG_ANALYTICS
+    AZURE_MONITOR --> EXTERNAL
 ```
+
+The logging architecture separates the live stream from persisted destinations. The Azure Monitor branch requires environment-level diagnostic settings for log categories; app-level diagnostic settings support metrics only.
 
 Log retention is primarily a workspace and downstream destination decision. Keep Container Apps runbooks aligned with:
 
@@ -101,7 +125,11 @@ az containerapp env show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads the environment configuration to verify its active log destination. |
+| `--name` | Targets the Container Apps environment stored in `$ACA_ENV_NAME`. |
+| `--resource-group` | Scopes the lookup to the environment's resource group. |
+| `--query` | Projects only `appLogsConfiguration`, where the destination and workspace settings are stored. |
+| `--output` | Returns the logging configuration as structured JSON evidence. |
 
 Validate that the expected tables exist by running a short query against your workspace and testing both native and legacy names if needed.
 
@@ -122,7 +150,6 @@ Validate that the expected tables exist by running a short query against your wo
 ## Sources
 
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
-- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
-- [ContainerAppSystemLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs)
+- [Log storage and monitoring options](https://learn.microsoft.com/en-us/azure/container-apps/log-options)
 - [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [ContainerAppSystemLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappsystemlogs)
