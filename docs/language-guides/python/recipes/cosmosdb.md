@@ -17,15 +17,26 @@ Use this recipe to connect a Python Container App to Azure Cosmos DB (NoSQL) wit
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> COSMOS[Azure Cosmos DB]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> COSMOS
+    accTitle: Passwordless Python access to Azure Cosmos DB
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a data-plane token through its managed identity and Microsoft Entra ID, and Azure Cosmos DB authorizes the operation through its data-plane role assignment.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    COSMOS[Azure Cosmos DB for NoSQL]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests Cosmos DB token| ENTRA
+    ENTRA -->|Issues access token| APP
+    IDENTITY -.->|Data-plane role assignment| COSMOS
+    APP ==>|SDK request with token| COSMOS
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or SDK transport. Thin arrows show token exchange, and dotted arrows show identity and authorization associations.
 
 ## Prerequisites
 
@@ -40,7 +51,11 @@ az extension add --name cosmosdb-preview --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## Step 1: Enable managed identity on the Container App
 
@@ -53,7 +68,12 @@ az containerapp identity assign \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity required by this recipe. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--system-assigned` | Enables the system identity used by the app, job, or scaler. |
+
+
 
 Get the managed identity principal ID:
 
@@ -65,9 +85,15 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `export PRINCIPAL_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity.principalId" --output tsv)` | Captures the app's managed identity principal ID so the next RBAC assignment can grant Cosmos DB access to the actual runtime identity. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 ## Step 2: Grant Cosmos DB data-plane access
 
@@ -87,7 +113,18 @@ az role assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az cosmosdb show ...` | Creates or inspects Cosmos DB resources used by the sample app. |
+| `az cosmosdb show` | Reads the Cosmos DB account resource ID used as the role-assignment scope. |
+| `az role assignment create` | Grants the managed identity the data-plane role required by this step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal. |
+| `--role` | Selects the least-privilege data-plane role required by this identity. |
+| `--scope` | Limits the role or policy assignment to the resource used by this recipe. |
+
+
 
 ## Step 3: Configure endpoint in Container Apps settings
 
@@ -102,7 +139,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
+
 
 ## Step 4: Python code (passwordless access)
 
@@ -149,7 +191,13 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 2. Confirm role assignment exists:
 
@@ -162,7 +210,12 @@ az role assignment list \
 
 | Command | Why it is used |
 |---|---|
-| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+| `az role assignment list` | Lists matching Azure role assignments for verification. |
+| `--assignee` | Filters assignments to the identity being verified. |
+| `--scope` | Limits the role or policy assignment to the resource used by this recipe. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 3. Check app logs for successful read/write operations.
 
@@ -175,7 +228,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Streams or retrieves logs from the selected app or revision for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--follow` | Continues streaming new log records during verification. |
+
+
 
 ## See Also
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)

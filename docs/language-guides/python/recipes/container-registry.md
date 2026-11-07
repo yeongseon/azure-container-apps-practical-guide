@@ -8,6 +8,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview
     - id: configure-the-container-app-to-reference
       type: flowchart
       source: mslearn-adapted
@@ -15,6 +16,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview
 ---
 # Private Container Registry (ACR with Private Endpoint)
 
@@ -25,15 +27,24 @@ Pull container images from Azure Container Registry over a private network path 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    ACR[Azure Container Registry] --> APP
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> ACR
+    accTitle: Pull a private image from Azure Container Registry
+    accDescr: A container app uses its configured pull identity for authorization and resolves the registry through private DNS before downloading image content through an Azure Container Registry private endpoint.
+
+    APP[Container app revision]
+    IDENTITY[Configured pull identity]
+    DNS[Private DNS zone<br/>privatelink.azurecr.io]
+    PE[Registry private endpoint]
+    ACR[Azure Container Registry]
+
+    APP -.->|Uses for image pull| IDENTITY
+    IDENTITY -.->|Registry authorization| ACR
+    APP -->|Resolves registry names| DNS
+    DNS -->|Returns private endpoint addresses| APP
+    APP ==>|Registry and layer requests| PE
+    PE ==>|Private Link transport| ACR
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show image transport. Thin arrows show DNS exchange, and dotted arrows show identity and authorization associations.
 
 !!! note "Private Endpoint requires ACR Premium SKU"
     Private Endpoints for ACR are only available on the **Premium** tier. Basic and Standard ACR cannot use Private Endpoints.
@@ -44,44 +55,35 @@ By default, Container Apps pulls images from a public ACR endpoint. In a private
 
 1. Deploy ACR with public access disabled and a Private Endpoint in your VNet
 2. Configure a **user-assigned managed identity** on your Container App as the pull identity
-3. Grant that identity `AcrPull` on the registry
+3. Grant the identity the pull role for the registry's permission mode: `AcrPull` for **RBAC Registry Permissions**, or `Container Registry Repository Reader` for **RBAC Registry + ABAC Repository Permissions**
 4. Configure the Container App to reference that identity for the registry
 
 <!-- diagram-id: configure-the-container-app-to-reference -->
 ```mermaid
-graph TD
-    subgraph VNet["Virtual Network (10.0.0.0/16)"]
-        subgraph CASubnet["Container Apps Subnet (10.0.0.0/23)"]
-            CAE[Container Apps Environment]
-            CA[Container App<br/>+ User-Assigned MI]
-        end
-        subgraph PESubnet["Private Endpoints Subnet (10.0.2.0/24)"]
-            PE_ACR[Private Endpoint<br/>ACR login server<br/>10.0.2.10]
-            PE_DATA[Private Endpoint<br/>ACR data endpoint<br/>10.0.2.11]
-        end
+flowchart TD
+    accTitle: Private ACR image-pull dependencies
+    accDescr: The Container Apps environment reaches a registry private endpoint through its virtual network. Private DNS resolves both registry login and regional data names. A user-assigned managed identity is associated with the app and authorized on the registry separately from the network path.
+
+    IDENTITY[User-assigned managed identity]
+    DNS[Private DNS zone<br/>privatelink.azurecr.io]
+    ACR[Azure Container Registry<br/>Premium, public access disabled]
+
+    subgraph VNET[Customer virtual network]
+        ENV[Container Apps environment]
+        APP[Container app revision]
+        PE[ACR private endpoint]
     end
 
-    subgraph DNS["Private DNS Zone<br/>privatelink.azurecr.io"]
-        DNS_LOGIN["myregistry.azurecr.io → 10.0.2.10"]
-        DNS_DATA["myregistry.koreacentral.data.azurecr.io → 10.0.2.11"]
-    end
-
-    subgraph ACR["Azure Container Registry<br/>(Premium, public disabled)"]
-        LOGIN[Login server]
-        DATA[Data endpoint]
-    end
-
-    CA -->|"1. Token request (ARM audience)"| AAD[Microsoft Entra ID]
-    AAD -->|"2. Access token"| CA
-    CA -->|"3. Pull via private IP"| PE_ACR --> LOGIN
-    CA -->|"4. Layer download"| PE_DATA --> DATA
-    DNS_LOGIN -.-> PE_ACR
-    DNS_DATA -.-> PE_DATA
-
-    style CA fill:#0078d4,color:#fff
-    style ACR fill:#f0f0f0,stroke:#888
-    style DNS fill:#e6f2fb,stroke:#0078d4
+    ENV -->|Hosts| APP
+    APP -.->|Configured pull identity| IDENTITY
+    IDENTITY -.->|Registry pull authorization| ACR
+    APP -->|Queries login and data names| DNS
+    DNS -->|Returns private endpoint addresses| APP
+    APP ==>|Registry login and layer requests| PE
+    PE ==>|Private Link transport| ACR
 ```
+
+Thick arrows show image transport. Thin arrows show hosting and DNS exchange; dotted arrows show identity and authorization associations.
 
 !!! warning "Two DNS records are required"
     ACR image pulls use **two endpoints**: the login server (`myregistry.azurecr.io`) for authentication and the regional data endpoint (`myregistry.<region>.data.azurecr.io`) for layer downloads. Both must resolve to private IPs through the Private DNS Zone. Missing the data endpoint causes pull failures that are not obvious from the error message.
@@ -128,7 +130,15 @@ az acr create \
 
 | Command | Why it is used |
 |---|---|
-| `az acr create ...` | Creates Azure Container Registry for container image storage. |
+| `az acr create` | Creates the Azure Container Registry used by this recipe. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--location` | Creates the resource in the recipe's selected Azure region. |
+| `--sku` | Selects the Premium registry tier required for Private Link. |
+| `--public-network-enabled` | Disables or temporarily enables the registry public endpoint as described. |
+| `--data-endpoint-enabled` | Enables the dedicated ACR data endpoint used for private layer downloads. |
+
+
 
 !!! important "Enable ARM audience token authentication"
     Managed identity pulls require ACR to accept ARM audience tokens. Enable this explicitly — it is not on by default in all tenants:
@@ -139,9 +149,13 @@ az acr create \
       --status enabled
     ```
 
-    | Command | Why it is used |
-    |---|---|
-    | `az acr config authentication-as-arm ...` | Runs the Azure CLI operation required by the documented step. |
+| Command | Why it is used |
+|---|---|
+| `az acr config authentication-as-arm update` | Enables ARM-audience token authentication for managed-identity image pulls. |
+| `--registry` | Selects the Azure Container Registry used by this build or configuration step. |
+| `--status` | Enables ARM-audience token authentication on the registry. |
+
+
 
     Without this, managed identity pull attempts fail with `401 Unauthorized` even when RBAC looks correct.
 
@@ -173,9 +187,18 @@ export UAMI_CLIENT_ID=$(az identity show \
 
 | Command | Why it is used |
 |---|---|
-| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+| `az identity create` | Creates the user-assigned managed identity used by the recipe. |
+| `az identity show` | Reads the managed identity resource, principal, or client ID. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
 
-## Step 3: Grant AcrPull to the managed identity
+
+
+## Step 3: Grant the mode-appropriate pull role
+
+Check `roleAssignmentMode` before creating the role assignment. ABAC-enabled registries do not honor the legacy `AcrPull` role.
 
 ```bash
 export ACR_ID=$(az acr show \
@@ -184,16 +207,39 @@ export ACR_ID=$(az acr show \
   --query "id" \
   --output tsv)
 
+export ACR_ROLE_ASSIGNMENT_MODE=$(az acr show \
+  --name "$ACR_NAME" \
+  --resource-group "$RG" \
+  --query "roleAssignmentMode" \
+  --output tsv)
+
+if [ "$ACR_ROLE_ASSIGNMENT_MODE" = "AbacRepositoryPermissions" ]; then
+  export ACR_PULL_ROLE="Container Registry Repository Reader"
+else
+  export ACR_PULL_ROLE="AcrPull"
+fi
+
 az role assignment create \
   --assignee-object-id "$UAMI_PRINCIPAL_ID" \
   --assignee-principal-type ServicePrincipal \
-  --role "AcrPull" \
+  --role "$ACR_PULL_ROLE" \
   --scope "$ACR_ID"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az acr show ...` | Reads registry configuration such as login server, identity, or admin status. |
+| `az acr show` | Reads the registry property needed by the next step. |
+| `az role assignment create` | Grants the managed identity the data-plane role required by this step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--assignee-object-id` | Targets the managed identity principal without a Microsoft Graph lookup. |
+| `--assignee-principal-type` | Declares the managed identity as a service principal. |
+| `--role` | Selects the least-privilege data-plane role required by this identity. |
+| `--scope` | Limits the role or policy assignment to the resource used by this recipe. |
+
+
 
 !!! tip "Role assignment propagation"
     RBAC changes take 1–5 minutes to propagate. If a container pull fails immediately after assigning the role, wait and retry the revision.
@@ -215,7 +261,15 @@ az network private-endpoint create \
 
 | Command | Why it is used |
 |---|---|
-| `az network private-endpoint create ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network private-endpoint create` | Creates the private endpoint for the selected ACR subresource. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--subnet` | Places the private endpoint in the designated endpoint subnet. |
+| `--private-connection-resource-id` | Targets the ACR resource connected through Private Link. |
+| `--group-id` | Selects the ACR Private Link subresource exposed by this endpoint. |
+| `--connection-name` | Names the private connection created for the ACR endpoint. |
+
+
 
 ### Optional: Dedicated data endpoint
 
@@ -253,7 +307,24 @@ az network private-endpoint dns-zone-group create \
 
 | Command | Why it is used |
 |---|---|
-| `az acr update ...` | Runs the Azure CLI operation required by the documented step. |
+| `az acr update` | Updates the selected registry setting required by this recipe. |
+| `az network private-link-resource list` | Lists available ACR Private Link group IDs before endpoint creation. |
+| `az network private-endpoint create` | Creates the private endpoint for the selected ACR subresource. |
+| `az network private-endpoint dns-zone-group create` | Associates the private endpoint with its ACR private DNS zone. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--data-endpoint-enabled` | Enables the dedicated ACR data endpoint used for private layer downloads. |
+| `--id` | Selects the resource or application by its full identifier. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--subnet` | Places the private endpoint in the designated endpoint subnet. |
+| `--private-connection-resource-id` | Targets the ACR resource connected through Private Link. |
+| `--group-id` | Selects the ACR Private Link subresource exposed by this endpoint. |
+| `--connection-name` | Names the private connection created for the ACR endpoint. |
+| `--endpoint-name` | Selects the private endpoint that receives the DNS zone group. |
+| `--private-dns-zone` | Associates the endpoint with the ACR private DNS zone. |
+| `--zone-name` | Selects or names the DNS zone association used by the endpoint. |
+
+
 
 !!! warning "Bicep + data endpoint race condition"
     Creating the data endpoint PE in the same Bicep deployment as the ACR resource will fail with `InvalidPrivateEndpointConnectionRequestParameters` because the `registry_data_<region>` group ID is not registered until the ACR fully provisions. Always create the data endpoint PE in a separate step via CLI or a second Bicep deployment.
@@ -291,7 +362,21 @@ az network private-endpoint dns-zone-group create \
 
 | Command | Why it is used |
 |---|---|
-| `az network vnet show ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network vnet show` | Reads the virtual network resource ID used by the DNS link. |
+| `az network private-dns zone create` | Creates the private DNS zone for Azure Container Registry. |
+| `az network private-dns link vnet create` | Links the ACR private DNS zone to the app's virtual network. |
+| `az network private-endpoint dns-zone-group create` | Associates the private endpoint with its ACR private DNS zone. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+| `--zone-name` | Selects or names the DNS zone association used by the endpoint. |
+| `--virtual-network` | Links the private DNS zone to the app's virtual network. |
+| `--registration-enabled` | Prevents virtual machines from auto-registering records in the ACR zone. |
+| `--endpoint-name` | Selects the private endpoint that receives the DNS zone group. |
+| `--private-dns-zone` | Associates the endpoint with the ACR private DNS zone. |
+
+
 
 Verify A records were registered:
 
@@ -304,7 +389,12 @@ az network private-dns record-set a list \
 
 | Command | Why it is used |
 |---|---|
-| `az network private-dns record-set ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network private-dns record-set a list` | Lists private A records to verify registry name resolution. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--zone-name` | Selects or names the DNS zone association used by the endpoint. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 Expected output:
 
@@ -341,7 +431,14 @@ docker push "${ACR_NAME}.azurecr.io/myapp:latest"
 
 | Command | Why it is used |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Builds the recipe image and pushes its tag to Azure Container Registry. |
+| `az acr login` | Authenticates the local container client to the selected registry. |
+| `--registry` | Selects the Azure Container Registry used by this build or configuration step. |
+| `--image` | Selects or tags the container image used by this recipe step. |
+| `--file` | Selects the Dockerfile used to build this recipe image. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+
+
 
 !!! warning "CI/CD runners must have network line-of-sight"
     When ACR public access is disabled, GitHub-hosted runners **cannot push images** to the registry. Use **ACR Tasks** or a **self-hosted runner inside the VNet**.
@@ -357,9 +454,17 @@ docker push "${ACR_NAME}.azurecr.io/myapp:latest"
     az acr update --name "$ACR_NAME" --public-network-enabled false
     ```
 
-    | Command | Why it is used |
-    |---|---|
-    | `az acr update --name ...` | Runs the Azure CLI operation required by the documented step. |
+| Command | Why it is used |
+|---|---|
+| `az acr update` | Updates the selected registry setting required by this recipe. |
+| `az acr build` | Builds the recipe image and pushes its tag to Azure Container Registry. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--public-network-enabled` | Disables or temporarily enables the registry public endpoint as described. |
+| `--registry` | Selects the Azure Container Registry used by this build or configuration step. |
+| `--image` | Selects or tags the container image used by this recipe step. |
+| `--file` | Selects the Dockerfile used to build this recipe image. |
+
+
 
     For production pipelines, prefer a **self-hosted runner or build agent inside the VNet** to avoid toggling public access.
 
@@ -384,7 +489,19 @@ az containerapp create \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+| `az containerapp create` | Creates the Container App with the recipe's image, ingress, identity, and environment settings. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--environment` | Places the app or job in the specified Container Apps environment. |
+| `--image` | Selects or tags the container image used by this recipe step. |
+| `--registry-server` | Identifies the Azure Container Registry login server for the private image. |
+| `--registry-identity` | Uses the attached managed identity to authenticate the private image pull. |
+| `--user-assigned` | Attaches the specified user-assigned identity to the app. |
+| `--env-vars` | Passes these non-secret runtime settings to the Python container. |
+| `--ingress` | Enables the external ingress endpoint required by this app. |
+| `--target-port` | Routes ingress traffic to the Python process listening port. |
+
+
 
 For an **existing** app, update registry config:
 
@@ -398,7 +515,13 @@ az containerapp registry set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp registry set ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp registry set` | Configures the registry server and managed pull identity for the app. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--server` | Selects the registry server associated with the pull identity. |
+| `--identity` | Selects the managed identity used for registry authentication. |
+
+
 
 Then update the image:
 
@@ -411,7 +534,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--image` | Selects or tags the container image used by this recipe step. |
+
+
 
 !!! important "Control-plane success ≠ runtime success"
     `az containerapp update --image` updates the **app spec** successfully even when the registry is unreachable. The **revision** will fail to start if DNS resolution or RBAC is wrong. Always check revision status and logs after an image update.
@@ -429,7 +557,12 @@ az containerapp exec \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Runs the verification command inside the selected Container App replica. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--command` | Runs the stated in-container verification command. |
+
+
 
 Expected — private IP, not public:
 
@@ -454,7 +587,12 @@ az containerapp exec \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Runs the verification command inside the selected Container App replica. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--command` | Runs the stated in-container verification command. |
+
+
 
 ### Check revision status
 
@@ -467,7 +605,12 @@ az containerapp revision list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Finds the newly created candidate revision. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 Expected:
 
@@ -489,7 +632,13 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Streams or retrieves logs from the selected app or revision for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--follow` | Continues streaming new log records during verification. |
+| `--tail` | Limits the initial log result to the most recent records. |
+
+
 
 ---
 
@@ -612,3 +761,4 @@ Each requires a separate Private Endpoint and DNS A record in `privatelink.azure
 - [ACR Private Link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link)
 - [Managed identity for Container Apps registry auth (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [ACR authentication as ARM (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity)
+- [ACR permissions and role assignments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview)

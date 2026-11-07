@@ -15,12 +15,27 @@ Use Container Apps authentication (Easy Auth) to offload sign-in and token handl
 <!-- diagram-id: use-container-apps-authentication-easy-auth -->
 ```mermaid
 flowchart TD
-    C[Client] --> AUTH["Easy Auth (Built-in)"]
-    AUTH --> IDP[Identity Provider]
-    IDP --> AUTH
-    AUTH --> APP[Python App]
-    APP -.-> HEADERS["X-MS-CLIENT-PRINCIPAL"]
+    accTitle: Authenticate users before requests reach Flask
+    accDescr: Built-in authentication intercepts the request outside the application code. It redirects unauthenticated users to the configured identity provider, validates the returned identity, and forwards authenticated requests with identity headers for app-level authorization.
+
+    CLIENT[Client]
+    AUTH[Container Apps<br/>built-in authentication]
+    IDP[Configured identity provider]
+    APP[Python app]
+    AUTHORIZE[Check required role or scope]
+    ALLOW[Serve protected route]
+    DENY[Return 403]
+
+    CLIENT ==>|Request| AUTH
+    AUTH ==>|Sign-in redirect| IDP
+    IDP ==>|Authentication response| AUTH
+    AUTH ==>|Request with identity headers| APP
+    APP --> AUTHORIZE
+    AUTHORIZE -->|Present| ALLOW
+    AUTHORIZE -->|Missing| DENY
 ```
+
+Thick arrows show browser and application requests. The decision remains in Flask because built-in authentication establishes identity but does not replace app-specific authorization.
 
 ## Prerequisites
 
@@ -34,7 +49,11 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or upgrades the Azure CLI extension required by this procedure. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--upgrade` | Updates an existing extension so current command flags are available. |
+
+
 
 ## Supported identity providers
 
@@ -54,13 +73,20 @@ az containerapp auth update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --enabled true \
-  --platform runtimeVersion "~1" \
-  --global-validation unauthenticatedClientAction RedirectToLoginPage
+  --runtime-version "~1" \
+  --unauthenticated-client-action RedirectToLoginPage
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth update` | Enables and configures built-in authentication for the Container App. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--enabled` | Turns on the built-in authentication middleware. |
+| `--runtime-version` | Selects the built-in authentication middleware runtime version. |
+| `--unauthenticated-client-action` | Redirects unauthenticated browser requests to sign-in. |
+
+
 
 Provider configuration can then be added with provider-specific settings:
 
@@ -68,14 +94,21 @@ Provider configuration can then be added with provider-specific settings:
 az containerapp auth microsoft update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --registration-client-id "$ENTRA_CLIENT_ID" \
-  --registration-client-secret-setting-name "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" \
-  --login-scopes "openid profile email"
+  --client-id "$ENTRA_CLIENT_ID" \
+  --client-secret-name "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" \
+  --tenant-id "$TENANT_ID"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp auth microsoft ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth microsoft update` | Configures Microsoft Entra ID as the app's built-in authentication provider. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--client-id` | Sets the app registration client ID used for Microsoft sign-in. |
+| `--client-secret-name` | References the Container Apps secret that stores the provider client secret. |
+| `--tenant-id` | Restricts Microsoft sign-in to the intended Entra tenant. |
+
+
 
 ## Enable Easy Auth via Bicep
 

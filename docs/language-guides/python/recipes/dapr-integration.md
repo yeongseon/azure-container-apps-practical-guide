@@ -15,13 +15,34 @@ Azure Container Apps provides native Dapr integration, allowing your Python appl
 <!-- diagram-id: azure-container-apps-aca-provides-native -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Python App]
-    APP <--> DAPR[Dapr Sidecar]
-    DAPR --> STATE[State Store]
-    DAPR --> PUBSUB["Pub/Sub Broker"]
-    DAPR --> SVC[Other Services]
+    accTitle: Use Dapr APIs from a Python container app
+    accDescr: A client request reaches the Python app through managed ingress. The app calls its local Dapr sidecar, which invokes configured state, publish and subscribe, secret, or service-invocation components.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+
+    REPLICA[Container app replica]
+    APP[Python app]
+    DAPR[Dapr sidecar]
+
+    STATE[State store component]
+    BROKER[Publish and subscribe component]
+    SECRET[Secret store component]
+    SERVICE[Target Dapr-enabled app]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS -->|Routes to| REPLICA
+    REPLICA -->|Runs| APP
+    REPLICA -->|Runs| DAPR
+    INGRESS ==>|Routed request| APP
+    APP ==>|HTTP or gRPC on localhost| DAPR
+    DAPR ==>|State API| STATE
+    DAPR ==>|Publish or subscribe API| BROKER
+    DAPR ==>|Secrets API| SECRET
+    DAPR ==>|Service invocation| SERVICE
 ```
+
+Thick arrows show application and Dapr API transport. The component resources remain outside the app replica boundary.
 
 ## Enabling Dapr
 
@@ -37,7 +58,13 @@ az containerapp dapr enable \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
+| `az containerapp dapr enable` | Enables and configures the Dapr sidecar for the Python app. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--dapr-app-id` | Sets the Dapr application ID used for service invocation. |
+| `--dapr-app-port` | Routes Dapr calls to the Python process on its listening port. |
+
+
 
 ## How Dapr Works
 

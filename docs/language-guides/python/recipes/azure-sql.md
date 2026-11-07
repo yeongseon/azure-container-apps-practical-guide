@@ -17,15 +17,25 @@ Use this recipe to connect Azure Container Apps to Azure SQL Database with Micro
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> SQL[Azure SQL Database]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> SQL
+    accTitle: Passwordless Python access to Azure SQL
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a token for Azure SQL through its managed identity and Microsoft Entra ID before opening the database connection.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    SQL[Azure SQL Database]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests SQL token| ENTRA
+    ENTRA -->|Issues access token| APP
+    APP ==>|Encrypted SQL connection<br/>with access token| SQL
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or database transport. Thin arrows show token exchange, and the dotted arrow shows the identity association.
 
 ## Prerequisites
 
@@ -51,7 +61,15 @@ export PRINCIPAL_ID=$(az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Assigns the managed identity required by this recipe. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--system-assigned` | Enables the system identity used by the app, job, or scaler. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 ## Step 2: Grant SQL database access to the app identity
 
@@ -74,7 +92,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected Container App with this step's image or configuration. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--set-env-vars` | Adds the recipe's runtime settings to the new app revision. |
+
+
 
 ## Step 4: Python code (token-based SQL connection)
 
@@ -136,7 +159,13 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the Container App property needed by the next recipe step. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--query` | Extracts the exact resource property consumed by the next command. |
+| `--output` | Returns the result in the format consumed by the shell or verification table. |
+
+
 
 2. Verify runtime connectivity by checking application logs:
 
@@ -149,7 +178,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Streams or retrieves logs from the selected app or revision for verification. |
+| `--name` | Selects the named resource operated on in this recipe step. |
+| `--resource-group` | Selects the resource group that contains this step's target resource. |
+| `--follow` | Continues streaming new log records during verification. |
+
+
 
 3. Confirm SQL sign-ins in Azure SQL auditing/logs.
 
