@@ -57,11 +57,11 @@ az account show --output table
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az extension add` | Installs or upgrades the Container Apps extension used by the examples. |
-| `--name` | Selects the named Azure resource. |
-| `--upgrade` | Upgrades the extension if an older version is installed. |
-| `az account show` | Shows the active subscription and tenant before the review commands run. |
-| `--output` | Chooses the output format for review or scripting. |
+| `az extension add` | Installs or upgrades the Container Apps extension required by the examples. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--upgrade` | Replaces an older Container Apps extension with the current installed version. |
+| `az account show` | Shows the active Azure subscription and tenant before the review commands run. |
+| `--output` | Returns the result in the format needed by this review step. |
 
 ## Recommended Practices
 
@@ -70,12 +70,12 @@ az account show --output table
 | Problem | Why It Fails | Better Approach |
 |---|---|---|
 | Using `:latest` image tag in production | Revisions are not reproducible; rollbacks can pull unexpected image content | Use immutable version tags (`v1.2.3`) or digest pinning |
-| Fat container images larger than 1 GB | Slow pulls increase cold start and deployment risk; more registry storage cost | Use minimal runtime images, multi-stage builds, and dependency trimming |
+| Unnecessarily large container images | Measured pull and startup times can increase deployment risk and registry storage cost | Use minimal runtime images, multi-stage builds, and dependency trimming |
 | No health probes configured | Platform cannot distinguish slow start from broken runtime; unhealthy replicas linger | Configure readiness and liveness probes matching startup/runtime behavior |
 | Storing secrets directly in environment variables | Secret sprawl, accidental leakage in logs, manual rotation pain | Use Container Apps secrets and Key Vault references |
 | Using ACR admin credentials instead of managed identity | Shared static credentials create blast radius and rotation risk | Use managed identity for image pulls and disable admin auth where possible |
 | Setting `minReplicas=0` for latency-sensitive APIs | Cold starts increase p95 and p99 latency | Keep `minReplicas` at 1 or higher for strict latency services |
-| Single revision mode for production apps | No safe canary or traffic split; rollback requires disruptive full switch | Use multiple revision mode with staged rollout and validation gates |
+| Expecting canary or A/B control from single revision mode | Single revision mode performs a readiness-gated cutover but doesn't expose percentage traffic splitting between active revisions | Choose multiple revision mode when staged traffic, canary, or A/B control is required |
 | Hardcoded connection strings | Secrets baked into image/config drift across environments | Resolve from secret store at runtime with identity-based access |
 | Ignoring SIGTERM and ungraceful shutdown | In-flight requests/jobs are interrupted; data corruption and retry storms | Handle SIGTERM, drain requests, and flush telemetry before exit |
 | Not configuring ingress when external access is required | App is healthy but unreachable from clients | Explicitly configure external ingress, target port, and transport |
@@ -100,10 +100,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--image` | Selects the immutable container image to deploy. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--image` | Selects the exact container image tag deployed by this example. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
 Better pattern:
 
@@ -116,14 +116,14 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--image` | Selects the immutable container image to deploy. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--image` | Selects the exact container image tag deployed by this example. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
-### 2) Fat container images larger than 1 GB
+### 2) Unnecessarily large container images
 
-Large images increase pull duration and make scale-from-zero slower.
+Image size, layer reuse, registry throughput, and network conditions all affect pull and startup time. Measure those outcomes for the workload instead of applying an uncited universal size cutoff.
 
 Operational impact:
 
@@ -146,23 +146,21 @@ Bad outcome examples:
 - Broken dependency initialization treated as healthy
 - Stuck replicas remain in rotation too long
 
-Better approach with explicit probe settings:
+Better approach with an app template file that defines explicit probe settings:
 
 ```bash
 az containerapp update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --set "properties.template.containers[0].probes[0].type=Readiness" \
-        "properties.template.containers[0].probes[0].httpGet.path=/health" \
-        "properties.template.containers[0].probes[0].httpGet.port=8000"
+  --yaml "./infra/containerapp-probes.yaml"
 ```
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--set` | Updates the specified resource properties or tags. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--yaml` | Applies the YAML template that contains the documented app configuration. |
 
 !!! note "Probe design"
     Readiness should represent dependency readiness for serving traffic. Liveness should represent process health, not external dependency state.
@@ -182,10 +180,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--set-env-vars` | Adds or updates environment variables; a `secretref:` value references a Container Apps secret. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--set-env-vars` | Adds or updates the documented environment variable; `secretref:` resolves a Container Apps secret. |
 
 Better pattern using platform secret abstraction:
 
@@ -203,12 +201,12 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set` | Creates or updates named Container Apps secrets. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--secrets` | Supplies the secret names and values to create or update. |
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--set-env-vars` | Adds or updates environment variables; a `secretref:` value references a Container Apps secret. |
+| `az containerapp secret set` | Creates or updates the named Container Apps secret values. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--secrets` | Creates or updates the named secret value referenced by the app. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--set-env-vars` | Adds or updates the documented environment variable; `secretref:` resolves a Container Apps secret. |
 
 ### 5) Using ACR admin credentials instead of managed identity
 
@@ -231,9 +229,9 @@ az containerapp identity assign \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign` | Assigns a managed identity to the Container App. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp identity assign` | Assigns a managed identity to the selected Container App. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 | `--system-assigned` | Enables the app-owned system-assigned managed identity. |
 
 ### 6) `minReplicas=0` on latency-sensitive APIs
@@ -251,10 +249,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--min-replicas` | Sets the minimum replica count and therefore the warm baseline. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--min-replicas` | Sets the app replica floor used for the latency or cost decision. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
 Better pattern:
 
@@ -268,23 +266,23 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--max-replicas` | Caps scale-out at the selected replica count. |
-| `--min-replicas` | Sets the minimum replica count and therefore the warm baseline. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--max-replicas` | Caps app scale-out at the documented replica count. |
+| `--min-replicas` | Sets the app replica floor used for the latency or cost decision. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
-### 7) Single revision mode in production
+### 7) Expecting progressive-delivery controls from single revision mode
 
-Single revision mode removes safe progressive rollout options.
+Single revision mode is the default and provides a readiness-gated cutover: with ingress enabled, the existing revision continues to receive 100% of traffic until the new revision is ready, and traffic remains on the old revision if the update fails. It is not itself a production anti-pattern.
 
-Risks:
+Use multiple revision mode when the release process requires controls that single revision mode does not provide:
 
-- All traffic instantly exposed to new build
-- Rollback depends on full revision replacement
-- Reduced observability for side-by-side comparison
+- Percentage-based traffic splitting between active revisions
+- Canary or A/B comparison before full promotion
+- Operator-controlled activation and deactivation of revisions
 
-Better approach:
+When those controls are required:
 
 - Enable multiple revisions
 - Send small traffic percentage to candidate revision
@@ -340,13 +338,13 @@ az containerapp create \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp create` | Creates the Container App in the selected environment. |
-| `--environment` | Selects the Container Apps environment for the app or job. |
-| `--image` | Selects the immutable container image to deploy. |
-| `--ingress` | Sets whether ingress is external or internal. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--target-port` | Sets the application port reached by managed ingress. |
+| `az containerapp create` | Creates the Container App with the documented image, environment, and ingress settings. |
+| `--environment` | Selects the Container Apps environment that hosts the app or job. |
+| `--image` | Selects the exact container image tag deployed by this example. |
+| `--ingress` | Makes the example app externally reachable through managed ingress. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--target-port` | Routes managed ingress to the application listener on port 8000. |
 
 Validate ingress state:
 
@@ -360,11 +358,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--output` | Chooses the output format for review or scripting. |
-| `--query` | Projects the fields needed for the documented verification. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--output` | Returns the result in the format needed by this review step. |
+| `--query` | Extracts only the fields needed for this documented verification. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
 ### 11) Using Container Apps for persistent local-state workloads
 
@@ -397,11 +395,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--output` | Chooses the output format for review or scripting. |
-| `--query` | Projects the fields needed for the documented verification. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--output` | Returns the result in the format needed by this review step. |
+| `--query` | Extracts only the fields needed for this documented verification. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
 Better approach:
 
@@ -456,14 +454,14 @@ az containerapp job create \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp job create` | Creates a Container Apps job with the specified execution settings. |
-| `--environment` | Selects the Container Apps environment for the app or job. |
-| `--image` | Selects the immutable container image to deploy. |
-| `--name` | Selects the named Azure resource. |
-| `--replica-retry-limit` | Sets how many times a failed job replica can retry. |
-| `--replica-timeout` | Limits how long a job replica may run. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--trigger-type` | Selects the job trigger model. |
+| `az containerapp job create` | Creates the database-migration job with its execution limits and image. |
+| `--environment` | Selects the Container Apps environment that hosts the app or job. |
+| `--image` | Selects the exact container image tag deployed by this example. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--replica-retry-limit` | Prevents an unsafe automatic rerun of the migration job. |
+| `--replica-timeout` | Limits each migration-job replica to the documented execution window. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--trigger-type` | Selects manual execution for the controlled migration job. |
 
 ### 15) Ignoring scale rule interaction and precedence
 
@@ -493,11 +491,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--output` | Chooses the output format for review or scripting. |
-| `--query` | Projects the fields needed for the documented verification. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--output` | Returns the result in the format needed by this review step. |
+| `--query` | Extracts only the fields needed for this documented verification. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
 ### Anti-pattern severity and impact matrix
 
@@ -508,9 +506,9 @@ az containerapp show \
 | Secrets in plain env vars | 🔴 High | Security | Medium — audit env config | Medium |
 | ACR admin credentials | 🟠 Medium | Security | Easy — check registry auth | Medium |
 | Ignoring SIGTERM | 🔴 High | Runtime reliability | Hard — requires load testing | Medium |
-| Fat images > 1 GB | 🟠 Medium | Cost, cold start | Easy — check image size | Medium |
+| Unnecessarily large images | 🟠 Medium | Cost, startup | Medium — measure pull and startup time | Medium |
 | `minReplicas=0` on SLO APIs | 🟠 Medium | Latency | Medium — correlate cold starts | Low |
-| Single revision mode | 🟠 Medium | Release safety | Easy — check revision mode | Low |
+| Revision mode does not match rollout controls | 🟠 Medium | Release safety | Easy — compare release requirements with revision mode | Low |
 | Hardcoded connection strings | 🔴 High | Security, operations | Medium — code/config audit | High |
 | Missing ingress config | 🟡 Low | Connectivity | Easy — check ingress field | Low |
 | Persistent local state | 🔴 High | Architecture fit | Hard — requires design review | High |
@@ -582,7 +580,7 @@ flowchart TD
 | Secret handling | No plaintext credentials in env vars | Secret references used |
 | Identity | Managed identity configured for dependencies | Least privilege applied |
 | Scaling | Min/max replicas and scale rules justified | No contradictory scaler behavior |
-| Release safety | Multiple revisions with progressive rollout | Rollback path documented |
+| Release safety | Revision mode matches the required cutover or progressive-delivery controls | Rollback path documented |
 | Environment boundaries | Stage isolation enforced | Separate environments for prod and non-prod |
 
 !!! warning "Bookmark this page"
@@ -594,7 +592,7 @@ flowchart TD
 
 **[Observed]** `ca-sample-d38538 | Revisions and replicas` `Container App` `Create new revision` `Save` `Refresh` `Deployment mode` `Active revisions` `Inactive revisions` `Replicas` `Name` `Date created` `Running status` `View Logs` `Label` `Traffic` `Replicas` `ca-sample-d38538--0uzoi59` `6/3/2026, 10:34:26 PM` `Running` `View details` `Show Logs` `100 %` `1 (Show replicas)`.
 
-**[Inferred]** The immutable revision suffix on `ca-sample-d38538--0uzoi59` is consistent with the digest-or-versioned-tag guidance in [1) Using `:latest` image tag in production](#1-using-latest-image-tag-in-production), which treats mutable tags as the anti-pattern under review. The `Deployment mode` setting appears to map to the multi-revision posture called out in [7) Single revision mode in production](#7-single-revision-mode-in-production), which is consistent with treating single-revision mode as the anti-pattern. The `Active revisions` and `Inactive revisions` grouping appears to map to the rollout-history guidance referenced in the [Anti-pattern quick reference table](#anti-pattern-quick-reference-table), which is consistent with treating retained revisions as the rollback surface. The `Traffic` column with the displayed `100 %` value is consistent with the no-staged-rollout concern in [7) Single revision mode in production](#7-single-revision-mode-in-production), where all traffic on a single revision removes the canary option.
+**[Inferred]** The immutable revision suffix on `ca-sample-d38538--0uzoi59` is consistent with the digest-or-versioned-tag guidance in [1) Using `:latest` image tag in production](#1-using-latest-image-tag-in-production), which treats mutable tags as the anti-pattern under review. The `Deployment mode` setting is the surface where an operator chooses the rollout controls discussed in [7) Expecting progressive-delivery controls from single revision mode](#7-expecting-progressive-delivery-controls-from-single-revision-mode). The `Active revisions` and `Inactive revisions` grouping appears to map to the rollout-history guidance referenced in the [Anti-pattern quick reference table](#anti-pattern-quick-reference-table). The displayed `Traffic` value of `100 %` does not prove that the configured mode is unsafe; it only shows the current allocation, while multiple revision mode is needed when percentage-based canary or A/B control is a release requirement.
 
 **[Not Proven]** Additional revision configuration detail and runtime parameters are not visible on this view.
 
