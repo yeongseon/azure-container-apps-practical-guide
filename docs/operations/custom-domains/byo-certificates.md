@@ -44,7 +44,6 @@ export CERTIFICATE_FILE="./certs/api-contoso-com.pfx"
 export CERTIFICATE_NAME="api-contoso-com"
 export VALIDATION_METHOD="CNAME"
 read -r -s -p "Certificate password: " CERTIFICATE_PASSWORD
-export CERTIFICATE_PASSWORD
 printf '\n'
 ```
 
@@ -65,6 +64,7 @@ az containerapp env certificate upload \
   --certificate-file "$CERTIFICATE_FILE" \
   --password "$CERTIFICATE_PASSWORD" \
   --certificate-name "$CERTIFICATE_NAME"
+unset CERTIFICATE_PASSWORD
 ```
 
 | Command | Why it is used |
@@ -138,7 +138,7 @@ flowchart TD
     VERIFY -->|"PFX replacement"| REMOVE
     KV -.-> ROTATE
     ROTATE -.-> SYNC
-    SYNC -.-> ENV_CERT
+    SYNC -.-> VERIFY
 
     LEGEND["Arrow key<br/>solid = operator workflow<br/>dotted = Key Vault rotation synchronization"]
 ```
