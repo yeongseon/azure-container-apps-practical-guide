@@ -22,7 +22,7 @@ content_validation:
     - claim: In a zone-redundant environment, Container Apps automatically schedules app replicas across availability zones, and Microsoft recommends at least two minimum replicas to ensure distribution across multiple zones.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: Microsoft Learn documents Container Apps planned-maintenance scheduling and windowing, but does not publish a per-app guarantee that the restarts triggered by a given maintenance event will be spread out in time; combined with the absence of a per-replica node-placement contract (Claim 1), an operator cannot point at a Microsoft Learn page that rules out the possibility that multiple replicas of the same app are restarted within a short time window during a maintenance event that affects a shared physical host.
+    - claim: Container Apps applies platform maintenance through rolling updates across fault domains and availability zones to reduce disruption; planned maintenance windows control when noncritical updates can start but remain optional and best-effort.
       source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
       verified: true
     - claim: A new revision is considered ready only after it provisions successfully, scales to match the previous revision's replica count, and all replicas pass startup and readiness probes; rolling rollout depends on correctly-configured probes to mask client-visible transients.
@@ -93,7 +93,7 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 
 **Remediation pattern**:
 
-1. Set CPU and memory `requests` and `limits` explicitly on every container (do not rely on defaults). Explicit resource shape gives the scheduler more information to spread replicas, and is a precondition for any zone-redundancy benefit.
+1. Set CPU and memory `requests` and `limits` explicitly on every container (do not rely on defaults). Explicit resource shape helps the scheduler make placement decisions, but Microsoft Learn does not describe it as a precondition for zone redundancy.
 2. Use `minReplicas >= 2` and pair it with a client-side retry layer (SDK retry policy, API gateway retry, or CDN-level retry). Single-replica designs have no failure-domain budget regardless of platform behavior.
 3. If the workload genuinely requires hard-isolated node placement (e.g., compliance requirement for physical separation), Container Apps is not the right platform — escalate to Azure Kubernetes Service with explicit node pool and anti-affinity rules.
 4. Add an alert on the [`Replicas` metric](../reference/metrics/container-app-metrics.md#replicas-replica-count) for the app dropping below `minReplicas` for more than one bucket. This is a **count-based secondary symptom alert**: the metric does not directly observe physical-host placement, so it cannot detect hidden host co-tenancy when the replica count stays at or above the floor. Use it to catch the subset of scheduler-driven re-placement events that take the count below `minReplicas`, not as proof of node spread.
@@ -109,7 +109,7 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 **Remediation pattern**:
 
 1. Set `minReplicas` to at least 2, the documented minimum recommendation for distribution across multiple zones. Increase it when peak load, simultaneous-zone resilience, or replacement headroom requires more capacity; do not infer a one-replica-per-zone placement API.
-2. Set CPU and memory `requests` and `limits` explicitly. Underspecified resource requirements force the scheduler into conservative placement decisions that can collapse the zone spread.
+2. Set CPU and memory `requests` and `limits` explicitly. Microsoft Learn says this information helps the scheduler make optimal placement decisions across zones and that underspecified requirements can lead to uneven distribution or placement failures under high load; it does not make explicit requests a precondition for zone redundancy.
 3. Implement client-side retry with jitter for all calls into the Container App. A transient zone-level outage during a planned maintenance event is invisible to the app code but visible to the client.
 4. Configure bucketed alerting on `err_pct` at 10-second granularity (see the [Startup-Degraded Bucketed 5xx KQL Pack](../troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md) for the bucket-aggregation pattern). Minute-granularity alerting is too coarse to detect sub-minute zone-level transients.
 5. If your availability target exceeds what a single zone-redundant environment provides (see Claim 5), promote to a multi-region design.
@@ -120,7 +120,7 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 
 **Practice**: Treat the timing distribution of replica restarts during maintenance as undocumented at the per-app level. Build resilience for restart events, but treat clustered restarts as evidence to correlate with maintenance history and investigate rather than as documented normal behavior.
 
-**Non-guarantee disclosure**: The Microsoft Learn article on [planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) documents maintenance windows and says the update system is designed to minimize application impact. It does not publish a per-app restart-spreading guarantee or document clustered restarts as expected behavior. This is a bounded absence-of-contract statement, not evidence that a clustered event was maintenance or that support escalation is inappropriate.
+**Documented behavior and evidence limit**: The Microsoft Learn article on [reliability in Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps#resilience-to-service-maintenance) says platform maintenance uses rolling updates across fault domains and availability zones to reduce disruption. The [planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) article documents maintenance windows and says the update system is designed to minimize application impact. Neither source publishes a per-app restart timeline. A hypothesis that one maintenance event clustered multiple replica restarts is therefore `[Not Proven]` until the event is correlated with maintenance history and platform evidence; it must not be inferred from an operator-driven restart.
 
 **Remediation pattern**:
 
@@ -129,7 +129,7 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 3. Implement client-side retry with jitter for calls whose failure has user-visible impact. Correlate restart timestamps with maintenance history, application changes, and platform health; escalate when impact is unexplained or exceeds documented behavior.
 4. Configure an alert on the [`Replicas` metric](../reference/metrics/container-app-metrics.md#replicas-replica-count) dropping below `minReplicas` for more than 60 seconds. This is a **count-based secondary symptom alert**: the metric does not directly observe physical-host placement, so it can only catch a clustered restart that takes the replica count below the floor. A clustered restart that stays at or above `minReplicas` (because the platform replaces replicas as fast as it restarts them) will not trigger this alert.
 
-**Lab evidence**: The [Zone Redundancy Best-Effort Lab](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) uses operator-driven `revision restart` as a proxy for the planned-maintenance restart pattern. Under the operator-driven perturbation, the lab observed `MaxReplacementFraction=1.0` and clustered churn (multiple replicas replaced within seconds), demonstrating that the scheduler is capable of producing the clustered-restart pattern. The lab does NOT directly observe a real platform maintenance event — that would require a coincident maintenance window during the 24h baseline, which did not occur. Per the lab's evidence-integrity discipline, Claim 3's platform-initiated case is `[Strongly Suggested]`, not `[Observed]`. The lab's measurement infrastructure is identical to Claim 2's; the perturbation type and the failure-mode framing differ.
+**Lab evidence**: The [Zone Redundancy Best-Effort Lab](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) did not observe a platform maintenance event during its 24-hour baseline. Its operator-driven `revision restart` exercises a different control path and is not evidence for planned-maintenance sequencing. Claim 3's platform-maintenance clustering hypothesis is `[Not Proven]`. If replicas restart close together, retain the timestamps, correlate them with scheduled-maintenance history, revision changes, application logs, and Azure Service Health, then investigate or escalate when the cause remains unexplained or the impact exceeds documented behavior.
 
 ### Claim 4: Rolling rollout transient masking depends on probe correctness, not on the rollout mechanism alone
 
@@ -257,7 +257,7 @@ Run this checklist before depending on any of the five contracts in production.
 - [Revision Strategy](revision-strategy.md) — choosing revision mode, traffic split, and rollback approach.
 - [Anti-Patterns](anti-patterns.md) — broader catalog of Container Apps design mistakes.
 - [Platform / Reliability / Health and Recovery](../platform/reliability/health-recovery.md) — underlying platform behavior for health and recovery.
-- [Zone Redundancy Best-Effort Lab](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) — operator-driven perturbation lab for Claims 2 and 3; conclusions held at `[Strongly Suggested]`.
+- [Zone Redundancy Best-Effort Lab](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) — operator-driven perturbation lab for Claim 2; it does not validate planned-maintenance sequencing for Claim 3.
 - [Startup-Degraded Transient Failure Lab](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) — falsifiable reproduction for Claim 4.
 - [Startup-Degraded Bucketed 5xx KQL Pack](../troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md) — the bucket-aggregation pattern used by Claims 2 and 4.
 - [Zone Redundancy Is Best-Effort playbook](../troubleshooting/playbooks/platform-features/zone-redundancy-best-effort.md) — operator-side mitigation flow for Claims 1, 2, and 3.
@@ -265,7 +265,7 @@ Run this checklist before depending on any of the five contracts in production.
 
 ## Sources
 
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) — primary source for Claims 1, 2, and 5.
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) — primary source for Claims 1, 2, 3, and 5, including rolling maintenance across fault domains and availability zones.
 - [How to configure zone redundancy in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy) — corroborating source for Claim 2.
 - [Container Apps planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) — primary source for Claim 3.
 - [Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions) — primary source for Claim 4.

@@ -162,10 +162,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
-| `--yaml` | Applies the YAML template that contains the documented app configuration. |
+| `az containerapp update` | Applies the template containing purpose-specific health probes. |
+| `--name` | Identifies the Container App whose probes are being configured. |
+| `--resource-group` | Locates that app in the production resource group. |
+| `--yaml` | Loads startup, readiness, and liveness probe settings from the reliability template. |
 
 ### Graceful shutdown with SIGTERM and termination grace
 
@@ -197,10 +197,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
-| `--yaml` | Applies the YAML template that contains the documented app configuration. |
+| `az containerapp update` | Applies the template containing the tested termination grace period. |
+| `--name` | Identifies the Container App whose shutdown behavior is being configured. |
+| `--resource-group` | Locates that app in the production resource group. |
+| `--yaml` | Loads `terminationGracePeriodSeconds` from the termination template. |
 
 !!! note "Coordinate grace period with upstream timeout"
     If load balancer, gateway, or client timeout is shorter than termination grace, requests may still fail despite clean SIGTERM handling.
@@ -234,10 +234,10 @@ az containerapp env show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Reads the selected Container Apps environment settings for the documented cost or reliability check. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp env show` | Reads the environment configuration used to verify zone-redundancy status. |
+| `--name` | Identifies the Container Apps environment under reliability review. |
+| `--output` | Emits the full environment resource as JSON so `zoneRedundant` can be inspected. |
+| `--resource-group` | Locates the environment in the production resource group. |
 
 ### Multi-region deployment pattern for critical APIs
 
@@ -364,9 +364,9 @@ az containerapp revision list \
 | Command / Parameter | Purpose |
 |---|---|
 | `az containerapp revision list` | Lists revisions for rollout and reliability review. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App whose revision history is being reviewed. |
+| `--output` | Formats revision names and states as a table for rollout review. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 Immediate rollback example:
 
@@ -380,8 +380,8 @@ az containerapp ingress traffic set \
 | Command / Parameter | Purpose |
 |---|---|
 | `az containerapp ingress traffic set` | Routes all app traffic to the specified known-good revision. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App being rolled back. |
+| `--resource-group` | Locates the app in the production resource group. |
 | `--revision-weight` | Assigns 100 percent of app traffic to the named stable revision. |
 
 !!! warning "Do not deactivate stable revision too early"
@@ -434,8 +434,8 @@ az containerapp logs show \
 |---|---|
 | `az containerapp logs show` | Reads current platform system logs for incident triage. |
 | `--follow` | Returns the current log sample without opening a continuous stream. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App whose platform logs are needed for triage. |
+| `--resource-group` | Locates the app in the production resource group. |
 | `--type` | Selects Container Apps system logs rather than console logs. |
 
 ### Disaster recovery considerations for Container Apps
@@ -519,11 +519,11 @@ az containerapp ingress traffic show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Reads the latest ready revision name for the containment decision. |
+| `--name` | Identifies the incident-affected Container App. |
+| `--output` | Emits the selected revision name as plain text for immediate use. |
+| `--query` | Selects `properties.latestReadyRevisionName` from the app resource. |
+| `--resource-group` | Locates the affected app in the production resource group. |
 | `az containerapp ingress traffic show` | Shows the current revision traffic allocation during containment. |
 
 ### Verify reliability surfaces in Azure Portal
@@ -564,7 +564,7 @@ az containerapp revision list \
 
 az monitor metrics list \
   --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
-  --metrics "CpuUsage" "MemoryUsage" \
+  --metrics "UsageNanoCores" "WorkingSetBytes" \
   --interval "PT5M" \
   --aggregation "Average"
 ```
@@ -572,13 +572,13 @@ az monitor metrics list \
 | Command / Parameter | Purpose |
 |---|---|
 | `az containerapp revision list` | Lists revisions for rollout and reliability review. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App included in the recurring reliability audit. |
+| `--output` | Emits revision details as JSON for automated audit processing. |
+| `--resource-group` | Locates the audited app in the production resource group. |
 | `az monitor metrics list` | Reads CPU and memory metrics for the selected Container App resource. |
 | `--aggregation` | Returns average values for the selected metrics. |
 | `--interval` | Aggregates metric samples into five-minute time grains. |
-| `--metrics` | Requests the CPU and memory metrics used by the recurring audit. |
+| `--metrics` | Requests the documented `UsageNanoCores` CPU and `WorkingSetBytes` memory metrics. |
 | `--resource` | Selects the complete Container App resource ID for Azure Monitor. |
 
 ## Common Mistakes / Anti-Patterns
@@ -612,6 +612,7 @@ az monitor metrics list \
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Monitor Azure Container Apps metrics](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
 - [Dapr component resiliency (preview) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency)
 - [Azure Front Door overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview)
 - [Azure Traffic Manager overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview)
