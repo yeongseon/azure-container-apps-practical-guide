@@ -3,14 +3,17 @@ content_sources:
   diagrams:
     - id: architecture
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: ACA custom-VNet topology synthesized from Microsoft Learn and the shared cross-guide private-dependency contract; it distinguishes the dedicated environment subnet relationship, downstream Storage private endpoint, optional inbound environment private endpoint, external Private DNS zones, and transport paths.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  reviewer: agent
   core_claims:
     - claim: A Container Apps environment can use either the default Azure network or an existing virtual network, and the network type cannot be changed after creation.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
@@ -39,38 +42,73 @@ Container Apps can be deployed into a custom VNet to:
 - Connect to private resources (databases, storage)
 - Control ingress/egress with NSG rules
 
-!!! warning "Subnet sizing is not optional"
-    The Container Apps infrastructure subnet must be at least /23.
-    Smaller subnets commonly fail at environment provisioning time.
+!!! warning "Subnet sizing depends on the environment type"
+    Workload profiles environments and legacy Consumption-only environments have different minimum subnet sizes. Use the current Microsoft Learn sizing table and plan additional capacity for revisions and replicas; do not apply one prefix universally.
 
 ## Architecture
+
+**Takeaway:** ACA attaches the managed environment to a dedicated environment subnet—not through an App Service-style integration NIC—while downstream and inbound private endpoints use separate endpoint NICs for different directions and targets.
 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    subgraph VNet ["Virtual Network (10.0.0.0/16)"]
-        subgraph CASubnet ["Container Apps Subnet (10.0.0.0/23)"]
-            subgraph Environment ["Container Apps Environment"]
-                CA1[App 1]
-                CA2[App 2]
-                INV[Ingress: Envoy]
-            end
+    accTitle: Azure Container Apps custom VNet and private endpoint topology
+    accDescr: The managed Container Apps environment is a logical boundary associated with a dedicated environment subnet. A replica reaches a Storage account through a separate downstream private endpoint subnet after private DNS resolution. An optional inbound private endpoint to the environment occupies another endpoint subnet and requires a workload profiles environment with public network access disabled.
+
+    USER["Public or VNet caller<br/>according to environment accessibility"]
+    PRIVATE_CLIENT["Private client"]
+    STORAGE_NAME["Storage Blob service name"]
+    DNS["DNS resolver"]
+    STORAGE_ZONE["Private DNS zone<br/>privatelink.blob.core.windows.net"]
+    ACA_ZONE["Private DNS zone<br/>privatelink.region.azurecontainerapps.io"]
+
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        INGRESS["Managed ingress proxy"]
+        APP["Container app — logical grouping"]
+        REV_ACTIVE["Active revision"]
+        REPLICAS["Revision replicas"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.-> REPLICAS
+    end
+
+    subgraph VNET["Customer-managed virtual network"]
+        subgraph ENV_SUBNET["Dedicated environment subnet"]
+            ADAPTER["ACA environment subnet relationship<br/>not an app integration NIC"]
         end
 
-        subgraph PESubnet ["Private Endpoint Subnet (10.0.2.0/24)"]
-            PE[Private Endpoint]
+        subgraph TARGET_SUBNET["Target-side private endpoint subnet"]
+            STORAGE_PE["Storage private endpoint NIC<br/>Blob private IP"]
+        end
+
+        subgraph INBOUND_SUBNET["Optional inbound endpoint subnet"]
+            ACA_PE["Container Apps environment<br/>private endpoint NIC"]
         end
     end
 
-    subgraph Internet [Public Internet]
-        U[User]
-    end
+    STORAGE["Storage account<br/>outside customer VNet"]
+    INBOUND_REQ["Inbound environment PE requirements<br/>workload profiles environment<br/>public network access disabled"]
 
-    U -- External Ingress --> INV
-    INV -- Routing --> CA1
-    CA1 -- VNet-Local Call --> CA2
-    CA1 -- Private Link --> PE
+    ENV -.->|"uses dedicated subnet"| ADAPTER
+    USER ==>|"Allowed inbound request"| INGRESS
+    INGRESS ==>|"Route request"| REV_ACTIVE
+    REV_ACTIVE ==>|"Select replica"| REPLICAS
+
+    REPLICAS -.->|"1  Resolve dependency name"| STORAGE_NAME
+    STORAGE_NAME -.-> DNS
+    DNS -.->|"2  Consult linked zone"| STORAGE_ZONE
+    STORAGE_ZONE -.->|"3  Return private IP"| REPLICAS
+    REPLICAS ==>|"4  Outbound HTTPS"| STORAGE_PE
+    STORAGE_PE ==>|"5  Private Link"| STORAGE
+
+    ACA_ZONE -.->|"linked DNS for environment name"| ACA_PE
+    PRIVATE_CLIENT ==>|"Optional inbound HTTPS"| ACA_PE
+    ACA_PE ==>|"Private Link to environment"| INGRESS
+    INBOUND_REQ -.-> ACA_PE
+
+    LEGEND["Arrow key<br/>thick = HTTPS/data transport<br/>dotted = DNS, requirement, or logical relationship"]
 ```
+
+*Figure: The downstream Storage private endpoint and optional inbound environment private endpoint are not interchangeable. Neither endpoint represents app-level internal ingress, and the managed environment is not drawn as a customer-owned subnet workload.*
 
 ## Portal view: non-integrated baseline for the Bicep example
 
@@ -91,7 +129,7 @@ This screenshot is used here as a visual contrast baseline for the Bicep example
 
 ## Create VNet with Subnets
 
-Container Apps requires a dedicated subnet with minimum /23 CIDR block.
+Container Apps requires a dedicated environment subnet. Choose its prefix from the current Microsoft Learn requirements for the environment type and expected scale.
 
 ### Using Azure CLI:
 ```bash
@@ -239,3 +277,5 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
 ## Sources
 - [Custom virtual networks in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom)
 - [Networking architecture in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Use a private endpoint with a Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
+- [Azure Private Endpoint DNS zone values (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)

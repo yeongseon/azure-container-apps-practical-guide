@@ -3,26 +3,34 @@ content_sources:
   diagrams:
     - id: overview
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Comparison of inbound environment Private Link and outbound private-dependency access synthesized from Microsoft Learn; it keeps the two private endpoint purposes and internal ingress distinct.
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
     - id: architecture
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: Downstream Storage private endpoint topology synthesized from Microsoft Learn; the ACA environment subnet relationship, target-side private endpoint NIC, external Private DNS zone, DNS lookup, and HTTPS transport are shown as separate concepts.
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
         - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
     - id: privatelink-region-data-microsoft-com-for-the-data-endpoint-layer
       type: flowchart
-      source: mslearn-adapted
+      source: self-generated
+      justification: ACR private endpoint DNS and image-layer sequence synthesized from current Microsoft Learn; one private endpoint resource supplies private IP configurations for registry and regional data endpoints, while authentication/discovery, redirect, DNS, and layer transport remain distinct.
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal
-        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  reviewer: agent
   core_claims:
     - claim: Workload profiles environments support creating private endpoints on the Container Apps environment.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
@@ -46,28 +54,54 @@ Connect Container Apps to Azure services using Private Endpoints.
 
 ## Overview
 
+**Takeaway:** An inbound private endpoint publishes the Container Apps environment privately, while an outbound call to a dependency uses that dependency's private endpoint. Neither pattern is app-level internal ingress.
+
 <!-- diagram-id: overview -->
 ```mermaid
 flowchart TD
-    subgraph VNet
-        CA[Container App]
-        PE1[Private Endpoint<br/>Key Vault]
-        PE2[Private Endpoint<br/>Storage]
-        PE3[Private Endpoint<br/>ACR login]
-        PE4[Private Endpoint<br/>ACR data]
+    accTitle: Inbound and outbound private endpoint purposes in Azure Container Apps
+    accDescr: A private client can enter a workload profiles Container Apps environment through an inbound environment private endpoint when public network access is disabled. Separately, a logical app replica can connect outbound through a dependency private endpoint in a target-side subnet. Internal app ingress is a third, environment-scoped setting.
+
+    CLIENT["Private client"]
+    DEPENDENCY["Downstream Azure service<br/>Storage, Key Vault, or ACR"]
+
+    subgraph VNET["Customer-managed virtual network"]
+        subgraph INBOUND_SUBNET["Inbound endpoint subnet"]
+            ACA_PE["INBOUND private endpoint NIC<br/>target: managed environment"]
+        end
+        subgraph ENV_SUBNET["Dedicated environment subnet"]
+            ADAPTER["ACA environment subnet relationship<br/>not an app integration NIC"]
+        end
+        subgraph TARGET_SUBNET["Target-side private endpoint subnet"]
+            DEP_PE["OUTBOUND dependency private endpoint NIC<br/>private IP for target service"]
+        end
     end
-    
-    subgraph Azure Services
-        KV[Key Vault<br/>&lt;private-ip&gt;]
-        ST[Storage Account<br/>&lt;private-ip&gt;]
-        ACR[Container Registry<br/>&lt;private-ip&gt; / &lt;private-ip&gt;]
+
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        INGRESS["Managed ingress proxy"]
+        APP["Container app — logical grouping"]
+        REV_ACTIVE["Active revision"]
+        REPLICAS["Revision replicas"]
     end
-    
-    CA --> PE1 --> KV
-    CA --> PE2 --> ST
-    CA --> PE3 --> ACR
-    CA --> PE4 --> ACR
+
+    INTERNAL["App-level internal ingress<br/>same-environment callers by default"]
+
+    CLIENT ==>|"Inbound HTTPS"| ACA_PE
+    ACA_PE ==>|"Private Link to environment"| INGRESS
+    INGRESS ==>|"Route accepted request"| REV_ACTIVE
+    REV_ACTIVE ==>|"Select replica"| REPLICAS
+    ENV -.->|"uses dedicated subnet"| ADAPTER
+    APP -.-> REV_ACTIVE
+    REPLICAS ==>|"Outbound HTTPS"| DEP_PE
+    DEP_PE ==>|"Private Link to dependency"| DEPENDENCY
+    INTERNAL -.->|"Separate ingress visibility setting"| INGRESS
+
+    REQUIREMENTS["Inbound environment PE requirements<br/>workload profiles environment<br/>public network access disabled"]
+    REQUIREMENTS -.-> ACA_PE
+    LEGEND["Arrow key<br/>thick = HTTPS transport<br/>dotted = logical relationship or requirement"]
 ```
+
+*Figure: The inbound environment private endpoint, dedicated environment subnet relationship, and downstream dependency private endpoint are separate resources and purposes. The managed environment remains a logical boundary rather than a customer-owned subnet workload.*
 
 !!! info "What are Private Endpoints?"
     Private Endpoints provide private IP addresses for Azure PaaS services, ensuring traffic never leaves the Microsoft backbone network. Benefits include:
@@ -109,7 +143,7 @@ This deploys:
 | VNet with 2 subnets | Network isolation |
 | Key Vault + Private Endpoint | Secret management |
 | Storage Account + Private Endpoint | Blob storage |
-| ACR + Private Endpoints (registry + data) | Private container image pull |
+| ACR + Private Endpoint (registry and regional data IP configurations) | Private container image pull |
 | Private DNS Zones | Name resolution |
 | Managed Identity | Passwordless authentication |
 
@@ -129,71 +163,97 @@ This deploys:
     Most private endpoint connectivity failures are DNS-related.
     Confirm private name resolution first, then inspect NSG and route behavior.
 
-!!! note "ACR requires two private endpoints"
-    Container Registry is unique — you need a private endpoint for the **login server** (`registry`) and a second one for the **data endpoint** (`registry_data_<region>`). Both must resolve to private IPs for image pulls to work. See [Private Container Registry](../../language-guides/python/recipes/container-registry.md) for the full setup.
+!!! note "ACR private endpoints expose multiple private IP configurations"
+    One ACR private endpoint resource uses the `registry` subresource and receives a private IP for the registry endpoint plus a private IP for each regional data endpoint. The login and required data names must resolve to their corresponding private IPs for private image pulls. See [Private Container Registry](../../language-guides/python/recipes/container-registry.md) for the full setup.
 
 ## Architecture
+
+**Takeaway:** For a downstream Storage dependency, the environment uses its dedicated subnet while the Storage private endpoint NIC sits in a separate target-side subnet; DNS supplies the private IP before a distinct HTTPS connection begins.
 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    subgraph ClientSubnet [Client Subnet]
-        APP[Container App]
+    accTitle: Container Apps outbound access to a Storage private endpoint
+    accDescr: A logical Container Apps replica uses a dedicated environment subnet relationship. A linked Private DNS zone outside the virtual network resolves the Storage Blob name to the private endpoint IP. The replica then opens a separate HTTPS connection to the Storage private endpoint NIC in a target-side subnet, which connects by Private Link to the Storage account outside the virtual network.
+
+    BLOB_NAME["Storage Blob service name<br/>account.blob.core.windows.net"]
+    DNS["DNS resolver"]
+    ZONE["Private DNS zone<br/>privatelink.blob.core.windows.net<br/>linked to customer VNet"]
+
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        APP["Container app — logical grouping"]
+        REV_ACTIVE["Active revision"]
+        REPLICAS["Revision replicas"]
+        APP -.-> REV_ACTIVE
+        REV_ACTIVE -.-> REPLICAS
     end
 
-    subgraph DNS [DNS Resolution]
-        RESL[DNS Resolver / 168.63.129.16]
-        ZONE[Private DNS Zone:<br/>privatelink.vaultcore.azure.net]
+    subgraph VNET["Customer-managed virtual network"]
+        subgraph ENV_SUBNET["Dedicated environment subnet"]
+            ADAPTER["ACA environment subnet relationship<br/>not an app integration NIC"]
+        end
+        subgraph PE_SUBNET["Target-side private endpoint subnet"]
+            STORAGE_PE["Storage private endpoint NIC<br/>Blob private IP"]
+        end
     end
 
-    subgraph PESubnet [Private Endpoint Subnet]
-        PE[Private Endpoint<br/>&lt;private-ip&gt;]
-    end
+    STORAGE["Storage account<br/>outside customer VNet"]
 
-    subgraph Backbone [Microsoft Backbone]
-        SVC[Azure Key Vault]
-    end
+    ENV -.->|"uses dedicated subnet"| ADAPTER
+    REPLICAS -.->|"1  Resolve service name"| BLOB_NAME
+    BLOB_NAME -.->|"2  DNS query"| DNS
+    DNS -.->|"3  Consult linked zone"| ZONE
+    ZONE -.->|"4  Return private endpoint IP"| REPLICAS
+    REPLICAS ==>|"5  HTTPS to private IP"| STORAGE_PE
+    STORAGE_PE ==>|"6  Private Link"| STORAGE
 
-    APP -- 1. DNS Query --> RESL
-    RESL -- 2. Recursive Query --> ZONE
-    ZONE -- 3. CNAME + A Record (&lt;private-ip&gt;) --> RESL
-    RESL -- 4. Return Private IP --> APP
-    APP -- 5. Connect to Private IP --> PE
-    PE -- 6. Private Link --> SVC
+    LEGEND["Arrow key<br/>thick = HTTPS/data transport<br/>dotted = DNS or logical relationship"]
 ```
+
+*Figure: Downstream private-dependency topology. DNS resolution identifies the private endpoint IP; it does not prove that HTTPS connectivity or service authorization succeeds.*
 
 ### ACR Private Endpoint Flow
 
-ACR is unique and requires two private DNS zones for full functionality within a VNet:
+For ACR Private Link in Azure public cloud, the recommended private DNS configuration uses `privatelink.azurecr.io`. ACR adds records for the registry endpoint and regional data endpoints to that zone; do not create the regional data name as a second private DNS zone.
 
-1.  `privatelink.azurecr.io`: For the login server (authentication and metadata)
-2.  `privatelink.<region>.data.microsoft.com`: For the data endpoint (layer downloads)
+The public/private name chain distinguishes two endpoint roles:
+
+1. `<registry>.azurecr.io`: registry authentication and content discovery.
+2. `<registry>.<region>.data.azurecr.io`: dedicated image-layer downloads; its private-link record is represented under `privatelink.azurecr.io` as documented by Azure Private Link DNS guidance.
 
 <!-- diagram-id: privatelink-region-data-microsoft-com-for-the-data-endpoint-layer -->
 ```mermaid
 flowchart TD
-    subgraph VNet
-        CA[Container App]
-        PE1[PE: Login Server<br/>&lt;private-ip&gt;]
-        PE2[PE: Data Endpoint<br/>&lt;private-ip&gt;]
-    end
-    
-    subgraph DNS [Private DNS Zones]
-        DZ1[privatelink.azurecr.io]
-        DZ2[privatelink.region.data.microsoft.com]
-    end
-    
-    subgraph Services [Azure Container Registry]
-        ACR[Registry Storage]
-    end
-    
-    CA -- 1. Auth/Login --> PE1
-    CA -- 2. Pull Layers --> PE2
-    PE1 --> ACR
-    PE2 --> ACR
-    DZ1 -.-> PE1
-    DZ2 -.-> PE2
+    accTitle: ACR private endpoint registry and data endpoint flow
+    accDescr: A logical Container Apps image-pull client resolves the registry login name through the linked privatelink.azurecr.io zone and connects to the registry private IP for authentication and content discovery. A 307 redirect identifies the regional data endpoint. The client separately resolves that name and downloads layer bytes through the data private IP configuration on the same ACR private endpoint resource.
+
+    PULLER["ACA image-pull client<br/>logical actor"]
+    LOGIN_DNS["1  Resolve registry.azurecr.io<br/>through privatelink.azurecr.io"]
+    LOGIN_IP["2  Registry private IP"]
+    REGISTRY_PE["3  Registry IP configuration<br/>on ACR private endpoint"]
+    DISCOVERY["4  ACR authentication and<br/>content discovery"]
+    REDIRECT["5  Manifest and 307 redirect<br/>names regional data endpoint"]
+    DATA_DNS["6  Resolve registry.region.data.azurecr.io<br/>through privatelink.azurecr.io"]
+    DATA_IP["7  Regional data private IP"]
+    DATA_PE["8  Regional data IP configuration<br/>on the same ACR private endpoint"]
+    LAYERS["9  Image layer bytes"]
+
+    PULLER -.-> LOGIN_DNS
+    LOGIN_DNS -.-> LOGIN_IP
+    PULLER ==>|"Registry HTTPS"| REGISTRY_PE
+    LOGIN_IP -.-> REGISTRY_PE
+    REGISTRY_PE ==>|"Private Link"| DISCOVERY
+    DISCOVERY -->|"Authorization and discovery result"| REDIRECT
+    REDIRECT -.-> DATA_DNS
+    DATA_DNS -.-> DATA_IP
+    PULLER ==>|"Layer HTTPS"| DATA_PE
+    DATA_IP -.-> DATA_PE
+    DATA_PE ==>|"Private Link layer download"| LAYERS
+
+    LEGEND["Arrow key<br/>thick = HTTPS or layer-data transport<br/>solid = authorization/discovery result<br/>dotted = DNS or redirect metadata"]
 ```
+
+*Figure: The ACR private endpoint resource can expose multiple private IP configurations. The registry request performs authentication and discovery; the regional data endpoint carries layer downloads after the redirect. DNS answers are not authorization or transport results.*
 
 ## Infrastructure Components
 
@@ -208,8 +268,8 @@ Source template: `infra/modules/network.bicep`
 | `snet-container-apps` | `<container-apps-subnet-cidr>` | Container Apps Environment |
 | `snet-private-endpoints` | `<private-endpoints-subnet-cidr>` | Private Endpoints |
 
-!!! warning "Subnet Size"
-    Container Apps requires a minimum /23 subnet (512 IPs). Smaller subnets will cause deployment failures.
+!!! warning "Size the subnet for the environment type"
+    Workload profiles environments and legacy Consumption-only environments have different minimum subnet sizes. Follow the current Microsoft Learn sizing table instead of applying one prefix universally.
 
 ### 2. Key Vault with Private Endpoint
 
@@ -281,7 +341,7 @@ Microsoft Learn separates **environment-level ingress scope** from **app-level i
 - **Environment**: create the Container Apps environment with `internal: true` by using `az containerapp env create --internal-only true`.
 - **App**: configure the individual app ingress as internal-only (`external: false` in ARM/Bicep/YAML).
 
-Only an **internal environment** combined with **internal app ingress** gives you true VNet-scoped private inbound access. If the environment remains external, setting only `external: false` on the app does **not** make the environment private. Per Microsoft Learn, the `.internal.` FQDN is for calls from other apps in the **same Container Apps environment**; requests from outside that environment receive `404` from the environment proxy.
+An **internal environment** provides a VNet-scoped environment entry point. To let VNet clients reach an app through that entry point, configure the app with external ingress; in an internal environment, "external" means external to the app but still within the environment's VNet boundary. App-level internal ingress (`external: false`) is for same-environment callers by default and is not an inbound environment private endpoint. An environment-level HTTP route can explicitly target an internal-ingress app, so do not treat the default outside-environment `404` as an absolute isolation guarantee.
 
 Reference this guidance in Microsoft Learn:
 
@@ -622,4 +682,9 @@ az group delete --name rg-container-apps-private --yes --no-wait
 
 ## Sources
 - [Internal ingress with VNet integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal)
+- [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Use a private endpoint with a Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
 - [What is a private endpoint? (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview)
+- [Azure Private Endpoint DNS zone values (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)
+- [ACR dedicated data endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
+- [ACR Private Link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link)
