@@ -259,42 +259,68 @@ class StartupGateTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    @staticmethod
+    def set_error_rate(value: object) -> Callable[[dict[str, object]], object]:
+        def apply(record: dict[str, object]) -> None:
+            record["err_pct"] = value
+
+        return apply
+
     def error_rate_subgate(
-        self, mutate: Callable[[dict[str, object]], object]
+        self, mutate: Callable[[dict[str, object]], object], literal: str | None = None
     ) -> tuple[subprocess.CompletedProcess[str], dict[str, object]]:
+        """Run the verifier on a mutated perturbation row and return its Gate 12(a) sub-gate.
+
+        A literal replaces the placeholder err_pct with a raw JSON token, so values that json.dumps
+        or a float round trip would alter reach the verifier exactly as written.
+        """
+        def reject_constant(name: str) -> object:
+            raise AssertionError(f"non-standard JSON constant in a gate output: {name}")
+
         with fixture_lab(self.lab_name) as lab:
             path = lab / "evidence" / "qF-run-summary-20260620T224149Z.json"
             records: list[dict[str, object]] = [*json.loads(path.read_text())]
             for record in records:
                 if str(record["run_id"]).startswith("perturbation-"):
                     _ = mutate(record)
-            _ = path.write_text(json.dumps(records))
+            text = json.dumps(records)
+            if literal is not None:
+                text = text.replace('"@@LITERAL@@"', literal)
+            _ = path.write_text(text)
 
             result = run_verify(lab)
 
+            for name in GATE_OUTPUTS[self.lab_name]:
+                emitted = lab / "evidence" / name
+                if emitted.exists():
+                    _ = json.loads(emitted.read_text(), parse_constant=reject_constant)
             data: dict[str, dict[str, object]] = {**json.loads((lab / "evidence" / GATE_OUTPUTS[self.lab_name][2]).read_text())}
             return result, data["sub_gate_a_k6_client_observed_error_rate_zero"]
 
     def test_missing_or_invalid_error_rate_fails_the_owning_subgate(self) -> None:
-        def set_value(value: object) -> Callable[[dict[str, object]], object]:
-            def apply(record: dict[str, object]) -> None:
-                record["err_pct"] = value
-
-            return apply
-
-        for name, mutate in (
-            ("key missing", lambda record: record.pop("err_pct")),
-            ("null", set_value(None)),
-            ("empty string", set_value("")),
-            ("blank string", set_value("   ")),
-            ("boolean", set_value(True)),
-            ("non-numeric text", set_value("abc")),
-            ("not a number", set_value("nan")),
-            ("infinity", set_value("inf")),
-            ("negative", set_value("-1")),
+        for name, mutate, literal in (
+            ("key missing", lambda record: record.pop("err_pct"), None),
+            ("null", self.set_error_rate(None), None),
+            ("empty string", self.set_error_rate(""), None),
+            ("blank string", self.set_error_rate("   "), None),
+            ("boolean", self.set_error_rate(True), None),
+            ("non-numeric text", self.set_error_rate("abc"), None),
+            ("not a number", self.set_error_rate("nan"), None),
+            ("infinity", self.set_error_rate("inf"), None),
+            ("negative", self.set_error_rate("-1"), None),
+            ("negative below float range", self.set_error_rate("-1e-400"), None),
+            ("underscore padded zero", self.set_error_rate("_0_"), None),
+            ("underscore inside a decimal", self.set_error_rate("0_._3"), None),
+            ("underscore grouped zero", self.set_error_rate("0_0"), None),
+            ("arabic-indic digit", self.set_error_rate("\u0660"), None),
+            ("fullwidth digit", self.set_error_rate("\uff10"), None),
+            ("JSON number negative below float range", self.set_error_rate("@@LITERAL@@"), "-1e-400"),
+            ("bare NaN token", self.set_error_rate("@@LITERAL@@"), "NaN"),
+            ("bare Infinity token", self.set_error_rate("@@LITERAL@@"), "Infinity"),
+            ("bare negative Infinity token", self.set_error_rate("@@LITERAL@@"), "-Infinity"),
         ):
             with self.subTest(case=name):
-                result, sub = self.error_rate_subgate(mutate)
+                result, sub = self.error_rate_subgate(mutate, literal)
 
                 self.assertIsNone(sub["observed_perturbation_err_pct"])
                 self.assertIs(sub["a_pass"], False)
@@ -302,25 +328,41 @@ class StartupGateTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_valid_error_rate_forms_keep_their_documented_tiers(self) -> None:
-        def set_value(value: object) -> Callable[[dict[str, object]], object]:
-            def apply(record: dict[str, object]) -> None:
-                record["err_pct"] = value
-
-            return apply
-
         for name, value, strong, fallback, expected_pass in (
             ("integer zero", 0, True, True, True),
             ("string zero", "0", True, True, True),
             ("decimal zero", "0.0", True, True, True),
+            ("JSON float zero", 0.0, True, True, True),
             ("inside the lower-evidence tier", "0.3", False, True, True),
+            ("JSON float inside the lower-evidence tier", 0.3, False, True, True),
             ("at the fallback bound", "0.5", False, False, False),
         ):
             with self.subTest(case=name):
-                result, sub = self.error_rate_subgate(set_value(value))
+                result, sub = self.error_rate_subgate(self.set_error_rate(value))
 
                 self.assertIs(sub["a_strong_path_err_pct_equals_zero"], strong)
                 self.assertIs(sub["a_fallback_path_err_pct_below_point_five"], fallback)
                 self.assertIs(sub["a_pass"], expected_pass)
+                self.assertNotIn("a_input_problem", sub)
+                self.assertNotIn("observed_perturbation_err_pct_exact", sub)
+                self.assertEqual(result.returncode == 0, expected_pass, result.stdout + result.stderr)
+
+    def test_error_rates_beyond_float_resolution_are_compared_exactly(self) -> None:
+        for name, value, literal, strong, fallback, expected_pass, exact in (
+            ("string below float range", "1e-400", None, False, True, True, "1E-400"),
+            ("string just below the fallback bound", "0.49999999999999999", None, False, True, True, "0.49999999999999999"),
+            ("string beyond float range", "1e309", None, False, False, False, "1E+309"),
+            ("JSON number below float range", "@@LITERAL@@", "1e-400", False, True, True, "1E-400"),
+            ("JSON number just below the fallback bound", "@@LITERAL@@", "0.49999999999999999", False, True, True, "0.49999999999999999"),
+            ("JSON number beyond float range", "@@LITERAL@@", "1e309", False, False, False, "1E+309"),
+        ):
+            with self.subTest(case=name):
+                result, sub = self.error_rate_subgate(self.set_error_rate(value), literal)
+
+                self.assertIs(sub["a_strong_path_err_pct_equals_zero"], strong)
+                self.assertIs(sub["a_fallback_path_err_pct_below_point_five"], fallback)
+                self.assertIs(sub["a_pass"], expected_pass)
+                self.assertEqual(sub["observed_perturbation_err_pct_exact"], exact)
                 self.assertNotIn("a_input_problem", sub)
                 self.assertEqual(result.returncode == 0, expected_pass, result.stdout + result.stderr)
 
